@@ -1,0 +1,432 @@
+-- path: Content/ScriptC/NewRoco/Modules/Core/Battle/Skill/RocoWorldCombatRcdAction.luac
+-- format: decrypted standard Lua 5.4 bytecode
+-- note: disassembly, not original source
+
+main source="@NewRoco\\Modules\\Core\\Battle\\Skill\\RocoWorldCombatRcdAction.lua" lines=0-0 params=0 vararg=1 stack=255 upvalues=1
+constants (14):
+  K[0] = "require"
+  K[1] = "NewRoco.Modules.Core.Battle.Skill.RocoSkillAction"
+  K[2] = "NewRoco.Modules.Core.Scene.Component.WorldCombat.WorldCombatSkillComponent"
+  K[3] = "Extend"
+  K[4] = "RocoWorldCombatRcdAction"
+  K[5] = "NewRoco.Modules.Core.Scene.Common.SceneUtils"
+  K[6] = "OnActionStart"
+  K[7] = "OnActionEnd"
+  K[8] = "OnActionTick"
+  K[9] = "OnRayBlocked"
+  K[10] = "OnExplodeActor"
+  K[11] = "PreLoadActionResAsync"
+  K[12] = "OnResLoadedSuccess"
+  K[13] = "OnResLoadedFailed"
+upvalues (1):
+  U[0] = instack=0 idx=0 kind=6 name="_ENV"
+locals (5):
+  L[0] = "RocoSkillAction" pc=4-32
+  L[1] = "WorldCombatSkillComponent" pc=7-32
+  L[2] = "Base" pc=8-32
+  L[3] = "RocoWorldCombatRcdAction" pc=11-32
+  L[4] = "SceneUtils" pc=14-32
+instructions (32):
+  [0001] VARARGPREP     A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000051
+  [0002] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "require"]
+  [0003] LOADK          A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x00008083 ; R[1] = K[1] "NewRoco.Modules.Core.Battle.Skill.RocoSkillAction"
+  [0004] CALL           A=0 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263168 sJ=-16514047 raw=0x02020044
+  [0005] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "require"]
+  [0006] LOADK          A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010103 ; R[2] = K[2] "NewRoco.Modules.Core.Scene.Component.WorldCombat.WorldCombatSkillComponent"
+  [0007] CALL           A=1 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263169 sJ=-16514046 raw=0x020200C4
+  [0008] MOVE           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000100
+  [0009] SELF           A=3 B=2 C=3 k=1 Bx=1541 sBx=-63994 Ax=394499 sJ=-16382716 raw=0x03028194
+  [0010] LOADK          A=5 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1029 sJ=-16776186 raw=0x00020283 ; R[5] = K[4] "RocoWorldCombatRcdAction"
+  [0011] CALL           A=3 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263683 sJ=-16513532 raw=0x020301C4
+  [0012] GETTABUP       A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x0000020B ; R[4] = U[0][K[0] "require"]
+  [0013] LOADK          A=5 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1285 sJ=-16775930 raw=0x00028283 ; R[5] = K[5] "NewRoco.Modules.Core.Scene.Common.SceneUtils"
+  [0014] CALL           A=4 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263172 sJ=-16514043 raw=0x02020244
+  [0015] CLOSURE        A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x000002CF ; R[5] = function[0]
+  [0016] SETFIELD       A=3 B=6 C=5 k=0 Bx=2572 sBx=-62963 Ax=658435 sJ=-16118780 raw=0x05060192 ; R[3][K[6] "OnActionStart"] = R[5]
+  [0017] CLOSURE        A=5 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=261 sJ=-16776954 raw=0x000082CF ; R[5] = function[1]
+  [0018] SETFIELD       A=3 B=7 C=5 k=0 Bx=2574 sBx=-62961 Ax=658947 sJ=-16118268 raw=0x05070192 ; R[3][K[7] "OnActionEnd"] = R[5]
+  [0019] CLOSURE        A=5 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=517 sJ=-16776698 raw=0x000102CF ; R[5] = function[2]
+  [0020] SETFIELD       A=3 B=8 C=5 k=0 Bx=2576 sBx=-62959 Ax=659459 sJ=-16117756 raw=0x05080192 ; R[3][K[8] "OnActionTick"] = R[5]
+  [0021] CLOSURE        A=5 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=773 sJ=-16776442 raw=0x000182CF ; R[5] = function[3]
+  [0022] SETFIELD       A=3 B=9 C=5 k=0 Bx=2578 sBx=-62957 Ax=659971 sJ=-16117244 raw=0x05090192 ; R[3][K[9] "OnRayBlocked"] = R[5]
+  [0023] CLOSURE        A=5 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1029 sJ=-16776186 raw=0x000202CF ; R[5] = function[4]
+  [0024] SETFIELD       A=3 B=10 C=5 k=0 Bx=2580 sBx=-62955 Ax=660483 sJ=-16116732 raw=0x050A0192 ; R[3][K[10] "OnExplodeActor"] = R[5]
+  [0025] CLOSURE        A=5 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1285 sJ=-16775930 raw=0x000282CF ; R[5] = function[5]
+  [0026] SETFIELD       A=3 B=11 C=5 k=0 Bx=2582 sBx=-62953 Ax=660995 sJ=-16116220 raw=0x050B0192 ; R[3][K[11] "PreLoadActionResAsync"] = R[5]
+  [0027] CLOSURE        A=5 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1541 sJ=-16775674 raw=0x000302CF ; R[5] = function[6]
+  [0028] SETFIELD       A=3 B=12 C=5 k=0 Bx=2584 sBx=-62951 Ax=661507 sJ=-16115708 raw=0x050C0192 ; R[3][K[12] "OnResLoadedSuccess"] = R[5]
+  [0029] CLOSURE        A=5 B=3 C=0 k=1 Bx=7 sBx=-65528 Ax=1797 sJ=-16775418 raw=0x000382CF ; R[5] = function[7]
+  [0030] SETFIELD       A=3 B=13 C=5 k=0 Bx=2586 sBx=-62949 Ax=662019 sJ=-16115196 raw=0x050D0192 ; R[3][K[13] "OnResLoadedFailed"] = R[5]
+  [0031] RETURN         A=3 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132099 sJ=-16645116 raw=0x010201C6
+  [0032] RETURN         A=5 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131589 sJ=-16645626 raw=0x010102C6
+
+  function[0] source="" lines=19-43 params=1 vararg=0 stack=255 upvalues=1
+  constants (16):
+    K[0] = "Log"
+    K[1] = "Debug"
+    K[2] = "RocoWorldCombatRcdAction:OnActionStart"
+    K[3] = "_G"
+    K[4] = "WorldCombatModuleCmd"
+    K[5] = "NRCModuleManager"
+    K[6] = "DoCmd"
+    K[7] = "IsInOfflineMode"
+    K[8] = "IsSkillEditor"
+    K[9] = "Overridden"
+    K[10] = "GetActorByActorInfo"
+    K[11] = "TargetInfo"
+    K[12] = "TargetActorInfo"
+    K[13] = "GetDefaultTargetActor"
+    K[14] = "ActionStartProcess"
+    K[15] = "Abs_K2_GetActorLocation"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=9 name="_ENV"
+  locals (3):
+    L[0] = "self" pc=0-54
+    L[1] = "IsInOfflineMode" pc=5-54
+    L[2] = "target" pc=38-54
+  instructions (54):
+    [0001] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "Log"]
+    [0002] GETFIELD       A=1 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131585 sJ=-16645630 raw=0x0101008E ; R[1] = R[1][K[1] "Debug"]
+    [0003] LOADK          A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010103 ; R[2] = K[2] "RocoWorldCombatRcdAction:OnActionStart"
+    [0004] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0005] LOADFALSE      A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000085
+    [0006] GETTABUP       A=2 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393218 sJ=-16383997 raw=0x0300010B ; R[2] = U[0][K[3] "_G"]
+    [0007] GETFIELD       A=2 B=2 C=4 k=0 Bx=2052 sBx=-63483 Ax=525314 sJ=-16251901 raw=0x0402010E ; R[2] = R[2][K[4] "WorldCombatModuleCmd"]
+    [0008] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0009] JMP            A=9 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777225 sJ=10 raw=0x800004B8
+    [0010] GETTABUP       A=2 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393218 sJ=-16383997 raw=0x0300010B ; R[2] = U[0][K[3] "_G"]
+    [0011] GETFIELD       A=2 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656386 sJ=-16120829 raw=0x0502010E ; R[2] = R[2][K[5] "NRCModuleManager"]
+    [0012] SELF           A=2 B=2 C=6 k=1 Bx=3077 sBx=-62458 Ax=787714 sJ=-15989501 raw=0x06028114
+    [0013] GETTABUP       A=4 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393220 sJ=-16383995 raw=0x0300020B ; R[4] = U[0][K[3] "_G"]
+    [0014] GETFIELD       A=4 B=4 C=4 k=0 Bx=2056 sBx=-63479 Ax=526340 sJ=-16250875 raw=0x0404020E ; R[4] = R[4][K[4] "WorldCombatModuleCmd"]
+    [0015] GETFIELD       A=4 B=4 C=7 k=0 Bx=3592 sBx=-61943 Ax=919556 sJ=-15857659 raw=0x0704020E ; R[4] = R[4][K[7] "IsInOfflineMode"]
+    [0016] CALL           A=2 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263682 sJ=-16513533 raw=0x02030144
+    [0017] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0018] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0019] LOADTRUE       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000087
+    [0020] SELF           A=2 B=0 C=8 k=1 Bx=4097 sBx=-61438 Ax=1048834 sJ=-15728381 raw=0x08008114
+    [0021] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0022] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0023] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0024] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+    [0025] JMP            A=6 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777222 sJ=7 raw=0x80000338
+    [0026] GETTABUP       A=2 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393218 sJ=-16383997 raw=0x0300010B ; R[2] = U[0][K[3] "_G"]
+    [0027] GETFIELD       A=2 B=2 C=4 k=0 Bx=2052 sBx=-63483 Ax=525314 sJ=-16251901 raw=0x0402010E ; R[2] = R[2][K[4] "WorldCombatModuleCmd"]
+    [0028] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0029] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0030] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0031] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0032] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+    [0033] GETFIELD       A=2 B=0 C=9 k=0 Bx=4608 sBx=-60927 Ax=1179650 sJ=-15597565 raw=0x0900010E ; R[2] = R[0][K[9] "Overridden"]
+    [0034] GETFIELD       A=2 B=2 C=10 k=0 Bx=5124 sBx=-60411 Ax=1311746 sJ=-15465469 raw=0x0A02010E ; R[2] = R[2][K[10] "GetActorByActorInfo"]
+    [0035] MOVE           A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000180
+    [0036] GETFIELD       A=4 B=0 C=11 k=0 Bx=5632 sBx=-59903 Ax=1441796 sJ=-15335419 raw=0x0B00020E ; R[4] = R[0][K[11] "TargetInfo"]
+    [0037] GETFIELD       A=4 B=4 C=12 k=0 Bx=6152 sBx=-59383 Ax=1574916 sJ=-15202299 raw=0x0C04020E ; R[4] = R[4][K[12] "TargetActorInfo"]
+    [0038] CALL           A=2 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263682 sJ=-16513533 raw=0x02030144
+    [0039] TEST           A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x00008142
+    [0040] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0041] SELF           A=3 B=0 C=13 k=1 Bx=6657 sBx=-58878 Ax=1704195 sJ=-15073020 raw=0x0D008194
+    [0042] CALL           A=3 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263171 sJ=-16514044 raw=0x020201C4
+    [0043] MOVE           A=2 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1538 sJ=-16775677 raw=0x00030100
+    [0044] TEST           A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x00008142
+    [0045] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0046] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7
+    [0047] SELF           A=3 B=0 C=14 k=1 Bx=7169 sBx=-58366 Ax=1835267 sJ=-14941948 raw=0x0E008194
+    [0048] SELF           A=5 B=2 C=15 k=1 Bx=7685 sBx=-57850 Ax=1967365 sJ=-14809850 raw=0x0F028294
+    [0049] CALL           A=5 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263173 sJ=-16514042 raw=0x020202C4
+    [0050] LOADNIL        A=6 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=6 sJ=-16777209 raw=0x00000308
+    [0051] LOADFALSE      A=7 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=7 sJ=-16777208 raw=0x00000385
+    [0052] MOVE           A=8 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=520 sJ=-16776695 raw=0x00010400
+    [0053] CALL           A=3 B=6 C=1 k=0 Bx=524 sBx=-65011 Ax=134147 sJ=-16643068 raw=0x010601C4
+    [0054] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7
+
+  function[1] source="" lines=45-57 params=1 vararg=0 stack=255 upvalues=1
+  constants (10):
+    K[0] = "Log"
+    K[1] = "Debug"
+    K[2] = "RocoWorldCombatRcdAction:OnActionEnd"
+    K[3] = "IsSkillEditor"
+    K[4] = "_G"
+    K[5] = "WorldCombatModuleCmd"
+    K[6] = "NRCModuleManager"
+    K[7] = "DoCmd"
+    K[8] = "IsInOfflineMode"
+    K[9] = "ActionEndProcess"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=4 name="_ENV"
+  locals (1):
+    L[0] = "self" pc=0-27
+  instructions (27):
+    [0001] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "Log"]
+    [0002] GETFIELD       A=1 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131585 sJ=-16645630 raw=0x0101008E ; R[1] = R[1][K[1] "Debug"]
+    [0003] LOADK          A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010103 ; R[2] = K[2] "RocoWorldCombatRcdAction:OnActionEnd"
+    [0004] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0005] SELF           A=1 B=0 C=3 k=1 Bx=1537 sBx=-63998 Ax=393473 sJ=-16383742 raw=0x03008094
+    [0006] CALL           A=1 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263169 sJ=-16514046 raw=0x020200C4
+    [0007] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0008] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0009] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+    [0010] JMP            A=13 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777229 sJ=14 raw=0x800006B8
+    [0011] GETTABUP       A=1 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524289 sJ=-16252926 raw=0x0400008B ; R[1] = U[0][K[4] "_G"]
+    [0012] GETFIELD       A=1 B=1 C=5 k=0 Bx=2562 sBx=-62973 Ax=655873 sJ=-16121342 raw=0x0501008E ; R[1] = R[1][K[5] "WorldCombatModuleCmd"]
+    [0013] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0014] JMP            A=9 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777225 sJ=10 raw=0x800004B8
+    [0015] GETTABUP       A=1 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524289 sJ=-16252926 raw=0x0400008B ; R[1] = U[0][K[4] "_G"]
+    [0016] GETFIELD       A=1 B=1 C=6 k=0 Bx=3074 sBx=-62461 Ax=786945 sJ=-15990270 raw=0x0601008E ; R[1] = R[1][K[6] "NRCModuleManager"]
+    [0017] SELF           A=1 B=1 C=7 k=1 Bx=3587 sBx=-61948 Ax=918273 sJ=-15858942 raw=0x07018094
+    [0018] GETTABUP       A=3 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524291 sJ=-16252924 raw=0x0400018B ; R[3] = U[0][K[4] "_G"]
+    [0019] GETFIELD       A=3 B=3 C=5 k=0 Bx=2566 sBx=-62969 Ax=656899 sJ=-16120316 raw=0x0503018E ; R[3] = R[3][K[5] "WorldCombatModuleCmd"]
+    [0020] GETFIELD       A=3 B=3 C=8 k=0 Bx=4102 sBx=-61433 Ax=1050115 sJ=-15727100 raw=0x0803018E ; R[3] = R[3][K[8] "IsInOfflineMode"]
+    [0021] CALL           A=1 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263681 sJ=-16513534 raw=0x020300C4
+    [0022] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0023] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0024] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+    [0025] SELF           A=1 B=0 C=9 k=1 Bx=4609 sBx=-60926 Ax=1179905 sJ=-15597310 raw=0x09008094
+    [0026] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0027] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[2] source="" lines=59-70 params=2 vararg=0 stack=255 upvalues=1
+  constants (10):
+    K[0] = "IsSkillEditor"
+    K[1] = "_G"
+    K[2] = "WorldCombatModuleCmd"
+    K[3] = "NRCModuleManager"
+    K[4] = "DoCmd"
+    K[5] = "IsInOfflineMode"
+    K[6] = "UE"
+    K[7] = "TArray"
+    K[8] = "AActor"
+    K[9] = "ActionTickProcess"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=7 name="_ENV"
+  locals (3):
+    L[0] = "self" pc=0-30
+    L[1] = "DeltaTime" pc=0-30
+    L[2] = "ignoreActors" pc=25-30
+  instructions (30):
+    [0001] SELF           A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x00008114
+    [0002] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0003] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0004] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0005] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+    [0006] JMP            A=13 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777229 sJ=14 raw=0x800006B8
+    [0007] GETTABUP       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010B ; R[2] = U[0][K[1] "_G"]
+    [0008] GETFIELD       A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x0202010E ; R[2] = R[2][K[2] "WorldCombatModuleCmd"]
+    [0009] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0010] JMP            A=9 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777225 sJ=10 raw=0x800004B8
+    [0011] GETTABUP       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010B ; R[2] = U[0][K[1] "_G"]
+    [0012] GETFIELD       A=2 B=2 C=3 k=0 Bx=1540 sBx=-63995 Ax=394242 sJ=-16382973 raw=0x0302010E ; R[2] = R[2][K[3] "NRCModuleManager"]
+    [0013] SELF           A=2 B=2 C=4 k=1 Bx=2053 sBx=-63482 Ax=525570 sJ=-16251645 raw=0x04028114
+    [0014] GETTABUP       A=4 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131076 sJ=-16646139 raw=0x0100020B ; R[4] = U[0][K[1] "_G"]
+    [0015] GETFIELD       A=4 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264196 sJ=-16513019 raw=0x0204020E ; R[4] = R[4][K[2] "WorldCombatModuleCmd"]
+    [0016] GETFIELD       A=4 B=4 C=5 k=0 Bx=2568 sBx=-62967 Ax=657412 sJ=-16119803 raw=0x0504020E ; R[4] = R[4][K[5] "IsInOfflineMode"]
+    [0017] CALL           A=2 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263682 sJ=-16513533 raw=0x02030144
+    [0018] TEST           A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x00008142
+    [0019] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0020] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+    [0021] GETTABUP       A=2 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786434 sJ=-15990781 raw=0x0600010B ; R[2] = U[0][K[6] "UE"]
+    [0022] GETFIELD       A=2 B=2 C=7 k=0 Bx=3588 sBx=-61947 Ax=918530 sJ=-15858685 raw=0x0702010E ; R[2] = R[2][K[7] "TArray"]
+    [0023] GETTABUP       A=3 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786435 sJ=-15990780 raw=0x0600018B ; R[3] = U[0][K[6] "UE"]
+    [0024] GETFIELD       A=3 B=3 C=8 k=0 Bx=4102 sBx=-61433 Ax=1050115 sJ=-15727100 raw=0x0803018E ; R[3] = R[3][K[8] "AActor"]
+    [0025] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0026] SELF           A=3 B=0 C=9 k=1 Bx=4609 sBx=-60926 Ax=1179907 sJ=-15597308 raw=0x09008194
+    [0027] MOVE           A=5 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=517 sJ=-16776698 raw=0x00010280
+    [0028] MOVE           A=6 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1030 sJ=-16776185 raw=0x00020300
+    [0029] CALL           A=3 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133123 sJ=-16644092 raw=0x010401C4
+    [0030] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7
+
+  function[3] source="" lines=72-100 params=3 vararg=0 stack=255 upvalues=0
+  locals (3):
+    L[0] = "self" pc=0-1
+    L[1] = "BlockActor" pc=0-1
+    L[2] = "HitDir" pc=0-1
+  instructions (1):
+    [0001] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7
+
+  function[4] source="" lines=104-130 params=3 vararg=0 stack=255 upvalues=1
+  constants (7):
+    K[0] = "Log"
+    K[1] = "Debug"
+    K[2] = "string"
+    K[3] = "format"
+    K[4] = "RocoWorldCombatRcdAction:OnHitActor#0: %s, %d"
+    K[5] = "GetName"
+    K[6] = "IsSkillEditor"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=8 name="_ENV"
+  locals (3):
+    L[0] = "self" pc=0-18
+    L[1] = "InActor" pc=0-18
+    L[2] = "HitCount" pc=0-18
+  instructions (18):
+    [0001] GETTABUP       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018B ; R[3] = U[0][K[0] "Log"]
+    [0002] GETFIELD       A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x0103018E ; R[3] = R[3][K[1] "Debug"]
+    [0003] GETTABUP       A=4 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262148 sJ=-16515067 raw=0x0200020B ; R[4] = U[0][K[2] "string"]
+    [0004] GETFIELD       A=4 B=4 C=3 k=0 Bx=1544 sBx=-63991 Ax=395268 sJ=-16381947 raw=0x0304020E ; R[4] = R[4][K[3] "format"]
+    [0005] LOADK          A=5 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1029 sJ=-16776186 raw=0x00020283 ; R[5] = K[4] "RocoWorldCombatRcdAction:OnHitActor#0: %s, %d"
+    [0006] SELF           A=6 B=1 C=5 k=1 Bx=2563 sBx=-62972 Ax=656134 sJ=-16121081 raw=0x05018314
+    [0007] CALL           A=6 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263174 sJ=-16514041 raw=0x02020344
+    [0008] MOVE           A=7 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1031 sJ=-16776184 raw=0x00020380
+    [0009] CALL           A=4 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2052 sJ=-16775163 raw=0x00040244
+    [0010] CALL           A=3 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131075 sJ=-16646140 raw=0x010001C4
+    [0011] SELF           A=3 B=0 C=6 k=1 Bx=3073 sBx=-62462 Ax=786691 sJ=-15990524 raw=0x06008194
+    [0012] CALL           A=3 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263171 sJ=-16514044 raw=0x020201C4
+    [0013] TEST           A=3 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=259 sJ=-16776956 raw=0x000081C2
+    [0014] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0015] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0016] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0017] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7
+    [0018] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7
+
+  function[5] source="" lines=132-157 params=1 vararg=0 stack=255 upvalues=1
+  constants (19):
+    K[0] = "CollisionProperties"
+    K[1] = "CollisionPlayer"
+    K[2] = "HitPlayerPlayFx"
+    K[3] = "GetLongPackageName"
+    K[4] = ""
+    K[5] = "_G"
+    K[6] = "NRCUtils"
+    K[7] = "FormatResPackageNameToFullPath"
+    K[8] = "NRCModuleManager"
+    K[9] = "GetModule"
+    K[10] = "CollisionModule"
+    K[11] = "HitFxList"
+    K[12] = "ResRequest"
+    K[13] = "NRCResourceManager"
+    K[14] = "LoadResAsync"
+    K[15] = "PriorityEnum"
+    K[16] = "Active_World_Combat_Boss"
+    K[17] = "OnResLoadedSuccess"
+    K[18] = "OnResLoadedFailed"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=12 name="_ENV"
+  locals (4):
+    L[0] = "self" pc=0-43
+    L[1] = "FxPath" pc=9-43
+    L[2] = "collisionModule" pc=22-43
+    L[3] = "FxRes" pc=27-43
+  instructions (43):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "CollisionProperties"]
+    [0002] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0003] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0004] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+    [0005] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "CollisionProperties"]
+    [0006] GETFIELD       A=1 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131585 sJ=-16645630 raw=0x0101008E ; R[1] = R[1][K[1] "CollisionPlayer"]
+    [0007] GETFIELD       A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x0201008E ; R[1] = R[1][K[2] "HitPlayerPlayFx"]
+    [0008] SELF           A=1 B=1 C=3 k=1 Bx=1539 sBx=-63996 Ax=393985 sJ=-16383230 raw=0x03018094
+    [0009] CALL           A=1 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263169 sJ=-16514046 raw=0x020200C4
+    [0010] EQK            A=1 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2049 sJ=-16775166 raw=0x000400BC
+    [0011] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0012] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+    [0013] GETTABUP       A=2 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655362 sJ=-16121853 raw=0x0500010B ; R[2] = U[0][K[5] "_G"]
+    [0014] GETFIELD       A=2 B=2 C=6 k=0 Bx=3076 sBx=-62459 Ax=787458 sJ=-15989757 raw=0x0602010E ; R[2] = R[2][K[6] "NRCUtils"]
+    [0015] GETFIELD       A=2 B=2 C=7 k=0 Bx=3588 sBx=-61947 Ax=918530 sJ=-15858685 raw=0x0702010E ; R[2] = R[2][K[7] "FormatResPackageNameToFullPath"]
+    [0016] MOVE           A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x00010180
+    [0017] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0018] MOVE           A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x00020080
+    [0019] GETTABUP       A=2 B=0 C=8 k=0 Bx=4096 sBx=-61439 Ax=1048578 sJ=-15728637 raw=0x0800010B ; R[2] = U[0][K[8] "NRCModuleManager"]
+    [0020] SELF           A=2 B=2 C=9 k=1 Bx=4613 sBx=-60922 Ax=1180930 sJ=-15596285 raw=0x09028114
+    [0021] LOADK          A=4 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2564 sJ=-16774651 raw=0x00050203 ; R[4] = K[10] "CollisionModule"
+    [0022] CALL           A=2 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263682 sJ=-16513533 raw=0x02030144
+    [0023] TEST           A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x00008142
+    [0024] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0025] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7
+    [0026] GETFIELD       A=3 B=2 C=11 k=0 Bx=5636 sBx=-59899 Ax=1442819 sJ=-15334396 raw=0x0B02018E ; R[3] = R[2][K[11] "HitFxList"]
+    [0027] GETTABLE       A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x0103018C
+    [0028] TEST           A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x000001C2
+    [0029] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0030] RETURN0        A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010247
+    [0031] GETTABUP       A=4 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655364 sJ=-16121851 raw=0x0500020B ; R[4] = U[0][K[5] "_G"]
+    [0032] GETFIELD       A=4 B=4 C=13 k=0 Bx=6664 sBx=-58871 Ax=1705988 sJ=-15071227 raw=0x0D04020E ; R[4] = R[4][K[13] "NRCResourceManager"]
+    [0033] SELF           A=4 B=4 C=14 k=1 Bx=7177 sBx=-58358 Ax=1837316 sJ=-14939899 raw=0x0E048214
+    [0034] MOVE           A=6 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=6 sJ=-16777209 raw=0x00000300
+    [0035] MOVE           A=7 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=519 sJ=-16776696 raw=0x00010380
+    [0036] GETTABUP       A=8 B=0 C=15 k=0 Bx=7680 sBx=-57855 Ax=1966088 sJ=-14811127 raw=0x0F00040B ; R[8] = U[0][K[15] "PriorityEnum"]
+    [0037] GETFIELD       A=8 B=8 C=16 k=0 Bx=8208 sBx=-57327 Ax=2101256 sJ=-14675959 raw=0x1008040E ; R[8] = R[8][K[16] "Active_World_Combat_Boss"]
+    [0038] LOADI          A=9 B=4 C=128 k=1 Bx=65545 sBx=10 Ax=16779529 sJ=2314 raw=0x80048481
+    [0039] GETFIELD       A=10 B=0 C=17 k=0 Bx=8704 sBx=-56831 Ax=2228234 sJ=-14548981 raw=0x1100050E ; R[10] = R[0][K[17] "OnResLoadedSuccess"]
+    [0040] GETFIELD       A=11 B=0 C=18 k=0 Bx=9216 sBx=-56319 Ax=2359307 sJ=-14417908 raw=0x1200058E ; R[11] = R[0][K[18] "OnResLoadedFailed"]
+    [0041] CALL           A=4 B=8 C=2 k=0 Bx=1040 sBx=-64495 Ax=266244 sJ=-16510971 raw=0x02080244
+    [0042] SETFIELD       A=0 B=12 C=4 k=0 Bx=2072 sBx=-63463 Ax=530432 sJ=-16246783 raw=0x040C0012 ; R[0][K[12] "ResRequest"] = R[4]
+    [0043] RETURN0        A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010247
+
+  function[6] source="" lines=161-178 params=3 vararg=0 stack=255 upvalues=1
+  constants (15):
+    K[0] = "Log"
+    K[1] = "Error"
+    K[2] = "RocoWorldCombatRcdAction:OnResLoadedSuccess Not asset!!!"
+    K[3] = "Debug"
+    K[4] = "RocoWorldCombatRcdAction:OnResLoaded"
+    K[5] = "NRCModuleManager"
+    K[6] = "GetModule"
+    K[7] = "CollisionModule"
+    K[8] = "AddHitResCache"
+    K[9] = "assetPath"
+    K[10] = "_G"
+    K[11] = "NRCEventCenter"
+    K[12] = "DispatchEvent"
+    K[13] = "NRCGlobalEvent"
+    K[14] = "OnSkillResLoaded"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=9 name="_ENV"
+  locals (4):
+    L[0] = "self" pc=0-33
+    L[1] = "req" pc=0-33
+    L[2] = "asset" pc=0-33
+    L[3] = "collisionModule" pc=16-33
+  instructions (33):
+    [0001] TEST           A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x00008142
+    [0002] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0003] GETTABUP       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018B ; R[3] = U[0][K[0] "Log"]
+    [0004] GETFIELD       A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x0103018E ; R[3] = R[3][K[1] "Error"]
+    [0005] LOADK          A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010203 ; R[4] = K[2] "RocoWorldCombatRcdAction:OnResLoadedSuccess Not asset!!!"
+    [0006] CALL           A=3 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132099 sJ=-16645116 raw=0x010201C4
+    [0007] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7
+    [0008] GETTABUP       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018B ; R[3] = U[0][K[0] "Log"]
+    [0009] GETFIELD       A=3 B=3 C=3 k=0 Bx=1542 sBx=-63993 Ax=394755 sJ=-16382460 raw=0x0303018E ; R[3] = R[3][K[3] "Debug"]
+    [0010] LOADK          A=4 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1028 sJ=-16776187 raw=0x00020203 ; R[4] = K[4] "RocoWorldCombatRcdAction:OnResLoaded"
+    [0011] MOVE           A=5 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1029 sJ=-16776186 raw=0x00020280
+    [0012] CALL           A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x010301C4
+    [0013] GETTABUP       A=3 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655363 sJ=-16121852 raw=0x0500018B ; R[3] = U[0][K[5] "NRCModuleManager"]
+    [0014] SELF           A=3 B=3 C=6 k=1 Bx=3079 sBx=-62456 Ax=788227 sJ=-15988988 raw=0x06038194
+    [0015] LOADK          A=5 B=3 C=0 k=1 Bx=7 sBx=-65528 Ax=1797 sJ=-16775418 raw=0x00038283 ; R[5] = K[7] "CollisionModule"
+    [0016] CALL           A=3 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263683 sJ=-16513532 raw=0x020301C4
+    [0017] TEST           A=3 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=259 sJ=-16776956 raw=0x000081C2
+    [0018] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0019] RETURN0        A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010247
+    [0020] SELF           A=4 B=3 C=8 k=1 Bx=4103 sBx=-61432 Ax=1050372 sJ=-15726843 raw=0x08038214
+    [0021] GETFIELD       A=6 B=1 C=9 k=0 Bx=4610 sBx=-60925 Ax=1180166 sJ=-15597049 raw=0x0901030E ; R[6] = R[1][K[9] "assetPath"]
+    [0022] MOVE           A=7 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1031 sJ=-16776184 raw=0x00020380
+    [0023] CALL           A=4 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133124 sJ=-16644091 raw=0x01040244
+    [0024] GETTABUP       A=4 B=0 C=10 k=0 Bx=5120 sBx=-60415 Ax=1310724 sJ=-15466491 raw=0x0A00020B ; R[4] = U[0][K[10] "_G"]
+    [0025] GETFIELD       A=4 B=4 C=11 k=0 Bx=5640 sBx=-59895 Ax=1443844 sJ=-15333371 raw=0x0B04020E ; R[4] = R[4][K[11] "NRCEventCenter"]
+    [0026] SELF           A=4 B=4 C=12 k=1 Bx=6153 sBx=-59382 Ax=1575172 sJ=-15202043 raw=0x0C048214
+    [0027] GETTABUP       A=6 B=0 C=10 k=0 Bx=5120 sBx=-60415 Ax=1310726 sJ=-15466489 raw=0x0A00030B ; R[6] = U[0][K[10] "_G"]
+    [0028] GETFIELD       A=6 B=6 C=13 k=0 Bx=6668 sBx=-58867 Ax=1707014 sJ=-15070201 raw=0x0D06030E ; R[6] = R[6][K[13] "NRCGlobalEvent"]
+    [0029] GETFIELD       A=6 B=6 C=14 k=0 Bx=7180 sBx=-58355 Ax=1838086 sJ=-14939129 raw=0x0E06030E ; R[6] = R[6][K[14] "OnSkillResLoaded"]
+    [0030] GETFIELD       A=7 B=1 C=9 k=0 Bx=4610 sBx=-60925 Ax=1180167 sJ=-15597048 raw=0x0901038E ; R[7] = R[1][K[9] "assetPath"]
+    [0031] MOVE           A=8 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1032 sJ=-16776183 raw=0x00020400
+    [0032] CALL           A=4 B=5 C=1 k=0 Bx=522 sBx=-65013 Ax=133636 sJ=-16643579 raw=0x01050244
+    [0033] RETURN0        A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010247
+
+  function[7] source="" lines=180-182 params=3 vararg=0 stack=255 upvalues=1
+  constants (4):
+    K[0] = "Log"
+    K[1] = "Error"
+    K[2] = "RocoWorldCombatRcdAction:OnResLoadedFailed: "
+    K[3] = "assetPath"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=7 name="_ENV"
+  locals (3):
+    L[0] = "self" pc=0-7
+    L[1] = "req" pc=0-7
+    L[2] = "msg" pc=0-7
+  instructions (7):
+    [0001] GETTABUP       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018B ; R[3] = U[0][K[0] "Log"]
+    [0002] GETFIELD       A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x0103018E ; R[3] = R[3][K[1] "Error"]
+    [0003] LOADK          A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010203 ; R[4] = K[2] "RocoWorldCombatRcdAction:OnResLoadedFailed: "
+    [0004] MOVE           A=5 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1029 sJ=-16776186 raw=0x00020280
+    [0005] GETFIELD       A=6 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393734 sJ=-16383481 raw=0x0301030E ; R[6] = R[1][K[3] "assetPath"]
+    [0006] CALL           A=3 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133123 sJ=-16644092 raw=0x010401C4
+    [0007] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7

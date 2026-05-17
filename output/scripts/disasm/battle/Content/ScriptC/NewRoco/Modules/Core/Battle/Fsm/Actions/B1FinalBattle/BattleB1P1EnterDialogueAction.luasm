@@ -1,0 +1,119 @@
+-- path: Content/ScriptC/NewRoco/Modules/Core/Battle/Fsm/Actions/B1FinalBattle/BattleB1P1EnterDialogueAction.luac
+-- format: decrypted standard Lua 5.4 bytecode
+-- note: disassembly, not original source
+
+main source="@NewRoco\\Modules\\Core\\Battle\\Fsm\\Actions\\B1FinalBattle\\BattleB1P1EnterDialogueAction.lua" lines=0-0 params=0 vararg=1 stack=255 upvalues=1
+constants (6):
+  K[0] = "require"
+  K[1] = "NewRoco.Modules.Core.Battle.Fsm.Actions.B1FinalBattle.BattleShowDialogueAction"
+  K[2] = "Extend"
+  K[3] = "BattleB1P1EnterDialogueAction"
+  K[4] = "OnEnter"
+  K[5] = "GetDialogueId"
+upvalues (1):
+  U[0] = instack=0 idx=0 kind=5 name="_ENV"
+locals (3):
+  L[0] = "BattleShowDialogueAction" pc=4-14
+  L[1] = "Base" pc=5-14
+  L[2] = "BattleB1P1EnterDialogueAction" pc=8-14
+instructions (14):
+  [0001] VARARGPREP     A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000051
+  [0002] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "require"]
+  [0003] LOADK          A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x00008083 ; R[1] = K[1] "NewRoco.Modules.Core.Battle.Fsm.Actions.B1FinalBattle.BattleShowDialogueAction"
+  [0004] CALL           A=0 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263168 sJ=-16514047 raw=0x02020044
+  [0005] MOVE           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000080
+  [0006] SELF           A=2 B=1 C=2 k=1 Bx=1027 sBx=-64508 Ax=262914 sJ=-16514301 raw=0x02018114
+  [0007] LOADK          A=4 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=772 sJ=-16776443 raw=0x00018203 ; R[4] = K[3] "BattleB1P1EnterDialogueAction"
+  [0008] CALL           A=2 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263682 sJ=-16513533 raw=0x02030144
+  [0009] CLOSURE        A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x000001CF ; R[3] = function[0]
+  [0010] SETFIELD       A=2 B=4 C=3 k=0 Bx=1544 sBx=-63991 Ax=395266 sJ=-16381949 raw=0x03040112 ; R[2][K[4] "OnEnter"] = R[3]
+  [0011] CLOSURE        A=3 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=259 sJ=-16776956 raw=0x000081CF ; R[3] = function[1]
+  [0012] SETFIELD       A=2 B=5 C=3 k=0 Bx=1546 sBx=-63989 Ax=395778 sJ=-16381437 raw=0x03050112 ; R[2][K[5] "GetDialogueId"] = R[3]
+  [0013] RETURN         A=2 B=2 C=1 k=1 Bx=517 sBx=-65018 Ax=132354 sJ=-16644861 raw=0x01028146
+  [0014] RETURN         A=3 B=1 C=1 k=1 Bx=515 sBx=-65020 Ax=131843 sJ=-16645372 raw=0x010181C6
+
+  function[0] source="" lines=14-26 params=1 vararg=0 stack=255 upvalues=2
+  constants (18):
+    K[0] = "NRCModuleManager"
+    K[1] = "DoCmd"
+    K[2] = "BlackScreenModuleCmd"
+    K[3] = "OpenGlobalBlackScreenIfNeed"
+    K[4] = "_G"
+    K[5] = "BattleManager"
+    K[6] = "battleRuntimeData"
+    K[7] = "RemoveB1P1LevelSequence"
+    K[8] = "vBattleField"
+    K[9] = "battleCameraManager"
+    K[10] = "ChangeToSkill"
+    K[11] = "Battle;Battle;Battle_Type;B1EndWar;Battle_Stage;Stage_1"
+    K[12] = "NRCAudioManager"
+    K[13] = "BatchSetState"
+    K[14] = "battlePawnManager"
+    K[15] = "GetPlayerEnemyTeam"
+    K[16] = "ShowPlayer"
+    K[17] = "OnEnter"
+  upvalues (2):
+    U[0] = instack=0 idx=0 kind=1 name="_ENV"
+    U[1] = instack=1 idx=0 kind=6 name="Base"
+  locals (3):
+    L[0] = "self" pc=0-38
+    L[1] = "BattleState" pc=20-38
+    L[2] = "enemyPlayer" pc=30-38
+  instructions (38):
+    [0001] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "NRCModuleManager"]
+    [0002] SELF           A=1 B=1 C=1 k=1 Bx=515 sBx=-65020 Ax=131841 sJ=-16645374 raw=0x01018094
+    [0003] GETTABUP       A=3 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262147 sJ=-16515068 raw=0x0200018B ; R[3] = U[0][K[2] "BlackScreenModuleCmd"]
+    [0004] GETFIELD       A=3 B=3 C=3 k=0 Bx=1542 sBx=-63993 Ax=394755 sJ=-16382460 raw=0x0303018E ; R[3] = R[3][K[3] "OpenGlobalBlackScreenIfNeed"]
+    [0005] LOADI          A=4 B=205 C=127 k=1 Bx=65435 sBx=-100 Ax=16751364 sJ=-25851 raw=0x7FCD8201
+    [0006] LOADFALSE      A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x00000285
+    [0007] CALL           A=1 B=5 C=1 k=0 Bx=522 sBx=-65013 Ax=133633 sJ=-16643582 raw=0x010500C4
+    [0008] GETTABUP       A=1 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524289 sJ=-16252926 raw=0x0400008B ; R[1] = U[0][K[4] "_G"]
+    [0009] GETFIELD       A=1 B=1 C=5 k=0 Bx=2562 sBx=-62973 Ax=655873 sJ=-16121342 raw=0x0501008E ; R[1] = R[1][K[5] "BattleManager"]
+    [0010] GETFIELD       A=1 B=1 C=6 k=0 Bx=3074 sBx=-62461 Ax=786945 sJ=-15990270 raw=0x0601008E ; R[1] = R[1][K[6] "battleRuntimeData"]
+    [0011] SELF           A=1 B=1 C=7 k=1 Bx=3587 sBx=-61948 Ax=918273 sJ=-15858942 raw=0x07018094
+    [0012] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0013] GETTABUP       A=1 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524289 sJ=-16252926 raw=0x0400008B ; R[1] = U[0][K[4] "_G"]
+    [0014] GETFIELD       A=1 B=1 C=5 k=0 Bx=2562 sBx=-62973 Ax=655873 sJ=-16121342 raw=0x0501008E ; R[1] = R[1][K[5] "BattleManager"]
+    [0015] GETFIELD       A=1 B=1 C=8 k=0 Bx=4098 sBx=-61437 Ax=1049089 sJ=-15728126 raw=0x0801008E ; R[1] = R[1][K[8] "vBattleField"]
+    [0016] GETFIELD       A=1 B=1 C=9 k=0 Bx=4610 sBx=-60925 Ax=1180161 sJ=-15597054 raw=0x0901008E ; R[1] = R[1][K[9] "battleCameraManager"]
+    [0017] SELF           A=1 B=1 C=10 k=1 Bx=5123 sBx=-60412 Ax=1311489 sJ=-15465726 raw=0x0A018094
+    [0018] LOADI          A=3 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776963 sJ=-252 raw=0x7FFF8181
+    [0019] CALL           A=1 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132609 sJ=-16644606 raw=0x010300C4
+    [0020] LOADK          A=1 B=5 C=0 k=1 Bx=11 sBx=-65524 Ax=2817 sJ=-16774398 raw=0x00058083 ; R[1] = K[11] "Battle;Battle;Battle_Type;B1EndWar;Battle_Stage;Stage_1"
+    [0021] GETTABUP       A=2 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524290 sJ=-16252925 raw=0x0400010B ; R[2] = U[0][K[4] "_G"]
+    [0022] GETFIELD       A=2 B=2 C=12 k=0 Bx=6148 sBx=-59387 Ax=1573890 sJ=-15203325 raw=0x0C02010E ; R[2] = R[2][K[12] "NRCAudioManager"]
+    [0023] SELF           A=2 B=2 C=13 k=1 Bx=6661 sBx=-58874 Ax=1705218 sJ=-15071997 raw=0x0D028114
+    [0024] MOVE           A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010200
+    [0025] CALL           A=2 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132610 sJ=-16644605 raw=0x01030144
+    [0026] GETTABUP       A=2 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524290 sJ=-16252925 raw=0x0400010B ; R[2] = U[0][K[4] "_G"]
+    [0027] GETFIELD       A=2 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656386 sJ=-16120829 raw=0x0502010E ; R[2] = R[2][K[5] "BattleManager"]
+    [0028] GETFIELD       A=2 B=2 C=14 k=0 Bx=7172 sBx=-58363 Ax=1836034 sJ=-14941181 raw=0x0E02010E ; R[2] = R[2][K[14] "battlePawnManager"]
+    [0029] SELF           A=2 B=2 C=15 k=1 Bx=7685 sBx=-57850 Ax=1967362 sJ=-14809853 raw=0x0F028114
+    [0030] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0031] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0032] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0033] SELF           A=3 B=2 C=16 k=1 Bx=8197 sBx=-57338 Ax=2098435 sJ=-14678780 raw=0x10028194
+    [0034] CALL           A=3 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132099 sJ=-16645116 raw=0x010201C4
+    [0035] GETTABUP       A=3 B=1 C=17 k=0 Bx=8706 sBx=-56829 Ax=2228739 sJ=-14548476 raw=0x1101018B ; R[3] = U[1][K[17] "OnEnter"]
+    [0036] MOVE           A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000200
+    [0037] CALL           A=3 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132099 sJ=-16645116 raw=0x010201C4
+    [0038] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7
+
+  function[1] source="" lines=28-30 params=1 vararg=0 stack=255 upvalues=1
+  constants (4):
+    K[0] = "DataConfigManager"
+    K[1] = "GetBattleGlobalConfig"
+    K[2] = "B1_P1_ROUND1_DIALOGUE"
+    K[3] = "num"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=4 name="_ENV"
+  locals (1):
+    L[0] = "self" pc=0-7
+  instructions (7):
+    [0001] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "DataConfigManager"]
+    [0002] SELF           A=1 B=1 C=1 k=1 Bx=515 sBx=-65020 Ax=131841 sJ=-16645374 raw=0x01018094
+    [0003] LOADK          A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x00010183 ; R[3] = K[2] "B1_P1_ROUND1_DIALOGUE"
+    [0004] CALL           A=1 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263681 sJ=-16513534 raw=0x020300C4
+    [0005] GETFIELD       A=1 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393729 sJ=-16383486 raw=0x0301008E ; R[1] = R[1][K[3] "num"]
+    [0006] RETURN1        A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C8
+    [0007] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7

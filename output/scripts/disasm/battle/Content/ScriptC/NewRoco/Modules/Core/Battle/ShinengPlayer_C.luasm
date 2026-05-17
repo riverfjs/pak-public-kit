@@ -1,0 +1,145 @@
+-- path: Content/ScriptC/NewRoco/Modules/Core/Battle/ShinengPlayer_C.luac
+-- format: decrypted standard Lua 5.4 bytecode
+-- note: disassembly, not original source
+
+main source="@NewRoco\\Modules\\Core\\Battle\\ShinengPlayer_C.lua" lines=0-0 params=0 vararg=1 stack=255 upvalues=1
+constants (9):
+  K[0] = "require"
+  K[1] = "Data.PB.ProtoEnum"
+  K[2] = "NewRoco.Modules.Core.Battle.Common.BattleEnum"
+  K[3] = "NRCClass"
+  K[4] = "Extend"
+  K[5] = "ShinengPlayer_C"
+  K[6] = "StartPlay"
+  K[7] = "SetData"
+  K[8] = "OverPlay"
+upvalues (1):
+  U[0] = instack=0 idx=0 kind=5 name="_ENV"
+locals (3):
+  L[0] = "ProtoEnum" pc=4-19
+  L[1] = "BattleEnum" pc=7-19
+  L[2] = "ShinengPlayer_C" pc=11-19
+instructions (19):
+  [0001] VARARGPREP     A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000051
+  [0002] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "require"]
+  [0003] LOADK          A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x00008083 ; R[1] = K[1] "Data.PB.ProtoEnum"
+  [0004] CALL           A=0 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263168 sJ=-16514047 raw=0x02020044
+  [0005] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "require"]
+  [0006] LOADK          A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010103 ; R[2] = K[2] "NewRoco.Modules.Core.Battle.Common.BattleEnum"
+  [0007] CALL           A=1 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263169 sJ=-16514046 raw=0x020200C4
+  [0008] GETTABUP       A=2 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393218 sJ=-16383997 raw=0x0300010B ; R[2] = U[0][K[3] "NRCClass"]
+  [0009] SELF           A=2 B=2 C=4 k=1 Bx=2053 sBx=-63482 Ax=525570 sJ=-16251645 raw=0x04028114
+  [0010] LOADK          A=4 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1284 sJ=-16775931 raw=0x00028203 ; R[4] = K[5] "ShinengPlayer_C"
+  [0011] CALL           A=2 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263682 sJ=-16513533 raw=0x02030144
+  [0012] CLOSURE        A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x000001CF ; R[3] = function[0]
+  [0013] SETFIELD       A=2 B=6 C=3 k=0 Bx=1548 sBx=-63987 Ax=396290 sJ=-16380925 raw=0x03060112 ; R[2][K[6] "StartPlay"] = R[3]
+  [0014] CLOSURE        A=3 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=259 sJ=-16776956 raw=0x000081CF ; R[3] = function[1]
+  [0015] SETFIELD       A=2 B=7 C=3 k=0 Bx=1550 sBx=-63985 Ax=396802 sJ=-16380413 raw=0x03070112 ; R[2][K[7] "SetData"] = R[3]
+  [0016] CLOSURE        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101CF ; R[3] = function[2]
+  [0017] SETFIELD       A=2 B=8 C=3 k=0 Bx=1552 sBx=-63983 Ax=397314 sJ=-16379901 raw=0x03080112 ; R[2][K[8] "OverPlay"] = R[3]
+  [0018] RETURN         A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x01020146
+  [0019] RETURN         A=3 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131587 sJ=-16645628 raw=0x010101C6
+
+  function[0] source="" lines=21-27 params=2 vararg=0 stack=255 upvalues=1
+  constants (17):
+    K[0] = "ParticleSystem"
+    K[1] = "SetTemplate"
+    K[2] = "IsOver"
+    K[3] = false
+    K[4] = "Activate"
+    K[5] = "_G"
+    K[6] = "NRCAudioManager"
+    K[7] = "PlaySound2DAuto"
+    K[8] = "SoundId"
+    K[9] = "ShinengPlayer_C:StartPlay"
+    K[10] = "DelayManager"
+    K[11] = "DelaySeconds"
+    K[12] = 1.3
+    K[13] = "SpEnergyUI"
+    K[14] = "CheckAndLoadUI"
+    K[15] = "ChangeNumber"
+    K[16] = "SpEnergyElement"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=9 name="_ENV"
+  locals (2):
+    L[0] = "self" pc=0-26
+    L[1] = "particle" pc=0-26
+  instructions (26):
+    [0001] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "ParticleSystem"]
+    [0002] SELF           A=2 B=2 C=1 k=1 Bx=517 sBx=-65018 Ax=132354 sJ=-16644861 raw=0x01028114
+    [0003] MOVE           A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010200
+    [0004] CALL           A=2 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132610 sJ=-16644605 raw=0x01030144
+    [0005] SETFIELD       A=0 B=2 C=3 k=1 Bx=1541 sBx=-63994 Ax=394496 sJ=-16382719 raw=0x03028012 ; R[0][K[2] "IsOver"] = R[3]
+    [0006] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "ParticleSystem"]
+    [0007] SELF           A=2 B=2 C=4 k=1 Bx=2053 sBx=-63482 Ax=525570 sJ=-16251645 raw=0x04028114
+    [0008] LOADTRUE       A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000207
+    [0009] CALL           A=2 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132610 sJ=-16644605 raw=0x01030144
+    [0010] GETTABUP       A=2 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655362 sJ=-16121853 raw=0x0500010B ; R[2] = U[0][K[5] "_G"]
+    [0011] GETFIELD       A=2 B=2 C=6 k=0 Bx=3076 sBx=-62459 Ax=787458 sJ=-15989757 raw=0x0602010E ; R[2] = R[2][K[6] "NRCAudioManager"]
+    [0012] SELF           A=2 B=2 C=7 k=1 Bx=3589 sBx=-61946 Ax=918786 sJ=-15858429 raw=0x07028114
+    [0013] GETFIELD       A=4 B=0 C=8 k=0 Bx=4096 sBx=-61439 Ax=1048580 sJ=-15728635 raw=0x0800020E ; R[4] = R[0][K[8] "SoundId"]
+    [0014] LOADK          A=5 B=4 C=0 k=1 Bx=9 sBx=-65526 Ax=2309 sJ=-16774906 raw=0x00048283 ; R[5] = K[9] "ShinengPlayer_C:StartPlay"
+    [0015] CALL           A=2 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133122 sJ=-16644093 raw=0x01040144
+    [0016] GETTABUP       A=2 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655362 sJ=-16121853 raw=0x0500010B ; R[2] = U[0][K[5] "_G"]
+    [0017] GETFIELD       A=2 B=2 C=10 k=0 Bx=5124 sBx=-60411 Ax=1311746 sJ=-15465469 raw=0x0A02010E ; R[2] = R[2][K[10] "DelayManager"]
+    [0018] SELF           A=2 B=2 C=11 k=1 Bx=5637 sBx=-59898 Ax=1443074 sJ=-15334141 raw=0x0B028114
+    [0019] LOADK          A=4 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3076 sJ=-16774139 raw=0x00060203 ; R[4] = K[12] 1.3
+    [0020] GETFIELD       A=5 B=0 C=13 k=0 Bx=6656 sBx=-58879 Ax=1703941 sJ=-15073274 raw=0x0D00028E ; R[5] = R[0][K[13] "SpEnergyUI"]
+    [0021] GETFIELD       A=5 B=5 C=14 k=0 Bx=7178 sBx=-58357 Ax=1837573 sJ=-14939642 raw=0x0E05028E ; R[5] = R[5][K[14] "CheckAndLoadUI"]
+    [0022] GETFIELD       A=6 B=0 C=13 k=0 Bx=6656 sBx=-58879 Ax=1703942 sJ=-15073273 raw=0x0D00030E ; R[6] = R[0][K[13] "SpEnergyUI"]
+    [0023] GETFIELD       A=7 B=0 C=15 k=0 Bx=7680 sBx=-57855 Ax=1966087 sJ=-14811128 raw=0x0F00038E ; R[7] = R[0][K[15] "ChangeNumber"]
+    [0024] GETFIELD       A=8 B=0 C=16 k=0 Bx=8192 sBx=-57343 Ax=2097160 sJ=-14680055 raw=0x1000040E ; R[8] = R[0][K[16] "SpEnergyElement"]
+    [0025] CALL           A=2 B=7 C=1 k=0 Bx=526 sBx=-65009 Ax=134658 sJ=-16642557 raw=0x01070144
+    [0026] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[1] source="" lines=36-43 params=7 vararg=0 stack=255 upvalues=0
+  constants (6):
+    K[0] = "PosNumber"
+    K[1] = "PosIndex"
+    K[2] = "SpEnergyUI"
+    K[3] = "ChangeNumber"
+    K[4] = "SpEnergyElement"
+    K[5] = "SoundId"
+  locals (7):
+    L[0] = "self" pc=0-7
+    L[1] = "posNumArray" pc=0-7
+    L[2] = "posIndex" pc=0-7
+    L[3] = "spUI" pc=0-7
+    L[4] = "spEnergyElement" pc=0-7
+    L[5] = "changeNumber" pc=0-7
+    L[6] = "soundId" pc=0-7
+  instructions (7):
+    [0001] SETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x01000012 ; R[0][K[0] "PosNumber"] = R[1]
+    [0002] SETFIELD       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010012 ; R[0][K[1] "PosIndex"] = R[2]
+    [0003] SETFIELD       A=0 B=2 C=3 k=0 Bx=1540 sBx=-63995 Ax=394240 sJ=-16382975 raw=0x03020012 ; R[0][K[2] "SpEnergyUI"] = R[3]
+    [0004] SETFIELD       A=0 B=3 C=5 k=0 Bx=2566 sBx=-62969 Ax=656896 sJ=-16120319 raw=0x05030012 ; R[0][K[3] "ChangeNumber"] = R[5]
+    [0005] SETFIELD       A=0 B=4 C=4 k=0 Bx=2056 sBx=-63479 Ax=526336 sJ=-16250879 raw=0x04040012 ; R[0][K[4] "SpEnergyElement"] = R[4]
+    [0006] SETFIELD       A=0 B=5 C=6 k=0 Bx=3082 sBx=-62453 Ax=788992 sJ=-15988223 raw=0x06050012 ; R[0][K[5] "SoundId"] = R[6]
+    [0007] RETURN0        A=7 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=519 sJ=-16776696 raw=0x000103C7
+
+  function[2] source="" lines=45-53 params=1 vararg=0 stack=255 upvalues=0
+  constants (6):
+    K[0] = "PosNumber"
+    K[1] = "PosIndex"
+    K[2] = nil
+    K[3] = "IsOver"
+    K[4] = true
+    K[5] = "SpEnergyUI"
+  locals (1):
+    L[0] = "self" pc=0-15
+  instructions (15):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "PosNumber"]
+    [0002] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0003] JMP            A=7 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777223 sJ=8 raw=0x800003B8
+    [0004] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "PosNumber"]
+    [0005] GETFIELD       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010E ; R[2] = R[0][K[1] "PosIndex"]
+    [0006] GETFIELD       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018E ; R[3] = R[0][K[0] "PosNumber"]
+    [0007] GETFIELD       A=4 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131076 sJ=-16646139 raw=0x0100020E ; R[4] = R[0][K[1] "PosIndex"]
+    [0008] GETTABLE       A=3 B=3 C=4 k=0 Bx=2054 sBx=-63481 Ax=525827 sJ=-16251388 raw=0x0403018C
+    [0009] ADDI           A=3 B=3 C=126 k=0 Bx=64518 sBx=-1017 Ax=16516611 sJ=-260604 raw=0x7E030195
+    [0010] MMBINI         A=3 B=128 C=7 k=0 Bx=3840 sBx=-61695 Ax=983043 sJ=-15794172 raw=0x078001AF
+    [0011] SETTABLE       A=1 B=2 C=3 k=0 Bx=1540 sBx=-63995 Ax=394241 sJ=-16382974 raw=0x03020090
+    [0012] SETFIELD       A=0 B=0 C=2 k=1 Bx=1025 sBx=-64510 Ax=262400 sJ=-16514815 raw=0x02008012 ; R[0][K[0] "PosNumber"] = R[2]
+    [0013] SETFIELD       A=0 B=3 C=4 k=1 Bx=2055 sBx=-63480 Ax=526080 sJ=-16251135 raw=0x04038012 ; R[0][K[3] "IsOver"] = R[4]
+    [0014] SETFIELD       A=0 B=5 C=2 k=1 Bx=1035 sBx=-64500 Ax=264960 sJ=-16512255 raw=0x02058012 ; R[0][K[5] "SpEnergyUI"] = R[2]
+    [0015] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7

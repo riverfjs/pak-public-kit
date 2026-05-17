@@ -1,0 +1,168 @@
+-- path: Content/ScriptC/NewRoco/Modules/Core/Battle/Fsm/Actions/OpenBlackScreenAction.luac
+-- format: decrypted standard Lua 5.4 bytecode
+-- note: disassembly, not original source
+
+main source="@NewRoco\\Modules\\Core\\Battle\\Fsm\\Actions\\OpenBlackScreenAction.lua" lines=0-0 params=0 vararg=1 stack=255 upvalues=1
+constants (11):
+  K[0] = "require"
+  K[1] = "NewRoco.Modules.Core.Battle.Common.BattleUtils"
+  K[2] = "NewRoco.Modules.System.BattleUI.BattleUIModuleCmd"
+  K[3] = "NewRoco.Modules.Core.Battle.Common.BattleConst"
+  K[4] = "BattleActionBase"
+  K[5] = "Extend"
+  K[6] = "OpenBlackScreenAction"
+  K[7] = "OnEnter"
+  K[8] = "OnBlackShown"
+  K[9] = "CheckDown"
+  K[10] = "OnExit"
+upvalues (1):
+  U[0] = instack=0 idx=0 kind=7 name="_ENV"
+locals (5):
+  L[0] = "BattleUtils" pc=4-24
+  L[1] = "BattleUIModuleCmd" pc=7-24
+  L[2] = "BattleConst" pc=10-24
+  L[3] = "Base" pc=11-24
+  L[4] = "OpenBlackScreenAction" pc=14-24
+instructions (24):
+  [0001] VARARGPREP     A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000051
+  [0002] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "require"]
+  [0003] LOADK          A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x00008083 ; R[1] = K[1] "NewRoco.Modules.Core.Battle.Common.BattleUtils"
+  [0004] CALL           A=0 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263168 sJ=-16514047 raw=0x02020044
+  [0005] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "require"]
+  [0006] LOADK          A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010103 ; R[2] = K[2] "NewRoco.Modules.System.BattleUI.BattleUIModuleCmd"
+  [0007] CALL           A=1 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263169 sJ=-16514046 raw=0x020200C4
+  [0008] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "require"]
+  [0009] LOADK          A=3 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=771 sJ=-16776444 raw=0x00018183 ; R[3] = K[3] "NewRoco.Modules.Core.Battle.Common.BattleConst"
+  [0010] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+  [0011] GETTABUP       A=3 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524291 sJ=-16252924 raw=0x0400018B ; R[3] = U[0][K[4] "BattleActionBase"]
+  [0012] SELF           A=4 B=3 C=5 k=1 Bx=2567 sBx=-62968 Ax=657156 sJ=-16120059 raw=0x05038214
+  [0013] LOADK          A=6 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1542 sJ=-16775673 raw=0x00030303 ; R[6] = K[6] "OpenBlackScreenAction"
+  [0014] CALL           A=4 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263684 sJ=-16513531 raw=0x02030244
+  [0015] CLOSURE        A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x000002CF ; R[5] = function[0]
+  [0016] SETFIELD       A=4 B=7 C=5 k=0 Bx=2574 sBx=-62961 Ax=658948 sJ=-16118267 raw=0x05070212 ; R[4][K[7] "OnEnter"] = R[5]
+  [0017] CLOSURE        A=5 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=261 sJ=-16776954 raw=0x000082CF ; R[5] = function[1]
+  [0018] SETFIELD       A=4 B=8 C=5 k=0 Bx=2576 sBx=-62959 Ax=659460 sJ=-16117755 raw=0x05080212 ; R[4][K[8] "OnBlackShown"] = R[5]
+  [0019] CLOSURE        A=5 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=517 sJ=-16776698 raw=0x000102CF ; R[5] = function[2]
+  [0020] SETFIELD       A=4 B=9 C=5 k=0 Bx=2578 sBx=-62957 Ax=659972 sJ=-16117243 raw=0x05090212 ; R[4][K[9] "CheckDown"] = R[5]
+  [0021] CLOSURE        A=5 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=773 sJ=-16776442 raw=0x000182CF ; R[5] = function[3]
+  [0022] SETFIELD       A=4 B=10 C=5 k=0 Bx=2580 sBx=-62955 Ax=660484 sJ=-16116731 raw=0x050A0212 ; R[4][K[10] "OnExit"] = R[5]
+  [0023] RETURN         A=4 B=2 C=1 k=1 Bx=517 sBx=-65018 Ax=132356 sJ=-16644859 raw=0x01028246
+  [0024] RETURN         A=5 B=1 C=1 k=1 Bx=515 sBx=-65020 Ax=131845 sJ=-16645370 raw=0x010182C6
+
+  function[0] source="" lines=16-30 params=1 vararg=0 stack=255 upvalues=4
+  constants (16):
+    K[0] = "HasBattleLoading"
+    K[1] = "OnBlackShown"
+    K[2] = "GetProperty"
+    K[3] = "FsmVarNames"
+    K[4] = "ShowBlackScreenReasons"
+    K[5] = "owner"
+    K[6] = "callback"
+    K[7] = "openReasonList"
+    K[8] = "isDown"
+    K[9] = false
+    K[10] = "NRCModuleManager"
+    K[11] = "DoCmdAsync"
+    K[12] = "OpenLoading"
+    K[13] = "SafeDelaySeconds"
+    K[14] = "d_CheckDown"
+    K[15] = "CheckDown"
+  upvalues (4):
+    U[0] = instack=0 idx=0 kind=1 name="BattleUtils"
+    U[1] = instack=2 idx=0 kind=0 name="BattleConst"
+    U[2] = instack=0 idx=0 kind=1 name="_ENV"
+    U[3] = instack=1 idx=0 kind=9 name="BattleUIModuleCmd"
+  locals (3):
+    L[0] = "self" pc=0-30
+    L[1] = "openReasonList" pc=11-30
+    L[2] = "asyncData" pc=17-30
+  instructions (30):
+    [0001] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "HasBattleLoading"]
+    [0002] CALL           A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x020100C4
+    [0003] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0004] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0005] SELF           A=1 B=0 C=1 k=1 Bx=513 sBx=-65022 Ax=131329 sJ=-16645886 raw=0x01008094
+    [0006] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0007] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+    [0008] SELF           A=1 B=0 C=2 k=1 Bx=1025 sBx=-64510 Ax=262401 sJ=-16514814 raw=0x02008094
+    [0009] GETTABUP       A=3 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393731 sJ=-16383484 raw=0x0301018B ; R[3] = U[1][K[3] "FsmVarNames"]
+    [0010] GETFIELD       A=3 B=3 C=4 k=0 Bx=2054 sBx=-63481 Ax=525827 sJ=-16251388 raw=0x0403018E ; R[3] = R[3][K[4] "ShowBlackScreenReasons"]
+    [0011] CALL           A=1 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263681 sJ=-16513534 raw=0x020300C4
+    [0012] NEWTABLE       A=2 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1538 sJ=-16775677 raw=0x00030113
+    [0013] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0014] SETFIELD       A=2 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2562 sJ=-16774653 raw=0x00050112 ; R[2][K[5] "owner"] = R[0]
+    [0015] GETFIELD       A=3 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131075 sJ=-16646140 raw=0x0100018E ; R[3] = R[0][K[1] "OnBlackShown"]
+    [0016] SETFIELD       A=2 B=6 C=3 k=0 Bx=1548 sBx=-63987 Ax=396290 sJ=-16380925 raw=0x03060112 ; R[2][K[6] "callback"] = R[3]
+    [0017] SETFIELD       A=2 B=7 C=1 k=0 Bx=526 sBx=-65009 Ax=134658 sJ=-16642557 raw=0x01070112 ; R[2][K[7] "openReasonList"] = R[1]
+    [0018] SETFIELD       A=0 B=8 C=9 k=1 Bx=4625 sBx=-60910 Ax=1184000 sJ=-15593215 raw=0x09088012 ; R[0][K[8] "isDown"] = R[9]
+    [0019] GETTABUP       A=3 B=2 C=10 k=0 Bx=5124 sBx=-60411 Ax=1311747 sJ=-15465468 raw=0x0A02018B ; R[3] = U[2][K[10] "NRCModuleManager"]
+    [0020] SELF           A=3 B=3 C=11 k=1 Bx=5639 sBx=-59896 Ax=1443587 sJ=-15333628 raw=0x0B038194
+    [0021] MOVE           A=5 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1029 sJ=-16776186 raw=0x00020280
+    [0022] GETTABUP       A=6 B=3 C=12 k=0 Bx=6150 sBx=-59385 Ax=1574406 sJ=-15202809 raw=0x0C03030B ; R[6] = U[3][K[12] "OpenLoading"]
+    [0023] CALL           A=3 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133123 sJ=-16644092 raw=0x010401C4
+    [0024] SELF           A=3 B=0 C=13 k=1 Bx=6657 sBx=-58878 Ax=1704195 sJ=-15073020 raw=0x0D008194
+    [0025] LOADK          A=5 B=7 C=0 k=0 Bx=14 sBx=-65521 Ax=3589 sJ=-16773626 raw=0x00070283 ; R[5] = K[14] "d_CheckDown"
+    [0026] LOADI          A=6 B=1 C=128 k=0 Bx=65538 sBx=3 Ax=16777734 sJ=519 raw=0x80010301
+    [0027] GETFIELD       A=7 B=0 C=15 k=0 Bx=7680 sBx=-57855 Ax=1966087 sJ=-14811128 raw=0x0F00038E ; R[7] = R[0][K[15] "CheckDown"]
+    [0028] MOVE           A=8 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=8 sJ=-16777207 raw=0x00000400
+    [0029] CALL           A=3 B=6 C=1 k=0 Bx=524 sBx=-65011 Ax=134147 sJ=-16643068 raw=0x010601C4
+    [0030] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7
+
+  function[1] source="" lines=32-39 params=1 vararg=0 stack=255 upvalues=1
+  constants (9):
+    K[0] = "isDown"
+    K[1] = "BattleBudget"
+    K[2] = "GC"
+    K[3] = "NRCModeManager"
+    K[4] = "DoCmd"
+    K[5] = "PlayerModuleCmd"
+    K[6] = "HIDE_ALL"
+    K[7] = true
+    K[8] = "Finish"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=5 name="_ENV"
+  locals (1):
+    L[0] = "self" pc=0-17
+  instructions (17):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "isDown"]
+    [0002] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0003] JMP            A=12 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777228 sJ=13 raw=0x80000638
+    [0004] GETTABUP       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008B ; R[1] = U[0][K[1] "BattleBudget"]
+    [0005] SELF           A=1 B=1 C=2 k=1 Bx=1027 sBx=-64508 Ax=262913 sJ=-16514302 raw=0x02018094
+    [0006] LOADTRUE       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000187
+    [0007] CALL           A=1 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132609 sJ=-16644606 raw=0x010300C4
+    [0008] GETTABUP       A=1 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393217 sJ=-16383998 raw=0x0300008B ; R[1] = U[0][K[3] "NRCModeManager"]
+    [0009] SELF           A=1 B=1 C=4 k=1 Bx=2051 sBx=-63484 Ax=525057 sJ=-16252158 raw=0x04018094
+    [0010] GETTABUP       A=3 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655363 sJ=-16121852 raw=0x0500018B ; R[3] = U[0][K[5] "PlayerModuleCmd"]
+    [0011] GETFIELD       A=3 B=3 C=6 k=0 Bx=3078 sBx=-62457 Ax=787971 sJ=-15989244 raw=0x0603018E ; R[3] = R[3][K[6] "HIDE_ALL"]
+    [0012] LOADTRUE       A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000207
+    [0013] CALL           A=1 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133121 sJ=-16644094 raw=0x010400C4
+    [0014] SETFIELD       A=0 B=0 C=7 k=1 Bx=3585 sBx=-61950 Ax=917760 sJ=-15859455 raw=0x07008012 ; R[0][K[0] "isDown"] = R[7]
+    [0015] SELF           A=1 B=0 C=8 k=1 Bx=4097 sBx=-61438 Ax=1048833 sJ=-15728382 raw=0x08008094
+    [0016] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0017] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[2] source="" lines=41-48 params=1 vararg=0 stack=255 upvalues=0
+  constants (3):
+    K[0] = "finished"
+    K[1] = "isDown"
+    K[2] = "OnBlackShown"
+  locals (1):
+    L[0] = "self" pc=0-10
+  instructions (10):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "finished"]
+    [0002] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0003] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0004] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+    [0005] GETFIELD       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008E ; R[1] = R[0][K[1] "isDown"]
+    [0006] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0007] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0008] SELF           A=1 B=0 C=2 k=1 Bx=1025 sBx=-64510 Ax=262401 sJ=-16514814 raw=0x02008094
+    [0009] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0010] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[3] source="" lines=50-52 params=1 vararg=0 stack=255 upvalues=0
+  locals (1):
+    L[0] = "self" pc=0-1
+  instructions (1):
+    [0001] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7

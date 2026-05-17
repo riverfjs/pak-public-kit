@@ -1,0 +1,300 @@
+-- path: Content/ScriptC/Common/LocalServer/LocalServer.luac
+-- format: decrypted standard Lua 5.4 bytecode
+-- note: disassembly, not original source
+
+main source="@Common\\LocalServer\\LocalServer.lua" lines=0-0 params=0 vararg=1 stack=255 upvalues=1
+constants (6):
+  K[0] = "Ctor"
+  K[1] = "SetRSPTable"
+  K[2] = "SendWithHandler"
+  K[3] = "Send"
+  K[4] = "OnTick"
+  K[5] = "Connect"
+upvalues (1):
+  U[0] = instack=0 idx=0 kind=2 name="_ENV"
+locals (1):
+  L[0] = "LocalServer" pc=3-17
+instructions (17):
+  [0001] VARARGPREP     A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000051
+  [0002] NEWTABLE       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000013
+  [0003] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0004] CLOSURE        A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000CF ; R[1] = function[0]
+  [0005] SETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x01000012 ; R[0][K[0] "Ctor"] = R[1]
+  [0006] CLOSURE        A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080CF ; R[1] = function[1]
+  [0007] SETFIELD       A=0 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131584 sJ=-16645631 raw=0x01010012 ; R[0][K[1] "SetRSPTable"] = R[1]
+  [0008] CLOSURE        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100CF ; R[1] = function[2]
+  [0009] SETFIELD       A=0 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132096 sJ=-16645119 raw=0x01020012 ; R[0][K[2] "SendWithHandler"] = R[1]
+  [0010] CLOSURE        A=1 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=769 sJ=-16776446 raw=0x000180CF ; R[1] = function[3]
+  [0011] SETFIELD       A=0 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132608 sJ=-16644607 raw=0x01030012 ; R[0][K[3] "Send"] = R[1]
+  [0012] CLOSURE        A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200CF ; R[1] = function[4]
+  [0013] SETFIELD       A=0 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133120 sJ=-16644095 raw=0x01040012 ; R[0][K[4] "OnTick"] = R[1]
+  [0014] CLOSURE        A=1 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1281 sJ=-16775934 raw=0x000280CF ; R[1] = function[5]
+  [0015] SETFIELD       A=0 B=5 C=1 k=0 Bx=522 sBx=-65013 Ax=133632 sJ=-16643583 raw=0x01050012 ; R[0][K[5] "Connect"] = R[1]
+  [0016] RETURN         A=0 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132096 sJ=-16645119 raw=0x01020046
+  [0017] RETURN         A=1 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131585 sJ=-16645630 raw=0x010100C6
+
+  function[0] source="" lines=49-50 params=1 vararg=0 stack=255 upvalues=0
+  locals (1):
+    L[0] = "self" pc=0-1
+  instructions (1):
+    [0001] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[1] source="" lines=53-55 params=2 vararg=0 stack=255 upvalues=0
+  constants (1):
+    K[0] = "rspTable"
+  locals (2):
+    L[0] = "self" pc=0-2
+    L[1] = "tbl" pc=0-2
+  instructions (2):
+    [0001] SETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x01000012 ; R[0][K[0] "rspTable"] = R[1]
+    [0002] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[2] source="" lines=64-81 params=7 vararg=0 stack=255 upvalues=1
+  constants (15):
+    K[0] = "Log"
+    K[1] = "Debug"
+    K[2] = "LocalServer:SendWithHandler "
+    K[3] = "_G"
+    K[4] = "ProtoCMD"
+    K[5] = "GetMessageName"
+    K[6] = "rspTable"
+    K[7] = "messages"
+    K[8] = "caller"
+    K[9] = "rspHandler"
+    K[10] = "WaitMessageTable"
+    K[11] = nil
+    K[12] = "table"
+    K[13] = "insert"
+    K[14] = "request not found"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=12 name="_ENV"
+  locals (9):
+    L[0] = "self" pc=0-48
+    L[1] = "reqCmdID" pc=0-48
+    L[2] = "reqMsg" pc=0-48
+    L[3] = "caller" pc=0-48
+    L[4] = "rspHandler" pc=0-48
+    L[5] = "needModal" pc=0-48
+    L[6] = "ignoreErrorTip" pc=0-48
+    L[7] = "messages" pc=21-37
+    L[8] = "MessageData" pc=23-37
+  instructions (48):
+    [0001] GETTABUP       A=7 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=7 sJ=-16777208 raw=0x0000038B ; R[7] = U[0][K[0] "Log"]
+    [0002] GETFIELD       A=7 B=7 C=1 k=0 Bx=526 sBx=-65009 Ax=134663 sJ=-16642552 raw=0x0107038E ; R[7] = R[7][K[1] "Debug"]
+    [0003] LOADK          A=8 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=520 sJ=-16776695 raw=0x00010403 ; R[8] = K[2] "LocalServer:SendWithHandler "
+    [0004] GETTABUP       A=9 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393225 sJ=-16383990 raw=0x0300048B ; R[9] = U[0][K[3] "_G"]
+    [0005] GETFIELD       A=9 B=9 C=4 k=0 Bx=2066 sBx=-63469 Ax=528905 sJ=-16248310 raw=0x0409048E ; R[9] = R[9][K[4] "ProtoCMD"]
+    [0006] SELF           A=9 B=9 C=5 k=1 Bx=2579 sBx=-62956 Ax=660233 sJ=-16116982 raw=0x05098494
+    [0007] MOVE           A=11 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=523 sJ=-16776692 raw=0x00010580
+    [0008] CALL           A=9 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263689 sJ=-16513526 raw=0x020304C4
+    [0009] CONCAT         A=8 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1032 sJ=-16776183 raw=0x00020435
+    [0010] CALL           A=7 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132103 sJ=-16645112 raw=0x010203C4
+    [0011] GETFIELD       A=7 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786439 sJ=-15990776 raw=0x0600038E ; R[7] = R[0][K[6] "rspTable"]
+    [0012] TEST           A=7 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=7 sJ=-16777208 raw=0x000003C2
+    [0013] JMP            A=24 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777240 sJ=25 raw=0x80000C38
+    [0014] GETFIELD       A=7 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786439 sJ=-15990776 raw=0x0600038E ; R[7] = R[0][K[6] "rspTable"]
+    [0015] GETTABLE       A=7 B=7 C=1 k=0 Bx=526 sBx=-65009 Ax=134663 sJ=-16642552 raw=0x0107038C
+    [0016] TEST           A=7 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=7 sJ=-16777208 raw=0x000003C2
+    [0017] JMP            A=20 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777236 sJ=21 raw=0x80000A38
+    [0018] GETFIELD       A=7 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786439 sJ=-15990776 raw=0x0600038E ; R[7] = R[0][K[6] "rspTable"]
+    [0019] GETTABLE       A=7 B=7 C=1 k=0 Bx=526 sBx=-65009 Ax=134663 sJ=-16642552 raw=0x0107038C
+    [0020] MOVE           A=8 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1032 sJ=-16776183 raw=0x00020400
+    [0021] CALL           A=7 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263175 sJ=-16514040 raw=0x020203C4
+    [0022] NEWTABLE       A=8 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=8 sJ=-16777207 raw=0x00000413
+    [0023] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0024] SETFIELD       A=8 B=7 C=7 k=0 Bx=3598 sBx=-61937 Ax=921096 sJ=-15856119 raw=0x07070412 ; R[8][K[7] "messages"] = R[7]
+    [0025] SETFIELD       A=8 B=8 C=3 k=0 Bx=1552 sBx=-63983 Ax=397320 sJ=-16379895 raw=0x03080412 ; R[8][K[8] "caller"] = R[3]
+    [0026] SETFIELD       A=8 B=9 C=4 k=0 Bx=2066 sBx=-63469 Ax=528904 sJ=-16248311 raw=0x04090412 ; R[8][K[9] "rspHandler"] = R[4]
+    [0027] GETFIELD       A=9 B=0 C=10 k=0 Bx=5120 sBx=-60415 Ax=1310729 sJ=-15466486 raw=0x0A00048E ; R[9] = R[0][K[10] "WaitMessageTable"]
+    [0028] EQK            A=9 B=11 C=0 k=0 Bx=22 sBx=-65513 Ax=5641 sJ=-16771574 raw=0x000B04BC
+    [0029] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0030] NEWTABLE       A=9 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=9 sJ=-16777206 raw=0x00000493
+    [0031] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0032] SETFIELD       A=0 B=10 C=9 k=0 Bx=4628 sBx=-60907 Ax=1184768 sJ=-15592447 raw=0x090A0012 ; R[0][K[10] "WaitMessageTable"] = R[9]
+    [0033] GETTABUP       A=9 B=0 C=12 k=0 Bx=6144 sBx=-59391 Ax=1572873 sJ=-15204342 raw=0x0C00048B ; R[9] = U[0][K[12] "table"]
+    [0034] GETFIELD       A=9 B=9 C=13 k=0 Bx=6674 sBx=-58861 Ax=1708553 sJ=-15068662 raw=0x0D09048E ; R[9] = R[9][K[13] "insert"]
+    [0035] GETFIELD       A=10 B=0 C=10 k=0 Bx=5120 sBx=-60415 Ax=1310730 sJ=-15466485 raw=0x0A00050E ; R[10] = R[0][K[10] "WaitMessageTable"]
+    [0036] MOVE           A=11 B=8 C=0 k=0 Bx=16 sBx=-65519 Ax=4107 sJ=-16773108 raw=0x00080580
+    [0037] CALL           A=9 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132617 sJ=-16644598 raw=0x010304C4
+    [0038] JMP            A=8 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777224 sJ=9 raw=0x80000438
+    [0039] GETTABUP       A=7 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=7 sJ=-16777208 raw=0x0000038B ; R[7] = U[0][K[0] "Log"]
+    [0040] GETFIELD       A=7 B=7 C=1 k=0 Bx=526 sBx=-65009 Ax=134663 sJ=-16642552 raw=0x0107038E ; R[7] = R[7][K[1] "Debug"]
+    [0041] LOADK          A=8 B=7 C=0 k=0 Bx=14 sBx=-65521 Ax=3592 sJ=-16773623 raw=0x00070403 ; R[8] = K[14] "request not found"
+    [0042] GETTABUP       A=9 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393225 sJ=-16383990 raw=0x0300048B ; R[9] = U[0][K[3] "_G"]
+    [0043] GETFIELD       A=9 B=9 C=4 k=0 Bx=2066 sBx=-63469 Ax=528905 sJ=-16248310 raw=0x0409048E ; R[9] = R[9][K[4] "ProtoCMD"]
+    [0044] SELF           A=9 B=9 C=5 k=1 Bx=2579 sBx=-62956 Ax=660233 sJ=-16116982 raw=0x05098494
+    [0045] MOVE           A=11 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=523 sJ=-16776692 raw=0x00010580
+    [0046] CALL           A=9 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1545 sJ=-16775670 raw=0x000304C4
+    [0047] CALL           A=7 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131079 sJ=-16646136 raw=0x010003C4
+    [0048] RETURN0        A=7 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=519 sJ=-16776696 raw=0x000103C7
+
+  function[3] source="" lines=89-91 params=6 vararg=0 stack=255 upvalues=0
+  constants (1):
+    K[0] = "SendWithHandler"
+  locals (6):
+    L[0] = "self" pc=0-9
+    L[1] = "reqCmdID" pc=0-9
+    L[2] = "reqMsg" pc=0-9
+    L[3] = "reliable" pc=0-9
+    L[4] = "needModal" pc=0-9
+    L[5] = "ignoreErrorTip" pc=0-9
+  instructions (9):
+    [0001] SELF           A=6 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=262 sJ=-16776953 raw=0x00008314
+    [0002] MOVE           A=8 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=520 sJ=-16776695 raw=0x00010400
+    [0003] MOVE           A=9 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1033 sJ=-16776182 raw=0x00020480
+    [0004] LOADNIL        A=10 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=522 sJ=-16776693 raw=0x00010508
+    [0005] MOVE           A=12 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1548 sJ=-16775667 raw=0x00030600
+    [0006] MOVE           A=13 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2061 sJ=-16775154 raw=0x00040680
+    [0007] MOVE           A=14 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2574 sJ=-16774641 raw=0x00050700
+    [0008] CALL           A=6 B=9 C=1 k=0 Bx=530 sBx=-65005 Ax=135686 sJ=-16641529 raw=0x01090344
+    [0009] RETURN0        A=6 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=518 sJ=-16776697 raw=0x00010347
+
+  function[4] source="" lines=95-122 params=2 vararg=0 stack=255 upvalues=1
+  constants (10):
+    K[0] = "WaitMessageTable"
+    K[1] = "ipairs"
+    K[2] = "messages"
+    K[3] = "caller"
+    K[4] = "rspHandler"
+    K[5] = "tcall"
+    K[6] = "protocolEventDic"
+    K[7] = "handler"
+    K[8] = "target"
+    K[9] = nil
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=29 name="_ENV"
+  locals (25):
+    L[0] = "self" pc=0-58
+    L[1] = "deltaTime" pc=0-58
+    L[2] = "(for state)" pc=7-56
+    L[3] = "(for state)" pc=7-56
+    L[4] = "(for state)" pc=7-56
+    L[5] = "(for state)" pc=7-56
+    L[6] = "_" pc=8-53
+    L[7] = "MessageData" pc=8-53
+    L[8] = "messages" pc=13-53
+    L[9] = "caller" pc=14-53
+    L[10] = "rspHandler" pc=15-53
+    L[11] = "(for state)" pc=18-53
+    L[12] = "(for state)" pc=18-53
+    L[13] = "(for state)" pc=18-53
+    L[14] = "(for state)" pc=18-53
+    L[15] = "index" pc=19-50
+    L[16] = "messageItem" pc=19-50
+    L[17] = "rspCmdID" pc=21-50
+    L[18] = "message" pc=21-50
+    L[19] = "(for state)" pc=38-50
+    L[20] = "(for state)" pc=38-50
+    L[21] = "(for state)" pc=38-50
+    L[22] = "(for state)" pc=38-50
+    L[23] = "i" pc=39-47
+    L[24] = "v" pc=39-47
+  instructions (58):
+    [0001] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "WaitMessageTable"]
+    [0002] TEST           A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x00008142
+    [0003] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0004] RETURN         A=2 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=770 sJ=-16776445 raw=0x00018146
+    [0005] GETTABUP       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010B ; R[2] = U[0][K[1] "ipairs"]
+    [0006] GETFIELD       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018E ; R[3] = R[0][K[0] "WaitMessageTable"]
+    [0007] CALL           A=2 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656386 sJ=-16120829 raw=0x05020144
+    [0008] TFORPREP       A=2 B=22 C=0 k=1 Bx=45 sBx=-65490 Ax=11522 sJ=-16765693 raw=0x0016814B
+    [0009] GETFIELD       A=8 B=7 C=2 k=0 Bx=1038 sBx=-64497 Ax=265736 sJ=-16511479 raw=0x0207040E ; R[8] = R[7][K[2] "messages"]
+    [0010] TEST           A=8 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=264 sJ=-16776951 raw=0x00008442
+    [0011] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0012] NEWTABLE       A=8 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=8 sJ=-16777207 raw=0x00000413
+    [0013] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0014] GETFIELD       A=9 B=7 C=3 k=0 Bx=1550 sBx=-63985 Ax=396809 sJ=-16380406 raw=0x0307048E ; R[9] = R[7][K[3] "caller"]
+    [0015] GETFIELD       A=10 B=7 C=4 k=0 Bx=2062 sBx=-63473 Ax=527882 sJ=-16249333 raw=0x0407050E ; R[10] = R[7][K[4] "rspHandler"]
+    [0016] GETTABUP       A=11 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131083 sJ=-16646132 raw=0x0100058B ; R[11] = U[0][K[1] "ipairs"]
+    [0017] MOVE           A=12 B=8 C=0 k=0 Bx=16 sBx=-65519 Ax=4108 sJ=-16773107 raw=0x00080600
+    [0018] CALL           A=11 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656395 sJ=-16120820 raw=0x050205C4
+    [0019] TFORPREP       A=11 B=15 C=0 k=1 Bx=31 sBx=-65504 Ax=7947 sJ=-16769268 raw=0x000F85CB
+    [0020] GETI           A=17 B=16 C=1 k=0 Bx=544 sBx=-64991 Ax=139281 sJ=-16637934 raw=0x0110088D
+    [0021] GETI           A=18 B=16 C=2 k=0 Bx=1056 sBx=-64479 Ax=270354 sJ=-16506861 raw=0x0210090D
+    [0022] EQI            A=15 B=128 C=0 k=0 Bx=256 sBx=-65279 Ax=65551 sJ=-16711664 raw=0x008007BD
+    [0023] JMP            A=6 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777222 sJ=7 raw=0x80000338
+    [0024] TEST           A=10 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=10 sJ=-16777205 raw=0x00000542
+    [0025] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0026] GETTABUP       A=19 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655379 sJ=-16121836 raw=0x0500098B ; R[19] = U[0][K[5] "tcall"]
+    [0027] MOVE           A=20 B=9 C=0 k=0 Bx=18 sBx=-65517 Ax=4628 sJ=-16772587 raw=0x00090A00
+    [0028] MOVE           A=21 B=10 C=0 k=0 Bx=20 sBx=-65515 Ax=5141 sJ=-16772074 raw=0x000A0A80
+    [0029] MOVE           A=22 B=18 C=0 k=0 Bx=36 sBx=-65499 Ax=9238 sJ=-16767977 raw=0x00120B00
+    [0030] CALL           A=19 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133139 sJ=-16644076 raw=0x010409C4
+    [0031] GETFIELD       A=19 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786451 sJ=-15990764 raw=0x0600098E ; R[19] = R[0][K[6] "protocolEventDic"]
+    [0032] GETTABLE       A=19 B=19 C=17 k=0 Bx=8742 sBx=-56793 Ax=2237971 sJ=-14539244 raw=0x1113098C
+    [0033] TEST           A=19 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=19 sJ=-16777196 raw=0x000009C2
+    [0034] JMP            A=15 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777231 sJ=16 raw=0x800007B8
+    [0035] GETTABUP       A=19 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131091 sJ=-16646124 raw=0x0100098B ; R[19] = U[0][K[1] "ipairs"]
+    [0036] GETFIELD       A=20 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786452 sJ=-15990763 raw=0x06000A0E ; R[20] = R[0][K[6] "protocolEventDic"]
+    [0037] GETTABLE       A=20 B=20 C=17 k=0 Bx=8744 sBx=-56791 Ax=2238484 sJ=-14538731 raw=0x11140A0C
+    [0038] CALL           A=19 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656403 sJ=-16120812 raw=0x050209C4
+    [0039] TFORPREP       A=19 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2067 sJ=-16775148 raw=0x000409CB
+    [0040] GETFIELD       A=25 B=24 C=7 k=0 Bx=3632 sBx=-61903 Ax=929817 sJ=-15847398 raw=0x07180C8E ; R[25] = R[24][K[7] "handler"]
+    [0041] TEST           A=25 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=25 sJ=-16777190 raw=0x00000CC2
+    [0042] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0043] GETTABUP       A=25 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655385 sJ=-16121830 raw=0x05000C8B ; R[25] = U[0][K[5] "tcall"]
+    [0044] GETFIELD       A=26 B=24 C=8 k=0 Bx=4144 sBx=-61391 Ax=1060890 sJ=-15716325 raw=0x08180D0E ; R[26] = R[24][K[8] "target"]
+    [0045] GETFIELD       A=27 B=24 C=7 k=0 Bx=3632 sBx=-61903 Ax=929819 sJ=-15847396 raw=0x07180D8E ; R[27] = R[24][K[7] "handler"]
+    [0046] MOVE           A=28 B=18 C=0 k=0 Bx=36 sBx=-65499 Ax=9244 sJ=-16767971 raw=0x00120E00
+    [0047] CALL           A=25 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133145 sJ=-16644070 raw=0x01040CC4
+    [0048] TFORCALL       A=19 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262163 sJ=-16515052 raw=0x020009CC
+    [0049] TFORLOOP       A=19 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2579 sJ=-16774636 raw=0x000509CD
+    [0050] CLOSE          A=19 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=19 sJ=-16777196 raw=0x000009B6
+    [0051] TFORCALL       A=11 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262155 sJ=-16515060 raw=0x020005CC
+    [0052] TFORLOOP       A=11 B=16 C=0 k=1 Bx=33 sBx=-65502 Ax=8459 sJ=-16768756 raw=0x001085CD
+    [0053] CLOSE          A=11 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=11 sJ=-16777204 raw=0x000005B6
+    [0054] TFORCALL       A=2 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262146 sJ=-16515069 raw=0x0200014C
+    [0055] TFORLOOP       A=2 B=23 C=0 k=1 Bx=47 sBx=-65488 Ax=12034 sJ=-16765181 raw=0x0017814D
+    [0056] CLOSE          A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000136
+    [0057] SETFIELD       A=0 B=0 C=9 k=1 Bx=4609 sBx=-60926 Ax=1179904 sJ=-15597311 raw=0x09008012 ; R[0][K[0] "WaitMessageTable"] = R[9]
+    [0058] RETURN         A=2 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=770 sJ=-16776445 raw=0x00018146
+
+  function[5] source="" lines=124-127 params=6 vararg=0 stack=255 upvalues=1
+  constants (4):
+    K[0] = "_G"
+    K[1] = "DelayManager"
+    K[2] = "DelayFrames"
+    K[3] = 0.1
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=10 name="_ENV"
+  locals (6):
+    L[0] = "self" pc=0-7
+    L[1] = "serverName" pc=0-7
+    L[2] = "typeid" pc=0-7
+    L[3] = "zoneid" pc=0-7
+    L[4] = "ip" pc=0-7
+    L[5] = "port" pc=0-7
+  instructions (7):
+    [0001] GETTABUP       A=6 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=6 sJ=-16777209 raw=0x0000030B ; R[6] = U[0][K[0] "_G"]
+    [0002] GETFIELD       A=6 B=6 C=1 k=0 Bx=524 sBx=-65011 Ax=134150 sJ=-16643065 raw=0x0106030E ; R[6] = R[6][K[1] "DelayManager"]
+    [0003] SELF           A=6 B=6 C=2 k=1 Bx=1037 sBx=-64498 Ax=265478 sJ=-16511737 raw=0x02068314
+    [0004] LOADK          A=8 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=776 sJ=-16776439 raw=0x00018403 ; R[8] = K[3] 0.1
+    [0005] CLOSURE        A=9 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=9 sJ=-16777206 raw=0x000004CF ; R[9] = function[0]
+    [0006] CALL           A=6 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133126 sJ=-16644089 raw=0x01040344
+    [0007] RETURN0        A=6 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=518 sJ=-16776697 raw=0x00010347
+
+    function[0] source="" lines=126-126 params=0 vararg=0 stack=255 upvalues=1
+    constants (7):
+      K[0] = "_G"
+      K[1] = "ZoneServer"
+      K[2] = "ZoneServerGCloud"
+      K[3] = "OnConnected"
+      K[4] = "UE4"
+      K[5] = "ENetConnectEvent"
+      K[6] = "ConnectResult"
+    upvalues (1):
+      U[0] = instack=0 idx=0 kind=7 name="_ENV"
+    instructions (13):
+      [0001] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "_G"]
+      [0002] GETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x0100000E ; R[0] = R[0][K[1] "ZoneServer"]
+      [0003] GETFIELD       A=0 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262144 sJ=-16515071 raw=0x0200000E ; R[0] = R[0][K[2] "ZoneServerGCloud"]
+      [0004] SELF           A=0 B=0 C=3 k=1 Bx=1537 sBx=-63998 Ax=393472 sJ=-16383743 raw=0x03008014
+      [0005] LOADI          A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000101
+      [0006] GETTABUP       A=3 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524291 sJ=-16252924 raw=0x0400018B ; R[3] = U[0][K[4] "UE4"]
+      [0007] GETFIELD       A=3 B=3 C=5 k=0 Bx=2566 sBx=-62969 Ax=656899 sJ=-16120316 raw=0x0503018E ; R[3] = R[3][K[5] "ENetConnectEvent"]
+      [0008] GETFIELD       A=3 B=3 C=6 k=0 Bx=3078 sBx=-62457 Ax=787971 sJ=-15989244 raw=0x0603018E ; R[3] = R[3][K[6] "ConnectResult"]
+      [0009] LOADI          A=4 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776964 sJ=-251 raw=0x7FFF8201
+      [0010] LOADI          A=5 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776965 sJ=-250 raw=0x7FFF8281
+      [0011] LOADI          A=6 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777222 sJ=7 raw=0x80000301
+      [0012] CALL           A=0 B=7 C=1 k=0 Bx=526 sBx=-65009 Ax=134656 sJ=-16642559 raw=0x01070044
+      [0013] RETURN0        A=0 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=512 sJ=-16776703 raw=0x00010047

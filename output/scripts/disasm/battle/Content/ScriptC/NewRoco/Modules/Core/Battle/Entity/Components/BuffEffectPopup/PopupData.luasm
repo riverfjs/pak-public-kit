@@ -1,0 +1,1251 @@
+-- path: Content/ScriptC/NewRoco/Modules/Core/Battle/Entity/Components/BuffEffectPopup/PopupData.luac
+-- format: decrypted standard Lua 5.4 bytecode
+-- note: disassembly, not original source
+
+main source="@NewRoco\\Modules\\Core\\Battle\\Entity\\Components\\BuffEffectPopup\\PopupData.lua" lines=0-0 params=0 vararg=1 stack=255 upvalues=1
+constants (42):
+  K[0] = "require"
+  K[1] = "Data.PB.ProtoEnum"
+  K[2] = "NewRoco.Modules.Core.Battle.Common.BattleConst"
+  K[3] = "NewRoco.Modules.Core.Battle.Common.BattleUtils"
+  K[4] = "NewRoco.Modules.Core.Battle.Entity.Components.BuffEffectPopup.PopupAttributeInfo"
+  K[5] = "NewRoco.Modules.Core.Battle.Common.BattleEnum"
+  K[6] = "NRCClass"
+  K[7] = "DamagePopupPathMap"
+  K[8] = "PopupShowType"
+  K[9] = "Normal"
+  K[10] = "UI"
+  K[11] = "UMG_Battle_DamageGeneral"
+  K[12] = "IsCritical"
+  K[13] = "IsRestraint"
+  K[14] = "IsRestrainted"
+  K[15] = "IsHeal"
+  K[16] = "UMG_Battle_HealNumber"
+  K[17] = "Ctor"
+  K[18] = "SetHit"
+  K[19] = "SetHeal"
+  K[20] = "SetSourceId"
+  K[21] = "SetDamageType"
+  K[22] = "SetCritical"
+  K[23] = "SetRestraintType"
+  K[24] = "IsCritical"
+  K[25] = "IsRestraint"
+  K[26] = "IsRestrainted"
+  K[27] = "IsPowerful"
+  K[28] = "SetAttributeInfo"
+  K[29] = "SetAttributeInfoAsNum"
+  K[30] = "SetPower"
+  K[31] = "SetDamageNumber"
+  K[32] = "GetDamageType"
+  K[33] = "GetUMG"
+  K[34] = "OnUmgLoadDynamic"
+  K[35] = "OnUmgLoad"
+  K[36] = "RecycleUMG"
+  K[37] = "MakePopup"
+  K[38] = "FromBuffID"
+  K[39] = "FromEffectConf"
+  K[40] = "GetBuffColor"
+  K[41] = "GetBuffOutlineColor"
+upvalues (1):
+  U[0] = instack=0 idx=0 kind=9 name="_ENV"
+locals (6):
+  L[0] = "ProtoEnum" pc=4-116
+  L[1] = "BattleConst" pc=7-116
+  L[2] = "BattleUtils" pc=10-116
+  L[3] = "PopupAttributeInfo" pc=13-116
+  L[4] = "BattleEnum" pc=16-116
+  L[5] = "PopupData" pc=18-116
+instructions (116):
+  [0001] VARARGPREP     A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000051
+  [0002] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "require"]
+  [0003] LOADK          A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x00008083 ; R[1] = K[1] "Data.PB.ProtoEnum"
+  [0004] CALL           A=0 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263168 sJ=-16514047 raw=0x02020044
+  [0005] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "require"]
+  [0006] LOADK          A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010103 ; R[2] = K[2] "NewRoco.Modules.Core.Battle.Common.BattleConst"
+  [0007] CALL           A=1 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263169 sJ=-16514046 raw=0x020200C4
+  [0008] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "require"]
+  [0009] LOADK          A=3 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=771 sJ=-16776444 raw=0x00018183 ; R[3] = K[3] "NewRoco.Modules.Core.Battle.Common.BattleUtils"
+  [0010] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+  [0011] GETTABUP       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018B ; R[3] = U[0][K[0] "require"]
+  [0012] LOADK          A=4 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1028 sJ=-16776187 raw=0x00020203 ; R[4] = K[4] "NewRoco.Modules.Core.Battle.Entity.Components.BuffEffectPopup.PopupAttributeInfo"
+  [0013] CALL           A=3 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263171 sJ=-16514044 raw=0x020201C4
+  [0014] GETTABUP       A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x0000020B ; R[4] = U[0][K[0] "require"]
+  [0015] LOADK          A=5 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1285 sJ=-16775930 raw=0x00028283 ; R[5] = K[5] "NewRoco.Modules.Core.Battle.Common.BattleEnum"
+  [0016] CALL           A=4 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263172 sJ=-16514043 raw=0x02020244
+  [0017] GETTABUP       A=5 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786437 sJ=-15990778 raw=0x0600028B ; R[5] = U[0][K[6] "NRCClass"]
+  [0018] CALL           A=5 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262661 sJ=-16514554 raw=0x020102C4
+  [0019] NEWTABLE       A=6 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2054 sJ=-16775161 raw=0x00040313
+  [0020] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0021] GETFIELD       A=7 B=4 C=8 k=0 Bx=4104 sBx=-61431 Ax=1050631 sJ=-15726584 raw=0x0804038E ; R[7] = R[4][K[8] "PopupShowType"]
+  [0022] GETFIELD       A=7 B=7 C=9 k=0 Bx=4622 sBx=-60913 Ax=1183239 sJ=-15593976 raw=0x0907038E ; R[7] = R[7][K[9] "Normal"]
+  [0023] GETFIELD       A=8 B=1 C=10 k=0 Bx=5122 sBx=-60413 Ax=1311240 sJ=-15465975 raw=0x0A01040E ; R[8] = R[1][K[10] "UI"]
+  [0024] GETFIELD       A=8 B=8 C=11 k=0 Bx=5648 sBx=-59887 Ax=1445896 sJ=-15331319 raw=0x0B08040E ; R[8] = R[8][K[11] "UMG_Battle_DamageGeneral"]
+  [0025] SETTABLE       A=6 B=7 C=8 k=0 Bx=4110 sBx=-61425 Ax=1052166 sJ=-15725049 raw=0x08070310
+  [0026] GETFIELD       A=7 B=4 C=8 k=0 Bx=4104 sBx=-61431 Ax=1050631 sJ=-15726584 raw=0x0804038E ; R[7] = R[4][K[8] "PopupShowType"]
+  [0027] GETFIELD       A=7 B=7 C=12 k=0 Bx=6158 sBx=-59377 Ax=1576455 sJ=-15200760 raw=0x0C07038E ; R[7] = R[7][K[12] "IsCritical"]
+  [0028] GETFIELD       A=8 B=1 C=10 k=0 Bx=5122 sBx=-60413 Ax=1311240 sJ=-15465975 raw=0x0A01040E ; R[8] = R[1][K[10] "UI"]
+  [0029] GETFIELD       A=8 B=8 C=11 k=0 Bx=5648 sBx=-59887 Ax=1445896 sJ=-15331319 raw=0x0B08040E ; R[8] = R[8][K[11] "UMG_Battle_DamageGeneral"]
+  [0030] SETTABLE       A=6 B=7 C=8 k=0 Bx=4110 sBx=-61425 Ax=1052166 sJ=-15725049 raw=0x08070310
+  [0031] GETFIELD       A=7 B=4 C=8 k=0 Bx=4104 sBx=-61431 Ax=1050631 sJ=-15726584 raw=0x0804038E ; R[7] = R[4][K[8] "PopupShowType"]
+  [0032] GETFIELD       A=7 B=7 C=13 k=0 Bx=6670 sBx=-58865 Ax=1707527 sJ=-15069688 raw=0x0D07038E ; R[7] = R[7][K[13] "IsRestraint"]
+  [0033] GETFIELD       A=8 B=1 C=10 k=0 Bx=5122 sBx=-60413 Ax=1311240 sJ=-15465975 raw=0x0A01040E ; R[8] = R[1][K[10] "UI"]
+  [0034] GETFIELD       A=8 B=8 C=11 k=0 Bx=5648 sBx=-59887 Ax=1445896 sJ=-15331319 raw=0x0B08040E ; R[8] = R[8][K[11] "UMG_Battle_DamageGeneral"]
+  [0035] SETTABLE       A=6 B=7 C=8 k=0 Bx=4110 sBx=-61425 Ax=1052166 sJ=-15725049 raw=0x08070310
+  [0036] GETFIELD       A=7 B=4 C=8 k=0 Bx=4104 sBx=-61431 Ax=1050631 sJ=-15726584 raw=0x0804038E ; R[7] = R[4][K[8] "PopupShowType"]
+  [0037] GETFIELD       A=7 B=7 C=12 k=0 Bx=6158 sBx=-59377 Ax=1576455 sJ=-15200760 raw=0x0C07038E ; R[7] = R[7][K[12] "IsCritical"]
+  [0038] GETFIELD       A=8 B=4 C=8 k=0 Bx=4104 sBx=-61431 Ax=1050632 sJ=-15726583 raw=0x0804040E ; R[8] = R[4][K[8] "PopupShowType"]
+  [0039] GETFIELD       A=8 B=8 C=13 k=0 Bx=6672 sBx=-58863 Ax=1708040 sJ=-15069175 raw=0x0D08040E ; R[8] = R[8][K[13] "IsRestraint"]
+  [0040] BOR            A=7 B=7 C=8 k=0 Bx=4110 sBx=-61425 Ax=1052167 sJ=-15725048 raw=0x080703AA
+  [0041] MMBIN          A=7 B=8 C=14 k=0 Bx=7184 sBx=-58351 Ax=1839111 sJ=-14938104 raw=0x0E0803AE
+  [0042] GETFIELD       A=8 B=1 C=10 k=0 Bx=5122 sBx=-60413 Ax=1311240 sJ=-15465975 raw=0x0A01040E ; R[8] = R[1][K[10] "UI"]
+  [0043] GETFIELD       A=8 B=8 C=11 k=0 Bx=5648 sBx=-59887 Ax=1445896 sJ=-15331319 raw=0x0B08040E ; R[8] = R[8][K[11] "UMG_Battle_DamageGeneral"]
+  [0044] SETTABLE       A=6 B=7 C=8 k=0 Bx=4110 sBx=-61425 Ax=1052166 sJ=-15725049 raw=0x08070310
+  [0045] GETFIELD       A=7 B=4 C=8 k=0 Bx=4104 sBx=-61431 Ax=1050631 sJ=-15726584 raw=0x0804038E ; R[7] = R[4][K[8] "PopupShowType"]
+  [0046] GETFIELD       A=7 B=7 C=14 k=0 Bx=7182 sBx=-58353 Ax=1838599 sJ=-14938616 raw=0x0E07038E ; R[7] = R[7][K[14] "IsRestrainted"]
+  [0047] GETFIELD       A=8 B=1 C=10 k=0 Bx=5122 sBx=-60413 Ax=1311240 sJ=-15465975 raw=0x0A01040E ; R[8] = R[1][K[10] "UI"]
+  [0048] GETFIELD       A=8 B=8 C=11 k=0 Bx=5648 sBx=-59887 Ax=1445896 sJ=-15331319 raw=0x0B08040E ; R[8] = R[8][K[11] "UMG_Battle_DamageGeneral"]
+  [0049] SETTABLE       A=6 B=7 C=8 k=0 Bx=4110 sBx=-61425 Ax=1052166 sJ=-15725049 raw=0x08070310
+  [0050] GETFIELD       A=7 B=4 C=8 k=0 Bx=4104 sBx=-61431 Ax=1050631 sJ=-15726584 raw=0x0804038E ; R[7] = R[4][K[8] "PopupShowType"]
+  [0051] GETFIELD       A=7 B=7 C=14 k=0 Bx=7182 sBx=-58353 Ax=1838599 sJ=-14938616 raw=0x0E07038E ; R[7] = R[7][K[14] "IsRestrainted"]
+  [0052] GETFIELD       A=8 B=4 C=8 k=0 Bx=4104 sBx=-61431 Ax=1050632 sJ=-15726583 raw=0x0804040E ; R[8] = R[4][K[8] "PopupShowType"]
+  [0053] GETFIELD       A=8 B=8 C=12 k=0 Bx=6160 sBx=-59375 Ax=1576968 sJ=-15200247 raw=0x0C08040E ; R[8] = R[8][K[12] "IsCritical"]
+  [0054] BOR            A=7 B=7 C=8 k=0 Bx=4110 sBx=-61425 Ax=1052167 sJ=-15725048 raw=0x080703AA
+  [0055] MMBIN          A=7 B=8 C=14 k=0 Bx=7184 sBx=-58351 Ax=1839111 sJ=-14938104 raw=0x0E0803AE
+  [0056] GETFIELD       A=8 B=1 C=10 k=0 Bx=5122 sBx=-60413 Ax=1311240 sJ=-15465975 raw=0x0A01040E ; R[8] = R[1][K[10] "UI"]
+  [0057] GETFIELD       A=8 B=8 C=11 k=0 Bx=5648 sBx=-59887 Ax=1445896 sJ=-15331319 raw=0x0B08040E ; R[8] = R[8][K[11] "UMG_Battle_DamageGeneral"]
+  [0058] SETTABLE       A=6 B=7 C=8 k=0 Bx=4110 sBx=-61425 Ax=1052166 sJ=-15725049 raw=0x08070310
+  [0059] GETFIELD       A=7 B=4 C=8 k=0 Bx=4104 sBx=-61431 Ax=1050631 sJ=-15726584 raw=0x0804038E ; R[7] = R[4][K[8] "PopupShowType"]
+  [0060] GETFIELD       A=7 B=7 C=15 k=0 Bx=7694 sBx=-57841 Ax=1969671 sJ=-14807544 raw=0x0F07038E ; R[7] = R[7][K[15] "IsHeal"]
+  [0061] GETFIELD       A=8 B=1 C=10 k=0 Bx=5122 sBx=-60413 Ax=1311240 sJ=-15465975 raw=0x0A01040E ; R[8] = R[1][K[10] "UI"]
+  [0062] GETFIELD       A=8 B=8 C=16 k=0 Bx=8208 sBx=-57327 Ax=2101256 sJ=-14675959 raw=0x1008040E ; R[8] = R[8][K[16] "UMG_Battle_HealNumber"]
+  [0063] SETTABLE       A=6 B=7 C=8 k=0 Bx=4110 sBx=-61425 Ax=1052166 sJ=-15725049 raw=0x08070310
+  [0064] SETFIELD       A=5 B=7 C=6 k=0 Bx=3086 sBx=-62449 Ax=790021 sJ=-15987194 raw=0x06070292 ; R[5][K[7] "DamagePopupPathMap"] = R[6]
+  [0065] CLOSURE        A=6 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=6 sJ=-16777209 raw=0x0000034F ; R[6] = function[0]
+  [0066] SETFIELD       A=5 B=17 C=6 k=0 Bx=3106 sBx=-62429 Ax=795141 sJ=-15982074 raw=0x06110292 ; R[5][K[17] "Ctor"] = R[6]
+  [0067] CLOSURE        A=6 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=262 sJ=-16776953 raw=0x0000834F ; R[6] = function[1]
+  [0068] SETFIELD       A=5 B=18 C=6 k=0 Bx=3108 sBx=-62427 Ax=795653 sJ=-15981562 raw=0x06120292 ; R[5][K[18] "SetHit"] = R[6]
+  [0069] CLOSURE        A=6 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=518 sJ=-16776697 raw=0x0001034F ; R[6] = function[2]
+  [0070] SETFIELD       A=5 B=19 C=6 k=0 Bx=3110 sBx=-62425 Ax=796165 sJ=-15981050 raw=0x06130292 ; R[5][K[19] "SetHeal"] = R[6]
+  [0071] CLOSURE        A=6 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=774 sJ=-16776441 raw=0x0001834F ; R[6] = function[3]
+  [0072] SETFIELD       A=5 B=20 C=6 k=0 Bx=3112 sBx=-62423 Ax=796677 sJ=-15980538 raw=0x06140292 ; R[5][K[20] "SetSourceId"] = R[6]
+  [0073] CLOSURE        A=6 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1030 sJ=-16776185 raw=0x0002034F ; R[6] = function[4]
+  [0074] SETFIELD       A=5 B=21 C=6 k=0 Bx=3114 sBx=-62421 Ax=797189 sJ=-15980026 raw=0x06150292 ; R[5][K[21] "SetDamageType"] = R[6]
+  [0075] CLOSURE        A=6 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1286 sJ=-16775929 raw=0x0002834F ; R[6] = function[5]
+  [0076] SETFIELD       A=5 B=22 C=6 k=0 Bx=3116 sBx=-62419 Ax=797701 sJ=-15979514 raw=0x06160292 ; R[5][K[22] "SetCritical"] = R[6]
+  [0077] CLOSURE        A=6 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1542 sJ=-16775673 raw=0x0003034F ; R[6] = function[6]
+  [0078] SETFIELD       A=5 B=23 C=6 k=0 Bx=3118 sBx=-62417 Ax=798213 sJ=-15979002 raw=0x06170292 ; R[5][K[23] "SetRestraintType"] = R[6]
+  [0079] CLOSURE        A=6 B=3 C=0 k=1 Bx=7 sBx=-65528 Ax=1798 sJ=-16775417 raw=0x0003834F ; R[6] = function[7]
+  [0080] SETFIELD       A=5 B=24 C=6 k=0 Bx=3120 sBx=-62415 Ax=798725 sJ=-15978490 raw=0x06180292 ; R[5][K[24] "IsCritical"] = R[6]
+  [0081] CLOSURE        A=6 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2054 sJ=-16775161 raw=0x0004034F ; R[6] = function[8]
+  [0082] SETFIELD       A=5 B=25 C=6 k=0 Bx=3122 sBx=-62413 Ax=799237 sJ=-15977978 raw=0x06190292 ; R[5][K[25] "IsRestraint"] = R[6]
+  [0083] CLOSURE        A=6 B=4 C=0 k=1 Bx=9 sBx=-65526 Ax=2310 sJ=-16774905 raw=0x0004834F ; R[6] = function[9]
+  [0084] SETFIELD       A=5 B=26 C=6 k=0 Bx=3124 sBx=-62411 Ax=799749 sJ=-15977466 raw=0x061A0292 ; R[5][K[26] "IsRestrainted"] = R[6]
+  [0085] CLOSURE        A=6 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2566 sJ=-16774649 raw=0x0005034F ; R[6] = function[10]
+  [0086] SETFIELD       A=5 B=27 C=6 k=0 Bx=3126 sBx=-62409 Ax=800261 sJ=-15976954 raw=0x061B0292 ; R[5][K[27] "IsPowerful"] = R[6]
+  [0087] CLOSURE        A=6 B=5 C=0 k=1 Bx=11 sBx=-65524 Ax=2822 sJ=-16774393 raw=0x0005834F ; R[6] = function[11]
+  [0088] SETFIELD       A=5 B=28 C=6 k=0 Bx=3128 sBx=-62407 Ax=800773 sJ=-15976442 raw=0x061C0292 ; R[5][K[28] "SetAttributeInfo"] = R[6]
+  [0089] CLOSURE        A=6 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3078 sJ=-16774137 raw=0x0006034F ; R[6] = function[12]
+  [0090] SETFIELD       A=5 B=29 C=6 k=0 Bx=3130 sBx=-62405 Ax=801285 sJ=-15975930 raw=0x061D0292 ; R[5][K[29] "SetAttributeInfoAsNum"] = R[6]
+  [0091] CLOSURE        A=6 B=6 C=0 k=1 Bx=13 sBx=-65522 Ax=3334 sJ=-16773881 raw=0x0006834F ; R[6] = function[13]
+  [0092] SETFIELD       A=5 B=30 C=6 k=0 Bx=3132 sBx=-62403 Ax=801797 sJ=-15975418 raw=0x061E0292 ; R[5][K[30] "SetPower"] = R[6]
+  [0093] CLOSURE        A=6 B=7 C=0 k=0 Bx=14 sBx=-65521 Ax=3590 sJ=-16773625 raw=0x0007034F ; R[6] = function[14]
+  [0094] SETFIELD       A=5 B=31 C=6 k=0 Bx=3134 sBx=-62401 Ax=802309 sJ=-15974906 raw=0x061F0292 ; R[5][K[31] "SetDamageNumber"] = R[6]
+  [0095] CLOSURE        A=6 B=7 C=0 k=1 Bx=15 sBx=-65520 Ax=3846 sJ=-16773369 raw=0x0007834F ; R[6] = function[15]
+  [0096] SETFIELD       A=5 B=32 C=6 k=0 Bx=3136 sBx=-62399 Ax=802821 sJ=-15974394 raw=0x06200292 ; R[5][K[32] "GetDamageType"] = R[6]
+  [0097] CLOSURE        A=6 B=8 C=0 k=0 Bx=16 sBx=-65519 Ax=4102 sJ=-16773113 raw=0x0008034F ; R[6] = function[16]
+  [0098] SETFIELD       A=5 B=33 C=6 k=0 Bx=3138 sBx=-62397 Ax=803333 sJ=-15973882 raw=0x06210292 ; R[5][K[33] "GetUMG"] = R[6]
+  [0099] CLOSURE        A=6 B=8 C=0 k=1 Bx=17 sBx=-65518 Ax=4358 sJ=-16772857 raw=0x0008834F ; R[6] = function[17]
+  [0100] SETFIELD       A=5 B=34 C=6 k=0 Bx=3140 sBx=-62395 Ax=803845 sJ=-15973370 raw=0x06220292 ; R[5][K[34] "OnUmgLoadDynamic"] = R[6]
+  [0101] CLOSURE        A=6 B=9 C=0 k=0 Bx=18 sBx=-65517 Ax=4614 sJ=-16772601 raw=0x0009034F ; R[6] = function[18]
+  [0102] SETFIELD       A=5 B=35 C=6 k=0 Bx=3142 sBx=-62393 Ax=804357 sJ=-15972858 raw=0x06230292 ; R[5][K[35] "OnUmgLoad"] = R[6]
+  [0103] CLOSURE        A=6 B=9 C=0 k=1 Bx=19 sBx=-65516 Ax=4870 sJ=-16772345 raw=0x0009834F ; R[6] = function[19]
+  [0104] SETFIELD       A=5 B=36 C=6 k=0 Bx=3144 sBx=-62391 Ax=804869 sJ=-15972346 raw=0x06240292 ; R[5][K[36] "RecycleUMG"] = R[6]
+  [0105] CLOSURE        A=6 B=10 C=0 k=0 Bx=20 sBx=-65515 Ax=5126 sJ=-16772089 raw=0x000A034F ; R[6] = function[20]
+  [0106] SETFIELD       A=5 B=37 C=6 k=0 Bx=3146 sBx=-62389 Ax=805381 sJ=-15971834 raw=0x06250292 ; R[5][K[37] "MakePopup"] = R[6]
+  [0107] CLOSURE        A=6 B=10 C=0 k=1 Bx=21 sBx=-65514 Ax=5382 sJ=-16771833 raw=0x000A834F ; R[6] = function[21]
+  [0108] SETFIELD       A=5 B=38 C=6 k=0 Bx=3148 sBx=-62387 Ax=805893 sJ=-15971322 raw=0x06260292 ; R[5][K[38] "FromBuffID"] = R[6]
+  [0109] CLOSURE        A=6 B=11 C=0 k=0 Bx=22 sBx=-65513 Ax=5638 sJ=-16771577 raw=0x000B034F ; R[6] = function[22]
+  [0110] SETFIELD       A=5 B=39 C=6 k=0 Bx=3150 sBx=-62385 Ax=806405 sJ=-15970810 raw=0x06270292 ; R[5][K[39] "FromEffectConf"] = R[6]
+  [0111] CLOSURE        A=6 B=11 C=0 k=1 Bx=23 sBx=-65512 Ax=5894 sJ=-16771321 raw=0x000B834F ; R[6] = function[23]
+  [0112] SETFIELD       A=5 B=40 C=6 k=0 Bx=3152 sBx=-62383 Ax=806917 sJ=-15970298 raw=0x06280292 ; R[5][K[40] "GetBuffColor"] = R[6]
+  [0113] CLOSURE        A=6 B=12 C=0 k=0 Bx=24 sBx=-65511 Ax=6150 sJ=-16771065 raw=0x000C034F ; R[6] = function[24]
+  [0114] SETFIELD       A=5 B=41 C=6 k=0 Bx=3154 sBx=-62381 Ax=807429 sJ=-15969786 raw=0x06290292 ; R[5][K[41] "GetBuffOutlineColor"] = R[6]
+  [0115] RETURN         A=5 B=2 C=1 k=1 Bx=517 sBx=-65018 Ax=132357 sJ=-16644858 raw=0x010282C6
+  [0116] RETURN         A=6 B=1 C=1 k=1 Bx=515 sBx=-65020 Ax=131846 sJ=-16645369 raw=0x01018346
+
+  function[0] source="" lines=39-48 params=1 vararg=0 stack=255 upvalues=1
+  constants (16):
+    K[0] = "content"
+    K[1] = ""
+    K[2] = "popupSubShowType"
+    K[3] = "PopupShowType"
+    K[4] = "Normal"
+    K[5] = "isHit"
+    K[6] = true
+    K[7] = "isHealing"
+    K[8] = false
+    K[9] = "attrInfo"
+    K[10] = nil
+    K[11] = "power"
+    K[12] = 1
+    K[13] = "CurDamage"
+    K[14] = 0
+    K[15] = "damageType"
+  upvalues (1):
+    U[0] = instack=4 idx=0 kind=2 name="BattleEnum"
+  locals (1):
+    L[0] = "self" pc=0-11
+  instructions (11):
+    [0001] SETFIELD       A=0 B=0 C=1 k=1 Bx=513 sBx=-65022 Ax=131328 sJ=-16645887 raw=0x01008012 ; R[0][K[0] "content"] = R[1]
+    [0002] GETTABUP       A=1 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393217 sJ=-16383998 raw=0x0300008B ; R[1] = U[0][K[3] "PopupShowType"]
+    [0003] GETFIELD       A=1 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524801 sJ=-16252414 raw=0x0401008E ; R[1] = R[1][K[4] "Normal"]
+    [0004] SETFIELD       A=0 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132096 sJ=-16645119 raw=0x01020012 ; R[0][K[2] "popupSubShowType"] = R[1]
+    [0005] SETFIELD       A=0 B=5 C=6 k=1 Bx=3083 sBx=-62452 Ax=789248 sJ=-15987967 raw=0x06058012 ; R[0][K[5] "isHit"] = R[6]
+    [0006] SETFIELD       A=0 B=7 C=8 k=1 Bx=4111 sBx=-61424 Ax=1052416 sJ=-15724799 raw=0x08078012 ; R[0][K[7] "isHealing"] = R[8]
+    [0007] SETFIELD       A=0 B=9 C=10 k=1 Bx=5139 sBx=-60396 Ax=1315584 sJ=-15461631 raw=0x0A098012 ; R[0][K[9] "attrInfo"] = R[10]
+    [0008] SETFIELD       A=0 B=11 C=12 k=1 Bx=6167 sBx=-59368 Ax=1578752 sJ=-15198463 raw=0x0C0B8012 ; R[0][K[11] "power"] = R[12]
+    [0009] SETFIELD       A=0 B=13 C=14 k=1 Bx=7195 sBx=-58340 Ax=1841920 sJ=-14935295 raw=0x0E0D8012 ; R[0][K[13] "CurDamage"] = R[14]
+    [0010] SETFIELD       A=0 B=15 C=12 k=1 Bx=6175 sBx=-59360 Ax=1580800 sJ=-15196415 raw=0x0C0F8012 ; R[0][K[15] "damageType"] = R[12]
+    [0011] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[1] source="" lines=51-54 params=2 vararg=0 stack=255 upvalues=0
+  constants (1):
+    K[0] = "isHit"
+  locals (2):
+    L[0] = "self" pc=0-3
+    L[1] = "isHit" pc=0-3
+  instructions (3):
+    [0001] SETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x01000012 ; R[0][K[0] "isHit"] = R[1]
+    [0002] RETURN1        A=0 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1024 sJ=-16776191 raw=0x00020048
+    [0003] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[2] source="" lines=57-60 params=2 vararg=0 stack=255 upvalues=0
+  constants (1):
+    K[0] = "isHealing"
+  locals (2):
+    L[0] = "self" pc=0-3
+    L[1] = "isHeal" pc=0-3
+  instructions (3):
+    [0001] SETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x01000012 ; R[0][K[0] "isHealing"] = R[1]
+    [0002] RETURN1        A=0 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1024 sJ=-16776191 raw=0x00020048
+    [0003] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[3] source="" lines=63-66 params=2 vararg=0 stack=255 upvalues=0
+  constants (1):
+    K[0] = "SourceId"
+  locals (2):
+    L[0] = "self" pc=0-3
+    L[1] = "sourceId" pc=0-3
+  instructions (3):
+    [0001] SETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x01000012 ; R[0][K[0] "SourceId"] = R[1]
+    [0002] RETURN1        A=0 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1024 sJ=-16776191 raw=0x00020048
+    [0003] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[4] source="" lines=69-75 params=2 vararg=0 stack=255 upvalues=0
+  constants (1):
+    K[0] = "damageType"
+  locals (2):
+    L[0] = "self" pc=0-8
+    L[1] = "type" pc=0-8
+  instructions (8):
+    [0001] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0002] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0003] LEI            A=1 B=127 C=0 k=0 Bx=254 sBx=-65281 Ax=65025 sJ=-16712190 raw=0x007F00BF
+    [0004] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0005] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+    [0006] SETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x01000012 ; R[0][K[0] "damageType"] = R[1]
+    [0007] RETURN1        A=0 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1024 sJ=-16776191 raw=0x00020048
+    [0008] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[5] source="" lines=78-83 params=2 vararg=0 stack=255 upvalues=1
+  constants (3):
+    K[0] = "popupSubShowType"
+    K[1] = "PopupShowType"
+    K[2] = "IsCritical"
+  upvalues (1):
+    U[0] = instack=4 idx=0 kind=4 name="BattleEnum"
+  locals (2):
+    L[0] = "self" pc=0-10
+    L[1] = "Critical" pc=0-10
+  instructions (10):
+    [0001] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0002] JMP            A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x800002B8
+    [0003] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "popupSubShowType"]
+    [0004] GETTABUP       A=3 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131075 sJ=-16646140 raw=0x0100018B ; R[3] = U[0][K[1] "PopupShowType"]
+    [0005] GETFIELD       A=3 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263683 sJ=-16513532 raw=0x0203018E ; R[3] = R[3][K[2] "IsCritical"]
+    [0006] BOR            A=2 B=2 C=3 k=0 Bx=1540 sBx=-63995 Ax=394242 sJ=-16382973 raw=0x0302012A
+    [0007] MMBIN          A=2 B=3 C=14 k=0 Bx=7174 sBx=-58361 Ax=1836546 sJ=-14940669 raw=0x0E03012E
+    [0008] SETFIELD       A=0 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262144 sJ=-16515071 raw=0x02000012 ; R[0][K[0] "popupSubShowType"] = R[2]
+    [0009] RETURN1        A=0 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1024 sJ=-16776191 raw=0x00020048
+    [0010] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[6] source="" lines=86-99 params=2 vararg=0 stack=255 upvalues=2
+  constants (11):
+    K[0] = "SkillRestraintType"
+    K[1] = "SRT_RESTRAINT_ONE"
+    K[2] = "SRT_RESTRAINT_TWO"
+    K[3] = "SRT_RESTRAINT_THREE"
+    K[4] = "popupSubShowType"
+    K[5] = "PopupShowType"
+    K[6] = "IsRestraint"
+    K[7] = "SRT_RESTRAINTED_ONE"
+    K[8] = "SRT_RESTRAINTED_TWO"
+    K[9] = "SRT_RESTRAINTED_THREE"
+    K[10] = "IsRestrainted"
+  upvalues (2):
+    U[0] = instack=0 idx=0 kind=1 name="ProtoEnum"
+    U[1] = instack=4 idx=0 kind=6 name="BattleEnum"
+  locals (4):
+    L[0] = "self" pc=0-46
+    L[1] = "ResType" pc=0-46
+    L[2] = "isRestraint" pc=14-46
+    L[3] = "isRestrainted" pc=36-46
+  instructions (46):
+    [0001] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "SkillRestraintType"]
+    [0002] GETFIELD       A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x0102010E ; R[2] = R[2][K[1] "SRT_RESTRAINT_ONE"]
+    [0003] EQ             A=1 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1281 sJ=-16775934 raw=0x000280B9
+    [0004] JMP            A=8 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777224 sJ=9 raw=0x80000438
+    [0005] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "SkillRestraintType"]
+    [0006] GETFIELD       A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x0202010E ; R[2] = R[2][K[2] "SRT_RESTRAINT_TWO"]
+    [0007] EQ             A=1 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1281 sJ=-16775934 raw=0x000280B9
+    [0008] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0009] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "SkillRestraintType"]
+    [0010] GETFIELD       A=2 B=2 C=3 k=0 Bx=1540 sBx=-63995 Ax=394242 sJ=-16382973 raw=0x0302010E ; R[2] = R[2][K[3] "SRT_RESTRAINT_THREE"]
+    [0011] EQ             A=1 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1281 sJ=-16775934 raw=0x000280B9
+    [0012] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0013] LFALSESKIP     A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000106
+    [0014] LOADTRUE       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000107
+    [0015] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0016] JMP            A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x800002B8
+    [0017] GETFIELD       A=3 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524291 sJ=-16252924 raw=0x0400018E ; R[3] = R[0][K[4] "popupSubShowType"]
+    [0018] GETTABUP       A=4 B=1 C=5 k=0 Bx=2562 sBx=-62973 Ax=655876 sJ=-16121339 raw=0x0501020B ; R[4] = U[1][K[5] "PopupShowType"]
+    [0019] GETFIELD       A=4 B=4 C=6 k=0 Bx=3080 sBx=-62455 Ax=788484 sJ=-15988731 raw=0x0604020E ; R[4] = R[4][K[6] "IsRestraint"]
+    [0020] BOR            A=3 B=3 C=4 k=0 Bx=2054 sBx=-63481 Ax=525827 sJ=-16251388 raw=0x040301AA
+    [0021] MMBIN          A=3 B=4 C=14 k=0 Bx=7176 sBx=-58359 Ax=1837059 sJ=-14940156 raw=0x0E0401AE
+    [0022] SETFIELD       A=0 B=4 C=3 k=0 Bx=1544 sBx=-63991 Ax=395264 sJ=-16381951 raw=0x03040012 ; R[0][K[4] "popupSubShowType"] = R[3]
+    [0023] GETTABUP       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018B ; R[3] = U[0][K[0] "SkillRestraintType"]
+    [0024] GETFIELD       A=3 B=3 C=7 k=0 Bx=3590 sBx=-61945 Ax=919043 sJ=-15858172 raw=0x0703018E ; R[3] = R[3][K[7] "SRT_RESTRAINTED_ONE"]
+    [0025] EQ             A=1 B=3 C=0 k=1 Bx=7 sBx=-65528 Ax=1793 sJ=-16775422 raw=0x000380B9
+    [0026] JMP            A=8 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777224 sJ=9 raw=0x80000438
+    [0027] GETTABUP       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018B ; R[3] = U[0][K[0] "SkillRestraintType"]
+    [0028] GETFIELD       A=3 B=3 C=8 k=0 Bx=4102 sBx=-61433 Ax=1050115 sJ=-15727100 raw=0x0803018E ; R[3] = R[3][K[8] "SRT_RESTRAINTED_TWO"]
+    [0029] EQ             A=1 B=3 C=0 k=1 Bx=7 sBx=-65528 Ax=1793 sJ=-16775422 raw=0x000380B9
+    [0030] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0031] GETTABUP       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018B ; R[3] = U[0][K[0] "SkillRestraintType"]
+    [0032] GETFIELD       A=3 B=3 C=9 k=0 Bx=4614 sBx=-60921 Ax=1181187 sJ=-15596028 raw=0x0903018E ; R[3] = R[3][K[9] "SRT_RESTRAINTED_THREE"]
+    [0033] EQ             A=1 B=3 C=0 k=1 Bx=7 sBx=-65528 Ax=1793 sJ=-16775422 raw=0x000380B9
+    [0034] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0035] LFALSESKIP     A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000186
+    [0036] LOADTRUE       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000187
+    [0037] TEST           A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x000001C2
+    [0038] JMP            A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x800002B8
+    [0039] GETFIELD       A=4 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524292 sJ=-16252923 raw=0x0400020E ; R[4] = R[0][K[4] "popupSubShowType"]
+    [0040] GETTABUP       A=5 B=1 C=5 k=0 Bx=2562 sBx=-62973 Ax=655877 sJ=-16121338 raw=0x0501028B ; R[5] = U[1][K[5] "PopupShowType"]
+    [0041] GETFIELD       A=5 B=5 C=10 k=0 Bx=5130 sBx=-60405 Ax=1313285 sJ=-15463930 raw=0x0A05028E ; R[5] = R[5][K[10] "IsRestrainted"]
+    [0042] BOR            A=4 B=4 C=5 k=0 Bx=2568 sBx=-62967 Ax=657412 sJ=-16119803 raw=0x0504022A
+    [0043] MMBIN          A=4 B=5 C=14 k=0 Bx=7178 sBx=-58357 Ax=1837572 sJ=-14939643 raw=0x0E05022E
+    [0044] SETFIELD       A=0 B=4 C=4 k=0 Bx=2056 sBx=-63479 Ax=526336 sJ=-16250879 raw=0x04040012 ; R[0][K[4] "popupSubShowType"] = R[4]
+    [0045] RETURN1        A=0 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1024 sJ=-16776191 raw=0x00020048
+    [0046] RETURN0        A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010247
+
+  function[7] source="" lines=102-104 params=1 vararg=0 stack=255 upvalues=1
+  constants (3):
+    K[0] = "popupSubShowType"
+    K[1] = "PopupShowType"
+    K[2] = "IsCritical"
+  upvalues (1):
+    U[0] = instack=4 idx=0 kind=3 name="BattleEnum"
+  locals (1):
+    L[0] = "self" pc=0-11
+  instructions (11):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "popupSubShowType"]
+    [0002] GETTABUP       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010B ; R[2] = U[0][K[1] "PopupShowType"]
+    [0003] GETFIELD       A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x0202010E ; R[2] = R[2][K[2] "IsCritical"]
+    [0004] BAND           A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x020100A9
+    [0005] MMBIN          A=1 B=2 C=13 k=0 Bx=6660 sBx=-58875 Ax=1704961 sJ=-15072254 raw=0x0D0200AE
+    [0006] GTI            A=1 B=127 C=0 k=1 Bx=255 sBx=-65280 Ax=65281 sJ=-16711934 raw=0x007F80C0
+    [0007] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0008] LFALSESKIP     A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000086
+    [0009] LOADTRUE       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000087
+    [0010] RETURN1        A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C8
+    [0011] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[8] source="" lines=107-109 params=1 vararg=0 stack=255 upvalues=1
+  constants (3):
+    K[0] = "popupSubShowType"
+    K[1] = "PopupShowType"
+    K[2] = "IsRestraint"
+  upvalues (1):
+    U[0] = instack=4 idx=0 kind=3 name="BattleEnum"
+  locals (1):
+    L[0] = "self" pc=0-11
+  instructions (11):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "popupSubShowType"]
+    [0002] GETTABUP       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010B ; R[2] = U[0][K[1] "PopupShowType"]
+    [0003] GETFIELD       A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x0202010E ; R[2] = R[2][K[2] "IsRestraint"]
+    [0004] BAND           A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x020100A9
+    [0005] MMBIN          A=1 B=2 C=13 k=0 Bx=6660 sBx=-58875 Ax=1704961 sJ=-15072254 raw=0x0D0200AE
+    [0006] GTI            A=1 B=127 C=0 k=1 Bx=255 sBx=-65280 Ax=65281 sJ=-16711934 raw=0x007F80C0
+    [0007] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0008] LFALSESKIP     A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000086
+    [0009] LOADTRUE       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000087
+    [0010] RETURN1        A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C8
+    [0011] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[9] source="" lines=112-114 params=1 vararg=0 stack=255 upvalues=1
+  constants (3):
+    K[0] = "popupSubShowType"
+    K[1] = "PopupShowType"
+    K[2] = "IsRestrainted"
+  upvalues (1):
+    U[0] = instack=4 idx=0 kind=3 name="BattleEnum"
+  locals (1):
+    L[0] = "self" pc=0-11
+  instructions (11):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "popupSubShowType"]
+    [0002] GETTABUP       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010B ; R[2] = U[0][K[1] "PopupShowType"]
+    [0003] GETFIELD       A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x0202010E ; R[2] = R[2][K[2] "IsRestrainted"]
+    [0004] BAND           A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x020100A9
+    [0005] MMBIN          A=1 B=2 C=13 k=0 Bx=6660 sBx=-58875 Ax=1704961 sJ=-15072254 raw=0x0D0200AE
+    [0006] GTI            A=1 B=127 C=0 k=1 Bx=255 sBx=-65280 Ax=65281 sJ=-16711934 raw=0x007F80C0
+    [0007] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0008] LFALSESKIP     A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000086
+    [0009] LOADTRUE       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000087
+    [0010] RETURN1        A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C8
+    [0011] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[10] source="" lines=116-118 params=1 vararg=0 stack=255 upvalues=0
+  constants (1):
+    K[0] = "power"
+  locals (1):
+    L[0] = "self" pc=0-7
+  instructions (7):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "power"]
+    [0002] GEI            A=1 B=131 C=1 k=1 Bx=775 sBx=-64760 Ax=198401 sJ=-16578814 raw=0x018380C1
+    [0003] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0004] LFALSESKIP     A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000086
+    [0005] LOADTRUE       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000087
+    [0006] RETURN1        A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C8
+    [0007] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[11] source="" lines=121-124 params=2 vararg=0 stack=255 upvalues=0
+  constants (1):
+    K[0] = "attrInfo"
+  locals (2):
+    L[0] = "self" pc=0-3
+    L[1] = "AttrInfo" pc=0-3
+  instructions (3):
+    [0001] SETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x01000012 ; R[0][K[0] "attrInfo"] = R[1]
+    [0002] RETURN1        A=0 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1024 sJ=-16776191 raw=0x00020048
+    [0003] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[12] source="" lines=127-134 params=2 vararg=0 stack=255 upvalues=1
+  constants (4):
+    K[0] = "attrInfo"
+    K[1] = "AttributeType"
+    K[2] = "NORMAL"
+    K[3] = nil
+  upvalues (1):
+    U[0] = instack=3 idx=0 kind=6 name="PopupAttributeInfo"
+  locals (2):
+    L[0] = "self" pc=0-13
+    L[1] = "UINum" pc=0-13
+  instructions (13):
+    [0001] EQI            A=1 B=127 C=0 k=1 Bx=255 sBx=-65280 Ax=65281 sJ=-16711934 raw=0x007F80BD
+    [0002] JMP            A=7 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777223 sJ=8 raw=0x800003B8
+    [0003] GETUPVAL       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000109
+    [0004] GETTABUP       A=3 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131075 sJ=-16646140 raw=0x0100018B ; R[3] = U[0][K[1] "AttributeType"]
+    [0005] GETFIELD       A=3 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263683 sJ=-16513532 raw=0x0203018E ; R[3] = R[3][K[2] "NORMAL"]
+    [0006] LOADI          A=4 B=255 C=127 k=0 Bx=65534 sBx=-1 Ax=16776708 sJ=-507 raw=0x7FFF0201
+    [0007] MOVE           A=5 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=517 sJ=-16776698 raw=0x00010280
+    [0008] CALL           A=2 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264194 sJ=-16513021 raw=0x02040144
+    [0009] SETFIELD       A=0 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262144 sJ=-16515071 raw=0x02000012 ; R[0][K[0] "attrInfo"] = R[2]
+    [0010] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0011] SETFIELD       A=0 B=0 C=3 k=1 Bx=1537 sBx=-63998 Ax=393472 sJ=-16383743 raw=0x03008012 ; R[0][K[0] "attrInfo"] = R[3]
+    [0012] RETURN1        A=0 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1024 sJ=-16776191 raw=0x00020048
+    [0013] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[13] source="" lines=137-140 params=2 vararg=0 stack=255 upvalues=0
+  constants (1):
+    K[0] = "power"
+  locals (2):
+    L[0] = "self" pc=0-3
+    L[1] = "power" pc=0-3
+  instructions (3):
+    [0001] SETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x01000012 ; R[0][K[0] "power"] = R[1]
+    [0002] RETURN1        A=0 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1024 sJ=-16776191 raw=0x00020048
+    [0003] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[14] source="" lines=144-149 params=4 vararg=0 stack=255 upvalues=0
+  constants (3):
+    K[0] = "TotalDamageNumber"
+    K[1] = "CurDamageNumber"
+    K[2] = "CurDamage"
+  locals (4):
+    L[0] = "self" pc=0-8
+    L[1] = "totalNumber" pc=0-8
+    L[2] = "curNumber" pc=0-8
+    L[3] = "addDamage" pc=0-8
+  instructions (8):
+    [0001] SETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x01000012 ; R[0][K[0] "TotalDamageNumber"] = R[1]
+    [0002] SETFIELD       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010012 ; R[0][K[1] "CurDamageNumber"] = R[2]
+    [0003] GETFIELD       A=4 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262148 sJ=-16515067 raw=0x0200020E ; R[4] = R[0][K[2] "CurDamage"]
+    [0004] ADD            A=4 B=4 C=3 k=0 Bx=1544 sBx=-63991 Ax=395268 sJ=-16381947 raw=0x03040222
+    [0005] MMBIN          A=4 B=3 C=6 k=0 Bx=3078 sBx=-62457 Ax=787972 sJ=-15989243 raw=0x0603022E
+    [0006] SETFIELD       A=0 B=2 C=4 k=0 Bx=2052 sBx=-63483 Ax=525312 sJ=-16251903 raw=0x04020012 ; R[0][K[2] "CurDamage"] = R[4]
+    [0007] RETURN1        A=0 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1024 sJ=-16776191 raw=0x00020048
+    [0008] RETURN0        A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010247
+
+  function[15] source="" lines=158-160 params=1 vararg=0 stack=255 upvalues=0
+  constants (1):
+    K[0] = "damageType"
+  locals (1):
+    L[0] = "self" pc=0-3
+  instructions (3):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "damageType"]
+    [0002] RETURN1        A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C8
+    [0003] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[16] source="" lines=163-214 params=3 vararg=0 stack=255 upvalues=6
+  constants (28):
+    K[0] = "callInfo"
+    K[1] = "caller"
+    K[2] = "callBack"
+    K[3] = "isHit"
+    K[4] = "UI"
+    K[5] = "UMG_Battle_Miss"
+    K[6] = "popupShowType"
+    K[7] = "AddIcon"
+    K[8] = "AI_UP"
+    K[9] = "UMG_Battle_BuffEffectUp"
+    K[10] = "AI_DOWN"
+    K[11] = "UMG_Battle_BuffEffectDown"
+    K[12] = "AI_DAMAGE"
+    K[13] = "isHealing"
+    K[14] = "DamagePopupPathMap"
+    K[15] = "PopupShowType"
+    K[16] = "IsHeal"
+    K[17] = "popupSubShowType"
+    K[18] = "AI_BUFF"
+    K[19] = "UMG_Battle_Common_1"
+    K[20] = "GetMainWindow"
+    K[21] = "umgPath"
+    K[22] = "umgPool"
+    K[23] = "Acquire"
+    K[24] = "GetFatherPanel"
+    K[25] = "BattleResourceManager"
+    K[26] = "LoadWidgetAsync"
+    K[27] = "OnUmgLoadDynamic"
+  upvalues (6):
+    U[0] = instack=1 idx=0 kind=1 name="BattleConst"
+    U[1] = instack=0 idx=0 kind=1 name="ProtoEnum"
+    U[2] = instack=5 idx=0 kind=1 name="PopupData"
+    U[3] = instack=4 idx=0 kind=1 name="BattleEnum"
+    U[4] = instack=2 idx=0 kind=0 name="BattleUtils"
+    U[5] = instack=0 idx=0 kind=13 name="_ENV"
+  locals (5):
+    L[0] = "self" pc=0-96
+    L[1] = "caller" pc=0-96
+    L[2] = "callBack" pc=0-96
+    L[3] = "umgPath" pc=6-96
+    L[4] = "BattleMain" pc=57-96
+  instructions (96):
+    [0001] NEWTABLE       A=3 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1027 sJ=-16776188 raw=0x00020193
+    [0002] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0003] SETFIELD       A=3 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131587 sJ=-16645628 raw=0x01010192 ; R[3][K[1] "caller"] = R[1]
+    [0004] SETFIELD       A=3 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263171 sJ=-16514044 raw=0x02020192 ; R[3][K[2] "callBack"] = R[2]
+    [0005] SETFIELD       A=0 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393216 sJ=-16383999 raw=0x03000012 ; R[0][K[0] "callInfo"] = R[3]
+    [0006] LOADNIL        A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000188
+    [0007] GETFIELD       A=4 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393220 sJ=-16383995 raw=0x0300020E ; R[4] = R[0][K[3] "isHit"]
+    [0008] TEST           A=4 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=260 sJ=-16776955 raw=0x00008242
+    [0009] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0010] GETTABUP       A=4 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524292 sJ=-16252923 raw=0x0400020B ; R[4] = U[0][K[4] "UI"]
+    [0011] GETFIELD       A=3 B=4 C=5 k=0 Bx=2568 sBx=-62967 Ax=657411 sJ=-16119804 raw=0x0504018E ; R[3] = R[4][K[5] "UMG_Battle_Miss"]
+    [0012] JMP            A=42 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777258 sJ=43 raw=0x80001538
+    [0013] GETFIELD       A=4 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786436 sJ=-15990779 raw=0x0600020E ; R[4] = R[0][K[6] "popupShowType"]
+    [0014] GETTABUP       A=5 B=1 C=7 k=0 Bx=3586 sBx=-61949 Ax=918021 sJ=-15859194 raw=0x0701028B ; R[5] = U[1][K[7] "AddIcon"]
+    [0015] GETFIELD       A=5 B=5 C=8 k=0 Bx=4106 sBx=-61429 Ax=1051141 sJ=-15726074 raw=0x0805028E ; R[5] = R[5][K[8] "AI_UP"]
+    [0016] EQ             A=4 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2564 sJ=-16774651 raw=0x00050239
+    [0017] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0018] GETTABUP       A=4 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524292 sJ=-16252923 raw=0x0400020B ; R[4] = U[0][K[4] "UI"]
+    [0019] GETFIELD       A=3 B=4 C=9 k=0 Bx=4616 sBx=-60919 Ax=1181699 sJ=-15595516 raw=0x0904018E ; R[3] = R[4][K[9] "UMG_Battle_BuffEffectUp"]
+    [0020] JMP            A=34 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777250 sJ=35 raw=0x80001138
+    [0021] GETFIELD       A=4 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786436 sJ=-15990779 raw=0x0600020E ; R[4] = R[0][K[6] "popupShowType"]
+    [0022] GETTABUP       A=5 B=1 C=7 k=0 Bx=3586 sBx=-61949 Ax=918021 sJ=-15859194 raw=0x0701028B ; R[5] = U[1][K[7] "AddIcon"]
+    [0023] GETFIELD       A=5 B=5 C=10 k=0 Bx=5130 sBx=-60405 Ax=1313285 sJ=-15463930 raw=0x0A05028E ; R[5] = R[5][K[10] "AI_DOWN"]
+    [0024] EQ             A=4 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2564 sJ=-16774651 raw=0x00050239
+    [0025] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0026] GETTABUP       A=4 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524292 sJ=-16252923 raw=0x0400020B ; R[4] = U[0][K[4] "UI"]
+    [0027] GETFIELD       A=3 B=4 C=11 k=0 Bx=5640 sBx=-59895 Ax=1443843 sJ=-15333372 raw=0x0B04018E ; R[3] = R[4][K[11] "UMG_Battle_BuffEffectDown"]
+    [0028] JMP            A=26 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777242 sJ=27 raw=0x80000D38
+    [0029] GETFIELD       A=4 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786436 sJ=-15990779 raw=0x0600020E ; R[4] = R[0][K[6] "popupShowType"]
+    [0030] GETTABUP       A=5 B=1 C=7 k=0 Bx=3586 sBx=-61949 Ax=918021 sJ=-15859194 raw=0x0701028B ; R[5] = U[1][K[7] "AddIcon"]
+    [0031] GETFIELD       A=5 B=5 C=12 k=0 Bx=6154 sBx=-59381 Ax=1575429 sJ=-15201786 raw=0x0C05028E ; R[5] = R[5][K[12] "AI_DAMAGE"]
+    [0032] EQ             A=4 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2564 sJ=-16774651 raw=0x00050239
+    [0033] JMP            A=11 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777227 sJ=12 raw=0x800005B8
+    [0034] GETFIELD       A=4 B=0 C=13 k=0 Bx=6656 sBx=-58879 Ax=1703940 sJ=-15073275 raw=0x0D00020E ; R[4] = R[0][K[13] "isHealing"]
+    [0035] TEST           A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000242
+    [0036] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0037] GETTABUP       A=4 B=2 C=14 k=0 Bx=7172 sBx=-58363 Ax=1836036 sJ=-14941179 raw=0x0E02020B ; R[4] = U[2][K[14] "DamagePopupPathMap"]
+    [0038] GETTABUP       A=5 B=3 C=15 k=0 Bx=7686 sBx=-57849 Ax=1967621 sJ=-14809594 raw=0x0F03028B ; R[5] = U[3][K[15] "PopupShowType"]
+    [0039] GETFIELD       A=5 B=5 C=16 k=0 Bx=8202 sBx=-57333 Ax=2099717 sJ=-14677498 raw=0x1005028E ; R[5] = R[5][K[16] "IsHeal"]
+    [0040] GETTABLE       A=3 B=4 C=5 k=0 Bx=2568 sBx=-62967 Ax=657411 sJ=-16119804 raw=0x0504018C
+    [0041] JMP            A=13 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777229 sJ=14 raw=0x800006B8
+    [0042] GETTABUP       A=4 B=2 C=14 k=0 Bx=7172 sBx=-58363 Ax=1836036 sJ=-14941179 raw=0x0E02020B ; R[4] = U[2][K[14] "DamagePopupPathMap"]
+    [0043] GETFIELD       A=5 B=0 C=17 k=0 Bx=8704 sBx=-56831 Ax=2228229 sJ=-14548986 raw=0x1100028E ; R[5] = R[0][K[17] "popupSubShowType"]
+    [0044] GETTABLE       A=3 B=4 C=5 k=0 Bx=2568 sBx=-62967 Ax=657411 sJ=-16119804 raw=0x0504018C
+    [0045] JMP            A=9 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777225 sJ=10 raw=0x800004B8
+    [0046] GETFIELD       A=4 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786436 sJ=-15990779 raw=0x0600020E ; R[4] = R[0][K[6] "popupShowType"]
+    [0047] GETTABUP       A=5 B=1 C=7 k=0 Bx=3586 sBx=-61949 Ax=918021 sJ=-15859194 raw=0x0701028B ; R[5] = U[1][K[7] "AddIcon"]
+    [0048] GETFIELD       A=5 B=5 C=18 k=0 Bx=9226 sBx=-56309 Ax=2361861 sJ=-14415354 raw=0x1205028E ; R[5] = R[5][K[18] "AI_BUFF"]
+    [0049] EQ             A=4 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2564 sJ=-16774651 raw=0x00050239
+    [0050] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0051] GETTABUP       A=4 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524292 sJ=-16252923 raw=0x0400020B ; R[4] = U[0][K[4] "UI"]
+    [0052] GETFIELD       A=3 B=4 C=19 k=0 Bx=9736 sBx=-55799 Ax=2492419 sJ=-14284796 raw=0x1304018E ; R[3] = R[4][K[19] "UMG_Battle_Common_1"]
+    [0053] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0054] GETTABUP       A=4 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524292 sJ=-16252923 raw=0x0400020B ; R[4] = U[0][K[4] "UI"]
+    [0055] GETFIELD       A=3 B=4 C=19 k=0 Bx=9736 sBx=-55799 Ax=2492419 sJ=-14284796 raw=0x1304018E ; R[3] = R[4][K[19] "UMG_Battle_Common_1"]
+    [0056] GETTABUP       A=4 B=4 C=20 k=0 Bx=10248 sBx=-55287 Ax=2623492 sJ=-14153723 raw=0x1404020B ; R[4] = U[4][K[20] "GetMainWindow"]
+    [0057] CALL           A=4 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262660 sJ=-16514555 raw=0x02010244
+    [0058] TEST           A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000242
+    [0059] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0060] TEST           A=3 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=259 sJ=-16776956 raw=0x000081C2
+    [0061] JMP            A=8 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777224 sJ=9 raw=0x80000438
+    [0062] GETFIELD       A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x0000028E ; R[5] = R[0][K[0] "callInfo"]
+    [0063] GETFIELD       A=5 B=5 C=2 k=0 Bx=1034 sBx=-64501 Ax=264709 sJ=-16512506 raw=0x0205028E ; R[5] = R[5][K[2] "callBack"]
+    [0064] GETFIELD       A=6 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=6 sJ=-16777209 raw=0x0000030E ; R[6] = R[0][K[0] "callInfo"]
+    [0065] GETFIELD       A=6 B=6 C=1 k=0 Bx=524 sBx=-65011 Ax=134150 sJ=-16643065 raw=0x0106030E ; R[6] = R[6][K[1] "caller"]
+    [0066] LOADNIL        A=7 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=7 sJ=-16777208 raw=0x00000388
+    [0067] GETFIELD       A=8 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393224 sJ=-16383991 raw=0x0300040E ; R[8] = R[0][K[3] "isHit"]
+    [0068] MOVE           A=9 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=9 sJ=-16777206 raw=0x00000480
+    [0069] CALL           A=5 B=5 C=1 k=0 Bx=522 sBx=-65013 Ax=133637 sJ=-16643578 raw=0x010502C4
+    [0070] RETURN         A=5 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=773 sJ=-16776442 raw=0x000182C6
+    [0071] SETFIELD       A=0 B=21 C=3 k=0 Bx=1578 sBx=-63957 Ax=403968 sJ=-16373247 raw=0x03150012 ; R[0][K[21] "umgPath"] = R[3]
+    [0072] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0073] JMP            A=12 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777228 sJ=13 raw=0x80000638
+    [0074] GETFIELD       A=5 B=1 C=22 k=0 Bx=11266 sBx=-54269 Ax=2884101 sJ=-13893114 raw=0x1601028E ; R[5] = R[1][K[22] "umgPool"]
+    [0075] TEST           A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x000002C2
+    [0076] JMP            A=9 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777225 sJ=10 raw=0x800004B8
+    [0077] GETFIELD       A=5 B=1 C=22 k=0 Bx=11266 sBx=-54269 Ax=2884101 sJ=-13893114 raw=0x1601028E ; R[5] = R[1][K[22] "umgPool"]
+    [0078] SELF           A=5 B=5 C=23 k=1 Bx=11787 sBx=-53748 Ax=3017477 sJ=-13759738 raw=0x17058294
+    [0079] MOVE           A=7 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1543 sJ=-16775672 raw=0x00030380
+    [0080] CLOSURE        A=8 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=8 sJ=-16777207 raw=0x0000044F ; R[8] = function[0]
+    [0081] LOADNIL        A=9 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=9 sJ=-16777206 raw=0x00000488
+    [0082] SELF           A=10 B=1 C=24 k=1 Bx=12291 sBx=-53244 Ax=3146506 sJ=-13630709 raw=0x18018514
+    [0083] MOVE           A=12 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=12 sJ=-16777203 raw=0x00000600
+    [0084] CALL           A=10 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1546 sJ=-16775669 raw=0x00030544
+    [0085] CALL           A=5 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131077 sJ=-16646138 raw=0x010002C4
+    [0086] JMP            A=8 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777224 sJ=9 raw=0x80000438
+    [0087] GETTABUP       A=5 B=5 C=25 k=0 Bx=12810 sBx=-52725 Ax=3279365 sJ=-13497850 raw=0x1905028B ; R[5] = U[5][K[25] "BattleResourceManager"]
+    [0088] SELF           A=5 B=5 C=26 k=1 Bx=13323 sBx=-52212 Ax=3410693 sJ=-13366522 raw=0x1A058294
+    [0089] MOVE           A=7 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=7 sJ=-16777208 raw=0x00000380
+    [0090] MOVE           A=8 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1544 sJ=-16775671 raw=0x00030400
+    [0091] LOADNIL        A=9 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=9 sJ=-16777206 raw=0x00000488
+    [0092] GETFIELD       A=10 B=0 C=27 k=0 Bx=13824 sBx=-51711 Ax=3538954 sJ=-13238261 raw=0x1B00050E ; R[10] = R[0][K[27] "OnUmgLoadDynamic"]
+    [0093] LOADNIL        A=11 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=11 sJ=-16777204 raw=0x00000588
+    [0094] MOVE           A=12 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2060 sJ=-16775155 raw=0x00040600
+    [0095] CALL           A=5 B=8 C=1 k=0 Bx=528 sBx=-65007 Ax=135173 sJ=-16642042 raw=0x010802C4
+    [0096] RETURN         A=5 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=773 sJ=-16776442 raw=0x000182C6
+
+    function[0] source="" lines=200-209 params=2 vararg=0 stack=255 upvalues=4
+    constants (7):
+      K[0] = "OnUmgLoad"
+      K[1] = "Log"
+      K[2] = "DebugFormat"
+      K[3] = "[PopupData] Pool acquire failed for %s, fallback to dynamic create"
+      K[4] = "BattleResourceManager"
+      K[5] = "LoadWidgetAsync"
+      K[6] = "OnUmgLoadDynamic"
+    upvalues (4):
+      U[0] = instack=0 idx=0 kind=0 name="self"
+      U[1] = instack=5 idx=0 kind=1 name="_ENV"
+      U[2] = instack=3 idx=0 kind=1 name="umgPath"
+      U[3] = instack=4 idx=0 kind=10 name="BattleMain"
+    locals (2):
+      L[0] = "retUMG" pc=0-24
+      L[1] = "poolSuccess" pc=0-24
+    instructions (24):
+      [0001] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+      [0002] JMP            A=6 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777222 sJ=7 raw=0x80000338
+      [0003] TEST           A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000042
+      [0004] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+      [0005] GETUPVAL       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000109
+      [0006] SELF           A=2 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1282 sJ=-16775933 raw=0x00028114
+      [0007] MOVE           A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000200
+      [0008] CALL           A=2 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132610 sJ=-16644605 raw=0x01030144
+      [0009] JMP            A=13 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777229 sJ=14 raw=0x800006B8
+      [0010] GETTABUP       A=2 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131586 sJ=-16645629 raw=0x0101010B ; R[2] = U[1][K[1] "Log"]
+      [0011] GETFIELD       A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x0202010E ; R[2] = R[2][K[2] "DebugFormat"]
+      [0012] LOADK          A=3 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=771 sJ=-16776444 raw=0x00018183 ; R[3] = K[3] "[PopupData] Pool acquire failed for %s, fallback to dynamic create"
+      [0013] GETUPVAL       A=4 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1028 sJ=-16776187 raw=0x00020209
+      [0014] CALL           A=2 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132610 sJ=-16644605 raw=0x01030144
+      [0015] GETTABUP       A=2 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524802 sJ=-16252413 raw=0x0401010B ; R[2] = U[1][K[4] "BattleResourceManager"]
+      [0016] SELF           A=2 B=2 C=5 k=1 Bx=2565 sBx=-62970 Ax=656642 sJ=-16120573 raw=0x05028114
+      [0017] GETUPVAL       A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000209
+      [0018] GETUPVAL       A=5 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1029 sJ=-16776186 raw=0x00020289
+      [0019] LOADNIL        A=6 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=6 sJ=-16777209 raw=0x00000308
+      [0020] GETTABUP       A=7 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786439 sJ=-15990776 raw=0x0600038B ; R[7] = U[0][K[6] "OnUmgLoadDynamic"]
+      [0021] LOADNIL        A=8 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=8 sJ=-16777207 raw=0x00000408
+      [0022] GETUPVAL       A=9 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1545 sJ=-16775670 raw=0x00030489
+      [0023] CALL           A=2 B=8 C=1 k=0 Bx=528 sBx=-65007 Ax=135170 sJ=-16642045 raw=0x01080144
+      [0024] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[17] source="" lines=216-222 params=2 vararg=0 stack=255 upvalues=0
+  constants (5):
+    K[0] = "callInfo"
+    K[1] = "caller"
+    K[2] = "GetFatherPanel"
+    K[3] = "AddChildtoCanvas"
+    K[4] = "OnUmgLoad"
+  locals (3):
+    L[0] = "self" pc=0-14
+    L[1] = "retUMG" pc=0-14
+    L[2] = "parent" pc=5-14
+  instructions (14):
+    [0001] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "callInfo"]
+    [0002] GETFIELD       A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x0102010E ; R[2] = R[2][K[1] "caller"]
+    [0003] SELF           A=2 B=2 C=2 k=1 Bx=1029 sBx=-64506 Ax=263426 sJ=-16513789 raw=0x02028114
+    [0004] MOVE           A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000200
+    [0005] CALL           A=2 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263682 sJ=-16513533 raw=0x02030144
+    [0006] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0007] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0008] SELF           A=3 B=2 C=3 k=1 Bx=1541 sBx=-63994 Ax=394499 sJ=-16382716 raw=0x03028194
+    [0009] MOVE           A=5 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=517 sJ=-16776698 raw=0x00010280
+    [0010] CALL           A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x010301C4
+    [0011] SELF           A=3 B=0 C=4 k=1 Bx=2049 sBx=-63486 Ax=524547 sJ=-16252668 raw=0x04008194
+    [0012] MOVE           A=5 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=517 sJ=-16776698 raw=0x00010280
+    [0013] CALL           A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x010301C4
+    [0014] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7
+
+  function[18] source="" lines=224-253 params=2 vararg=0 stack=255 upvalues=2
+  constants (20):
+    K[0] = "callInfo"
+    K[1] = nil
+    K[2] = "umgRef"
+    K[3] = "UnLua"
+    K[4] = "Ref"
+    K[5] = "popupShowType"
+    K[6] = "AddIcon"
+    K[7] = "AI_UP"
+    K[8] = "AI_DOWN"
+    K[9] = "SetContent"
+    K[10] = "content"
+    K[11] = "Log"
+    K[12] = "Error"
+    K[13] = "zgx weird thing happened!!!  UMG no SetContent"
+    K[14] = "AI_DAMAGE"
+    K[15] = "isHealing"
+    K[16] = "GetBuffColor"
+    K[17] = "GetBuffOutlineColor"
+    K[18] = "callBack"
+    K[19] = "caller"
+  upvalues (2):
+    U[0] = instack=0 idx=0 kind=1 name="_ENV"
+    U[1] = instack=0 idx=0 kind=8 name="ProtoEnum"
+  locals (2):
+    L[0] = "self" pc=0-80
+    L[1] = "retUMG" pc=0-80
+  instructions (80):
+    [0001] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0002] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0003] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "callInfo"]
+    [0004] TEST           A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x00008142
+    [0005] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0006] SETFIELD       A=0 B=0 C=1 k=1 Bx=513 sBx=-65022 Ax=131328 sJ=-16645887 raw=0x01008012 ; R[0][K[0] "callInfo"] = R[1]
+    [0007] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+    [0008] GETTABUP       A=2 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393218 sJ=-16383997 raw=0x0300010B ; R[2] = U[0][K[3] "UnLua"]
+    [0009] GETFIELD       A=2 B=2 C=4 k=0 Bx=2052 sBx=-63483 Ax=525314 sJ=-16251901 raw=0x0402010E ; R[2] = R[2][K[4] "Ref"]
+    [0010] MOVE           A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x00010180
+    [0011] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0012] SETFIELD       A=0 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263168 sJ=-16514047 raw=0x02020012 ; R[0][K[2] "umgRef"] = R[2]
+    [0013] GETFIELD       A=2 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655362 sJ=-16121853 raw=0x0500010E ; R[2] = R[0][K[5] "popupShowType"]
+    [0014] GETTABUP       A=3 B=1 C=6 k=0 Bx=3074 sBx=-62461 Ax=786947 sJ=-15990268 raw=0x0601018B ; R[3] = U[1][K[6] "AddIcon"]
+    [0015] GETFIELD       A=3 B=3 C=7 k=0 Bx=3590 sBx=-61945 Ax=919043 sJ=-15858172 raw=0x0703018E ; R[3] = R[3][K[7] "AI_UP"]
+    [0016] EQ             A=2 B=3 C=0 k=1 Bx=7 sBx=-65528 Ax=1794 sJ=-16775421 raw=0x00038139
+    [0017] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0018] GETFIELD       A=2 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655362 sJ=-16121853 raw=0x0500010E ; R[2] = R[0][K[5] "popupShowType"]
+    [0019] GETTABUP       A=3 B=1 C=6 k=0 Bx=3074 sBx=-62461 Ax=786947 sJ=-15990268 raw=0x0601018B ; R[3] = U[1][K[6] "AddIcon"]
+    [0020] GETFIELD       A=3 B=3 C=8 k=0 Bx=4102 sBx=-61433 Ax=1050115 sJ=-15727100 raw=0x0803018E ; R[3] = R[3][K[8] "AI_DOWN"]
+    [0021] EQ             A=2 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1538 sJ=-16775677 raw=0x00030139
+    [0022] JMP            A=11 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777227 sJ=12 raw=0x800005B8
+    [0023] GETFIELD       A=2 B=1 C=9 k=0 Bx=4610 sBx=-60925 Ax=1180162 sJ=-15597053 raw=0x0901010E ; R[2] = R[1][K[9] "SetContent"]
+    [0024] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0025] JMP            A=3 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777219 sJ=4 raw=0x800001B8
+    [0026] SELF           A=2 B=1 C=9 k=1 Bx=4611 sBx=-60924 Ax=1180418 sJ=-15596797 raw=0x09018114
+    [0027] GETFIELD       A=4 B=0 C=10 k=0 Bx=5120 sBx=-60415 Ax=1310724 sJ=-15466491 raw=0x0A00020E ; R[4] = R[0][K[10] "content"]
+    [0028] CALL           A=2 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132610 sJ=-16644605 raw=0x01030144
+    [0029] JMP            A=42 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777258 sJ=43 raw=0x80001538
+    [0030] GETTABUP       A=2 B=0 C=11 k=0 Bx=5632 sBx=-59903 Ax=1441794 sJ=-15335421 raw=0x0B00010B ; R[2] = U[0][K[11] "Log"]
+    [0031] GETFIELD       A=2 B=2 C=12 k=0 Bx=6148 sBx=-59387 Ax=1573890 sJ=-15203325 raw=0x0C02010E ; R[2] = R[2][K[12] "Error"]
+    [0032] LOADK          A=3 B=6 C=0 k=1 Bx=13 sBx=-65522 Ax=3331 sJ=-16773884 raw=0x00068183 ; R[3] = K[13] "zgx weird thing happened!!!  UMG no SetContent"
+    [0033] CALL           A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x01020144
+    [0034] JMP            A=37 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777253 sJ=38 raw=0x800012B8
+    [0035] GETFIELD       A=2 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655362 sJ=-16121853 raw=0x0500010E ; R[2] = R[0][K[5] "popupShowType"]
+    [0036] GETTABUP       A=3 B=1 C=6 k=0 Bx=3074 sBx=-62461 Ax=786947 sJ=-15990268 raw=0x0601018B ; R[3] = U[1][K[6] "AddIcon"]
+    [0037] GETFIELD       A=3 B=3 C=14 k=0 Bx=7174 sBx=-58361 Ax=1836547 sJ=-14940668 raw=0x0E03018E ; R[3] = R[3][K[14] "AI_DAMAGE"]
+    [0038] EQ             A=2 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1538 sJ=-16775677 raw=0x00030139
+    [0039] JMP            A=17 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777233 sJ=18 raw=0x800008B8
+    [0040] GETFIELD       A=2 B=1 C=9 k=0 Bx=4610 sBx=-60925 Ax=1180162 sJ=-15597053 raw=0x0901010E ; R[2] = R[1][K[9] "SetContent"]
+    [0041] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0042] JMP            A=9 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777225 sJ=10 raw=0x800004B8
+    [0043] SELF           A=2 B=1 C=9 k=1 Bx=4611 sBx=-60924 Ax=1180418 sJ=-15596797 raw=0x09018114
+    [0044] GETFIELD       A=4 B=0 C=15 k=0 Bx=7680 sBx=-57855 Ax=1966084 sJ=-14811131 raw=0x0F00020E ; R[4] = R[0][K[15] "isHealing"]
+    [0045] TEST           A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000242
+    [0046] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0047] GETFIELD       A=4 B=0 C=10 k=0 Bx=5120 sBx=-60415 Ax=1310724 sJ=-15466491 raw=0x0A00020E ; R[4] = R[0][K[10] "content"]
+    [0048] TEST           A=4 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=260 sJ=-16776955 raw=0x00008242
+    [0049] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0050] MOVE           A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000200
+    [0051] CALL           A=2 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132610 sJ=-16644605 raw=0x01030144
+    [0052] JMP            A=19 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777235 sJ=20 raw=0x800009B8
+    [0053] GETTABUP       A=2 B=0 C=11 k=0 Bx=5632 sBx=-59903 Ax=1441794 sJ=-15335421 raw=0x0B00010B ; R[2] = U[0][K[11] "Log"]
+    [0054] GETFIELD       A=2 B=2 C=12 k=0 Bx=6148 sBx=-59387 Ax=1573890 sJ=-15203325 raw=0x0C02010E ; R[2] = R[2][K[12] "Error"]
+    [0055] LOADK          A=3 B=6 C=0 k=1 Bx=13 sBx=-65522 Ax=3331 sJ=-16773884 raw=0x00068183 ; R[3] = K[13] "zgx weird thing happened!!!  UMG no SetContent"
+    [0056] CALL           A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x01020144
+    [0057] JMP            A=14 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777230 sJ=15 raw=0x80000738
+    [0058] GETFIELD       A=2 B=1 C=9 k=0 Bx=4610 sBx=-60925 Ax=1180162 sJ=-15597053 raw=0x0901010E ; R[2] = R[1][K[9] "SetContent"]
+    [0059] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0060] JMP            A=7 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777223 sJ=8 raw=0x800003B8
+    [0061] SELF           A=2 B=1 C=9 k=1 Bx=4611 sBx=-60924 Ax=1180418 sJ=-15596797 raw=0x09018114
+    [0062] GETFIELD       A=4 B=0 C=10 k=0 Bx=5120 sBx=-60415 Ax=1310724 sJ=-15466491 raw=0x0A00020E ; R[4] = R[0][K[10] "content"]
+    [0063] SELF           A=5 B=0 C=16 k=1 Bx=8193 sBx=-57342 Ax=2097413 sJ=-14679802 raw=0x10008294
+    [0064] CALL           A=5 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263173 sJ=-16514042 raw=0x020202C4
+    [0065] SELF           A=6 B=0 C=17 k=1 Bx=8705 sBx=-56830 Ax=2228486 sJ=-14548729 raw=0x11008314
+    [0066] CALL           A=6 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1030 sJ=-16776185 raw=0x00020344
+    [0067] CALL           A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x01000144
+    [0068] JMP            A=3 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777219 sJ=4 raw=0x800001B8
+    [0069] GETTABUP       A=2 B=0 C=11 k=0 Bx=5632 sBx=-59903 Ax=1441794 sJ=-15335421 raw=0x0B00010B ; R[2] = U[0][K[11] "Log"]
+    [0070] GETFIELD       A=2 B=2 C=12 k=0 Bx=6148 sBx=-59387 Ax=1573890 sJ=-15203325 raw=0x0C02010E ; R[2] = R[2][K[12] "Error"]
+    [0071] LOADK          A=3 B=6 C=0 k=1 Bx=13 sBx=-65522 Ax=3331 sJ=-16773884 raw=0x00068183 ; R[3] = K[13] "zgx weird thing happened!!!  UMG no SetContent"
+    [0072] CALL           A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x01020144
+    [0073] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "callInfo"]
+    [0074] GETFIELD       A=2 B=2 C=18 k=0 Bx=9220 sBx=-56315 Ax=2360322 sJ=-14416893 raw=0x1202010E ; R[2] = R[2][K[18] "callBack"]
+    [0075] GETFIELD       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018E ; R[3] = R[0][K[0] "callInfo"]
+    [0076] GETFIELD       A=3 B=3 C=19 k=0 Bx=9734 sBx=-55801 Ax=2491907 sJ=-14285308 raw=0x1303018E ; R[3] = R[3][K[19] "caller"]
+    [0077] MOVE           A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010200
+    [0078] MOVE           A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x00000280
+    [0079] CALL           A=2 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133122 sJ=-16644093 raw=0x01040144
+    [0080] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[19] source="" lines=255-259 params=2 vararg=0 stack=255 upvalues=0
+  constants (4):
+    K[0] = "callInfo"
+    K[1] = "caller"
+    K[2] = "RecycleUMG"
+    K[3] = "umgPath"
+  locals (2):
+    L[0] = "self" pc=0-14
+    L[1] = "umg" pc=0-14
+  instructions (14):
+    [0001] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "callInfo"]
+    [0002] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0003] JMP            A=9 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777225 sJ=10 raw=0x800004B8
+    [0004] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "callInfo"]
+    [0005] GETFIELD       A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x0102010E ; R[2] = R[2][K[1] "caller"]
+    [0006] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0007] JMP            A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x800002B8
+    [0008] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "callInfo"]
+    [0009] GETFIELD       A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x0102010E ; R[2] = R[2][K[1] "caller"]
+    [0010] SELF           A=2 B=2 C=2 k=1 Bx=1029 sBx=-64506 Ax=263426 sJ=-16513789 raw=0x02028114
+    [0011] MOVE           A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010200
+    [0012] GETFIELD       A=5 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393221 sJ=-16383994 raw=0x0300028E ; R[5] = R[0][K[3] "umgPath"]
+    [0013] CALL           A=2 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133122 sJ=-16644093 raw=0x01040144
+    [0014] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[20] source="" lines=263-268 params=2 vararg=0 stack=255 upvalues=2
+  constants (3):
+    K[0] = "content"
+    K[1] = "tostring"
+    K[2] = "popupShowType"
+  upvalues (2):
+    U[0] = instack=5 idx=0 kind=0 name="PopupData"
+    U[1] = instack=0 idx=0 kind=5 name="_ENV"
+  locals (3):
+    L[0] = "Info" pc=0-9
+    L[1] = "ShowType" pc=0-9
+    L[2] = "data" pc=2-9
+  instructions (9):
+    [0001] GETUPVAL       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000109
+    [0002] CALL           A=2 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262658 sJ=-16514557 raw=0x02010144
+    [0003] GETTABUP       A=3 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131587 sJ=-16645628 raw=0x0101018B ; R[3] = U[1][K[1] "tostring"]
+    [0004] MOVE           A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000200
+    [0005] CALL           A=3 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263171 sJ=-16514044 raw=0x020201C4
+    [0006] SETFIELD       A=2 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393218 sJ=-16383997 raw=0x03000112 ; R[2][K[0] "content"] = R[3]
+    [0007] SETFIELD       A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x01020112 ; R[2][K[2] "popupShowType"] = R[1]
+    [0008] RETURN1        A=2 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1026 sJ=-16776189 raw=0x00020148
+    [0009] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7
+
+  function[21] source="" lines=272-287 params=2 vararg=0 stack=255 upvalues=2
+  constants (13):
+    K[0] = "_G"
+    K[1] = "DataConfigManager"
+    K[2] = "GetBuffConf"
+    K[3] = "add_des"
+    K[4] = ""
+    K[5] = "Log"
+    K[6] = "Dump"
+    K[7] = "no add des, skip"
+    K[8] = "trigger_des"
+    K[9] = "no trigger des, skip"
+    K[10] = "add_icon"
+    K[11] = "trigger_icon"
+    K[12] = "MakePopup"
+  upvalues (2):
+    U[0] = instack=0 idx=0 kind=1 name="_ENV"
+    U[1] = instack=5 idx=0 kind=8 name="PopupData"
+  locals (6):
+    L[0] = "ID" pc=0-59
+    L[1] = "bIsAttach" pc=0-59
+    L[2] = "Conf" pc=5-59
+    L[3] = "Content" pc=47-59
+    L[4] = "Icon" pc=53-59
+    L[5] = "data" pc=57-59
+  instructions (59):
+    [0001] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "_G"]
+    [0002] GETFIELD       A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x0102010E ; R[2] = R[2][K[1] "DataConfigManager"]
+    [0003] SELF           A=2 B=2 C=2 k=1 Bx=1029 sBx=-64506 Ax=263426 sJ=-16513789 raw=0x02028114
+    [0004] MOVE           A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000200
+    [0005] CALL           A=2 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263682 sJ=-16513533 raw=0x02030144
+    [0006] TEST           A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x00008142
+    [0007] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0008] LOADNIL        A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000188
+    [0009] RETURN1        A=3 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1027 sJ=-16776188 raw=0x000201C8
+    [0010] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0011] JMP            A=13 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777229 sJ=14 raw=0x800006B8
+    [0012] GETFIELD       A=3 B=2 C=3 k=0 Bx=1540 sBx=-63995 Ax=394243 sJ=-16382972 raw=0x0302018E ; R[3] = R[2][K[3] "add_des"]
+    [0013] TEST           A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x000001C2
+    [0014] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0015] GETFIELD       A=3 B=2 C=3 k=0 Bx=1540 sBx=-63995 Ax=394243 sJ=-16382972 raw=0x0302018E ; R[3] = R[2][K[3] "add_des"]
+    [0016] EQK            A=3 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2051 sJ=-16775164 raw=0x000401BC
+    [0017] JMP            A=7 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777223 sJ=8 raw=0x800003B8
+    [0018] GETTABUP       A=3 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655363 sJ=-16121852 raw=0x0500018B ; R[3] = U[0][K[5] "Log"]
+    [0019] GETFIELD       A=3 B=3 C=6 k=0 Bx=3078 sBx=-62457 Ax=787971 sJ=-15989244 raw=0x0603018E ; R[3] = R[3][K[6] "Dump"]
+    [0020] MOVE           A=4 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1028 sJ=-16776187 raw=0x00020200
+    [0021] LOADI          A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x80000281
+    [0022] LOADK          A=6 B=3 C=0 k=1 Bx=7 sBx=-65528 Ax=1798 sJ=-16775417 raw=0x00038303 ; R[6] = K[7] "no add des, skip"
+    [0023] CALL           A=3 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133123 sJ=-16644092 raw=0x010401C4
+    [0024] LOADNIL        A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000188
+    [0025] RETURN1        A=3 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1027 sJ=-16776188 raw=0x000201C8
+    [0026] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0027] JMP            A=13 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777229 sJ=14 raw=0x800006B8
+    [0028] GETFIELD       A=3 B=2 C=8 k=0 Bx=4100 sBx=-61435 Ax=1049603 sJ=-15727612 raw=0x0802018E ; R[3] = R[2][K[8] "trigger_des"]
+    [0029] TEST           A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x000001C2
+    [0030] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0031] GETFIELD       A=3 B=2 C=8 k=0 Bx=4100 sBx=-61435 Ax=1049603 sJ=-15727612 raw=0x0802018E ; R[3] = R[2][K[8] "trigger_des"]
+    [0032] EQK            A=3 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2051 sJ=-16775164 raw=0x000401BC
+    [0033] JMP            A=7 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777223 sJ=8 raw=0x800003B8
+    [0034] GETTABUP       A=3 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655363 sJ=-16121852 raw=0x0500018B ; R[3] = U[0][K[5] "Log"]
+    [0035] GETFIELD       A=3 B=3 C=6 k=0 Bx=3078 sBx=-62457 Ax=787971 sJ=-15989244 raw=0x0603018E ; R[3] = R[3][K[6] "Dump"]
+    [0036] MOVE           A=4 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1028 sJ=-16776187 raw=0x00020200
+    [0037] LOADI          A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x80000281
+    [0038] LOADK          A=6 B=4 C=0 k=1 Bx=9 sBx=-65526 Ax=2310 sJ=-16774905 raw=0x00048303 ; R[6] = K[9] "no trigger des, skip"
+    [0039] CALL           A=3 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133123 sJ=-16644092 raw=0x010401C4
+    [0040] LOADNIL        A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000188
+    [0041] RETURN1        A=3 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1027 sJ=-16776188 raw=0x000201C8
+    [0042] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0043] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0044] GETFIELD       A=3 B=2 C=3 k=0 Bx=1540 sBx=-63995 Ax=394243 sJ=-16382972 raw=0x0302018E ; R[3] = R[2][K[3] "add_des"]
+    [0045] TEST           A=3 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=259 sJ=-16776956 raw=0x000081C2
+    [0046] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0047] GETFIELD       A=3 B=2 C=8 k=0 Bx=4100 sBx=-61435 Ax=1049603 sJ=-15727612 raw=0x0802018E ; R[3] = R[2][K[8] "trigger_des"]
+    [0048] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0049] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0050] GETFIELD       A=4 B=2 C=10 k=0 Bx=5124 sBx=-60411 Ax=1311748 sJ=-15465467 raw=0x0A02020E ; R[4] = R[2][K[10] "add_icon"]
+    [0051] TEST           A=4 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=260 sJ=-16776955 raw=0x00008242
+    [0052] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0053] GETFIELD       A=4 B=2 C=11 k=0 Bx=5636 sBx=-59899 Ax=1442820 sJ=-15334395 raw=0x0B02020E ; R[4] = R[2][K[11] "trigger_icon"]
+    [0054] GETTABUP       A=5 B=1 C=12 k=0 Bx=6146 sBx=-59389 Ax=1573381 sJ=-15203834 raw=0x0C01028B ; R[5] = U[1][K[12] "MakePopup"]
+    [0055] MOVE           A=6 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1542 sJ=-16775673 raw=0x00030300
+    [0056] MOVE           A=7 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2055 sJ=-16775160 raw=0x00040380
+    [0057] CALL           A=5 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263685 sJ=-16513530 raw=0x020302C4
+    [0058] RETURN1        A=5 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1029 sJ=-16776186 raw=0x000202C8
+    [0059] RETURN0        A=6 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=518 sJ=-16776697 raw=0x00010347
+
+  function[22] source="" lines=291-299 params=2 vararg=0 stack=255 upvalues=2
+  constants (9):
+    K[0] = "MakePopup"
+    K[1] = "add_des"
+    K[2] = ""
+    K[3] = "add_icon"
+    K[4] = "isHit"
+    K[5] = true
+    K[6] = "SetAttributeInfo"
+    K[7] = "FromEffect"
+    K[8] = "id"
+  upvalues (2):
+    U[0] = instack=5 idx=0 kind=1 name="PopupData"
+    U[1] = instack=3 idx=0 kind=8 name="PopupAttributeInfo"
+  locals (3):
+    L[0] = "Conf" pc=0-23
+    L[1] = "UINum" pc=0-23
+    L[2] = "data" pc=14-23
+  instructions (23):
+    [0001] TEST           A=0 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=256 sJ=-16776959 raw=0x00008042
+    [0002] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0003] LOADNIL        A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000108
+    [0004] RETURN1        A=2 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1026 sJ=-16776189 raw=0x00020148
+    [0005] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "MakePopup"]
+    [0006] GETFIELD       A=3 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131075 sJ=-16646140 raw=0x0100018E ; R[3] = R[0][K[1] "add_des"]
+    [0007] TEST           A=3 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=259 sJ=-16776956 raw=0x000081C2
+    [0008] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0009] LOADK          A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x00010183 ; R[3] = K[2] ""
+    [0010] GETFIELD       A=4 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393220 sJ=-16383995 raw=0x0300020E ; R[4] = R[0][K[3] "add_icon"]
+    [0011] TEST           A=4 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=260 sJ=-16776955 raw=0x00008242
+    [0012] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0013] LOADK          A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010203 ; R[4] = K[2] ""
+    [0014] CALL           A=2 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263682 sJ=-16513533 raw=0x02030144
+    [0015] SETFIELD       A=2 B=4 C=5 k=1 Bx=2569 sBx=-62966 Ax=657666 sJ=-16119549 raw=0x05048112 ; R[2][K[4] "isHit"] = R[5]
+    [0016] SELF           A=3 B=2 C=6 k=1 Bx=3077 sBx=-62458 Ax=787715 sJ=-15989500 raw=0x06028194
+    [0017] GETTABUP       A=5 B=1 C=7 k=0 Bx=3586 sBx=-61949 Ax=918021 sJ=-15859194 raw=0x0701028B ; R[5] = U[1][K[7] "FromEffect"]
+    [0018] GETFIELD       A=6 B=0 C=8 k=0 Bx=4096 sBx=-61439 Ax=1048582 sJ=-15728633 raw=0x0800030E ; R[6] = R[0][K[8] "id"]
+    [0019] MOVE           A=7 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=519 sJ=-16776696 raw=0x00010380
+    [0020] CALL           A=5 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1541 sJ=-16775674 raw=0x000302C4
+    [0021] CALL           A=3 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131075 sJ=-16646140 raw=0x010001C4
+    [0022] RETURN1        A=2 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1026 sJ=-16776189 raw=0x00020148
+    [0023] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7
+
+  function[23] source="" lines=301-322 params=1 vararg=0 stack=255 upvalues=2
+  constants (18):
+    K[0] = "popupShowType"
+    K[1] = "AddIcon"
+    K[2] = "AI_POISON"
+    K[3] = "UE4"
+    K[4] = "UNRCStatics"
+    K[5] = "HexToSlateColor"
+    K[6] = "#c46fe9ff"
+    K[7] = "AI_FIRE"
+    K[8] = "#e34c1aff"
+    K[9] = "AI_FREEZEN"
+    K[10] = "#89cbe7ff"
+    K[11] = "AI_BLOOD"
+    K[12] = "#de3976ff"
+    K[13] = "AI_SEED"
+    K[14] = "#53bb76ff"
+    K[15] = "AI_BUFF"
+    K[16] = "#73C615FF"
+    K[17] = "AI_DEBUFF"
+  upvalues (2):
+    U[0] = instack=0 idx=0 kind=0 name="ProtoEnum"
+    U[1] = instack=0 idx=0 kind=3 name="_ENV"
+  locals (1):
+    L[0] = "self" pc=0-96
+  instructions (96):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "popupShowType"]
+    [0002] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0003] JMP            A=89 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777305 sJ=90 raw=0x80002CB8
+    [0004] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "popupShowType"]
+    [0005] GETTABUP       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010B ; R[2] = U[0][K[1] "AddIcon"]
+    [0006] GETFIELD       A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x0202010E ; R[2] = R[2][K[2] "AI_POISON"]
+    [0007] EQ             A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200B9
+    [0008] JMP            A=6 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777222 sJ=7 raw=0x80000338
+    [0009] GETTABUP       A=1 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393729 sJ=-16383486 raw=0x0301008B ; R[1] = U[1][K[3] "UE4"]
+    [0010] GETFIELD       A=1 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524801 sJ=-16252414 raw=0x0401008E ; R[1] = R[1][K[4] "UNRCStatics"]
+    [0011] GETFIELD       A=1 B=1 C=5 k=0 Bx=2562 sBx=-62973 Ax=655873 sJ=-16121342 raw=0x0501008E ; R[1] = R[1][K[5] "HexToSlateColor"]
+    [0012] LOADK          A=2 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1538 sJ=-16775677 raw=0x00030103 ; R[2] = K[6] "#c46fe9ff"
+    [0013] TAILCALL       A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C5
+    [0014] RETURN         A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C6
+    [0015] JMP            A=77 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777293 sJ=78 raw=0x800026B8
+    [0016] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "popupShowType"]
+    [0017] GETTABUP       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010B ; R[2] = U[0][K[1] "AddIcon"]
+    [0018] GETFIELD       A=2 B=2 C=7 k=0 Bx=3588 sBx=-61947 Ax=918530 sJ=-15858685 raw=0x0702010E ; R[2] = R[2][K[7] "AI_FIRE"]
+    [0019] EQ             A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200B9
+    [0020] JMP            A=6 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777222 sJ=7 raw=0x80000338
+    [0021] GETTABUP       A=1 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393729 sJ=-16383486 raw=0x0301008B ; R[1] = U[1][K[3] "UE4"]
+    [0022] GETFIELD       A=1 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524801 sJ=-16252414 raw=0x0401008E ; R[1] = R[1][K[4] "UNRCStatics"]
+    [0023] GETFIELD       A=1 B=1 C=5 k=0 Bx=2562 sBx=-62973 Ax=655873 sJ=-16121342 raw=0x0501008E ; R[1] = R[1][K[5] "HexToSlateColor"]
+    [0024] LOADK          A=2 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2050 sJ=-16775165 raw=0x00040103 ; R[2] = K[8] "#e34c1aff"
+    [0025] TAILCALL       A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C5
+    [0026] RETURN         A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C6
+    [0027] JMP            A=65 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777281 sJ=66 raw=0x800020B8
+    [0028] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "popupShowType"]
+    [0029] GETTABUP       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010B ; R[2] = U[0][K[1] "AddIcon"]
+    [0030] GETFIELD       A=2 B=2 C=9 k=0 Bx=4612 sBx=-60923 Ax=1180674 sJ=-15596541 raw=0x0902010E ; R[2] = R[2][K[9] "AI_FREEZEN"]
+    [0031] EQ             A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200B9
+    [0032] JMP            A=6 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777222 sJ=7 raw=0x80000338
+    [0033] GETTABUP       A=1 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393729 sJ=-16383486 raw=0x0301008B ; R[1] = U[1][K[3] "UE4"]
+    [0034] GETFIELD       A=1 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524801 sJ=-16252414 raw=0x0401008E ; R[1] = R[1][K[4] "UNRCStatics"]
+    [0035] GETFIELD       A=1 B=1 C=5 k=0 Bx=2562 sBx=-62973 Ax=655873 sJ=-16121342 raw=0x0501008E ; R[1] = R[1][K[5] "HexToSlateColor"]
+    [0036] LOADK          A=2 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2562 sJ=-16774653 raw=0x00050103 ; R[2] = K[10] "#89cbe7ff"
+    [0037] TAILCALL       A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C5
+    [0038] RETURN         A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C6
+    [0039] JMP            A=53 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777269 sJ=54 raw=0x80001AB8
+    [0040] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "popupShowType"]
+    [0041] GETTABUP       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010B ; R[2] = U[0][K[1] "AddIcon"]
+    [0042] GETFIELD       A=2 B=2 C=11 k=0 Bx=5636 sBx=-59899 Ax=1442818 sJ=-15334397 raw=0x0B02010E ; R[2] = R[2][K[11] "AI_BLOOD"]
+    [0043] EQ             A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200B9
+    [0044] JMP            A=6 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777222 sJ=7 raw=0x80000338
+    [0045] GETTABUP       A=1 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393729 sJ=-16383486 raw=0x0301008B ; R[1] = U[1][K[3] "UE4"]
+    [0046] GETFIELD       A=1 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524801 sJ=-16252414 raw=0x0401008E ; R[1] = R[1][K[4] "UNRCStatics"]
+    [0047] GETFIELD       A=1 B=1 C=5 k=0 Bx=2562 sBx=-62973 Ax=655873 sJ=-16121342 raw=0x0501008E ; R[1] = R[1][K[5] "HexToSlateColor"]
+    [0048] LOADK          A=2 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3074 sJ=-16774141 raw=0x00060103 ; R[2] = K[12] "#de3976ff"
+    [0049] TAILCALL       A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C5
+    [0050] RETURN         A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C6
+    [0051] JMP            A=41 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777257 sJ=42 raw=0x800014B8
+    [0052] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "popupShowType"]
+    [0053] GETTABUP       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010B ; R[2] = U[0][K[1] "AddIcon"]
+    [0054] GETFIELD       A=2 B=2 C=13 k=0 Bx=6660 sBx=-58875 Ax=1704962 sJ=-15072253 raw=0x0D02010E ; R[2] = R[2][K[13] "AI_SEED"]
+    [0055] EQ             A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200B9
+    [0056] JMP            A=6 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777222 sJ=7 raw=0x80000338
+    [0057] GETTABUP       A=1 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393729 sJ=-16383486 raw=0x0301008B ; R[1] = U[1][K[3] "UE4"]
+    [0058] GETFIELD       A=1 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524801 sJ=-16252414 raw=0x0401008E ; R[1] = R[1][K[4] "UNRCStatics"]
+    [0059] GETFIELD       A=1 B=1 C=5 k=0 Bx=2562 sBx=-62973 Ax=655873 sJ=-16121342 raw=0x0501008E ; R[1] = R[1][K[5] "HexToSlateColor"]
+    [0060] LOADK          A=2 B=7 C=0 k=0 Bx=14 sBx=-65521 Ax=3586 sJ=-16773629 raw=0x00070103 ; R[2] = K[14] "#53bb76ff"
+    [0061] TAILCALL       A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C5
+    [0062] RETURN         A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C6
+    [0063] JMP            A=29 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777245 sJ=30 raw=0x80000EB8
+    [0064] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "popupShowType"]
+    [0065] GETTABUP       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010B ; R[2] = U[0][K[1] "AddIcon"]
+    [0066] GETFIELD       A=2 B=2 C=15 k=0 Bx=7684 sBx=-57851 Ax=1967106 sJ=-14810109 raw=0x0F02010E ; R[2] = R[2][K[15] "AI_BUFF"]
+    [0067] EQ             A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200B9
+    [0068] JMP            A=6 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777222 sJ=7 raw=0x80000338
+    [0069] GETTABUP       A=1 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393729 sJ=-16383486 raw=0x0301008B ; R[1] = U[1][K[3] "UE4"]
+    [0070] GETFIELD       A=1 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524801 sJ=-16252414 raw=0x0401008E ; R[1] = R[1][K[4] "UNRCStatics"]
+    [0071] GETFIELD       A=1 B=1 C=5 k=0 Bx=2562 sBx=-62973 Ax=655873 sJ=-16121342 raw=0x0501008E ; R[1] = R[1][K[5] "HexToSlateColor"]
+    [0072] LOADK          A=2 B=8 C=0 k=0 Bx=16 sBx=-65519 Ax=4098 sJ=-16773117 raw=0x00080103 ; R[2] = K[16] "#73C615FF"
+    [0073] TAILCALL       A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C5
+    [0074] RETURN         A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C6
+    [0075] JMP            A=17 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777233 sJ=18 raw=0x800008B8
+    [0076] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "popupShowType"]
+    [0077] GETTABUP       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010B ; R[2] = U[0][K[1] "AddIcon"]
+    [0078] GETFIELD       A=2 B=2 C=17 k=0 Bx=8708 sBx=-56827 Ax=2229250 sJ=-14547965 raw=0x1102010E ; R[2] = R[2][K[17] "AI_DEBUFF"]
+    [0079] EQ             A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200B9
+    [0080] JMP            A=6 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777222 sJ=7 raw=0x80000338
+    [0081] GETTABUP       A=1 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393729 sJ=-16383486 raw=0x0301008B ; R[1] = U[1][K[3] "UE4"]
+    [0082] GETFIELD       A=1 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524801 sJ=-16252414 raw=0x0401008E ; R[1] = R[1][K[4] "UNRCStatics"]
+    [0083] GETFIELD       A=1 B=1 C=5 k=0 Bx=2562 sBx=-62973 Ax=655873 sJ=-16121342 raw=0x0501008E ; R[1] = R[1][K[5] "HexToSlateColor"]
+    [0084] LOADK          A=2 B=8 C=0 k=0 Bx=16 sBx=-65519 Ax=4098 sJ=-16773117 raw=0x00080103 ; R[2] = K[16] "#73C615FF"
+    [0085] TAILCALL       A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C5
+    [0086] RETURN         A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C6
+    [0087] JMP            A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x800002B8
+    [0088] GETTABUP       A=1 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393729 sJ=-16383486 raw=0x0301008B ; R[1] = U[1][K[3] "UE4"]
+    [0089] GETFIELD       A=1 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524801 sJ=-16252414 raw=0x0401008E ; R[1] = R[1][K[4] "UNRCStatics"]
+    [0090] GETFIELD       A=1 B=1 C=5 k=0 Bx=2562 sBx=-62973 Ax=655873 sJ=-16121342 raw=0x0501008E ; R[1] = R[1][K[5] "HexToSlateColor"]
+    [0091] LOADK          A=2 B=8 C=0 k=0 Bx=16 sBx=-65519 Ax=4098 sJ=-16773117 raw=0x00080103 ; R[2] = K[16] "#73C615FF"
+    [0092] TAILCALL       A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C5
+    [0093] RETURN         A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C6
+    [0094] LOADNIL        A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000088
+    [0095] RETURN1        A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C8
+    [0096] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[24] source="" lines=324-345 params=1 vararg=0 stack=255 upvalues=2
+  constants (18):
+    K[0] = "popupShowType"
+    K[1] = "AddIcon"
+    K[2] = "AI_POISON"
+    K[3] = "UE4"
+    K[4] = "UNRCStatics"
+    K[5] = "HexToSlateColor"
+    K[6] = "#763393FF"
+    K[7] = "AI_FIRE"
+    K[8] = "#B74651FF"
+    K[9] = "AI_FREEZEN"
+    K[10] = "#3893A6FF"
+    K[11] = "AI_BLOOD"
+    K[12] = "#852e4eFF"
+    K[13] = "AI_SEED"
+    K[14] = "#447936FF"
+    K[15] = "AI_BUFF"
+    K[16] = "#000000B3"
+    K[17] = "AI_DEBUFF"
+  upvalues (2):
+    U[0] = instack=0 idx=0 kind=0 name="ProtoEnum"
+    U[1] = instack=0 idx=0 kind=3 name="_ENV"
+  locals (1):
+    L[0] = "self" pc=0-96
+  instructions (96):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "popupShowType"]
+    [0002] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0003] JMP            A=89 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777305 sJ=90 raw=0x80002CB8
+    [0004] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "popupShowType"]
+    [0005] GETTABUP       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010B ; R[2] = U[0][K[1] "AddIcon"]
+    [0006] GETFIELD       A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x0202010E ; R[2] = R[2][K[2] "AI_POISON"]
+    [0007] EQ             A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200B9
+    [0008] JMP            A=6 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777222 sJ=7 raw=0x80000338
+    [0009] GETTABUP       A=1 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393729 sJ=-16383486 raw=0x0301008B ; R[1] = U[1][K[3] "UE4"]
+    [0010] GETFIELD       A=1 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524801 sJ=-16252414 raw=0x0401008E ; R[1] = R[1][K[4] "UNRCStatics"]
+    [0011] GETFIELD       A=1 B=1 C=5 k=0 Bx=2562 sBx=-62973 Ax=655873 sJ=-16121342 raw=0x0501008E ; R[1] = R[1][K[5] "HexToSlateColor"]
+    [0012] LOADK          A=2 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1538 sJ=-16775677 raw=0x00030103 ; R[2] = K[6] "#763393FF"
+    [0013] TAILCALL       A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C5
+    [0014] RETURN         A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C6
+    [0015] JMP            A=77 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777293 sJ=78 raw=0x800026B8
+    [0016] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "popupShowType"]
+    [0017] GETTABUP       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010B ; R[2] = U[0][K[1] "AddIcon"]
+    [0018] GETFIELD       A=2 B=2 C=7 k=0 Bx=3588 sBx=-61947 Ax=918530 sJ=-15858685 raw=0x0702010E ; R[2] = R[2][K[7] "AI_FIRE"]
+    [0019] EQ             A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200B9
+    [0020] JMP            A=6 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777222 sJ=7 raw=0x80000338
+    [0021] GETTABUP       A=1 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393729 sJ=-16383486 raw=0x0301008B ; R[1] = U[1][K[3] "UE4"]
+    [0022] GETFIELD       A=1 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524801 sJ=-16252414 raw=0x0401008E ; R[1] = R[1][K[4] "UNRCStatics"]
+    [0023] GETFIELD       A=1 B=1 C=5 k=0 Bx=2562 sBx=-62973 Ax=655873 sJ=-16121342 raw=0x0501008E ; R[1] = R[1][K[5] "HexToSlateColor"]
+    [0024] LOADK          A=2 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2050 sJ=-16775165 raw=0x00040103 ; R[2] = K[8] "#B74651FF"
+    [0025] TAILCALL       A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C5
+    [0026] RETURN         A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C6
+    [0027] JMP            A=65 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777281 sJ=66 raw=0x800020B8
+    [0028] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "popupShowType"]
+    [0029] GETTABUP       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010B ; R[2] = U[0][K[1] "AddIcon"]
+    [0030] GETFIELD       A=2 B=2 C=9 k=0 Bx=4612 sBx=-60923 Ax=1180674 sJ=-15596541 raw=0x0902010E ; R[2] = R[2][K[9] "AI_FREEZEN"]
+    [0031] EQ             A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200B9
+    [0032] JMP            A=6 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777222 sJ=7 raw=0x80000338
+    [0033] GETTABUP       A=1 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393729 sJ=-16383486 raw=0x0301008B ; R[1] = U[1][K[3] "UE4"]
+    [0034] GETFIELD       A=1 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524801 sJ=-16252414 raw=0x0401008E ; R[1] = R[1][K[4] "UNRCStatics"]
+    [0035] GETFIELD       A=1 B=1 C=5 k=0 Bx=2562 sBx=-62973 Ax=655873 sJ=-16121342 raw=0x0501008E ; R[1] = R[1][K[5] "HexToSlateColor"]
+    [0036] LOADK          A=2 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2562 sJ=-16774653 raw=0x00050103 ; R[2] = K[10] "#3893A6FF"
+    [0037] TAILCALL       A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C5
+    [0038] RETURN         A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C6
+    [0039] JMP            A=53 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777269 sJ=54 raw=0x80001AB8
+    [0040] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "popupShowType"]
+    [0041] GETTABUP       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010B ; R[2] = U[0][K[1] "AddIcon"]
+    [0042] GETFIELD       A=2 B=2 C=11 k=0 Bx=5636 sBx=-59899 Ax=1442818 sJ=-15334397 raw=0x0B02010E ; R[2] = R[2][K[11] "AI_BLOOD"]
+    [0043] EQ             A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200B9
+    [0044] JMP            A=6 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777222 sJ=7 raw=0x80000338
+    [0045] GETTABUP       A=1 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393729 sJ=-16383486 raw=0x0301008B ; R[1] = U[1][K[3] "UE4"]
+    [0046] GETFIELD       A=1 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524801 sJ=-16252414 raw=0x0401008E ; R[1] = R[1][K[4] "UNRCStatics"]
+    [0047] GETFIELD       A=1 B=1 C=5 k=0 Bx=2562 sBx=-62973 Ax=655873 sJ=-16121342 raw=0x0501008E ; R[1] = R[1][K[5] "HexToSlateColor"]
+    [0048] LOADK          A=2 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3074 sJ=-16774141 raw=0x00060103 ; R[2] = K[12] "#852e4eFF"
+    [0049] TAILCALL       A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C5
+    [0050] RETURN         A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C6
+    [0051] JMP            A=41 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777257 sJ=42 raw=0x800014B8
+    [0052] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "popupShowType"]
+    [0053] GETTABUP       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010B ; R[2] = U[0][K[1] "AddIcon"]
+    [0054] GETFIELD       A=2 B=2 C=13 k=0 Bx=6660 sBx=-58875 Ax=1704962 sJ=-15072253 raw=0x0D02010E ; R[2] = R[2][K[13] "AI_SEED"]
+    [0055] EQ             A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200B9
+    [0056] JMP            A=6 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777222 sJ=7 raw=0x80000338
+    [0057] GETTABUP       A=1 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393729 sJ=-16383486 raw=0x0301008B ; R[1] = U[1][K[3] "UE4"]
+    [0058] GETFIELD       A=1 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524801 sJ=-16252414 raw=0x0401008E ; R[1] = R[1][K[4] "UNRCStatics"]
+    [0059] GETFIELD       A=1 B=1 C=5 k=0 Bx=2562 sBx=-62973 Ax=655873 sJ=-16121342 raw=0x0501008E ; R[1] = R[1][K[5] "HexToSlateColor"]
+    [0060] LOADK          A=2 B=7 C=0 k=0 Bx=14 sBx=-65521 Ax=3586 sJ=-16773629 raw=0x00070103 ; R[2] = K[14] "#447936FF"
+    [0061] TAILCALL       A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C5
+    [0062] RETURN         A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C6
+    [0063] JMP            A=29 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777245 sJ=30 raw=0x80000EB8
+    [0064] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "popupShowType"]
+    [0065] GETTABUP       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010B ; R[2] = U[0][K[1] "AddIcon"]
+    [0066] GETFIELD       A=2 B=2 C=15 k=0 Bx=7684 sBx=-57851 Ax=1967106 sJ=-14810109 raw=0x0F02010E ; R[2] = R[2][K[15] "AI_BUFF"]
+    [0067] EQ             A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200B9
+    [0068] JMP            A=6 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777222 sJ=7 raw=0x80000338
+    [0069] GETTABUP       A=1 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393729 sJ=-16383486 raw=0x0301008B ; R[1] = U[1][K[3] "UE4"]
+    [0070] GETFIELD       A=1 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524801 sJ=-16252414 raw=0x0401008E ; R[1] = R[1][K[4] "UNRCStatics"]
+    [0071] GETFIELD       A=1 B=1 C=5 k=0 Bx=2562 sBx=-62973 Ax=655873 sJ=-16121342 raw=0x0501008E ; R[1] = R[1][K[5] "HexToSlateColor"]
+    [0072] LOADK          A=2 B=8 C=0 k=0 Bx=16 sBx=-65519 Ax=4098 sJ=-16773117 raw=0x00080103 ; R[2] = K[16] "#000000B3"
+    [0073] TAILCALL       A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C5
+    [0074] RETURN         A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C6
+    [0075] JMP            A=17 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777233 sJ=18 raw=0x800008B8
+    [0076] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "popupShowType"]
+    [0077] GETTABUP       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010B ; R[2] = U[0][K[1] "AddIcon"]
+    [0078] GETFIELD       A=2 B=2 C=17 k=0 Bx=8708 sBx=-56827 Ax=2229250 sJ=-14547965 raw=0x1102010E ; R[2] = R[2][K[17] "AI_DEBUFF"]
+    [0079] EQ             A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200B9
+    [0080] JMP            A=6 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777222 sJ=7 raw=0x80000338
+    [0081] GETTABUP       A=1 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393729 sJ=-16383486 raw=0x0301008B ; R[1] = U[1][K[3] "UE4"]
+    [0082] GETFIELD       A=1 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524801 sJ=-16252414 raw=0x0401008E ; R[1] = R[1][K[4] "UNRCStatics"]
+    [0083] GETFIELD       A=1 B=1 C=5 k=0 Bx=2562 sBx=-62973 Ax=655873 sJ=-16121342 raw=0x0501008E ; R[1] = R[1][K[5] "HexToSlateColor"]
+    [0084] LOADK          A=2 B=8 C=0 k=0 Bx=16 sBx=-65519 Ax=4098 sJ=-16773117 raw=0x00080103 ; R[2] = K[16] "#000000B3"
+    [0085] TAILCALL       A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C5
+    [0086] RETURN         A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C6
+    [0087] JMP            A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x800002B8
+    [0088] GETTABUP       A=1 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393729 sJ=-16383486 raw=0x0301008B ; R[1] = U[1][K[3] "UE4"]
+    [0089] GETFIELD       A=1 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524801 sJ=-16252414 raw=0x0401008E ; R[1] = R[1][K[4] "UNRCStatics"]
+    [0090] GETFIELD       A=1 B=1 C=5 k=0 Bx=2562 sBx=-62973 Ax=655873 sJ=-16121342 raw=0x0501008E ; R[1] = R[1][K[5] "HexToSlateColor"]
+    [0091] LOADK          A=2 B=8 C=0 k=0 Bx=16 sBx=-65519 Ax=4098 sJ=-16773117 raw=0x00080103 ; R[2] = K[16] "#000000B3"
+    [0092] TAILCALL       A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C5
+    [0093] RETURN         A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C6
+    [0094] LOADNIL        A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000088
+    [0095] RETURN1        A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C8
+    [0096] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7

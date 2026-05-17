@@ -1,0 +1,633 @@
+-- path: Content/ScriptC/NewRoco/Modules/Core/Battle/CraneCamera/BattleCraneCameraDefine.luac
+-- format: decrypted standard Lua 5.4 bytecode
+-- note: disassembly, not original source
+
+main source="@NewRoco\\Modules\\Core\\Battle\\CraneCamera\\BattleCraneCameraDefine.lua" lines=0-0 params=0 vararg=1 stack=255 upvalues=1
+constants (195):
+  K[0] = "HotReloadType"
+  K[1] = "Full"
+  K[2] = "TargetType"
+  K[3] = "TeamPet"
+  K[4] = 1
+  K[5] = "EnemyPet"
+  K[6] = 2
+  K[7] = "TeamPlayer"
+  K[8] = 3
+  K[9] = "EnemyPlayer"
+  K[10] = 4
+  K[11] = "TeamPet1"
+  K[12] = 5
+  K[13] = "TeamPet2"
+  K[14] = 6
+  K[15] = "EnemyPet1"
+  K[16] = 7
+  K[17] = "EnemyPet2"
+  K[18] = 8
+  K[19] = "TeamPet3"
+  K[20] = 9
+  K[21] = "EnemyPet3"
+  K[22] = 10
+  K[23] = "TeamPet4"
+  K[24] = 11
+  K[25] = "EnemyPet4"
+  K[26] = 12
+  K[27] = "MySelfPet"
+  K[28] = 13
+  K[29] = "InputParam"
+  K[30] = "Slope"
+  K[31] = "TeamPetHeight"
+  K[32] = "EnemyPetHeight"
+  K[33] = "PetHeightRatio"
+  K[34] = "DirectPitchAngle"
+  K[35] = "OutputParam"
+  K[36] = "PitchAngle"
+  K[37] = "YawAngle"
+  K[38] = "RollAngle"
+  K[39] = "TargetPointHeight"
+  K[40] = "SpringArmLength"
+  K[41] = "FOV"
+  K[42] = "PointRatio"
+  K[43] = "CameraJsonGlobalName"
+  K[44] = "BattleCraneCamera_Settings_Global"
+  K[45] = "CameraJsonCfg"
+  K[46] = "UE4"
+  K[47] = "EBattleCameraTags"
+  K[48] = "PlayerCatch"
+  K[49] = "BattleCraneCamera_Settings_PlayerCatch"
+  K[50] = "PlayerEscape"
+  K[51] = "BattleCraneCamera_Settings_PlayerEscape"
+  K[52] = "PlayerItemToTeam"
+  K[53] = "BattleCraneCamera_Settings_PlayerItemToTeam"
+  K[54] = "PlayerItemToEnemy"
+  K[55] = "BattleCraneCamera_Settings_PlayerItemToEnemy"
+  K[56] = "PlayerChange"
+  K[57] = "BattleCraneCamera_Settings_PlayerChange"
+  K[58] = "PlayerPet"
+  K[59] = "BattleCraneCamera_Settings_PlayerPet"
+  K[60] = "PlayerPetMult1"
+  K[61] = "BattleCraneCamera_Settings_PlayerPetMult1"
+  K[62] = "PlayerPetMult2"
+  K[63] = "BattleCraneCamera_Settings_PlayerPetMult2"
+  K[64] = "PlayerSkill"
+  K[65] = "BattleCraneCamera_Settings_PlayerSkill"
+  K[66] = "PlayerSkillMult"
+  K[67] = "BattleCraneCamera_Settings_PlayerSkillMult"
+  K[68] = "SpecialToTeam"
+  K[69] = "BattleCraneCamera_Settings_SpecialToTeam"
+  K[70] = "SpecialToEnemy"
+  K[71] = "BattleCraneCamera_Settings_SpecialToEnemy"
+  K[72] = "TeamFight_PlayerPet"
+  K[73] = "BattleCraneCamera_Settings_TeamFight_PlayerPet"
+  K[74] = "TeamFight_PlayerSkill"
+  K[75] = "BattleCraneCamera_Settings_TeamFight_PlayerSkill"
+  K[76] = "TeamFight_PlayerSkillMult"
+  K[77] = "BattleCraneCamera_Settings_TeamFight_PlayerSkillMult"
+  K[78] = "TeamFight_PlayerItemToTeam"
+  K[79] = "BattleCraneCamera_Settings_TeamFight_PlayerItemToTeam"
+  K[80] = "TeamFight_PlayerCatch"
+  K[81] = "BattleCraneCamera_Settings_TeamFight_Catch"
+  K[82] = "LegenderyTeamFight_PlayerPet"
+  K[83] = "BattleCraneCamera_Settings_LegenderyTeamFight_PlayerPet"
+  K[84] = "LegenderyTeamFight_PlayerSkill"
+  K[85] = "BattleCraneCamera_Settings_LegenderyTeamFight_PlayerSkill"
+  K[86] = "LegenderyTeamFight_PlayerSkillMult"
+  K[87] = "LegenderyTeamFight_PlayerItemToTeam"
+  K[88] = "BattleCraneCamera_Settings_LegenderyTeamFight_PlayerItemToTeam"
+  K[89] = "LegenderyTeamFight_PlayerCatch"
+  K[90] = "BattleCraneCamera_Settings_LegenderyTeamFight_Catch"
+  K[91] = "LegenderyTeamFight_Player_QuicklyCatch"
+  K[92] = "BattleCraneCamera_Settings_LegenderyTeamFight_QuicklyCatch"
+  K[93] = "PlayerChange2V2"
+  K[94] = "BattleCraneCamera_Settings_2V2_PlayerChange"
+  K[95] = "PlayerMagic"
+  K[96] = "BattleCraneCamera_Settings_PlayerMagic"
+  K[97] = "PlayerMagicMulti"
+  K[98] = "BattleCraneCamera_Settings_PlayerMagicMult"
+  K[99] = "PlayerNpcAssistSelectSkill"
+  K[100] = "BattleCraneCamera_Settings_Ally2V2_SelectSkill"
+  K[101] = "PlayerNpcAssistSwitchPet"
+  K[102] = "BattleCraneCamera_Settings_Ally2V2_SwtichPet"
+  K[103] = "PlayerNpcAssistSelectItem"
+  K[104] = "BattleCraneCamera_Settings_Ally2V2_SelectItem"
+  K[105] = "PlayerNpcAssistPerformSkill"
+  K[106] = "BattleCraneCamera_Settings_Ally2V2_PerformSkill"
+  K[107] = "A1FBSSelectSkill"
+  K[108] = "BattleCraneCamera_Settings_A1FB_P1_SelectSkill"
+  K[109] = "A1FBSelectItem"
+  K[110] = "BattleCraneCamera_Settings_A1FB_P1_SelectItem"
+  K[111] = "A1FBPerformSkill"
+  K[112] = "BattleCraneCamera_Settings_A1FB_P1_PerformSkill"
+  K[113] = "A1FBSSelectSkill_Pet1"
+  K[114] = "BattleCraneCamera_Settings_A1FB_P1_SelectSkill_Pet1"
+  K[115] = "A1FBSSelectSkill_Pet2"
+  K[116] = "BattleCraneCamera_Settings_A1FB_P1_SelectSkill_Pet2"
+  K[117] = "A1FBSSelectSkill_Pet3"
+  K[118] = "BattleCraneCamera_Settings_A1FB_P1_SelectSkill_Pet3"
+  K[119] = "A1FBPerformSkillP2"
+  K[120] = "BattleCraneCamera_Settings_A1FB_P2_PerformSkill"
+  K[121] = "A1FBSSelectSkillP2_Pet1"
+  K[122] = "BattleCraneCamera_Settings_A1FB_P2_SelectSkill"
+  K[123] = "A1FBSPlayerMagicP1"
+  K[124] = "BattleCraneCamera_Settings_A1FB_P1_SelectTarget_Ally"
+  K[125] = "A1FBSPlayerMagicYaSe"
+  K[126] = "BattleCraneCamera_Settings_A1FB_P1_SelectTarget_Enemy"
+  K[127] = "AdditionalSkills"
+  K[128] = "BattleCraneCamera_Settings_AdditionalSkills_PlayerPet"
+  K[129] = "TeamFight_PlayerEscape"
+  K[130] = "BattleCraneCamera_Settings_TeamFight_PlayerEscape"
+  K[131] = "B1FBPerformSkillP1"
+  K[132] = "BattleCraneCamera_Settings_B1FB_P1_PerformSkill"
+  K[133] = "B1FBSSelectSkillP1_Pet1"
+  K[134] = "BattleCraneCamera_Settings_B1FB_P1_SelectSkill"
+  K[135] = "B1FBSelectItem"
+  K[136] = "BattleCraneCamera_Settings_B1FB_P1_SelectItem"
+  K[137] = "B1FBSP1_ChangePet"
+  K[138] = "BattleCraneCamera_Settings_B1FB_ChangePet"
+  K[139] = "B1FBPerformSkillP2"
+  K[140] = "BattleCraneCamera_Settings_B1FB_P2_PerformSkill"
+  K[141] = "B1FBSSelectSkillP2_Pet1"
+  K[142] = "BattleCraneCamera_Settings_B1FB_P2_SelectSkill"
+  K[143] = "B1FBPerformSkillP3"
+  K[144] = "BattleCraneCamera_Settings_B1FB_P3_PerformSkill"
+  K[145] = "B1FBSSelectSkillP3_Pet1"
+  K[146] = "BattleCraneCamera_Settings_B1FB_P3_SelectSkill"
+  K[147] = "B1FBSP3_MasterSkill"
+  K[148] = "BattleCraneCamera_Settings_B1FB_P3_CloseUp"
+  K[149] = "CameraJsonTeamFightCfg"
+  K[150] = "CameraJsonLegendaryTeamFightCfg"
+  K[151] = "BattleCraneCamera_Settings_LegenderyTeamFight_PlayerSkillMult"
+  K[152] = "CameraJsonOnePlayerTwoPetCfg"
+  K[153] = "CameraJsonAdditionalSkills"
+  K[154] = "GeneralParameters"
+  K[155] = "CameraCollisionRadius"
+  K[156] = 65
+  K[157] = "PetStandState"
+  K[158] = "None"
+  K[159] = 0
+  K[160] = "Left"
+  K[161] = "Origin"
+  K[162] = "CameraCurves"
+  K[163] = "EViewTargetBlendFunction"
+  K[164] = "VTBlend_Linear"
+  K[165] = "/Game/NewRoco/Modules/Core/Battle/Camera/CraneCamCurve/CurveVTBlend_Linear.CurveVTBlend_Linear"
+  K[166] = "VTBlend_Cubic"
+  K[167] = "/Game/NewRoco/Modules/Core/Battle/Camera/CraneCamCurve/CurveVTBlend_Cubic.CurveVTBlend_Cubic"
+  K[168] = "VTBlend_EaseIn"
+  K[169] = "/Game/NewRoco/Modules/Core/Battle/Camera/CraneCamCurve/CurveVTBlend_EaseIn.CurveVTBlend_EaseIn"
+  K[170] = "VTBlend_EaseOut"
+  K[171] = "/Game/NewRoco/Modules/Core/Battle/Camera/CraneCamCurve/CurveVTBlend_EaseOut.CurveVTBlend_EaseOut"
+  K[172] = "VTBlend_EaseInOut"
+  K[173] = "/Game/NewRoco/Modules/Core/Battle/Camera/CraneCamCurve/CurveVTBlend_EaseInOut.CurveVTBlend_EaseInOut"
+  K[174] = "VTBlend_MAX"
+  K[175] = "/Game/NewRoco/Modules/Core/Battle/Camera/CraneCamCurve/CurveVTBlend_MAX.CurveVTBlend_MAX"
+  K[176] = "ControllerCameraTagFilter"
+  K[177] = "DefaultCameraCurve"
+  K[178] = "/Game/NewRoco/Modules/Core/Battle/Camera/CraneCamCurve/CraneCameraDefaultCurve.CraneCameraDefaultCurve"
+  K[179] = "BumpCollisionParam"
+  K[180] = "IsOpen"
+  K[181] = false
+  K[182] = "pitch"
+  K[183] = -5
+  K[184] = "Height"
+  K[185] = 20
+  K[186] = "IsDebugLine"
+  K[187] = true
+  K[188] = "CameraMode"
+  K[189] = "default"
+  K[190] = "additionalSkills"
+  K[191] = "teamBattle"
+  K[192] = "legendaryTeamFight"
+  K[193] = "onePlayerTwoPet"
+  K[194] = "CameraModeJson"
+upvalues (1):
+  U[0] = instack=0 idx=0 kind=4 name="_ENV"
+locals (1):
+  L[0] = "BattleCraneCameraDefine" pc=3-427
+instructions (427):
+  [0001] VARARGPREP     A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000051
+  [0002] NEWTABLE       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000013
+  [0003] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0004] NEWTABLE       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x01000093
+  [0005] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0006] GETTABUP       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010B ; R[2] = U[0][K[1] "Full"]
+  [0007] SETLIST        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100CE
+  [0008] SETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x01000012 ; R[0][K[0] "HotReloadType"] = R[1]
+  [0009] NEWTABLE       A=1 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2561 sJ=-16774654 raw=0x00050093
+  [0010] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0011] SETFIELD       A=1 B=3 C=4 k=1 Bx=2055 sBx=-63480 Ax=526081 sJ=-16251134 raw=0x04038092 ; R[1][K[3] "TeamPet"] = R[4]
+  [0012] SETFIELD       A=1 B=5 C=6 k=1 Bx=3083 sBx=-62452 Ax=789249 sJ=-15987966 raw=0x06058092 ; R[1][K[5] "EnemyPet"] = R[6]
+  [0013] SETFIELD       A=1 B=7 C=8 k=1 Bx=4111 sBx=-61424 Ax=1052417 sJ=-15724798 raw=0x08078092 ; R[1][K[7] "TeamPlayer"] = R[8]
+  [0014] SETFIELD       A=1 B=9 C=10 k=1 Bx=5139 sBx=-60396 Ax=1315585 sJ=-15461630 raw=0x0A098092 ; R[1][K[9] "EnemyPlayer"] = R[10]
+  [0015] SETFIELD       A=1 B=11 C=12 k=1 Bx=6167 sBx=-59368 Ax=1578753 sJ=-15198462 raw=0x0C0B8092 ; R[1][K[11] "TeamPet1"] = R[12]
+  [0016] SETFIELD       A=1 B=13 C=14 k=1 Bx=7195 sBx=-58340 Ax=1841921 sJ=-14935294 raw=0x0E0D8092 ; R[1][K[13] "TeamPet2"] = R[14]
+  [0017] SETFIELD       A=1 B=15 C=16 k=1 Bx=8223 sBx=-57312 Ax=2105089 sJ=-14672126 raw=0x100F8092 ; R[1][K[15] "EnemyPet1"] = R[16]
+  [0018] SETFIELD       A=1 B=17 C=18 k=1 Bx=9251 sBx=-56284 Ax=2368257 sJ=-14408958 raw=0x12118092 ; R[1][K[17] "EnemyPet2"] = R[18]
+  [0019] SETFIELD       A=1 B=19 C=20 k=1 Bx=10279 sBx=-55256 Ax=2631425 sJ=-14145790 raw=0x14138092 ; R[1][K[19] "TeamPet3"] = R[20]
+  [0020] SETFIELD       A=1 B=21 C=22 k=1 Bx=11307 sBx=-54228 Ax=2894593 sJ=-13882622 raw=0x16158092 ; R[1][K[21] "EnemyPet3"] = R[22]
+  [0021] SETFIELD       A=1 B=23 C=24 k=1 Bx=12335 sBx=-53200 Ax=3157761 sJ=-13619454 raw=0x18178092 ; R[1][K[23] "TeamPet4"] = R[24]
+  [0022] SETFIELD       A=1 B=25 C=26 k=1 Bx=13363 sBx=-52172 Ax=3420929 sJ=-13356286 raw=0x1A198092 ; R[1][K[25] "EnemyPet4"] = R[26]
+  [0023] SETFIELD       A=1 B=27 C=28 k=1 Bx=14391 sBx=-51144 Ax=3684097 sJ=-13093118 raw=0x1C1B8092 ; R[1][K[27] "MySelfPet"] = R[28]
+  [0024] SETFIELD       A=0 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132096 sJ=-16645119 raw=0x01020012 ; R[0][K[2] "TargetType"] = R[1]
+  [0025] NEWTABLE       A=1 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2049 sJ=-16775166 raw=0x00040093
+  [0026] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0027] SETFIELD       A=1 B=30 C=4 k=1 Bx=2109 sBx=-63426 Ax=539905 sJ=-16237310 raw=0x041E8092 ; R[1][K[30] "Slope"] = R[4]
+  [0028] SETFIELD       A=1 B=31 C=6 k=1 Bx=3135 sBx=-62400 Ax=802561 sJ=-15974654 raw=0x061F8092 ; R[1][K[31] "TeamPetHeight"] = R[6]
+  [0029] SETFIELD       A=1 B=32 C=8 k=1 Bx=4161 sBx=-61374 Ax=1065217 sJ=-15711998 raw=0x08208092 ; R[1][K[32] "EnemyPetHeight"] = R[8]
+  [0030] SETFIELD       A=1 B=33 C=10 k=1 Bx=5187 sBx=-60348 Ax=1327873 sJ=-15449342 raw=0x0A218092 ; R[1][K[33] "PetHeightRatio"] = R[10]
+  [0031] SETFIELD       A=1 B=34 C=12 k=1 Bx=6213 sBx=-59322 Ax=1590529 sJ=-15186686 raw=0x0C228092 ; R[1][K[34] "DirectPitchAngle"] = R[12]
+  [0032] SETFIELD       A=0 B=29 C=1 k=0 Bx=570 sBx=-64965 Ax=145920 sJ=-16631295 raw=0x011D0012 ; R[0][K[29] "InputParam"] = R[1]
+  [0033] NEWTABLE       A=1 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2049 sJ=-16775166 raw=0x00040093
+  [0034] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0035] SETFIELD       A=1 B=36 C=4 k=1 Bx=2121 sBx=-63414 Ax=542977 sJ=-16234238 raw=0x04248092 ; R[1][K[36] "PitchAngle"] = R[4]
+  [0036] SETFIELD       A=1 B=37 C=6 k=1 Bx=3147 sBx=-62388 Ax=805633 sJ=-15971582 raw=0x06258092 ; R[1][K[37] "YawAngle"] = R[6]
+  [0037] SETFIELD       A=1 B=38 C=8 k=1 Bx=4173 sBx=-61362 Ax=1068289 sJ=-15708926 raw=0x08268092 ; R[1][K[38] "RollAngle"] = R[8]
+  [0038] SETFIELD       A=1 B=39 C=10 k=1 Bx=5199 sBx=-60336 Ax=1330945 sJ=-15446270 raw=0x0A278092 ; R[1][K[39] "TargetPointHeight"] = R[10]
+  [0039] SETFIELD       A=1 B=40 C=12 k=1 Bx=6225 sBx=-59310 Ax=1593601 sJ=-15183614 raw=0x0C288092 ; R[1][K[40] "SpringArmLength"] = R[12]
+  [0040] SETFIELD       A=1 B=41 C=14 k=1 Bx=7251 sBx=-58284 Ax=1856257 sJ=-14920958 raw=0x0E298092 ; R[1][K[41] "FOV"] = R[14]
+  [0041] SETFIELD       A=1 B=42 C=16 k=1 Bx=8277 sBx=-57258 Ax=2118913 sJ=-14658302 raw=0x102A8092 ; R[1][K[42] "PointRatio"] = R[16]
+  [0042] SETFIELD       A=0 B=35 C=1 k=0 Bx=582 sBx=-64953 Ax=148992 sJ=-16628223 raw=0x01230012 ; R[0][K[35] "OutputParam"] = R[1]
+  [0043] SETFIELD       A=0 B=43 C=44 k=1 Bx=22615 sBx=-42920 Ax=5789440 sJ=-10987775 raw=0x2C2B8012 ; R[0][K[43] "CameraJsonGlobalName"] = R[44]
+  [0044] NEWTABLE       A=1 B=7 C=0 k=0 Bx=14 sBx=-65521 Ax=3585 sJ=-16773630 raw=0x00070093
+  [0045] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0046] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0047] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0048] GETFIELD       A=2 B=2 C=48 k=0 Bx=24580 sBx=-40955 Ax=6292482 sJ=-10484733 raw=0x3002010E ; R[2] = R[2][K[48] "PlayerCatch"]
+  [0049] SETTABLE       A=1 B=2 C=49 k=1 Bx=25093 sBx=-40442 Ax=6423809 sJ=-10353406 raw=0x31028090
+  [0050] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0051] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0052] GETFIELD       A=2 B=2 C=50 k=0 Bx=25604 sBx=-39931 Ax=6554626 sJ=-10222589 raw=0x3202010E ; R[2] = R[2][K[50] "PlayerEscape"]
+  [0053] SETTABLE       A=1 B=2 C=51 k=1 Bx=26117 sBx=-39418 Ax=6685953 sJ=-10091262 raw=0x33028090
+  [0054] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0055] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0056] GETFIELD       A=2 B=2 C=52 k=0 Bx=26628 sBx=-38907 Ax=6816770 sJ=-9960445 raw=0x3402010E ; R[2] = R[2][K[52] "PlayerItemToTeam"]
+  [0057] SETTABLE       A=1 B=2 C=53 k=1 Bx=27141 sBx=-38394 Ax=6948097 sJ=-9829118 raw=0x35028090
+  [0058] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0059] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0060] GETFIELD       A=2 B=2 C=54 k=0 Bx=27652 sBx=-37883 Ax=7078914 sJ=-9698301 raw=0x3602010E ; R[2] = R[2][K[54] "PlayerItemToEnemy"]
+  [0061] SETTABLE       A=1 B=2 C=55 k=1 Bx=28165 sBx=-37370 Ax=7210241 sJ=-9566974 raw=0x37028090
+  [0062] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0063] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0064] GETFIELD       A=2 B=2 C=56 k=0 Bx=28676 sBx=-36859 Ax=7341058 sJ=-9436157 raw=0x3802010E ; R[2] = R[2][K[56] "PlayerChange"]
+  [0065] SETTABLE       A=1 B=2 C=57 k=1 Bx=29189 sBx=-36346 Ax=7472385 sJ=-9304830 raw=0x39028090
+  [0066] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0067] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0068] GETFIELD       A=2 B=2 C=58 k=0 Bx=29700 sBx=-35835 Ax=7603202 sJ=-9174013 raw=0x3A02010E ; R[2] = R[2][K[58] "PlayerPet"]
+  [0069] SETTABLE       A=1 B=2 C=59 k=1 Bx=30213 sBx=-35322 Ax=7734529 sJ=-9042686 raw=0x3B028090
+  [0070] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0071] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0072] GETFIELD       A=2 B=2 C=60 k=0 Bx=30724 sBx=-34811 Ax=7865346 sJ=-8911869 raw=0x3C02010E ; R[2] = R[2][K[60] "PlayerPetMult1"]
+  [0073] SETTABLE       A=1 B=2 C=61 k=1 Bx=31237 sBx=-34298 Ax=7996673 sJ=-8780542 raw=0x3D028090
+  [0074] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0075] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0076] GETFIELD       A=2 B=2 C=62 k=0 Bx=31748 sBx=-33787 Ax=8127490 sJ=-8649725 raw=0x3E02010E ; R[2] = R[2][K[62] "PlayerPetMult2"]
+  [0077] SETTABLE       A=1 B=2 C=63 k=1 Bx=32261 sBx=-33274 Ax=8258817 sJ=-8518398 raw=0x3F028090
+  [0078] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0079] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0080] GETFIELD       A=2 B=2 C=64 k=0 Bx=32772 sBx=-32763 Ax=8389634 sJ=-8387581 raw=0x4002010E ; R[2] = R[2][K[64] "PlayerSkill"]
+  [0081] SETTABLE       A=1 B=2 C=65 k=1 Bx=33285 sBx=-32250 Ax=8520961 sJ=-8256254 raw=0x41028090
+  [0082] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0083] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0084] GETFIELD       A=2 B=2 C=66 k=0 Bx=33796 sBx=-31739 Ax=8651778 sJ=-8125437 raw=0x4202010E ; R[2] = R[2][K[66] "PlayerSkillMult"]
+  [0085] SETTABLE       A=1 B=2 C=67 k=1 Bx=34309 sBx=-31226 Ax=8783105 sJ=-7994110 raw=0x43028090
+  [0086] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0087] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0088] GETFIELD       A=2 B=2 C=68 k=0 Bx=34820 sBx=-30715 Ax=8913922 sJ=-7863293 raw=0x4402010E ; R[2] = R[2][K[68] "SpecialToTeam"]
+  [0089] SETTABLE       A=1 B=2 C=69 k=1 Bx=35333 sBx=-30202 Ax=9045249 sJ=-7731966 raw=0x45028090
+  [0090] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0091] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0092] GETFIELD       A=2 B=2 C=70 k=0 Bx=35844 sBx=-29691 Ax=9176066 sJ=-7601149 raw=0x4602010E ; R[2] = R[2][K[70] "SpecialToEnemy"]
+  [0093] SETTABLE       A=1 B=2 C=71 k=1 Bx=36357 sBx=-29178 Ax=9307393 sJ=-7469822 raw=0x47028090
+  [0094] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0095] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0096] GETFIELD       A=2 B=2 C=72 k=0 Bx=36868 sBx=-28667 Ax=9438210 sJ=-7339005 raw=0x4802010E ; R[2] = R[2][K[72] "TeamFight_PlayerPet"]
+  [0097] SETTABLE       A=1 B=2 C=73 k=1 Bx=37381 sBx=-28154 Ax=9569537 sJ=-7207678 raw=0x49028090
+  [0098] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0099] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0100] GETFIELD       A=2 B=2 C=74 k=0 Bx=37892 sBx=-27643 Ax=9700354 sJ=-7076861 raw=0x4A02010E ; R[2] = R[2][K[74] "TeamFight_PlayerSkill"]
+  [0101] SETTABLE       A=1 B=2 C=75 k=1 Bx=38405 sBx=-27130 Ax=9831681 sJ=-6945534 raw=0x4B028090
+  [0102] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0103] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0104] GETFIELD       A=2 B=2 C=76 k=0 Bx=38916 sBx=-26619 Ax=9962498 sJ=-6814717 raw=0x4C02010E ; R[2] = R[2][K[76] "TeamFight_PlayerSkillMult"]
+  [0105] SETTABLE       A=1 B=2 C=77 k=1 Bx=39429 sBx=-26106 Ax=10093825 sJ=-6683390 raw=0x4D028090
+  [0106] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0107] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0108] GETFIELD       A=2 B=2 C=78 k=0 Bx=39940 sBx=-25595 Ax=10224642 sJ=-6552573 raw=0x4E02010E ; R[2] = R[2][K[78] "TeamFight_PlayerItemToTeam"]
+  [0109] SETTABLE       A=1 B=2 C=79 k=1 Bx=40453 sBx=-25082 Ax=10355969 sJ=-6421246 raw=0x4F028090
+  [0110] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0111] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0112] GETFIELD       A=2 B=2 C=80 k=0 Bx=40964 sBx=-24571 Ax=10486786 sJ=-6290429 raw=0x5002010E ; R[2] = R[2][K[80] "TeamFight_PlayerCatch"]
+  [0113] SETTABLE       A=1 B=2 C=81 k=1 Bx=41477 sBx=-24058 Ax=10618113 sJ=-6159102 raw=0x51028090
+  [0114] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0115] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0116] GETFIELD       A=2 B=2 C=82 k=0 Bx=41988 sBx=-23547 Ax=10748930 sJ=-6028285 raw=0x5202010E ; R[2] = R[2][K[82] "LegenderyTeamFight_PlayerPet"]
+  [0117] SETTABLE       A=1 B=2 C=83 k=1 Bx=42501 sBx=-23034 Ax=10880257 sJ=-5896958 raw=0x53028090
+  [0118] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0119] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0120] GETFIELD       A=2 B=2 C=84 k=0 Bx=43012 sBx=-22523 Ax=11011074 sJ=-5766141 raw=0x5402010E ; R[2] = R[2][K[84] "LegenderyTeamFight_PlayerSkill"]
+  [0121] SETTABLE       A=1 B=2 C=85 k=1 Bx=43525 sBx=-22010 Ax=11142401 sJ=-5634814 raw=0x55028090
+  [0122] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0123] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0124] GETFIELD       A=2 B=2 C=86 k=0 Bx=44036 sBx=-21499 Ax=11273218 sJ=-5503997 raw=0x5602010E ; R[2] = R[2][K[86] "LegenderyTeamFight_PlayerSkillMult"]
+  [0125] SETTABLE       A=1 B=2 C=85 k=1 Bx=43525 sBx=-22010 Ax=11142401 sJ=-5634814 raw=0x55028090
+  [0126] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0127] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0128] GETFIELD       A=2 B=2 C=87 k=0 Bx=44548 sBx=-20987 Ax=11404290 sJ=-5372925 raw=0x5702010E ; R[2] = R[2][K[87] "LegenderyTeamFight_PlayerItemToTeam"]
+  [0129] SETTABLE       A=1 B=2 C=88 k=1 Bx=45061 sBx=-20474 Ax=11535617 sJ=-5241598 raw=0x58028090
+  [0130] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0131] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0132] GETFIELD       A=2 B=2 C=89 k=0 Bx=45572 sBx=-19963 Ax=11666434 sJ=-5110781 raw=0x5902010E ; R[2] = R[2][K[89] "LegenderyTeamFight_PlayerCatch"]
+  [0133] SETTABLE       A=1 B=2 C=90 k=1 Bx=46085 sBx=-19450 Ax=11797761 sJ=-4979454 raw=0x5A028090
+  [0134] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0135] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0136] GETFIELD       A=2 B=2 C=91 k=0 Bx=46596 sBx=-18939 Ax=11928578 sJ=-4848637 raw=0x5B02010E ; R[2] = R[2][K[91] "LegenderyTeamFight_Player_QuicklyCatch"]
+  [0137] SETTABLE       A=1 B=2 C=92 k=1 Bx=47109 sBx=-18426 Ax=12059905 sJ=-4717310 raw=0x5C028090
+  [0138] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0139] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0140] GETFIELD       A=2 B=2 C=93 k=0 Bx=47620 sBx=-17915 Ax=12190722 sJ=-4586493 raw=0x5D02010E ; R[2] = R[2][K[93] "PlayerChange2V2"]
+  [0141] SETTABLE       A=1 B=2 C=94 k=1 Bx=48133 sBx=-17402 Ax=12322049 sJ=-4455166 raw=0x5E028090
+  [0142] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0143] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0144] GETFIELD       A=2 B=2 C=95 k=0 Bx=48644 sBx=-16891 Ax=12452866 sJ=-4324349 raw=0x5F02010E ; R[2] = R[2][K[95] "PlayerMagic"]
+  [0145] SETTABLE       A=1 B=2 C=96 k=1 Bx=49157 sBx=-16378 Ax=12584193 sJ=-4193022 raw=0x60028090
+  [0146] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0147] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0148] GETFIELD       A=2 B=2 C=97 k=0 Bx=49668 sBx=-15867 Ax=12715010 sJ=-4062205 raw=0x6102010E ; R[2] = R[2][K[97] "PlayerMagicMulti"]
+  [0149] SETTABLE       A=1 B=2 C=98 k=1 Bx=50181 sBx=-15354 Ax=12846337 sJ=-3930878 raw=0x62028090
+  [0150] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0151] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0152] GETFIELD       A=2 B=2 C=99 k=0 Bx=50692 sBx=-14843 Ax=12977154 sJ=-3800061 raw=0x6302010E ; R[2] = R[2][K[99] "PlayerNpcAssistSelectSkill"]
+  [0153] SETTABLE       A=1 B=2 C=100 k=1 Bx=51205 sBx=-14330 Ax=13108481 sJ=-3668734 raw=0x64028090
+  [0154] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0155] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0156] GETFIELD       A=2 B=2 C=101 k=0 Bx=51716 sBx=-13819 Ax=13239298 sJ=-3537917 raw=0x6502010E ; R[2] = R[2][K[101] "PlayerNpcAssistSwitchPet"]
+  [0157] SETTABLE       A=1 B=2 C=102 k=1 Bx=52229 sBx=-13306 Ax=13370625 sJ=-3406590 raw=0x66028090
+  [0158] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0159] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0160] GETFIELD       A=2 B=2 C=103 k=0 Bx=52740 sBx=-12795 Ax=13501442 sJ=-3275773 raw=0x6702010E ; R[2] = R[2][K[103] "PlayerNpcAssistSelectItem"]
+  [0161] SETTABLE       A=1 B=2 C=104 k=1 Bx=53253 sBx=-12282 Ax=13632769 sJ=-3144446 raw=0x68028090
+  [0162] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0163] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0164] GETFIELD       A=2 B=2 C=105 k=0 Bx=53764 sBx=-11771 Ax=13763586 sJ=-3013629 raw=0x6902010E ; R[2] = R[2][K[105] "PlayerNpcAssistPerformSkill"]
+  [0165] SETTABLE       A=1 B=2 C=106 k=1 Bx=54277 sBx=-11258 Ax=13894913 sJ=-2882302 raw=0x6A028090
+  [0166] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0167] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0168] GETFIELD       A=2 B=2 C=107 k=0 Bx=54788 sBx=-10747 Ax=14025730 sJ=-2751485 raw=0x6B02010E ; R[2] = R[2][K[107] "A1FBSSelectSkill"]
+  [0169] SETTABLE       A=1 B=2 C=108 k=1 Bx=55301 sBx=-10234 Ax=14157057 sJ=-2620158 raw=0x6C028090
+  [0170] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0171] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0172] GETFIELD       A=2 B=2 C=109 k=0 Bx=55812 sBx=-9723 Ax=14287874 sJ=-2489341 raw=0x6D02010E ; R[2] = R[2][K[109] "A1FBSelectItem"]
+  [0173] SETTABLE       A=1 B=2 C=110 k=1 Bx=56325 sBx=-9210 Ax=14419201 sJ=-2358014 raw=0x6E028090
+  [0174] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0175] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0176] GETFIELD       A=2 B=2 C=111 k=0 Bx=56836 sBx=-8699 Ax=14550018 sJ=-2227197 raw=0x6F02010E ; R[2] = R[2][K[111] "A1FBPerformSkill"]
+  [0177] SETTABLE       A=1 B=2 C=112 k=1 Bx=57349 sBx=-8186 Ax=14681345 sJ=-2095870 raw=0x70028090
+  [0178] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0179] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0180] GETFIELD       A=2 B=2 C=113 k=0 Bx=57860 sBx=-7675 Ax=14812162 sJ=-1965053 raw=0x7102010E ; R[2] = R[2][K[113] "A1FBSSelectSkill_Pet1"]
+  [0181] SETTABLE       A=1 B=2 C=114 k=1 Bx=58373 sBx=-7162 Ax=14943489 sJ=-1833726 raw=0x72028090
+  [0182] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0183] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0184] GETFIELD       A=2 B=2 C=115 k=0 Bx=58884 sBx=-6651 Ax=15074306 sJ=-1702909 raw=0x7302010E ; R[2] = R[2][K[115] "A1FBSSelectSkill_Pet2"]
+  [0185] SETTABLE       A=1 B=2 C=116 k=1 Bx=59397 sBx=-6138 Ax=15205633 sJ=-1571582 raw=0x74028090
+  [0186] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0187] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0188] GETFIELD       A=2 B=2 C=117 k=0 Bx=59908 sBx=-5627 Ax=15336450 sJ=-1440765 raw=0x7502010E ; R[2] = R[2][K[117] "A1FBSSelectSkill_Pet3"]
+  [0189] SETTABLE       A=1 B=2 C=118 k=1 Bx=60421 sBx=-5114 Ax=15467777 sJ=-1309438 raw=0x76028090
+  [0190] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0191] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0192] GETFIELD       A=2 B=2 C=119 k=0 Bx=60932 sBx=-4603 Ax=15598594 sJ=-1178621 raw=0x7702010E ; R[2] = R[2][K[119] "A1FBPerformSkillP2"]
+  [0193] SETTABLE       A=1 B=2 C=120 k=1 Bx=61445 sBx=-4090 Ax=15729921 sJ=-1047294 raw=0x78028090
+  [0194] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0195] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0196] GETFIELD       A=2 B=2 C=121 k=0 Bx=61956 sBx=-3579 Ax=15860738 sJ=-916477 raw=0x7902010E ; R[2] = R[2][K[121] "A1FBSSelectSkillP2_Pet1"]
+  [0197] SETTABLE       A=1 B=2 C=122 k=1 Bx=62469 sBx=-3066 Ax=15992065 sJ=-785150 raw=0x7A028090
+  [0198] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0199] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0200] GETFIELD       A=2 B=2 C=123 k=0 Bx=62980 sBx=-2555 Ax=16122882 sJ=-654333 raw=0x7B02010E ; R[2] = R[2][K[123] "A1FBSPlayerMagicP1"]
+  [0201] SETTABLE       A=1 B=2 C=124 k=1 Bx=63493 sBx=-2042 Ax=16254209 sJ=-523006 raw=0x7C028090
+  [0202] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0203] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0204] GETFIELD       A=2 B=2 C=125 k=0 Bx=64004 sBx=-1531 Ax=16385026 sJ=-392189 raw=0x7D02010E ; R[2] = R[2][K[125] "A1FBSPlayerMagicYaSe"]
+  [0205] SETTABLE       A=1 B=2 C=126 k=1 Bx=64517 sBx=-1018 Ax=16516353 sJ=-260862 raw=0x7E028090
+  [0206] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0207] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0208] GETFIELD       A=2 B=2 C=127 k=0 Bx=65028 sBx=-507 Ax=16647170 sJ=-130045 raw=0x7F02010E ; R[2] = R[2][K[127] "AdditionalSkills"]
+  [0209] SETTABLE       A=1 B=2 C=128 k=1 Bx=65541 sBx=6 Ax=16778497 sJ=1282 raw=0x80028090
+  [0210] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0211] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0212] GETFIELD       A=2 B=2 C=129 k=0 Bx=66052 sBx=517 Ax=16909314 sJ=132099 raw=0x8102010E ; R[2] = R[2][K[129] "TeamFight_PlayerEscape"]
+  [0213] SETTABLE       A=1 B=2 C=130 k=1 Bx=66565 sBx=1030 Ax=17040641 sJ=263426 raw=0x82028090
+  [0214] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0215] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0216] GETFIELD       A=2 B=2 C=131 k=0 Bx=67076 sBx=1541 Ax=17171458 sJ=394243 raw=0x8302010E ; R[2] = R[2][K[131] "B1FBPerformSkillP1"]
+  [0217] SETTABLE       A=1 B=2 C=132 k=1 Bx=67589 sBx=2054 Ax=17302785 sJ=525570 raw=0x84028090
+  [0218] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0219] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0220] GETFIELD       A=2 B=2 C=133 k=0 Bx=68100 sBx=2565 Ax=17433602 sJ=656387 raw=0x8502010E ; R[2] = R[2][K[133] "B1FBSSelectSkillP1_Pet1"]
+  [0221] SETTABLE       A=1 B=2 C=134 k=1 Bx=68613 sBx=3078 Ax=17564929 sJ=787714 raw=0x86028090
+  [0222] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0223] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0224] GETFIELD       A=2 B=2 C=135 k=0 Bx=69124 sBx=3589 Ax=17695746 sJ=918531 raw=0x8702010E ; R[2] = R[2][K[135] "B1FBSelectItem"]
+  [0225] SETTABLE       A=1 B=2 C=136 k=1 Bx=69637 sBx=4102 Ax=17827073 sJ=1049858 raw=0x88028090
+  [0226] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0227] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0228] GETFIELD       A=2 B=2 C=137 k=0 Bx=70148 sBx=4613 Ax=17957890 sJ=1180675 raw=0x8902010E ; R[2] = R[2][K[137] "B1FBSP1_ChangePet"]
+  [0229] SETTABLE       A=1 B=2 C=138 k=1 Bx=70661 sBx=5126 Ax=18089217 sJ=1312002 raw=0x8A028090
+  [0230] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0231] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0232] GETFIELD       A=2 B=2 C=139 k=0 Bx=71172 sBx=5637 Ax=18220034 sJ=1442819 raw=0x8B02010E ; R[2] = R[2][K[139] "B1FBPerformSkillP2"]
+  [0233] SETTABLE       A=1 B=2 C=140 k=1 Bx=71685 sBx=6150 Ax=18351361 sJ=1574146 raw=0x8C028090
+  [0234] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0235] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0236] GETFIELD       A=2 B=2 C=141 k=0 Bx=72196 sBx=6661 Ax=18482178 sJ=1704963 raw=0x8D02010E ; R[2] = R[2][K[141] "B1FBSSelectSkillP2_Pet1"]
+  [0237] SETTABLE       A=1 B=2 C=142 k=1 Bx=72709 sBx=7174 Ax=18613505 sJ=1836290 raw=0x8E028090
+  [0238] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0239] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0240] GETFIELD       A=2 B=2 C=143 k=0 Bx=73220 sBx=7685 Ax=18744322 sJ=1967107 raw=0x8F02010E ; R[2] = R[2][K[143] "B1FBPerformSkillP3"]
+  [0241] SETTABLE       A=1 B=2 C=144 k=1 Bx=73733 sBx=8198 Ax=18875649 sJ=2098434 raw=0x90028090
+  [0242] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0243] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0244] GETFIELD       A=2 B=2 C=145 k=0 Bx=74244 sBx=8709 Ax=19006466 sJ=2229251 raw=0x9102010E ; R[2] = R[2][K[145] "B1FBSSelectSkillP3_Pet1"]
+  [0245] SETTABLE       A=1 B=2 C=146 k=1 Bx=74757 sBx=9222 Ax=19137793 sJ=2360578 raw=0x92028090
+  [0246] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0247] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0248] GETFIELD       A=2 B=2 C=147 k=0 Bx=75268 sBx=9733 Ax=19268610 sJ=2491395 raw=0x9302010E ; R[2] = R[2][K[147] "B1FBSP3_MasterSkill"]
+  [0249] SETTABLE       A=1 B=2 C=148 k=1 Bx=75781 sBx=10246 Ax=19399937 sJ=2622722 raw=0x94028090
+  [0250] SETFIELD       A=0 B=45 C=1 k=0 Bx=602 sBx=-64933 Ax=154112 sJ=-16623103 raw=0x012D0012 ; R[0][K[45] "CameraJsonCfg"] = R[1]
+  [0251] NEWTABLE       A=1 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2049 sJ=-16775166 raw=0x00040093
+  [0252] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0253] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0254] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0255] GETFIELD       A=2 B=2 C=58 k=0 Bx=29700 sBx=-35835 Ax=7603202 sJ=-9174013 raw=0x3A02010E ; R[2] = R[2][K[58] "PlayerPet"]
+  [0256] SETTABLE       A=1 B=2 C=73 k=1 Bx=37381 sBx=-28154 Ax=9569537 sJ=-7207678 raw=0x49028090
+  [0257] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0258] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0259] GETFIELD       A=2 B=2 C=60 k=0 Bx=30724 sBx=-34811 Ax=7865346 sJ=-8911869 raw=0x3C02010E ; R[2] = R[2][K[60] "PlayerPetMult1"]
+  [0260] SETTABLE       A=1 B=2 C=73 k=1 Bx=37381 sBx=-28154 Ax=9569537 sJ=-7207678 raw=0x49028090
+  [0261] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0262] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0263] GETFIELD       A=2 B=2 C=64 k=0 Bx=32772 sBx=-32763 Ax=8389634 sJ=-8387581 raw=0x4002010E ; R[2] = R[2][K[64] "PlayerSkill"]
+  [0264] SETTABLE       A=1 B=2 C=75 k=1 Bx=38405 sBx=-27130 Ax=9831681 sJ=-6945534 raw=0x4B028090
+  [0265] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0266] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0267] GETFIELD       A=2 B=2 C=66 k=0 Bx=33796 sBx=-31739 Ax=8651778 sJ=-8125437 raw=0x4202010E ; R[2] = R[2][K[66] "PlayerSkillMult"]
+  [0268] SETTABLE       A=1 B=2 C=77 k=1 Bx=39429 sBx=-26106 Ax=10093825 sJ=-6683390 raw=0x4D028090
+  [0269] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0270] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0271] GETFIELD       A=2 B=2 C=52 k=0 Bx=26628 sBx=-38907 Ax=6816770 sJ=-9960445 raw=0x3402010E ; R[2] = R[2][K[52] "PlayerItemToTeam"]
+  [0272] SETTABLE       A=1 B=2 C=79 k=1 Bx=40453 sBx=-25082 Ax=10355969 sJ=-6421246 raw=0x4F028090
+  [0273] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0274] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0275] GETFIELD       A=2 B=2 C=48 k=0 Bx=24580 sBx=-40955 Ax=6292482 sJ=-10484733 raw=0x3002010E ; R[2] = R[2][K[48] "PlayerCatch"]
+  [0276] SETTABLE       A=1 B=2 C=81 k=1 Bx=41477 sBx=-24058 Ax=10618113 sJ=-6159102 raw=0x51028090
+  [0277] SETFIELD       A=0 B=149 C=1 k=0 Bx=810 sBx=-64725 Ax=207360 sJ=-16569855 raw=0x01950012 ; R[0][K[149] "CameraJsonTeamFightCfg"] = R[1]
+  [0278] NEWTABLE       A=1 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2049 sJ=-16775166 raw=0x00040093
+  [0279] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0280] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0281] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0282] GETFIELD       A=2 B=2 C=58 k=0 Bx=29700 sBx=-35835 Ax=7603202 sJ=-9174013 raw=0x3A02010E ; R[2] = R[2][K[58] "PlayerPet"]
+  [0283] SETTABLE       A=1 B=2 C=83 k=1 Bx=42501 sBx=-23034 Ax=10880257 sJ=-5896958 raw=0x53028090
+  [0284] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0285] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0286] GETFIELD       A=2 B=2 C=60 k=0 Bx=30724 sBx=-34811 Ax=7865346 sJ=-8911869 raw=0x3C02010E ; R[2] = R[2][K[60] "PlayerPetMult1"]
+  [0287] SETTABLE       A=1 B=2 C=83 k=1 Bx=42501 sBx=-23034 Ax=10880257 sJ=-5896958 raw=0x53028090
+  [0288] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0289] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0290] GETFIELD       A=2 B=2 C=64 k=0 Bx=32772 sBx=-32763 Ax=8389634 sJ=-8387581 raw=0x4002010E ; R[2] = R[2][K[64] "PlayerSkill"]
+  [0291] SETTABLE       A=1 B=2 C=85 k=1 Bx=43525 sBx=-22010 Ax=11142401 sJ=-5634814 raw=0x55028090
+  [0292] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0293] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0294] GETFIELD       A=2 B=2 C=66 k=0 Bx=33796 sBx=-31739 Ax=8651778 sJ=-8125437 raw=0x4202010E ; R[2] = R[2][K[66] "PlayerSkillMult"]
+  [0295] SETTABLE       A=1 B=2 C=151 k=1 Bx=77317 sBx=11782 Ax=19793153 sJ=3015938 raw=0x97028090
+  [0296] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0297] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0298] GETFIELD       A=2 B=2 C=52 k=0 Bx=26628 sBx=-38907 Ax=6816770 sJ=-9960445 raw=0x3402010E ; R[2] = R[2][K[52] "PlayerItemToTeam"]
+  [0299] SETTABLE       A=1 B=2 C=88 k=1 Bx=45061 sBx=-20474 Ax=11535617 sJ=-5241598 raw=0x58028090
+  [0300] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0301] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0302] GETFIELD       A=2 B=2 C=48 k=0 Bx=24580 sBx=-40955 Ax=6292482 sJ=-10484733 raw=0x3002010E ; R[2] = R[2][K[48] "PlayerCatch"]
+  [0303] SETTABLE       A=1 B=2 C=90 k=1 Bx=46085 sBx=-19450 Ax=11797761 sJ=-4979454 raw=0x5A028090
+  [0304] SETFIELD       A=0 B=150 C=1 k=0 Bx=812 sBx=-64723 Ax=207872 sJ=-16569343 raw=0x01960012 ; R[0][K[150] "CameraJsonLegendaryTeamFightCfg"] = R[1]
+  [0305] NEWTABLE       A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x00010093
+  [0306] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0307] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0308] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0309] GETFIELD       A=2 B=2 C=56 k=0 Bx=28676 sBx=-36859 Ax=7341058 sJ=-9436157 raw=0x3802010E ; R[2] = R[2][K[56] "PlayerChange"]
+  [0310] SETTABLE       A=1 B=2 C=94 k=1 Bx=48133 sBx=-17402 Ax=12322049 sJ=-4455166 raw=0x5E028090
+  [0311] SETFIELD       A=0 B=152 C=1 k=0 Bx=816 sBx=-64719 Ax=208896 sJ=-16568319 raw=0x01980012 ; R[0][K[152] "CameraJsonOnePlayerTwoPetCfg"] = R[1]
+  [0312] NEWTABLE       A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x00010093
+  [0313] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0314] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0315] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0316] GETFIELD       A=2 B=2 C=58 k=0 Bx=29700 sBx=-35835 Ax=7603202 sJ=-9174013 raw=0x3A02010E ; R[2] = R[2][K[58] "PlayerPet"]
+  [0317] SETTABLE       A=1 B=2 C=128 k=1 Bx=65541 sBx=6 Ax=16778497 sJ=1282 raw=0x80028090
+  [0318] SETFIELD       A=0 B=153 C=1 k=0 Bx=818 sBx=-64717 Ax=209408 sJ=-16567807 raw=0x01990012 ; R[0][K[153] "CameraJsonAdditionalSkills"] = R[1]
+  [0319] NEWTABLE       A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x00010093
+  [0320] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0321] SETFIELD       A=1 B=155 C=156 k=1 Bx=80183 sBx=14648 Ax=20526849 sJ=3749634 raw=0x9C9B8092 ; R[1][K[155] "CameraCollisionRadius"] = R[156]
+  [0322] SETFIELD       A=0 B=154 C=1 k=0 Bx=820 sBx=-64715 Ax=209920 sJ=-16567295 raw=0x019A0012 ; R[0][K[154] "GeneralParameters"] = R[1]
+  [0323] NEWTABLE       A=1 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1537 sJ=-16775678 raw=0x00030093
+  [0324] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0325] SETFIELD       A=1 B=158 C=159 k=1 Bx=81725 sBx=16190 Ax=20921601 sJ=4144386 raw=0x9F9E8092 ; R[1][K[158] "None"] = R[159]
+  [0326] SETFIELD       A=1 B=160 C=4 k=1 Bx=2369 sBx=-63166 Ax=606465 sJ=-16170750 raw=0x04A08092 ; R[1][K[160] "Left"] = R[4]
+  [0327] SETFIELD       A=1 B=161 C=6 k=1 Bx=3395 sBx=-62140 Ax=869121 sJ=-15908094 raw=0x06A18092 ; R[1][K[161] "Origin"] = R[6]
+  [0328] SETFIELD       A=0 B=157 C=1 k=0 Bx=826 sBx=-64709 Ax=211456 sJ=-16565759 raw=0x019D0012 ; R[0][K[157] "PetStandState"] = R[1]
+  [0329] NEWTABLE       A=1 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2049 sJ=-16775166 raw=0x00040093
+  [0330] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0331] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0332] GETFIELD       A=2 B=2 C=163 k=0 Bx=83460 sBx=17925 Ax=21365762 sJ=4588547 raw=0xA302010E ; R[2] = R[2][K[163] "EViewTargetBlendFunction"]
+  [0333] GETFIELD       A=2 B=2 C=164 k=0 Bx=83972 sBx=18437 Ax=21496834 sJ=4719619 raw=0xA402010E ; R[2] = R[2][K[164] "VTBlend_Linear"]
+  [0334] SETTABLE       A=1 B=2 C=165 k=1 Bx=84485 sBx=18950 Ax=21628161 sJ=4850946 raw=0xA5028090
+  [0335] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0336] GETFIELD       A=2 B=2 C=163 k=0 Bx=83460 sBx=17925 Ax=21365762 sJ=4588547 raw=0xA302010E ; R[2] = R[2][K[163] "EViewTargetBlendFunction"]
+  [0337] GETFIELD       A=2 B=2 C=166 k=0 Bx=84996 sBx=19461 Ax=21758978 sJ=4981763 raw=0xA602010E ; R[2] = R[2][K[166] "VTBlend_Cubic"]
+  [0338] SETTABLE       A=1 B=2 C=167 k=1 Bx=85509 sBx=19974 Ax=21890305 sJ=5113090 raw=0xA7028090
+  [0339] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0340] GETFIELD       A=2 B=2 C=163 k=0 Bx=83460 sBx=17925 Ax=21365762 sJ=4588547 raw=0xA302010E ; R[2] = R[2][K[163] "EViewTargetBlendFunction"]
+  [0341] GETFIELD       A=2 B=2 C=168 k=0 Bx=86020 sBx=20485 Ax=22021122 sJ=5243907 raw=0xA802010E ; R[2] = R[2][K[168] "VTBlend_EaseIn"]
+  [0342] SETTABLE       A=1 B=2 C=169 k=1 Bx=86533 sBx=20998 Ax=22152449 sJ=5375234 raw=0xA9028090
+  [0343] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0344] GETFIELD       A=2 B=2 C=163 k=0 Bx=83460 sBx=17925 Ax=21365762 sJ=4588547 raw=0xA302010E ; R[2] = R[2][K[163] "EViewTargetBlendFunction"]
+  [0345] GETFIELD       A=2 B=2 C=170 k=0 Bx=87044 sBx=21509 Ax=22283266 sJ=5506051 raw=0xAA02010E ; R[2] = R[2][K[170] "VTBlend_EaseOut"]
+  [0346] SETTABLE       A=1 B=2 C=171 k=1 Bx=87557 sBx=22022 Ax=22414593 sJ=5637378 raw=0xAB028090
+  [0347] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0348] GETFIELD       A=2 B=2 C=163 k=0 Bx=83460 sBx=17925 Ax=21365762 sJ=4588547 raw=0xA302010E ; R[2] = R[2][K[163] "EViewTargetBlendFunction"]
+  [0349] GETFIELD       A=2 B=2 C=172 k=0 Bx=88068 sBx=22533 Ax=22545410 sJ=5768195 raw=0xAC02010E ; R[2] = R[2][K[172] "VTBlend_EaseInOut"]
+  [0350] SETTABLE       A=1 B=2 C=173 k=1 Bx=88581 sBx=23046 Ax=22676737 sJ=5899522 raw=0xAD028090
+  [0351] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0352] GETFIELD       A=2 B=2 C=163 k=0 Bx=83460 sBx=17925 Ax=21365762 sJ=4588547 raw=0xA302010E ; R[2] = R[2][K[163] "EViewTargetBlendFunction"]
+  [0353] GETFIELD       A=2 B=2 C=174 k=0 Bx=89092 sBx=23557 Ax=22807554 sJ=6030339 raw=0xAE02010E ; R[2] = R[2][K[174] "VTBlend_MAX"]
+  [0354] SETTABLE       A=1 B=2 C=175 k=1 Bx=89605 sBx=24070 Ax=22938881 sJ=6161666 raw=0xAF028090
+  [0355] SETFIELD       A=0 B=162 C=1 k=0 Bx=836 sBx=-64699 Ax=214016 sJ=-16563199 raw=0x01A20012 ; R[0][K[162] "CameraCurves"] = R[1]
+  [0356] NEWTABLE       A=1 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2049 sJ=-16775166 raw=0x00040093
+  [0357] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0358] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0359] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0360] GETFIELD       A=2 B=2 C=64 k=0 Bx=32772 sBx=-32763 Ax=8389634 sJ=-8387581 raw=0x4002010E ; R[2] = R[2][K[64] "PlayerSkill"]
+  [0361] SETTABLE       A=1 B=2 C=4 k=1 Bx=2053 sBx=-63482 Ax=525569 sJ=-16251646 raw=0x04028090
+  [0362] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0363] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0364] GETFIELD       A=2 B=2 C=66 k=0 Bx=33796 sBx=-31739 Ax=8651778 sJ=-8125437 raw=0x4202010E ; R[2] = R[2][K[66] "PlayerSkillMult"]
+  [0365] SETTABLE       A=1 B=2 C=4 k=1 Bx=2053 sBx=-63482 Ax=525569 sJ=-16251646 raw=0x04028090
+  [0366] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0367] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0368] GETFIELD       A=2 B=2 C=74 k=0 Bx=37892 sBx=-27643 Ax=9700354 sJ=-7076861 raw=0x4A02010E ; R[2] = R[2][K[74] "TeamFight_PlayerSkill"]
+  [0369] SETTABLE       A=1 B=2 C=4 k=1 Bx=2053 sBx=-63482 Ax=525569 sJ=-16251646 raw=0x04028090
+  [0370] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0371] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0372] GETFIELD       A=2 B=2 C=76 k=0 Bx=38916 sBx=-26619 Ax=9962498 sJ=-6814717 raw=0x4C02010E ; R[2] = R[2][K[76] "TeamFight_PlayerSkillMult"]
+  [0373] SETTABLE       A=1 B=2 C=4 k=1 Bx=2053 sBx=-63482 Ax=525569 sJ=-16251646 raw=0x04028090
+  [0374] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0375] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0376] GETFIELD       A=2 B=2 C=84 k=0 Bx=43012 sBx=-22523 Ax=11011074 sJ=-5766141 raw=0x5402010E ; R[2] = R[2][K[84] "LegenderyTeamFight_PlayerSkill"]
+  [0377] SETTABLE       A=1 B=2 C=4 k=1 Bx=2053 sBx=-63482 Ax=525569 sJ=-16251646 raw=0x04028090
+  [0378] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0379] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0380] GETFIELD       A=2 B=2 C=86 k=0 Bx=44036 sBx=-21499 Ax=11273218 sJ=-5503997 raw=0x5602010E ; R[2] = R[2][K[86] "LegenderyTeamFight_PlayerSkillMult"]
+  [0381] SETTABLE       A=1 B=2 C=4 k=1 Bx=2053 sBx=-63482 Ax=525569 sJ=-16251646 raw=0x04028090
+  [0382] GETTABUP       A=2 B=0 C=46 k=0 Bx=23552 sBx=-41983 Ax=6029314 sJ=-10747901 raw=0x2E00010B ; R[2] = U[0][K[46] "UE4"]
+  [0383] GETFIELD       A=2 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161410 sJ=-10615805 raw=0x2F02010E ; R[2] = R[2][K[47] "EBattleCameraTags"]
+  [0384] GETFIELD       A=2 B=2 C=91 k=0 Bx=46596 sBx=-18939 Ax=11928578 sJ=-4848637 raw=0x5B02010E ; R[2] = R[2][K[91] "LegenderyTeamFight_Player_QuicklyCatch"]
+  [0385] SETTABLE       A=1 B=2 C=4 k=1 Bx=2053 sBx=-63482 Ax=525569 sJ=-16251646 raw=0x04028090
+  [0386] SETFIELD       A=0 B=176 C=1 k=0 Bx=864 sBx=-64671 Ax=221184 sJ=-16556031 raw=0x01B00012 ; R[0][K[176] "ControllerCameraTagFilter"] = R[1]
+  [0387] SETFIELD       A=0 B=177 C=178 k=1 Bx=91491 sBx=25956 Ax=23421696 sJ=6644481 raw=0xB2B18012 ; R[0][K[177] "DefaultCameraCurve"] = R[178]
+  [0388] NEWTABLE       A=1 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1537 sJ=-16775678 raw=0x00030093
+  [0389] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0390] SETFIELD       A=1 B=180 C=181 k=1 Bx=93033 sBx=27498 Ax=23816449 sJ=7039234 raw=0xB5B48092 ; R[1][K[180] "IsOpen"] = R[181]
+  [0391] SETFIELD       A=1 B=182 C=183 k=1 Bx=94061 sBx=28526 Ax=24079617 sJ=7302402 raw=0xB7B68092 ; R[1][K[182] "pitch"] = R[183]
+  [0392] SETFIELD       A=1 B=184 C=185 k=1 Bx=95089 sBx=29554 Ax=24342785 sJ=7565570 raw=0xB9B88092 ; R[1][K[184] "Height"] = R[185]
+  [0393] SETFIELD       A=1 B=186 C=187 k=1 Bx=96117 sBx=30582 Ax=24605953 sJ=7828738 raw=0xBBBA8092 ; R[1][K[186] "IsDebugLine"] = R[187]
+  [0394] SETFIELD       A=0 B=179 C=1 k=0 Bx=870 sBx=-64665 Ax=222720 sJ=-16554495 raw=0x01B30012 ; R[0][K[179] "BumpCollisionParam"] = R[1]
+  [0395] NEWTABLE       A=1 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2049 sJ=-16775166 raw=0x00040093
+  [0396] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0397] SETFIELD       A=1 B=189 C=159 k=1 Bx=81787 sBx=16252 Ax=20937473 sJ=4160258 raw=0x9FBD8092 ; R[1][K[189] "default"] = R[159]
+  [0398] SETFIELD       A=1 B=190 C=4 k=1 Bx=2429 sBx=-63106 Ax=621825 sJ=-16155390 raw=0x04BE8092 ; R[1][K[190] "additionalSkills"] = R[4]
+  [0399] SETFIELD       A=1 B=191 C=6 k=1 Bx=3455 sBx=-62080 Ax=884481 sJ=-15892734 raw=0x06BF8092 ; R[1][K[191] "teamBattle"] = R[6]
+  [0400] SETFIELD       A=1 B=192 C=8 k=1 Bx=4481 sBx=-61054 Ax=1147137 sJ=-15630078 raw=0x08C08092 ; R[1][K[192] "legendaryTeamFight"] = R[8]
+  [0401] SETFIELD       A=1 B=193 C=10 k=1 Bx=5507 sBx=-60028 Ax=1409793 sJ=-15367422 raw=0x0AC18092 ; R[1][K[193] "onePlayerTwoPet"] = R[10]
+  [0402] SETFIELD       A=0 B=188 C=1 k=0 Bx=888 sBx=-64647 Ax=227328 sJ=-16549887 raw=0x01BC0012 ; R[0][K[188] "CameraMode"] = R[1]
+  [0403] NEWTABLE       A=1 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2049 sJ=-16775166 raw=0x00040093
+  [0404] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0405] GETFIELD       A=2 B=0 C=188 k=0 Bx=96256 sBx=30721 Ax=24641538 sJ=7864323 raw=0xBC00010E ; R[2] = R[0][K[188] "CameraMode"]
+  [0406] GETFIELD       A=2 B=2 C=189 k=0 Bx=96772 sBx=31237 Ax=24773634 sJ=7996419 raw=0xBD02010E ; R[2] = R[2][K[189] "default"]
+  [0407] GETFIELD       A=3 B=0 C=45 k=0 Bx=23040 sBx=-42495 Ax=5898243 sJ=-10878972 raw=0x2D00018E ; R[3] = R[0][K[45] "CameraJsonCfg"]
+  [0408] SETTABLE       A=1 B=2 C=3 k=0 Bx=1540 sBx=-63995 Ax=394241 sJ=-16382974 raw=0x03020090
+  [0409] GETFIELD       A=2 B=0 C=188 k=0 Bx=96256 sBx=30721 Ax=24641538 sJ=7864323 raw=0xBC00010E ; R[2] = R[0][K[188] "CameraMode"]
+  [0410] GETFIELD       A=2 B=2 C=190 k=0 Bx=97284 sBx=31749 Ax=24904706 sJ=8127491 raw=0xBE02010E ; R[2] = R[2][K[190] "additionalSkills"]
+  [0411] GETFIELD       A=3 B=0 C=153 k=0 Bx=78336 sBx=12801 Ax=20054019 sJ=3276804 raw=0x9900018E ; R[3] = R[0][K[153] "CameraJsonAdditionalSkills"]
+  [0412] SETTABLE       A=1 B=2 C=3 k=0 Bx=1540 sBx=-63995 Ax=394241 sJ=-16382974 raw=0x03020090
+  [0413] GETFIELD       A=2 B=0 C=188 k=0 Bx=96256 sBx=30721 Ax=24641538 sJ=7864323 raw=0xBC00010E ; R[2] = R[0][K[188] "CameraMode"]
+  [0414] GETFIELD       A=2 B=2 C=191 k=0 Bx=97796 sBx=32261 Ax=25035778 sJ=8258563 raw=0xBF02010E ; R[2] = R[2][K[191] "teamBattle"]
+  [0415] GETFIELD       A=3 B=0 C=149 k=0 Bx=76288 sBx=10753 Ax=19529731 sJ=2752516 raw=0x9500018E ; R[3] = R[0][K[149] "CameraJsonTeamFightCfg"]
+  [0416] SETTABLE       A=1 B=2 C=3 k=0 Bx=1540 sBx=-63995 Ax=394241 sJ=-16382974 raw=0x03020090
+  [0417] GETFIELD       A=2 B=0 C=188 k=0 Bx=96256 sBx=30721 Ax=24641538 sJ=7864323 raw=0xBC00010E ; R[2] = R[0][K[188] "CameraMode"]
+  [0418] GETFIELD       A=2 B=2 C=192 k=0 Bx=98308 sBx=32773 Ax=25166850 sJ=8389635 raw=0xC002010E ; R[2] = R[2][K[192] "legendaryTeamFight"]
+  [0419] GETFIELD       A=3 B=0 C=150 k=0 Bx=76800 sBx=11265 Ax=19660803 sJ=2883588 raw=0x9600018E ; R[3] = R[0][K[150] "CameraJsonLegendaryTeamFightCfg"]
+  [0420] SETTABLE       A=1 B=2 C=3 k=0 Bx=1540 sBx=-63995 Ax=394241 sJ=-16382974 raw=0x03020090
+  [0421] GETFIELD       A=2 B=0 C=188 k=0 Bx=96256 sBx=30721 Ax=24641538 sJ=7864323 raw=0xBC00010E ; R[2] = R[0][K[188] "CameraMode"]
+  [0422] GETFIELD       A=2 B=2 C=193 k=0 Bx=98820 sBx=33285 Ax=25297922 sJ=8520707 raw=0xC102010E ; R[2] = R[2][K[193] "onePlayerTwoPet"]
+  [0423] GETFIELD       A=3 B=0 C=152 k=0 Bx=77824 sBx=12289 Ax=19922947 sJ=3145732 raw=0x9800018E ; R[3] = R[0][K[152] "CameraJsonOnePlayerTwoPetCfg"]
+  [0424] SETTABLE       A=1 B=2 C=3 k=0 Bx=1540 sBx=-63995 Ax=394241 sJ=-16382974 raw=0x03020090
+  [0425] SETFIELD       A=0 B=194 C=1 k=0 Bx=900 sBx=-64635 Ax=230400 sJ=-16546815 raw=0x01C20012 ; R[0][K[194] "CameraModeJson"] = R[1]
+  [0426] RETURN         A=0 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132096 sJ=-16645119 raw=0x01020046
+  [0427] RETURN         A=1 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131585 sJ=-16645630 raw=0x010100C6

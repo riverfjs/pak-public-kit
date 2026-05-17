@@ -1,0 +1,239 @@
+-- path: Content/ScriptC/NewRoco/Modules/Core/Battle/Fsm/Actions/BattleShowEscapeAction.luac
+-- format: decrypted standard Lua 5.4 bytecode
+-- note: disassembly, not original source
+
+main source="@NewRoco\\Modules\\Core\\Battle\\Fsm\\Actions\\BattleShowEscapeAction.lua" lines=0-0 params=0 vararg=1 stack=255 upvalues=1
+constants (15):
+  K[0] = "require"
+  K[1] = "NewRoco.Modules.Core.Battle.Common.BattleEnum"
+  K[2] = "NewRoco.Modules.Core.Fsm.FsmUtils"
+  K[3] = "NewRoco.Modules.Core.Battle.Common.BattleEvent"
+  K[4] = "NewRoco.Modules.Core.Battle.Common.BattleUtils"
+  K[5] = "NewRoco.Modules.System.BattleUI.BattleUIModuleCmd"
+  K[6] = "BattleActionBase"
+  K[7] = "Extend"
+  K[8] = "BattleShowEscapeAction"
+  K[9] = "MergeMembers"
+  K[10] = "Ctor"
+  K[11] = "OnEnter"
+  K[12] = "ShowPopup"
+  K[13] = "HidePopup"
+  K[14] = "OnFinish"
+upvalues (1):
+  U[0] = instack=0 idx=0 kind=11 name="_ENV"
+locals (7):
+  L[0] = "BattleEnum" pc=4-38
+  L[1] = "FsmUtils" pc=7-38
+  L[2] = "BattleEvent" pc=10-38
+  L[3] = "BattleUtils" pc=13-38
+  L[4] = "BattleUIModuleCmd" pc=16-38
+  L[5] = "Base" pc=17-38
+  L[6] = "BattleShowEscapeAction" pc=20-38
+instructions (38):
+  [0001] VARARGPREP     A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000051
+  [0002] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "require"]
+  [0003] LOADK          A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x00008083 ; R[1] = K[1] "NewRoco.Modules.Core.Battle.Common.BattleEnum"
+  [0004] CALL           A=0 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263168 sJ=-16514047 raw=0x02020044
+  [0005] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "require"]
+  [0006] LOADK          A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010103 ; R[2] = K[2] "NewRoco.Modules.Core.Fsm.FsmUtils"
+  [0007] CALL           A=1 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263169 sJ=-16514046 raw=0x020200C4
+  [0008] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "require"]
+  [0009] LOADK          A=3 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=771 sJ=-16776444 raw=0x00018183 ; R[3] = K[3] "NewRoco.Modules.Core.Battle.Common.BattleEvent"
+  [0010] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+  [0011] GETTABUP       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018B ; R[3] = U[0][K[0] "require"]
+  [0012] LOADK          A=4 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1028 sJ=-16776187 raw=0x00020203 ; R[4] = K[4] "NewRoco.Modules.Core.Battle.Common.BattleUtils"
+  [0013] CALL           A=3 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263171 sJ=-16514044 raw=0x020201C4
+  [0014] GETTABUP       A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x0000020B ; R[4] = U[0][K[0] "require"]
+  [0015] LOADK          A=5 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1285 sJ=-16775930 raw=0x00028283 ; R[5] = K[5] "NewRoco.Modules.System.BattleUI.BattleUIModuleCmd"
+  [0016] CALL           A=4 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263172 sJ=-16514043 raw=0x02020244
+  [0017] GETTABUP       A=5 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786437 sJ=-15990778 raw=0x0600028B ; R[5] = U[0][K[6] "BattleActionBase"]
+  [0018] SELF           A=6 B=5 C=7 k=1 Bx=3595 sBx=-61940 Ax=920326 sJ=-15856889 raw=0x07058314
+  [0019] LOADK          A=8 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2056 sJ=-16775159 raw=0x00040403 ; R[8] = K[8] "BattleShowEscapeAction"
+  [0020] CALL           A=6 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263686 sJ=-16513529 raw=0x02030344
+  [0021] GETFIELD       A=7 B=1 C=9 k=0 Bx=4610 sBx=-60925 Ax=1180167 sJ=-15597048 raw=0x0901038E ; R[7] = R[1][K[9] "MergeMembers"]
+  [0022] MOVE           A=8 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2568 sJ=-16774647 raw=0x00050400
+  [0023] MOVE           A=9 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3081 sJ=-16774134 raw=0x00060480
+  [0024] NEWTABLE       A=10 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=10 sJ=-16777205 raw=0x00000513
+  [0025] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0026] CALL           A=7 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133127 sJ=-16644088 raw=0x010403C4
+  [0027] CLOSURE        A=7 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=7 sJ=-16777208 raw=0x000003CF ; R[7] = function[0]
+  [0028] SETFIELD       A=6 B=10 C=7 k=0 Bx=3604 sBx=-61931 Ax=922630 sJ=-15854585 raw=0x070A0312 ; R[6][K[10] "Ctor"] = R[7]
+  [0029] CLOSURE        A=7 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=263 sJ=-16776952 raw=0x000083CF ; R[7] = function[1]
+  [0030] SETFIELD       A=6 B=11 C=7 k=0 Bx=3606 sBx=-61929 Ax=923142 sJ=-15854073 raw=0x070B0312 ; R[6][K[11] "OnEnter"] = R[7]
+  [0031] CLOSURE        A=7 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=519 sJ=-16776696 raw=0x000103CF ; R[7] = function[2]
+  [0032] SETFIELD       A=6 B=12 C=7 k=0 Bx=3608 sBx=-61927 Ax=923654 sJ=-15853561 raw=0x070C0312 ; R[6][K[12] "ShowPopup"] = R[7]
+  [0033] CLOSURE        A=7 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=775 sJ=-16776440 raw=0x000183CF ; R[7] = function[3]
+  [0034] SETFIELD       A=6 B=13 C=7 k=0 Bx=3610 sBx=-61925 Ax=924166 sJ=-15853049 raw=0x070D0312 ; R[6][K[13] "HidePopup"] = R[7]
+  [0035] CLOSURE        A=7 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1031 sJ=-16776184 raw=0x000203CF ; R[7] = function[4]
+  [0036] SETFIELD       A=6 B=14 C=7 k=0 Bx=3612 sBx=-61923 Ax=924678 sJ=-15852537 raw=0x070E0312 ; R[6][K[14] "OnFinish"] = R[7]
+  [0037] RETURN         A=6 B=2 C=1 k=1 Bx=517 sBx=-65018 Ax=132358 sJ=-16644857 raw=0x01028346
+  [0038] RETURN         A=7 B=1 C=1 k=1 Bx=515 sBx=-65020 Ax=131847 sJ=-16645368 raw=0x010183C6
+
+  function[0] source="" lines=23-25 params=3 vararg=0 stack=255 upvalues=1
+  constants (1):
+    K[0] = "Ctor"
+  upvalues (1):
+    U[0] = instack=5 idx=0 kind=7 name="Base"
+  locals (3):
+    L[0] = "self" pc=0-6
+    L[1] = "name" pc=0-6
+    L[2] = "properties" pc=0-6
+  instructions (6):
+    [0001] GETTABUP       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018B ; R[3] = U[0][K[0] "Ctor"]
+    [0002] MOVE           A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000200
+    [0003] MOVE           A=5 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=517 sJ=-16776698 raw=0x00010280
+    [0004] MOVE           A=6 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1030 sJ=-16776185 raw=0x00020300
+    [0005] CALL           A=3 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133123 sJ=-16644092 raw=0x010401C4
+    [0006] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7
+
+  function[1] source="" lines=27-50 params=1 vararg=0 stack=255 upvalues=4
+  constants (24):
+    K[0] = "MainWindowHideAllType"
+    K[1] = "Custom"
+    K[2] = "excludeDeck"
+    K[3] = false
+    K[4] = "excludeSkillTransmissionItems"
+    K[5] = "withAnim"
+    K[6] = true
+    K[7] = "type"
+    K[8] = "customOption"
+    K[9] = "NRCModeManager"
+    K[10] = "DoCmd"
+    K[11] = "HideMainWindowWithOption"
+    K[12] = "_G"
+    K[13] = "NRCModuleManager"
+    K[14] = "HideBattlePopupPanel"
+    K[15] = "IsPvp"
+    K[16] = "BattleManager"
+    K[17] = "battleRuntimeData"
+    K[18] = "battleSettleData"
+    K[19] = "BattleIsWinByEscape"
+    K[20] = "ShowPopup"
+    K[21] = "SafeDelaySeconds"
+    K[22] = "d_Finish"
+    K[23] = "Finish"
+  upvalues (4):
+    U[0] = instack=0 idx=0 kind=0 name="BattleEnum"
+    U[1] = instack=0 idx=0 kind=1 name="_ENV"
+    U[2] = instack=4 idx=0 kind=1 name="BattleUIModuleCmd"
+    U[3] = instack=3 idx=0 kind=10 name="BattleUtils"
+  locals (4):
+    L[0] = "self" pc=0-45
+    L[1] = "hideType" pc=2-45
+    L[2] = "customOption" pc=7-45
+    L[3] = "option" pc=11-45
+  instructions (45):
+    [0001] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "MainWindowHideAllType"]
+    [0002] GETFIELD       A=1 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131585 sJ=-16645630 raw=0x0101008E ; R[1] = R[1][K[1] "Custom"]
+    [0003] NEWTABLE       A=2 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1538 sJ=-16775677 raw=0x00030113
+    [0004] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0005] SETFIELD       A=2 B=2 C=3 k=1 Bx=1541 sBx=-63994 Ax=394498 sJ=-16382717 raw=0x03028112 ; R[2][K[2] "excludeDeck"] = R[3]
+    [0006] SETFIELD       A=2 B=4 C=3 k=1 Bx=1545 sBx=-63990 Ax=395522 sJ=-16381693 raw=0x03048112 ; R[2][K[4] "excludeSkillTransmissionItems"] = R[3]
+    [0007] SETFIELD       A=2 B=5 C=6 k=1 Bx=3083 sBx=-62452 Ax=789250 sJ=-15987965 raw=0x06058112 ; R[2][K[5] "withAnim"] = R[6]
+    [0008] NEWTABLE       A=3 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1027 sJ=-16776188 raw=0x00020193
+    [0009] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0010] SETFIELD       A=3 B=7 C=1 k=0 Bx=526 sBx=-65009 Ax=134659 sJ=-16642556 raw=0x01070192 ; R[3][K[7] "type"] = R[1]
+    [0011] SETFIELD       A=3 B=8 C=2 k=0 Bx=1040 sBx=-64495 Ax=266243 sJ=-16510972 raw=0x02080192 ; R[3][K[8] "customOption"] = R[2]
+    [0012] GETTABUP       A=4 B=1 C=9 k=0 Bx=4610 sBx=-60925 Ax=1180164 sJ=-15597051 raw=0x0901020B ; R[4] = U[1][K[9] "NRCModeManager"]
+    [0013] SELF           A=4 B=4 C=10 k=1 Bx=5129 sBx=-60406 Ax=1313028 sJ=-15464187 raw=0x0A048214
+    [0014] GETTABUP       A=6 B=2 C=11 k=0 Bx=5636 sBx=-59899 Ax=1442822 sJ=-15334393 raw=0x0B02030B ; R[6] = U[2][K[11] "HideMainWindowWithOption"]
+    [0015] MOVE           A=7 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1543 sJ=-16775672 raw=0x00030380
+    [0016] CALL           A=4 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133124 sJ=-16644091 raw=0x01040244
+    [0017] GETTABUP       A=4 B=1 C=12 k=0 Bx=6146 sBx=-59389 Ax=1573380 sJ=-15203835 raw=0x0C01020B ; R[4] = U[1][K[12] "_G"]
+    [0018] GETFIELD       A=4 B=4 C=13 k=0 Bx=6664 sBx=-58871 Ax=1705988 sJ=-15071227 raw=0x0D04020E ; R[4] = R[4][K[13] "NRCModuleManager"]
+    [0019] SELF           A=4 B=4 C=10 k=1 Bx=5129 sBx=-60406 Ax=1313028 sJ=-15464187 raw=0x0A048214
+    [0020] GETTABUP       A=6 B=2 C=14 k=0 Bx=7172 sBx=-58363 Ax=1836038 sJ=-14941177 raw=0x0E02030B ; R[6] = U[2][K[14] "HideBattlePopupPanel"]
+    [0021] CALL           A=4 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132612 sJ=-16644603 raw=0x01030244
+    [0022] GETTABUP       A=4 B=3 C=15 k=0 Bx=7686 sBx=-57849 Ax=1967620 sJ=-14809595 raw=0x0F03020B ; R[4] = U[3][K[15] "IsPvp"]
+    [0023] CALL           A=4 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262660 sJ=-16514555 raw=0x02010244
+    [0024] TEST           A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000242
+    [0025] JMP            A=16 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777232 sJ=17 raw=0x80000838
+    [0026] GETTABUP       A=4 B=1 C=12 k=0 Bx=6146 sBx=-59389 Ax=1573380 sJ=-15203835 raw=0x0C01020B ; R[4] = U[1][K[12] "_G"]
+    [0027] GETFIELD       A=4 B=4 C=16 k=0 Bx=8200 sBx=-57335 Ax=2099204 sJ=-14678011 raw=0x1004020E ; R[4] = R[4][K[16] "BattleManager"]
+    [0028] GETFIELD       A=4 B=4 C=17 k=0 Bx=8712 sBx=-56823 Ax=2230276 sJ=-14546939 raw=0x1104020E ; R[4] = R[4][K[17] "battleRuntimeData"]
+    [0029] GETFIELD       A=4 B=4 C=18 k=0 Bx=9224 sBx=-56311 Ax=2361348 sJ=-14415867 raw=0x1204020E ; R[4] = R[4][K[18] "battleSettleData"]
+    [0030] SELF           A=4 B=4 C=19 k=1 Bx=9737 sBx=-55798 Ax=2492676 sJ=-14284539 raw=0x13048214
+    [0031] CALL           A=4 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263172 sJ=-16514043 raw=0x02020244
+    [0032] TEST           A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000242
+    [0033] JMP            A=8 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777224 sJ=9 raw=0x80000438
+    [0034] SELF           A=4 B=0 C=20 k=1 Bx=10241 sBx=-55294 Ax=2621700 sJ=-14155515 raw=0x14008214
+    [0035] CALL           A=4 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132100 sJ=-16645115 raw=0x01020244
+    [0036] SELF           A=4 B=0 C=21 k=1 Bx=10753 sBx=-54782 Ax=2752772 sJ=-14024443 raw=0x15008214
+    [0037] LOADK          A=6 B=11 C=0 k=0 Bx=22 sBx=-65513 Ax=5638 sJ=-16771577 raw=0x000B0303 ; R[6] = K[22] "d_Finish"
+    [0038] LOADI          A=7 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777223 sJ=8 raw=0x80000381
+    [0039] GETFIELD       A=8 B=0 C=23 k=0 Bx=11776 sBx=-53759 Ax=3014664 sJ=-13762551 raw=0x1700040E ; R[8] = R[0][K[23] "Finish"]
+    [0040] MOVE           A=9 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=9 sJ=-16777206 raw=0x00000480
+    [0041] CALL           A=4 B=6 C=1 k=0 Bx=524 sBx=-65011 Ax=134148 sJ=-16643067 raw=0x01060244
+    [0042] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0043] SELF           A=4 B=0 C=23 k=1 Bx=11777 sBx=-53758 Ax=3014916 sJ=-13762299 raw=0x17008214
+    [0044] CALL           A=4 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132100 sJ=-16645115 raw=0x01020244
+    [0045] RETURN0        A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010247
+
+  function[2] source="" lines=52-58 params=1 vararg=0 stack=255 upvalues=3
+  constants (9):
+    K[0] = "teamEnm"
+    K[1] = "Team"
+    K[2] = "ENUM_ENEMY"
+    K[3] = "_G"
+    K[4] = "BattleEventCenter"
+    K[5] = "Dispatch"
+    K[6] = "UI_SHOW_INFO_POPUP"
+    K[7] = "InfoPopupType"
+    K[8] = "EnemyEscape"
+  upvalues (3):
+    U[0] = instack=0 idx=0 kind=0 name="BattleEnum"
+    U[1] = instack=0 idx=0 kind=1 name="_ENV"
+    U[2] = instack=2 idx=0 kind=8 name="BattleEvent"
+  locals (2):
+    L[0] = "self" pc=0-18
+    L[1] = "data" pc=5-18
+  instructions (18):
+    [0001] NEWTABLE       A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x00010093
+    [0002] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0003] GETTABUP       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010B ; R[2] = U[0][K[1] "Team"]
+    [0004] GETFIELD       A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x0202010E ; R[2] = R[2][K[2] "ENUM_ENEMY"]
+    [0005] SETFIELD       A=1 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262145 sJ=-16515070 raw=0x02000092 ; R[1][K[0] "teamEnm"] = R[2]
+    [0006] GETTABUP       A=2 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393730 sJ=-16383485 raw=0x0301010B ; R[2] = U[1][K[3] "_G"]
+    [0007] GETFIELD       A=2 B=2 C=4 k=0 Bx=2052 sBx=-63483 Ax=525314 sJ=-16251901 raw=0x0402010E ; R[2] = R[2][K[4] "BattleEventCenter"]
+    [0008] SELF           A=2 B=2 C=5 k=1 Bx=2565 sBx=-62970 Ax=656642 sJ=-16120573 raw=0x05028114
+    [0009] GETTABUP       A=4 B=2 C=6 k=0 Bx=3076 sBx=-62459 Ax=787460 sJ=-15989755 raw=0x0602020B ; R[4] = U[2][K[6] "UI_SHOW_INFO_POPUP"]
+    [0010] NEWTABLE       A=5 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262149 sJ=-16515066 raw=0x02000293
+    [0011] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0012] GETTABUP       A=6 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917510 sJ=-15859705 raw=0x0700030B ; R[6] = U[0][K[7] "InfoPopupType"]
+    [0013] GETFIELD       A=6 B=6 C=8 k=0 Bx=4108 sBx=-61427 Ax=1051654 sJ=-15725561 raw=0x0806030E ; R[6] = R[6][K[8] "EnemyEscape"]
+    [0014] MOVE           A=7 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=519 sJ=-16776696 raw=0x00010380
+    [0015] SETLIST        A=5 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1029 sJ=-16776186 raw=0x000202CE
+    [0016] MOVE           A=6 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=6 sJ=-16777209 raw=0x00000300
+    [0017] CALL           A=2 B=5 C=1 k=0 Bx=522 sBx=-65013 Ax=133634 sJ=-16643581 raw=0x01050144
+    [0018] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[3] source="" lines=60-62 params=1 vararg=0 stack=255 upvalues=2
+  constants (4):
+    K[0] = "_G"
+    K[1] = "BattleEventCenter"
+    K[2] = "Dispatch"
+    K[3] = "UI_HIDE_INFO_POPUP"
+  upvalues (2):
+    U[0] = instack=0 idx=0 kind=1 name="_ENV"
+    U[1] = instack=2 idx=0 kind=6 name="BattleEvent"
+  locals (1):
+    L[0] = "self" pc=0-8
+  instructions (8):
+    [0001] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "_G"]
+    [0002] GETFIELD       A=1 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131585 sJ=-16645630 raw=0x0101008E ; R[1] = R[1][K[1] "BattleEventCenter"]
+    [0003] SELF           A=1 B=1 C=2 k=1 Bx=1027 sBx=-64508 Ax=262913 sJ=-16514302 raw=0x02018094
+    [0004] GETTABUP       A=3 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393731 sJ=-16383484 raw=0x0301018B ; R[3] = U[1][K[3] "UI_HIDE_INFO_POPUP"]
+    [0005] LOADNIL        A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000208
+    [0006] MOVE           A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x00000280
+    [0007] CALL           A=1 B=5 C=1 k=0 Bx=522 sBx=-65013 Ax=133633 sJ=-16643582 raw=0x010500C4
+    [0008] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[4] source="" lines=64-66 params=1 vararg=0 stack=255 upvalues=0
+  constants (1):
+    K[0] = "HidePopup"
+  locals (1):
+    L[0] = "self" pc=0-3
+  instructions (3):
+    [0001] SELF           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x00008094
+    [0002] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0003] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7

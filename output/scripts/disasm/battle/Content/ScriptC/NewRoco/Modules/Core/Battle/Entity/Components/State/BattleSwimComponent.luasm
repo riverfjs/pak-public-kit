@@ -1,0 +1,1001 @@
+-- path: Content/ScriptC/NewRoco/Modules/Core/Battle/Entity/Components/State/BattleSwimComponent.luac
+-- format: decrypted standard Lua 5.4 bytecode
+-- note: disassembly, not original source
+
+main source="@NewRoco\\Modules\\Core\\Battle\\Entity\\Components\\State\\BattleSwimComponent.lua" lines=0-0 params=0 vararg=1 stack=255 upvalues=1
+constants (28):
+  K[0] = "require"
+  K[1] = "NewRoco.Modules.Core.Battle.Common.BattleConst"
+  K[2] = "NewRoco.Modules.Core.Battle.Entity.BattleComponent"
+  K[3] = "NewRoco.Modules.Core.Battle.Common.BattleEnum"
+  K[4] = "NewRoco.Modules.Core.Battle.Common.BattleUtils"
+  K[5] = "Extend"
+  K[6] = "BattleSwimComponent"
+  K[7] = "Ctor"
+  K[8] = "StoreData"
+  K[9] = "SetTickDetal"
+  K[10] = "GetFootPos"
+  K[11] = "IsCanTick"
+  K[12] = "ResetCanTick"
+  K[13] = "OnTick"
+  K[14] = "TryClearEffect"
+  K[15] = "AddRetainTime"
+  K[16] = "RecordLastData"
+  K[17] = "LeaveCurrentState"
+  K[18] = "EnterJump"
+  K[19] = "EnterJumpEnd"
+  K[20] = "RecordJumpHight"
+  K[21] = "ClearJumpData"
+  K[22] = "EnterWillIdle"
+  K[23] = "EnterIdle"
+  K[24] = "PlaySwimEffect"
+  K[25] = "StopSwimEffect"
+  K[26] = "StopAllEffect"
+  K[27] = "Clear"
+upvalues (1):
+  U[0] = instack=0 idx=0 kind=8 name="_ENV"
+locals (6):
+  L[0] = "BattleConst" pc=4-61
+  L[1] = "BattleComponent" pc=7-61
+  L[2] = "BattleEnum" pc=10-61
+  L[3] = "BattleUtils" pc=13-61
+  L[4] = "Base" pc=14-61
+  L[5] = "BattleSwimComponent" pc=17-61
+instructions (61):
+  [0001] VARARGPREP     A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000051
+  [0002] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "require"]
+  [0003] LOADK          A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x00008083 ; R[1] = K[1] "NewRoco.Modules.Core.Battle.Common.BattleConst"
+  [0004] CALL           A=0 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263168 sJ=-16514047 raw=0x02020044
+  [0005] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "require"]
+  [0006] LOADK          A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010103 ; R[2] = K[2] "NewRoco.Modules.Core.Battle.Entity.BattleComponent"
+  [0007] CALL           A=1 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263169 sJ=-16514046 raw=0x020200C4
+  [0008] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "require"]
+  [0009] LOADK          A=3 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=771 sJ=-16776444 raw=0x00018183 ; R[3] = K[3] "NewRoco.Modules.Core.Battle.Common.BattleEnum"
+  [0010] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+  [0011] GETTABUP       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018B ; R[3] = U[0][K[0] "require"]
+  [0012] LOADK          A=4 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1028 sJ=-16776187 raw=0x00020203 ; R[4] = K[4] "NewRoco.Modules.Core.Battle.Common.BattleUtils"
+  [0013] CALL           A=3 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263171 sJ=-16514044 raw=0x020201C4
+  [0014] MOVE           A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010200
+  [0015] SELF           A=5 B=1 C=5 k=1 Bx=2563 sBx=-62972 Ax=656133 sJ=-16121082 raw=0x05018294
+  [0016] LOADK          A=7 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1543 sJ=-16775672 raw=0x00030383 ; R[7] = K[6] "BattleSwimComponent"
+  [0017] CALL           A=5 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263685 sJ=-16513530 raw=0x020302C4
+  [0018] CLOSURE        A=6 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=6 sJ=-16777209 raw=0x0000034F ; R[6] = function[0]
+  [0019] SETFIELD       A=5 B=7 C=6 k=0 Bx=3086 sBx=-62449 Ax=790021 sJ=-15987194 raw=0x06070292 ; R[5][K[7] "Ctor"] = R[6]
+  [0020] CLOSURE        A=6 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=262 sJ=-16776953 raw=0x0000834F ; R[6] = function[1]
+  [0021] SETFIELD       A=5 B=8 C=6 k=0 Bx=3088 sBx=-62447 Ax=790533 sJ=-15986682 raw=0x06080292 ; R[5][K[8] "StoreData"] = R[6]
+  [0022] CLOSURE        A=6 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=518 sJ=-16776697 raw=0x0001034F ; R[6] = function[2]
+  [0023] SETFIELD       A=5 B=9 C=6 k=0 Bx=3090 sBx=-62445 Ax=791045 sJ=-15986170 raw=0x06090292 ; R[5][K[9] "SetTickDetal"] = R[6]
+  [0024] CLOSURE        A=6 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=774 sJ=-16776441 raw=0x0001834F ; R[6] = function[3]
+  [0025] SETFIELD       A=5 B=10 C=6 k=0 Bx=3092 sBx=-62443 Ax=791557 sJ=-15985658 raw=0x060A0292 ; R[5][K[10] "GetFootPos"] = R[6]
+  [0026] CLOSURE        A=6 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1030 sJ=-16776185 raw=0x0002034F ; R[6] = function[4]
+  [0027] SETFIELD       A=5 B=11 C=6 k=0 Bx=3094 sBx=-62441 Ax=792069 sJ=-15985146 raw=0x060B0292 ; R[5][K[11] "IsCanTick"] = R[6]
+  [0028] CLOSURE        A=6 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1286 sJ=-16775929 raw=0x0002834F ; R[6] = function[5]
+  [0029] SETFIELD       A=5 B=12 C=6 k=0 Bx=3096 sBx=-62439 Ax=792581 sJ=-15984634 raw=0x060C0292 ; R[5][K[12] "ResetCanTick"] = R[6]
+  [0030] CLOSURE        A=6 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1542 sJ=-16775673 raw=0x0003034F ; R[6] = function[6]
+  [0031] SETFIELD       A=5 B=13 C=6 k=0 Bx=3098 sBx=-62437 Ax=793093 sJ=-15984122 raw=0x060D0292 ; R[5][K[13] "OnTick"] = R[6]
+  [0032] CLOSURE        A=6 B=3 C=0 k=1 Bx=7 sBx=-65528 Ax=1798 sJ=-16775417 raw=0x0003834F ; R[6] = function[7]
+  [0033] SETFIELD       A=5 B=14 C=6 k=0 Bx=3100 sBx=-62435 Ax=793605 sJ=-15983610 raw=0x060E0292 ; R[5][K[14] "TryClearEffect"] = R[6]
+  [0034] CLOSURE        A=6 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2054 sJ=-16775161 raw=0x0004034F ; R[6] = function[8]
+  [0035] SETFIELD       A=5 B=15 C=6 k=0 Bx=3102 sBx=-62433 Ax=794117 sJ=-15983098 raw=0x060F0292 ; R[5][K[15] "AddRetainTime"] = R[6]
+  [0036] CLOSURE        A=6 B=4 C=0 k=1 Bx=9 sBx=-65526 Ax=2310 sJ=-16774905 raw=0x0004834F ; R[6] = function[9]
+  [0037] SETFIELD       A=5 B=16 C=6 k=0 Bx=3104 sBx=-62431 Ax=794629 sJ=-15982586 raw=0x06100292 ; R[5][K[16] "RecordLastData"] = R[6]
+  [0038] CLOSURE        A=6 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2566 sJ=-16774649 raw=0x0005034F ; R[6] = function[10]
+  [0039] SETFIELD       A=5 B=17 C=6 k=0 Bx=3106 sBx=-62429 Ax=795141 sJ=-15982074 raw=0x06110292 ; R[5][K[17] "LeaveCurrentState"] = R[6]
+  [0040] CLOSURE        A=6 B=5 C=0 k=1 Bx=11 sBx=-65524 Ax=2822 sJ=-16774393 raw=0x0005834F ; R[6] = function[11]
+  [0041] SETFIELD       A=5 B=18 C=6 k=0 Bx=3108 sBx=-62427 Ax=795653 sJ=-15981562 raw=0x06120292 ; R[5][K[18] "EnterJump"] = R[6]
+  [0042] CLOSURE        A=6 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3078 sJ=-16774137 raw=0x0006034F ; R[6] = function[12]
+  [0043] SETFIELD       A=5 B=19 C=6 k=0 Bx=3110 sBx=-62425 Ax=796165 sJ=-15981050 raw=0x06130292 ; R[5][K[19] "EnterJumpEnd"] = R[6]
+  [0044] CLOSURE        A=6 B=6 C=0 k=1 Bx=13 sBx=-65522 Ax=3334 sJ=-16773881 raw=0x0006834F ; R[6] = function[13]
+  [0045] SETFIELD       A=5 B=20 C=6 k=0 Bx=3112 sBx=-62423 Ax=796677 sJ=-15980538 raw=0x06140292 ; R[5][K[20] "RecordJumpHight"] = R[6]
+  [0046] CLOSURE        A=6 B=7 C=0 k=0 Bx=14 sBx=-65521 Ax=3590 sJ=-16773625 raw=0x0007034F ; R[6] = function[14]
+  [0047] SETFIELD       A=5 B=21 C=6 k=0 Bx=3114 sBx=-62421 Ax=797189 sJ=-15980026 raw=0x06150292 ; R[5][K[21] "ClearJumpData"] = R[6]
+  [0048] CLOSURE        A=6 B=7 C=0 k=1 Bx=15 sBx=-65520 Ax=3846 sJ=-16773369 raw=0x0007834F ; R[6] = function[15]
+  [0049] SETFIELD       A=5 B=22 C=6 k=0 Bx=3116 sBx=-62419 Ax=797701 sJ=-15979514 raw=0x06160292 ; R[5][K[22] "EnterWillIdle"] = R[6]
+  [0050] CLOSURE        A=6 B=8 C=0 k=0 Bx=16 sBx=-65519 Ax=4102 sJ=-16773113 raw=0x0008034F ; R[6] = function[16]
+  [0051] SETFIELD       A=5 B=23 C=6 k=0 Bx=3118 sBx=-62417 Ax=798213 sJ=-15979002 raw=0x06170292 ; R[5][K[23] "EnterIdle"] = R[6]
+  [0052] CLOSURE        A=6 B=8 C=0 k=1 Bx=17 sBx=-65518 Ax=4358 sJ=-16772857 raw=0x0008834F ; R[6] = function[17]
+  [0053] SETFIELD       A=5 B=24 C=6 k=0 Bx=3120 sBx=-62415 Ax=798725 sJ=-15978490 raw=0x06180292 ; R[5][K[24] "PlaySwimEffect"] = R[6]
+  [0054] CLOSURE        A=6 B=9 C=0 k=0 Bx=18 sBx=-65517 Ax=4614 sJ=-16772601 raw=0x0009034F ; R[6] = function[18]
+  [0055] SETFIELD       A=5 B=25 C=6 k=0 Bx=3122 sBx=-62413 Ax=799237 sJ=-15977978 raw=0x06190292 ; R[5][K[25] "StopSwimEffect"] = R[6]
+  [0056] CLOSURE        A=6 B=9 C=0 k=1 Bx=19 sBx=-65516 Ax=4870 sJ=-16772345 raw=0x0009834F ; R[6] = function[19]
+  [0057] SETFIELD       A=5 B=26 C=6 k=0 Bx=3124 sBx=-62411 Ax=799749 sJ=-15977466 raw=0x061A0292 ; R[5][K[26] "StopAllEffect"] = R[6]
+  [0058] CLOSURE        A=6 B=10 C=0 k=0 Bx=20 sBx=-65515 Ax=5126 sJ=-16772089 raw=0x000A034F ; R[6] = function[20]
+  [0059] SETFIELD       A=5 B=27 C=6 k=0 Bx=3126 sBx=-62409 Ax=800261 sJ=-15976954 raw=0x061B0292 ; R[5][K[27] "Clear"] = R[6]
+  [0060] RETURN         A=5 B=2 C=1 k=1 Bx=517 sBx=-65018 Ax=132357 sJ=-16644858 raw=0x010282C6
+  [0061] RETURN         A=6 B=1 C=1 k=1 Bx=515 sBx=-65020 Ax=131846 sJ=-16645369 raw=0x01018346
+
+  function[0] source="" lines=38-50 params=2 vararg=0 stack=255 upvalues=3
+  constants (18):
+    K[0] = "Ctor"
+    K[1] = "owner"
+    K[2] = "IsEnable"
+    K[3] = false
+    K[4] = "CanTick"
+    K[5] = "ConstTickDetal"
+    K[6] = 0.3
+    K[7] = "TickDetal"
+    K[8] = 0
+    K[9] = "RetainTime"
+    K[10] = "EffectNumber"
+    K[11] = "SwimPetMistake"
+    K[12] = "battleManager"
+    K[13] = "_G"
+    K[14] = "BattleManager"
+    K[15] = "CurrentState"
+    K[16] = "DeepWaterSwimState"
+    K[17] = "None"
+  upvalues (3):
+    U[0] = instack=4 idx=0 kind=0 name="Base"
+    U[1] = instack=0 idx=0 kind=1 name="_ENV"
+    U[2] = instack=2 idx=0 kind=4 name="BattleEnum"
+  locals (2):
+    L[0] = "self" pc=0-18
+    L[1] = "owner" pc=0-18
+  instructions (18):
+    [0001] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "Ctor"]
+    [0002] MOVE           A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000180
+    [0003] CALL           A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x01020144
+    [0004] SETFIELD       A=0 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131584 sJ=-16645631 raw=0x01010012 ; R[0][K[1] "owner"] = R[1]
+    [0005] SETFIELD       A=0 B=2 C=3 k=1 Bx=1541 sBx=-63994 Ax=394496 sJ=-16382719 raw=0x03028012 ; R[0][K[2] "IsEnable"] = R[3]
+    [0006] SETFIELD       A=0 B=4 C=3 k=1 Bx=1545 sBx=-63990 Ax=395520 sJ=-16381695 raw=0x03048012 ; R[0][K[4] "CanTick"] = R[3]
+    [0007] SETFIELD       A=0 B=5 C=6 k=1 Bx=3083 sBx=-62452 Ax=789248 sJ=-15987967 raw=0x06058012 ; R[0][K[5] "ConstTickDetal"] = R[6]
+    [0008] SETFIELD       A=0 B=7 C=8 k=1 Bx=4111 sBx=-61424 Ax=1052416 sJ=-15724799 raw=0x08078012 ; R[0][K[7] "TickDetal"] = R[8]
+    [0009] SETFIELD       A=0 B=9 C=8 k=1 Bx=4115 sBx=-61420 Ax=1053440 sJ=-15723775 raw=0x08098012 ; R[0][K[9] "RetainTime"] = R[8]
+    [0010] SETFIELD       A=0 B=10 C=8 k=1 Bx=4117 sBx=-61418 Ax=1053952 sJ=-15723263 raw=0x080A8012 ; R[0][K[10] "EffectNumber"] = R[8]
+    [0011] SETFIELD       A=0 B=11 C=8 k=1 Bx=4119 sBx=-61416 Ax=1054464 sJ=-15722751 raw=0x080B8012 ; R[0][K[11] "SwimPetMistake"] = R[8]
+    [0012] GETTABUP       A=2 B=1 C=13 k=0 Bx=6658 sBx=-58877 Ax=1704450 sJ=-15072765 raw=0x0D01010B ; R[2] = U[1][K[13] "_G"]
+    [0013] GETFIELD       A=2 B=2 C=14 k=0 Bx=7172 sBx=-58363 Ax=1836034 sJ=-14941181 raw=0x0E02010E ; R[2] = R[2][K[14] "BattleManager"]
+    [0014] SETFIELD       A=0 B=12 C=2 k=0 Bx=1048 sBx=-64487 Ax=268288 sJ=-16508927 raw=0x020C0012 ; R[0][K[12] "battleManager"] = R[2]
+    [0015] GETTABUP       A=2 B=2 C=16 k=0 Bx=8196 sBx=-57339 Ax=2098178 sJ=-14679037 raw=0x1002010B ; R[2] = U[2][K[16] "DeepWaterSwimState"]
+    [0016] GETFIELD       A=2 B=2 C=17 k=0 Bx=8708 sBx=-56827 Ax=2229250 sJ=-14547965 raw=0x1102010E ; R[2] = R[2][K[17] "None"]
+    [0017] SETFIELD       A=0 B=15 C=2 k=0 Bx=1054 sBx=-64481 Ax=269824 sJ=-16507391 raw=0x020F0012 ; R[0][K[15] "CurrentState"] = R[2]
+    [0018] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[1] source="" lines=53-63 params=2 vararg=0 stack=255 upvalues=1
+  constants (21):
+    K[0] = "IsEnable"
+    K[1] = true
+    K[2] = "CanTick"
+    K[3] = false
+    K[4] = "ConstHalfHeight"
+    K[5] = "GetHalfHeight"
+    K[6] = "PetMesh"
+    K[7] = "GetComponentByClass"
+    K[8] = "UE4"
+    K[9] = "USkeletalMeshComponent"
+    K[10] = "ResetCanTick"
+    K[11] = "owner"
+    K[12] = "GetCanSwimming"
+    K[13] = "GetSocketLocation"
+    K[14] = "locator_body"
+    K[15] = "SwimPetMistake"
+    K[16] = "_G"
+    K[17] = "BattleManager"
+    K[18] = "vBattleField"
+    K[19] = "WaterHeight"
+    K[20] = "Z"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=5 name="_ENV"
+  locals (3):
+    L[0] = "self" pc=0-30
+    L[1] = "model" pc=0-30
+    L[2] = "body" pc=21-29
+  instructions (30):
+    [0001] SETFIELD       A=0 B=0 C=1 k=1 Bx=513 sBx=-65022 Ax=131328 sJ=-16645887 raw=0x01008012 ; R[0][K[0] "IsEnable"] = R[1]
+    [0002] SETFIELD       A=0 B=2 C=3 k=1 Bx=1541 sBx=-63994 Ax=394496 sJ=-16382719 raw=0x03028012 ; R[0][K[2] "CanTick"] = R[3]
+    [0003] SELF           A=2 B=1 C=5 k=1 Bx=2563 sBx=-62972 Ax=656130 sJ=-16121085 raw=0x05018114
+    [0004] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0005] SETFIELD       A=0 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264192 sJ=-16513023 raw=0x02040012 ; R[0][K[4] "ConstHalfHeight"] = R[2]
+    [0006] SELF           A=2 B=1 C=7 k=1 Bx=3587 sBx=-61948 Ax=918274 sJ=-15858941 raw=0x07018114
+    [0007] GETTABUP       A=4 B=0 C=8 k=0 Bx=4096 sBx=-61439 Ax=1048580 sJ=-15728635 raw=0x0800020B ; R[4] = U[0][K[8] "UE4"]
+    [0008] GETFIELD       A=4 B=4 C=9 k=0 Bx=4616 sBx=-60919 Ax=1181700 sJ=-15595515 raw=0x0904020E ; R[4] = R[4][K[9] "USkeletalMeshComponent"]
+    [0009] CALL           A=2 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263682 sJ=-16513533 raw=0x02030144
+    [0010] SETFIELD       A=0 B=6 C=2 k=0 Bx=1036 sBx=-64499 Ax=265216 sJ=-16511999 raw=0x02060012 ; R[0][K[6] "PetMesh"] = R[2]
+    [0011] SELF           A=2 B=0 C=10 k=1 Bx=5121 sBx=-60414 Ax=1310978 sJ=-15466237 raw=0x0A008114
+    [0012] CALL           A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x01020144
+    [0013] GETFIELD       A=2 B=0 C=11 k=0 Bx=5632 sBx=-59903 Ax=1441794 sJ=-15335421 raw=0x0B00010E ; R[2] = R[0][K[11] "owner"]
+    [0014] SELF           A=2 B=2 C=12 k=1 Bx=6149 sBx=-59386 Ax=1574146 sJ=-15203069 raw=0x0C028114
+    [0015] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0016] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0017] JMP            A=11 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777227 sJ=12 raw=0x800005B8
+    [0018] GETFIELD       A=2 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786434 sJ=-15990781 raw=0x0600010E ; R[2] = R[0][K[6] "PetMesh"]
+    [0019] SELF           A=2 B=2 C=13 k=1 Bx=6661 sBx=-58874 Ax=1705218 sJ=-15071997 raw=0x0D028114
+    [0020] LOADK          A=4 B=7 C=0 k=0 Bx=14 sBx=-65521 Ax=3588 sJ=-16773627 raw=0x00070203 ; R[4] = K[14] "locator_body"
+    [0021] CALL           A=2 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263682 sJ=-16513533 raw=0x02030144
+    [0022] GETTABUP       A=3 B=0 C=16 k=0 Bx=8192 sBx=-57343 Ax=2097155 sJ=-14680060 raw=0x1000018B ; R[3] = U[0][K[16] "_G"]
+    [0023] GETFIELD       A=3 B=3 C=17 k=0 Bx=8710 sBx=-56825 Ax=2229763 sJ=-14547452 raw=0x1103018E ; R[3] = R[3][K[17] "BattleManager"]
+    [0024] GETFIELD       A=3 B=3 C=18 k=0 Bx=9222 sBx=-56313 Ax=2360835 sJ=-14416380 raw=0x1203018E ; R[3] = R[3][K[18] "vBattleField"]
+    [0025] GETFIELD       A=3 B=3 C=19 k=0 Bx=9734 sBx=-55801 Ax=2491907 sJ=-14285308 raw=0x1303018E ; R[3] = R[3][K[19] "WaterHeight"]
+    [0026] GETFIELD       A=4 B=2 C=20 k=0 Bx=10244 sBx=-55291 Ax=2622468 sJ=-14154747 raw=0x1402020E ; R[4] = R[2][K[20] "Z"]
+    [0027] SUB            A=3 B=3 C=4 k=0 Bx=2054 sBx=-63481 Ax=525827 sJ=-16251388 raw=0x040301A3
+    [0028] MMBIN          A=3 B=4 C=7 k=0 Bx=3592 sBx=-61943 Ax=919555 sJ=-15857660 raw=0x070401AE
+    [0029] SETFIELD       A=0 B=15 C=3 k=0 Bx=1566 sBx=-63969 Ax=400896 sJ=-16376319 raw=0x030F0012 ; R[0][K[15] "SwimPetMistake"] = R[3]
+    [0030] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[2] source="" lines=66-68 params=2 vararg=0 stack=255 upvalues=0
+  constants (1):
+    K[0] = "ConstTickDetal"
+  locals (2):
+    L[0] = "self" pc=0-2
+    L[1] = "detal" pc=0-2
+  instructions (2):
+    [0001] SETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x01000012 ; R[0][K[0] "ConstTickDetal"] = R[1]
+    [0002] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[3] source="" lines=70-80 params=1 vararg=0 stack=255 upvalues=0
+  constants (8):
+    K[0] = "owner"
+    K[1] = "GetCanSwimming"
+    K[2] = "PetMesh"
+    K[3] = "GetSocketLocation"
+    K[4] = "locator_body"
+    K[5] = "Z"
+    K[6] = "SwimPetMistake"
+    K[7] = "locator_foot"
+  locals (2):
+    L[0] = "self" pc=0-24
+    L[1] = "body" pc=9-17
+  instructions (24):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "owner"]
+    [0002] SELF           A=1 B=1 C=1 k=1 Bx=515 sBx=-65020 Ax=131841 sJ=-16645374 raw=0x01018094
+    [0003] CALL           A=1 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263169 sJ=-16514046 raw=0x020200C4
+    [0004] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0005] JMP            A=12 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777228 sJ=13 raw=0x80000638
+    [0006] GETFIELD       A=1 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262145 sJ=-16515070 raw=0x0200008E ; R[1] = R[0][K[2] "PetMesh"]
+    [0007] SELF           A=1 B=1 C=3 k=1 Bx=1539 sBx=-63996 Ax=393985 sJ=-16383230 raw=0x03018094
+    [0008] LOADK          A=3 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1027 sJ=-16776188 raw=0x00020183 ; R[3] = K[4] "locator_body"
+    [0009] CALL           A=1 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263681 sJ=-16513534 raw=0x020300C4
+    [0010] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0011] JMP            A=11 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777227 sJ=12 raw=0x800005B8
+    [0012] GETFIELD       A=2 B=1 C=5 k=0 Bx=2562 sBx=-62973 Ax=655874 sJ=-16121341 raw=0x0501010E ; R[2] = R[1][K[5] "Z"]
+    [0013] GETFIELD       A=3 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786435 sJ=-15990780 raw=0x0600018E ; R[3] = R[0][K[6] "SwimPetMistake"]
+    [0014] ADD            A=2 B=2 C=3 k=0 Bx=1540 sBx=-63995 Ax=394242 sJ=-16382973 raw=0x03020122
+    [0015] MMBIN          A=2 B=3 C=6 k=0 Bx=3078 sBx=-62457 Ax=787970 sJ=-15989245 raw=0x0603012E
+    [0016] SETFIELD       A=1 B=5 C=2 k=0 Bx=1034 sBx=-64501 Ax=264705 sJ=-16512510 raw=0x02050092 ; R[1][K[5] "Z"] = R[2]
+    [0017] RETURN1        A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C8
+    [0018] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0019] GETFIELD       A=1 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262145 sJ=-16515070 raw=0x0200008E ; R[1] = R[0][K[2] "PetMesh"]
+    [0020] SELF           A=1 B=1 C=3 k=1 Bx=1539 sBx=-63996 Ax=393985 sJ=-16383230 raw=0x03018094
+    [0021] LOADK          A=3 B=3 C=0 k=1 Bx=7 sBx=-65528 Ax=1795 sJ=-16775420 raw=0x00038183 ; R[3] = K[7] "locator_foot"
+    [0022] TAILCALL       A=1 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1537 sJ=-16775678 raw=0x000300C5
+    [0023] RETURN         A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C6
+    [0024] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[4] source="" lines=82-87 params=1 vararg=0 stack=255 upvalues=0
+  constants (2):
+    K[0] = "CanTick"
+    K[1] = "ResetCanTick"
+  locals (1):
+    L[0] = "self" pc=0-8
+  instructions (8):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "CanTick"]
+    [0002] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0003] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0004] SELF           A=1 B=0 C=1 k=1 Bx=513 sBx=-65022 Ax=131329 sJ=-16645886 raw=0x01008094
+    [0005] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0006] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "CanTick"]
+    [0007] RETURN1        A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C8
+    [0008] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[5] source="" lines=89-98 params=1 vararg=0 stack=255 upvalues=1
+  constants (11):
+    K[0] = "CanTick"
+    K[1] = "PetMesh"
+    K[2] = "CharacterMovement"
+    K[3] = "owner"
+    K[4] = "model"
+    K[5] = "GetComponentByClass"
+    K[6] = "UE"
+    K[7] = "UCharacterMovementComponent"
+    K[8] = "MoveFXComponent"
+    K[9] = "FxSetting"
+    K[10] = "SwimFxSetting"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=4 name="_ENV"
+  locals (1):
+    L[0] = "self" pc=0-32
+  instructions (32):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "CanTick"]
+    [0002] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0003] JMP            A=13 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777229 sJ=14 raw=0x800006B8
+    [0004] GETFIELD       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008E ; R[1] = R[0][K[1] "PetMesh"]
+    [0005] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0006] JMP            A=10 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777226 sJ=11 raw=0x80000538
+    [0007] GETFIELD       A=1 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393217 sJ=-16383998 raw=0x0300008E ; R[1] = R[0][K[3] "owner"]
+    [0008] GETFIELD       A=1 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524801 sJ=-16252414 raw=0x0401008E ; R[1] = R[1][K[4] "model"]
+    [0009] SELF           A=1 B=1 C=5 k=1 Bx=2563 sBx=-62972 Ax=656129 sJ=-16121086 raw=0x05018094
+    [0010] GETTABUP       A=3 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786435 sJ=-15990780 raw=0x0600018B ; R[3] = U[0][K[6] "UE"]
+    [0011] GETFIELD       A=3 B=3 C=7 k=0 Bx=3590 sBx=-61945 Ax=919043 sJ=-15858172 raw=0x0703018E ; R[3] = R[3][K[7] "UCharacterMovementComponent"]
+    [0012] CALL           A=1 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263681 sJ=-16513534 raw=0x020300C4
+    [0013] SETFIELD       A=0 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132096 sJ=-16645119 raw=0x01020012 ; R[0][K[2] "CharacterMovement"] = R[1]
+    [0014] GETFIELD       A=1 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393217 sJ=-16383998 raw=0x0300008E ; R[1] = R[0][K[3] "owner"]
+    [0015] GETFIELD       A=1 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524801 sJ=-16252414 raw=0x0401008E ; R[1] = R[1][K[4] "model"]
+    [0016] GETFIELD       A=1 B=1 C=8 k=0 Bx=4098 sBx=-61437 Ax=1049089 sJ=-15728126 raw=0x0801008E ; R[1] = R[1][K[8] "MoveFXComponent"]
+    [0017] SETFIELD       A=0 B=8 C=1 k=0 Bx=528 sBx=-65007 Ax=135168 sJ=-16642047 raw=0x01080012 ; R[0][K[8] "MoveFXComponent"] = R[1]
+    [0018] GETFIELD       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008E ; R[1] = R[0][K[1] "PetMesh"]
+    [0019] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0020] JMP            A=3 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777219 sJ=4 raw=0x800001B8
+    [0021] GETFIELD       A=1 B=0 C=8 k=0 Bx=4096 sBx=-61439 Ax=1048577 sJ=-15728638 raw=0x0800008E ; R[1] = R[0][K[8] "MoveFXComponent"]
+    [0022] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0023] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0024] GETFIELD       A=1 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262145 sJ=-16515070 raw=0x0200008E ; R[1] = R[0][K[2] "CharacterMovement"]
+    [0025] SETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x01000012 ; R[0][K[0] "CanTick"] = R[1]
+    [0026] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "CanTick"]
+    [0027] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0028] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0029] GETFIELD       A=1 B=0 C=8 k=0 Bx=4096 sBx=-61439 Ax=1048577 sJ=-15728638 raw=0x0800008E ; R[1] = R[0][K[8] "MoveFXComponent"]
+    [0030] GETFIELD       A=1 B=1 C=10 k=0 Bx=5122 sBx=-60413 Ax=1311233 sJ=-15465982 raw=0x0A01008E ; R[1] = R[1][K[10] "SwimFxSetting"]
+    [0031] SETFIELD       A=0 B=9 C=1 k=0 Bx=530 sBx=-65005 Ax=135680 sJ=-16641535 raw=0x01090012 ; R[0][K[9] "FxSetting"] = R[1]
+    [0032] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[6] source="" lines=102-136 params=2 vararg=0 stack=255 upvalues=2
+  constants (27):
+    K[0] = "IsEnable"
+    K[1] = "TickDetal"
+    K[2] = "ConstTickDetal"
+    K[3] = "IsCanTick"
+    K[4] = "CurrentFootPos"
+    K[5] = "GetFootPos"
+    K[6] = "LastFootPos"
+    K[7] = "CurrentVector"
+    K[8] = "Z"
+    K[9] = "_G"
+    K[10] = "BattleManager"
+    K[11] = "vBattleField"
+    K[12] = "WaterHeight"
+    K[13] = "CurrentState"
+    K[14] = "DeepWaterSwimState"
+    K[15] = "Jumping"
+    K[16] = "EnterJumpEnd"
+    K[17] = "WillIdle"
+    K[18] = "EnterIdle"
+    K[19] = "Idle"
+    K[20] = "EnterWillIdle"
+    K[21] = "EnterJump"
+    K[22] = "RecordJumpHight"
+    K[23] = "AddRetainTime"
+    K[24] = "TryClearEffect"
+    K[25] = "RecordLastData"
+    K[26] = 0
+  upvalues (2):
+    U[0] = instack=0 idx=0 kind=1 name="_ENV"
+    U[1] = instack=2 idx=0 kind=5 name="BattleEnum"
+  locals (3):
+    L[0] = "self" pc=0-94
+    L[1] = "deltaTime" pc=0-94
+    L[2] = "WaterDetal" pc=40-86
+  instructions (94):
+    [0001] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "IsEnable"]
+    [0002] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0003] JMP            A=89 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777305 sJ=90 raw=0x80002CB8
+    [0004] GETFIELD       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010E ; R[2] = R[0][K[1] "TickDetal"]
+    [0005] ADD            A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x01020122
+    [0006] MMBIN          A=2 B=1 C=6 k=0 Bx=3074 sBx=-62461 Ax=786946 sJ=-15990269 raw=0x0601012E
+    [0007] SETFIELD       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010012 ; R[0][K[1] "TickDetal"] = R[2]
+    [0008] GETFIELD       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010E ; R[2] = R[0][K[1] "TickDetal"]
+    [0009] GETFIELD       A=3 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262147 sJ=-16515068 raw=0x0200018E ; R[3] = R[0][K[2] "ConstTickDetal"]
+    [0010] LT             A=3 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1027 sJ=-16776188 raw=0x000201BA
+    [0011] JMP            A=81 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777297 sJ=82 raw=0x800028B8
+    [0012] SELF           A=2 B=0 C=3 k=1 Bx=1537 sBx=-63998 Ax=393474 sJ=-16383741 raw=0x03008114
+    [0013] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0014] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0015] JMP            A=76 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777292 sJ=77 raw=0x80002638
+    [0016] SELF           A=2 B=0 C=5 k=1 Bx=2561 sBx=-62974 Ax=655618 sJ=-16121597 raw=0x05008114
+    [0017] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0018] SETFIELD       A=0 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264192 sJ=-16513023 raw=0x02040012 ; R[0][K[4] "CurrentFootPos"] = R[2]
+    [0019] GETFIELD       A=2 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524290 sJ=-16252925 raw=0x0400010E ; R[2] = R[0][K[4] "CurrentFootPos"]
+    [0020] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0021] JMP            A=70 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777286 sJ=71 raw=0x80002338
+    [0022] GETFIELD       A=2 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786434 sJ=-15990781 raw=0x0600010E ; R[2] = R[0][K[6] "LastFootPos"]
+    [0023] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0024] JMP            A=61 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777277 sJ=62 raw=0x80001EB8
+    [0025] GETFIELD       A=2 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524290 sJ=-16252925 raw=0x0400010E ; R[2] = R[0][K[4] "CurrentFootPos"]
+    [0026] GETFIELD       A=3 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786435 sJ=-15990780 raw=0x0600018E ; R[3] = R[0][K[6] "LastFootPos"]
+    [0027] SUB            A=2 B=2 C=3 k=0 Bx=1540 sBx=-63995 Ax=394242 sJ=-16382973 raw=0x03020123
+    [0028] MMBIN          A=2 B=3 C=7 k=0 Bx=3590 sBx=-61945 Ax=919042 sJ=-15858173 raw=0x0703012E
+    [0029] GETFIELD       A=3 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131075 sJ=-16646140 raw=0x0100018E ; R[3] = R[0][K[1] "TickDetal"]
+    [0030] DIV            A=2 B=2 C=3 k=0 Bx=1540 sBx=-63995 Ax=394242 sJ=-16382973 raw=0x03020127
+    [0031] MMBIN          A=2 B=3 C=11 k=0 Bx=5638 sBx=-59897 Ax=1443330 sJ=-15333885 raw=0x0B03012E
+    [0032] SETFIELD       A=0 B=7 C=2 k=0 Bx=1038 sBx=-64497 Ax=265728 sJ=-16511487 raw=0x02070012 ; R[0][K[7] "CurrentVector"] = R[2]
+    [0033] GETFIELD       A=2 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524290 sJ=-16252925 raw=0x0400010E ; R[2] = R[0][K[4] "CurrentFootPos"]
+    [0034] GETFIELD       A=2 B=2 C=8 k=0 Bx=4100 sBx=-61435 Ax=1049602 sJ=-15727613 raw=0x0802010E ; R[2] = R[2][K[8] "Z"]
+    [0035] GETTABUP       A=3 B=0 C=9 k=0 Bx=4608 sBx=-60927 Ax=1179651 sJ=-15597564 raw=0x0900018B ; R[3] = U[0][K[9] "_G"]
+    [0036] GETFIELD       A=3 B=3 C=10 k=0 Bx=5126 sBx=-60409 Ax=1312259 sJ=-15464956 raw=0x0A03018E ; R[3] = R[3][K[10] "BattleManager"]
+    [0037] GETFIELD       A=3 B=3 C=11 k=0 Bx=5638 sBx=-59897 Ax=1443331 sJ=-15333884 raw=0x0B03018E ; R[3] = R[3][K[11] "vBattleField"]
+    [0038] GETFIELD       A=3 B=3 C=12 k=0 Bx=6150 sBx=-59385 Ax=1574403 sJ=-15202812 raw=0x0C03018E ; R[3] = R[3][K[12] "WaterHeight"]
+    [0039] SUB            A=2 B=2 C=3 k=0 Bx=1540 sBx=-63995 Ax=394242 sJ=-16382973 raw=0x03020123
+    [0040] MMBIN          A=2 B=3 C=7 k=0 Bx=3590 sBx=-61945 Ax=919042 sJ=-15858173 raw=0x0703012E
+    [0041] LEI            A=2 B=142 C=0 k=0 Bx=284 sBx=-65251 Ax=72706 sJ=-16704509 raw=0x008E013F
+    [0042] JMP            A=27 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777243 sJ=28 raw=0x80000DB8
+    [0043] GETFIELD       A=3 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917507 sJ=-15859708 raw=0x0700018E ; R[3] = R[0][K[7] "CurrentVector"]
+    [0044] GETFIELD       A=3 B=3 C=8 k=0 Bx=4102 sBx=-61433 Ax=1050115 sJ=-15727100 raw=0x0803018E ; R[3] = R[3][K[8] "Z"]
+    [0045] LEI            A=3 B=177 C=0 k=0 Bx=354 sBx=-65181 Ax=90627 sJ=-16686588 raw=0x00B101BF
+    [0046] JMP            A=23 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777239 sJ=24 raw=0x80000BB8
+    [0047] GETFIELD       A=3 B=0 C=13 k=0 Bx=6656 sBx=-58879 Ax=1703939 sJ=-15073276 raw=0x0D00018E ; R[3] = R[0][K[13] "CurrentState"]
+    [0048] GETTABUP       A=4 B=1 C=14 k=0 Bx=7170 sBx=-58365 Ax=1835524 sJ=-14941691 raw=0x0E01020B ; R[4] = U[1][K[14] "DeepWaterSwimState"]
+    [0049] GETFIELD       A=4 B=4 C=15 k=0 Bx=7688 sBx=-57847 Ax=1968132 sJ=-14809083 raw=0x0F04020E ; R[4] = R[4][K[15] "Jumping"]
+    [0050] EQ             A=3 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2051 sJ=-16775164 raw=0x000401B9
+    [0051] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0052] SELF           A=3 B=0 C=16 k=1 Bx=8193 sBx=-57342 Ax=2097411 sJ=-14679804 raw=0x10008194
+    [0053] CALL           A=3 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132099 sJ=-16645116 raw=0x010201C4
+    [0054] JMP            A=29 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777245 sJ=30 raw=0x80000EB8
+    [0055] GETFIELD       A=3 B=0 C=13 k=0 Bx=6656 sBx=-58879 Ax=1703939 sJ=-15073276 raw=0x0D00018E ; R[3] = R[0][K[13] "CurrentState"]
+    [0056] GETTABUP       A=4 B=1 C=14 k=0 Bx=7170 sBx=-58365 Ax=1835524 sJ=-14941691 raw=0x0E01020B ; R[4] = U[1][K[14] "DeepWaterSwimState"]
+    [0057] GETFIELD       A=4 B=4 C=17 k=0 Bx=8712 sBx=-56823 Ax=2230276 sJ=-14546939 raw=0x1104020E ; R[4] = R[4][K[17] "WillIdle"]
+    [0058] EQ             A=3 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2051 sJ=-16775164 raw=0x000401B9
+    [0059] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0060] SELF           A=3 B=0 C=18 k=1 Bx=9217 sBx=-56318 Ax=2359555 sJ=-14417660 raw=0x12008194
+    [0061] CALL           A=3 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132099 sJ=-16645116 raw=0x010201C4
+    [0062] JMP            A=21 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777237 sJ=22 raw=0x80000AB8
+    [0063] GETFIELD       A=3 B=0 C=13 k=0 Bx=6656 sBx=-58879 Ax=1703939 sJ=-15073276 raw=0x0D00018E ; R[3] = R[0][K[13] "CurrentState"]
+    [0064] GETTABUP       A=4 B=1 C=14 k=0 Bx=7170 sBx=-58365 Ax=1835524 sJ=-14941691 raw=0x0E01020B ; R[4] = U[1][K[14] "DeepWaterSwimState"]
+    [0065] GETFIELD       A=4 B=4 C=19 k=0 Bx=9736 sBx=-55799 Ax=2492420 sJ=-14284795 raw=0x1304020E ; R[4] = R[4][K[19] "Idle"]
+    [0066] EQ             A=3 B=4 C=0 k=1 Bx=9 sBx=-65526 Ax=2307 sJ=-16774908 raw=0x000481B9
+    [0067] JMP            A=16 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777232 sJ=17 raw=0x80000838
+    [0068] SELF           A=3 B=0 C=20 k=1 Bx=10241 sBx=-55294 Ax=2621699 sJ=-14155516 raw=0x14008194
+    [0069] CALL           A=3 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132099 sJ=-16645116 raw=0x010201C4
+    [0070] JMP            A=13 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777229 sJ=14 raw=0x800006B8
+    [0071] GTI            A=2 B=142 C=0 k=0 Bx=284 sBx=-65251 Ax=72706 sJ=-16704509 raw=0x008E0140
+    [0072] JMP            A=3 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777219 sJ=4 raw=0x800001B8
+    [0073] GETFIELD       A=3 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917507 sJ=-15859708 raw=0x0700018E ; R[3] = R[0][K[7] "CurrentVector"]
+    [0074] GETFIELD       A=3 B=3 C=8 k=0 Bx=4102 sBx=-61433 Ax=1050115 sJ=-15727100 raw=0x0803018E ; R[3] = R[3][K[8] "Z"]
+    [0075] GTI            A=3 B=177 C=0 k=1 Bx=355 sBx=-65180 Ax=90883 sJ=-16686332 raw=0x00B181C0
+    [0076] JMP            A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x800002B8
+    [0077] GEI            A=2 B=157 C=0 k=0 Bx=314 sBx=-65221 Ax=80386 sJ=-16696829 raw=0x009D0141
+    [0078] JMP            A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x800002B8
+    [0079] GETFIELD       A=3 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917507 sJ=-15859708 raw=0x0700018E ; R[3] = R[0][K[7] "CurrentVector"]
+    [0080] GETFIELD       A=3 B=3 C=8 k=0 Bx=4102 sBx=-61433 Ax=1050115 sJ=-15727100 raw=0x0803018E ; R[3] = R[3][K[8] "Z"]
+    [0081] GTI            A=3 B=127 C=0 k=0 Bx=254 sBx=-65281 Ax=65027 sJ=-16712188 raw=0x007F01C0
+    [0082] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0083] SELF           A=3 B=0 C=21 k=1 Bx=10753 sBx=-54782 Ax=2752771 sJ=-14024444 raw=0x15008194
+    [0084] CALL           A=3 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132099 sJ=-16645116 raw=0x010201C4
+    [0085] SELF           A=3 B=0 C=22 k=1 Bx=11265 sBx=-54270 Ax=2883843 sJ=-13893372 raw=0x16008194
+    [0086] CALL           A=3 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132099 sJ=-16645116 raw=0x010201C4
+    [0087] SELF           A=2 B=0 C=23 k=1 Bx=11777 sBx=-53758 Ax=3014914 sJ=-13762301 raw=0x17008114
+    [0088] CALL           A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x01020144
+    [0089] SELF           A=2 B=0 C=24 k=1 Bx=12289 sBx=-53246 Ax=3145986 sJ=-13631229 raw=0x18008114
+    [0090] CALL           A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x01020144
+    [0091] SELF           A=2 B=0 C=25 k=1 Bx=12801 sBx=-52734 Ax=3277058 sJ=-13500157 raw=0x19008114
+    [0092] CALL           A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x01020144
+    [0093] SETFIELD       A=0 B=1 C=26 k=1 Bx=13315 sBx=-52220 Ax=3408640 sJ=-13368575 raw=0x1A018012 ; R[0][K[1] "TickDetal"] = R[26]
+    [0094] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[7] source="" lines=138-150 params=1 vararg=0 stack=255 upvalues=1
+  constants (11):
+    K[0] = "RetainTime"
+    K[1] = 1.5
+    K[2] = "CurrentState"
+    K[3] = "DeepWaterSwimState"
+    K[4] = "Jumping"
+    K[5] = "EffectNumber"
+    K[6] = 0
+    K[7] = "StopAllEffect"
+    K[8] = "Idle"
+    K[9] = "WillIdle"
+    K[10] = "EnterIdle"
+  upvalues (1):
+    U[0] = instack=2 idx=0 kind=3 name="BattleEnum"
+  locals (1):
+    L[0] = "self" pc=0-29
+  instructions (29):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "RetainTime"]
+    [0002] LOADK          A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x00008103 ; R[2] = K[1] 1.5
+    [0003] LT             A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x0001013A
+    [0004] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0005] GETFIELD       A=1 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262145 sJ=-16515070 raw=0x0200008E ; R[1] = R[0][K[2] "CurrentState"]
+    [0006] GETTABUP       A=2 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393218 sJ=-16383997 raw=0x0300010B ; R[2] = U[0][K[3] "DeepWaterSwimState"]
+    [0007] GETFIELD       A=2 B=2 C=4 k=0 Bx=2052 sBx=-63483 Ax=525314 sJ=-16251901 raw=0x0402010E ; R[2] = R[2][K[4] "Jumping"]
+    [0008] EQ             A=1 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1281 sJ=-16775934 raw=0x000280B9
+    [0009] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0010] GETFIELD       A=1 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655361 sJ=-16121854 raw=0x0500008E ; R[1] = R[0][K[5] "EffectNumber"]
+    [0011] GTI            A=1 B=227 C=0 k=0 Bx=454 sBx=-65081 Ax=116225 sJ=-16660990 raw=0x00E300C0
+    [0012] JMP            A=15 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777231 sJ=16 raw=0x800007B8
+    [0013] GETFIELD       A=1 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655361 sJ=-16121854 raw=0x0500008E ; R[1] = R[0][K[5] "EffectNumber"]
+    [0014] GTI            A=1 B=127 C=0 k=0 Bx=254 sBx=-65281 Ax=65025 sJ=-16712190 raw=0x007F00C0
+    [0015] JMP            A=12 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777228 sJ=13 raw=0x80000638
+    [0016] SETFIELD       A=0 B=0 C=6 k=1 Bx=3073 sBx=-62462 Ax=786688 sJ=-15990527 raw=0x06008012 ; R[0][K[0] "RetainTime"] = R[6]
+    [0017] SELF           A=1 B=0 C=7 k=1 Bx=3585 sBx=-61950 Ax=917761 sJ=-15859454 raw=0x07008094
+    [0018] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0019] GETFIELD       A=1 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262145 sJ=-16515070 raw=0x0200008E ; R[1] = R[0][K[2] "CurrentState"]
+    [0020] GETTABUP       A=2 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393218 sJ=-16383997 raw=0x0300010B ; R[2] = U[0][K[3] "DeepWaterSwimState"]
+    [0021] GETFIELD       A=2 B=2 C=8 k=0 Bx=4100 sBx=-61435 Ax=1049602 sJ=-15727613 raw=0x0802010E ; R[2] = R[2][K[8] "Idle"]
+    [0022] EQ             A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200B9
+    [0023] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0024] GETTABUP       A=1 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393217 sJ=-16383998 raw=0x0300008B ; R[1] = U[0][K[3] "DeepWaterSwimState"]
+    [0025] GETFIELD       A=1 B=1 C=9 k=0 Bx=4610 sBx=-60925 Ax=1180161 sJ=-15597054 raw=0x0901008E ; R[1] = R[1][K[9] "WillIdle"]
+    [0026] SETFIELD       A=0 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132096 sJ=-16645119 raw=0x01020012 ; R[0][K[2] "CurrentState"] = R[1]
+    [0027] SELF           A=1 B=0 C=10 k=1 Bx=5121 sBx=-60414 Ax=1310977 sJ=-15466238 raw=0x0A008094
+    [0028] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0029] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[8] source="" lines=152-158 params=1 vararg=0 stack=255 upvalues=0
+  constants (5):
+    K[0] = "LastState"
+    K[1] = "CurrentState"
+    K[2] = "RetainTime"
+    K[3] = "TickDetal"
+    K[4] = 0
+  locals (1):
+    L[0] = "self" pc=0-12
+  instructions (12):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "LastState"]
+    [0002] GETFIELD       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010E ; R[2] = R[0][K[1] "CurrentState"]
+    [0003] EQ             A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200B9
+    [0004] JMP            A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x800002B8
+    [0005] GETFIELD       A=1 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262145 sJ=-16515070 raw=0x0200008E ; R[1] = R[0][K[2] "RetainTime"]
+    [0006] GETFIELD       A=2 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393218 sJ=-16383997 raw=0x0300010E ; R[2] = R[0][K[3] "TickDetal"]
+    [0007] ADD            A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x020100A2
+    [0008] MMBIN          A=1 B=2 C=6 k=0 Bx=3076 sBx=-62459 Ax=787457 sJ=-15989758 raw=0x060200AE
+    [0009] SETFIELD       A=0 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132096 sJ=-16645119 raw=0x01020012 ; R[0][K[2] "RetainTime"] = R[1]
+    [0010] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0011] SETFIELD       A=0 B=2 C=4 k=1 Bx=2053 sBx=-63482 Ax=525568 sJ=-16251647 raw=0x04028012 ; R[0][K[2] "RetainTime"] = R[4]
+    [0012] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[9] source="" lines=160-164 params=1 vararg=0 stack=255 upvalues=0
+  constants (6):
+    K[0] = "LastState"
+    K[1] = "CurrentState"
+    K[2] = "LastFootPos"
+    K[3] = "CurrentFootPos"
+    K[4] = "LastVector"
+    K[5] = "CurrentVector"
+  locals (1):
+    L[0] = "self" pc=0-7
+  instructions (7):
+    [0001] GETFIELD       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008E ; R[1] = R[0][K[1] "CurrentState"]
+    [0002] SETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x01000012 ; R[0][K[0] "LastState"] = R[1]
+    [0003] GETFIELD       A=1 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393217 sJ=-16383998 raw=0x0300008E ; R[1] = R[0][K[3] "CurrentFootPos"]
+    [0004] SETFIELD       A=0 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132096 sJ=-16645119 raw=0x01020012 ; R[0][K[2] "LastFootPos"] = R[1]
+    [0005] GETFIELD       A=1 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655361 sJ=-16121854 raw=0x0500008E ; R[1] = R[0][K[5] "CurrentVector"]
+    [0006] SETFIELD       A=0 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133120 sJ=-16644095 raw=0x01040012 ; R[0][K[4] "LastVector"] = R[1]
+    [0007] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[10] source="" lines=166-174 params=1 vararg=0 stack=255 upvalues=1
+  constants (8):
+    K[0] = "CurrentState"
+    K[1] = "DeepWaterSwimState"
+    K[2] = "Idle"
+    K[3] = "StopSwimEffect"
+    K[4] = "SwimIdle"
+    K[5] = "Jumping"
+    K[6] = "ClearJumpData"
+    K[7] = "None"
+  upvalues (1):
+    U[0] = instack=2 idx=0 kind=4 name="BattleEnum"
+  locals (1):
+    L[0] = "self" pc=0-20
+  instructions (20):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "CurrentState"]
+    [0002] GETTABUP       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010B ; R[2] = U[0][K[1] "DeepWaterSwimState"]
+    [0003] GETFIELD       A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x0202010E ; R[2] = R[2][K[2] "Idle"]
+    [0004] EQ             A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200B9
+    [0005] JMP            A=3 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777219 sJ=4 raw=0x800001B8
+    [0006] SELF           A=1 B=0 C=3 k=1 Bx=1537 sBx=-63998 Ax=393473 sJ=-16383742 raw=0x03008094
+    [0007] GETFIELD       A=3 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524291 sJ=-16252924 raw=0x0400018E ; R[3] = R[0][K[4] "SwimIdle"]
+    [0008] CALL           A=1 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132609 sJ=-16644606 raw=0x010300C4
+    [0009] JMP            A=6 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777222 sJ=7 raw=0x80000338
+    [0010] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "CurrentState"]
+    [0011] GETTABUP       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010B ; R[2] = U[0][K[1] "DeepWaterSwimState"]
+    [0012] GETFIELD       A=2 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656386 sJ=-16120829 raw=0x0502010E ; R[2] = R[2][K[5] "Jumping"]
+    [0013] EQ             A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200B9
+    [0014] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0015] SELF           A=1 B=0 C=6 k=1 Bx=3073 sBx=-62462 Ax=786689 sJ=-15990526 raw=0x06008094
+    [0016] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0017] GETTABUP       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008B ; R[1] = U[0][K[1] "DeepWaterSwimState"]
+    [0018] GETFIELD       A=1 B=1 C=7 k=0 Bx=3586 sBx=-61949 Ax=918017 sJ=-15859198 raw=0x0701008E ; R[1] = R[1][K[7] "None"]
+    [0019] SETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x01000012 ; R[0][K[0] "CurrentState"] = R[1]
+    [0020] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[11] source="" lines=176-181 params=1 vararg=0 stack=255 upvalues=1
+  constants (4):
+    K[0] = "CurrentState"
+    K[1] = "DeepWaterSwimState"
+    K[2] = "Jumping"
+    K[3] = "LeaveCurrentState"
+  upvalues (1):
+    U[0] = instack=2 idx=0 kind=3 name="BattleEnum"
+  locals (1):
+    L[0] = "self" pc=0-11
+  instructions (11):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "CurrentState"]
+    [0002] GETTABUP       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010B ; R[2] = U[0][K[1] "DeepWaterSwimState"]
+    [0003] GETFIELD       A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x0202010E ; R[2] = R[2][K[2] "Jumping"]
+    [0004] EQ             A=1 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1281 sJ=-16775934 raw=0x000280B9
+    [0005] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0006] SELF           A=1 B=0 C=3 k=1 Bx=1537 sBx=-63998 Ax=393473 sJ=-16383742 raw=0x03008094
+    [0007] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0008] GETTABUP       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008B ; R[1] = U[0][K[1] "DeepWaterSwimState"]
+    [0009] GETFIELD       A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x0201008E ; R[1] = R[1][K[2] "Jumping"]
+    [0010] SETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x01000012 ; R[0][K[0] "CurrentState"] = R[1]
+    [0011] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[12] source="" lines=183-193 params=1 vararg=0 stack=255 upvalues=1
+  constants (9):
+    K[0] = "CurrentState"
+    K[1] = "DeepWaterSwimState"
+    K[2] = "JumpEnd"
+    K[3] = "LeaveCurrentState"
+    K[4] = "SwimJump"
+    K[5] = "MoveFXComponent"
+    K[6] = "GetFxFromSoftPath"
+    K[7] = "FxBattleSwim"
+    K[8] = "PlaySwimEffect"
+  upvalues (1):
+    U[0] = instack=2 idx=0 kind=4 name="BattleEnum"
+  locals (1):
+    L[0] = "self" pc=0-23
+  instructions (23):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "CurrentState"]
+    [0002] GETTABUP       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010B ; R[2] = U[0][K[1] "DeepWaterSwimState"]
+    [0003] GETFIELD       A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x0202010E ; R[2] = R[2][K[2] "JumpEnd"]
+    [0004] EQ             A=1 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1281 sJ=-16775934 raw=0x000280B9
+    [0005] JMP            A=16 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777232 sJ=17 raw=0x80000838
+    [0006] SELF           A=1 B=0 C=3 k=1 Bx=1537 sBx=-63998 Ax=393473 sJ=-16383742 raw=0x03008094
+    [0007] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0008] GETTABUP       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008B ; R[1] = U[0][K[1] "DeepWaterSwimState"]
+    [0009] GETFIELD       A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x0201008E ; R[1] = R[1][K[2] "JumpEnd"]
+    [0010] SETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x01000012 ; R[0][K[0] "CurrentState"] = R[1]
+    [0011] GETFIELD       A=1 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524289 sJ=-16252926 raw=0x0400008E ; R[1] = R[0][K[4] "SwimJump"]
+    [0012] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0013] JMP            A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x800002B8
+    [0014] GETFIELD       A=1 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655361 sJ=-16121854 raw=0x0500008E ; R[1] = R[0][K[5] "MoveFXComponent"]
+    [0015] SELF           A=1 B=1 C=6 k=1 Bx=3075 sBx=-62460 Ax=787201 sJ=-15990014 raw=0x06018094
+    [0016] GETFIELD       A=3 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655363 sJ=-16121852 raw=0x0500018E ; R[3] = R[0][K[5] "MoveFXComponent"]
+    [0017] GETFIELD       A=3 B=3 C=7 k=0 Bx=3590 sBx=-61945 Ax=919043 sJ=-15858172 raw=0x0703018E ; R[3] = R[3][K[7] "FxBattleSwim"]
+    [0018] CALL           A=1 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263681 sJ=-16513534 raw=0x020300C4
+    [0019] SETFIELD       A=0 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133120 sJ=-16644095 raw=0x01040012 ; R[0][K[4] "SwimJump"] = R[1]
+    [0020] SELF           A=1 B=0 C=8 k=1 Bx=4097 sBx=-61438 Ax=1048833 sJ=-15728382 raw=0x08008094
+    [0021] GETFIELD       A=3 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524291 sJ=-16252924 raw=0x0400018E ; R[3] = R[0][K[4] "SwimJump"]
+    [0022] CALL           A=1 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132609 sJ=-16644606 raw=0x010300C4
+    [0023] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[13] source="" lines=196-222 params=1 vararg=0 stack=255 upvalues=2
+  constants (18):
+    K[0] = "CurrentState"
+    K[1] = "DeepWaterSwimState"
+    K[2] = "Jumping"
+    K[3] = "CurrentFootPos"
+    K[4] = "Z"
+    K[5] = "LastFootPos"
+    K[6] = "JumpMinHeight"
+    K[7] = "JumpMaxHeight"
+    K[8] = "_G"
+    K[9] = "BattleManager"
+    K[10] = "vBattleField"
+    K[11] = "WaterHeight"
+    K[12] = "SwimJump"
+    K[13] = "MoveFXComponent"
+    K[14] = "GetFxFromSoftPath"
+    K[15] = "FxBattleSwim"
+    K[16] = "PlaySwimEffect"
+    K[17] = "ClearJumpData"
+  upvalues (2):
+    U[0] = instack=2 idx=0 kind=0 name="BattleEnum"
+    U[1] = instack=0 idx=0 kind=4 name="_ENV"
+  locals (1):
+    L[0] = "self" pc=0-76
+  instructions (76):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "CurrentState"]
+    [0002] GETTABUP       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010B ; R[2] = U[0][K[1] "DeepWaterSwimState"]
+    [0003] GETFIELD       A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x0202010E ; R[2] = R[2][K[2] "Jumping"]
+    [0004] EQ             A=1 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1281 sJ=-16775934 raw=0x000280B9
+    [0005] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0006] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+    [0007] GETFIELD       A=1 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393217 sJ=-16383998 raw=0x0300008E ; R[1] = R[0][K[3] "CurrentFootPos"]
+    [0008] GETFIELD       A=1 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524801 sJ=-16252414 raw=0x0401008E ; R[1] = R[1][K[4] "Z"]
+    [0009] GETFIELD       A=2 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655362 sJ=-16121853 raw=0x0500010E ; R[2] = R[0][K[5] "LastFootPos"]
+    [0010] GETFIELD       A=2 B=2 C=4 k=0 Bx=2052 sBx=-63483 Ax=525314 sJ=-16251901 raw=0x0402010E ; R[2] = R[2][K[4] "Z"]
+    [0011] LT             A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x0001013A
+    [0012] JMP            A=45 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777261 sJ=46 raw=0x800016B8
+    [0013] GETFIELD       A=1 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786433 sJ=-15990782 raw=0x0600008E ; R[1] = R[0][K[6] "JumpMinHeight"]
+    [0014] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0015] JMP            A=31 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777247 sJ=32 raw=0x80000FB8
+    [0016] GETFIELD       A=1 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917505 sJ=-15859710 raw=0x0700008E ; R[1] = R[0][K[7] "JumpMaxHeight"]
+    [0017] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0018] JMP            A=28 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777244 sJ=29 raw=0x80000E38
+    [0019] GETFIELD       A=1 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917505 sJ=-15859710 raw=0x0700008E ; R[1] = R[0][K[7] "JumpMaxHeight"]
+    [0020] GETFIELD       A=2 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786434 sJ=-15990781 raw=0x0600010E ; R[2] = R[0][K[6] "JumpMinHeight"]
+    [0021] SUB            A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x020100A3
+    [0022] MMBIN          A=1 B=2 C=7 k=0 Bx=3588 sBx=-61947 Ax=918529 sJ=-15858686 raw=0x070200AE
+    [0023] GEI            A=1 B=147 C=0 k=0 Bx=294 sBx=-65241 Ax=75265 sJ=-16701950 raw=0x009300C1
+    [0024] JMP            A=20 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777236 sJ=21 raw=0x80000A38
+    [0025] GETFIELD       A=1 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786433 sJ=-15990782 raw=0x0600008E ; R[1] = R[0][K[6] "JumpMinHeight"]
+    [0026] GETTABUP       A=2 B=1 C=8 k=0 Bx=4098 sBx=-61437 Ax=1049090 sJ=-15728125 raw=0x0801010B ; R[2] = U[1][K[8] "_G"]
+    [0027] GETFIELD       A=2 B=2 C=9 k=0 Bx=4612 sBx=-60923 Ax=1180674 sJ=-15596541 raw=0x0902010E ; R[2] = R[2][K[9] "BattleManager"]
+    [0028] GETFIELD       A=2 B=2 C=10 k=0 Bx=5124 sBx=-60411 Ax=1311746 sJ=-15465469 raw=0x0A02010E ; R[2] = R[2][K[10] "vBattleField"]
+    [0029] GETFIELD       A=2 B=2 C=11 k=0 Bx=5636 sBx=-59899 Ax=1442818 sJ=-15334397 raw=0x0B02010E ; R[2] = R[2][K[11] "WaterHeight"]
+    [0030] SUB            A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x020100A3
+    [0031] MMBIN          A=1 B=2 C=7 k=0 Bx=3588 sBx=-61947 Ax=918529 sJ=-15858686 raw=0x070200AE
+    [0032] LEI            A=1 B=167 C=0 k=0 Bx=334 sBx=-65201 Ax=85505 sJ=-16691710 raw=0x00A700BF
+    [0033] JMP            A=11 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777227 sJ=12 raw=0x800005B8
+    [0034] GETFIELD       A=1 B=0 C=12 k=0 Bx=6144 sBx=-59391 Ax=1572865 sJ=-15204350 raw=0x0C00008E ; R[1] = R[0][K[12] "SwimJump"]
+    [0035] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0036] JMP            A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x800002B8
+    [0037] GETFIELD       A=1 B=0 C=13 k=0 Bx=6656 sBx=-58879 Ax=1703937 sJ=-15073278 raw=0x0D00008E ; R[1] = R[0][K[13] "MoveFXComponent"]
+    [0038] SELF           A=1 B=1 C=14 k=1 Bx=7171 sBx=-58364 Ax=1835777 sJ=-14941438 raw=0x0E018094
+    [0039] GETFIELD       A=3 B=0 C=13 k=0 Bx=6656 sBx=-58879 Ax=1703939 sJ=-15073276 raw=0x0D00018E ; R[3] = R[0][K[13] "MoveFXComponent"]
+    [0040] GETFIELD       A=3 B=3 C=15 k=0 Bx=7686 sBx=-57849 Ax=1967619 sJ=-14809596 raw=0x0F03018E ; R[3] = R[3][K[15] "FxBattleSwim"]
+    [0041] CALL           A=1 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263681 sJ=-16513534 raw=0x020300C4
+    [0042] SETFIELD       A=0 B=12 C=1 k=0 Bx=536 sBx=-64999 Ax=137216 sJ=-16639999 raw=0x010C0012 ; R[0][K[12] "SwimJump"] = R[1]
+    [0043] SELF           A=1 B=0 C=16 k=1 Bx=8193 sBx=-57342 Ax=2097409 sJ=-14679806 raw=0x10008094
+    [0044] GETFIELD       A=3 B=0 C=12 k=0 Bx=6144 sBx=-59391 Ax=1572867 sJ=-15204348 raw=0x0C00018E ; R[3] = R[0][K[12] "SwimJump"]
+    [0045] CALL           A=1 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132609 sJ=-16644606 raw=0x010300C4
+    [0046] SELF           A=1 B=0 C=17 k=1 Bx=8705 sBx=-56830 Ax=2228481 sJ=-14548734 raw=0x11008094
+    [0047] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0048] GETFIELD       A=1 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917505 sJ=-15859710 raw=0x0700008E ; R[1] = R[0][K[7] "JumpMaxHeight"]
+    [0049] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0050] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0051] GETFIELD       A=1 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393217 sJ=-16383998 raw=0x0300008E ; R[1] = R[0][K[3] "CurrentFootPos"]
+    [0052] GETFIELD       A=1 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524801 sJ=-16252414 raw=0x0401008E ; R[1] = R[1][K[4] "Z"]
+    [0053] GETFIELD       A=2 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917506 sJ=-15859709 raw=0x0700010E ; R[2] = R[0][K[7] "JumpMaxHeight"]
+    [0054] LT             A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x0001013A
+    [0055] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0056] GETFIELD       A=1 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393217 sJ=-16383998 raw=0x0300008E ; R[1] = R[0][K[3] "CurrentFootPos"]
+    [0057] GETFIELD       A=1 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524801 sJ=-16252414 raw=0x0401008E ; R[1] = R[1][K[4] "Z"]
+    [0058] SETFIELD       A=0 B=7 C=1 k=0 Bx=526 sBx=-65009 Ax=134656 sJ=-16642559 raw=0x01070012 ; R[0][K[7] "JumpMaxHeight"] = R[1]
+    [0059] GETFIELD       A=1 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393217 sJ=-16383998 raw=0x0300008E ; R[1] = R[0][K[3] "CurrentFootPos"]
+    [0060] GETFIELD       A=1 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524801 sJ=-16252414 raw=0x0401008E ; R[1] = R[1][K[4] "Z"]
+    [0061] GETFIELD       A=2 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655362 sJ=-16121853 raw=0x0500010E ; R[2] = R[0][K[5] "LastFootPos"]
+    [0062] GETFIELD       A=2 B=2 C=4 k=0 Bx=2052 sBx=-63483 Ax=525314 sJ=-16251901 raw=0x0402010E ; R[2] = R[2][K[4] "Z"]
+    [0063] LT             A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200BA
+    [0064] JMP            A=10 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777226 sJ=11 raw=0x80000538
+    [0065] GETFIELD       A=1 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786433 sJ=-15990782 raw=0x0600008E ; R[1] = R[0][K[6] "JumpMinHeight"]
+    [0066] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0067] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0068] GETFIELD       A=1 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393217 sJ=-16383998 raw=0x0300008E ; R[1] = R[0][K[3] "CurrentFootPos"]
+    [0069] GETFIELD       A=1 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524801 sJ=-16252414 raw=0x0401008E ; R[1] = R[1][K[4] "Z"]
+    [0070] GETFIELD       A=2 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786434 sJ=-15990781 raw=0x0600010E ; R[2] = R[0][K[6] "JumpMinHeight"]
+    [0071] LT             A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200BA
+    [0072] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0073] GETFIELD       A=1 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393217 sJ=-16383998 raw=0x0300008E ; R[1] = R[0][K[3] "CurrentFootPos"]
+    [0074] GETFIELD       A=1 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524801 sJ=-16252414 raw=0x0401008E ; R[1] = R[1][K[4] "Z"]
+    [0075] SETFIELD       A=0 B=6 C=1 k=0 Bx=524 sBx=-65011 Ax=134144 sJ=-16643071 raw=0x01060012 ; R[0][K[6] "JumpMinHeight"] = R[1]
+    [0076] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[14] source="" lines=224-227 params=1 vararg=0 stack=255 upvalues=0
+  constants (3):
+    K[0] = "JumpMaxHeight"
+    K[1] = nil
+    K[2] = "JumpMinHeight"
+  locals (1):
+    L[0] = "self" pc=0-3
+  instructions (3):
+    [0001] SETFIELD       A=0 B=0 C=1 k=1 Bx=513 sBx=-65022 Ax=131328 sJ=-16645887 raw=0x01008012 ; R[0][K[0] "JumpMaxHeight"] = R[1]
+    [0002] SETFIELD       A=0 B=2 C=1 k=1 Bx=517 sBx=-65018 Ax=132352 sJ=-16644863 raw=0x01028012 ; R[0][K[2] "JumpMinHeight"] = R[1]
+    [0003] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[15] source="" lines=229-234 params=1 vararg=0 stack=255 upvalues=1
+  constants (4):
+    K[0] = "CurrentState"
+    K[1] = "DeepWaterSwimState"
+    K[2] = "WillIdle"
+    K[3] = "LeaveCurrentState"
+  upvalues (1):
+    U[0] = instack=2 idx=0 kind=3 name="BattleEnum"
+  locals (1):
+    L[0] = "self" pc=0-11
+  instructions (11):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "CurrentState"]
+    [0002] GETTABUP       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010B ; R[2] = U[0][K[1] "DeepWaterSwimState"]
+    [0003] GETFIELD       A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x0202010E ; R[2] = R[2][K[2] "WillIdle"]
+    [0004] EQ             A=1 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1281 sJ=-16775934 raw=0x000280B9
+    [0005] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0006] SELF           A=1 B=0 C=3 k=1 Bx=1537 sBx=-63998 Ax=393473 sJ=-16383742 raw=0x03008094
+    [0007] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0008] GETTABUP       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008B ; R[1] = U[0][K[1] "DeepWaterSwimState"]
+    [0009] GETFIELD       A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x0201008E ; R[1] = R[1][K[2] "WillIdle"]
+    [0010] SETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x01000012 ; R[0][K[0] "CurrentState"] = R[1]
+    [0011] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[16] source="" lines=236-245 params=1 vararg=0 stack=255 upvalues=1
+  constants (9):
+    K[0] = "CurrentState"
+    K[1] = "DeepWaterSwimState"
+    K[2] = "Idle"
+    K[3] = "LeaveCurrentState"
+    K[4] = "SwimIdle"
+    K[5] = "MoveFXComponent"
+    K[6] = "GetFxFromSoftPath"
+    K[7] = "FxSwimIdle"
+    K[8] = "PlaySwimEffect"
+  upvalues (1):
+    U[0] = instack=2 idx=0 kind=4 name="BattleEnum"
+  locals (1):
+    L[0] = "self" pc=0-23
+  instructions (23):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "CurrentState"]
+    [0002] GETTABUP       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010B ; R[2] = U[0][K[1] "DeepWaterSwimState"]
+    [0003] GETFIELD       A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x0202010E ; R[2] = R[2][K[2] "Idle"]
+    [0004] EQ             A=1 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1281 sJ=-16775934 raw=0x000280B9
+    [0005] JMP            A=16 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777232 sJ=17 raw=0x80000838
+    [0006] SELF           A=1 B=0 C=3 k=1 Bx=1537 sBx=-63998 Ax=393473 sJ=-16383742 raw=0x03008094
+    [0007] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0008] GETTABUP       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008B ; R[1] = U[0][K[1] "DeepWaterSwimState"]
+    [0009] GETFIELD       A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x0201008E ; R[1] = R[1][K[2] "Idle"]
+    [0010] SETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x01000012 ; R[0][K[0] "CurrentState"] = R[1]
+    [0011] GETFIELD       A=1 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524289 sJ=-16252926 raw=0x0400008E ; R[1] = R[0][K[4] "SwimIdle"]
+    [0012] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0013] JMP            A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x800002B8
+    [0014] GETFIELD       A=1 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655361 sJ=-16121854 raw=0x0500008E ; R[1] = R[0][K[5] "MoveFXComponent"]
+    [0015] SELF           A=1 B=1 C=6 k=1 Bx=3075 sBx=-62460 Ax=787201 sJ=-15990014 raw=0x06018094
+    [0016] GETFIELD       A=3 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655363 sJ=-16121852 raw=0x0500018E ; R[3] = R[0][K[5] "MoveFXComponent"]
+    [0017] GETFIELD       A=3 B=3 C=7 k=0 Bx=3590 sBx=-61945 Ax=919043 sJ=-15858172 raw=0x0703018E ; R[3] = R[3][K[7] "FxSwimIdle"]
+    [0018] CALL           A=1 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263681 sJ=-16513534 raw=0x020300C4
+    [0019] SETFIELD       A=0 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133120 sJ=-16644095 raw=0x01040012 ; R[0][K[4] "SwimIdle"] = R[1]
+    [0020] SELF           A=1 B=0 C=8 k=1 Bx=4097 sBx=-61438 Ax=1048833 sJ=-15728382 raw=0x08008094
+    [0021] GETFIELD       A=3 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524291 sJ=-16252924 raw=0x0400018E ; R[3] = R[0][K[4] "SwimIdle"]
+    [0022] CALL           A=1 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132609 sJ=-16644606 raw=0x010300C4
+    [0023] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[17] source="" lines=247-264 params=2 vararg=0 stack=255 upvalues=1
+  constants (29):
+    K[0] = "CharacterMovement"
+    K[1] = "CacheWaterSurfacePos"
+    K[2] = "UE"
+    K[3] = "FVector"
+    K[4] = "CurrentFootPos"
+    K[5] = "X"
+    K[6] = "Y"
+    K[7] = "battleManager"
+    K[8] = "vBattleField"
+    K[9] = "WaterHeight"
+    K[10] = "SwimIdle"
+    K[11] = "FxSetting"
+    K[12] = "AttachmentType"
+    K[13] = "EFXAttachmentType"
+    K[14] = "AttachToPos"
+    K[15] = "IgnoreRotation"
+    K[16] = true
+    K[17] = "MoveFXComponent"
+    K[18] = "FxBattleSwimIdleComp"
+    K[19] = "TryPlayOrStopSwimEffect"
+    K[20] = "EffectNumber"
+    K[21] = "DontAttach"
+    K[22] = "FxBattleSwimJumpComp"
+    K[23] = "_G"
+    K[24] = "NRCAudioManager"
+    K[25] = "PlaySound3DWithActorAuto"
+    K[26] = "owner"
+    K[27] = "model"
+    K[28] = "BattleSwimComponent"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=8 name="_ENV"
+  locals (2):
+    L[0] = "self" pc=0-60
+    L[1] = "effect" pc=0-60
+  instructions (60):
+    [0001] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0002] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0003] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+    [0004] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "CharacterMovement"]
+    [0005] GETTABUP       A=3 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262147 sJ=-16515068 raw=0x0200018B ; R[3] = U[0][K[2] "UE"]
+    [0006] GETFIELD       A=3 B=3 C=3 k=0 Bx=1542 sBx=-63993 Ax=394755 sJ=-16382460 raw=0x0303018E ; R[3] = R[3][K[3] "FVector"]
+    [0007] GETFIELD       A=4 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524292 sJ=-16252923 raw=0x0400020E ; R[4] = R[0][K[4] "CurrentFootPos"]
+    [0008] GETFIELD       A=4 B=4 C=5 k=0 Bx=2568 sBx=-62967 Ax=657412 sJ=-16119803 raw=0x0504020E ; R[4] = R[4][K[5] "X"]
+    [0009] GETFIELD       A=5 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524293 sJ=-16252922 raw=0x0400028E ; R[5] = R[0][K[4] "CurrentFootPos"]
+    [0010] GETFIELD       A=5 B=5 C=6 k=0 Bx=3082 sBx=-62453 Ax=788997 sJ=-15988218 raw=0x0605028E ; R[5] = R[5][K[6] "Y"]
+    [0011] GETFIELD       A=6 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917510 sJ=-15859705 raw=0x0700030E ; R[6] = R[0][K[7] "battleManager"]
+    [0012] GETFIELD       A=6 B=6 C=8 k=0 Bx=4108 sBx=-61427 Ax=1051654 sJ=-15725561 raw=0x0806030E ; R[6] = R[6][K[8] "vBattleField"]
+    [0013] GETFIELD       A=6 B=6 C=9 k=0 Bx=4620 sBx=-60915 Ax=1182726 sJ=-15594489 raw=0x0906030E ; R[6] = R[6][K[9] "WaterHeight"]
+    [0014] CALL           A=3 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264195 sJ=-16513020 raw=0x020401C4
+    [0015] SETFIELD       A=2 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393730 sJ=-16383485 raw=0x03010112 ; R[2][K[1] "CacheWaterSurfacePos"] = R[3]
+    [0016] GETFIELD       A=2 B=0 C=10 k=0 Bx=5120 sBx=-60415 Ax=1310722 sJ=-15466493 raw=0x0A00010E ; R[2] = R[0][K[10] "SwimIdle"]
+    [0017] EQ             A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200B9
+    [0018] JMP            A=16 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777232 sJ=17 raw=0x80000838
+    [0019] GETFIELD       A=2 B=0 C=11 k=0 Bx=5632 sBx=-59903 Ax=1441794 sJ=-15335421 raw=0x0B00010E ; R[2] = R[0][K[11] "FxSetting"]
+    [0020] GETTABUP       A=3 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262147 sJ=-16515068 raw=0x0200018B ; R[3] = U[0][K[2] "UE"]
+    [0021] GETFIELD       A=3 B=3 C=13 k=0 Bx=6662 sBx=-58873 Ax=1705475 sJ=-15071740 raw=0x0D03018E ; R[3] = R[3][K[13] "EFXAttachmentType"]
+    [0022] GETFIELD       A=3 B=3 C=14 k=0 Bx=7174 sBx=-58361 Ax=1836547 sJ=-14940668 raw=0x0E03018E ; R[3] = R[3][K[14] "AttachToPos"]
+    [0023] SETFIELD       A=2 B=12 C=3 k=0 Bx=1560 sBx=-63975 Ax=399362 sJ=-16377853 raw=0x030C0112 ; R[2][K[12] "AttachmentType"] = R[3]
+    [0024] GETFIELD       A=2 B=0 C=11 k=0 Bx=5632 sBx=-59903 Ax=1441794 sJ=-15335421 raw=0x0B00010E ; R[2] = R[0][K[11] "FxSetting"]
+    [0025] SETFIELD       A=2 B=15 C=16 k=1 Bx=8223 sBx=-57312 Ax=2105090 sJ=-14672125 raw=0x100F8112 ; R[2][K[15] "IgnoreRotation"] = R[16]
+    [0026] GETFIELD       A=2 B=0 C=17 k=0 Bx=8704 sBx=-56831 Ax=2228226 sJ=-14548989 raw=0x1100010E ; R[2] = R[0][K[17] "MoveFXComponent"]
+    [0027] GETFIELD       A=3 B=0 C=17 k=0 Bx=8704 sBx=-56831 Ax=2228227 sJ=-14548988 raw=0x1100018E ; R[3] = R[0][K[17] "MoveFXComponent"]
+    [0028] SELF           A=3 B=3 C=19 k=1 Bx=9735 sBx=-55800 Ax=2492163 sJ=-14285052 raw=0x13038194
+    [0029] GETFIELD       A=5 B=0 C=17 k=0 Bx=8704 sBx=-56831 Ax=2228229 sJ=-14548986 raw=0x1100028E ; R[5] = R[0][K[17] "MoveFXComponent"]
+    [0030] GETFIELD       A=5 B=5 C=18 k=0 Bx=9226 sBx=-56309 Ax=2361861 sJ=-14415354 raw=0x1205028E ; R[5] = R[5][K[18] "FxBattleSwimIdleComp"]
+    [0031] MOVE           A=6 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=518 sJ=-16776697 raw=0x00010300
+    [0032] LOADTRUE       A=7 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=7 sJ=-16777208 raw=0x00000387
+    [0033] CALL           A=3 B=5 C=2 k=0 Bx=1034 sBx=-64501 Ax=264707 sJ=-16512508 raw=0x020501C4
+    [0034] SETFIELD       A=2 B=18 C=3 k=0 Bx=1572 sBx=-63963 Ax=402434 sJ=-16374781 raw=0x03120112 ; R[2][K[18] "FxBattleSwimIdleComp"] = R[3]
+    [0035] JMP            A=23 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777239 sJ=24 raw=0x80000BB8
+    [0036] GETFIELD       A=2 B=0 C=20 k=0 Bx=10240 sBx=-55295 Ax=2621442 sJ=-14155773 raw=0x1400010E ; R[2] = R[0][K[20] "EffectNumber"]
+    [0037] ADDI           A=2 B=2 C=128 k=0 Bx=65540 sBx=5 Ax=16778242 sJ=1027 raw=0x80020115
+    [0038] MMBINI         A=2 B=128 C=6 k=0 Bx=3328 sBx=-62207 Ax=851970 sJ=-15925245 raw=0x0680012F
+    [0039] SETFIELD       A=0 B=20 C=2 k=0 Bx=1064 sBx=-64471 Ax=272384 sJ=-16504831 raw=0x02140012 ; R[0][K[20] "EffectNumber"] = R[2]
+    [0040] GETFIELD       A=2 B=0 C=11 k=0 Bx=5632 sBx=-59903 Ax=1441794 sJ=-15335421 raw=0x0B00010E ; R[2] = R[0][K[11] "FxSetting"]
+    [0041] GETTABUP       A=3 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262147 sJ=-16515068 raw=0x0200018B ; R[3] = U[0][K[2] "UE"]
+    [0042] GETFIELD       A=3 B=3 C=13 k=0 Bx=6662 sBx=-58873 Ax=1705475 sJ=-15071740 raw=0x0D03018E ; R[3] = R[3][K[13] "EFXAttachmentType"]
+    [0043] GETFIELD       A=3 B=3 C=21 k=0 Bx=10758 sBx=-54777 Ax=2754051 sJ=-14023164 raw=0x1503018E ; R[3] = R[3][K[21] "DontAttach"]
+    [0044] SETFIELD       A=2 B=12 C=3 k=0 Bx=1560 sBx=-63975 Ax=399362 sJ=-16377853 raw=0x030C0112 ; R[2][K[12] "AttachmentType"] = R[3]
+    [0045] GETFIELD       A=2 B=0 C=17 k=0 Bx=8704 sBx=-56831 Ax=2228226 sJ=-14548989 raw=0x1100010E ; R[2] = R[0][K[17] "MoveFXComponent"]
+    [0046] SELF           A=2 B=2 C=19 k=1 Bx=9733 sBx=-55802 Ax=2491650 sJ=-14285565 raw=0x13028114
+    [0047] GETFIELD       A=4 B=0 C=17 k=0 Bx=8704 sBx=-56831 Ax=2228228 sJ=-14548987 raw=0x1100020E ; R[4] = R[0][K[17] "MoveFXComponent"]
+    [0048] GETFIELD       A=4 B=4 C=22 k=0 Bx=11272 sBx=-54263 Ax=2885636 sJ=-13891579 raw=0x1604020E ; R[4] = R[4][K[22] "FxBattleSwimJumpComp"]
+    [0049] MOVE           A=5 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=517 sJ=-16776698 raw=0x00010280
+    [0050] LOADTRUE       A=6 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=6 sJ=-16777209 raw=0x00000307
+    [0051] CALL           A=2 B=5 C=1 k=0 Bx=522 sBx=-65013 Ax=133634 sJ=-16643581 raw=0x01050144
+    [0052] GETTABUP       A=2 B=0 C=23 k=0 Bx=11776 sBx=-53759 Ax=3014658 sJ=-13762557 raw=0x1700010B ; R[2] = U[0][K[23] "_G"]
+    [0053] GETFIELD       A=2 B=2 C=24 k=0 Bx=12292 sBx=-53243 Ax=3146754 sJ=-13630461 raw=0x1802010E ; R[2] = R[2][K[24] "NRCAudioManager"]
+    [0054] SELF           A=2 B=2 C=25 k=1 Bx=12805 sBx=-52730 Ax=3278082 sJ=-13499133 raw=0x19028114
+    [0055] LOADI          A=4 B=242 C=135 k=1 Bx=69605 sBx=4070 Ax=17818884 sJ=1041669 raw=0x87F28201
+    [0056] GETFIELD       A=5 B=0 C=26 k=0 Bx=13312 sBx=-52223 Ax=3407877 sJ=-13369338 raw=0x1A00028E ; R[5] = R[0][K[26] "owner"]
+    [0057] GETFIELD       A=5 B=5 C=27 k=0 Bx=13834 sBx=-51701 Ax=3541509 sJ=-13235706 raw=0x1B05028E ; R[5] = R[5][K[27] "model"]
+    [0058] LOADK          A=6 B=14 C=0 k=0 Bx=28 sBx=-65507 Ax=7174 sJ=-16770041 raw=0x000E0303 ; R[6] = K[28] "BattleSwimComponent"
+    [0059] CALL           A=2 B=5 C=1 k=0 Bx=522 sBx=-65013 Ax=133634 sJ=-16643581 raw=0x01050144
+    [0060] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[18] source="" lines=266-273 params=2 vararg=0 stack=255 upvalues=0
+  constants (4):
+    K[0] = "SwimIdle"
+    K[1] = "MoveFXComponent"
+    K[2] = "FxBattleSwimIdleComp"
+    K[3] = "TryPlayOrStopSwimEffect"
+  locals (2):
+    L[0] = "self" pc=0-16
+    L[1] = "effect" pc=0-16
+  instructions (16):
+    [0001] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0002] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0003] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+    [0004] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "SwimIdle"]
+    [0005] EQ             A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200B9
+    [0006] JMP            A=8 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777224 sJ=9 raw=0x80000438
+    [0007] GETFIELD       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010E ; R[2] = R[0][K[1] "MoveFXComponent"]
+    [0008] GETFIELD       A=3 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131075 sJ=-16646140 raw=0x0100018E ; R[3] = R[0][K[1] "MoveFXComponent"]
+    [0009] SELF           A=3 B=3 C=3 k=1 Bx=1543 sBx=-63992 Ax=395011 sJ=-16382204 raw=0x03038194
+    [0010] GETFIELD       A=5 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131077 sJ=-16646138 raw=0x0100028E ; R[5] = R[0][K[1] "MoveFXComponent"]
+    [0011] GETFIELD       A=5 B=5 C=2 k=0 Bx=1034 sBx=-64501 Ax=264709 sJ=-16512506 raw=0x0205028E ; R[5] = R[5][K[2] "FxBattleSwimIdleComp"]
+    [0012] MOVE           A=6 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=518 sJ=-16776697 raw=0x00010300
+    [0013] LOADFALSE      A=7 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=7 sJ=-16777208 raw=0x00000385
+    [0014] CALL           A=3 B=5 C=2 k=0 Bx=1034 sBx=-64501 Ax=264707 sJ=-16512508 raw=0x020501C4
+    [0015] SETFIELD       A=2 B=2 C=3 k=0 Bx=1540 sBx=-63995 Ax=394242 sJ=-16382973 raw=0x03020112 ; R[2][K[2] "FxBattleSwimIdleComp"] = R[3]
+    [0016] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[19] source="" lines=275-280 params=1 vararg=0 stack=255 upvalues=0
+  constants (4):
+    K[0] = "MoveFXComponent"
+    K[1] = "StopSwimFx"
+    K[2] = "EffectNumber"
+    K[3] = 0
+  locals (1):
+    L[0] = "self" pc=0-8
+  instructions (8):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "MoveFXComponent"]
+    [0002] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0003] JMP            A=3 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777219 sJ=4 raw=0x800001B8
+    [0004] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "MoveFXComponent"]
+    [0005] SELF           A=1 B=1 C=1 k=1 Bx=515 sBx=-65020 Ax=131841 sJ=-16645374 raw=0x01018094
+    [0006] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0007] SETFIELD       A=0 B=2 C=3 k=1 Bx=1541 sBx=-63994 Ax=394496 sJ=-16382719 raw=0x03028012 ; R[0][K[2] "EffectNumber"] = R[3]
+    [0008] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[20] source="" lines=283-294 params=1 vararg=0 stack=255 upvalues=0
+  constants (12):
+    K[0] = "StopAllEffect"
+    K[1] = "owner"
+    K[2] = nil
+    K[3] = "PetMesh"
+    K[4] = "SwimIdle"
+    K[5] = "SwimJump"
+    K[6] = "CharacterMovement"
+    K[7] = "MoveFXComponent"
+    K[8] = "FxSetting"
+    K[9] = "CanTick"
+    K[10] = false
+    K[11] = "enable"
+  locals (1):
+    L[0] = "self" pc=0-12
+  instructions (12):
+    [0001] SELF           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x00008094
+    [0002] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0003] SETFIELD       A=0 B=1 C=2 k=1 Bx=1027 sBx=-64508 Ax=262912 sJ=-16514303 raw=0x02018012 ; R[0][K[1] "owner"] = R[2]
+    [0004] SETFIELD       A=0 B=3 C=2 k=1 Bx=1031 sBx=-64504 Ax=263936 sJ=-16513279 raw=0x02038012 ; R[0][K[3] "PetMesh"] = R[2]
+    [0005] SETFIELD       A=0 B=4 C=2 k=1 Bx=1033 sBx=-64502 Ax=264448 sJ=-16512767 raw=0x02048012 ; R[0][K[4] "SwimIdle"] = R[2]
+    [0006] SETFIELD       A=0 B=5 C=2 k=1 Bx=1035 sBx=-64500 Ax=264960 sJ=-16512255 raw=0x02058012 ; R[0][K[5] "SwimJump"] = R[2]
+    [0007] SETFIELD       A=0 B=6 C=2 k=1 Bx=1037 sBx=-64498 Ax=265472 sJ=-16511743 raw=0x02068012 ; R[0][K[6] "CharacterMovement"] = R[2]
+    [0008] SETFIELD       A=0 B=7 C=2 k=1 Bx=1039 sBx=-64496 Ax=265984 sJ=-16511231 raw=0x02078012 ; R[0][K[7] "MoveFXComponent"] = R[2]
+    [0009] SETFIELD       A=0 B=8 C=2 k=1 Bx=1041 sBx=-64494 Ax=266496 sJ=-16510719 raw=0x02088012 ; R[0][K[8] "FxSetting"] = R[2]
+    [0010] SETFIELD       A=0 B=9 C=10 k=1 Bx=5139 sBx=-60396 Ax=1315584 sJ=-15461631 raw=0x0A098012 ; R[0][K[9] "CanTick"] = R[10]
+    [0011] SETFIELD       A=0 B=11 C=10 k=1 Bx=5143 sBx=-60392 Ax=1316608 sJ=-15460607 raw=0x0A0B8012 ; R[0][K[11] "enable"] = R[10]
+    [0012] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7

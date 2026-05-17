@@ -1,0 +1,305 @@
+-- path: Content/ScriptC/NewRoco/Modules/Core/Battle/Fsm/Actions/Base/BattleClientBranchActionBase.luac
+-- format: decrypted standard Lua 5.4 bytecode
+-- note: disassembly, not original source
+
+main source="@NewRoco\\Modules\\Core\\Battle\\Fsm\\Actions\\Base\\BattleClientBranchActionBase.lua" lines=0-0 params=0 vararg=1 stack=255 upvalues=1
+constants (16):
+  K[0] = "require"
+  K[1] = "NewRoco.Modules.Core.Fsm.FsmAction"
+  K[2] = "NewRoco.Modules.Core.Fsm.FsmUtils"
+  K[3] = "NewRoco.Modules.Core.Battle.Common.BattleEvent"
+  K[4] = "NewRoco.Modules.Core.Battle.BattleCore.Utils.BattleFsmResListAsyncLoader"
+  K[5] = "NewRoco.Modules.Core.Battle.BattleCore.Utils.BattleFsmSkillListAsyncLoader"
+  K[6] = "BattleActionBase"
+  K[7] = "Extend"
+  K[8] = "BattleClientBranchActionBase"
+  K[9] = "MergeMembers"
+  K[10] = "Ctor"
+  K[11] = "LoadResAsync"
+  K[12] = "LoadResListAsync"
+  K[13] = "LoadSkillAsync"
+  K[14] = "LoadSkillListAsync"
+  K[15] = "GetSkillClass"
+upvalues (1):
+  U[0] = instack=0 idx=0 kind=11 name="_ENV"
+locals (7):
+  L[0] = "FsmAction" pc=4-40
+  L[1] = "FsmUtils" pc=7-40
+  L[2] = "BattleEvent" pc=10-40
+  L[3] = "BattleFsmResListAsyncLoader" pc=13-40
+  L[4] = "BattleFsmSkillListAsyncLoader" pc=16-40
+  L[5] = "Base" pc=17-40
+  L[6] = "BattleClientBranchActionBase" pc=20-40
+instructions (40):
+  [0001] VARARGPREP     A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000051
+  [0002] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "require"]
+  [0003] LOADK          A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x00008083 ; R[1] = K[1] "NewRoco.Modules.Core.Fsm.FsmAction"
+  [0004] CALL           A=0 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263168 sJ=-16514047 raw=0x02020044
+  [0005] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "require"]
+  [0006] LOADK          A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010103 ; R[2] = K[2] "NewRoco.Modules.Core.Fsm.FsmUtils"
+  [0007] CALL           A=1 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263169 sJ=-16514046 raw=0x020200C4
+  [0008] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "require"]
+  [0009] LOADK          A=3 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=771 sJ=-16776444 raw=0x00018183 ; R[3] = K[3] "NewRoco.Modules.Core.Battle.Common.BattleEvent"
+  [0010] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+  [0011] GETTABUP       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018B ; R[3] = U[0][K[0] "require"]
+  [0012] LOADK          A=4 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1028 sJ=-16776187 raw=0x00020203 ; R[4] = K[4] "NewRoco.Modules.Core.Battle.BattleCore.Utils.BattleFsmResListAsyncLoader"
+  [0013] CALL           A=3 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263171 sJ=-16514044 raw=0x020201C4
+  [0014] GETTABUP       A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x0000020B ; R[4] = U[0][K[0] "require"]
+  [0015] LOADK          A=5 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1285 sJ=-16775930 raw=0x00028283 ; R[5] = K[5] "NewRoco.Modules.Core.Battle.BattleCore.Utils.BattleFsmSkillListAsyncLoader"
+  [0016] CALL           A=4 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263172 sJ=-16514043 raw=0x02020244
+  [0017] GETTABUP       A=5 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786437 sJ=-15990778 raw=0x0600028B ; R[5] = U[0][K[6] "BattleActionBase"]
+  [0018] SELF           A=6 B=5 C=7 k=1 Bx=3595 sBx=-61940 Ax=920326 sJ=-15856889 raw=0x07058314
+  [0019] LOADK          A=8 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2056 sJ=-16775159 raw=0x00040403 ; R[8] = K[8] "BattleClientBranchActionBase"
+  [0020] CALL           A=6 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263686 sJ=-16513529 raw=0x02030344
+  [0021] GETFIELD       A=7 B=1 C=9 k=0 Bx=4610 sBx=-60925 Ax=1180167 sJ=-15597048 raw=0x0901038E ; R[7] = R[1][K[9] "MergeMembers"]
+  [0022] MOVE           A=8 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2568 sJ=-16774647 raw=0x00050400
+  [0023] MOVE           A=9 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3081 sJ=-16774134 raw=0x00060480
+  [0024] NEWTABLE       A=10 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=10 sJ=-16777205 raw=0x00000513
+  [0025] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0026] CALL           A=7 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133127 sJ=-16644088 raw=0x010403C4
+  [0027] CLOSURE        A=7 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=7 sJ=-16777208 raw=0x000003CF ; R[7] = function[0]
+  [0028] SETFIELD       A=6 B=10 C=7 k=0 Bx=3604 sBx=-61931 Ax=922630 sJ=-15854585 raw=0x070A0312 ; R[6][K[10] "Ctor"] = R[7]
+  [0029] CLOSURE        A=7 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=263 sJ=-16776952 raw=0x000083CF ; R[7] = function[1]
+  [0030] SETFIELD       A=6 B=11 C=7 k=0 Bx=3606 sBx=-61929 Ax=923142 sJ=-15854073 raw=0x070B0312 ; R[6][K[11] "LoadResAsync"] = R[7]
+  [0031] CLOSURE        A=7 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=519 sJ=-16776696 raw=0x000103CF ; R[7] = function[2]
+  [0032] SETFIELD       A=6 B=12 C=7 k=0 Bx=3608 sBx=-61927 Ax=923654 sJ=-15853561 raw=0x070C0312 ; R[6][K[12] "LoadResListAsync"] = R[7]
+  [0033] CLOSURE        A=7 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=775 sJ=-16776440 raw=0x000183CF ; R[7] = function[3]
+  [0034] SETFIELD       A=6 B=13 C=7 k=0 Bx=3610 sBx=-61925 Ax=924166 sJ=-15853049 raw=0x070D0312 ; R[6][K[13] "LoadSkillAsync"] = R[7]
+  [0035] CLOSURE        A=7 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1031 sJ=-16776184 raw=0x000203CF ; R[7] = function[4]
+  [0036] SETFIELD       A=6 B=14 C=7 k=0 Bx=3612 sBx=-61923 Ax=924678 sJ=-15852537 raw=0x070E0312 ; R[6][K[14] "LoadSkillListAsync"] = R[7]
+  [0037] CLOSURE        A=7 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1287 sJ=-16775928 raw=0x000283CF ; R[7] = function[5]
+  [0038] SETFIELD       A=6 B=15 C=7 k=0 Bx=3614 sBx=-61921 Ax=925190 sJ=-15852025 raw=0x070F0312 ; R[6][K[15] "GetSkillClass"] = R[7]
+  [0039] RETURN         A=6 B=2 C=1 k=1 Bx=517 sBx=-65018 Ax=132358 sJ=-16644857 raw=0x01028346
+  [0040] RETURN         A=7 B=1 C=1 k=1 Bx=515 sBx=-65020 Ax=131847 sJ=-16645368 raw=0x010183C6
+
+  function[0] source="" lines=28-32 params=3 vararg=0 stack=255 upvalues=2
+  constants (5):
+    K[0] = "Ctor"
+    K[1] = "SetActionType"
+    K[2] = "BattleActionBase"
+    K[3] = "ActionType"
+    K[4] = "ClientUnSkipableAction"
+  upvalues (2):
+    U[0] = instack=5 idx=0 kind=0 name="Base"
+    U[1] = instack=0 idx=0 kind=7 name="_ENV"
+  locals (3):
+    L[0] = "self" pc=0-11
+    L[1] = "name" pc=0-11
+    L[2] = "properties" pc=0-11
+  instructions (11):
+    [0001] GETTABUP       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018B ; R[3] = U[0][K[0] "Ctor"]
+    [0002] MOVE           A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000200
+    [0003] MOVE           A=5 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=517 sJ=-16776698 raw=0x00010280
+    [0004] MOVE           A=6 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1030 sJ=-16776185 raw=0x00020300
+    [0005] CALL           A=3 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133123 sJ=-16644092 raw=0x010401C4
+    [0006] SELF           A=3 B=0 C=1 k=1 Bx=513 sBx=-65022 Ax=131331 sJ=-16645884 raw=0x01008194
+    [0007] GETTABUP       A=5 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262661 sJ=-16514554 raw=0x0201028B ; R[5] = U[1][K[2] "BattleActionBase"]
+    [0008] GETFIELD       A=5 B=5 C=3 k=0 Bx=1546 sBx=-63989 Ax=395781 sJ=-16381434 raw=0x0305028E ; R[5] = R[5][K[3] "ActionType"]
+    [0009] GETFIELD       A=5 B=5 C=4 k=0 Bx=2058 sBx=-63477 Ax=526853 sJ=-16250362 raw=0x0405028E ; R[5] = R[5][K[4] "ClientUnSkipableAction"]
+    [0010] CALL           A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x010301C4
+    [0011] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7
+
+  function[1] source="" lines=37-44 params=3 vararg=0 stack=255 upvalues=0
+  constants (1):
+    K[0] = "BattleClientBranchActionBase"
+  locals (4):
+    L[0] = "self" pc=0-9
+    L[1] = "resPath" pc=0-9
+    L[2] = "successCallback" pc=0-9
+    L[3] = "localSuccessCallback" pc=1-9
+  instructions (9):
+    [0001] CLOSURE        A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x000001CF ; R[3] = function[0]
+    [0002] SELF           A=4 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=260 sJ=-16776955 raw=0x00008214
+    [0003] NEWTABLE       A=6 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131078 sJ=-16646137 raw=0x01000313
+    [0004] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0005] MOVE           A=7 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=519 sJ=-16776696 raw=0x00010380
+    [0006] SETLIST        A=6 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=518 sJ=-16776697 raw=0x0001034E
+    [0007] MOVE           A=7 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1543 sJ=-16775672 raw=0x00030380
+    [0008] CALL           A=4 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133124 sJ=-16644091 raw=0x01040244
+    [0009] RETURN         A=4 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=772 sJ=-16776443 raw=0x00018246
+
+    function[0] source="" lines=40-42 params=2 vararg=0 stack=255 upvalues=2
+    upvalues (2):
+      U[0] = instack=2 idx=0 kind=1 name="successCallback"
+      U[1] = instack=0 idx=0 kind=5 name="self"
+    locals (2):
+      L[0] = "successCallbackCaller" pc=0-5
+      L[1] = "resources" pc=0-5
+    instructions (5):
+      [0001] GETUPVAL       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000109
+      [0002] GETUPVAL       A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x00010189
+      [0003] GETI           A=4 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131588 sJ=-16645627 raw=0x0101020D
+      [0004] CALL           A=2 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132610 sJ=-16644605 raw=0x01030144
+      [0005] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[2] source="" lines=49-64 params=3 vararg=0 stack=255 upvalues=1
+  constants (1):
+    K[0] = "Run"
+  upvalues (1):
+    U[0] = instack=3 idx=0 kind=10 name="BattleFsmResListAsyncLoader"
+  locals (6):
+    L[0] = "self" pc=0-11
+    L[1] = "resPathList" pc=0-11
+    L[2] = "successCallback" pc=0-11
+    L[3] = "localSuccessCallback" pc=1-11
+    L[4] = "failedCallback" pc=2-11
+    L[5] = "resLoader" pc=8-11
+  instructions (11):
+    [0001] CLOSURE        A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x000001CF ; R[3] = function[0]
+    [0002] CLOSURE        A=4 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=260 sJ=-16776955 raw=0x0000824F ; R[4] = function[1]
+    [0003] GETUPVAL       A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x00000289
+    [0004] MOVE           A=6 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=6 sJ=-16777209 raw=0x00000300
+    [0005] MOVE           A=7 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=519 sJ=-16776696 raw=0x00010380
+    [0006] MOVE           A=8 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1544 sJ=-16775671 raw=0x00030400
+    [0007] MOVE           A=9 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2057 sJ=-16775158 raw=0x00040480
+    [0008] CALL           A=5 B=5 C=2 k=0 Bx=1034 sBx=-64501 Ax=264709 sJ=-16512506 raw=0x020502C4
+    [0009] SELF           A=6 B=5 C=0 k=1 Bx=11 sBx=-65524 Ax=2822 sJ=-16774393 raw=0x00058314
+    [0010] CALL           A=6 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132102 sJ=-16645113 raw=0x01020344
+    [0011] RETURN         A=6 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=774 sJ=-16776441 raw=0x00018346
+
+    function[0] source="" lines=52-54 params=2 vararg=0 stack=255 upvalues=2
+    upvalues (2):
+      U[0] = instack=2 idx=0 kind=1 name="successCallback"
+      U[1] = instack=0 idx=0 kind=5 name="self"
+    locals (2):
+      L[0] = "successCallbackCaller" pc=0-5
+      L[1] = "resources" pc=0-5
+    instructions (5):
+      [0001] GETUPVAL       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000109
+      [0002] GETUPVAL       A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x00010189
+      [0003] MOVE           A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010200
+      [0004] CALL           A=2 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132610 sJ=-16644605 raw=0x01030144
+      [0005] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+    function[1] source="" lines=57-59 params=1 vararg=0 stack=255 upvalues=0
+    locals (1):
+      L[0] = "failedCallbackCaller" pc=0-1
+    instructions (1):
+      [0001] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[3] source="" lines=70-77 params=4 vararg=0 stack=255 upvalues=0
+  constants (1):
+    K[0] = "LoadSkillListAsync"
+  locals (5):
+    L[0] = "self" pc=0-10
+    L[1] = "skillPath" pc=0-10
+    L[2] = "loadCompletedCheckType" pc=0-10
+    L[3] = "successCallback" pc=0-10
+    L[4] = "localSuccessCallback" pc=1-10
+  instructions (10):
+    [0001] CLOSURE        A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x0000024F ; R[4] = function[0]
+    [0002] SELF           A=5 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=261 sJ=-16776954 raw=0x00008294
+    [0003] NEWTABLE       A=7 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131079 sJ=-16646136 raw=0x01000393
+    [0004] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0005] MOVE           A=8 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=520 sJ=-16776695 raw=0x00010400
+    [0006] SETLIST        A=7 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=519 sJ=-16776696 raw=0x000103CE
+    [0007] MOVE           A=8 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1032 sJ=-16776183 raw=0x00020400
+    [0008] MOVE           A=9 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2057 sJ=-16775158 raw=0x00040480
+    [0009] CALL           A=5 B=5 C=1 k=0 Bx=522 sBx=-65013 Ax=133637 sJ=-16643578 raw=0x010502C4
+    [0010] RETURN         A=5 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=773 sJ=-16776442 raw=0x000182C6
+
+    function[0] source="" lines=73-75 params=2 vararg=0 stack=255 upvalues=2
+    upvalues (2):
+      U[0] = instack=3 idx=0 kind=1 name="successCallback"
+      U[1] = instack=0 idx=0 kind=5 name="self"
+    locals (2):
+      L[0] = "successCallbackCaller" pc=0-5
+      L[1] = "resources" pc=0-5
+    instructions (5):
+      [0001] GETUPVAL       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000109
+      [0002] GETUPVAL       A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x00010189
+      [0003] GETI           A=4 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131588 sJ=-16645627 raw=0x0101020D
+      [0004] CALL           A=2 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132610 sJ=-16644605 raw=0x01030144
+      [0005] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[4] source="" lines=83-98 params=4 vararg=0 stack=255 upvalues=1
+  constants (1):
+    K[0] = "Run"
+  upvalues (1):
+    U[0] = instack=4 idx=0 kind=13 name="BattleFsmSkillListAsyncLoader"
+  locals (7):
+    L[0] = "self" pc=0-13
+    L[1] = "skillPathList" pc=0-13
+    L[2] = "loadCompletedCheckType" pc=0-13
+    L[3] = "successCallback" pc=0-13
+    L[4] = "localSuccessCallback" pc=1-13
+    L[5] = "failedCallback" pc=2-13
+    L[6] = "skillLoader" pc=10-13
+  instructions (13):
+    [0001] CLOSURE        A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x0000024F ; R[4] = function[0]
+    [0002] CLOSURE        A=5 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=261 sJ=-16776954 raw=0x000082CF ; R[5] = function[1]
+    [0003] GETUPVAL       A=6 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=6 sJ=-16777209 raw=0x00000309
+    [0004] MOVE           A=7 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=7 sJ=-16777208 raw=0x00000380
+    [0005] MOVE           A=8 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=520 sJ=-16776695 raw=0x00010400
+    [0006] MOVE           A=9 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1033 sJ=-16776182 raw=0x00020480
+    [0007] LOADFALSE      A=10 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=10 sJ=-16777205 raw=0x00000505
+    [0008] MOVE           A=11 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2059 sJ=-16775156 raw=0x00040580
+    [0009] MOVE           A=12 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2572 sJ=-16774643 raw=0x00050600
+    [0010] CALL           A=6 B=7 C=2 k=0 Bx=1038 sBx=-64497 Ax=265734 sJ=-16511481 raw=0x02070344
+    [0011] SELF           A=7 B=6 C=0 k=1 Bx=13 sBx=-65522 Ax=3335 sJ=-16773880 raw=0x00068394
+    [0012] CALL           A=7 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132103 sJ=-16645112 raw=0x010203C4
+    [0013] RETURN         A=7 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=775 sJ=-16776440 raw=0x000183C6
+
+    function[0] source="" lines=87-89 params=2 vararg=0 stack=255 upvalues=2
+    upvalues (2):
+      U[0] = instack=3 idx=0 kind=1 name="successCallback"
+      U[1] = instack=0 idx=0 kind=5 name="self"
+    locals (2):
+      L[0] = "successCallbackCaller" pc=0-5
+      L[1] = "resources" pc=0-5
+    instructions (5):
+      [0001] GETUPVAL       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000109
+      [0002] GETUPVAL       A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x00010189
+      [0003] MOVE           A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010200
+      [0004] CALL           A=2 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132610 sJ=-16644605 raw=0x01030144
+      [0005] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+    function[1] source="" lines=92-94 params=1 vararg=0 stack=255 upvalues=0
+    locals (1):
+      L[0] = "failedCallbackCaller" pc=0-1
+    instructions (1):
+      [0001] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[5] source="" lines=103-110 params=2 vararg=0 stack=255 upvalues=1
+  constants (10):
+    K[0] = "_G"
+    K[1] = "BattleSkillManager"
+    K[2] = "IsResLoaded"
+    K[3] = "GetLoadedClass"
+    K[4] = "Log"
+    K[5] = "Error"
+    K[6] = "string"
+    K[7] = "format"
+    K[8] = "BattleClientBranchActionBase:GetSkillClass skillResPath not loaded, skillResPath = %s"
+    K[9] = "Finish"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=6 name="_ENV"
+  locals (2):
+    L[0] = "self" pc=0-25
+    L[1] = "skillResPath" pc=0-25
+  instructions (25):
+    [0001] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "_G"]
+    [0002] GETFIELD       A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x0102010E ; R[2] = R[2][K[1] "BattleSkillManager"]
+    [0003] SELF           A=2 B=2 C=2 k=1 Bx=1029 sBx=-64506 Ax=263426 sJ=-16513789 raw=0x02028114
+    [0004] MOVE           A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010200
+    [0005] CALL           A=2 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263682 sJ=-16513533 raw=0x02030144
+    [0006] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0007] JMP            A=6 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777222 sJ=7 raw=0x80000338
+    [0008] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "_G"]
+    [0009] GETFIELD       A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x0102010E ; R[2] = R[2][K[1] "BattleSkillManager"]
+    [0010] SELF           A=2 B=2 C=3 k=1 Bx=1541 sBx=-63994 Ax=394498 sJ=-16382717 raw=0x03028114
+    [0011] MOVE           A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010200
+    [0012] TAILCALL       A=2 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1538 sJ=-16775677 raw=0x00030145
+    [0013] RETURN         A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000146
+    [0014] JMP            A=9 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777225 sJ=10 raw=0x800004B8
+    [0015] GETTABUP       A=2 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524290 sJ=-16252925 raw=0x0400010B ; R[2] = U[0][K[4] "Log"]
+    [0016] GETFIELD       A=2 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656386 sJ=-16120829 raw=0x0502010E ; R[2] = R[2][K[5] "Error"]
+    [0017] GETTABUP       A=3 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786435 sJ=-15990780 raw=0x0600018B ; R[3] = U[0][K[6] "string"]
+    [0018] GETFIELD       A=3 B=3 C=7 k=0 Bx=3590 sBx=-61945 Ax=919043 sJ=-15858172 raw=0x0703018E ; R[3] = R[3][K[7] "format"]
+    [0019] LOADK          A=4 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2052 sJ=-16775163 raw=0x00040203 ; R[4] = K[8] "BattleClientBranchActionBase:GetSkillClass skillResPath not loaded, skillResPath = %s"
+    [0020] MOVE           A=5 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=517 sJ=-16776698 raw=0x00010280
+    [0021] CALL           A=3 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1539 sJ=-16775676 raw=0x000301C4
+    [0022] CALL           A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x01000144
+    [0023] SELF           A=2 B=0 C=9 k=1 Bx=4609 sBx=-60926 Ax=1179906 sJ=-15597309 raw=0x09008114
+    [0024] CALL           A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x01020144
+    [0025] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147

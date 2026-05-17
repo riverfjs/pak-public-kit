@@ -1,0 +1,826 @@
+-- path: Content/ScriptC/NewRoco/Modules/Core/Battle/Common/BattleBossChallengeUtils.luac
+-- format: decrypted standard Lua 5.4 bytecode
+-- note: disassembly, not original source
+
+main source="@NewRoco\\Modules\\Core\\Battle\\Common\\BattleBossChallengeUtils.lua" lines=0-0 params=0 vararg=1 stack=255 upvalues=1
+constants (21):
+  K[0] = "GetBossChallengeData"
+  K[1] = "GetBossChallengeActivityId"
+  K[2] = "GetCurBossChallengeLevelId"
+  K[3] = "CheckCurMapIsLeaderChallengeDungeon"
+  K[4] = "IsLeaderChallengeDungeon"
+  K[5] = "IsInLeaderChallengeDungeon"
+  K[6] = "GetBossChallengeCurLevel"
+  K[7] = "GetBossChallengeTaskInfo"
+  K[8] = "GetBossChallengeCurBuff"
+  K[9] = "GetBossChallengeId"
+  K[10] = "GetBossChallengeRules"
+  K[11] = "MergeBossChallengeInfo"
+  K[12] = "ShowMechanismValidationTiming"
+  K[13] = "ShowMechanismValidationFinish"
+  K[14] = "ShowAdditionalTarget"
+  K[15] = "HideAdditionalTarget"
+  K[16] = "ShowUmgMechanismClick"
+  K[17] = "RefreshData"
+  K[18] = "RefreshBossChallengeData"
+  K[19] = "CheckHasBossData"
+  K[20] = "OnGetBossChallengeData"
+upvalues (1):
+  U[0] = instack=0 idx=0 kind=2 name="_ENV"
+locals (1):
+  L[0] = "BattleBossChallengeUtils" pc=3-47
+instructions (47):
+  [0001] VARARGPREP     A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000051
+  [0002] NEWTABLE       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000013
+  [0003] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0004] CLOSURE        A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000CF ; R[1] = function[0]
+  [0005] SETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x01000012 ; R[0][K[0] "GetBossChallengeData"] = R[1]
+  [0006] CLOSURE        A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080CF ; R[1] = function[1]
+  [0007] SETFIELD       A=0 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131584 sJ=-16645631 raw=0x01010012 ; R[0][K[1] "GetBossChallengeActivityId"] = R[1]
+  [0008] CLOSURE        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100CF ; R[1] = function[2]
+  [0009] SETFIELD       A=0 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132096 sJ=-16645119 raw=0x01020012 ; R[0][K[2] "GetCurBossChallengeLevelId"] = R[1]
+  [0010] CLOSURE        A=1 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=769 sJ=-16776446 raw=0x000180CF ; R[1] = function[3]
+  [0011] SETFIELD       A=0 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132608 sJ=-16644607 raw=0x01030012 ; R[0][K[3] "CheckCurMapIsLeaderChallengeDungeon"] = R[1]
+  [0012] CLOSURE        A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200CF ; R[1] = function[4]
+  [0013] SETFIELD       A=0 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133120 sJ=-16644095 raw=0x01040012 ; R[0][K[4] "IsLeaderChallengeDungeon"] = R[1]
+  [0014] CLOSURE        A=1 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1281 sJ=-16775934 raw=0x000280CF ; R[1] = function[5]
+  [0015] SETFIELD       A=0 B=5 C=1 k=0 Bx=522 sBx=-65013 Ax=133632 sJ=-16643583 raw=0x01050012 ; R[0][K[5] "IsInLeaderChallengeDungeon"] = R[1]
+  [0016] CLOSURE        A=1 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1537 sJ=-16775678 raw=0x000300CF ; R[1] = function[6]
+  [0017] SETFIELD       A=0 B=6 C=1 k=0 Bx=524 sBx=-65011 Ax=134144 sJ=-16643071 raw=0x01060012 ; R[0][K[6] "GetBossChallengeCurLevel"] = R[1]
+  [0018] CLOSURE        A=1 B=3 C=0 k=1 Bx=7 sBx=-65528 Ax=1793 sJ=-16775422 raw=0x000380CF ; R[1] = function[7]
+  [0019] SETFIELD       A=0 B=7 C=1 k=0 Bx=526 sBx=-65009 Ax=134656 sJ=-16642559 raw=0x01070012 ; R[0][K[7] "GetBossChallengeTaskInfo"] = R[1]
+  [0020] CLOSURE        A=1 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2049 sJ=-16775166 raw=0x000400CF ; R[1] = function[8]
+  [0021] SETFIELD       A=0 B=8 C=1 k=0 Bx=528 sBx=-65007 Ax=135168 sJ=-16642047 raw=0x01080012 ; R[0][K[8] "GetBossChallengeCurBuff"] = R[1]
+  [0022] CLOSURE        A=1 B=4 C=0 k=1 Bx=9 sBx=-65526 Ax=2305 sJ=-16774910 raw=0x000480CF ; R[1] = function[9]
+  [0023] SETFIELD       A=0 B=9 C=1 k=0 Bx=530 sBx=-65005 Ax=135680 sJ=-16641535 raw=0x01090012 ; R[0][K[9] "GetBossChallengeId"] = R[1]
+  [0024] CLOSURE        A=1 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2561 sJ=-16774654 raw=0x000500CF ; R[1] = function[10]
+  [0025] SETFIELD       A=0 B=10 C=1 k=0 Bx=532 sBx=-65003 Ax=136192 sJ=-16641023 raw=0x010A0012 ; R[0][K[10] "GetBossChallengeRules"] = R[1]
+  [0026] CLOSURE        A=1 B=5 C=0 k=1 Bx=11 sBx=-65524 Ax=2817 sJ=-16774398 raw=0x000580CF ; R[1] = function[11]
+  [0027] SETFIELD       A=0 B=11 C=1 k=0 Bx=534 sBx=-65001 Ax=136704 sJ=-16640511 raw=0x010B0012 ; R[0][K[11] "MergeBossChallengeInfo"] = R[1]
+  [0028] CLOSURE        A=1 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3073 sJ=-16774142 raw=0x000600CF ; R[1] = function[12]
+  [0029] SETFIELD       A=0 B=12 C=1 k=0 Bx=536 sBx=-64999 Ax=137216 sJ=-16639999 raw=0x010C0012 ; R[0][K[12] "ShowMechanismValidationTiming"] = R[1]
+  [0030] CLOSURE        A=1 B=6 C=0 k=1 Bx=13 sBx=-65522 Ax=3329 sJ=-16773886 raw=0x000680CF ; R[1] = function[13]
+  [0031] SETFIELD       A=0 B=13 C=1 k=0 Bx=538 sBx=-64997 Ax=137728 sJ=-16639487 raw=0x010D0012 ; R[0][K[13] "ShowMechanismValidationFinish"] = R[1]
+  [0032] CLOSURE        A=1 B=7 C=0 k=0 Bx=14 sBx=-65521 Ax=3585 sJ=-16773630 raw=0x000700CF ; R[1] = function[14]
+  [0033] SETFIELD       A=0 B=14 C=1 k=0 Bx=540 sBx=-64995 Ax=138240 sJ=-16638975 raw=0x010E0012 ; R[0][K[14] "ShowAdditionalTarget"] = R[1]
+  [0034] CLOSURE        A=1 B=7 C=0 k=1 Bx=15 sBx=-65520 Ax=3841 sJ=-16773374 raw=0x000780CF ; R[1] = function[15]
+  [0035] SETFIELD       A=0 B=15 C=1 k=0 Bx=542 sBx=-64993 Ax=138752 sJ=-16638463 raw=0x010F0012 ; R[0][K[15] "HideAdditionalTarget"] = R[1]
+  [0036] CLOSURE        A=1 B=8 C=0 k=0 Bx=16 sBx=-65519 Ax=4097 sJ=-16773118 raw=0x000800CF ; R[1] = function[16]
+  [0037] SETFIELD       A=0 B=16 C=1 k=0 Bx=544 sBx=-64991 Ax=139264 sJ=-16637951 raw=0x01100012 ; R[0][K[16] "ShowUmgMechanismClick"] = R[1]
+  [0038] CLOSURE        A=1 B=8 C=0 k=1 Bx=17 sBx=-65518 Ax=4353 sJ=-16772862 raw=0x000880CF ; R[1] = function[17]
+  [0039] SETFIELD       A=0 B=17 C=1 k=0 Bx=546 sBx=-64989 Ax=139776 sJ=-16637439 raw=0x01110012 ; R[0][K[17] "RefreshData"] = R[1]
+  [0040] CLOSURE        A=1 B=9 C=0 k=0 Bx=18 sBx=-65517 Ax=4609 sJ=-16772606 raw=0x000900CF ; R[1] = function[18]
+  [0041] SETFIELD       A=0 B=18 C=1 k=0 Bx=548 sBx=-64987 Ax=140288 sJ=-16636927 raw=0x01120012 ; R[0][K[18] "RefreshBossChallengeData"] = R[1]
+  [0042] CLOSURE        A=1 B=9 C=0 k=1 Bx=19 sBx=-65516 Ax=4865 sJ=-16772350 raw=0x000980CF ; R[1] = function[19]
+  [0043] SETFIELD       A=0 B=19 C=1 k=0 Bx=550 sBx=-64985 Ax=140800 sJ=-16636415 raw=0x01130012 ; R[0][K[19] "CheckHasBossData"] = R[1]
+  [0044] CLOSURE        A=1 B=10 C=0 k=0 Bx=20 sBx=-65515 Ax=5121 sJ=-16772094 raw=0x000A00CF ; R[1] = function[20]
+  [0045] SETFIELD       A=0 B=20 C=1 k=0 Bx=552 sBx=-64983 Ax=141312 sJ=-16635903 raw=0x01140012 ; R[0][K[20] "OnGetBossChallengeData"] = R[1]
+  [0046] RETURN         A=0 B=2 C=1 k=1 Bx=517 sBx=-65018 Ax=132352 sJ=-16644863 raw=0x01028046
+  [0047] RETURN         A=1 B=1 C=1 k=1 Bx=515 sBx=-65020 Ax=131841 sJ=-16645374 raw=0x010180C6
+
+  function[0] source="" lines=9-17 params=0 vararg=0 stack=255 upvalues=1
+  constants (9):
+    K[0] = "_G"
+    K[1] = "NRCModuleManager"
+    K[2] = "DoCmd"
+    K[3] = "ActivityModuleCmd"
+    K[4] = "GetActivityInstByType"
+    K[5] = "Enum"
+    K[6] = "ActivityType"
+    K[7] = "ATP_BOSS_CHALLENGE_EVENT"
+    K[8] = "GetBossChallengeData"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=4 name="_ENV"
+  locals (1):
+    L[0] = "BossChallengeEventActivityObject" pc=9-22
+  instructions (22):
+    [0001] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "_G"]
+    [0002] GETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x0100000E ; R[0] = R[0][K[1] "NRCModuleManager"]
+    [0003] SELF           A=0 B=0 C=2 k=1 Bx=1025 sBx=-64510 Ax=262400 sJ=-16514815 raw=0x02008014
+    [0004] GETTABUP       A=2 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393218 sJ=-16383997 raw=0x0300010B ; R[2] = U[0][K[3] "ActivityModuleCmd"]
+    [0005] GETFIELD       A=2 B=2 C=4 k=0 Bx=2052 sBx=-63483 Ax=525314 sJ=-16251901 raw=0x0402010E ; R[2] = R[2][K[4] "GetActivityInstByType"]
+    [0006] GETTABUP       A=3 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655363 sJ=-16121852 raw=0x0500018B ; R[3] = U[0][K[5] "Enum"]
+    [0007] GETFIELD       A=3 B=3 C=6 k=0 Bx=3078 sBx=-62457 Ax=787971 sJ=-15989244 raw=0x0603018E ; R[3] = R[3][K[6] "ActivityType"]
+    [0008] GETFIELD       A=3 B=3 C=7 k=0 Bx=3590 sBx=-61945 Ax=919043 sJ=-15858172 raw=0x0703018E ; R[3] = R[3][K[7] "ATP_BOSS_CHALLENGE_EVENT"]
+    [0009] CALL           A=0 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264192 sJ=-16513023 raw=0x02040044
+    [0010] TEST           A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000042
+    [0011] JMP            A=7 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777223 sJ=8 raw=0x800003B8
+    [0012] GETI           A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008D
+    [0013] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0014] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0015] GETI           A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008D
+    [0016] SELF           A=1 B=1 C=8 k=1 Bx=4099 sBx=-61436 Ax=1049345 sJ=-15727870 raw=0x08018094
+    [0017] TAILCALL       A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C5
+    [0018] RETURN         A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C6
+    [0019] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0020] LOADNIL        A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000088
+    [0021] RETURN1        A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C8
+    [0022] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[1] source="" lines=20-28 params=0 vararg=0 stack=255 upvalues=1
+  constants (9):
+    K[0] = "_G"
+    K[1] = "NRCModuleManager"
+    K[2] = "DoCmd"
+    K[3] = "ActivityModuleCmd"
+    K[4] = "GetActivityInstByType"
+    K[5] = "Enum"
+    K[6] = "ActivityType"
+    K[7] = "ATP_BOSS_CHALLENGE_EVENT"
+    K[8] = "GetBossActivityId"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=4 name="_ENV"
+  locals (1):
+    L[0] = "BossChallengeEventActivityObject" pc=9-22
+  instructions (22):
+    [0001] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "_G"]
+    [0002] GETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x0100000E ; R[0] = R[0][K[1] "NRCModuleManager"]
+    [0003] SELF           A=0 B=0 C=2 k=1 Bx=1025 sBx=-64510 Ax=262400 sJ=-16514815 raw=0x02008014
+    [0004] GETTABUP       A=2 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393218 sJ=-16383997 raw=0x0300010B ; R[2] = U[0][K[3] "ActivityModuleCmd"]
+    [0005] GETFIELD       A=2 B=2 C=4 k=0 Bx=2052 sBx=-63483 Ax=525314 sJ=-16251901 raw=0x0402010E ; R[2] = R[2][K[4] "GetActivityInstByType"]
+    [0006] GETTABUP       A=3 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655363 sJ=-16121852 raw=0x0500018B ; R[3] = U[0][K[5] "Enum"]
+    [0007] GETFIELD       A=3 B=3 C=6 k=0 Bx=3078 sBx=-62457 Ax=787971 sJ=-15989244 raw=0x0603018E ; R[3] = R[3][K[6] "ActivityType"]
+    [0008] GETFIELD       A=3 B=3 C=7 k=0 Bx=3590 sBx=-61945 Ax=919043 sJ=-15858172 raw=0x0703018E ; R[3] = R[3][K[7] "ATP_BOSS_CHALLENGE_EVENT"]
+    [0009] CALL           A=0 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264192 sJ=-16513023 raw=0x02040044
+    [0010] TEST           A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000042
+    [0011] JMP            A=7 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777223 sJ=8 raw=0x800003B8
+    [0012] GETI           A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008D
+    [0013] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0014] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0015] GETI           A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008D
+    [0016] SELF           A=1 B=1 C=8 k=1 Bx=4099 sBx=-61436 Ax=1049345 sJ=-15727870 raw=0x08018094
+    [0017] TAILCALL       A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C5
+    [0018] RETURN         A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C6
+    [0019] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0020] LOADI          A=1 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776961 sJ=-254 raw=0x7FFF8081
+    [0021] RETURN1        A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C8
+    [0022] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[2] source="" lines=31-37 params=0 vararg=0 stack=255 upvalues=2
+  constants (5):
+    K[0] = "GetBossChallengeData"
+    K[1] = "last_level_id"
+    K[2] = "Log"
+    K[3] = "Error"
+    K[4] = "last_level_id\u6570\u636E\u4E22\u5931\uFF0C\u8BA9\u540E\u53F0\u53BB\u68C0\u67E5\u4E00\u4E0B\u6D3B\u52A8\u6570\u636E\u4E2D\u7684\u5B57\u6BB5ActivityBossChallengeData.last_level_id\u662F\u5426\u540C\u6B65\u7ED9\u5BA2\u6237\u7AEF"
+  upvalues (2):
+    U[0] = instack=0 idx=0 kind=0 name="BattleBossChallengeUtils"
+    U[1] = instack=0 idx=0 kind=3 name="_ENV"
+  locals (1):
+    L[0] = "bossChallengeData" pc=2-12
+  instructions (12):
+    [0001] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "GetBossChallengeData"]
+    [0002] CALL           A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010044
+    [0003] GETFIELD       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008E ; R[1] = R[0][K[1] "last_level_id"]
+    [0004] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0005] JMP            A=3 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777219 sJ=4 raw=0x800001B8
+    [0006] GETTABUP       A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x0201008B ; R[1] = U[1][K[2] "Log"]
+    [0007] GETFIELD       A=1 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393729 sJ=-16383486 raw=0x0301008E ; R[1] = R[1][K[3] "Error"]
+    [0008] LOADK          A=2 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1026 sJ=-16776189 raw=0x00020103 ; R[2] = K[4] "last_level_id\u6570\u636E\u4E22\u5931\uFF0C\u8BA9\u540E\u53F0\u53BB\u68C0\u67E5\u4E00\u4E0B\u6D3B\u52A8\u6570\u636E\u4E2D\u7684\u5B57\u6BB5ActivityBossChallengeData.last_level_id\u662F\u5426\u540C\u6B65\u7ED9\u5BA2\u6237\u7AEF"
+    [0009] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0010] GETFIELD       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008E ; R[1] = R[0][K[1] "last_level_id"]
+    [0011] RETURN1        A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C8
+    [0012] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[3] source="" lines=39-43 params=1 vararg=0 stack=255 upvalues=1
+  constants (6):
+    K[0] = "_G"
+    K[1] = "DataConfigManager"
+    K[2] = "GetChallengeGlobalConf"
+    K[3] = "num"
+    K[4] = "GetDungeonConf"
+    K[5] = "scene_id"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=5 name="_ENV"
+  locals (3):
+    L[0] = "SceneId" pc=0-18
+    L[1] = "leaderDungeonId" pc=6-18
+    L[2] = "Conf" pc=11-18
+  instructions (18):
+    [0001] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "_G"]
+    [0002] GETFIELD       A=1 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131585 sJ=-16645630 raw=0x0101008E ; R[1] = R[1][K[1] "DataConfigManager"]
+    [0003] SELF           A=1 B=1 C=2 k=1 Bx=1027 sBx=-64508 Ax=262913 sJ=-16514302 raw=0x02018094
+    [0004] LOADI          A=3 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777219 sJ=4 raw=0x80000181
+    [0005] CALL           A=1 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263681 sJ=-16513534 raw=0x020300C4
+    [0006] GETFIELD       A=1 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393729 sJ=-16383486 raw=0x0301008E ; R[1] = R[1][K[3] "num"]
+    [0007] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "_G"]
+    [0008] GETFIELD       A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x0102010E ; R[2] = R[2][K[1] "DataConfigManager"]
+    [0009] SELF           A=2 B=2 C=4 k=1 Bx=2053 sBx=-63482 Ax=525570 sJ=-16251645 raw=0x04028114
+    [0010] MOVE           A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010200
+    [0011] CALL           A=2 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263682 sJ=-16513533 raw=0x02030144
+    [0012] GETFIELD       A=3 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656387 sJ=-16120828 raw=0x0502018E ; R[3] = R[2][K[5] "scene_id"]
+    [0013] EQ             A=3 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=259 sJ=-16776956 raw=0x000081B9
+    [0014] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0015] LFALSESKIP     A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000186
+    [0016] LOADTRUE       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000187
+    [0017] RETURN1        A=3 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1027 sJ=-16776188 raw=0x000201C8
+    [0018] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7
+
+  function[4] source="" lines=46-53 params=1 vararg=0 stack=255 upvalues=1
+  constants (4):
+    K[0] = "_G"
+    K[1] = "DataConfigManager"
+    K[2] = "GetChallengeGlobalConf"
+    K[3] = "num"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=4 name="_ENV"
+  locals (2):
+    L[0] = "dungeonId" pc=0-18
+    L[1] = "leaderDungeonId" pc=12-18
+  instructions (18):
+    [0001] TEST           A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000042
+    [0002] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0003] EQI            A=0 B=127 C=0 k=0 Bx=254 sBx=-65281 Ax=65024 sJ=-16712191 raw=0x007F003D
+    [0004] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0005] LOADFALSE      A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000085
+    [0006] RETURN1        A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C8
+    [0007] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "_G"]
+    [0008] GETFIELD       A=1 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131585 sJ=-16645630 raw=0x0101008E ; R[1] = R[1][K[1] "DataConfigManager"]
+    [0009] SELF           A=1 B=1 C=2 k=1 Bx=1027 sBx=-64508 Ax=262913 sJ=-16514302 raw=0x02018094
+    [0010] LOADI          A=3 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777219 sJ=4 raw=0x80000181
+    [0011] CALL           A=1 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263681 sJ=-16513534 raw=0x020300C4
+    [0012] GETFIELD       A=1 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393729 sJ=-16383486 raw=0x0301008E ; R[1] = R[1][K[3] "num"]
+    [0013] EQ             A=0 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=768 sJ=-16776447 raw=0x00018039
+    [0014] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0015] LFALSESKIP     A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000106
+    [0016] LOADTRUE       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000107
+    [0017] RETURN1        A=2 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1026 sJ=-16776189 raw=0x00020148
+    [0018] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[5] source="" lines=56-65 params=0 vararg=0 stack=255 upvalues=1
+  constants (7):
+    K[0] = "_G"
+    K[1] = "DataModelMgr"
+    K[2] = "PlayerDataModel"
+    K[3] = "IsInDungeon"
+    K[4] = "GetDungeonID"
+    K[5] = "BattleBossChallengeUtils"
+    K[6] = "IsLeaderChallengeDungeon"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=3 name="_ENV"
+  locals (1):
+    L[0] = "ID" pc=12-21
+  instructions (24):
+    [0001] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "_G"]
+    [0002] GETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x0100000E ; R[0] = R[0][K[1] "DataModelMgr"]
+    [0003] GETFIELD       A=0 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262144 sJ=-16515071 raw=0x0200000E ; R[0] = R[0][K[2] "PlayerDataModel"]
+    [0004] SELF           A=0 B=0 C=3 k=1 Bx=1537 sBx=-63998 Ax=393472 sJ=-16383743 raw=0x03008014
+    [0005] CALL           A=0 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263168 sJ=-16514047 raw=0x02020044
+    [0006] TEST           A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000042
+    [0007] JMP            A=13 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777229 sJ=14 raw=0x800006B8
+    [0008] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "_G"]
+    [0009] GETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x0100000E ; R[0] = R[0][K[1] "DataModelMgr"]
+    [0010] GETFIELD       A=0 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262144 sJ=-16515071 raw=0x0200000E ; R[0] = R[0][K[2] "PlayerDataModel"]
+    [0011] SELF           A=0 B=0 C=4 k=1 Bx=2049 sBx=-63486 Ax=524544 sJ=-16252671 raw=0x04008014
+    [0012] CALL           A=0 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263168 sJ=-16514047 raw=0x02020044
+    [0013] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "_G"]
+    [0014] GETFIELD       A=1 B=1 C=5 k=0 Bx=2562 sBx=-62973 Ax=655873 sJ=-16121342 raw=0x0501008E ; R[1] = R[1][K[5] "BattleBossChallengeUtils"]
+    [0015] GETFIELD       A=1 B=1 C=6 k=0 Bx=3074 sBx=-62461 Ax=786945 sJ=-15990270 raw=0x0601008E ; R[1] = R[1][K[6] "IsLeaderChallengeDungeon"]
+    [0016] MOVE           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000100
+    [0017] CALL           A=1 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263169 sJ=-16514046 raw=0x020200C4
+    [0018] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0019] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0020] LOADTRUE       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000087
+    [0021] RETURN1        A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C8
+    [0022] LOADFALSE      A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000005
+    [0023] RETURN1        A=0 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1024 sJ=-16776191 raw=0x00020048
+    [0024] RETURN0        A=0 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=512 sJ=-16776703 raw=0x00010047
+
+  function[6] source="" lines=68-78 params=0 vararg=0 stack=255 upvalues=2
+  constants (8):
+    K[0] = "GetBossChallengeData"
+    K[1] = "GetCurBossChallengeLevelId"
+    K[2] = "pairs"
+    K[3] = "levels"
+    K[4] = "challenge_id"
+    K[5] = "Log"
+    K[6] = "Error"
+    K[7] = "\u672A\u627E\u5230\u9996\u9886\u89D2\u6597\u76F8\u5173\u6570\u636EcurLevel="
+  upvalues (2):
+    U[0] = instack=0 idx=0 kind=0 name="BattleBossChallengeUtils"
+    U[1] = instack=0 idx=0 kind=9 name="_ENV"
+  locals (8):
+    L[0] = "bossChallengeData" pc=2-23
+    L[1] = "curLevel" pc=4-23
+    L[2] = "(for state)" pc=7-15
+    L[3] = "(for state)" pc=7-15
+    L[4] = "(for state)" pc=7-15
+    L[5] = "(for state)" pc=7-15
+    L[6] = "_" pc=8-12
+    L[7] = "oneLevel" pc=8-12
+  instructions (23):
+    [0001] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "GetBossChallengeData"]
+    [0002] CALL           A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010044
+    [0003] GETTABUP       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008B ; R[1] = U[0][K[1] "GetCurBossChallengeLevelId"]
+    [0004] CALL           A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x020100C4
+    [0005] GETTABUP       A=2 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262658 sJ=-16514557 raw=0x0201010B ; R[2] = U[1][K[2] "pairs"]
+    [0006] GETFIELD       A=3 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393219 sJ=-16383996 raw=0x0300018E ; R[3] = R[0][K[3] "levels"]
+    [0007] CALL           A=2 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656386 sJ=-16120829 raw=0x05020144
+    [0008] TFORPREP       A=2 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1026 sJ=-16776189 raw=0x0002014B
+    [0009] GETFIELD       A=8 B=7 C=4 k=0 Bx=2062 sBx=-63473 Ax=527880 sJ=-16249335 raw=0x0407040E ; R[8] = R[7][K[4] "challenge_id"]
+    [0010] EQ             A=8 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=520 sJ=-16776695 raw=0x00010439
+    [0011] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0012] RETURN         A=7 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1287 sJ=-16775928 raw=0x000283C6
+    [0013] TFORCALL       A=2 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262146 sJ=-16515069 raw=0x0200014C
+    [0014] TFORLOOP       A=2 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1538 sJ=-16775677 raw=0x0003014D
+    [0015] CLOSE          A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000136
+    [0016] GETTABUP       A=2 B=1 C=5 k=0 Bx=2562 sBx=-62973 Ax=655874 sJ=-16121341 raw=0x0501010B ; R[2] = U[1][K[5] "Log"]
+    [0017] GETFIELD       A=2 B=2 C=6 k=0 Bx=3076 sBx=-62459 Ax=787458 sJ=-15989757 raw=0x0602010E ; R[2] = R[2][K[6] "Error"]
+    [0018] LOADK          A=3 B=3 C=0 k=1 Bx=7 sBx=-65528 Ax=1795 sJ=-16775420 raw=0x00038183 ; R[3] = K[7] "\u672A\u627E\u5230\u9996\u9886\u89D2\u6597\u76F8\u5173\u6570\u636EcurLevel="
+    [0019] MOVE           A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010200
+    [0020] CALL           A=2 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132610 sJ=-16644605 raw=0x01030144
+    [0021] LOADNIL        A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000108
+    [0022] RETURN         A=2 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1282 sJ=-16775933 raw=0x00028146
+    [0023] RETURN         A=2 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=770 sJ=-16776445 raw=0x00018146
+
+  function[7] source="" lines=81-91 params=0 vararg=0 stack=255 upvalues=2
+  constants (9):
+    K[0] = "GetBossChallengeCurLevel"
+    K[1] = "pairs"
+    K[2] = "targets"
+    K[3] = "table"
+    K[4] = "insert"
+    K[5] = "task_id"
+    K[6] = "target_id"
+    K[7] = "task_state"
+    K[8] = "temp_state"
+  upvalues (2):
+    U[0] = instack=0 idx=0 kind=0 name="BattleBossChallengeUtils"
+    U[1] = instack=0 idx=0 kind=12 name="_ENV"
+  locals (8):
+    L[0] = "curLevel" pc=2-25
+    L[1] = "answer" pc=4-25
+    L[2] = "(for state)" pc=9-23
+    L[3] = "(for state)" pc=9-23
+    L[4] = "(for state)" pc=9-23
+    L[5] = "(for state)" pc=9-23
+    L[6] = "_" pc=10-20
+    L[7] = "oneTarget" pc=10-20
+  instructions (25):
+    [0001] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "GetBossChallengeCurLevel"]
+    [0002] CALL           A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010044
+    [0003] NEWTABLE       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000093
+    [0004] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0005] TEST           A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000042
+    [0006] JMP            A=16 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777232 sJ=17 raw=0x80000838
+    [0007] GETTABUP       A=2 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131586 sJ=-16645629 raw=0x0101010B ; R[2] = U[1][K[1] "pairs"]
+    [0008] GETFIELD       A=3 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262147 sJ=-16515068 raw=0x0200018E ; R[3] = R[0][K[2] "targets"]
+    [0009] CALL           A=2 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656386 sJ=-16120829 raw=0x05020144
+    [0010] TFORPREP       A=2 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2562 sJ=-16774653 raw=0x0005014B
+    [0011] GETTABUP       A=8 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393736 sJ=-16383479 raw=0x0301040B ; R[8] = U[1][K[3] "table"]
+    [0012] GETFIELD       A=8 B=8 C=4 k=0 Bx=2064 sBx=-63471 Ax=528392 sJ=-16248823 raw=0x0408040E ; R[8] = R[8][K[4] "insert"]
+    [0013] MOVE           A=9 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=521 sJ=-16776694 raw=0x00010480
+    [0014] NEWTABLE       A=10 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1034 sJ=-16776181 raw=0x00020513
+    [0015] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0016] GETFIELD       A=11 B=7 C=6 k=0 Bx=3086 sBx=-62449 Ax=790027 sJ=-15987188 raw=0x0607058E ; R[11] = R[7][K[6] "target_id"]
+    [0017] SETFIELD       A=10 B=5 C=11 k=0 Bx=5642 sBx=-59893 Ax=1444362 sJ=-15332853 raw=0x0B050512 ; R[10][K[5] "task_id"] = R[11]
+    [0018] GETFIELD       A=11 B=7 C=8 k=0 Bx=4110 sBx=-61425 Ax=1052171 sJ=-15725044 raw=0x0807058E ; R[11] = R[7][K[8] "temp_state"]
+    [0019] SETFIELD       A=10 B=7 C=11 k=0 Bx=5646 sBx=-59889 Ax=1445386 sJ=-15331829 raw=0x0B070512 ; R[10][K[7] "task_state"] = R[11]
+    [0020] CALL           A=8 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132616 sJ=-16644599 raw=0x01030444
+    [0021] TFORCALL       A=2 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262146 sJ=-16515069 raw=0x0200014C
+    [0022] TFORLOOP       A=2 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3074 sJ=-16774141 raw=0x0006014D
+    [0023] CLOSE          A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000136
+    [0024] RETURN         A=1 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1281 sJ=-16775934 raw=0x000280C6
+    [0025] RETURN         A=2 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=770 sJ=-16776445 raw=0x00018146
+
+  function[8] source="" lines=94-97 params=0 vararg=0 stack=255 upvalues=1
+  constants (2):
+    K[0] = "GetBossChallengeData"
+    K[1] = "buff_rule_id"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=2 name="BattleBossChallengeUtils"
+  locals (1):
+    L[0] = "bossChallengeData" pc=2-5
+  instructions (5):
+    [0001] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "GetBossChallengeData"]
+    [0002] CALL           A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010044
+    [0003] GETFIELD       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008E ; R[1] = R[0][K[1] "buff_rule_id"]
+    [0004] RETURN1        A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C8
+    [0005] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[9] source="" lines=100-103 params=0 vararg=0 stack=255 upvalues=1
+  constants (2):
+    K[0] = "GetBossChallengeCurLevel"
+    K[1] = "challenge_id"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=2 name="BattleBossChallengeUtils"
+  locals (1):
+    L[0] = "curLevel" pc=2-5
+  instructions (5):
+    [0001] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "GetBossChallengeCurLevel"]
+    [0002] CALL           A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010044
+    [0003] GETFIELD       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008E ; R[1] = R[0][K[1] "challenge_id"]
+    [0004] RETURN1        A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C8
+    [0005] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[10] source="" lines=105-109 params=0 vararg=0 stack=255 upvalues=2
+  constants (5):
+    K[0] = "GetCurBossChallengeLevelId"
+    K[1] = "_G"
+    K[2] = "DataConfigManager"
+    K[3] = "GetBossChallengeConf"
+    K[4] = "rule"
+  upvalues (2):
+    U[0] = instack=0 idx=0 kind=0 name="BattleBossChallengeUtils"
+    U[1] = instack=0 idx=0 kind=4 name="_ENV"
+  locals (2):
+    L[0] = "challenge_level_id" pc=2-10
+    L[1] = "ChallengeConf" pc=7-10
+  instructions (10):
+    [0001] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "GetCurBossChallengeLevelId"]
+    [0002] CALL           A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010044
+    [0003] GETTABUP       A=1 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131585 sJ=-16645630 raw=0x0101008B ; R[1] = U[1][K[1] "_G"]
+    [0004] GETFIELD       A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x0201008E ; R[1] = R[1][K[2] "DataConfigManager"]
+    [0005] SELF           A=1 B=1 C=3 k=1 Bx=1539 sBx=-63996 Ax=393985 sJ=-16383230 raw=0x03018094
+    [0006] MOVE           A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000180
+    [0007] CALL           A=1 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263681 sJ=-16513534 raw=0x020300C4
+    [0008] GETFIELD       A=2 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524802 sJ=-16252413 raw=0x0401010E ; R[2] = R[1][K[4] "rule"]
+    [0009] RETURN1        A=2 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1026 sJ=-16776189 raw=0x00020148
+    [0010] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[11] source="" lines=111-125 params=0 vararg=0 stack=255 upvalues=1
+  constants (8):
+    K[0] = "GetBossChallengeData"
+    K[1] = "event_id"
+    K[2] = "buff_id"
+    K[3] = "GetBossChallengeCurBuff"
+    K[4] = "activity_id"
+    K[5] = "GetBossChallengeActivityId"
+    K[6] = "challenge_level_id"
+    K[7] = "GetBossChallengeId"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=3 name="BattleBossChallengeUtils"
+  locals (2):
+    L[0] = "BossChallengeInfo" pc=1-23
+    L[1] = "bossChallengeData" pc=3-23
+  instructions (23):
+    [0001] LOADNIL        A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000008
+    [0002] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "GetBossChallengeData"]
+    [0003] CALL           A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x020100C4
+    [0004] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0005] JMP            A=15 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777231 sJ=16 raw=0x800007B8
+    [0006] NEWTABLE       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000113
+    [0007] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0008] MOVE           A=0 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1024 sJ=-16776191 raw=0x00020000
+    [0009] GETFIELD       A=2 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131586 sJ=-16645629 raw=0x0101010E ; R[2] = R[1][K[1] "event_id"]
+    [0010] SETFIELD       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010012 ; R[0][K[1] "event_id"] = R[2]
+    [0011] GETTABUP       A=2 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393218 sJ=-16383997 raw=0x0300010B ; R[2] = U[0][K[3] "GetBossChallengeCurBuff"]
+    [0012] CALL           A=2 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262658 sJ=-16514557 raw=0x02010144
+    [0013] SETFIELD       A=0 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263168 sJ=-16514047 raw=0x02020012 ; R[0][K[2] "buff_id"] = R[2]
+    [0014] GETTABUP       A=2 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655362 sJ=-16121853 raw=0x0500010B ; R[2] = U[0][K[5] "GetBossChallengeActivityId"]
+    [0015] CALL           A=2 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262658 sJ=-16514557 raw=0x02010144
+    [0016] SETFIELD       A=0 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264192 sJ=-16513023 raw=0x02040012 ; R[0][K[4] "activity_id"] = R[2]
+    [0017] GETTABUP       A=2 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917506 sJ=-15859709 raw=0x0700010B ; R[2] = U[0][K[7] "GetBossChallengeId"]
+    [0018] CALL           A=2 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262658 sJ=-16514557 raw=0x02010144
+    [0019] SETFIELD       A=0 B=6 C=2 k=0 Bx=1036 sBx=-64499 Ax=265216 sJ=-16511999 raw=0x02060012 ; R[0][K[6] "challenge_level_id"] = R[2]
+    [0020] RETURN1        A=0 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1024 sJ=-16776191 raw=0x00020048
+    [0021] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0022] RETURN1        A=0 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1024 sJ=-16776191 raw=0x00020048
+    [0023] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[12] source="" lines=127-134 params=0 vararg=0 stack=255 upvalues=2
+  constants (8):
+    K[0] = "IsInLeaderChallengeDungeon"
+    K[1] = "MergeBossChallengeInfo"
+    K[2] = "_G"
+    K[3] = "NRCModuleManager"
+    K[4] = "DoCmd"
+    K[5] = "BattleUIModuleCmd"
+    K[6] = "OpenMechanismValidation"
+    K[7] = "ShowMechanismValidationFinish"
+  upvalues (2):
+    U[0] = instack=0 idx=0 kind=0 name="BattleBossChallengeUtils"
+    U[1] = instack=0 idx=0 kind=8 name="_ENV"
+  locals (1):
+    L[0] = "BossChallengeInfo" pc=6-17
+  instructions (18):
+    [0001] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "IsInLeaderChallengeDungeon"]
+    [0002] CALL           A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010044
+    [0003] TEST           A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000042
+    [0004] JMP            A=12 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777228 sJ=13 raw=0x80000638
+    [0005] GETTABUP       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x0100000B ; R[0] = U[0][K[1] "MergeBossChallengeInfo"]
+    [0006] CALL           A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010044
+    [0007] GETTABUP       A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x0201008B ; R[1] = U[1][K[2] "_G"]
+    [0008] GETFIELD       A=1 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393729 sJ=-16383486 raw=0x0301008E ; R[1] = R[1][K[3] "NRCModuleManager"]
+    [0009] SELF           A=1 B=1 C=4 k=1 Bx=2051 sBx=-63484 Ax=525057 sJ=-16252158 raw=0x04018094
+    [0010] GETTABUP       A=3 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262659 sJ=-16514556 raw=0x0201018B ; R[3] = U[1][K[2] "_G"]
+    [0011] GETFIELD       A=3 B=3 C=5 k=0 Bx=2566 sBx=-62969 Ax=656899 sJ=-16120316 raw=0x0503018E ; R[3] = R[3][K[5] "BattleUIModuleCmd"]
+    [0012] GETFIELD       A=3 B=3 C=6 k=0 Bx=3078 sBx=-62457 Ax=787971 sJ=-15989244 raw=0x0603018E ; R[3] = R[3][K[6] "OpenMechanismValidation"]
+    [0013] LOADNIL        A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000208
+    [0014] MOVE           A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x00000280
+    [0015] GETUPVAL       A=6 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=6 sJ=-16777209 raw=0x00000309
+    [0016] GETTABUP       A=7 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917511 sJ=-15859704 raw=0x0700038B ; R[7] = U[0][K[7] "ShowMechanismValidationFinish"]
+    [0017] CALL           A=1 B=7 C=1 k=0 Bx=526 sBx=-65009 Ax=134657 sJ=-16642558 raw=0x010700C4
+    [0018] RETURN0        A=0 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=512 sJ=-16776703 raw=0x00010047
+
+  function[13] source="" lines=136-141 params=0 vararg=0 stack=255 upvalues=0
+  instructions (1):
+    [0001] RETURN0        A=0 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=512 sJ=-16776703 raw=0x00010047
+
+  function[14] source="" lines=143-161 params=0 vararg=0 stack=255 upvalues=2
+  constants (12):
+    K[0] = "NRCModuleManager"
+    K[1] = "DoCmd"
+    K[2] = "MainUIModuleCmd"
+    K[3] = "GetLobbyMainEnableState"
+    K[4] = "GetLobbyMainPanelOpen"
+    K[5] = "GetBossChallengeData"
+    K[6] = "IsInLeaderChallengeDungeon"
+    K[7] = "MergeBossChallengeInfo"
+    K[8] = "GetBossChallengeTaskInfo"
+    K[9] = "_G"
+    K[10] = "BattleUIModuleCmd"
+    K[11] = "OpenBattleAdditionalTarget"
+  upvalues (2):
+    U[0] = instack=0 idx=0 kind=1 name="_ENV"
+    U[1] = instack=0 idx=0 kind=10 name="BattleBossChallengeUtils"
+  locals (4):
+    L[0] = "bossChallengeData" pc=18-43
+    L[1] = "state" pc=26-42
+    L[2] = "BossChallengeInfo" pc=28-42
+    L[3] = "taskInfo" pc=30-42
+  instructions (43):
+    [0001] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "NRCModuleManager"]
+    [0002] SELF           A=0 B=0 C=1 k=1 Bx=513 sBx=-65022 Ax=131328 sJ=-16645887 raw=0x01008014
+    [0003] GETTABUP       A=2 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262146 sJ=-16515069 raw=0x0200010B ; R[2] = U[0][K[2] "MainUIModuleCmd"]
+    [0004] GETFIELD       A=2 B=2 C=3 k=0 Bx=1540 sBx=-63995 Ax=394242 sJ=-16382973 raw=0x0302010E ; R[2] = R[2][K[3] "GetLobbyMainEnableState"]
+    [0005] CALL           A=0 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263680 sJ=-16513535 raw=0x02030044
+    [0006] TEST           A=0 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=256 sJ=-16776959 raw=0x00008042
+    [0007] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0008] RETURN0        A=0 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=512 sJ=-16776703 raw=0x00010047
+    [0009] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "NRCModuleManager"]
+    [0010] SELF           A=0 B=0 C=1 k=1 Bx=513 sBx=-65022 Ax=131328 sJ=-16645887 raw=0x01008014
+    [0011] GETTABUP       A=2 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262146 sJ=-16515069 raw=0x0200010B ; R[2] = U[0][K[2] "MainUIModuleCmd"]
+    [0012] GETFIELD       A=2 B=2 C=4 k=0 Bx=2052 sBx=-63483 Ax=525314 sJ=-16251901 raw=0x0402010E ; R[2] = R[2][K[4] "GetLobbyMainPanelOpen"]
+    [0013] CALL           A=0 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263680 sJ=-16513535 raw=0x02030044
+    [0014] TEST           A=0 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=256 sJ=-16776959 raw=0x00008042
+    [0015] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0016] RETURN0        A=0 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=512 sJ=-16776703 raw=0x00010047
+    [0017] GETTABUP       A=0 B=1 C=5 k=0 Bx=2562 sBx=-62973 Ax=655872 sJ=-16121343 raw=0x0501000B ; R[0] = U[1][K[5] "GetBossChallengeData"]
+    [0018] CALL           A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010044
+    [0019] TEST           A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000042
+    [0020] JMP            A=21 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777237 sJ=22 raw=0x80000AB8
+    [0021] GETTABUP       A=1 B=1 C=6 k=0 Bx=3074 sBx=-62461 Ax=786945 sJ=-15990270 raw=0x0601008B ; R[1] = U[1][K[6] "IsInLeaderChallengeDungeon"]
+    [0022] CALL           A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x020100C4
+    [0023] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0024] JMP            A=17 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777233 sJ=18 raw=0x800008B8
+    [0025] GETTABUP       A=1 B=1 C=6 k=0 Bx=3074 sBx=-62461 Ax=786945 sJ=-15990270 raw=0x0601008B ; R[1] = U[1][K[6] "IsInLeaderChallengeDungeon"]
+    [0026] CALL           A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x020100C4
+    [0027] GETTABUP       A=2 B=1 C=7 k=0 Bx=3586 sBx=-61949 Ax=918018 sJ=-15859197 raw=0x0701010B ; R[2] = U[1][K[7] "MergeBossChallengeInfo"]
+    [0028] CALL           A=2 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262658 sJ=-16514557 raw=0x02010144
+    [0029] GETTABUP       A=3 B=1 C=8 k=0 Bx=4098 sBx=-61437 Ax=1049091 sJ=-15728124 raw=0x0801018B ; R[3] = U[1][K[8] "GetBossChallengeTaskInfo"]
+    [0030] CALL           A=3 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262659 sJ=-16514556 raw=0x020101C4
+    [0031] TEST           A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x000001C2
+    [0032] JMP            A=9 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777225 sJ=10 raw=0x800004B8
+    [0033] GETTABUP       A=4 B=0 C=9 k=0 Bx=4608 sBx=-60927 Ax=1179652 sJ=-15597563 raw=0x0900020B ; R[4] = U[0][K[9] "_G"]
+    [0034] GETFIELD       A=4 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2052 sJ=-16775163 raw=0x0004020E ; R[4] = R[4][K[0] "NRCModuleManager"]
+    [0035] SELF           A=4 B=4 C=1 k=1 Bx=521 sBx=-65014 Ax=133380 sJ=-16643835 raw=0x01048214
+    [0036] GETTABUP       A=6 B=0 C=9 k=0 Bx=4608 sBx=-60927 Ax=1179654 sJ=-15597561 raw=0x0900030B ; R[6] = U[0][K[9] "_G"]
+    [0037] GETFIELD       A=6 B=6 C=10 k=0 Bx=5132 sBx=-60403 Ax=1313798 sJ=-15463417 raw=0x0A06030E ; R[6] = R[6][K[10] "BattleUIModuleCmd"]
+    [0038] GETFIELD       A=6 B=6 C=11 k=0 Bx=5644 sBx=-59891 Ax=1444870 sJ=-15332345 raw=0x0B06030E ; R[6] = R[6][K[11] "OpenBattleAdditionalTarget"]
+    [0039] MOVE           A=7 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1543 sJ=-16775672 raw=0x00030380
+    [0040] MOVE           A=8 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1032 sJ=-16776183 raw=0x00020400
+    [0041] LOADTRUE       A=9 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=9 sJ=-16777206 raw=0x00000487
+    [0042] CALL           A=4 B=6 C=1 k=0 Bx=524 sBx=-65011 Ax=134148 sJ=-16643067 raw=0x01060244
+    [0043] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[15] source="" lines=163-167 params=0 vararg=0 stack=255 upvalues=2
+  constants (6):
+    K[0] = "IsInLeaderChallengeDungeon"
+    K[1] = "_G"
+    K[2] = "NRCModuleManager"
+    K[3] = "DoCmd"
+    K[4] = "BattleUIModuleCmd"
+    K[5] = "CloseBattleAdditionalTarget"
+  upvalues (2):
+    U[0] = instack=0 idx=0 kind=0 name="BattleBossChallengeUtils"
+    U[1] = instack=0 idx=0 kind=3 name="_ENV"
+  instructions (12):
+    [0001] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "IsInLeaderChallengeDungeon"]
+    [0002] CALL           A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010044
+    [0003] TEST           A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000042
+    [0004] JMP            A=6 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777222 sJ=7 raw=0x80000338
+    [0005] GETTABUP       A=0 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131584 sJ=-16645631 raw=0x0101000B ; R[0] = U[1][K[1] "_G"]
+    [0006] GETFIELD       A=0 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262144 sJ=-16515071 raw=0x0200000E ; R[0] = R[0][K[2] "NRCModuleManager"]
+    [0007] SELF           A=0 B=0 C=3 k=1 Bx=1537 sBx=-63998 Ax=393472 sJ=-16383743 raw=0x03008014
+    [0008] GETTABUP       A=2 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131586 sJ=-16645629 raw=0x0101010B ; R[2] = U[1][K[1] "_G"]
+    [0009] GETFIELD       A=2 B=2 C=4 k=0 Bx=2052 sBx=-63483 Ax=525314 sJ=-16251901 raw=0x0402010E ; R[2] = R[2][K[4] "BattleUIModuleCmd"]
+    [0010] GETFIELD       A=2 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656386 sJ=-16120829 raw=0x0502010E ; R[2] = R[2][K[5] "CloseBattleAdditionalTarget"]
+    [0011] CALL           A=0 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132608 sJ=-16644607 raw=0x01030044
+    [0012] RETURN0        A=0 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=512 sJ=-16776703 raw=0x00010047
+
+  function[16] source="" lines=169-177 params=0 vararg=0 stack=255 upvalues=2
+  constants (14):
+    K[0] = "_G"
+    K[1] = "BattleUtils"
+    K[2] = "IsNpcChallenge"
+    K[3] = "BattleManager"
+    K[4] = "GetBattleNpcChallengeInfo"
+    K[5] = "NRCModuleManager"
+    K[6] = "DoCmd"
+    K[7] = "BattleUIModuleCmd"
+    K[8] = "OpenMechanismValidation"
+    K[9] = "Enum"
+    K[10] = "ActivityType"
+    K[11] = "ATP_NPC_CHALLENGE_EVENT"
+    K[12] = "IsLeaderChallenge"
+    K[13] = "MergeBossChallengeInfo"
+  upvalues (2):
+    U[0] = instack=0 idx=0 kind=1 name="_ENV"
+    U[1] = instack=0 idx=0 kind=6 name="BattleBossChallengeUtils"
+  locals (2):
+    L[0] = "NpcChallengeInfo" pc=10-21
+    L[1] = "BossChallengeInfo" pc=30-39
+  instructions (40):
+    [0001] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "_G"]
+    [0002] GETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x0100000E ; R[0] = R[0][K[1] "BattleUtils"]
+    [0003] GETFIELD       A=0 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262144 sJ=-16515071 raw=0x0200000E ; R[0] = R[0][K[2] "IsNpcChallenge"]
+    [0004] CALL           A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010044
+    [0005] TEST           A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000042
+    [0006] JMP            A=15 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777231 sJ=16 raw=0x800007B8
+    [0007] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "_G"]
+    [0008] GETFIELD       A=0 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393216 sJ=-16383999 raw=0x0300000E ; R[0] = R[0][K[3] "BattleManager"]
+    [0009] SELF           A=0 B=0 C=4 k=1 Bx=2049 sBx=-63486 Ax=524544 sJ=-16252671 raw=0x04008014
+    [0010] CALL           A=0 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263168 sJ=-16514047 raw=0x02020044
+    [0011] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "_G"]
+    [0012] GETFIELD       A=1 B=1 C=5 k=0 Bx=2562 sBx=-62973 Ax=655873 sJ=-16121342 raw=0x0501008E ; R[1] = R[1][K[5] "NRCModuleManager"]
+    [0013] SELF           A=1 B=1 C=6 k=1 Bx=3075 sBx=-62460 Ax=787201 sJ=-15990014 raw=0x06018094
+    [0014] GETTABUP       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018B ; R[3] = U[0][K[0] "_G"]
+    [0015] GETFIELD       A=3 B=3 C=7 k=0 Bx=3590 sBx=-61945 Ax=919043 sJ=-15858172 raw=0x0703018E ; R[3] = R[3][K[7] "BattleUIModuleCmd"]
+    [0016] GETFIELD       A=3 B=3 C=8 k=0 Bx=4102 sBx=-61433 Ax=1050115 sJ=-15727100 raw=0x0803018E ; R[3] = R[3][K[8] "OpenMechanismValidation"]
+    [0017] GETTABUP       A=4 B=0 C=9 k=0 Bx=4608 sBx=-60927 Ax=1179652 sJ=-15597563 raw=0x0900020B ; R[4] = U[0][K[9] "Enum"]
+    [0018] GETFIELD       A=4 B=4 C=10 k=0 Bx=5128 sBx=-60407 Ax=1312772 sJ=-15464443 raw=0x0A04020E ; R[4] = R[4][K[10] "ActivityType"]
+    [0019] GETFIELD       A=4 B=4 C=11 k=0 Bx=5640 sBx=-59895 Ax=1443844 sJ=-15333371 raw=0x0B04020E ; R[4] = R[4][K[11] "ATP_NPC_CHALLENGE_EVENT"]
+    [0020] MOVE           A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x00000280
+    [0021] CALL           A=1 B=5 C=1 k=0 Bx=522 sBx=-65013 Ax=133633 sJ=-16643582 raw=0x010500C4
+    [0022] JMP            A=16 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777232 sJ=17 raw=0x80000838
+    [0023] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "_G"]
+    [0024] GETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x0100000E ; R[0] = R[0][K[1] "BattleUtils"]
+    [0025] GETFIELD       A=0 B=0 C=12 k=0 Bx=6144 sBx=-59391 Ax=1572864 sJ=-15204351 raw=0x0C00000E ; R[0] = R[0][K[12] "IsLeaderChallenge"]
+    [0026] CALL           A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010044
+    [0027] TEST           A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000042
+    [0028] JMP            A=10 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777226 sJ=11 raw=0x80000538
+    [0029] GETTABUP       A=0 B=1 C=13 k=0 Bx=6658 sBx=-58877 Ax=1704448 sJ=-15072767 raw=0x0D01000B ; R[0] = U[1][K[13] "MergeBossChallengeInfo"]
+    [0030] CALL           A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010044
+    [0031] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "_G"]
+    [0032] GETFIELD       A=1 B=1 C=5 k=0 Bx=2562 sBx=-62973 Ax=655873 sJ=-16121342 raw=0x0501008E ; R[1] = R[1][K[5] "NRCModuleManager"]
+    [0033] SELF           A=1 B=1 C=6 k=1 Bx=3075 sBx=-62460 Ax=787201 sJ=-15990014 raw=0x06018094
+    [0034] GETTABUP       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018B ; R[3] = U[0][K[0] "_G"]
+    [0035] GETFIELD       A=3 B=3 C=7 k=0 Bx=3590 sBx=-61945 Ax=919043 sJ=-15858172 raw=0x0703018E ; R[3] = R[3][K[7] "BattleUIModuleCmd"]
+    [0036] GETFIELD       A=3 B=3 C=8 k=0 Bx=4102 sBx=-61433 Ax=1050115 sJ=-15727100 raw=0x0803018E ; R[3] = R[3][K[8] "OpenMechanismValidation"]
+    [0037] LOADNIL        A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000208
+    [0038] MOVE           A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x00000280
+    [0039] CALL           A=1 B=5 C=1 k=0 Bx=522 sBx=-65013 Ax=133633 sJ=-16643582 raw=0x010500C4
+    [0040] RETURN0        A=0 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=512 sJ=-16776703 raw=0x00010047
+
+  function[17] source="" lines=181-196 params=0 vararg=0 stack=255 upvalues=2
+  constants (10):
+    K[0] = "IsInLeaderChallengeDungeon"
+    K[1] = "_G"
+    K[2] = "ProtoMessage"
+    K[3] = "newZoneGetPlayerActivityDataReq"
+    K[4] = "ZoneServer"
+    K[5] = "SendWithHandler"
+    K[6] = "ProtoCMD"
+    K[7] = "ZoneSvrCmd"
+    K[8] = "ZONE_GET_PLAYER_ACTIVITY_DATA_REQ"
+    K[9] = "OnGetBossChallengeData"
+  upvalues (2):
+    U[0] = instack=0 idx=0 kind=0 name="BattleBossChallengeUtils"
+    U[1] = instack=0 idx=0 kind=7 name="_ENV"
+  locals (1):
+    L[0] = "req" pc=8-19
+  instructions (20):
+    [0001] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "IsInLeaderChallengeDungeon"]
+    [0002] CALL           A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010044
+    [0003] TEST           A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000042
+    [0004] JMP            A=14 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777230 sJ=15 raw=0x80000738
+    [0005] GETTABUP       A=0 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131584 sJ=-16645631 raw=0x0101000B ; R[0] = U[1][K[1] "_G"]
+    [0006] GETFIELD       A=0 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262144 sJ=-16515071 raw=0x0200000E ; R[0] = R[0][K[2] "ProtoMessage"]
+    [0007] SELF           A=0 B=0 C=3 k=1 Bx=1537 sBx=-63998 Ax=393472 sJ=-16383743 raw=0x03008014
+    [0008] CALL           A=0 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263168 sJ=-16514047 raw=0x02020044
+    [0009] GETTABUP       A=1 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131585 sJ=-16645630 raw=0x0101008B ; R[1] = U[1][K[1] "_G"]
+    [0010] GETFIELD       A=1 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524801 sJ=-16252414 raw=0x0401008E ; R[1] = R[1][K[4] "ZoneServer"]
+    [0011] SELF           A=1 B=1 C=5 k=1 Bx=2563 sBx=-62972 Ax=656129 sJ=-16121086 raw=0x05018094
+    [0012] GETTABUP       A=3 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131587 sJ=-16645628 raw=0x0101018B ; R[3] = U[1][K[1] "_G"]
+    [0013] GETFIELD       A=3 B=3 C=6 k=0 Bx=3078 sBx=-62457 Ax=787971 sJ=-15989244 raw=0x0603018E ; R[3] = R[3][K[6] "ProtoCMD"]
+    [0014] GETFIELD       A=3 B=3 C=7 k=0 Bx=3590 sBx=-61945 Ax=919043 sJ=-15858172 raw=0x0703018E ; R[3] = R[3][K[7] "ZoneSvrCmd"]
+    [0015] GETFIELD       A=3 B=3 C=8 k=0 Bx=4102 sBx=-61433 Ax=1050115 sJ=-15727100 raw=0x0803018E ; R[3] = R[3][K[8] "ZONE_GET_PLAYER_ACTIVITY_DATA_REQ"]
+    [0016] MOVE           A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000200
+    [0017] GETUPVAL       A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x00000289
+    [0018] GETTABUP       A=6 B=0 C=9 k=0 Bx=4608 sBx=-60927 Ax=1179654 sJ=-15597561 raw=0x0900030B ; R[6] = U[0][K[9] "OnGetBossChallengeData"]
+    [0019] CALL           A=1 B=6 C=1 k=0 Bx=524 sBx=-65011 Ax=134145 sJ=-16643070 raw=0x010600C4
+    [0020] RETURN0        A=0 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=512 sJ=-16776703 raw=0x00010047
+
+  function[18] source="" lines=198-205 params=0 vararg=0 stack=255 upvalues=2
+  constants (12):
+    K[0] = "IsInLeaderChallengeDungeon"
+    K[1] = "_G"
+    K[2] = "ProtoMessage"
+    K[3] = "newZoneGetPlayerActivityDataReq"
+    K[4] = "activity_id"
+    K[5] = "GetBossChallengeActivityId"
+    K[6] = "ZoneServer"
+    K[7] = "SendWithHandler"
+    K[8] = "ProtoCMD"
+    K[9] = "ZoneSvrCmd"
+    K[10] = "ZONE_GET_PLAYER_ACTIVITY_DATA_REQ"
+    K[11] = "OnGetBossChallengeData"
+  upvalues (2):
+    U[0] = instack=0 idx=0 kind=0 name="BattleBossChallengeUtils"
+    U[1] = instack=0 idx=0 kind=7 name="_ENV"
+  locals (1):
+    L[0] = "req" pc=8-22
+  instructions (23):
+    [0001] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "IsInLeaderChallengeDungeon"]
+    [0002] CALL           A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010044
+    [0003] TEST           A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000042
+    [0004] JMP            A=17 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777233 sJ=18 raw=0x800008B8
+    [0005] GETTABUP       A=0 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131584 sJ=-16645631 raw=0x0101000B ; R[0] = U[1][K[1] "_G"]
+    [0006] GETFIELD       A=0 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262144 sJ=-16515071 raw=0x0200000E ; R[0] = R[0][K[2] "ProtoMessage"]
+    [0007] SELF           A=0 B=0 C=3 k=1 Bx=1537 sBx=-63998 Ax=393472 sJ=-16383743 raw=0x03008014
+    [0008] CALL           A=0 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263168 sJ=-16514047 raw=0x02020044
+    [0009] GETTABUP       A=1 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655361 sJ=-16121854 raw=0x0500008B ; R[1] = U[0][K[5] "GetBossChallengeActivityId"]
+    [0010] CALL           A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x020100C4
+    [0011] SETFIELD       A=0 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133120 sJ=-16644095 raw=0x01040012 ; R[0][K[4] "activity_id"] = R[1]
+    [0012] GETTABUP       A=1 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131585 sJ=-16645630 raw=0x0101008B ; R[1] = U[1][K[1] "_G"]
+    [0013] GETFIELD       A=1 B=1 C=6 k=0 Bx=3074 sBx=-62461 Ax=786945 sJ=-15990270 raw=0x0601008E ; R[1] = R[1][K[6] "ZoneServer"]
+    [0014] SELF           A=1 B=1 C=7 k=1 Bx=3587 sBx=-61948 Ax=918273 sJ=-15858942 raw=0x07018094
+    [0015] GETTABUP       A=3 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131587 sJ=-16645628 raw=0x0101018B ; R[3] = U[1][K[1] "_G"]
+    [0016] GETFIELD       A=3 B=3 C=8 k=0 Bx=4102 sBx=-61433 Ax=1050115 sJ=-15727100 raw=0x0803018E ; R[3] = R[3][K[8] "ProtoCMD"]
+    [0017] GETFIELD       A=3 B=3 C=9 k=0 Bx=4614 sBx=-60921 Ax=1181187 sJ=-15596028 raw=0x0903018E ; R[3] = R[3][K[9] "ZoneSvrCmd"]
+    [0018] GETFIELD       A=3 B=3 C=10 k=0 Bx=5126 sBx=-60409 Ax=1312259 sJ=-15464956 raw=0x0A03018E ; R[3] = R[3][K[10] "ZONE_GET_PLAYER_ACTIVITY_DATA_REQ"]
+    [0019] MOVE           A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000200
+    [0020] GETUPVAL       A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x00000289
+    [0021] GETTABUP       A=6 B=0 C=11 k=0 Bx=5632 sBx=-59903 Ax=1441798 sJ=-15335417 raw=0x0B00030B ; R[6] = U[0][K[11] "OnGetBossChallengeData"]
+    [0022] CALL           A=1 B=6 C=1 k=0 Bx=524 sBx=-65011 Ax=134145 sJ=-16643070 raw=0x010600C4
+    [0023] RETURN0        A=0 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=512 sJ=-16776703 raw=0x00010047
+
+  function[19] source="" lines=207-215 params=0 vararg=0 stack=255 upvalues=1
+  constants (9):
+    K[0] = "_G"
+    K[1] = "NRCModuleManager"
+    K[2] = "DoCmd"
+    K[3] = "ActivityModuleCmd"
+    K[4] = "GetActivityInstByType"
+    K[5] = "Enum"
+    K[6] = "ActivityType"
+    K[7] = "ATP_BOSS_CHALLENGE_EVENT"
+    K[8] = "GetBossChallengeData"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=4 name="_ENV"
+  locals (2):
+    L[0] = "BossChallengeEventActivityObject" pc=9-20
+    L[1] = "bossChallengeData" pc=12-20
+  instructions (20):
+    [0001] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "_G"]
+    [0002] GETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x0100000E ; R[0] = R[0][K[1] "NRCModuleManager"]
+    [0003] SELF           A=0 B=0 C=2 k=1 Bx=1025 sBx=-64510 Ax=262400 sJ=-16514815 raw=0x02008014
+    [0004] GETTABUP       A=2 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393218 sJ=-16383997 raw=0x0300010B ; R[2] = U[0][K[3] "ActivityModuleCmd"]
+    [0005] GETFIELD       A=2 B=2 C=4 k=0 Bx=2052 sBx=-63483 Ax=525314 sJ=-16251901 raw=0x0402010E ; R[2] = R[2][K[4] "GetActivityInstByType"]
+    [0006] GETTABUP       A=3 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655363 sJ=-16121852 raw=0x0500018B ; R[3] = U[0][K[5] "Enum"]
+    [0007] GETFIELD       A=3 B=3 C=6 k=0 Bx=3078 sBx=-62457 Ax=787971 sJ=-15989244 raw=0x0603018E ; R[3] = R[3][K[6] "ActivityType"]
+    [0008] GETFIELD       A=3 B=3 C=7 k=0 Bx=3590 sBx=-61945 Ax=919043 sJ=-15858172 raw=0x0703018E ; R[3] = R[3][K[7] "ATP_BOSS_CHALLENGE_EVENT"]
+    [0009] CALL           A=0 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264192 sJ=-16513023 raw=0x02040044
+    [0010] GETI           A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008D
+    [0011] SELF           A=1 B=1 C=8 k=1 Bx=4099 sBx=-61436 Ax=1049345 sJ=-15727870 raw=0x08018094
+    [0012] CALL           A=1 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263169 sJ=-16514046 raw=0x020200C4
+    [0013] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0014] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0015] LOADTRUE       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000107
+    [0016] RETURN1        A=2 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1026 sJ=-16776189 raw=0x00020148
+    [0017] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0018] LOADFALSE      A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000105
+    [0019] RETURN1        A=2 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1026 sJ=-16776189 raw=0x00020148
+    [0020] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[20] source="" lines=218-224 params=2 vararg=0 stack=255 upvalues=2
+  constants (6):
+    K[0] = "CheckHasBossData"
+    K[1] = "ShowMechanismValidationTiming"
+    K[2] = "_G"
+    K[3] = "DelayManager"
+    K[4] = "DelaySeconds"
+    K[5] = "OnGetBossChallengeData"
+  upvalues (2):
+    U[0] = instack=0 idx=0 kind=0 name="BattleBossChallengeUtils"
+    U[1] = instack=0 idx=0 kind=7 name="_ENV"
+  locals (2):
+    L[0] = "event" pc=0-15
+    L[1] = "rsp" pc=0-15
+  instructions (15):
+    [0001] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "CheckHasBossData"]
+    [0002] CALL           A=2 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262658 sJ=-16514557 raw=0x02010144
+    [0003] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0004] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0005] GETTABUP       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010B ; R[2] = U[0][K[1] "ShowMechanismValidationTiming"]
+    [0006] CALL           A=2 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131586 sJ=-16645629 raw=0x01010144
+    [0007] JMP            A=6 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777222 sJ=7 raw=0x80000338
+    [0008] GETTABUP       A=2 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262658 sJ=-16514557 raw=0x0201010B ; R[2] = U[1][K[2] "_G"]
+    [0009] GETFIELD       A=2 B=2 C=3 k=0 Bx=1540 sBx=-63995 Ax=394242 sJ=-16382973 raw=0x0302010E ; R[2] = R[2][K[3] "DelayManager"]
+    [0010] SELF           A=2 B=2 C=4 k=1 Bx=2053 sBx=-63482 Ax=525570 sJ=-16251645 raw=0x04028114
+    [0011] LOADI          A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000201
+    [0012] GETTABUP       A=5 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655365 sJ=-16121850 raw=0x0500028B ; R[5] = U[0][K[5] "OnGetBossChallengeData"]
+    [0013] GETUPVAL       A=6 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=6 sJ=-16777209 raw=0x00000309
+    [0014] CALL           A=2 B=5 C=1 k=0 Bx=522 sBx=-65013 Ax=133634 sJ=-16643581 raw=0x01050144
+    [0015] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147

@@ -1,0 +1,512 @@
+-- path: Content/ScriptC/Data/tinyio_Config/SKILL_CONF.luac
+-- format: decrypted standard Lua 5.4 bytecode
+-- note: disassembly, not original source
+
+main source="@Data\\tinyio_Config\\SKILL_CONF.lua" lines=0-0 params=0 vararg=1 stack=255 upvalues=1
+constants (5):
+  K[0] = "SKILL_CONF"
+  K[1] = "addCacheRecord"
+  K[2] = "GetData"
+  K[3] = "GetAllDatas"
+  K[4] = "GetDataCount"
+upvalues (1):
+  U[0] = instack=0 idx=0 kind=2 name="_ENV"
+locals (1):
+  L[0] = "dataTable" pc=6-16
+instructions (16):
+  [0001] VARARGPREP     A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000051
+  [0002] NEWTABLE       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000013
+  [0003] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0004] SETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000F
+  [0005] NEWTABLE       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000013
+  [0006] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0007] CLOSURE        A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000CF ; R[1] = function[0]
+  [0008] SETFIELD       A=0 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131584 sJ=-16645631 raw=0x01010012 ; R[0][K[1] "addCacheRecord"] = R[1]
+  [0009] CLOSURE        A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080CF ; R[1] = function[1]
+  [0010] SETFIELD       A=0 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132096 sJ=-16645119 raw=0x01020012 ; R[0][K[2] "GetData"] = R[1]
+  [0011] CLOSURE        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100CF ; R[1] = function[2]
+  [0012] SETFIELD       A=0 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132608 sJ=-16644607 raw=0x01030012 ; R[0][K[3] "GetAllDatas"] = R[1]
+  [0013] CLOSURE        A=1 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=769 sJ=-16776446 raw=0x000180CF ; R[1] = function[3]
+  [0014] SETFIELD       A=0 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133120 sJ=-16644095 raw=0x01040012 ; R[0][K[4] "GetDataCount"] = R[1]
+  [0015] RETURN         A=0 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132096 sJ=-16645119 raw=0x01020046
+  [0016] RETURN         A=1 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131585 sJ=-16645630 raw=0x010100C6
+
+  function[0] source="" lines=5-109 params=3 vararg=0 stack=255 upvalues=1
+  constants (63):
+    K[0] = "id"
+    K[1] = "name"
+    K[2] = "flavor_text"
+    K[3] = ""
+    K[4] = nil
+    K[5] = "desc"
+    K[6] = "type"
+    K[7] = "skill_dam_type"
+    K[8] = "is_special_skill"
+    K[9] = "damage_type"
+    K[10] = "contact_type"
+    K[11] = "combine_passive_id"
+    K[12] = "skill_priority"
+    K[13] = "cost_value"
+    K[14] = "energy_rule"
+    K[15] = "energy_cost"
+    K[16] = "ultimate_energy_gain"
+    K[17] = "skill_energy_gain"
+    K[18] = "target_type"
+    K[19] = "client_target_type"
+    K[20] = "skill_impact_type"
+    K[21] = "target_count"
+    K[22] = "cd_round"
+    K[23] = "unused_round"
+    K[24] = "dam_para"
+    K[25] = "spe_skill_type"
+    K[26] = "hit_para"
+    K[27] = "critical_hit_para"
+    K[28] = "dam_add"
+    K[29] = "repeat_attack_time_low"
+    K[30] = "repeat_attack_time_high"
+    K[31] = "repeat_attack_time_prob"
+    K[32] = "skill_result"
+    K[33] = "result_type"
+    K[34] = "effect_id"
+    K[35] = "result_target_type"
+    K[36] = "cast_moment"
+    K[37] = "cast_judge"
+    K[38] = "success_rate"
+    K[39] = "result_target_count"
+    K[40] = "buff_level_rule"
+    K[41] = "buff_group_level"
+    K[42] = "is_glue_skill"
+    K[43] = "table"
+    K[44] = "insert"
+    K[45] = "res_id"
+    K[46] = "icon"
+    K[47] = "teammate_res_id"
+    K[48] = "field_belong"
+    K[49] = "_target_field"
+    K[50] = "target_field"
+    K[51] = "_target_field_layer"
+    K[52] = "target_field_layer"
+    K[53] = "_field_skill"
+    K[54] = "field_skill"
+    K[55] = "_field_type"
+    K[56] = "field_type"
+    K[57] = "_field_layer"
+    K[58] = "field_layer"
+    K[59] = "_field_energy_reduse"
+    K[60] = "field_energy_reduse"
+    K[61] = "is_show"
+    K[62] = "SKILL_CONF"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=14 name="_ENV"
+  locals (35):
+    L[0] = "self" pc=0-253
+    L[1] = "_key" pc=0-253
+    L[2] = "r" pc=0-253
+    L[3] = "lua_record" pc=2-253
+    L[4] = "_skill_result" pc=76-253
+    L[5] = "(for state)" pc=82-113
+    L[6] = "(for state)" pc=82-113
+    L[7] = "(for state)" pc=82-113
+    L[8] = "i" pc=83-112
+    L[9] = "r_2" pc=85-112
+    L[10] = "lua_record_2" pc=87-112
+    L[11] = "(for state)" pc=143-151
+    L[12] = "(for state)" pc=143-151
+    L[13] = "(for state)" pc=143-151
+    L[14] = "i" pc=144-150
+    L[15] = "(for state)" pc=162-170
+    L[16] = "(for state)" pc=162-170
+    L[17] = "(for state)" pc=162-170
+    L[18] = "i" pc=163-169
+    L[19] = "(for state)" pc=181-189
+    L[20] = "(for state)" pc=181-189
+    L[21] = "(for state)" pc=181-189
+    L[22] = "i" pc=182-188
+    L[23] = "(for state)" pc=200-208
+    L[24] = "(for state)" pc=200-208
+    L[25] = "(for state)" pc=200-208
+    L[26] = "i" pc=201-207
+    L[27] = "(for state)" pc=219-227
+    L[28] = "(for state)" pc=219-227
+    L[29] = "(for state)" pc=219-227
+    L[30] = "i" pc=220-226
+    L[31] = "(for state)" pc=238-246
+    L[32] = "(for state)" pc=238-246
+    L[33] = "(for state)" pc=238-246
+    L[34] = "i" pc=239-245
+  instructions (253):
+    [0001] NEWTABLE       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000193
+    [0002] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0003] GETFIELD       A=4 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1028 sJ=-16776187 raw=0x0002020E ; R[4] = R[2][K[0] "id"]
+    [0004] SETFIELD       A=3 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524291 sJ=-16252924 raw=0x04000192 ; R[3][K[0] "id"] = R[4]
+    [0005] GETFIELD       A=4 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132100 sJ=-16645115 raw=0x0102020E ; R[4] = R[2][K[1] "name"]
+    [0006] SETFIELD       A=3 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524803 sJ=-16252412 raw=0x04010192 ; R[3][K[1] "name"] = R[4]
+    [0007] GETFIELD       A=4 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263172 sJ=-16514043 raw=0x0202020E ; R[4] = R[2][K[2] "flavor_text"]
+    [0008] SETFIELD       A=3 B=2 C=4 k=0 Bx=2052 sBx=-63483 Ax=525315 sJ=-16251900 raw=0x04020192 ; R[3][K[2] "flavor_text"] = R[4]
+    [0009] GETFIELD       A=4 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132100 sJ=-16645115 raw=0x0102020E ; R[4] = R[2][K[1] "name"]
+    [0010] EQK            A=4 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1540 sJ=-16775675 raw=0x0003023C
+    [0011] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0012] SETFIELD       A=3 B=1 C=4 k=1 Bx=2051 sBx=-63484 Ax=525059 sJ=-16252156 raw=0x04018192 ; R[3][K[1] "name"] = R[4]
+    [0013] GETFIELD       A=4 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656388 sJ=-16120827 raw=0x0502020E ; R[4] = R[2][K[5] "desc"]
+    [0014] SETFIELD       A=3 B=5 C=4 k=0 Bx=2058 sBx=-63477 Ax=526851 sJ=-16250364 raw=0x04050192 ; R[3][K[5] "desc"] = R[4]
+    [0015] GETFIELD       A=4 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656388 sJ=-16120827 raw=0x0502020E ; R[4] = R[2][K[5] "desc"]
+    [0016] EQK            A=4 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1540 sJ=-16775675 raw=0x0003023C
+    [0017] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0018] SETFIELD       A=3 B=5 C=4 k=1 Bx=2059 sBx=-63476 Ax=527107 sJ=-16250108 raw=0x04058192 ; R[3][K[5] "desc"] = R[4]
+    [0019] GETFIELD       A=4 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263172 sJ=-16514043 raw=0x0202020E ; R[4] = R[2][K[2] "flavor_text"]
+    [0020] EQK            A=4 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1540 sJ=-16775675 raw=0x0003023C
+    [0021] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0022] SETFIELD       A=3 B=2 C=4 k=1 Bx=2053 sBx=-63482 Ax=525571 sJ=-16251644 raw=0x04028192 ; R[3][K[2] "flavor_text"] = R[4]
+    [0023] GETFIELD       A=4 B=2 C=6 k=0 Bx=3076 sBx=-62459 Ax=787460 sJ=-15989755 raw=0x0602020E ; R[4] = R[2][K[6] "type"]
+    [0024] SETFIELD       A=3 B=6 C=4 k=0 Bx=2060 sBx=-63475 Ax=527363 sJ=-16249852 raw=0x04060192 ; R[3][K[6] "type"] = R[4]
+    [0025] GETFIELD       A=4 B=2 C=7 k=0 Bx=3588 sBx=-61947 Ax=918532 sJ=-15858683 raw=0x0702020E ; R[4] = R[2][K[7] "skill_dam_type"]
+    [0026] SETFIELD       A=3 B=7 C=4 k=0 Bx=2062 sBx=-63473 Ax=527875 sJ=-16249340 raw=0x04070192 ; R[3][K[7] "skill_dam_type"] = R[4]
+    [0027] GETFIELD       A=4 B=2 C=8 k=0 Bx=4100 sBx=-61435 Ax=1049604 sJ=-15727611 raw=0x0802020E ; R[4] = R[2][K[8] "is_special_skill"]
+    [0028] SETFIELD       A=3 B=8 C=4 k=0 Bx=2064 sBx=-63471 Ax=528387 sJ=-16248828 raw=0x04080192 ; R[3][K[8] "is_special_skill"] = R[4]
+    [0029] GETFIELD       A=4 B=2 C=9 k=0 Bx=4612 sBx=-60923 Ax=1180676 sJ=-15596539 raw=0x0902020E ; R[4] = R[2][K[9] "damage_type"]
+    [0030] SETFIELD       A=3 B=9 C=4 k=0 Bx=2066 sBx=-63469 Ax=528899 sJ=-16248316 raw=0x04090192 ; R[3][K[9] "damage_type"] = R[4]
+    [0031] GETFIELD       A=4 B=2 C=10 k=0 Bx=5124 sBx=-60411 Ax=1311748 sJ=-15465467 raw=0x0A02020E ; R[4] = R[2][K[10] "contact_type"]
+    [0032] SETFIELD       A=3 B=10 C=4 k=0 Bx=2068 sBx=-63467 Ax=529411 sJ=-16247804 raw=0x040A0192 ; R[3][K[10] "contact_type"] = R[4]
+    [0033] GETFIELD       A=4 B=2 C=11 k=0 Bx=5636 sBx=-59899 Ax=1442820 sJ=-15334395 raw=0x0B02020E ; R[4] = R[2][K[11] "combine_passive_id"]
+    [0034] SETFIELD       A=3 B=11 C=4 k=0 Bx=2070 sBx=-63465 Ax=529923 sJ=-16247292 raw=0x040B0192 ; R[3][K[11] "combine_passive_id"] = R[4]
+    [0035] GETFIELD       A=4 B=2 C=12 k=0 Bx=6148 sBx=-59387 Ax=1573892 sJ=-15203323 raw=0x0C02020E ; R[4] = R[2][K[12] "skill_priority"]
+    [0036] SETFIELD       A=3 B=12 C=4 k=0 Bx=2072 sBx=-63463 Ax=530435 sJ=-16246780 raw=0x040C0192 ; R[3][K[12] "skill_priority"] = R[4]
+    [0037] GETFIELD       A=4 B=2 C=13 k=0 Bx=6660 sBx=-58875 Ax=1704964 sJ=-15072251 raw=0x0D02020E ; R[4] = R[2][K[13] "cost_value"]
+    [0038] SETFIELD       A=3 B=13 C=4 k=0 Bx=2074 sBx=-63461 Ax=530947 sJ=-16246268 raw=0x040D0192 ; R[3][K[13] "cost_value"] = R[4]
+    [0039] GETFIELD       A=4 B=2 C=14 k=0 Bx=7172 sBx=-58363 Ax=1836036 sJ=-14941179 raw=0x0E02020E ; R[4] = R[2][K[14] "energy_rule"]
+    [0040] SETFIELD       A=3 B=14 C=4 k=0 Bx=2076 sBx=-63459 Ax=531459 sJ=-16245756 raw=0x040E0192 ; R[3][K[14] "energy_rule"] = R[4]
+    [0041] GETFIELD       A=4 B=2 C=15 k=0 Bx=7684 sBx=-57851 Ax=1967108 sJ=-14810107 raw=0x0F02020E ; R[4] = R[2][K[15] "energy_cost"]
+    [0042] SETFIELD       A=3 B=15 C=4 k=0 Bx=2078 sBx=-63457 Ax=531971 sJ=-16245244 raw=0x040F0192 ; R[3][K[15] "energy_cost"] = R[4]
+    [0043] GETFIELD       A=4 B=2 C=16 k=0 Bx=8196 sBx=-57339 Ax=2098180 sJ=-14679035 raw=0x1002020E ; R[4] = R[2][K[16] "ultimate_energy_gain"]
+    [0044] SETFIELD       A=3 B=16 C=4 k=0 Bx=2080 sBx=-63455 Ax=532483 sJ=-16244732 raw=0x04100192 ; R[3][K[16] "ultimate_energy_gain"] = R[4]
+    [0045] GETFIELD       A=4 B=2 C=17 k=0 Bx=8708 sBx=-56827 Ax=2229252 sJ=-14547963 raw=0x1102020E ; R[4] = R[2][K[17] "skill_energy_gain"]
+    [0046] SETFIELD       A=3 B=17 C=4 k=0 Bx=2082 sBx=-63453 Ax=532995 sJ=-16244220 raw=0x04110192 ; R[3][K[17] "skill_energy_gain"] = R[4]
+    [0047] GETFIELD       A=4 B=2 C=18 k=0 Bx=9220 sBx=-56315 Ax=2360324 sJ=-14416891 raw=0x1202020E ; R[4] = R[2][K[18] "target_type"]
+    [0048] SETFIELD       A=3 B=18 C=4 k=0 Bx=2084 sBx=-63451 Ax=533507 sJ=-16243708 raw=0x04120192 ; R[3][K[18] "target_type"] = R[4]
+    [0049] GETFIELD       A=4 B=2 C=19 k=0 Bx=9732 sBx=-55803 Ax=2491396 sJ=-14285819 raw=0x1302020E ; R[4] = R[2][K[19] "client_target_type"]
+    [0050] SETFIELD       A=3 B=19 C=4 k=0 Bx=2086 sBx=-63449 Ax=534019 sJ=-16243196 raw=0x04130192 ; R[3][K[19] "client_target_type"] = R[4]
+    [0051] GETFIELD       A=4 B=2 C=20 k=0 Bx=10244 sBx=-55291 Ax=2622468 sJ=-14154747 raw=0x1402020E ; R[4] = R[2][K[20] "skill_impact_type"]
+    [0052] SETFIELD       A=3 B=20 C=4 k=0 Bx=2088 sBx=-63447 Ax=534531 sJ=-16242684 raw=0x04140192 ; R[3][K[20] "skill_impact_type"] = R[4]
+    [0053] GETFIELD       A=4 B=2 C=21 k=0 Bx=10756 sBx=-54779 Ax=2753540 sJ=-14023675 raw=0x1502020E ; R[4] = R[2][K[21] "target_count"]
+    [0054] SETFIELD       A=3 B=21 C=4 k=0 Bx=2090 sBx=-63445 Ax=535043 sJ=-16242172 raw=0x04150192 ; R[3][K[21] "target_count"] = R[4]
+    [0055] GETFIELD       A=4 B=2 C=22 k=0 Bx=11268 sBx=-54267 Ax=2884612 sJ=-13892603 raw=0x1602020E ; R[4] = R[2][K[22] "cd_round"]
+    [0056] SETFIELD       A=3 B=22 C=4 k=0 Bx=2092 sBx=-63443 Ax=535555 sJ=-16241660 raw=0x04160192 ; R[3][K[22] "cd_round"] = R[4]
+    [0057] GETFIELD       A=4 B=2 C=23 k=0 Bx=11780 sBx=-53755 Ax=3015684 sJ=-13761531 raw=0x1702020E ; R[4] = R[2][K[23] "unused_round"]
+    [0058] SETFIELD       A=3 B=23 C=4 k=0 Bx=2094 sBx=-63441 Ax=536067 sJ=-16241148 raw=0x04170192 ; R[3][K[23] "unused_round"] = R[4]
+    [0059] GETFIELD       A=4 B=2 C=24 k=0 Bx=12292 sBx=-53243 Ax=3146756 sJ=-13630459 raw=0x1802020E ; R[4] = R[2][K[24] "dam_para"]
+    [0060] SETFIELD       A=3 B=24 C=4 k=0 Bx=2096 sBx=-63439 Ax=536579 sJ=-16240636 raw=0x04180192 ; R[3][K[24] "dam_para"] = R[4]
+    [0061] GETFIELD       A=4 B=2 C=25 k=0 Bx=12804 sBx=-52731 Ax=3277828 sJ=-13499387 raw=0x1902020E ; R[4] = R[2][K[25] "spe_skill_type"]
+    [0062] SETFIELD       A=3 B=25 C=4 k=0 Bx=2098 sBx=-63437 Ax=537091 sJ=-16240124 raw=0x04190192 ; R[3][K[25] "spe_skill_type"] = R[4]
+    [0063] GETFIELD       A=4 B=2 C=26 k=0 Bx=13316 sBx=-52219 Ax=3408900 sJ=-13368315 raw=0x1A02020E ; R[4] = R[2][K[26] "hit_para"]
+    [0064] SETFIELD       A=3 B=26 C=4 k=0 Bx=2100 sBx=-63435 Ax=537603 sJ=-16239612 raw=0x041A0192 ; R[3][K[26] "hit_para"] = R[4]
+    [0065] GETFIELD       A=4 B=2 C=27 k=0 Bx=13828 sBx=-51707 Ax=3539972 sJ=-13237243 raw=0x1B02020E ; R[4] = R[2][K[27] "critical_hit_para"]
+    [0066] SETFIELD       A=3 B=27 C=4 k=0 Bx=2102 sBx=-63433 Ax=538115 sJ=-16239100 raw=0x041B0192 ; R[3][K[27] "critical_hit_para"] = R[4]
+    [0067] GETFIELD       A=4 B=2 C=28 k=0 Bx=14340 sBx=-51195 Ax=3671044 sJ=-13106171 raw=0x1C02020E ; R[4] = R[2][K[28] "dam_add"]
+    [0068] SETFIELD       A=3 B=28 C=4 k=0 Bx=2104 sBx=-63431 Ax=538627 sJ=-16238588 raw=0x041C0192 ; R[3][K[28] "dam_add"] = R[4]
+    [0069] GETFIELD       A=4 B=2 C=29 k=0 Bx=14852 sBx=-50683 Ax=3802116 sJ=-12975099 raw=0x1D02020E ; R[4] = R[2][K[29] "repeat_attack_time_low"]
+    [0070] SETFIELD       A=3 B=29 C=4 k=0 Bx=2106 sBx=-63429 Ax=539139 sJ=-16238076 raw=0x041D0192 ; R[3][K[29] "repeat_attack_time_low"] = R[4]
+    [0071] GETFIELD       A=4 B=2 C=30 k=0 Bx=15364 sBx=-50171 Ax=3933188 sJ=-12844027 raw=0x1E02020E ; R[4] = R[2][K[30] "repeat_attack_time_high"]
+    [0072] SETFIELD       A=3 B=30 C=4 k=0 Bx=2108 sBx=-63427 Ax=539651 sJ=-16237564 raw=0x041E0192 ; R[3][K[30] "repeat_attack_time_high"] = R[4]
+    [0073] GETFIELD       A=4 B=2 C=31 k=0 Bx=15876 sBx=-49659 Ax=4064260 sJ=-12712955 raw=0x1F02020E ; R[4] = R[2][K[31] "repeat_attack_time_prob"]
+    [0074] SETFIELD       A=3 B=31 C=4 k=0 Bx=2110 sBx=-63425 Ax=540163 sJ=-16237052 raw=0x041F0192 ; R[3][K[31] "repeat_attack_time_prob"] = R[4]
+    [0075] NEWTABLE       A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000213
+    [0076] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0077] LOADI          A=5 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776965 sJ=-250 raw=0x7FFF8281
+    [0078] GETFIELD       A=6 B=2 C=32 k=0 Bx=16388 sBx=-49147 Ax=4195334 sJ=-12581881 raw=0x2002030E ; R[6] = R[2][K[32] "skill_result"]
+    [0079] LEN            A=6 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3078 sJ=-16774137 raw=0x00060334
+    [0080] ADDI           A=6 B=6 C=126 k=0 Bx=64524 sBx=-1011 Ax=16518150 sJ=-259065 raw=0x7E060315
+    [0081] MMBINI         A=6 B=128 C=7 k=0 Bx=3840 sBx=-61695 Ax=983046 sJ=-15794169 raw=0x0780032F
+    [0082] LOADI          A=7 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777223 sJ=8 raw=0x80000381
+    [0083] FORPREP        A=5 B=14 C=0 k=1 Bx=29 sBx=-65506 Ax=7429 sJ=-16769786 raw=0x000E82CA
+    [0084] GETFIELD       A=9 B=2 C=32 k=0 Bx=16388 sBx=-49147 Ax=4195337 sJ=-12581878 raw=0x2002048E ; R[9] = R[2][K[32] "skill_result"]
+    [0085] GETTABLE       A=9 B=9 C=8 k=0 Bx=4114 sBx=-61421 Ax=1053193 sJ=-15724022 raw=0x0809048C
+    [0086] NEWTABLE       A=10 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=10 sJ=-16777205 raw=0x00000513
+    [0087] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0088] GETFIELD       A=11 B=9 C=33 k=0 Bx=16914 sBx=-48621 Ax=4329995 sJ=-12447220 raw=0x2109058E ; R[11] = R[9][K[33] "result_type"]
+    [0089] SETFIELD       A=10 B=33 C=11 k=0 Bx=5698 sBx=-59837 Ax=1458698 sJ=-15318517 raw=0x0B210512 ; R[10][K[33] "result_type"] = R[11]
+    [0090] GETFIELD       A=11 B=9 C=34 k=0 Bx=17426 sBx=-48109 Ax=4461067 sJ=-12316148 raw=0x2209058E ; R[11] = R[9][K[34] "effect_id"]
+    [0091] SETFIELD       A=10 B=34 C=11 k=0 Bx=5700 sBx=-59835 Ax=1459210 sJ=-15318005 raw=0x0B220512 ; R[10][K[34] "effect_id"] = R[11]
+    [0092] GETFIELD       A=11 B=9 C=35 k=0 Bx=17938 sBx=-47597 Ax=4592139 sJ=-12185076 raw=0x2309058E ; R[11] = R[9][K[35] "result_target_type"]
+    [0093] SETFIELD       A=10 B=35 C=11 k=0 Bx=5702 sBx=-59833 Ax=1459722 sJ=-15317493 raw=0x0B230512 ; R[10][K[35] "result_target_type"] = R[11]
+    [0094] GETFIELD       A=11 B=9 C=36 k=0 Bx=18450 sBx=-47085 Ax=4723211 sJ=-12054004 raw=0x2409058E ; R[11] = R[9][K[36] "cast_moment"]
+    [0095] SETFIELD       A=10 B=36 C=11 k=0 Bx=5704 sBx=-59831 Ax=1460234 sJ=-15316981 raw=0x0B240512 ; R[10][K[36] "cast_moment"] = R[11]
+    [0096] GETFIELD       A=11 B=9 C=37 k=0 Bx=18962 sBx=-46573 Ax=4854283 sJ=-11922932 raw=0x2509058E ; R[11] = R[9][K[37] "cast_judge"]
+    [0097] SETFIELD       A=10 B=37 C=11 k=0 Bx=5706 sBx=-59829 Ax=1460746 sJ=-15316469 raw=0x0B250512 ; R[10][K[37] "cast_judge"] = R[11]
+    [0098] GETFIELD       A=11 B=9 C=38 k=0 Bx=19474 sBx=-46061 Ax=4985355 sJ=-11791860 raw=0x2609058E ; R[11] = R[9][K[38] "success_rate"]
+    [0099] SETFIELD       A=10 B=38 C=11 k=0 Bx=5708 sBx=-59827 Ax=1461258 sJ=-15315957 raw=0x0B260512 ; R[10][K[38] "success_rate"] = R[11]
+    [0100] GETFIELD       A=11 B=9 C=39 k=0 Bx=19986 sBx=-45549 Ax=5116427 sJ=-11660788 raw=0x2709058E ; R[11] = R[9][K[39] "result_target_count"]
+    [0101] SETFIELD       A=10 B=39 C=11 k=0 Bx=5710 sBx=-59825 Ax=1461770 sJ=-15315445 raw=0x0B270512 ; R[10][K[39] "result_target_count"] = R[11]
+    [0102] GETFIELD       A=11 B=9 C=40 k=0 Bx=20498 sBx=-45037 Ax=5247499 sJ=-11529716 raw=0x2809058E ; R[11] = R[9][K[40] "buff_level_rule"]
+    [0103] SETFIELD       A=10 B=40 C=11 k=0 Bx=5712 sBx=-59823 Ax=1462282 sJ=-15314933 raw=0x0B280512 ; R[10][K[40] "buff_level_rule"] = R[11]
+    [0104] GETFIELD       A=11 B=9 C=41 k=0 Bx=21010 sBx=-44525 Ax=5378571 sJ=-11398644 raw=0x2909058E ; R[11] = R[9][K[41] "buff_group_level"]
+    [0105] SETFIELD       A=10 B=41 C=11 k=0 Bx=5714 sBx=-59821 Ax=1462794 sJ=-15314421 raw=0x0B290512 ; R[10][K[41] "buff_group_level"] = R[11]
+    [0106] GETFIELD       A=11 B=9 C=42 k=0 Bx=21522 sBx=-44013 Ax=5509643 sJ=-11267572 raw=0x2A09058E ; R[11] = R[9][K[42] "is_glue_skill"]
+    [0107] SETFIELD       A=10 B=42 C=11 k=0 Bx=5716 sBx=-59819 Ax=1463306 sJ=-15313909 raw=0x0B2A0512 ; R[10][K[42] "is_glue_skill"] = R[11]
+    [0108] GETTABUP       A=11 B=0 C=43 k=0 Bx=22016 sBx=-43519 Ax=5636107 sJ=-11141108 raw=0x2B00058B ; R[11] = U[0][K[43] "table"]
+    [0109] GETFIELD       A=11 B=11 C=44 k=0 Bx=22550 sBx=-42985 Ax=5772811 sJ=-11004404 raw=0x2C0B058E ; R[11] = R[11][K[44] "insert"]
+    [0110] MOVE           A=12 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2060 sJ=-16775155 raw=0x00040600
+    [0111] MOVE           A=13 B=10 C=0 k=0 Bx=20 sBx=-65515 Ax=5133 sJ=-16772082 raw=0x000A0680
+    [0112] CALL           A=11 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132619 sJ=-16644596 raw=0x010305C4
+    [0113] FORLOOP        A=5 B=15 C=0 k=0 Bx=30 sBx=-65505 Ax=7685 sJ=-16769530 raw=0x000F02C9
+    [0114] SETFIELD       A=3 B=32 C=4 k=0 Bx=2112 sBx=-63423 Ax=540675 sJ=-16236540 raw=0x04200192 ; R[3][K[32] "skill_result"] = R[4]
+    [0115] GETFIELD       A=5 B=2 C=45 k=0 Bx=23044 sBx=-42491 Ax=5899269 sJ=-10877946 raw=0x2D02028E ; R[5] = R[2][K[45] "res_id"]
+    [0116] SETFIELD       A=3 B=45 C=5 k=0 Bx=2650 sBx=-62885 Ax=678403 sJ=-16098812 raw=0x052D0192 ; R[3][K[45] "res_id"] = R[5]
+    [0117] GETFIELD       A=5 B=2 C=45 k=0 Bx=23044 sBx=-42491 Ax=5899269 sJ=-10877946 raw=0x2D02028E ; R[5] = R[2][K[45] "res_id"]
+    [0118] EQK            A=5 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1541 sJ=-16775674 raw=0x000302BC
+    [0119] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0120] SETFIELD       A=3 B=45 C=4 k=1 Bx=2139 sBx=-63396 Ax=547587 sJ=-16229628 raw=0x042D8192 ; R[3][K[45] "res_id"] = R[4]
+    [0121] GETFIELD       A=5 B=2 C=46 k=0 Bx=23556 sBx=-41979 Ax=6030341 sJ=-10746874 raw=0x2E02028E ; R[5] = R[2][K[46] "icon"]
+    [0122] SETFIELD       A=3 B=46 C=5 k=0 Bx=2652 sBx=-62883 Ax=678915 sJ=-16098300 raw=0x052E0192 ; R[3][K[46] "icon"] = R[5]
+    [0123] GETFIELD       A=5 B=2 C=46 k=0 Bx=23556 sBx=-41979 Ax=6030341 sJ=-10746874 raw=0x2E02028E ; R[5] = R[2][K[46] "icon"]
+    [0124] EQK            A=5 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1541 sJ=-16775674 raw=0x000302BC
+    [0125] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0126] SETFIELD       A=3 B=46 C=4 k=1 Bx=2141 sBx=-63394 Ax=548099 sJ=-16229116 raw=0x042E8192 ; R[3][K[46] "icon"] = R[4]
+    [0127] GETFIELD       A=5 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161413 sJ=-10615802 raw=0x2F02028E ; R[5] = R[2][K[47] "teammate_res_id"]
+    [0128] SETFIELD       A=3 B=47 C=5 k=0 Bx=2654 sBx=-62881 Ax=679427 sJ=-16097788 raw=0x052F0192 ; R[3][K[47] "teammate_res_id"] = R[5]
+    [0129] GETFIELD       A=5 B=2 C=47 k=0 Bx=24068 sBx=-41467 Ax=6161413 sJ=-10615802 raw=0x2F02028E ; R[5] = R[2][K[47] "teammate_res_id"]
+    [0130] EQK            A=5 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1541 sJ=-16775674 raw=0x000302BC
+    [0131] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0132] SETFIELD       A=3 B=47 C=4 k=1 Bx=2143 sBx=-63392 Ax=548611 sJ=-16228604 raw=0x042F8192 ; R[3][K[47] "teammate_res_id"] = R[4]
+    [0133] GETFIELD       A=5 B=2 C=48 k=0 Bx=24580 sBx=-40955 Ax=6292485 sJ=-10484730 raw=0x3002028E ; R[5] = R[2][K[48] "field_belong"]
+    [0134] SETFIELD       A=3 B=48 C=5 k=0 Bx=2656 sBx=-62879 Ax=679939 sJ=-16097276 raw=0x05300192 ; R[3][K[48] "field_belong"] = R[5]
+    [0135] NEWTABLE       A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x00000293
+    [0136] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0137] SETTABUP       A=0 B=49 C=5 k=0 Bx=2658 sBx=-62877 Ax=680448 sJ=-16096767 raw=0x0531000F
+    [0138] LOADI          A=5 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776965 sJ=-250 raw=0x7FFF8281
+    [0139] GETFIELD       A=6 B=2 C=50 k=0 Bx=25604 sBx=-39931 Ax=6554630 sJ=-10222585 raw=0x3202030E ; R[6] = R[2][K[50] "target_field"]
+    [0140] LEN            A=6 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3078 sJ=-16774137 raw=0x00060334
+    [0141] ADDI           A=6 B=6 C=126 k=0 Bx=64524 sBx=-1011 Ax=16518150 sJ=-259065 raw=0x7E060315
+    [0142] MMBINI         A=6 B=128 C=7 k=0 Bx=3840 sBx=-61695 Ax=983046 sJ=-15794169 raw=0x0780032F
+    [0143] LOADI          A=7 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777223 sJ=8 raw=0x80000381
+    [0144] FORPREP        A=5 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1541 sJ=-16775674 raw=0x000302CA
+    [0145] GETTABUP       A=9 B=0 C=43 k=0 Bx=22016 sBx=-43519 Ax=5636105 sJ=-11141110 raw=0x2B00048B ; R[9] = U[0][K[43] "table"]
+    [0146] GETFIELD       A=9 B=9 C=44 k=0 Bx=22546 sBx=-42989 Ax=5771785 sJ=-11005430 raw=0x2C09048E ; R[9] = R[9][K[44] "insert"]
+    [0147] GETTABUP       A=10 B=0 C=49 k=0 Bx=25088 sBx=-40447 Ax=6422538 sJ=-10354677 raw=0x3100050B ; R[10] = U[0][K[49] "_target_field"]
+    [0148] GETFIELD       A=11 B=2 C=50 k=0 Bx=25604 sBx=-39931 Ax=6554635 sJ=-10222580 raw=0x3202058E ; R[11] = R[2][K[50] "target_field"]
+    [0149] GETTABLE       A=11 B=11 C=8 k=0 Bx=4118 sBx=-61417 Ax=1054219 sJ=-15722996 raw=0x080B058C
+    [0150] CALL           A=9 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132617 sJ=-16644598 raw=0x010304C4
+    [0151] FORLOOP        A=5 B=3 C=0 k=1 Bx=7 sBx=-65528 Ax=1797 sJ=-16775418 raw=0x000382C9
+    [0152] GETTABUP       A=5 B=0 C=49 k=0 Bx=25088 sBx=-40447 Ax=6422533 sJ=-10354682 raw=0x3100028B ; R[5] = U[0][K[49] "_target_field"]
+    [0153] SETFIELD       A=3 B=50 C=5 k=0 Bx=2660 sBx=-62875 Ax=680963 sJ=-16096252 raw=0x05320192 ; R[3][K[50] "target_field"] = R[5]
+    [0154] NEWTABLE       A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x00000293
+    [0155] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0156] SETTABUP       A=0 B=51 C=5 k=0 Bx=2662 sBx=-62873 Ax=681472 sJ=-16095743 raw=0x0533000F
+    [0157] LOADI          A=5 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776965 sJ=-250 raw=0x7FFF8281
+    [0158] GETFIELD       A=6 B=2 C=52 k=0 Bx=26628 sBx=-38907 Ax=6816774 sJ=-9960441 raw=0x3402030E ; R[6] = R[2][K[52] "target_field_layer"]
+    [0159] LEN            A=6 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3078 sJ=-16774137 raw=0x00060334
+    [0160] ADDI           A=6 B=6 C=126 k=0 Bx=64524 sBx=-1011 Ax=16518150 sJ=-259065 raw=0x7E060315
+    [0161] MMBINI         A=6 B=128 C=7 k=0 Bx=3840 sBx=-61695 Ax=983046 sJ=-15794169 raw=0x0780032F
+    [0162] LOADI          A=7 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777223 sJ=8 raw=0x80000381
+    [0163] FORPREP        A=5 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1541 sJ=-16775674 raw=0x000302CA
+    [0164] GETTABUP       A=9 B=0 C=43 k=0 Bx=22016 sBx=-43519 Ax=5636105 sJ=-11141110 raw=0x2B00048B ; R[9] = U[0][K[43] "table"]
+    [0165] GETFIELD       A=9 B=9 C=44 k=0 Bx=22546 sBx=-42989 Ax=5771785 sJ=-11005430 raw=0x2C09048E ; R[9] = R[9][K[44] "insert"]
+    [0166] GETTABUP       A=10 B=0 C=51 k=0 Bx=26112 sBx=-39423 Ax=6684682 sJ=-10092533 raw=0x3300050B ; R[10] = U[0][K[51] "_target_field_layer"]
+    [0167] GETFIELD       A=11 B=2 C=52 k=0 Bx=26628 sBx=-38907 Ax=6816779 sJ=-9960436 raw=0x3402058E ; R[11] = R[2][K[52] "target_field_layer"]
+    [0168] GETTABLE       A=11 B=11 C=8 k=0 Bx=4118 sBx=-61417 Ax=1054219 sJ=-15722996 raw=0x080B058C
+    [0169] CALL           A=9 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132617 sJ=-16644598 raw=0x010304C4
+    [0170] FORLOOP        A=5 B=3 C=0 k=1 Bx=7 sBx=-65528 Ax=1797 sJ=-16775418 raw=0x000382C9
+    [0171] GETTABUP       A=5 B=0 C=51 k=0 Bx=26112 sBx=-39423 Ax=6684677 sJ=-10092538 raw=0x3300028B ; R[5] = U[0][K[51] "_target_field_layer"]
+    [0172] SETFIELD       A=3 B=52 C=5 k=0 Bx=2664 sBx=-62871 Ax=681987 sJ=-16095228 raw=0x05340192 ; R[3][K[52] "target_field_layer"] = R[5]
+    [0173] NEWTABLE       A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x00000293
+    [0174] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0175] SETTABUP       A=0 B=53 C=5 k=0 Bx=2666 sBx=-62869 Ax=682496 sJ=-16094719 raw=0x0535000F
+    [0176] LOADI          A=5 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776965 sJ=-250 raw=0x7FFF8281
+    [0177] GETFIELD       A=6 B=2 C=54 k=0 Bx=27652 sBx=-37883 Ax=7078918 sJ=-9698297 raw=0x3602030E ; R[6] = R[2][K[54] "field_skill"]
+    [0178] LEN            A=6 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3078 sJ=-16774137 raw=0x00060334
+    [0179] ADDI           A=6 B=6 C=126 k=0 Bx=64524 sBx=-1011 Ax=16518150 sJ=-259065 raw=0x7E060315
+    [0180] MMBINI         A=6 B=128 C=7 k=0 Bx=3840 sBx=-61695 Ax=983046 sJ=-15794169 raw=0x0780032F
+    [0181] LOADI          A=7 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777223 sJ=8 raw=0x80000381
+    [0182] FORPREP        A=5 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1541 sJ=-16775674 raw=0x000302CA
+    [0183] GETTABUP       A=9 B=0 C=43 k=0 Bx=22016 sBx=-43519 Ax=5636105 sJ=-11141110 raw=0x2B00048B ; R[9] = U[0][K[43] "table"]
+    [0184] GETFIELD       A=9 B=9 C=44 k=0 Bx=22546 sBx=-42989 Ax=5771785 sJ=-11005430 raw=0x2C09048E ; R[9] = R[9][K[44] "insert"]
+    [0185] GETTABUP       A=10 B=0 C=53 k=0 Bx=27136 sBx=-38399 Ax=6946826 sJ=-9830389 raw=0x3500050B ; R[10] = U[0][K[53] "_field_skill"]
+    [0186] GETFIELD       A=11 B=2 C=54 k=0 Bx=27652 sBx=-37883 Ax=7078923 sJ=-9698292 raw=0x3602058E ; R[11] = R[2][K[54] "field_skill"]
+    [0187] GETTABLE       A=11 B=11 C=8 k=0 Bx=4118 sBx=-61417 Ax=1054219 sJ=-15722996 raw=0x080B058C
+    [0188] CALL           A=9 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132617 sJ=-16644598 raw=0x010304C4
+    [0189] FORLOOP        A=5 B=3 C=0 k=1 Bx=7 sBx=-65528 Ax=1797 sJ=-16775418 raw=0x000382C9
+    [0190] GETTABUP       A=5 B=0 C=53 k=0 Bx=27136 sBx=-38399 Ax=6946821 sJ=-9830394 raw=0x3500028B ; R[5] = U[0][K[53] "_field_skill"]
+    [0191] SETFIELD       A=3 B=54 C=5 k=0 Bx=2668 sBx=-62867 Ax=683011 sJ=-16094204 raw=0x05360192 ; R[3][K[54] "field_skill"] = R[5]
+    [0192] NEWTABLE       A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x00000293
+    [0193] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0194] SETTABUP       A=0 B=55 C=5 k=0 Bx=2670 sBx=-62865 Ax=683520 sJ=-16093695 raw=0x0537000F
+    [0195] LOADI          A=5 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776965 sJ=-250 raw=0x7FFF8281
+    [0196] GETFIELD       A=6 B=2 C=56 k=0 Bx=28676 sBx=-36859 Ax=7341062 sJ=-9436153 raw=0x3802030E ; R[6] = R[2][K[56] "field_type"]
+    [0197] LEN            A=6 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3078 sJ=-16774137 raw=0x00060334
+    [0198] ADDI           A=6 B=6 C=126 k=0 Bx=64524 sBx=-1011 Ax=16518150 sJ=-259065 raw=0x7E060315
+    [0199] MMBINI         A=6 B=128 C=7 k=0 Bx=3840 sBx=-61695 Ax=983046 sJ=-15794169 raw=0x0780032F
+    [0200] LOADI          A=7 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777223 sJ=8 raw=0x80000381
+    [0201] FORPREP        A=5 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1541 sJ=-16775674 raw=0x000302CA
+    [0202] GETTABUP       A=9 B=0 C=43 k=0 Bx=22016 sBx=-43519 Ax=5636105 sJ=-11141110 raw=0x2B00048B ; R[9] = U[0][K[43] "table"]
+    [0203] GETFIELD       A=9 B=9 C=44 k=0 Bx=22546 sBx=-42989 Ax=5771785 sJ=-11005430 raw=0x2C09048E ; R[9] = R[9][K[44] "insert"]
+    [0204] GETTABUP       A=10 B=0 C=55 k=0 Bx=28160 sBx=-37375 Ax=7208970 sJ=-9568245 raw=0x3700050B ; R[10] = U[0][K[55] "_field_type"]
+    [0205] GETFIELD       A=11 B=2 C=56 k=0 Bx=28676 sBx=-36859 Ax=7341067 sJ=-9436148 raw=0x3802058E ; R[11] = R[2][K[56] "field_type"]
+    [0206] GETTABLE       A=11 B=11 C=8 k=0 Bx=4118 sBx=-61417 Ax=1054219 sJ=-15722996 raw=0x080B058C
+    [0207] CALL           A=9 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132617 sJ=-16644598 raw=0x010304C4
+    [0208] FORLOOP        A=5 B=3 C=0 k=1 Bx=7 sBx=-65528 Ax=1797 sJ=-16775418 raw=0x000382C9
+    [0209] GETTABUP       A=5 B=0 C=55 k=0 Bx=28160 sBx=-37375 Ax=7208965 sJ=-9568250 raw=0x3700028B ; R[5] = U[0][K[55] "_field_type"]
+    [0210] SETFIELD       A=3 B=56 C=5 k=0 Bx=2672 sBx=-62863 Ax=684035 sJ=-16093180 raw=0x05380192 ; R[3][K[56] "field_type"] = R[5]
+    [0211] NEWTABLE       A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x00000293
+    [0212] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0213] SETTABUP       A=0 B=57 C=5 k=0 Bx=2674 sBx=-62861 Ax=684544 sJ=-16092671 raw=0x0539000F
+    [0214] LOADI          A=5 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776965 sJ=-250 raw=0x7FFF8281
+    [0215] GETFIELD       A=6 B=2 C=58 k=0 Bx=29700 sBx=-35835 Ax=7603206 sJ=-9174009 raw=0x3A02030E ; R[6] = R[2][K[58] "field_layer"]
+    [0216] LEN            A=6 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3078 sJ=-16774137 raw=0x00060334
+    [0217] ADDI           A=6 B=6 C=126 k=0 Bx=64524 sBx=-1011 Ax=16518150 sJ=-259065 raw=0x7E060315
+    [0218] MMBINI         A=6 B=128 C=7 k=0 Bx=3840 sBx=-61695 Ax=983046 sJ=-15794169 raw=0x0780032F
+    [0219] LOADI          A=7 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777223 sJ=8 raw=0x80000381
+    [0220] FORPREP        A=5 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1541 sJ=-16775674 raw=0x000302CA
+    [0221] GETTABUP       A=9 B=0 C=43 k=0 Bx=22016 sBx=-43519 Ax=5636105 sJ=-11141110 raw=0x2B00048B ; R[9] = U[0][K[43] "table"]
+    [0222] GETFIELD       A=9 B=9 C=44 k=0 Bx=22546 sBx=-42989 Ax=5771785 sJ=-11005430 raw=0x2C09048E ; R[9] = R[9][K[44] "insert"]
+    [0223] GETTABUP       A=10 B=0 C=57 k=0 Bx=29184 sBx=-36351 Ax=7471114 sJ=-9306101 raw=0x3900050B ; R[10] = U[0][K[57] "_field_layer"]
+    [0224] GETFIELD       A=11 B=2 C=58 k=0 Bx=29700 sBx=-35835 Ax=7603211 sJ=-9174004 raw=0x3A02058E ; R[11] = R[2][K[58] "field_layer"]
+    [0225] GETTABLE       A=11 B=11 C=8 k=0 Bx=4118 sBx=-61417 Ax=1054219 sJ=-15722996 raw=0x080B058C
+    [0226] CALL           A=9 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132617 sJ=-16644598 raw=0x010304C4
+    [0227] FORLOOP        A=5 B=3 C=0 k=1 Bx=7 sBx=-65528 Ax=1797 sJ=-16775418 raw=0x000382C9
+    [0228] GETTABUP       A=5 B=0 C=57 k=0 Bx=29184 sBx=-36351 Ax=7471109 sJ=-9306106 raw=0x3900028B ; R[5] = U[0][K[57] "_field_layer"]
+    [0229] SETFIELD       A=3 B=58 C=5 k=0 Bx=2676 sBx=-62859 Ax=685059 sJ=-16092156 raw=0x053A0192 ; R[3][K[58] "field_layer"] = R[5]
+    [0230] NEWTABLE       A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x00000293
+    [0231] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0232] SETTABUP       A=0 B=59 C=5 k=0 Bx=2678 sBx=-62857 Ax=685568 sJ=-16091647 raw=0x053B000F
+    [0233] LOADI          A=5 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776965 sJ=-250 raw=0x7FFF8281
+    [0234] GETFIELD       A=6 B=2 C=60 k=0 Bx=30724 sBx=-34811 Ax=7865350 sJ=-8911865 raw=0x3C02030E ; R[6] = R[2][K[60] "field_energy_reduse"]
+    [0235] LEN            A=6 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3078 sJ=-16774137 raw=0x00060334
+    [0236] ADDI           A=6 B=6 C=126 k=0 Bx=64524 sBx=-1011 Ax=16518150 sJ=-259065 raw=0x7E060315
+    [0237] MMBINI         A=6 B=128 C=7 k=0 Bx=3840 sBx=-61695 Ax=983046 sJ=-15794169 raw=0x0780032F
+    [0238] LOADI          A=7 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777223 sJ=8 raw=0x80000381
+    [0239] FORPREP        A=5 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1541 sJ=-16775674 raw=0x000302CA
+    [0240] GETTABUP       A=9 B=0 C=43 k=0 Bx=22016 sBx=-43519 Ax=5636105 sJ=-11141110 raw=0x2B00048B ; R[9] = U[0][K[43] "table"]
+    [0241] GETFIELD       A=9 B=9 C=44 k=0 Bx=22546 sBx=-42989 Ax=5771785 sJ=-11005430 raw=0x2C09048E ; R[9] = R[9][K[44] "insert"]
+    [0242] GETTABUP       A=10 B=0 C=59 k=0 Bx=30208 sBx=-35327 Ax=7733258 sJ=-9043957 raw=0x3B00050B ; R[10] = U[0][K[59] "_field_energy_reduse"]
+    [0243] GETFIELD       A=11 B=2 C=60 k=0 Bx=30724 sBx=-34811 Ax=7865355 sJ=-8911860 raw=0x3C02058E ; R[11] = R[2][K[60] "field_energy_reduse"]
+    [0244] GETTABLE       A=11 B=11 C=8 k=0 Bx=4118 sBx=-61417 Ax=1054219 sJ=-15722996 raw=0x080B058C
+    [0245] CALL           A=9 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132617 sJ=-16644598 raw=0x010304C4
+    [0246] FORLOOP        A=5 B=3 C=0 k=1 Bx=7 sBx=-65528 Ax=1797 sJ=-16775418 raw=0x000382C9
+    [0247] GETTABUP       A=5 B=0 C=59 k=0 Bx=30208 sBx=-35327 Ax=7733253 sJ=-9043962 raw=0x3B00028B ; R[5] = U[0][K[59] "_field_energy_reduse"]
+    [0248] SETFIELD       A=3 B=60 C=5 k=0 Bx=2680 sBx=-62855 Ax=686083 sJ=-16091132 raw=0x053C0192 ; R[3][K[60] "field_energy_reduse"] = R[5]
+    [0249] GETFIELD       A=5 B=2 C=61 k=0 Bx=31236 sBx=-34299 Ax=7996421 sJ=-8780794 raw=0x3D02028E ; R[5] = R[2][K[61] "is_show"]
+    [0250] SETFIELD       A=3 B=61 C=5 k=0 Bx=2682 sBx=-62853 Ax=686595 sJ=-16090620 raw=0x053D0192 ; R[3][K[61] "is_show"] = R[5]
+    [0251] GETTABUP       A=5 B=0 C=62 k=0 Bx=31744 sBx=-33791 Ax=8126469 sJ=-8650746 raw=0x3E00028B ; R[5] = U[0][K[62] "SKILL_CONF"]
+    [0252] SETTABLE       A=5 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393733 sJ=-16383482 raw=0x03010290
+    [0253] RETURN0        A=5 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=517 sJ=-16776698 raw=0x000102C7
+
+  function[1] source="" lines=112-124 params=2 vararg=0 stack=255 upvalues=1
+  constants (5):
+    K[0] = "SKILL_CONF"
+    K[1] = nil
+    K[2] = "TinyData"
+    K[3] = "GetRecord"
+    K[4] = "addCacheRecord"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=8 name="_ENV"
+  locals (4):
+    L[0] = "self" pc=0-23
+    L[1] = "_key" pc=0-23
+    L[2] = "r" pc=2-23
+    L[3] = "r" pc=9-21
+  instructions (23):
+    [0001] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "SKILL_CONF"]
+    [0002] GETTABLE       A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x0102010C
+    [0003] EQK            A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x0001013C
+    [0004] JMP            A=16 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777232 sJ=17 raw=0x80000838
+    [0005] GETTABUP       A=3 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262147 sJ=-16515068 raw=0x0200018B ; R[3] = U[0][K[2] "TinyData"]
+    [0006] GETFIELD       A=3 B=3 C=3 k=0 Bx=1542 sBx=-63993 Ax=394755 sJ=-16382460 raw=0x0303018E ; R[3] = R[3][K[3] "GetRecord"]
+    [0007] LOADK          A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000203 ; R[4] = K[0] "SKILL_CONF"
+    [0008] MOVE           A=5 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=517 sJ=-16776698 raw=0x00010280
+    [0009] CALL           A=3 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263683 sJ=-16513532 raw=0x020301C4
+    [0010] EQK            A=3 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=771 sJ=-16776444 raw=0x000181BC
+    [0011] JMP            A=7 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777223 sJ=8 raw=0x800003B8
+    [0012] SELF           A=4 B=0 C=4 k=1 Bx=2049 sBx=-63486 Ax=524548 sJ=-16252667 raw=0x04008214
+    [0013] MOVE           A=6 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=518 sJ=-16776697 raw=0x00010300
+    [0014] MOVE           A=7 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1543 sJ=-16775672 raw=0x00030380
+    [0015] CALL           A=4 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133124 sJ=-16644091 raw=0x01040244
+    [0016] GETTABUP       A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x0000020B ; R[4] = U[0][K[0] "SKILL_CONF"]
+    [0017] GETTABLE       A=4 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133124 sJ=-16644091 raw=0x0104020C
+    [0018] RETURN1        A=4 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1028 sJ=-16776187 raw=0x00020248
+    [0019] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0020] LOADNIL        A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000208
+    [0021] RETURN1        A=4 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1028 sJ=-16776187 raw=0x00020248
+    [0022] RETURN1        A=2 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1026 sJ=-16776189 raw=0x00020148
+    [0023] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7
+
+  function[2] source="" lines=127-143 params=1 vararg=0 stack=255 upvalues=1
+  constants (10):
+    K[0] = "TinyData"
+    K[1] = "GetTable"
+    K[2] = "SKILL_CONF"
+    K[3] = "TinyDataTable"
+    K[4] = "GetRecordsCount"
+    K[5] = "GetRecordByIdx"
+    K[6] = nil
+    K[7] = "addCacheRecord"
+    K[8] = "id"
+    K[9] = "SetCache"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=12 name="_ENV"
+  locals (8):
+    L[0] = "self" pc=0-41
+    L[1] = "confs" pc=5-41
+    L[2] = "count" pc=9-41
+    L[3] = "(for state)" pc=19-32
+    L[4] = "(for state)" pc=19-32
+    L[5] = "(for state)" pc=19-32
+    L[6] = "idx" pc=20-31
+    L[7] = "record" pc=25-31
+  instructions (41):
+    [0001] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "TinyData"]
+    [0002] GETFIELD       A=1 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131585 sJ=-16645630 raw=0x0101008E ; R[1] = R[1][K[1] "GetTable"]
+    [0003] LOADK          A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010103 ; R[2] = K[2] "SKILL_CONF"
+    [0004] LOADTRUE       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000187
+    [0005] CALL           A=1 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263681 sJ=-16513534 raw=0x020300C4
+    [0006] GETTABUP       A=2 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393218 sJ=-16383997 raw=0x0300010B ; R[2] = U[0][K[3] "TinyDataTable"]
+    [0007] GETFIELD       A=2 B=2 C=4 k=0 Bx=2052 sBx=-63483 Ax=525314 sJ=-16251901 raw=0x0402010E ; R[2] = R[2][K[4] "GetRecordsCount"]
+    [0008] MOVE           A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x00010180
+    [0009] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0010] GETTABUP       A=3 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262147 sJ=-16515068 raw=0x0200018B ; R[3] = U[0][K[2] "SKILL_CONF"]
+    [0011] LEN            A=3 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1539 sJ=-16775676 raw=0x000301B4
+    [0012] EQ             A=2 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1538 sJ=-16775677 raw=0x00030139
+    [0013] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0014] GETTABUP       A=3 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262147 sJ=-16515068 raw=0x0200018B ; R[3] = U[0][K[2] "SKILL_CONF"]
+    [0015] RETURN1        A=3 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1027 sJ=-16776188 raw=0x000201C8
+    [0016] LOADI          A=3 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776963 sJ=-252 raw=0x7FFF8181
+    [0017] ADDI           A=4 B=2 C=126 k=0 Bx=64516 sBx=-1019 Ax=16516100 sJ=-261115 raw=0x7E020215
+    [0018] MMBINI         A=2 B=128 C=7 k=0 Bx=3840 sBx=-61695 Ax=983042 sJ=-15794173 raw=0x0780012F
+    [0019] LOADI          A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x80000281
+    [0020] FORPREP        A=3 B=5 C=0 k=1 Bx=11 sBx=-65524 Ax=2819 sJ=-16774396 raw=0x000581CA
+    [0021] GETTABUP       A=7 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393223 sJ=-16383992 raw=0x0300038B ; R[7] = U[0][K[3] "TinyDataTable"]
+    [0022] GETFIELD       A=7 B=7 C=5 k=0 Bx=2574 sBx=-62961 Ax=658951 sJ=-16118264 raw=0x0507038E ; R[7] = R[7][K[5] "GetRecordByIdx"]
+    [0023] MOVE           A=8 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=520 sJ=-16776695 raw=0x00010400
+    [0024] MOVE           A=9 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3081 sJ=-16774134 raw=0x00060480
+    [0025] CALL           A=7 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263687 sJ=-16513528 raw=0x020303C4
+    [0026] EQK            A=7 B=6 C=0 k=1 Bx=13 sBx=-65522 Ax=3335 sJ=-16773880 raw=0x000683BC
+    [0027] JMP            A=3 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777219 sJ=4 raw=0x800001B8
+    [0028] SELF           A=8 B=0 C=7 k=1 Bx=3585 sBx=-61950 Ax=917768 sJ=-15859447 raw=0x07008414
+    [0029] GETFIELD       A=10 B=7 C=8 k=0 Bx=4110 sBx=-61425 Ax=1052170 sJ=-15725045 raw=0x0807050E ; R[10] = R[7][K[8] "id"]
+    [0030] MOVE           A=11 B=7 C=0 k=0 Bx=14 sBx=-65521 Ax=3595 sJ=-16773620 raw=0x00070580
+    [0031] CALL           A=8 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133128 sJ=-16644087 raw=0x01040444
+    [0032] FORLOOP        A=3 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3075 sJ=-16774140 raw=0x000601C9
+    [0033] GETTABUP       A=3 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393219 sJ=-16383996 raw=0x0300018B ; R[3] = U[0][K[3] "TinyDataTable"]
+    [0034] GETFIELD       A=3 B=3 C=9 k=0 Bx=4614 sBx=-60921 Ax=1181187 sJ=-15596028 raw=0x0903018E ; R[3] = R[3][K[9] "SetCache"]
+    [0035] MOVE           A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010200
+    [0036] LOADFALSE      A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x00000285
+    [0037] LOADTRUE       A=6 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=6 sJ=-16777209 raw=0x00000307
+    [0038] CALL           A=3 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133123 sJ=-16644092 raw=0x010401C4
+    [0039] GETTABUP       A=3 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262147 sJ=-16515068 raw=0x0200018B ; R[3] = U[0][K[2] "SKILL_CONF"]
+    [0040] RETURN1        A=3 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1027 sJ=-16776188 raw=0x000201C8
+    [0041] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7
+
+  function[3] source="" lines=146-148 params=1 vararg=0 stack=255 upvalues=1
+  constants (3):
+    K[0] = "TinyData"
+    K[1] = "GetRecordsCount"
+    K[2] = "SKILL_CONF"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=3 name="_ENV"
+  locals (1):
+    L[0] = "self" pc=0-6
+  instructions (6):
+    [0001] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "TinyData"]
+    [0002] GETFIELD       A=1 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131585 sJ=-16645630 raw=0x0101008E ; R[1] = R[1][K[1] "GetRecordsCount"]
+    [0003] LOADK          A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010103 ; R[2] = K[2] "SKILL_CONF"
+    [0004] TAILCALL       A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C5
+    [0005] RETURN         A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C6
+    [0006] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7

@@ -1,0 +1,365 @@
+-- path: Content/ScriptC/NewRoco/Modules/Core/Battle/Common/BattleAsyncLoader.luac
+-- format: decrypted standard Lua 5.4 bytecode
+-- note: disassembly, not original source
+
+main source="@NewRoco\\Modules\\Core\\Battle\\Common\\BattleAsyncLoader.lua" lines=0-0 params=0 vararg=1 stack=255 upvalues=1
+constants (11):
+  K[0] = "require"
+  K[1] = "Common.EventDispatcher"
+  K[2] = "NRCClass"
+  K[3] = "Ctor"
+  K[4] = "SetCallback"
+  K[5] = "AddRes"
+  K[6] = "StartAsyncLoading"
+  K[7] = "OnLoaded"
+  K[8] = "IsLoading"
+  K[9] = "AddFromPet"
+  K[10] = "CreateFromBattleInitInfo"
+upvalues (1):
+  U[0] = instack=0 idx=0 kind=3 name="_ENV"
+locals (2):
+  L[0] = "EventDispatcher" pc=4-24
+  L[1] = "BattleAsyncLoader" pc=6-24
+instructions (24):
+  [0001] VARARGPREP     A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000051
+  [0002] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "require"]
+  [0003] LOADK          A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x00008083 ; R[1] = K[1] "Common.EventDispatcher"
+  [0004] CALL           A=0 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263168 sJ=-16514047 raw=0x02020044
+  [0005] GETTABUP       A=1 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262145 sJ=-16515070 raw=0x0200008B ; R[1] = U[0][K[2] "NRCClass"]
+  [0006] CALL           A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x020100C4
+  [0007] CLOSURE        A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000014F ; R[2] = function[0]
+  [0008] SETFIELD       A=1 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263681 sJ=-16513534 raw=0x02030092 ; R[1][K[3] "Ctor"] = R[2]
+  [0009] CLOSURE        A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x0000814F ; R[2] = function[1]
+  [0010] SETFIELD       A=1 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264193 sJ=-16513022 raw=0x02040092 ; R[1][K[4] "SetCallback"] = R[2]
+  [0011] CLOSURE        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x0001014F ; R[2] = function[2]
+  [0012] SETFIELD       A=1 B=5 C=2 k=0 Bx=1034 sBx=-64501 Ax=264705 sJ=-16512510 raw=0x02050092 ; R[1][K[5] "AddRes"] = R[2]
+  [0013] CLOSURE        A=2 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=770 sJ=-16776445 raw=0x0001814F ; R[2] = function[3]
+  [0014] SETFIELD       A=1 B=6 C=2 k=0 Bx=1036 sBx=-64499 Ax=265217 sJ=-16511998 raw=0x02060092 ; R[1][K[6] "StartAsyncLoading"] = R[2]
+  [0015] CLOSURE        A=2 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1026 sJ=-16776189 raw=0x0002014F ; R[2] = function[4]
+  [0016] SETFIELD       A=1 B=7 C=2 k=0 Bx=1038 sBx=-64497 Ax=265729 sJ=-16511486 raw=0x02070092 ; R[1][K[7] "OnLoaded"] = R[2]
+  [0017] CLOSURE        A=2 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1282 sJ=-16775933 raw=0x0002814F ; R[2] = function[5]
+  [0018] SETFIELD       A=1 B=8 C=2 k=0 Bx=1040 sBx=-64495 Ax=266241 sJ=-16510974 raw=0x02080092 ; R[1][K[8] "IsLoading"] = R[2]
+  [0019] CLOSURE        A=2 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1538 sJ=-16775677 raw=0x0003014F ; R[2] = function[6]
+  [0020] SETFIELD       A=1 B=9 C=2 k=0 Bx=1042 sBx=-64493 Ax=266753 sJ=-16510462 raw=0x02090092 ; R[1][K[9] "AddFromPet"] = R[2]
+  [0021] CLOSURE        A=2 B=3 C=0 k=1 Bx=7 sBx=-65528 Ax=1794 sJ=-16775421 raw=0x0003814F ; R[2] = function[7]
+  [0022] SETFIELD       A=1 B=10 C=2 k=0 Bx=1044 sBx=-64491 Ax=267265 sJ=-16509950 raw=0x020A0092 ; R[1][K[10] "CreateFromBattleInitInfo"] = R[2]
+  [0023] RETURN         A=1 B=2 C=1 k=1 Bx=517 sBx=-65018 Ax=132353 sJ=-16644862 raw=0x010280C6
+  [0024] RETURN         A=2 B=1 C=1 k=1 Bx=515 sBx=-65020 Ax=131842 sJ=-16645373 raw=0x01018146
+
+  function[0] source="" lines=18-24 params=1 vararg=0 stack=255 upvalues=2
+  constants (8):
+    K[0] = "Attach"
+    K[1] = "AssetManagerInstance"
+    K[2] = "_G"
+    K[3] = "NRCResourceManager"
+    K[4] = "LoadingPaths"
+    K[5] = "LoadedObjects"
+    K[6] = "isLoading"
+    K[7] = false
+  upvalues (2):
+    U[0] = instack=0 idx=0 kind=0 name="EventDispatcher"
+    U[1] = instack=0 idx=0 kind=4 name="_ENV"
+  locals (1):
+    L[0] = "self" pc=0-16
+  instructions (16):
+    [0001] GETUPVAL       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000089
+    [0002] CALL           A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x020100C4
+    [0003] SELF           A=1 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=769 sJ=-16776446 raw=0x00018094
+    [0004] MOVE           A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000180
+    [0005] CALL           A=1 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132609 sJ=-16644606 raw=0x010300C4
+    [0006] GETTABUP       A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x0201008B ; R[1] = U[1][K[2] "_G"]
+    [0007] GETFIELD       A=1 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393729 sJ=-16383486 raw=0x0301008E ; R[1] = R[1][K[3] "NRCResourceManager"]
+    [0008] SETFIELD       A=0 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131584 sJ=-16645631 raw=0x01010012 ; R[0][K[1] "AssetManagerInstance"] = R[1]
+    [0009] NEWTABLE       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000093
+    [0010] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0011] SETFIELD       A=0 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133120 sJ=-16644095 raw=0x01040012 ; R[0][K[4] "LoadingPaths"] = R[1]
+    [0012] NEWTABLE       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000093
+    [0013] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0014] SETFIELD       A=0 B=5 C=1 k=0 Bx=522 sBx=-65013 Ax=133632 sJ=-16643583 raw=0x01050012 ; R[0][K[5] "LoadedObjects"] = R[1]
+    [0015] SETFIELD       A=0 B=6 C=7 k=1 Bx=3597 sBx=-61938 Ax=920832 sJ=-15856383 raw=0x07068012 ; R[0][K[6] "isLoading"] = R[7]
+    [0016] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[1] source="" lines=26-29 params=3 vararg=0 stack=255 upvalues=0
+  constants (2):
+    K[0] = "Owner"
+    K[1] = "Callback"
+  locals (3):
+    L[0] = "self" pc=0-3
+    L[1] = "owner" pc=0-3
+    L[2] = "callback" pc=0-3
+  instructions (3):
+    [0001] SETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x01000012 ; R[0][K[0] "Owner"] = R[1]
+    [0002] SETFIELD       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010012 ; R[0][K[1] "Callback"] = R[2]
+    [0003] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7
+
+  function[2] source="" lines=32-38 params=2 vararg=0 stack=255 upvalues=1
+  constants (8):
+    K[0] = "table"
+    K[1] = "contains"
+    K[2] = "LoadedObjects"
+    K[3] = "Log"
+    K[4] = "DebugFormat"
+    K[5] = "adding path %s"
+    K[6] = "insert"
+    K[7] = "LoadingPaths"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=5 name="_ENV"
+  locals (2):
+    L[0] = "self" pc=0-19
+    L[1] = "path" pc=0-19
+  instructions (19):
+    [0001] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "table"]
+    [0002] GETFIELD       A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x0102010E ; R[2] = R[2][K[1] "contains"]
+    [0003] GETFIELD       A=3 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262147 sJ=-16515068 raw=0x0200018E ; R[3] = R[0][K[2] "LoadedObjects"]
+    [0004] MOVE           A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010200
+    [0005] CALL           A=2 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263682 sJ=-16513533 raw=0x02030144
+    [0006] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0007] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0008] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+    [0009] GETTABUP       A=2 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393218 sJ=-16383997 raw=0x0300010B ; R[2] = U[0][K[3] "Log"]
+    [0010] GETFIELD       A=2 B=2 C=4 k=0 Bx=2052 sBx=-63483 Ax=525314 sJ=-16251901 raw=0x0402010E ; R[2] = R[2][K[4] "DebugFormat"]
+    [0011] LOADK          A=3 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1283 sJ=-16775932 raw=0x00028183 ; R[3] = K[5] "adding path %s"
+    [0012] MOVE           A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010200
+    [0013] CALL           A=2 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132610 sJ=-16644605 raw=0x01030144
+    [0014] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "table"]
+    [0015] GETFIELD       A=2 B=2 C=6 k=0 Bx=3076 sBx=-62459 Ax=787458 sJ=-15989757 raw=0x0602010E ; R[2] = R[2][K[6] "insert"]
+    [0016] GETFIELD       A=3 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917507 sJ=-15859708 raw=0x0700018E ; R[3] = R[0][K[7] "LoadingPaths"]
+    [0017] MOVE           A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010200
+    [0018] CALL           A=2 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132610 sJ=-16644605 raw=0x01030144
+    [0019] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[3] source="" lines=40-50 params=1 vararg=0 stack=255 upvalues=1
+  constants (11):
+    K[0] = "LoadingPaths"
+    K[1] = "Log"
+    K[2] = "DebugFormat"
+    K[3] = "Start Async Load %d!!!!!!!!"
+    K[4] = "isLoading"
+    K[5] = true
+    K[6] = "ipairs"
+    K[7] = "BattleResourceManager"
+    K[8] = "LoadResAsync"
+    K[9] = "OnLoaded"
+    K[10] = "Dump"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=13 name="_ENV"
+  locals (7):
+    L[0] = "self" pc=0-31
+    L[1] = "(for state)" pc=15-26
+    L[2] = "(for state)" pc=15-26
+    L[3] = "(for state)" pc=15-26
+    L[4] = "(for state)" pc=15-26
+    L[5] = "i" pc=16-23
+    L[6] = "v" pc=16-23
+  instructions (31):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "LoadingPaths"]
+    [0002] LEN            A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100B4
+    [0003] EQI            A=1 B=127 C=0 k=0 Bx=254 sBx=-65281 Ax=65025 sJ=-16712190 raw=0x007F00BD
+    [0004] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0005] RETURN         A=1 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=769 sJ=-16776446 raw=0x000180C6
+    [0006] GETTABUP       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008B ; R[1] = U[0][K[1] "Log"]
+    [0007] GETFIELD       A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x0201008E ; R[1] = R[1][K[2] "DebugFormat"]
+    [0008] LOADK          A=2 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=770 sJ=-16776445 raw=0x00018103 ; R[2] = K[3] "Start Async Load %d!!!!!!!!"
+    [0009] GETFIELD       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018E ; R[3] = R[0][K[0] "LoadingPaths"]
+    [0010] LEN            A=3 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1539 sJ=-16775676 raw=0x000301B4
+    [0011] CALL           A=1 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132609 sJ=-16644606 raw=0x010300C4
+    [0012] SETFIELD       A=0 B=4 C=5 k=1 Bx=2569 sBx=-62966 Ax=657664 sJ=-16119551 raw=0x05048012 ; R[0][K[4] "isLoading"] = R[5]
+    [0013] GETTABUP       A=1 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786433 sJ=-15990782 raw=0x0600008B ; R[1] = U[0][K[6] "ipairs"]
+    [0014] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "LoadingPaths"]
+    [0015] CALL           A=1 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656385 sJ=-16120830 raw=0x050200C4
+    [0016] TFORPREP       A=1 B=3 C=0 k=1 Bx=7 sBx=-65528 Ax=1793 sJ=-16775422 raw=0x000380CB
+    [0017] GETTABUP       A=7 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917511 sJ=-15859704 raw=0x0700038B ; R[7] = U[0][K[7] "BattleResourceManager"]
+    [0018] SELF           A=7 B=7 C=8 k=1 Bx=4111 sBx=-61424 Ax=1052423 sJ=-15724792 raw=0x08078394
+    [0019] MOVE           A=9 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=9 sJ=-16777206 raw=0x00000480
+    [0020] MOVE           A=10 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3082 sJ=-16774133 raw=0x00060500
+    [0021] GETFIELD       A=11 B=0 C=9 k=0 Bx=4608 sBx=-60927 Ax=1179659 sJ=-15597556 raw=0x0900058E ; R[11] = R[0][K[9] "OnLoaded"]
+    [0022] GETFIELD       A=12 B=0 C=9 k=0 Bx=4608 sBx=-60927 Ax=1179660 sJ=-15597555 raw=0x0900060E ; R[12] = R[0][K[9] "OnLoaded"]
+    [0023] CALL           A=7 B=6 C=1 k=0 Bx=524 sBx=-65011 Ax=134151 sJ=-16643064 raw=0x010603C4
+    [0024] TFORCALL       A=1 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262145 sJ=-16515070 raw=0x020000CC
+    [0025] TFORLOOP       A=1 B=4 C=0 k=1 Bx=9 sBx=-65526 Ax=2305 sJ=-16774910 raw=0x000480CD
+    [0026] CLOSE          A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000B6
+    [0027] GETTABUP       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008B ; R[1] = U[0][K[1] "Log"]
+    [0028] GETFIELD       A=1 B=1 C=10 k=0 Bx=5122 sBx=-60413 Ax=1311233 sJ=-15465982 raw=0x0A01008E ; R[1] = R[1][K[10] "Dump"]
+    [0029] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "LoadingPaths"]
+    [0030] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0031] RETURN         A=1 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=769 sJ=-16776446 raw=0x000180C6
+
+  function[4] source="" lines=52-65 params=2 vararg=0 stack=255 upvalues=1
+  constants (12):
+    K[0] = "table"
+    K[1] = "insert"
+    K[2] = "LoadedObjects"
+    K[3] = "LoadingPaths"
+    K[4] = "isLoading"
+    K[5] = false
+    K[6] = "Owner"
+    K[7] = nil
+    K[8] = "Callback"
+    K[9] = "Log"
+    K[10] = "DebugFormat"
+    K[11] = "Finish Async Load %d!!!!!!!!"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=7 name="_ENV"
+  locals (4):
+    L[0] = "self" pc=0-29
+    L[1] = "res" pc=0-29
+    L[2] = "Owner" pc=14-29
+    L[3] = "Callback" pc=16-29
+  instructions (29):
+    [0001] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "table"]
+    [0002] GETFIELD       A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x0102010E ; R[2] = R[2][K[1] "insert"]
+    [0003] GETFIELD       A=3 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262147 sJ=-16515068 raw=0x0200018E ; R[3] = R[0][K[2] "LoadedObjects"]
+    [0004] MOVE           A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010200
+    [0005] CALL           A=2 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132610 sJ=-16644605 raw=0x01030144
+    [0006] GETFIELD       A=2 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393218 sJ=-16383997 raw=0x0300010E ; R[2] = R[0][K[3] "LoadingPaths"]
+    [0007] LEN            A=2 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1026 sJ=-16776189 raw=0x00020134
+    [0008] GETFIELD       A=3 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262147 sJ=-16515068 raw=0x0200018E ; R[3] = R[0][K[2] "LoadedObjects"]
+    [0009] LEN            A=3 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1539 sJ=-16775676 raw=0x000301B4
+    [0010] EQ             A=2 B=3 C=0 k=1 Bx=7 sBx=-65528 Ax=1794 sJ=-16775421 raw=0x00038139
+    [0011] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0012] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+    [0013] SETFIELD       A=0 B=4 C=5 k=1 Bx=2569 sBx=-62966 Ax=657664 sJ=-16119551 raw=0x05048012 ; R[0][K[4] "isLoading"] = R[5]
+    [0014] GETFIELD       A=2 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786434 sJ=-15990781 raw=0x0600010E ; R[2] = R[0][K[6] "Owner"]
+    [0015] SETFIELD       A=0 B=6 C=7 k=1 Bx=3597 sBx=-61938 Ax=920832 sJ=-15856383 raw=0x07068012 ; R[0][K[6] "Owner"] = R[7]
+    [0016] GETFIELD       A=3 B=0 C=8 k=0 Bx=4096 sBx=-61439 Ax=1048579 sJ=-15728636 raw=0x0800018E ; R[3] = R[0][K[8] "Callback"]
+    [0017] SETFIELD       A=0 B=8 C=7 k=1 Bx=3601 sBx=-61934 Ax=921856 sJ=-15855359 raw=0x07088012 ; R[0][K[8] "Callback"] = R[7]
+    [0018] TEST           A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x000001C2
+    [0019] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0020] MOVE           A=4 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1540 sJ=-16775675 raw=0x00030200
+    [0021] MOVE           A=5 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1029 sJ=-16776186 raw=0x00020280
+    [0022] CALL           A=4 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132100 sJ=-16645115 raw=0x01020244
+    [0023] GETTABUP       A=4 B=0 C=9 k=0 Bx=4608 sBx=-60927 Ax=1179652 sJ=-15597563 raw=0x0900020B ; R[4] = U[0][K[9] "Log"]
+    [0024] GETFIELD       A=4 B=4 C=10 k=0 Bx=5128 sBx=-60407 Ax=1312772 sJ=-15464443 raw=0x0A04020E ; R[4] = R[4][K[10] "DebugFormat"]
+    [0025] LOADK          A=5 B=5 C=0 k=1 Bx=11 sBx=-65524 Ax=2821 sJ=-16774394 raw=0x00058283 ; R[5] = K[11] "Finish Async Load %d!!!!!!!!"
+    [0026] GETFIELD       A=6 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262150 sJ=-16515065 raw=0x0200030E ; R[6] = R[0][K[2] "LoadedObjects"]
+    [0027] LEN            A=6 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3078 sJ=-16774137 raw=0x00060334
+    [0028] CALL           A=4 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132612 sJ=-16644603 raw=0x01030244
+    [0029] RETURN0        A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010247
+
+  function[5] source="" lines=67-69 params=1 vararg=0 stack=255 upvalues=0
+  constants (1):
+    K[0] = "isLoading"
+  locals (1):
+    L[0] = "self" pc=0-3
+  instructions (3):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "isLoading"]
+    [0002] RETURN1        A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C8
+    [0003] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[6] source="" lines=72-85 params=2 vararg=0 stack=255 upvalues=1
+  constants (11):
+    K[0] = "battle_inside_pet_info"
+    K[1] = "skill_round_data"
+    K[2] = "ipairs"
+    K[3] = "_G"
+    K[4] = "DataConfigManager"
+    K[5] = "GetSkillConf"
+    K[6] = "skill_id"
+    K[7] = "string"
+    K[8] = "IsNilOrEmpty"
+    K[9] = "res_id"
+    K[10] = "AddRes"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=13 name="_ENV"
+  locals (10):
+    L[0] = "self" pc=0-41
+    L[1] = "pet" pc=0-41
+    L[2] = "SkillDatas" pc=14-41
+    L[3] = "(for state)" pc=20-40
+    L[4] = "(for state)" pc=20-40
+    L[5] = "(for state)" pc=20-40
+    L[6] = "(for state)" pc=20-40
+    L[7] = "_" pc=21-37
+    L[8] = "v" pc=21-37
+    L[9] = "Conf" pc=26-37
+  instructions (41):
+    [0001] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0002] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0003] RETURN         A=2 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=770 sJ=-16776445 raw=0x00018146
+    [0004] GETFIELD       A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x0001010E ; R[2] = R[1][K[0] "battle_inside_pet_info"]
+    [0005] TEST           A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x00008142
+    [0006] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0007] RETURN         A=2 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=770 sJ=-16776445 raw=0x00018146
+    [0008] GETFIELD       A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x0001010E ; R[2] = R[1][K[0] "battle_inside_pet_info"]
+    [0009] GETFIELD       A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x0102010E ; R[2] = R[2][K[1] "skill_round_data"]
+    [0010] TEST           A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x00008142
+    [0011] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0012] RETURN         A=2 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=770 sJ=-16776445 raw=0x00018146
+    [0013] GETFIELD       A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x0001010E ; R[2] = R[1][K[0] "battle_inside_pet_info"]
+    [0014] GETFIELD       A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x0102010E ; R[2] = R[2][K[1] "skill_round_data"]
+    [0015] TEST           A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x00008142
+    [0016] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0017] RETURN         A=3 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=771 sJ=-16776444 raw=0x000181C6
+    [0018] GETTABUP       A=3 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262147 sJ=-16515068 raw=0x0200018B ; R[3] = U[0][K[2] "ipairs"]
+    [0019] MOVE           A=4 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1028 sJ=-16776187 raw=0x00020200
+    [0020] CALL           A=3 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656387 sJ=-16120828 raw=0x050201C4
+    [0021] TFORPREP       A=3 B=8 C=0 k=0 Bx=16 sBx=-65519 Ax=4099 sJ=-16773116 raw=0x000801CB
+    [0022] GETTABUP       A=9 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393225 sJ=-16383990 raw=0x0300048B ; R[9] = U[0][K[3] "_G"]
+    [0023] GETFIELD       A=9 B=9 C=4 k=0 Bx=2066 sBx=-63469 Ax=528905 sJ=-16248310 raw=0x0409048E ; R[9] = R[9][K[4] "DataConfigManager"]
+    [0024] SELF           A=9 B=9 C=5 k=1 Bx=2579 sBx=-62956 Ax=660233 sJ=-16116982 raw=0x05098494
+    [0025] GETFIELD       A=11 B=8 C=6 k=0 Bx=3088 sBx=-62447 Ax=790539 sJ=-15986676 raw=0x0608058E ; R[11] = R[8][K[6] "skill_id"]
+    [0026] CALL           A=9 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263689 sJ=-16513526 raw=0x020304C4
+    [0027] TEST           A=9 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=9 sJ=-16777206 raw=0x000004C2
+    [0028] JMP            A=8 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777224 sJ=9 raw=0x80000438
+    [0029] GETTABUP       A=10 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917514 sJ=-15859701 raw=0x0700050B ; R[10] = U[0][K[7] "string"]
+    [0030] GETFIELD       A=10 B=10 C=8 k=0 Bx=4116 sBx=-61419 Ax=1053706 sJ=-15723509 raw=0x080A050E ; R[10] = R[10][K[8] "IsNilOrEmpty"]
+    [0031] GETFIELD       A=11 B=9 C=9 k=0 Bx=4626 sBx=-60909 Ax=1184267 sJ=-15592948 raw=0x0909058E ; R[11] = R[9][K[9] "res_id"]
+    [0032] CALL           A=10 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263178 sJ=-16514037 raw=0x02020544
+    [0033] TEST           A=10 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=266 sJ=-16776949 raw=0x00008542
+    [0034] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0035] SELF           A=10 B=0 C=10 k=1 Bx=5121 sBx=-60414 Ax=1310986 sJ=-15466229 raw=0x0A008514
+    [0036] GETFIELD       A=12 B=9 C=9 k=0 Bx=4626 sBx=-60909 Ax=1184268 sJ=-15592947 raw=0x0909060E ; R[12] = R[9][K[9] "res_id"]
+    [0037] CALL           A=10 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132618 sJ=-16644597 raw=0x01030544
+    [0038] TFORCALL       A=3 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262147 sJ=-16515068 raw=0x020001CC
+    [0039] TFORLOOP       A=3 B=9 C=0 k=0 Bx=18 sBx=-65517 Ax=4611 sJ=-16772604 raw=0x000901CD
+    [0040] CLOSE          A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x000001B6
+    [0041] RETURN         A=3 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=771 sJ=-16776444 raw=0x000181C6
+
+  function[7] source="" lines=88-101 params=1 vararg=0 stack=255 upvalues=1
+  constants (4):
+    K[0] = "player_team"
+    K[1] = "enemy_team"
+    K[2] = "pets"
+    K[3] = "AddFromPet"
+  upvalues (1):
+    U[0] = instack=1 idx=0 kind=11 name="BattleAsyncLoader"
+  locals (8):
+    L[0] = "info" pc=0-30
+    L[1] = "loader" pc=2-30
+    L[2] = "PlayerTeam" pc=6-30
+    L[3] = "EnemyTeam" pc=10-30
+    L[4] = "PlayerPets" pc=13-30
+    L[5] = "EnemyPets" pc=16-30
+    L[6] = "PlayerPet" pc=19-30
+    L[7] = "EnemyPet" pc=22-30
+  instructions (30):
+    [0001] GETUPVAL       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000089
+    [0002] CALL           A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x020100C4
+    [0003] TESTSET        A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000143
+    [0004] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0005] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "player_team"]
+    [0006] GETI           A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x0102010D
+    [0007] TESTSET        A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x000001C3
+    [0008] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0009] GETFIELD       A=3 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131075 sJ=-16646140 raw=0x0100018E ; R[3] = R[0][K[1] "enemy_team"]
+    [0010] GETI           A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x0103018D
+    [0011] TESTSET        A=4 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1028 sJ=-16776187 raw=0x00020243
+    [0012] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0013] GETFIELD       A=4 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263172 sJ=-16514043 raw=0x0202020E ; R[4] = R[2][K[2] "pets"]
+    [0014] TESTSET        A=5 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1541 sJ=-16775674 raw=0x000302C3
+    [0015] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0016] GETFIELD       A=5 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263685 sJ=-16513530 raw=0x0203028E ; R[5] = R[3][K[2] "pets"]
+    [0017] TESTSET        A=6 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2054 sJ=-16775161 raw=0x00040343
+    [0018] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0019] GETI           A=6 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133126 sJ=-16644089 raw=0x0104030D
+    [0020] TESTSET        A=7 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2567 sJ=-16774648 raw=0x000503C3
+    [0021] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0022] GETI           A=7 B=5 C=1 k=0 Bx=522 sBx=-65013 Ax=133639 sJ=-16643576 raw=0x0105038D
+    [0023] SELF           A=8 B=1 C=3 k=1 Bx=1539 sBx=-63996 Ax=393992 sJ=-16383223 raw=0x03018414
+    [0024] MOVE           A=10 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3082 sJ=-16774133 raw=0x00060500
+    [0025] CALL           A=8 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132616 sJ=-16644599 raw=0x01030444
+    [0026] SELF           A=8 B=1 C=3 k=1 Bx=1539 sBx=-63996 Ax=393992 sJ=-16383223 raw=0x03018414
+    [0027] MOVE           A=10 B=7 C=0 k=0 Bx=14 sBx=-65521 Ax=3594 sJ=-16773621 raw=0x00070500
+    [0028] CALL           A=8 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132616 sJ=-16644599 raw=0x01030444
+    [0029] RETURN1        A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C8
+    [0030] RETURN0        A=8 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=520 sJ=-16776695 raw=0x00010447

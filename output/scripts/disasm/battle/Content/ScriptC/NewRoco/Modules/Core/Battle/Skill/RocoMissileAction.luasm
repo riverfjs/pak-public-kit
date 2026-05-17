@@ -1,0 +1,1111 @@
+-- path: Content/ScriptC/NewRoco/Modules/Core/Battle/Skill/RocoMissileAction.luac
+-- format: decrypted standard Lua 5.4 bytecode
+-- note: disassembly, not original source
+
+main source="@NewRoco\\Modules\\Core\\Battle\\Skill\\RocoMissileAction.lua" lines=0-0 params=0 vararg=1 stack=255 upvalues=1
+constants (16):
+  K[0] = "require"
+  K[1] = "NewRoco.Modules.Core.Battle.Skill.RocoSkillAction"
+  K[2] = "NewRoco.Modules.Core.Missile.MissileUtils"
+  K[3] = "NewRoco.Modules.Core.Scene.Actor.SkillDebugNpc"
+  K[4] = "NewRoco.Modules.Core.Battle.Common.BattleUtils"
+  K[5] = "Extend"
+  K[6] = "RocoMissileAction"
+  K[7] = "Ctor"
+  K[8] = "OnActionStart"
+  K[9] = "OnActionEnd"
+  K[10] = "OnMissileCreate"
+  K[11] = "SetActionData"
+  K[12] = "PreLoadUObjects"
+  K[13] = "PreLoadActionResAsync"
+  K[14] = "OnResLoadedSuccess"
+  K[15] = "OnResLoadedFailed"
+upvalues (1):
+  U[0] = instack=0 idx=0 kind=8 name="_ENV"
+locals (6):
+  L[0] = "RocoSkillAction" pc=4-37
+  L[1] = "MissileUtils" pc=7-37
+  L[2] = "SkillDebugNpc" pc=10-37
+  L[3] = "BattleUtils" pc=13-37
+  L[4] = "Base" pc=14-37
+  L[5] = "RocoMissileAction" pc=17-37
+instructions (37):
+  [0001] VARARGPREP     A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000051
+  [0002] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "require"]
+  [0003] LOADK          A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x00008083 ; R[1] = K[1] "NewRoco.Modules.Core.Battle.Skill.RocoSkillAction"
+  [0004] CALL           A=0 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263168 sJ=-16514047 raw=0x02020044
+  [0005] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "require"]
+  [0006] LOADK          A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010103 ; R[2] = K[2] "NewRoco.Modules.Core.Missile.MissileUtils"
+  [0007] CALL           A=1 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263169 sJ=-16514046 raw=0x020200C4
+  [0008] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "require"]
+  [0009] LOADK          A=3 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=771 sJ=-16776444 raw=0x00018183 ; R[3] = K[3] "NewRoco.Modules.Core.Scene.Actor.SkillDebugNpc"
+  [0010] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+  [0011] GETTABUP       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018B ; R[3] = U[0][K[0] "require"]
+  [0012] LOADK          A=4 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1028 sJ=-16776187 raw=0x00020203 ; R[4] = K[4] "NewRoco.Modules.Core.Battle.Common.BattleUtils"
+  [0013] CALL           A=3 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263171 sJ=-16514044 raw=0x020201C4
+  [0014] MOVE           A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000200
+  [0015] SELF           A=5 B=4 C=5 k=1 Bx=2569 sBx=-62966 Ax=657669 sJ=-16119546 raw=0x05048294
+  [0016] LOADK          A=7 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1543 sJ=-16775672 raw=0x00030383 ; R[7] = K[6] "RocoMissileAction"
+  [0017] CALL           A=5 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263685 sJ=-16513530 raw=0x020302C4
+  [0018] CLOSURE        A=6 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=6 sJ=-16777209 raw=0x0000034F ; R[6] = function[0]
+  [0019] SETFIELD       A=5 B=7 C=6 k=0 Bx=3086 sBx=-62449 Ax=790021 sJ=-15987194 raw=0x06070292 ; R[5][K[7] "Ctor"] = R[6]
+  [0020] CLOSURE        A=6 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=262 sJ=-16776953 raw=0x0000834F ; R[6] = function[1]
+  [0021] SETFIELD       A=5 B=8 C=6 k=0 Bx=3088 sBx=-62447 Ax=790533 sJ=-15986682 raw=0x06080292 ; R[5][K[8] "OnActionStart"] = R[6]
+  [0022] CLOSURE        A=6 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=518 sJ=-16776697 raw=0x0001034F ; R[6] = function[2]
+  [0023] SETFIELD       A=5 B=9 C=6 k=0 Bx=3090 sBx=-62445 Ax=791045 sJ=-15986170 raw=0x06090292 ; R[5][K[9] "OnActionEnd"] = R[6]
+  [0024] CLOSURE        A=6 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=774 sJ=-16776441 raw=0x0001834F ; R[6] = function[3]
+  [0025] SETFIELD       A=5 B=10 C=6 k=0 Bx=3092 sBx=-62443 Ax=791557 sJ=-15985658 raw=0x060A0292 ; R[5][K[10] "OnMissileCreate"] = R[6]
+  [0026] CLOSURE        A=6 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1030 sJ=-16776185 raw=0x0002034F ; R[6] = function[4]
+  [0027] SETFIELD       A=5 B=11 C=6 k=0 Bx=3094 sBx=-62441 Ax=792069 sJ=-15985146 raw=0x060B0292 ; R[5][K[11] "SetActionData"] = R[6]
+  [0028] CLOSURE        A=6 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1286 sJ=-16775929 raw=0x0002834F ; R[6] = function[5]
+  [0029] SETFIELD       A=5 B=12 C=6 k=0 Bx=3096 sBx=-62439 Ax=792581 sJ=-15984634 raw=0x060C0292 ; R[5][K[12] "PreLoadUObjects"] = R[6]
+  [0030] CLOSURE        A=6 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1542 sJ=-16775673 raw=0x0003034F ; R[6] = function[6]
+  [0031] SETFIELD       A=5 B=13 C=6 k=0 Bx=3098 sBx=-62437 Ax=793093 sJ=-15984122 raw=0x060D0292 ; R[5][K[13] "PreLoadActionResAsync"] = R[6]
+  [0032] CLOSURE        A=6 B=3 C=0 k=1 Bx=7 sBx=-65528 Ax=1798 sJ=-16775417 raw=0x0003834F ; R[6] = function[7]
+  [0033] SETFIELD       A=5 B=14 C=6 k=0 Bx=3100 sBx=-62435 Ax=793605 sJ=-15983610 raw=0x060E0292 ; R[5][K[14] "OnResLoadedSuccess"] = R[6]
+  [0034] CLOSURE        A=6 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2054 sJ=-16775161 raw=0x0004034F ; R[6] = function[8]
+  [0035] SETFIELD       A=5 B=15 C=6 k=0 Bx=3102 sBx=-62433 Ax=794117 sJ=-15983098 raw=0x060F0292 ; R[5][K[15] "OnResLoadedFailed"] = R[6]
+  [0036] RETURN         A=5 B=2 C=1 k=1 Bx=517 sBx=-65018 Ax=132357 sJ=-16644858 raw=0x010282C6
+  [0037] RETURN         A=6 B=1 C=1 k=1 Bx=515 sBx=-65020 Ax=131846 sJ=-16645369 raw=0x01018346
+
+  function[0] source="" lines=23-35 params=1 vararg=0 stack=255 upvalues=3
+  constants (18):
+    K[0] = "Ctor"
+    K[1] = "_G"
+    K[2] = "WorldCombatModuleCmd"
+    K[3] = "NRCModuleManager"
+    K[4] = "DoCmd"
+    K[5] = "IsInOfflineMode"
+    K[6] = "MissileData"
+    K[7] = "NewMissileData"
+    K[8] = "RegisterModule"
+    K[9] = "MissileModule"
+    K[10] = "Type_Core"
+    K[11] = "NewRoco.Modules.Core.Missile.MissileModuleHead"
+    K[12] = "NewRoco.Modules.Core.Missile.MissileModule"
+    K[13] = "ActiveModule"
+    K[14] = "missileModule"
+    K[15] = "GetModule"
+    K[16] = "isDebug"
+    K[17] = true
+  upvalues (3):
+    U[0] = instack=4 idx=0 kind=0 name="Base"
+    U[1] = instack=0 idx=0 kind=1 name="_ENV"
+    U[2] = instack=1 idx=0 kind=7 name="MissileUtils"
+  locals (1):
+    L[0] = "self" pc=0-43
+  instructions (43):
+    [0001] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "Ctor"]
+    [0002] MOVE           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000100
+    [0003] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0004] GETTABUP       A=1 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131585 sJ=-16645630 raw=0x0101008B ; R[1] = U[1][K[1] "_G"]
+    [0005] GETFIELD       A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x0201008E ; R[1] = R[1][K[2] "WorldCombatModuleCmd"]
+    [0006] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0007] JMP            A=9 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777225 sJ=10 raw=0x800004B8
+    [0008] GETTABUP       A=1 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131585 sJ=-16645630 raw=0x0101008B ; R[1] = U[1][K[1] "_G"]
+    [0009] GETFIELD       A=1 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393729 sJ=-16383486 raw=0x0301008E ; R[1] = R[1][K[3] "NRCModuleManager"]
+    [0010] SELF           A=1 B=1 C=4 k=1 Bx=2051 sBx=-63484 Ax=525057 sJ=-16252158 raw=0x04018094
+    [0011] GETTABUP       A=3 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131587 sJ=-16645628 raw=0x0101018B ; R[3] = U[1][K[1] "_G"]
+    [0012] GETFIELD       A=3 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263683 sJ=-16513532 raw=0x0203018E ; R[3] = R[3][K[2] "WorldCombatModuleCmd"]
+    [0013] GETFIELD       A=3 B=3 C=5 k=0 Bx=2566 sBx=-62969 Ax=656899 sJ=-16120316 raw=0x0503018E ; R[3] = R[3][K[5] "IsInOfflineMode"]
+    [0014] CALL           A=1 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263681 sJ=-16513534 raw=0x020300C4
+    [0015] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0016] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0017] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+    [0018] GETUPVAL       A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x00020089
+    [0019] SELF           A=1 B=1 C=7 k=1 Bx=3587 sBx=-61948 Ax=918273 sJ=-15858942 raw=0x07018094
+    [0020] CALL           A=1 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263169 sJ=-16514046 raw=0x020200C4
+    [0021] SETFIELD       A=0 B=6 C=1 k=0 Bx=524 sBx=-65011 Ax=134144 sJ=-16643071 raw=0x01060012 ; R[0][K[6] "MissileData"] = R[1]
+    [0022] GETTABUP       A=1 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131585 sJ=-16645630 raw=0x0101008B ; R[1] = U[1][K[1] "_G"]
+    [0023] GETFIELD       A=1 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393729 sJ=-16383486 raw=0x0301008E ; R[1] = R[1][K[3] "NRCModuleManager"]
+    [0024] SELF           A=1 B=1 C=8 k=1 Bx=4099 sBx=-61436 Ax=1049345 sJ=-15727870 raw=0x08018094
+    [0025] LOADK          A=3 B=4 C=0 k=1 Bx=9 sBx=-65526 Ax=2307 sJ=-16774908 raw=0x00048183 ; R[3] = K[9] "MissileModule"
+    [0026] LOADK          A=4 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2564 sJ=-16774651 raw=0x00050203 ; R[4] = K[10] "Type_Core"
+    [0027] LOADK          A=5 B=5 C=0 k=1 Bx=11 sBx=-65524 Ax=2821 sJ=-16774394 raw=0x00058283 ; R[5] = K[11] "NewRoco.Modules.Core.Missile.MissileModuleHead"
+    [0028] LOADK          A=6 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3078 sJ=-16774137 raw=0x00060303 ; R[6] = K[12] "NewRoco.Modules.Core.Missile.MissileModule"
+    [0029] CALL           A=1 B=6 C=1 k=0 Bx=524 sBx=-65011 Ax=134145 sJ=-16643070 raw=0x010600C4
+    [0030] GETTABUP       A=1 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131585 sJ=-16645630 raw=0x0101008B ; R[1] = U[1][K[1] "_G"]
+    [0031] GETFIELD       A=1 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393729 sJ=-16383486 raw=0x0301008E ; R[1] = R[1][K[3] "NRCModuleManager"]
+    [0032] SELF           A=1 B=1 C=13 k=1 Bx=6659 sBx=-58876 Ax=1704705 sJ=-15072510 raw=0x0D018094
+    [0033] LOADK          A=3 B=4 C=0 k=1 Bx=9 sBx=-65526 Ax=2307 sJ=-16774908 raw=0x00048183 ; R[3] = K[9] "MissileModule"
+    [0034] CALL           A=1 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132609 sJ=-16644606 raw=0x010300C4
+    [0035] GETTABUP       A=1 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131585 sJ=-16645630 raw=0x0101008B ; R[1] = U[1][K[1] "_G"]
+    [0036] GETFIELD       A=1 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393729 sJ=-16383486 raw=0x0301008E ; R[1] = R[1][K[3] "NRCModuleManager"]
+    [0037] SELF           A=1 B=1 C=15 k=1 Bx=7683 sBx=-57852 Ax=1966849 sJ=-14810366 raw=0x0F018094
+    [0038] LOADK          A=3 B=4 C=0 k=1 Bx=9 sBx=-65526 Ax=2307 sJ=-16774908 raw=0x00048183 ; R[3] = K[9] "MissileModule"
+    [0039] CALL           A=1 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263681 sJ=-16513534 raw=0x020300C4
+    [0040] SETFIELD       A=0 B=14 C=1 k=0 Bx=540 sBx=-64995 Ax=138240 sJ=-16638975 raw=0x010E0012 ; R[0][K[14] "missileModule"] = R[1]
+    [0041] GETFIELD       A=1 B=0 C=14 k=0 Bx=7168 sBx=-58367 Ax=1835009 sJ=-14942206 raw=0x0E00008E ; R[1] = R[0][K[14] "missileModule"]
+    [0042] SETFIELD       A=1 B=16 C=17 k=1 Bx=8737 sBx=-56798 Ax=2236673 sJ=-14540542 raw=0x11108092 ; R[1][K[16] "isDebug"] = R[17]
+    [0043] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[1] source="" lines=37-122 params=1 vararg=0 stack=255 upvalues=3
+  constants (81):
+    K[0] = "IsSkillEditor"
+    K[1] = "_G"
+    K[2] = "WorldCombatModuleCmd"
+    K[3] = "NRCModuleManager"
+    K[4] = "DoCmd"
+    K[5] = "IsInOfflineMode"
+    K[6] = "CreateParam"
+    K[7] = "SetActionData"
+    K[8] = "GetSkill"
+    K[9] = "caster"
+    K[10] = "viewObj"
+    K[11] = "GetCaster"
+    K[12] = "target"
+    K[13] = "GetTargets"
+    K[14] = "skillId"
+    K[15] = "GetSkillID"
+    K[16] = "GetComponentsByTag"
+    K[17] = "UE4"
+    K[18] = "UPrimitiveComponent"
+    K[19] = "HitedComponent"
+    K[20] = "Length"
+    K[21] = "Get"
+    K[22] = "SetCollisionProfileName"
+    K[23] = "SkillHited"
+    K[24] = "SetCollisionEnabled"
+    K[25] = "UE"
+    K[26] = "ECollisionEnabled"
+    K[27] = "QueryOnly"
+    K[28] = "SetGenerateOverlapEvents"
+    K[29] = "performType"
+    K[30] = "PerformType"
+    K[31] = "Missile"
+    K[32] = "skillPath"
+    K[33] = nil
+    K[34] = "missileData"
+    K[35] = "DataConfigManager"
+    K[36] = "GetNpcConf"
+    K[37] = "MissileData"
+    K[38] = "NpcId"
+    K[39] = "FTransform"
+    K[40] = "RocoSkillUtils"
+    K[41] = "GetTransformByAttachSetting"
+    K[42] = "CasterInfo"
+    K[43] = "Translation"
+    K[44] = "FVector"
+    K[45] = "math"
+    K[46] = "rand"
+    K[47] = "RocoEnv"
+    K[48] = "IS_EDITOR"
+    K[49] = "Rotation"
+    K[50] = "FRotator"
+    K[51] = "ToRotator"
+    K[52] = "Pitch"
+    K[53] = "Yaw"
+    K[54] = "Roll"
+    K[55] = "ToQuat"
+    K[56] = "TargetInfo"
+    K[57] = "FXAttachPointName"
+    K[58] = "None"
+    K[59] = "GetAttachPointNameByType"
+    K[60] = "FXAttachPointType"
+    K[61] = "missileModule"
+    K[62] = "GetSocketLocAndDir"
+    K[63] = "OffsetTransform"
+    K[64] = "modelPath"
+    K[65] = "UNRCStatics"
+    K[66] = "GetSoftObjPath"
+    K[67] = "NpcClass"
+    K[68] = ""
+    K[69] = "GetModelConf"
+    K[70] = "model_conf"
+    K[71] = "path"
+    K[72] = "missile"
+    K[73] = "CreateNpc"
+    K[74] = "MissileType"
+    K[75] = "Enum"
+    K[76] = "AIM_AT_TARGET_POS"
+    K[77] = "missileId"
+    K[78] = "GetMissileId"
+    K[79] = "CreateMissile"
+    K[80] = "actionIdx"
+  upvalues (3):
+    U[0] = instack=0 idx=0 kind=1 name="_ENV"
+    U[1] = instack=2 idx=0 kind=1 name="SkillDebugNpc"
+    U[2] = instack=3 idx=0 kind=21 name="BattleUtils"
+  locals (16):
+    L[0] = "self" pc=0-273
+    L[1] = "skillObj" pc=26-273
+    L[2] = "hitComps" pc=61-81
+    L[3] = "(for state)" pc=65-81
+    L[4] = "(for state)" pc=65-81
+    L[5] = "(for state)" pc=65-81
+    L[6] = "idx" pc=66-80
+    L[7] = "hitComp" pc=69-80
+    L[8] = "performData" pc=90-273
+    L[9] = "npcConf" pc=96-273
+    L[10] = "CreateTransform" pc=99-273
+    L[11] = "createPos" pc=108-273
+    L[12] = "TargetTransform" pc=169-273
+    L[13] = "socketPos" pc=170-273
+    L[14] = "socketRot" pc=170-273
+    L[15] = "socket" pc=186-205
+  instructions (273):
+    [0001] SELF           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x00008094
+    [0002] CALL           A=1 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263169 sJ=-16514046 raw=0x020200C4
+    [0003] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0004] JMP            A=13 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777229 sJ=14 raw=0x800006B8
+    [0005] GETTABUP       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008B ; R[1] = U[0][K[1] "_G"]
+    [0006] GETFIELD       A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x0201008E ; R[1] = R[1][K[2] "WorldCombatModuleCmd"]
+    [0007] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0008] JMP            A=9 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777225 sJ=10 raw=0x800004B8
+    [0009] GETTABUP       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008B ; R[1] = U[0][K[1] "_G"]
+    [0010] GETFIELD       A=1 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393729 sJ=-16383486 raw=0x0301008E ; R[1] = R[1][K[3] "NRCModuleManager"]
+    [0011] SELF           A=1 B=1 C=4 k=1 Bx=2051 sBx=-63484 Ax=525057 sJ=-16252158 raw=0x04018094
+    [0012] GETTABUP       A=3 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131075 sJ=-16646140 raw=0x0100018B ; R[3] = U[0][K[1] "_G"]
+    [0013] GETFIELD       A=3 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263683 sJ=-16513532 raw=0x0203018E ; R[3] = R[3][K[2] "WorldCombatModuleCmd"]
+    [0014] GETFIELD       A=3 B=3 C=5 k=0 Bx=2566 sBx=-62969 Ax=656899 sJ=-16120316 raw=0x0503018E ; R[3] = R[3][K[5] "IsInOfflineMode"]
+    [0015] CALL           A=1 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263681 sJ=-16513534 raw=0x020300C4
+    [0016] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0017] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0018] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+    [0019] GETFIELD       A=1 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786433 sJ=-15990782 raw=0x0600008E ; R[1] = R[0][K[6] "CreateParam"]
+    [0020] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0021] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0022] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+    [0023] SELF           A=1 B=0 C=7 k=1 Bx=3585 sBx=-61950 Ax=917761 sJ=-15859454 raw=0x07008094
+    [0024] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0025] SELF           A=1 B=0 C=8 k=1 Bx=4097 sBx=-61438 Ax=1048833 sJ=-15728382 raw=0x08008094
+    [0026] CALL           A=1 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263169 sJ=-16514046 raw=0x020200C4
+    [0027] GETUPVAL       A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010109
+    [0028] MOVE           A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000180
+    [0029] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0030] SETFIELD       A=0 B=9 C=2 k=0 Bx=1042 sBx=-64493 Ax=266752 sJ=-16510463 raw=0x02090012 ; R[0][K[9] "caster"] = R[2]
+    [0031] GETFIELD       A=2 B=0 C=9 k=0 Bx=4608 sBx=-60927 Ax=1179650 sJ=-15597565 raw=0x0900010E ; R[2] = R[0][K[9] "caster"]
+    [0032] SELF           A=3 B=1 C=11 k=1 Bx=5635 sBx=-59900 Ax=1442563 sJ=-15334652 raw=0x0B018194
+    [0033] CALL           A=3 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263171 sJ=-16514044 raw=0x020201C4
+    [0034] SETFIELD       A=2 B=10 C=3 k=0 Bx=1556 sBx=-63979 Ax=398338 sJ=-16378877 raw=0x030A0112 ; R[2][K[10] "viewObj"] = R[3]
+    [0035] GETUPVAL       A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010109
+    [0036] MOVE           A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000180
+    [0037] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0038] SETFIELD       A=0 B=12 C=2 k=0 Bx=1048 sBx=-64487 Ax=268288 sJ=-16508927 raw=0x020C0012 ; R[0][K[12] "target"] = R[2]
+    [0039] GETFIELD       A=2 B=0 C=12 k=0 Bx=6144 sBx=-59391 Ax=1572866 sJ=-15204349 raw=0x0C00010E ; R[2] = R[0][K[12] "target"]
+    [0040] SELF           A=3 B=1 C=13 k=1 Bx=6659 sBx=-58876 Ax=1704707 sJ=-15072508 raw=0x0D018194
+    [0041] CALL           A=3 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263171 sJ=-16514044 raw=0x020201C4
+    [0042] GETI           A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x0103018D
+    [0043] TEST           A=3 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=259 sJ=-16776956 raw=0x000081C2
+    [0044] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0045] GETFIELD       A=3 B=0 C=9 k=0 Bx=4608 sBx=-60927 Ax=1179651 sJ=-15597564 raw=0x0900018E ; R[3] = R[0][K[9] "caster"]
+    [0046] GETFIELD       A=3 B=3 C=10 k=0 Bx=5126 sBx=-60409 Ax=1312259 sJ=-15464956 raw=0x0A03018E ; R[3] = R[3][K[10] "viewObj"]
+    [0047] SETFIELD       A=2 B=10 C=3 k=0 Bx=1556 sBx=-63979 Ax=398338 sJ=-16378877 raw=0x030A0112 ; R[2][K[10] "viewObj"] = R[3]
+    [0048] SELF           A=2 B=1 C=15 k=1 Bx=7683 sBx=-57852 Ax=1966850 sJ=-14810365 raw=0x0F018114
+    [0049] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0050] SETFIELD       A=0 B=14 C=2 k=0 Bx=1052 sBx=-64483 Ax=269312 sJ=-16507903 raw=0x020E0012 ; R[0][K[14] "skillId"] = R[2]
+    [0051] GETFIELD       A=2 B=0 C=12 k=0 Bx=6144 sBx=-59391 Ax=1572866 sJ=-15204349 raw=0x0C00010E ; R[2] = R[0][K[12] "target"]
+    [0052] GETFIELD       A=2 B=2 C=10 k=0 Bx=5124 sBx=-60411 Ax=1311746 sJ=-15465469 raw=0x0A02010E ; R[2] = R[2][K[10] "viewObj"]
+    [0053] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0054] JMP            A=26 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777242 sJ=27 raw=0x80000D38
+    [0055] GETFIELD       A=2 B=0 C=12 k=0 Bx=6144 sBx=-59391 Ax=1572866 sJ=-15204349 raw=0x0C00010E ; R[2] = R[0][K[12] "target"]
+    [0056] GETFIELD       A=2 B=2 C=10 k=0 Bx=5124 sBx=-60411 Ax=1311746 sJ=-15465469 raw=0x0A02010E ; R[2] = R[2][K[10] "viewObj"]
+    [0057] SELF           A=2 B=2 C=16 k=1 Bx=8197 sBx=-57338 Ax=2098434 sJ=-14678781 raw=0x10028114
+    [0058] GETTABUP       A=4 B=0 C=17 k=0 Bx=8704 sBx=-56831 Ax=2228228 sJ=-14548987 raw=0x1100020B ; R[4] = U[0][K[17] "UE4"]
+    [0059] GETFIELD       A=4 B=4 C=18 k=0 Bx=9224 sBx=-56311 Ax=2361348 sJ=-14415867 raw=0x1204020E ; R[4] = R[4][K[18] "UPrimitiveComponent"]
+    [0060] LOADK          A=5 B=9 C=0 k=1 Bx=19 sBx=-65516 Ax=4869 sJ=-16772346 raw=0x00098283 ; R[5] = K[19] "HitedComponent"
+    [0061] CALL           A=2 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264194 sJ=-16513021 raw=0x02040144
+    [0062] LOADI          A=3 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777219 sJ=4 raw=0x80000181
+    [0063] SELF           A=4 B=2 C=20 k=1 Bx=10245 sBx=-55290 Ax=2622724 sJ=-14154491 raw=0x14028214
+    [0064] CALL           A=4 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263172 sJ=-16514043 raw=0x02020244
+    [0065] LOADI          A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x80000281
+    [0066] FORPREP        A=3 B=7 C=0 k=0 Bx=14 sBx=-65521 Ax=3587 sJ=-16773628 raw=0x000701CA
+    [0067] SELF           A=7 B=2 C=21 k=1 Bx=10757 sBx=-54778 Ax=2753799 sJ=-14023416 raw=0x15028394
+    [0068] MOVE           A=9 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3081 sJ=-16774134 raw=0x00060480
+    [0069] CALL           A=7 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263687 sJ=-16513528 raw=0x020303C4
+    [0070] SELF           A=8 B=7 C=22 k=1 Bx=11279 sBx=-54256 Ax=2887432 sJ=-13889783 raw=0x16078414
+    [0071] LOADK          A=10 B=11 C=0 k=1 Bx=23 sBx=-65512 Ax=5898 sJ=-16771317 raw=0x000B8503 ; R[10] = K[23] "SkillHited"
+    [0072] CALL           A=8 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132616 sJ=-16644599 raw=0x01030444
+    [0073] SELF           A=8 B=7 C=24 k=1 Bx=12303 sBx=-53232 Ax=3149576 sJ=-13627639 raw=0x18078414
+    [0074] GETTABUP       A=10 B=0 C=25 k=0 Bx=12800 sBx=-52735 Ax=3276810 sJ=-13500405 raw=0x1900050B ; R[10] = U[0][K[25] "UE"]
+    [0075] GETFIELD       A=10 B=10 C=26 k=0 Bx=13332 sBx=-52203 Ax=3413002 sJ=-13364213 raw=0x1A0A050E ; R[10] = R[10][K[26] "ECollisionEnabled"]
+    [0076] GETFIELD       A=10 B=10 C=27 k=0 Bx=13844 sBx=-51691 Ax=3544074 sJ=-13233141 raw=0x1B0A050E ; R[10] = R[10][K[27] "QueryOnly"]
+    [0077] CALL           A=8 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132616 sJ=-16644599 raw=0x01030444
+    [0078] SELF           A=8 B=7 C=28 k=1 Bx=14351 sBx=-51184 Ax=3673864 sJ=-13103351 raw=0x1C078414
+    [0079] LOADTRUE       A=10 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=10 sJ=-16777205 raw=0x00000507
+    [0080] CALL           A=8 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132616 sJ=-16644599 raw=0x01030444
+    [0081] FORLOOP        A=3 B=7 C=0 k=1 Bx=15 sBx=-65520 Ax=3843 sJ=-16773372 raw=0x000781C9
+    [0082] NEWTABLE       A=2 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1538 sJ=-16775677 raw=0x00030113
+    [0083] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0084] GETTABUP       A=3 B=1 C=30 k=0 Bx=15362 sBx=-50173 Ax=3932675 sJ=-12844540 raw=0x1E01018B ; R[3] = U[1][K[30] "PerformType"]
+    [0085] GETFIELD       A=3 B=3 C=31 k=0 Bx=15878 sBx=-49657 Ax=4064771 sJ=-12712444 raw=0x1F03018E ; R[3] = R[3][K[31] "Missile"]
+    [0086] SETFIELD       A=2 B=29 C=3 k=0 Bx=1594 sBx=-63941 Ax=408066 sJ=-16369149 raw=0x031D0112 ; R[2][K[29] "performType"] = R[3]
+    [0087] SETFIELD       A=2 B=32 C=33 k=1 Bx=16961 sBx=-48574 Ax=4342018 sJ=-12435197 raw=0x21208112 ; R[2][K[32] "skillPath"] = R[33]
+    [0088] NEWTABLE       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000193
+    [0089] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0090] SETFIELD       A=2 B=34 C=3 k=0 Bx=1604 sBx=-63931 Ax=410626 sJ=-16366589 raw=0x03220112 ; R[2][K[34] "missileData"] = R[3]
+    [0091] GETTABUP       A=3 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131075 sJ=-16646140 raw=0x0100018B ; R[3] = U[0][K[1] "_G"]
+    [0092] GETFIELD       A=3 B=3 C=35 k=0 Bx=17926 sBx=-47609 Ax=4589059 sJ=-12188156 raw=0x2303018E ; R[3] = R[3][K[35] "DataConfigManager"]
+    [0093] SELF           A=3 B=3 C=36 k=1 Bx=18439 sBx=-47096 Ax=4720387 sJ=-12056828 raw=0x24038194
+    [0094] GETFIELD       A=5 B=0 C=37 k=0 Bx=18944 sBx=-46591 Ax=4849669 sJ=-11927546 raw=0x2500028E ; R[5] = R[0][K[37] "MissileData"]
+    [0095] GETFIELD       A=5 B=5 C=38 k=0 Bx=19466 sBx=-46069 Ax=4983301 sJ=-11793914 raw=0x2605028E ; R[5] = R[5][K[38] "NpcId"]
+    [0096] CALL           A=3 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263683 sJ=-16513532 raw=0x020301C4
+    [0097] GETTABUP       A=4 B=0 C=25 k=0 Bx=12800 sBx=-52735 Ax=3276804 sJ=-13500411 raw=0x1900020B ; R[4] = U[0][K[25] "UE"]
+    [0098] GETFIELD       A=4 B=4 C=39 k=0 Bx=19976 sBx=-45559 Ax=5113860 sJ=-11663355 raw=0x2704020E ; R[4] = R[4][K[39] "FTransform"]
+    [0099] CALL           A=4 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262660 sJ=-16514555 raw=0x02010244
+    [0100] GETTABUP       A=5 B=0 C=25 k=0 Bx=12800 sBx=-52735 Ax=3276805 sJ=-13500410 raw=0x1900028B ; R[5] = U[0][K[25] "UE"]
+    [0101] GETFIELD       A=5 B=5 C=40 k=0 Bx=20490 sBx=-45045 Ax=5245445 sJ=-11531770 raw=0x2805028E ; R[5] = R[5][K[40] "RocoSkillUtils"]
+    [0102] GETFIELD       A=5 B=5 C=41 k=0 Bx=21002 sBx=-44533 Ax=5376517 sJ=-11400698 raw=0x2905028E ; R[5] = R[5][K[41] "GetTransformByAttachSetting"]
+    [0103] MOVE           A=6 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=6 sJ=-16777209 raw=0x00000300
+    [0104] GETFIELD       A=7 B=0 C=37 k=0 Bx=18944 sBx=-46591 Ax=4849671 sJ=-11927544 raw=0x2500038E ; R[7] = R[0][K[37] "MissileData"]
+    [0105] GETFIELD       A=7 B=7 C=42 k=0 Bx=21518 sBx=-44017 Ax=5508615 sJ=-11268600 raw=0x2A07038E ; R[7] = R[7][K[42] "CasterInfo"]
+    [0106] MOVE           A=8 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2056 sJ=-16775159 raw=0x00040400
+    [0107] CALL           A=5 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133125 sJ=-16644090 raw=0x010402C4
+    [0108] GETFIELD       A=5 B=4 C=43 k=0 Bx=22024 sBx=-43511 Ax=5638149 sJ=-11139066 raw=0x2B04028E ; R[5] = R[4][K[43] "Translation"]
+    [0109] SELF           A=6 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=262 sJ=-16776953 raw=0x00008314
+    [0110] CALL           A=6 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263174 sJ=-16514041 raw=0x02020344
+    [0111] TEST           A=6 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=262 sJ=-16776953 raw=0x00008342
+    [0112] JMP            A=20 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777236 sJ=21 raw=0x80000A38
+    [0113] GETTABUP       A=6 B=0 C=25 k=0 Bx=12800 sBx=-52735 Ax=3276806 sJ=-13500409 raw=0x1900030B ; R[6] = U[0][K[25] "UE"]
+    [0114] GETFIELD       A=6 B=6 C=44 k=0 Bx=22540 sBx=-42995 Ax=5770246 sJ=-11006969 raw=0x2C06030E ; R[6] = R[6][K[44] "FVector"]
+    [0115] GETTABUP       A=7 B=0 C=45 k=0 Bx=23040 sBx=-42495 Ax=5898247 sJ=-10878968 raw=0x2D00038B ; R[7] = U[0][K[45] "math"]
+    [0116] GETFIELD       A=7 B=7 C=46 k=0 Bx=23566 sBx=-41969 Ax=6032903 sJ=-10744312 raw=0x2E07038E ; R[7] = R[7][K[46] "rand"]
+    [0117] LOADI          A=8 B=105 C=127 k=1 Bx=65235 sBx=-300 Ax=16700168 sJ=-77047 raw=0x7F698401
+    [0118] LOADI          A=9 B=149 C=128 k=1 Bx=65835 sBx=300 Ax=16853769 sJ=76554 raw=0x80958481
+    [0119] CALL           A=7 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263687 sJ=-16513528 raw=0x020303C4
+    [0120] GETTABUP       A=8 B=0 C=45 k=0 Bx=23040 sBx=-42495 Ax=5898248 sJ=-10878967 raw=0x2D00040B ; R[8] = U[0][K[45] "math"]
+    [0121] GETFIELD       A=8 B=8 C=46 k=0 Bx=23568 sBx=-41967 Ax=6033416 sJ=-10743799 raw=0x2E08040E ; R[8] = R[8][K[46] "rand"]
+    [0122] LOADI          A=9 B=105 C=127 k=1 Bx=65235 sBx=-300 Ax=16700169 sJ=-77046 raw=0x7F698481
+    [0123] LOADI          A=10 B=149 C=128 k=1 Bx=65835 sBx=300 Ax=16853770 sJ=76555 raw=0x80958501
+    [0124] CALL           A=8 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263688 sJ=-16513527 raw=0x02030444
+    [0125] GETTABUP       A=9 B=0 C=45 k=0 Bx=23040 sBx=-42495 Ax=5898249 sJ=-10878966 raw=0x2D00048B ; R[9] = U[0][K[45] "math"]
+    [0126] GETFIELD       A=9 B=9 C=46 k=0 Bx=23570 sBx=-41965 Ax=6033929 sJ=-10743286 raw=0x2E09048E ; R[9] = R[9][K[46] "rand"]
+    [0127] LOADI          A=10 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776970 sJ=-245 raw=0x7FFF8501
+    [0128] LOADI          A=11 B=99 C=128 k=1 Bx=65735 sBx=200 Ax=16828171 sJ=50956 raw=0x80638581
+    [0129] CALL           A=9 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1545 sJ=-16775670 raw=0x000304C4
+    [0130] CALL           A=6 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262150 sJ=-16515065 raw=0x02000344
+    [0131] ADD            A=6 B=5 C=6 k=0 Bx=3082 sBx=-62453 Ax=788998 sJ=-15988217 raw=0x06050322
+    [0132] MMBIN          A=5 B=6 C=6 k=0 Bx=3084 sBx=-62451 Ax=789509 sJ=-15987706 raw=0x060602AE
+    [0133] SETFIELD       A=4 B=43 C=6 k=0 Bx=3158 sBx=-62377 Ax=808452 sJ=-15968763 raw=0x062B0212 ; R[4][K[43] "Translation"] = R[6]
+    [0134] GETTABUP       A=6 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131078 sJ=-16646137 raw=0x0100030B ; R[6] = U[0][K[1] "_G"]
+    [0135] GETFIELD       A=6 B=6 C=47 k=0 Bx=24076 sBx=-41459 Ax=6163462 sJ=-10613753 raw=0x2F06030E ; R[6] = R[6][K[47] "RocoEnv"]
+    [0136] TEST           A=6 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=6 sJ=-16777209 raw=0x00000342
+    [0137] JMP            A=28 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777244 sJ=29 raw=0x80000E38
+    [0138] GETTABUP       A=6 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131078 sJ=-16646137 raw=0x0100030B ; R[6] = U[0][K[1] "_G"]
+    [0139] GETFIELD       A=6 B=6 C=47 k=0 Bx=24076 sBx=-41459 Ax=6163462 sJ=-10613753 raw=0x2F06030E ; R[6] = R[6][K[47] "RocoEnv"]
+    [0140] GETFIELD       A=6 B=6 C=48 k=0 Bx=24588 sBx=-40947 Ax=6294534 sJ=-10482681 raw=0x3006030E ; R[6] = R[6][K[48] "IS_EDITOR"]
+    [0141] TEST           A=6 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=6 sJ=-16777209 raw=0x00000342
+    [0142] JMP            A=23 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777239 sJ=24 raw=0x80000BB8
+    [0143] SELF           A=6 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=262 sJ=-16776953 raw=0x00008314
+    [0144] CALL           A=6 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263174 sJ=-16514041 raw=0x02020344
+    [0145] TEST           A=6 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=6 sJ=-16777209 raw=0x00000342
+    [0146] JMP            A=19 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777235 sJ=20 raw=0x800009B8
+    [0147] GETTABUP       A=6 B=0 C=25 k=0 Bx=12800 sBx=-52735 Ax=3276806 sJ=-13500409 raw=0x1900030B ; R[6] = U[0][K[25] "UE"]
+    [0148] GETFIELD       A=6 B=6 C=50 k=0 Bx=25612 sBx=-39923 Ax=6556678 sJ=-10220537 raw=0x3206030E ; R[6] = R[6][K[50] "FRotator"]
+    [0149] GETFIELD       A=7 B=4 C=49 k=0 Bx=25096 sBx=-40439 Ax=6424583 sJ=-10352632 raw=0x3104038E ; R[7] = R[4][K[49] "Rotation"]
+    [0150] SELF           A=7 B=7 C=51 k=1 Bx=26127 sBx=-39408 Ax=6688519 sJ=-10088696 raw=0x33078394
+    [0151] CALL           A=7 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263175 sJ=-16514040 raw=0x020203C4
+    [0152] GETFIELD       A=7 B=7 C=52 k=0 Bx=26638 sBx=-38897 Ax=6819335 sJ=-9957880 raw=0x3407038E ; R[7] = R[7][K[52] "Pitch"]
+    [0153] GETFIELD       A=8 B=4 C=49 k=0 Bx=25096 sBx=-40439 Ax=6424584 sJ=-10352631 raw=0x3104040E ; R[8] = R[4][K[49] "Rotation"]
+    [0154] SELF           A=8 B=8 C=51 k=1 Bx=26129 sBx=-39406 Ax=6689032 sJ=-10088183 raw=0x33088414
+    [0155] CALL           A=8 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263176 sJ=-16514039 raw=0x02020444
+    [0156] GETFIELD       A=8 B=8 C=53 k=0 Bx=27152 sBx=-38383 Ax=6950920 sJ=-9826295 raw=0x3508040E ; R[8] = R[8][K[53] "Yaw"]
+    [0157] ADDI           A=8 B=8 C=217 k=0 Bx=111120 sBx=45585 Ax=28446728 sJ=11669513 raw=0xD9080415
+    [0158] MMBINI         A=8 B=217 C=6 k=0 Bx=3506 sBx=-62029 Ax=897544 sJ=-15879671 raw=0x06D9042F
+    [0159] GETFIELD       A=9 B=4 C=49 k=0 Bx=25096 sBx=-40439 Ax=6424585 sJ=-10352630 raw=0x3104048E ; R[9] = R[4][K[49] "Rotation"]
+    [0160] SELF           A=9 B=9 C=51 k=1 Bx=26131 sBx=-39404 Ax=6689545 sJ=-10087670 raw=0x33098494
+    [0161] CALL           A=9 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263177 sJ=-16514038 raw=0x020204C4
+    [0162] GETFIELD       A=9 B=9 C=54 k=0 Bx=27666 sBx=-37869 Ax=7082505 sJ=-9694710 raw=0x3609048E ; R[9] = R[9][K[54] "Roll"]
+    [0163] CALL           A=6 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264198 sJ=-16513017 raw=0x02040344
+    [0164] SELF           A=6 B=6 C=55 k=1 Bx=28173 sBx=-37362 Ax=7212294 sJ=-9564921 raw=0x37068314
+    [0165] CALL           A=6 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263174 sJ=-16514041 raw=0x02020344
+    [0166] SETFIELD       A=4 B=49 C=6 k=0 Bx=3170 sBx=-62365 Ax=811524 sJ=-15965691 raw=0x06310212 ; R[4][K[49] "Rotation"] = R[6]
+    [0167] GETTABUP       A=6 B=0 C=25 k=0 Bx=12800 sBx=-52735 Ax=3276806 sJ=-13500409 raw=0x1900030B ; R[6] = U[0][K[25] "UE"]
+    [0168] GETFIELD       A=6 B=6 C=39 k=0 Bx=19980 sBx=-45555 Ax=5114886 sJ=-11662329 raw=0x2706030E ; R[6] = R[6][K[39] "FTransform"]
+    [0169] CALL           A=6 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262662 sJ=-16514553 raw=0x02010344
+    [0170] LOADNIL        A=7 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=519 sJ=-16776696 raw=0x00010388
+    [0171] GETTABUP       A=9 B=0 C=25 k=0 Bx=12800 sBx=-52735 Ax=3276809 sJ=-13500406 raw=0x1900048B ; R[9] = U[0][K[25] "UE"]
+    [0172] GETFIELD       A=9 B=9 C=40 k=0 Bx=20498 sBx=-45037 Ax=5247497 sJ=-11529718 raw=0x2809048E ; R[9] = R[9][K[40] "RocoSkillUtils"]
+    [0173] GETFIELD       A=9 B=9 C=41 k=0 Bx=21010 sBx=-44525 Ax=5378569 sJ=-11398646 raw=0x2909048E ; R[9] = R[9][K[41] "GetTransformByAttachSetting"]
+    [0174] MOVE           A=10 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=10 sJ=-16777205 raw=0x00000500
+    [0175] GETFIELD       A=11 B=0 C=37 k=0 Bx=18944 sBx=-46591 Ax=4849675 sJ=-11927540 raw=0x2500058E ; R[11] = R[0][K[37] "MissileData"]
+    [0176] GETFIELD       A=11 B=11 C=56 k=0 Bx=28694 sBx=-36841 Ax=7345675 sJ=-9431540 raw=0x380B058E ; R[11] = R[11][K[56] "TargetInfo"]
+    [0177] MOVE           A=12 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3084 sJ=-16774131 raw=0x00060600
+    [0178] CALL           A=9 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133129 sJ=-16644086 raw=0x010404C4
+    [0179] GETTABUP       A=9 B=0 C=25 k=0 Bx=12800 sBx=-52735 Ax=3276809 sJ=-13500406 raw=0x1900048B ; R[9] = U[0][K[25] "UE"]
+    [0180] GETFIELD       A=9 B=9 C=39 k=0 Bx=19986 sBx=-45549 Ax=5116425 sJ=-11660790 raw=0x2709048E ; R[9] = R[9][K[39] "FTransform"]
+    [0181] CALL           A=9 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262665 sJ=-16514550 raw=0x020104C4
+    [0182] EQ             A=6 B=9 C=0 k=0 Bx=18 sBx=-65517 Ax=4614 sJ=-16772601 raw=0x00090339
+    [0183] JMP            A=21 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777237 sJ=22 raw=0x80000AB8
+    [0184] GETFIELD       A=9 B=0 C=37 k=0 Bx=18944 sBx=-46591 Ax=4849673 sJ=-11927542 raw=0x2500048E ; R[9] = R[0][K[37] "MissileData"]
+    [0185] GETFIELD       A=9 B=9 C=56 k=0 Bx=28690 sBx=-36845 Ax=7344649 sJ=-9432566 raw=0x3809048E ; R[9] = R[9][K[56] "TargetInfo"]
+    [0186] GETFIELD       A=9 B=9 C=57 k=0 Bx=29202 sBx=-36333 Ax=7475721 sJ=-9301494 raw=0x3909048E ; R[9] = R[9][K[57] "FXAttachPointName"]
+    [0187] EQK            A=9 B=58 C=0 k=0 Bx=116 sBx=-65419 Ax=29705 sJ=-16747510 raw=0x003A04BC
+    [0188] JMP            A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x800002B8
+    [0189] GETTABUP       A=10 B=2 C=59 k=0 Bx=30212 sBx=-35323 Ax=7734282 sJ=-9042933 raw=0x3B02050B ; R[10] = U[2][K[59] "GetAttachPointNameByType"]
+    [0190] GETFIELD       A=11 B=0 C=37 k=0 Bx=18944 sBx=-46591 Ax=4849675 sJ=-11927540 raw=0x2500058E ; R[11] = R[0][K[37] "MissileData"]
+    [0191] GETFIELD       A=11 B=11 C=56 k=0 Bx=28694 sBx=-36841 Ax=7345675 sJ=-9431540 raw=0x380B058E ; R[11] = R[11][K[56] "TargetInfo"]
+    [0192] GETFIELD       A=11 B=11 C=60 k=0 Bx=30742 sBx=-34793 Ax=7869963 sJ=-8907252 raw=0x3C0B058E ; R[11] = R[11][K[60] "FXAttachPointType"]
+    [0193] CALL           A=10 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263178 sJ=-16514037 raw=0x02020544
+    [0194] MOVE           A=9 B=10 C=0 k=0 Bx=20 sBx=-65515 Ax=5129 sJ=-16772086 raw=0x000A0480
+    [0195] GETFIELD       A=10 B=0 C=61 k=0 Bx=31232 sBx=-34303 Ax=7995402 sJ=-8781813 raw=0x3D00050E ; R[10] = R[0][K[61] "missileModule"]
+    [0196] SELF           A=10 B=10 C=62 k=1 Bx=31765 sBx=-33770 Ax=8131850 sJ=-8645365 raw=0x3E0A8514
+    [0197] GETFIELD       A=12 B=0 C=12 k=0 Bx=6144 sBx=-59391 Ax=1572876 sJ=-15204339 raw=0x0C00060E ; R[12] = R[0][K[12] "target"]
+    [0198] GETFIELD       A=12 B=12 C=10 k=0 Bx=5144 sBx=-60391 Ax=1316876 sJ=-15460339 raw=0x0A0C060E ; R[12] = R[12][K[10] "viewObj"]
+    [0199] MOVE           A=13 B=9 C=0 k=0 Bx=18 sBx=-65517 Ax=4621 sJ=-16772594 raw=0x00090680
+    [0200] GETFIELD       A=14 B=0 C=37 k=0 Bx=18944 sBx=-46591 Ax=4849678 sJ=-11927537 raw=0x2500070E ; R[14] = R[0][K[37] "MissileData"]
+    [0201] GETFIELD       A=14 B=14 C=56 k=0 Bx=28700 sBx=-36835 Ax=7347214 sJ=-9430001 raw=0x380E070E ; R[14] = R[14][K[56] "TargetInfo"]
+    [0202] GETFIELD       A=14 B=14 C=63 k=0 Bx=32284 sBx=-33251 Ax=8264718 sJ=-8512497 raw=0x3F0E070E ; R[14] = R[14][K[63] "OffsetTransform"]
+    [0203] CALL           A=10 B=5 C=3 k=0 Bx=1546 sBx=-63989 Ax=395786 sJ=-16381429 raw=0x03050544
+    [0204] MOVE           A=8 B=11 C=0 k=0 Bx=22 sBx=-65513 Ax=5640 sJ=-16771575 raw=0x000B0400
+    [0205] MOVE           A=7 B=10 C=0 k=0 Bx=20 sBx=-65515 Ax=5127 sJ=-16772088 raw=0x000A0380
+    [0206] GETTABUP       A=9 B=0 C=25 k=0 Bx=12800 sBx=-52735 Ax=3276809 sJ=-13500406 raw=0x1900048B ; R[9] = U[0][K[25] "UE"]
+    [0207] GETFIELD       A=9 B=9 C=65 k=0 Bx=33298 sBx=-32237 Ax=8524297 sJ=-8252918 raw=0x4109048E ; R[9] = R[9][K[65] "UNRCStatics"]
+    [0208] GETFIELD       A=9 B=9 C=66 k=0 Bx=33810 sBx=-31725 Ax=8655369 sJ=-8121846 raw=0x4209048E ; R[9] = R[9][K[66] "GetSoftObjPath"]
+    [0209] GETFIELD       A=10 B=0 C=67 k=0 Bx=34304 sBx=-31231 Ax=8781834 sJ=-7995381 raw=0x4300050E ; R[10] = R[0][K[67] "NpcClass"]
+    [0210] CALL           A=9 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263177 sJ=-16514038 raw=0x020204C4
+    [0211] SETFIELD       A=0 B=64 C=9 k=0 Bx=4736 sBx=-60799 Ax=1212416 sJ=-15564799 raw=0x09400012 ; R[0][K[64] "modelPath"] = R[9]
+    [0212] GETFIELD       A=9 B=0 C=64 k=0 Bx=32768 sBx=-32767 Ax=8388617 sJ=-8388598 raw=0x4000048E ; R[9] = R[0][K[64] "modelPath"]
+    [0213] TEST           A=9 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=9 sJ=-16777206 raw=0x000004C2
+    [0214] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0215] GETFIELD       A=9 B=0 C=64 k=0 Bx=32768 sBx=-32767 Ax=8388617 sJ=-8388598 raw=0x4000048E ; R[9] = R[0][K[64] "modelPath"]
+    [0216] EQK            A=9 B=68 C=0 k=0 Bx=136 sBx=-65399 Ax=34825 sJ=-16742390 raw=0x004404BC
+    [0217] JMP            A=6 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777222 sJ=7 raw=0x80000338
+    [0218] GETTABUP       A=9 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131081 sJ=-16646134 raw=0x0100048B ; R[9] = U[0][K[1] "_G"]
+    [0219] GETFIELD       A=9 B=9 C=35 k=0 Bx=17938 sBx=-47597 Ax=4592137 sJ=-12185078 raw=0x2309048E ; R[9] = R[9][K[35] "DataConfigManager"]
+    [0220] SELF           A=9 B=9 C=69 k=1 Bx=35347 sBx=-30188 Ax=9048841 sJ=-7728374 raw=0x45098494
+    [0221] GETFIELD       A=11 B=3 C=70 k=0 Bx=35846 sBx=-29689 Ax=9176587 sJ=-7600628 raw=0x4603058E ; R[11] = R[3][K[70] "model_conf"]
+    [0222] CALL           A=9 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263689 sJ=-16513526 raw=0x020304C4
+    [0223] GETFIELD       A=9 B=9 C=71 k=0 Bx=36370 sBx=-29165 Ax=9310729 sJ=-7466486 raw=0x4709048E ; R[9] = R[9][K[71] "path"]
+    [0224] SETFIELD       A=0 B=64 C=9 k=0 Bx=4736 sBx=-60799 Ax=1212416 sJ=-15564799 raw=0x09400012 ; R[0][K[64] "modelPath"] = R[9]
+    [0225] GETTABUP       A=9 B=1 C=73 k=0 Bx=37378 sBx=-28157 Ax=9568777 sJ=-7208438 raw=0x4901048B ; R[9] = U[1][K[73] "CreateNpc"]
+    [0226] MOVE           A=10 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=10 sJ=-16777205 raw=0x00000500
+    [0227] GETFIELD       A=11 B=0 C=9 k=0 Bx=4608 sBx=-60927 Ax=1179659 sJ=-15597556 raw=0x0900058E ; R[11] = R[0][K[9] "caster"]
+    [0228] GETFIELD       A=11 B=11 C=10 k=0 Bx=5142 sBx=-60393 Ax=1316363 sJ=-15460852 raw=0x0A0B058E ; R[11] = R[11][K[10] "viewObj"]
+    [0229] MOVE           A=12 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1548 sJ=-16775667 raw=0x00030600
+    [0230] MOVE           A=13 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1037 sJ=-16776178 raw=0x00020680
+    [0231] MOVE           A=14 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2062 sJ=-16775153 raw=0x00040700
+    [0232] LOADNIL        A=15 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=15 sJ=-16777200 raw=0x00000788
+    [0233] GETFIELD       A=16 B=0 C=64 k=0 Bx=32768 sBx=-32767 Ax=8388624 sJ=-8388591 raw=0x4000080E ; R[16] = R[0][K[64] "modelPath"]
+    [0234] CALL           A=9 B=8 C=2 k=0 Bx=1040 sBx=-64495 Ax=266249 sJ=-16510966 raw=0x020804C4
+    [0235] SETFIELD       A=0 B=72 C=9 k=0 Bx=4752 sBx=-60783 Ax=1216512 sJ=-15560703 raw=0x09480012 ; R[0][K[72] "missile"] = R[9]
+    [0236] GETFIELD       A=9 B=0 C=37 k=0 Bx=18944 sBx=-46591 Ax=4849673 sJ=-11927542 raw=0x2500048E ; R[9] = R[0][K[37] "MissileData"]
+    [0237] GETFIELD       A=9 B=9 C=74 k=0 Bx=37906 sBx=-27629 Ax=9703945 sJ=-7073270 raw=0x4A09048E ; R[9] = R[9][K[74] "MissileType"]
+    [0238] GETTABUP       A=10 B=0 C=75 k=0 Bx=38400 sBx=-27135 Ax=9830410 sJ=-6946805 raw=0x4B00050B ; R[10] = U[0][K[75] "Enum"]
+    [0239] GETFIELD       A=10 B=10 C=74 k=0 Bx=37908 sBx=-27627 Ax=9704458 sJ=-7072757 raw=0x4A0A050E ; R[10] = R[10][K[74] "MissileType"]
+    [0240] GETFIELD       A=10 B=10 C=76 k=0 Bx=38932 sBx=-26603 Ax=9966602 sJ=-6810613 raw=0x4C0A050E ; R[10] = R[10][K[76] "AIM_AT_TARGET_POS"]
+    [0241] EQ             A=9 B=10 C=0 k=0 Bx=20 sBx=-65515 Ax=5129 sJ=-16772086 raw=0x000A04B9
+    [0242] JMP            A=13 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777229 sJ=14 raw=0x800006B8
+    [0243] GETTABUP       A=9 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131081 sJ=-16646134 raw=0x0100048B ; R[9] = U[0][K[1] "_G"]
+    [0244] GETFIELD       A=9 B=9 C=2 k=0 Bx=1042 sBx=-64493 Ax=266761 sJ=-16510454 raw=0x0209048E ; R[9] = R[9][K[2] "WorldCombatModuleCmd"]
+    [0245] TEST           A=9 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=9 sJ=-16777206 raw=0x000004C2
+    [0246] JMP            A=9 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777225 sJ=10 raw=0x800004B8
+    [0247] GETTABUP       A=9 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131081 sJ=-16646134 raw=0x0100048B ; R[9] = U[0][K[1] "_G"]
+    [0248] GETFIELD       A=9 B=9 C=3 k=0 Bx=1554 sBx=-63981 Ax=397833 sJ=-16379382 raw=0x0309048E ; R[9] = R[9][K[3] "NRCModuleManager"]
+    [0249] SELF           A=9 B=9 C=4 k=1 Bx=2067 sBx=-63468 Ax=529161 sJ=-16248054 raw=0x04098494
+    [0250] GETTABUP       A=11 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131083 sJ=-16646132 raw=0x0100058B ; R[11] = U[0][K[1] "_G"]
+    [0251] GETFIELD       A=11 B=11 C=2 k=0 Bx=1046 sBx=-64489 Ax=267787 sJ=-16509428 raw=0x020B058E ; R[11] = R[11][K[2] "WorldCombatModuleCmd"]
+    [0252] GETFIELD       A=11 B=11 C=5 k=0 Bx=2582 sBx=-62953 Ax=661003 sJ=-16116212 raw=0x050B058E ; R[11] = R[11][K[5] "IsInOfflineMode"]
+    [0253] CALL           A=9 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263689 sJ=-16513526 raw=0x020304C4
+    [0254] TEST           A=9 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=265 sJ=-16776950 raw=0x000084C2
+    [0255] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0256] SETFIELD       A=0 B=12 C=33 k=1 Bx=16921 sBx=-48614 Ax=4331776 sJ=-12445439 raw=0x210C8012 ; R[0][K[12] "target"] = R[33]
+    [0257] GETFIELD       A=9 B=0 C=61 k=0 Bx=31232 sBx=-34303 Ax=7995401 sJ=-8781814 raw=0x3D00048E ; R[9] = R[0][K[61] "missileModule"]
+    [0258] SELF           A=9 B=9 C=78 k=1 Bx=39955 sBx=-25580 Ax=10228489 sJ=-6548726 raw=0x4E098494
+    [0259] CALL           A=9 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263177 sJ=-16514038 raw=0x020204C4
+    [0260] SETFIELD       A=0 B=77 C=9 k=0 Bx=4762 sBx=-60773 Ax=1219072 sJ=-15558143 raw=0x094D0012 ; R[0][K[77] "missileId"] = R[9]
+    [0261] GETFIELD       A=9 B=0 C=61 k=0 Bx=31232 sBx=-34303 Ax=7995401 sJ=-8781814 raw=0x3D00048E ; R[9] = R[0][K[61] "missileModule"]
+    [0262] SELF           A=9 B=9 C=79 k=1 Bx=40467 sBx=-25068 Ax=10359561 sJ=-6417654 raw=0x4F098494
+    [0263] GETFIELD       A=11 B=0 C=77 k=0 Bx=39424 sBx=-26111 Ax=10092555 sJ=-6684660 raw=0x4D00058E ; R[11] = R[0][K[77] "missileId"]
+    [0264] GETFIELD       A=12 B=0 C=9 k=0 Bx=4608 sBx=-60927 Ax=1179660 sJ=-15597555 raw=0x0900060E ; R[12] = R[0][K[9] "caster"]
+    [0265] GETFIELD       A=13 B=0 C=12 k=0 Bx=6144 sBx=-59391 Ax=1572877 sJ=-15204338 raw=0x0C00068E ; R[13] = R[0][K[12] "target"]
+    [0266] MOVE           A=14 B=7 C=0 k=0 Bx=14 sBx=-65521 Ax=3598 sJ=-16773617 raw=0x00070700
+    [0267] GETFIELD       A=15 B=0 C=14 k=0 Bx=7168 sBx=-58367 Ax=1835023 sJ=-14942192 raw=0x0E00078E ; R[15] = R[0][K[14] "skillId"]
+    [0268] GETFIELD       A=16 B=0 C=80 k=0 Bx=40960 sBx=-24575 Ax=10485776 sJ=-6291439 raw=0x5000080E ; R[16] = R[0][K[80] "actionIdx"]
+    [0269] GETFIELD       A=17 B=0 C=37 k=0 Bx=18944 sBx=-46591 Ax=4849681 sJ=-11927534 raw=0x2500088E ; R[17] = R[0][K[37] "MissileData"]
+    [0270] LOADNIL        A=18 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=530 sJ=-16776685 raw=0x00010908
+    [0271] GETFIELD       A=20 B=0 C=72 k=0 Bx=36864 sBx=-28671 Ax=9437204 sJ=-7340011 raw=0x48000A0E ; R[20] = R[0][K[72] "missile"]
+    [0272] CALL           A=9 B=12 C=1 k=0 Bx=536 sBx=-64999 Ax=137225 sJ=-16639990 raw=0x010C04C4
+    [0273] RETURN0        A=9 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=521 sJ=-16776694 raw=0x000104C7
+
+  function[2] source="" lines=124-138 params=1 vararg=0 stack=255 upvalues=1
+  constants (17):
+    K[0] = "IsSkillEditor"
+    K[1] = "_G"
+    K[2] = "WorldCombatModuleCmd"
+    K[3] = "NRCModuleManager"
+    K[4] = "DoCmd"
+    K[5] = "IsInOfflineMode"
+    K[6] = "MissileData"
+    K[7] = "MissileType"
+    K[8] = "Enum"
+    K[9] = "FLY_WITH_CURVE"
+    K[10] = "missileModule"
+    K[11] = "LaunchMissileByData"
+    K[12] = "missileId"
+    K[13] = "caster"
+    K[14] = "target"
+    K[15] = "SkillId"
+    K[16] = "LaunchCurveMissile"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=11 name="_ENV"
+  locals (1):
+    L[0] = "self" pc=0-49
+  instructions (49):
+    [0001] SELF           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x00008094
+    [0002] CALL           A=1 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263169 sJ=-16514046 raw=0x020200C4
+    [0003] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0004] JMP            A=13 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777229 sJ=14 raw=0x800006B8
+    [0005] GETTABUP       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008B ; R[1] = U[0][K[1] "_G"]
+    [0006] GETFIELD       A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x0201008E ; R[1] = R[1][K[2] "WorldCombatModuleCmd"]
+    [0007] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0008] JMP            A=9 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777225 sJ=10 raw=0x800004B8
+    [0009] GETTABUP       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008B ; R[1] = U[0][K[1] "_G"]
+    [0010] GETFIELD       A=1 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393729 sJ=-16383486 raw=0x0301008E ; R[1] = R[1][K[3] "NRCModuleManager"]
+    [0011] SELF           A=1 B=1 C=4 k=1 Bx=2051 sBx=-63484 Ax=525057 sJ=-16252158 raw=0x04018094
+    [0012] GETTABUP       A=3 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131075 sJ=-16646140 raw=0x0100018B ; R[3] = U[0][K[1] "_G"]
+    [0013] GETFIELD       A=3 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263683 sJ=-16513532 raw=0x0203018E ; R[3] = R[3][K[2] "WorldCombatModuleCmd"]
+    [0014] GETFIELD       A=3 B=3 C=5 k=0 Bx=2566 sBx=-62969 Ax=656899 sJ=-16120316 raw=0x0503018E ; R[3] = R[3][K[5] "IsInOfflineMode"]
+    [0015] CALL           A=1 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263681 sJ=-16513534 raw=0x020300C4
+    [0016] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0017] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0018] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+    [0019] GETFIELD       A=1 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786433 sJ=-15990782 raw=0x0600008E ; R[1] = R[0][K[6] "MissileData"]
+    [0020] GETFIELD       A=1 B=1 C=7 k=0 Bx=3586 sBx=-61949 Ax=918017 sJ=-15859198 raw=0x0701008E ; R[1] = R[1][K[7] "MissileType"]
+    [0021] GETTABUP       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010B ; R[2] = U[0][K[1] "_G"]
+    [0022] GETFIELD       A=2 B=2 C=8 k=0 Bx=4100 sBx=-61435 Ax=1049602 sJ=-15727613 raw=0x0802010E ; R[2] = R[2][K[8] "Enum"]
+    [0023] GETFIELD       A=2 B=2 C=7 k=0 Bx=3588 sBx=-61947 Ax=918530 sJ=-15858685 raw=0x0702010E ; R[2] = R[2][K[7] "MissileType"]
+    [0024] GETFIELD       A=2 B=2 C=9 k=0 Bx=4612 sBx=-60923 Ax=1180674 sJ=-15596541 raw=0x0902010E ; R[2] = R[2][K[9] "FLY_WITH_CURVE"]
+    [0025] EQ             A=1 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1281 sJ=-16775934 raw=0x000280B9
+    [0026] JMP            A=10 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777226 sJ=11 raw=0x80000538
+    [0027] GETFIELD       A=1 B=0 C=10 k=0 Bx=5120 sBx=-60415 Ax=1310721 sJ=-15466494 raw=0x0A00008E ; R[1] = R[0][K[10] "missileModule"]
+    [0028] SELF           A=1 B=1 C=11 k=1 Bx=5635 sBx=-59900 Ax=1442561 sJ=-15334654 raw=0x0B018094
+    [0029] LOADNIL        A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000188
+    [0030] GETFIELD       A=4 B=0 C=12 k=0 Bx=6144 sBx=-59391 Ax=1572868 sJ=-15204347 raw=0x0C00020E ; R[4] = R[0][K[12] "missileId"]
+    [0031] GETFIELD       A=5 B=0 C=13 k=0 Bx=6656 sBx=-58879 Ax=1703941 sJ=-15073274 raw=0x0D00028E ; R[5] = R[0][K[13] "caster"]
+    [0032] GETFIELD       A=6 B=0 C=14 k=0 Bx=7168 sBx=-58367 Ax=1835014 sJ=-14942201 raw=0x0E00030E ; R[6] = R[0][K[14] "target"]
+    [0033] LOADNIL        A=7 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=7 sJ=-16777208 raw=0x00000388
+    [0034] GETFIELD       A=8 B=0 C=15 k=0 Bx=7680 sBx=-57855 Ax=1966088 sJ=-14811127 raw=0x0F00040E ; R[8] = R[0][K[15] "SkillId"]
+    [0035] GETFIELD       A=9 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786441 sJ=-15990774 raw=0x0600048E ; R[9] = R[0][K[6] "MissileData"]
+    [0036] CALL           A=1 B=9 C=1 k=0 Bx=530 sBx=-65005 Ax=135681 sJ=-16641534 raw=0x010900C4
+    [0037] JMP            A=10 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777226 sJ=11 raw=0x80000538
+    [0038] GETFIELD       A=1 B=0 C=10 k=0 Bx=5120 sBx=-60415 Ax=1310721 sJ=-15466494 raw=0x0A00008E ; R[1] = R[0][K[10] "missileModule"]
+    [0039] SELF           A=1 B=1 C=16 k=1 Bx=8195 sBx=-57340 Ax=2097921 sJ=-14679294 raw=0x10018094
+    [0040] LOADNIL        A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000188
+    [0041] GETFIELD       A=4 B=0 C=12 k=0 Bx=6144 sBx=-59391 Ax=1572868 sJ=-15204347 raw=0x0C00020E ; R[4] = R[0][K[12] "missileId"]
+    [0042] GETFIELD       A=5 B=0 C=13 k=0 Bx=6656 sBx=-58879 Ax=1703941 sJ=-15073274 raw=0x0D00028E ; R[5] = R[0][K[13] "caster"]
+    [0043] GETFIELD       A=6 B=0 C=14 k=0 Bx=7168 sBx=-58367 Ax=1835014 sJ=-14942201 raw=0x0E00030E ; R[6] = R[0][K[14] "target"]
+    [0044] LOADNIL        A=7 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=7 sJ=-16777208 raw=0x00000388
+    [0045] GETFIELD       A=8 B=0 C=15 k=0 Bx=7680 sBx=-57855 Ax=1966088 sJ=-14811127 raw=0x0F00040E ; R[8] = R[0][K[15] "SkillId"]
+    [0046] MOVE           A=9 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=9 sJ=-16777206 raw=0x00000480
+    [0047] GETFIELD       A=10 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786442 sJ=-15990773 raw=0x0600050E ; R[10] = R[0][K[6] "MissileData"]
+    [0048] CALL           A=1 B=10 C=1 k=0 Bx=532 sBx=-65003 Ax=136193 sJ=-16641022 raw=0x010A00C4
+    [0049] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[3] source="" lines=140-146 params=2 vararg=0 stack=255 upvalues=0
+  constants (6):
+    K[0] = "GetSkill"
+    K[1] = "GetCaster"
+    K[2] = "sceneCharacter"
+    K[3] = "GetSkillID"
+    K[4] = "missileModule"
+    K[5] = "RequestLaunchMissile"
+  locals (5):
+    L[0] = "self" pc=0-14
+    L[1] = "missileId" pc=0-14
+    L[2] = "skillObj" pc=2-14
+    L[3] = "caster" pc=5-14
+    L[4] = "skillId" pc=7-14
+  instructions (14):
+    [0001] SELF           A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x00008114
+    [0002] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0003] SELF           A=3 B=2 C=1 k=1 Bx=517 sBx=-65018 Ax=132355 sJ=-16644860 raw=0x01028194
+    [0004] CALL           A=3 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263171 sJ=-16514044 raw=0x020201C4
+    [0005] GETFIELD       A=3 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263683 sJ=-16513532 raw=0x0203018E ; R[3] = R[3][K[2] "sceneCharacter"]
+    [0006] SELF           A=4 B=2 C=3 k=1 Bx=1541 sBx=-63994 Ax=394500 sJ=-16382715 raw=0x03028214
+    [0007] CALL           A=4 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263172 sJ=-16514043 raw=0x02020244
+    [0008] GETFIELD       A=5 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524293 sJ=-16252922 raw=0x0400028E ; R[5] = R[0][K[4] "missileModule"]
+    [0009] SELF           A=5 B=5 C=5 k=1 Bx=2571 sBx=-62964 Ax=658181 sJ=-16119034 raw=0x05058294
+    [0010] MOVE           A=7 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1543 sJ=-16775672 raw=0x00030380
+    [0011] MOVE           A=8 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2056 sJ=-16775159 raw=0x00040400
+    [0012] MOVE           A=9 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=521 sJ=-16776694 raw=0x00010480
+    [0013] CALL           A=5 B=5 C=1 k=0 Bx=522 sBx=-65013 Ax=133637 sJ=-16643578 raw=0x010502C4
+    [0014] RETURN0        A=5 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=517 sJ=-16776698 raw=0x000102C7
+
+  function[4] source="" lines=148-198 params=1 vararg=0 stack=255 upvalues=1
+  constants (48):
+    K[0] = "MissileData"
+    K[1] = "MissileType"
+    K[2] = "_G"
+    K[3] = "DataConfigManager"
+    K[4] = "GetNpcRefreshContentConf"
+    K[5] = "CreateParam"
+    K[6] = "NpcContentId"
+    K[7] = "NpcId"
+    K[8] = "npc_id"
+    K[9] = "CasterInfo"
+    K[10] = "TargetInfo"
+    K[11] = "LandHeight"
+    K[12] = "KeepLandFixHeight"
+    K[13] = "LifeTime"
+    K[14] = "LaunchParam"
+    K[15] = "InitSpeed"
+    K[16] = "AccelerateSpeed"
+    K[17] = "MaxSpeed"
+    K[18] = "AngleSpeed"
+    K[19] = "TraceTime"
+    K[20] = "CancelTraceDist"
+    K[21] = "IsKeepLandHeight"
+    K[22] = "IsHitDestroy"
+    K[23] = "HitFxDuration"
+    K[24] = "CollisionProperties"
+    K[25] = "CollisionPlayer"
+    K[26] = "HitPlayerFxDuration"
+    K[27] = "IsHeavyAttack"
+    K[28] = "AttackPerformType"
+    K[29] = "HitFXScale"
+    K[30] = "HitPlayerFxScale"
+    K[31] = "HitCD"
+    K[32] = "CollisionCD"
+    K[33] = "EffectRadius"
+    K[34] = "DestroyParam"
+    K[35] = "ExplodeFX"
+    K[36] = "GetLongPackageName"
+    K[37] = "ExplodeFXScale"
+    K[38] = "ExplodeFxDuration"
+    K[39] = "AudioParams"
+    K[40] = "CreateConfigID"
+    K[41] = "LaunchConfigID"
+    K[42] = "FlyConfigID"
+    K[43] = "HitEnemyConfigID"
+    K[44] = "HitObstacleConfigID"
+    K[45] = "HitFX"
+    K[46] = "HitPlayerPlayFx"
+    K[47] = "ImpactForce"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=5 name="_ENV"
+  locals (2):
+    L[0] = "self" pc=0-154
+    L[1] = "refreshConf" pc=10-154
+  instructions (154):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "MissileData"]
+    [0002] GETFIELD       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010E ; R[2] = R[0][K[1] "MissileType"]
+    [0003] SETFIELD       A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x02010092 ; R[1][K[1] "MissileType"] = R[2]
+    [0004] GETTABUP       A=1 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262145 sJ=-16515070 raw=0x0200008B ; R[1] = U[0][K[2] "_G"]
+    [0005] GETFIELD       A=1 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393729 sJ=-16383486 raw=0x0301008E ; R[1] = R[1][K[3] "DataConfigManager"]
+    [0006] SELF           A=1 B=1 C=4 k=1 Bx=2051 sBx=-63484 Ax=525057 sJ=-16252158 raw=0x04018094
+    [0007] GETFIELD       A=3 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655363 sJ=-16121852 raw=0x0500018E ; R[3] = R[0][K[5] "CreateParam"]
+    [0008] GETFIELD       A=3 B=3 C=6 k=0 Bx=3078 sBx=-62457 Ax=787971 sJ=-15989244 raw=0x0603018E ; R[3] = R[3][K[6] "NpcContentId"]
+    [0009] LOADTRUE       A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000207
+    [0010] CALL           A=1 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264193 sJ=-16513022 raw=0x020400C4
+    [0011] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "MissileData"]
+    [0012] GETFIELD       A=3 B=1 C=8 k=0 Bx=4098 sBx=-61437 Ax=1049091 sJ=-15728124 raw=0x0801018E ; R[3] = R[1][K[8] "npc_id"]
+    [0013] SETFIELD       A=2 B=7 C=3 k=0 Bx=1550 sBx=-63985 Ax=396802 sJ=-16380413 raw=0x03070112 ; R[2][K[7] "NpcId"] = R[3]
+    [0014] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "MissileData"]
+    [0015] GETFIELD       A=3 B=0 C=9 k=0 Bx=4608 sBx=-60927 Ax=1179651 sJ=-15597564 raw=0x0900018E ; R[3] = R[0][K[9] "CasterInfo"]
+    [0016] SETFIELD       A=2 B=9 C=3 k=0 Bx=1554 sBx=-63981 Ax=397826 sJ=-16379389 raw=0x03090112 ; R[2][K[9] "CasterInfo"] = R[3]
+    [0017] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "MissileData"]
+    [0018] GETFIELD       A=3 B=0 C=10 k=0 Bx=5120 sBx=-60415 Ax=1310723 sJ=-15466492 raw=0x0A00018E ; R[3] = R[0][K[10] "TargetInfo"]
+    [0019] SETFIELD       A=2 B=10 C=3 k=0 Bx=1556 sBx=-63979 Ax=398338 sJ=-16378877 raw=0x030A0112 ; R[2][K[10] "TargetInfo"] = R[3]
+    [0020] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "MissileData"]
+    [0021] GETFIELD       A=3 B=0 C=12 k=0 Bx=6144 sBx=-59391 Ax=1572867 sJ=-15204348 raw=0x0C00018E ; R[3] = R[0][K[12] "KeepLandFixHeight"]
+    [0022] SETFIELD       A=2 B=11 C=3 k=0 Bx=1558 sBx=-63977 Ax=398850 sJ=-16378365 raw=0x030B0112 ; R[2][K[11] "LandHeight"] = R[3]
+    [0023] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "MissileData"]
+    [0024] GETFIELD       A=3 B=0 C=14 k=0 Bx=7168 sBx=-58367 Ax=1835011 sJ=-14942204 raw=0x0E00018E ; R[3] = R[0][K[14] "LaunchParam"]
+    [0025] GETFIELD       A=3 B=3 C=13 k=0 Bx=6662 sBx=-58873 Ax=1705475 sJ=-15071740 raw=0x0D03018E ; R[3] = R[3][K[13] "LifeTime"]
+    [0026] TEST           A=3 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=259 sJ=-16776956 raw=0x000081C2
+    [0027] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0028] LOADI          A=3 B=2 C=128 k=0 Bx=65540 sBx=5 Ax=16778243 sJ=1028 raw=0x80020181
+    [0029] SETFIELD       A=2 B=13 C=3 k=0 Bx=1562 sBx=-63973 Ax=399874 sJ=-16377341 raw=0x030D0112 ; R[2][K[13] "LifeTime"] = R[3]
+    [0030] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "MissileData"]
+    [0031] GETFIELD       A=3 B=0 C=14 k=0 Bx=7168 sBx=-58367 Ax=1835011 sJ=-14942204 raw=0x0E00018E ; R[3] = R[0][K[14] "LaunchParam"]
+    [0032] GETFIELD       A=3 B=3 C=15 k=0 Bx=7686 sBx=-57849 Ax=1967619 sJ=-14809596 raw=0x0F03018E ; R[3] = R[3][K[15] "InitSpeed"]
+    [0033] SETFIELD       A=2 B=15 C=3 k=0 Bx=1566 sBx=-63969 Ax=400898 sJ=-16376317 raw=0x030F0112 ; R[2][K[15] "InitSpeed"] = R[3]
+    [0034] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "MissileData"]
+    [0035] GETFIELD       A=3 B=0 C=14 k=0 Bx=7168 sBx=-58367 Ax=1835011 sJ=-14942204 raw=0x0E00018E ; R[3] = R[0][K[14] "LaunchParam"]
+    [0036] GETFIELD       A=3 B=3 C=16 k=0 Bx=8198 sBx=-57337 Ax=2098691 sJ=-14678524 raw=0x1003018E ; R[3] = R[3][K[16] "AccelerateSpeed"]
+    [0037] SETFIELD       A=2 B=16 C=3 k=0 Bx=1568 sBx=-63967 Ax=401410 sJ=-16375805 raw=0x03100112 ; R[2][K[16] "AccelerateSpeed"] = R[3]
+    [0038] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "MissileData"]
+    [0039] GETFIELD       A=3 B=0 C=14 k=0 Bx=7168 sBx=-58367 Ax=1835011 sJ=-14942204 raw=0x0E00018E ; R[3] = R[0][K[14] "LaunchParam"]
+    [0040] GETFIELD       A=3 B=3 C=17 k=0 Bx=8710 sBx=-56825 Ax=2229763 sJ=-14547452 raw=0x1103018E ; R[3] = R[3][K[17] "MaxSpeed"]
+    [0041] SETFIELD       A=2 B=17 C=3 k=0 Bx=1570 sBx=-63965 Ax=401922 sJ=-16375293 raw=0x03110112 ; R[2][K[17] "MaxSpeed"] = R[3]
+    [0042] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "MissileData"]
+    [0043] GETFIELD       A=3 B=0 C=14 k=0 Bx=7168 sBx=-58367 Ax=1835011 sJ=-14942204 raw=0x0E00018E ; R[3] = R[0][K[14] "LaunchParam"]
+    [0044] GETFIELD       A=3 B=3 C=18 k=0 Bx=9222 sBx=-56313 Ax=2360835 sJ=-14416380 raw=0x1203018E ; R[3] = R[3][K[18] "AngleSpeed"]
+    [0045] SETFIELD       A=2 B=18 C=3 k=0 Bx=1572 sBx=-63963 Ax=402434 sJ=-16374781 raw=0x03120112 ; R[2][K[18] "AngleSpeed"] = R[3]
+    [0046] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "MissileData"]
+    [0047] GETFIELD       A=3 B=0 C=14 k=0 Bx=7168 sBx=-58367 Ax=1835011 sJ=-14942204 raw=0x0E00018E ; R[3] = R[0][K[14] "LaunchParam"]
+    [0048] GETFIELD       A=3 B=3 C=19 k=0 Bx=9734 sBx=-55801 Ax=2491907 sJ=-14285308 raw=0x1303018E ; R[3] = R[3][K[19] "TraceTime"]
+    [0049] SETFIELD       A=2 B=19 C=3 k=0 Bx=1574 sBx=-63961 Ax=402946 sJ=-16374269 raw=0x03130112 ; R[2][K[19] "TraceTime"] = R[3]
+    [0050] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "MissileData"]
+    [0051] GETFIELD       A=3 B=0 C=14 k=0 Bx=7168 sBx=-58367 Ax=1835011 sJ=-14942204 raw=0x0E00018E ; R[3] = R[0][K[14] "LaunchParam"]
+    [0052] GETFIELD       A=3 B=3 C=20 k=0 Bx=10246 sBx=-55289 Ax=2622979 sJ=-14154236 raw=0x1403018E ; R[3] = R[3][K[20] "CancelTraceDist"]
+    [0053] SETFIELD       A=2 B=20 C=3 k=0 Bx=1576 sBx=-63959 Ax=403458 sJ=-16373757 raw=0x03140112 ; R[2][K[20] "CancelTraceDist"] = R[3]
+    [0054] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "MissileData"]
+    [0055] GETFIELD       A=3 B=0 C=14 k=0 Bx=7168 sBx=-58367 Ax=1835011 sJ=-14942204 raw=0x0E00018E ; R[3] = R[0][K[14] "LaunchParam"]
+    [0056] GETFIELD       A=3 B=3 C=21 k=0 Bx=10758 sBx=-54777 Ax=2754051 sJ=-14023164 raw=0x1503018E ; R[3] = R[3][K[21] "IsKeepLandHeight"]
+    [0057] SETFIELD       A=2 B=21 C=3 k=0 Bx=1578 sBx=-63957 Ax=403970 sJ=-16373245 raw=0x03150112 ; R[2][K[21] "IsKeepLandHeight"] = R[3]
+    [0058] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "MissileData"]
+    [0059] GETFIELD       A=3 B=0 C=14 k=0 Bx=7168 sBx=-58367 Ax=1835011 sJ=-14942204 raw=0x0E00018E ; R[3] = R[0][K[14] "LaunchParam"]
+    [0060] GETFIELD       A=3 B=3 C=22 k=0 Bx=11270 sBx=-54265 Ax=2885123 sJ=-13892092 raw=0x1603018E ; R[3] = R[3][K[22] "IsHitDestroy"]
+    [0061] SETFIELD       A=2 B=22 C=3 k=0 Bx=1580 sBx=-63955 Ax=404482 sJ=-16372733 raw=0x03160112 ; R[2][K[22] "IsHitDestroy"] = R[3]
+    [0062] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "MissileData"]
+    [0063] GETFIELD       A=3 B=0 C=24 k=0 Bx=12288 sBx=-53247 Ax=3145731 sJ=-13631484 raw=0x1800018E ; R[3] = R[0][K[24] "CollisionProperties"]
+    [0064] GETFIELD       A=3 B=3 C=25 k=0 Bx=12806 sBx=-52729 Ax=3278339 sJ=-13498876 raw=0x1903018E ; R[3] = R[3][K[25] "CollisionPlayer"]
+    [0065] GETFIELD       A=3 B=3 C=26 k=0 Bx=13318 sBx=-52217 Ax=3409411 sJ=-13367804 raw=0x1A03018E ; R[3] = R[3][K[26] "HitPlayerFxDuration"]
+    [0066] SETFIELD       A=2 B=23 C=3 k=0 Bx=1582 sBx=-63953 Ax=404994 sJ=-16372221 raw=0x03170112 ; R[2][K[23] "HitFxDuration"] = R[3]
+    [0067] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "MissileData"]
+    [0068] GETFIELD       A=3 B=0 C=24 k=0 Bx=12288 sBx=-53247 Ax=3145731 sJ=-13631484 raw=0x1800018E ; R[3] = R[0][K[24] "CollisionProperties"]
+    [0069] GETFIELD       A=3 B=3 C=25 k=0 Bx=12806 sBx=-52729 Ax=3278339 sJ=-13498876 raw=0x1903018E ; R[3] = R[3][K[25] "CollisionPlayer"]
+    [0070] GETFIELD       A=3 B=3 C=27 k=0 Bx=13830 sBx=-51705 Ax=3540483 sJ=-13236732 raw=0x1B03018E ; R[3] = R[3][K[27] "IsHeavyAttack"]
+    [0071] SETFIELD       A=2 B=27 C=3 k=0 Bx=1590 sBx=-63945 Ax=407042 sJ=-16370173 raw=0x031B0112 ; R[2][K[27] "IsHeavyAttack"] = R[3]
+    [0072] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "MissileData"]
+    [0073] GETFIELD       A=3 B=0 C=24 k=0 Bx=12288 sBx=-53247 Ax=3145731 sJ=-13631484 raw=0x1800018E ; R[3] = R[0][K[24] "CollisionProperties"]
+    [0074] GETFIELD       A=3 B=3 C=25 k=0 Bx=12806 sBx=-52729 Ax=3278339 sJ=-13498876 raw=0x1903018E ; R[3] = R[3][K[25] "CollisionPlayer"]
+    [0075] GETFIELD       A=3 B=3 C=28 k=0 Bx=14342 sBx=-51193 Ax=3671555 sJ=-13105660 raw=0x1C03018E ; R[3] = R[3][K[28] "AttackPerformType"]
+    [0076] SETFIELD       A=2 B=28 C=3 k=0 Bx=1592 sBx=-63943 Ax=407554 sJ=-16369661 raw=0x031C0112 ; R[2][K[28] "AttackPerformType"] = R[3]
+    [0077] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "MissileData"]
+    [0078] GETFIELD       A=3 B=0 C=24 k=0 Bx=12288 sBx=-53247 Ax=3145731 sJ=-13631484 raw=0x1800018E ; R[3] = R[0][K[24] "CollisionProperties"]
+    [0079] GETFIELD       A=3 B=3 C=25 k=0 Bx=12806 sBx=-52729 Ax=3278339 sJ=-13498876 raw=0x1903018E ; R[3] = R[3][K[25] "CollisionPlayer"]
+    [0080] GETFIELD       A=3 B=3 C=30 k=0 Bx=15366 sBx=-50169 Ax=3933699 sJ=-12843516 raw=0x1E03018E ; R[3] = R[3][K[30] "HitPlayerFxScale"]
+    [0081] SETFIELD       A=2 B=29 C=3 k=0 Bx=1594 sBx=-63941 Ax=408066 sJ=-16369149 raw=0x031D0112 ; R[2][K[29] "HitFXScale"] = R[3]
+    [0082] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "MissileData"]
+    [0083] GETFIELD       A=3 B=0 C=24 k=0 Bx=12288 sBx=-53247 Ax=3145731 sJ=-13631484 raw=0x1800018E ; R[3] = R[0][K[24] "CollisionProperties"]
+    [0084] GETFIELD       A=3 B=3 C=32 k=0 Bx=16390 sBx=-49145 Ax=4195843 sJ=-12581372 raw=0x2003018E ; R[3] = R[3][K[32] "CollisionCD"]
+    [0085] SETFIELD       A=2 B=31 C=3 k=0 Bx=1598 sBx=-63937 Ax=409090 sJ=-16368125 raw=0x031F0112 ; R[2][K[31] "HitCD"] = R[3]
+    [0086] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "MissileData"]
+    [0087] GETFIELD       A=3 B=0 C=34 k=0 Bx=17408 sBx=-48127 Ax=4456451 sJ=-12320764 raw=0x2200018E ; R[3] = R[0][K[34] "DestroyParam"]
+    [0088] GETFIELD       A=3 B=3 C=33 k=0 Bx=16902 sBx=-48633 Ax=4326915 sJ=-12450300 raw=0x2103018E ; R[3] = R[3][K[33] "EffectRadius"]
+    [0089] SETFIELD       A=2 B=33 C=3 k=0 Bx=1602 sBx=-63933 Ax=410114 sJ=-16367101 raw=0x03210112 ; R[2][K[33] "EffectRadius"] = R[3]
+    [0090] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "MissileData"]
+    [0091] GETFIELD       A=3 B=0 C=34 k=0 Bx=17408 sBx=-48127 Ax=4456451 sJ=-12320764 raw=0x2200018E ; R[3] = R[0][K[34] "DestroyParam"]
+    [0092] GETFIELD       A=3 B=3 C=35 k=0 Bx=17926 sBx=-47609 Ax=4589059 sJ=-12188156 raw=0x2303018E ; R[3] = R[3][K[35] "ExplodeFX"]
+    [0093] SETFIELD       A=2 B=35 C=3 k=0 Bx=1606 sBx=-63929 Ax=411138 sJ=-16366077 raw=0x03230112 ; R[2][K[35] "ExplodeFX"] = R[3]
+    [0094] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "MissileData"]
+    [0095] GETFIELD       A=2 B=2 C=35 k=0 Bx=17924 sBx=-47611 Ax=4588546 sJ=-12188669 raw=0x2302010E ; R[2] = R[2][K[35] "ExplodeFX"]
+    [0096] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0097] JMP            A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x800002B8
+    [0098] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "MissileData"]
+    [0099] GETFIELD       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018E ; R[3] = R[0][K[0] "MissileData"]
+    [0100] GETFIELD       A=3 B=3 C=35 k=0 Bx=17926 sBx=-47609 Ax=4589059 sJ=-12188156 raw=0x2303018E ; R[3] = R[3][K[35] "ExplodeFX"]
+    [0101] SELF           A=3 B=3 C=36 k=1 Bx=18439 sBx=-47096 Ax=4720387 sJ=-12056828 raw=0x24038194
+    [0102] CALL           A=3 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263171 sJ=-16514044 raw=0x020201C4
+    [0103] SETFIELD       A=2 B=35 C=3 k=0 Bx=1606 sBx=-63929 Ax=411138 sJ=-16366077 raw=0x03230112 ; R[2][K[35] "ExplodeFX"] = R[3]
+    [0104] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "MissileData"]
+    [0105] GETFIELD       A=3 B=0 C=34 k=0 Bx=17408 sBx=-48127 Ax=4456451 sJ=-12320764 raw=0x2200018E ; R[3] = R[0][K[34] "DestroyParam"]
+    [0106] GETFIELD       A=3 B=3 C=37 k=0 Bx=18950 sBx=-46585 Ax=4851203 sJ=-11926012 raw=0x2503018E ; R[3] = R[3][K[37] "ExplodeFXScale"]
+    [0107] SETFIELD       A=2 B=37 C=3 k=0 Bx=1610 sBx=-63925 Ax=412162 sJ=-16365053 raw=0x03250112 ; R[2][K[37] "ExplodeFXScale"] = R[3]
+    [0108] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "MissileData"]
+    [0109] GETFIELD       A=3 B=0 C=34 k=0 Bx=17408 sBx=-48127 Ax=4456451 sJ=-12320764 raw=0x2200018E ; R[3] = R[0][K[34] "DestroyParam"]
+    [0110] GETFIELD       A=3 B=3 C=38 k=0 Bx=19462 sBx=-46073 Ax=4982275 sJ=-11794940 raw=0x2603018E ; R[3] = R[3][K[38] "ExplodeFxDuration"]
+    [0111] SETFIELD       A=2 B=38 C=3 k=0 Bx=1612 sBx=-63923 Ax=412674 sJ=-16364541 raw=0x03260112 ; R[2][K[38] "ExplodeFxDuration"] = R[3]
+    [0112] GETFIELD       A=2 B=0 C=39 k=0 Bx=19968 sBx=-45567 Ax=5111810 sJ=-11665405 raw=0x2700010E ; R[2] = R[0][K[39] "AudioParams"]
+    [0113] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0114] JMP            A=19 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777235 sJ=20 raw=0x800009B8
+    [0115] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "MissileData"]
+    [0116] GETFIELD       A=3 B=0 C=39 k=0 Bx=19968 sBx=-45567 Ax=5111811 sJ=-11665404 raw=0x2700018E ; R[3] = R[0][K[39] "AudioParams"]
+    [0117] GETFIELD       A=3 B=3 C=40 k=0 Bx=20486 sBx=-45049 Ax=5244419 sJ=-11532796 raw=0x2803018E ; R[3] = R[3][K[40] "CreateConfigID"]
+    [0118] SETFIELD       A=2 B=40 C=3 k=0 Bx=1616 sBx=-63919 Ax=413698 sJ=-16363517 raw=0x03280112 ; R[2][K[40] "CreateConfigID"] = R[3]
+    [0119] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "MissileData"]
+    [0120] GETFIELD       A=3 B=0 C=39 k=0 Bx=19968 sBx=-45567 Ax=5111811 sJ=-11665404 raw=0x2700018E ; R[3] = R[0][K[39] "AudioParams"]
+    [0121] GETFIELD       A=3 B=3 C=41 k=0 Bx=20998 sBx=-44537 Ax=5375491 sJ=-11401724 raw=0x2903018E ; R[3] = R[3][K[41] "LaunchConfigID"]
+    [0122] SETFIELD       A=2 B=41 C=3 k=0 Bx=1618 sBx=-63917 Ax=414210 sJ=-16363005 raw=0x03290112 ; R[2][K[41] "LaunchConfigID"] = R[3]
+    [0123] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "MissileData"]
+    [0124] GETFIELD       A=3 B=0 C=39 k=0 Bx=19968 sBx=-45567 Ax=5111811 sJ=-11665404 raw=0x2700018E ; R[3] = R[0][K[39] "AudioParams"]
+    [0125] GETFIELD       A=3 B=3 C=42 k=0 Bx=21510 sBx=-44025 Ax=5506563 sJ=-11270652 raw=0x2A03018E ; R[3] = R[3][K[42] "FlyConfigID"]
+    [0126] SETFIELD       A=2 B=42 C=3 k=0 Bx=1620 sBx=-63915 Ax=414722 sJ=-16362493 raw=0x032A0112 ; R[2][K[42] "FlyConfigID"] = R[3]
+    [0127] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "MissileData"]
+    [0128] GETFIELD       A=3 B=0 C=39 k=0 Bx=19968 sBx=-45567 Ax=5111811 sJ=-11665404 raw=0x2700018E ; R[3] = R[0][K[39] "AudioParams"]
+    [0129] GETFIELD       A=3 B=3 C=43 k=0 Bx=22022 sBx=-43513 Ax=5637635 sJ=-11139580 raw=0x2B03018E ; R[3] = R[3][K[43] "HitEnemyConfigID"]
+    [0130] SETFIELD       A=2 B=43 C=3 k=0 Bx=1622 sBx=-63913 Ax=415234 sJ=-16361981 raw=0x032B0112 ; R[2][K[43] "HitEnemyConfigID"] = R[3]
+    [0131] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "MissileData"]
+    [0132] GETFIELD       A=3 B=0 C=39 k=0 Bx=19968 sBx=-45567 Ax=5111811 sJ=-11665404 raw=0x2700018E ; R[3] = R[0][K[39] "AudioParams"]
+    [0133] GETFIELD       A=3 B=3 C=44 k=0 Bx=22534 sBx=-43001 Ax=5768707 sJ=-11008508 raw=0x2C03018E ; R[3] = R[3][K[44] "HitObstacleConfigID"]
+    [0134] SETFIELD       A=2 B=44 C=3 k=0 Bx=1624 sBx=-63911 Ax=415746 sJ=-16361469 raw=0x032C0112 ; R[2][K[44] "HitObstacleConfigID"] = R[3]
+    [0135] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "MissileData"]
+    [0136] GETFIELD       A=3 B=0 C=24 k=0 Bx=12288 sBx=-53247 Ax=3145731 sJ=-13631484 raw=0x1800018E ; R[3] = R[0][K[24] "CollisionProperties"]
+    [0137] GETFIELD       A=3 B=3 C=25 k=0 Bx=12806 sBx=-52729 Ax=3278339 sJ=-13498876 raw=0x1903018E ; R[3] = R[3][K[25] "CollisionPlayer"]
+    [0138] GETFIELD       A=3 B=3 C=46 k=0 Bx=23558 sBx=-41977 Ax=6030851 sJ=-10746364 raw=0x2E03018E ; R[3] = R[3][K[46] "HitPlayerPlayFx"]
+    [0139] SETFIELD       A=2 B=45 C=3 k=0 Bx=1626 sBx=-63909 Ax=416258 sJ=-16360957 raw=0x032D0112 ; R[2][K[45] "HitFX"] = R[3]
+    [0140] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "MissileData"]
+    [0141] GETFIELD       A=2 B=2 C=45 k=0 Bx=23044 sBx=-42491 Ax=5899266 sJ=-10877949 raw=0x2D02010E ; R[2] = R[2][K[45] "HitFX"]
+    [0142] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0143] JMP            A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x800002B8
+    [0144] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "MissileData"]
+    [0145] GETFIELD       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018E ; R[3] = R[0][K[0] "MissileData"]
+    [0146] GETFIELD       A=3 B=3 C=45 k=0 Bx=23046 sBx=-42489 Ax=5899779 sJ=-10877436 raw=0x2D03018E ; R[3] = R[3][K[45] "HitFX"]
+    [0147] SELF           A=3 B=3 C=36 k=1 Bx=18439 sBx=-47096 Ax=4720387 sJ=-12056828 raw=0x24038194
+    [0148] CALL           A=3 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263171 sJ=-16514044 raw=0x020201C4
+    [0149] SETFIELD       A=2 B=45 C=3 k=0 Bx=1626 sBx=-63909 Ax=416258 sJ=-16360957 raw=0x032D0112 ; R[2][K[45] "HitFX"] = R[3]
+    [0150] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "MissileData"]
+    [0151] GETFIELD       A=3 B=0 C=24 k=0 Bx=12288 sBx=-53247 Ax=3145731 sJ=-13631484 raw=0x1800018E ; R[3] = R[0][K[24] "CollisionProperties"]
+    [0152] GETFIELD       A=3 B=3 C=47 k=0 Bx=24070 sBx=-41465 Ax=6161923 sJ=-10615292 raw=0x2F03018E ; R[3] = R[3][K[47] "ImpactForce"]
+    [0153] SETFIELD       A=2 B=47 C=3 k=0 Bx=1630 sBx=-63905 Ax=417282 sJ=-16359933 raw=0x032F0112 ; R[2][K[47] "ImpactForce"] = R[3]
+    [0154] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[5] source="" lines=200-228 params=1 vararg=0 stack=255 upvalues=1
+  constants (23):
+    K[0] = "modelPath"
+    K[1] = "UE"
+    K[2] = "UNRCStatics"
+    K[3] = "GetSoftObjPath"
+    K[4] = "NpcClass"
+    K[5] = ""
+    K[6] = "CreateParam"
+    K[7] = "_G"
+    K[8] = "DataConfigManager"
+    K[9] = "GetNpcRefreshContentConf"
+    K[10] = "NpcContentId"
+    K[11] = "GetNpcConf"
+    K[12] = "npc_id"
+    K[13] = "GetModelConf"
+    K[14] = "model_conf"
+    K[15] = "path"
+    K[16] = "AddStringPathToAsyncList"
+    K[17] = "CollisionProperties"
+    K[18] = "HitParam"
+    K[19] = "HitFX"
+    K[20] = "GetLongPackageName"
+    K[21] = "CollisionPlayer"
+    K[22] = "HitPlayerPlayFx"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=6 name="_ENV"
+  locals (4):
+    L[0] = "self" pc=0-69
+    L[1] = "refreshConf" pc=22-36
+    L[2] = "npcConf" pc=29-36
+    L[3] = "FxPath" pc=40-69
+  instructions (69):
+    [0001] GETTABUP       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008B ; R[1] = U[0][K[1] "UE"]
+    [0002] GETFIELD       A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x0201008E ; R[1] = R[1][K[2] "UNRCStatics"]
+    [0003] GETFIELD       A=1 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393729 sJ=-16383486 raw=0x0301008E ; R[1] = R[1][K[3] "GetSoftObjPath"]
+    [0004] GETFIELD       A=2 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524290 sJ=-16252925 raw=0x0400010E ; R[2] = R[0][K[4] "NpcClass"]
+    [0005] CALL           A=1 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263169 sJ=-16514046 raw=0x020200C4
+    [0006] SETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x01000012 ; R[0][K[0] "modelPath"] = R[1]
+    [0007] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "modelPath"]
+    [0008] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0009] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0010] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "modelPath"]
+    [0011] EQK            A=1 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2561 sJ=-16774654 raw=0x000500BC
+    [0012] JMP            A=23 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777239 sJ=24 raw=0x80000BB8
+    [0013] GETFIELD       A=1 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786433 sJ=-15990782 raw=0x0600008E ; R[1] = R[0][K[6] "CreateParam"]
+    [0014] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0015] JMP            A=20 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777236 sJ=21 raw=0x80000A38
+    [0016] GETTABUP       A=1 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917505 sJ=-15859710 raw=0x0700008B ; R[1] = U[0][K[7] "_G"]
+    [0017] GETFIELD       A=1 B=1 C=8 k=0 Bx=4098 sBx=-61437 Ax=1049089 sJ=-15728126 raw=0x0801008E ; R[1] = R[1][K[8] "DataConfigManager"]
+    [0018] SELF           A=1 B=1 C=9 k=1 Bx=4611 sBx=-60924 Ax=1180417 sJ=-15596798 raw=0x09018094
+    [0019] GETFIELD       A=3 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786435 sJ=-15990780 raw=0x0600018E ; R[3] = R[0][K[6] "CreateParam"]
+    [0020] GETFIELD       A=3 B=3 C=10 k=0 Bx=5126 sBx=-60409 Ax=1312259 sJ=-15464956 raw=0x0A03018E ; R[3] = R[3][K[10] "NpcContentId"]
+    [0021] LOADTRUE       A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000207
+    [0022] CALL           A=1 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264193 sJ=-16513022 raw=0x020400C4
+    [0023] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0024] JMP            A=11 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777227 sJ=12 raw=0x800005B8
+    [0025] GETTABUP       A=2 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917506 sJ=-15859709 raw=0x0700010B ; R[2] = U[0][K[7] "_G"]
+    [0026] GETFIELD       A=2 B=2 C=8 k=0 Bx=4100 sBx=-61435 Ax=1049602 sJ=-15727613 raw=0x0802010E ; R[2] = R[2][K[8] "DataConfigManager"]
+    [0027] SELF           A=2 B=2 C=11 k=1 Bx=5637 sBx=-59898 Ax=1443074 sJ=-15334141 raw=0x0B028114
+    [0028] GETFIELD       A=4 B=1 C=12 k=0 Bx=6146 sBx=-59389 Ax=1573380 sJ=-15203835 raw=0x0C01020E ; R[4] = R[1][K[12] "npc_id"]
+    [0029] CALL           A=2 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263682 sJ=-16513533 raw=0x02030144
+    [0030] GETTABUP       A=3 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917507 sJ=-15859708 raw=0x0700018B ; R[3] = U[0][K[7] "_G"]
+    [0031] GETFIELD       A=3 B=3 C=8 k=0 Bx=4102 sBx=-61433 Ax=1050115 sJ=-15727100 raw=0x0803018E ; R[3] = R[3][K[8] "DataConfigManager"]
+    [0032] SELF           A=3 B=3 C=13 k=1 Bx=6663 sBx=-58872 Ax=1705731 sJ=-15071484 raw=0x0D038194
+    [0033] GETFIELD       A=5 B=2 C=14 k=0 Bx=7172 sBx=-58363 Ax=1836037 sJ=-14941178 raw=0x0E02028E ; R[5] = R[2][K[14] "model_conf"]
+    [0034] CALL           A=3 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263683 sJ=-16513532 raw=0x020301C4
+    [0035] GETFIELD       A=3 B=3 C=15 k=0 Bx=7686 sBx=-57849 Ax=1967619 sJ=-14809596 raw=0x0F03018E ; R[3] = R[3][K[15] "path"]
+    [0036] SETFIELD       A=0 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393216 sJ=-16383999 raw=0x03000012 ; R[0][K[0] "modelPath"] = R[3]
+    [0037] SELF           A=1 B=0 C=16 k=1 Bx=8193 sBx=-57342 Ax=2097409 sJ=-14679806 raw=0x10008094
+    [0038] GETFIELD       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018E ; R[3] = R[0][K[0] "modelPath"]
+    [0039] CALL           A=1 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132609 sJ=-16644606 raw=0x010300C4
+    [0040] LOADNIL        A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000088
+    [0041] GETFIELD       A=2 B=0 C=17 k=0 Bx=8704 sBx=-56831 Ax=2228226 sJ=-14548989 raw=0x1100010E ; R[2] = R[0][K[17] "CollisionProperties"]
+    [0042] TEST           A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x00008142
+    [0043] JMP            A=8 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777224 sJ=9 raw=0x80000438
+    [0044] GETFIELD       A=2 B=0 C=18 k=0 Bx=9216 sBx=-56319 Ax=2359298 sJ=-14417917 raw=0x1200010E ; R[2] = R[0][K[18] "HitParam"]
+    [0045] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0046] JMP            A=16 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777232 sJ=17 raw=0x80000838
+    [0047] GETFIELD       A=2 B=0 C=18 k=0 Bx=9216 sBx=-56319 Ax=2359298 sJ=-14417917 raw=0x1200010E ; R[2] = R[0][K[18] "HitParam"]
+    [0048] GETFIELD       A=2 B=2 C=19 k=0 Bx=9732 sBx=-55803 Ax=2491394 sJ=-14285821 raw=0x1302010E ; R[2] = R[2][K[19] "HitFX"]
+    [0049] SELF           A=2 B=2 C=20 k=1 Bx=10245 sBx=-55290 Ax=2622722 sJ=-14154493 raw=0x14028114
+    [0050] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0051] MOVE           A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x00020080
+    [0052] JMP            A=10 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777226 sJ=11 raw=0x80000538
+    [0053] GETFIELD       A=2 B=0 C=17 k=0 Bx=8704 sBx=-56831 Ax=2228226 sJ=-14548989 raw=0x1100010E ; R[2] = R[0][K[17] "CollisionProperties"]
+    [0054] GETFIELD       A=2 B=2 C=21 k=0 Bx=10756 sBx=-54779 Ax=2753538 sJ=-14023677 raw=0x1502010E ; R[2] = R[2][K[21] "CollisionPlayer"]
+    [0055] GETFIELD       A=2 B=2 C=22 k=0 Bx=11268 sBx=-54267 Ax=2884610 sJ=-13892605 raw=0x1602010E ; R[2] = R[2][K[22] "HitPlayerPlayFx"]
+    [0056] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0057] JMP            A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x800002B8
+    [0058] GETFIELD       A=2 B=0 C=17 k=0 Bx=8704 sBx=-56831 Ax=2228226 sJ=-14548989 raw=0x1100010E ; R[2] = R[0][K[17] "CollisionProperties"]
+    [0059] GETFIELD       A=2 B=2 C=21 k=0 Bx=10756 sBx=-54779 Ax=2753538 sJ=-14023677 raw=0x1502010E ; R[2] = R[2][K[21] "CollisionPlayer"]
+    [0060] GETFIELD       A=2 B=2 C=22 k=0 Bx=11268 sBx=-54267 Ax=2884610 sJ=-13892605 raw=0x1602010E ; R[2] = R[2][K[22] "HitPlayerPlayFx"]
+    [0061] SELF           A=2 B=2 C=20 k=1 Bx=10245 sBx=-55290 Ax=2622722 sJ=-14154493 raw=0x14028114
+    [0062] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0063] MOVE           A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x00020080
+    [0064] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0065] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0066] SELF           A=2 B=0 C=16 k=1 Bx=8193 sBx=-57342 Ax=2097410 sJ=-14679805 raw=0x10008114
+    [0067] MOVE           A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010200
+    [0068] CALL           A=2 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132610 sJ=-16644605 raw=0x01030144
+    [0069] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[6] source="" lines=231-264 params=1 vararg=0 stack=255 upvalues=1
+  constants (20):
+    K[0] = "CollisionProperties"
+    K[1] = "HitParam"
+    K[2] = "HitFX"
+    K[3] = "GetLongPackageName"
+    K[4] = "CollisionPlayer"
+    K[5] = "HitPlayerPlayFx"
+    K[6] = ""
+    K[7] = "_G"
+    K[8] = "NRCUtils"
+    K[9] = "FormatResPackageNameToFullPath"
+    K[10] = "NRCModuleManager"
+    K[11] = "GetModule"
+    K[12] = "CollisionModule"
+    K[13] = "HitFxList"
+    K[14] = "NRCResourceManager"
+    K[15] = "LoadResAsync"
+    K[16] = "PriorityEnum"
+    K[17] = "Active_World_Combat_Boss"
+    K[18] = "OnResLoadedSuccess"
+    K[19] = "OnResLoadedFailed"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=12 name="_ENV"
+  locals (5):
+    L[0] = "self" pc=0-62
+    L[1] = "FxPath" pc=4-62
+    L[2] = "collisionModule" pc=42-62
+    L[3] = "FxRes" pc=47-62
+    L[4] = "Res" pc=61-62
+  instructions (62):
+    [0001] TEST           A=0 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=256 sJ=-16776959 raw=0x00008042
+    [0002] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0003] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+    [0004] LOADNIL        A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000088
+    [0005] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "CollisionProperties"]
+    [0006] TEST           A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x00008142
+    [0007] JMP            A=8 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777224 sJ=9 raw=0x80000438
+    [0008] GETFIELD       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010E ; R[2] = R[0][K[1] "HitParam"]
+    [0009] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0010] JMP            A=16 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777232 sJ=17 raw=0x80000838
+    [0011] GETFIELD       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010E ; R[2] = R[0][K[1] "HitParam"]
+    [0012] GETFIELD       A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x0202010E ; R[2] = R[2][K[2] "HitFX"]
+    [0013] SELF           A=2 B=2 C=3 k=1 Bx=1541 sBx=-63994 Ax=394498 sJ=-16382717 raw=0x03028114
+    [0014] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0015] MOVE           A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x00020080
+    [0016] JMP            A=10 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777226 sJ=11 raw=0x80000538
+    [0017] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "CollisionProperties"]
+    [0018] GETFIELD       A=2 B=2 C=4 k=0 Bx=2052 sBx=-63483 Ax=525314 sJ=-16251901 raw=0x0402010E ; R[2] = R[2][K[4] "CollisionPlayer"]
+    [0019] GETFIELD       A=2 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656386 sJ=-16120829 raw=0x0502010E ; R[2] = R[2][K[5] "HitPlayerPlayFx"]
+    [0020] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0021] JMP            A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x800002B8
+    [0022] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "CollisionProperties"]
+    [0023] GETFIELD       A=2 B=2 C=4 k=0 Bx=2052 sBx=-63483 Ax=525314 sJ=-16251901 raw=0x0402010E ; R[2] = R[2][K[4] "CollisionPlayer"]
+    [0024] GETFIELD       A=2 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656386 sJ=-16120829 raw=0x0502010E ; R[2] = R[2][K[5] "HitPlayerPlayFx"]
+    [0025] SELF           A=2 B=2 C=3 k=1 Bx=1541 sBx=-63994 Ax=394498 sJ=-16382717 raw=0x03028114
+    [0026] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0027] MOVE           A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x00020080
+    [0028] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0029] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0030] EQK            A=1 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3073 sJ=-16774142 raw=0x000600BC
+    [0031] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0032] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+    [0033] GETTABUP       A=2 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917506 sJ=-15859709 raw=0x0700010B ; R[2] = U[0][K[7] "_G"]
+    [0034] GETFIELD       A=2 B=2 C=8 k=0 Bx=4100 sBx=-61435 Ax=1049602 sJ=-15727613 raw=0x0802010E ; R[2] = R[2][K[8] "NRCUtils"]
+    [0035] GETFIELD       A=2 B=2 C=9 k=0 Bx=4612 sBx=-60923 Ax=1180674 sJ=-15596541 raw=0x0902010E ; R[2] = R[2][K[9] "FormatResPackageNameToFullPath"]
+    [0036] MOVE           A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x00010180
+    [0037] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0038] MOVE           A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x00020080
+    [0039] GETTABUP       A=2 B=0 C=10 k=0 Bx=5120 sBx=-60415 Ax=1310722 sJ=-15466493 raw=0x0A00010B ; R[2] = U[0][K[10] "NRCModuleManager"]
+    [0040] SELF           A=2 B=2 C=11 k=1 Bx=5637 sBx=-59898 Ax=1443074 sJ=-15334141 raw=0x0B028114
+    [0041] LOADK          A=4 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3076 sJ=-16774139 raw=0x00060203 ; R[4] = K[12] "CollisionModule"
+    [0042] CALL           A=2 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263682 sJ=-16513533 raw=0x02030144
+    [0043] TEST           A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x00008142
+    [0044] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0045] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7
+    [0046] GETFIELD       A=3 B=2 C=13 k=0 Bx=6660 sBx=-58875 Ax=1704963 sJ=-15072252 raw=0x0D02018E ; R[3] = R[2][K[13] "HitFxList"]
+    [0047] GETTABLE       A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x0103018C
+    [0048] TEST           A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x000001C2
+    [0049] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0050] RETURN0        A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010247
+    [0051] GETTABUP       A=4 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917508 sJ=-15859707 raw=0x0700020B ; R[4] = U[0][K[7] "_G"]
+    [0052] GETFIELD       A=4 B=4 C=14 k=0 Bx=7176 sBx=-58359 Ax=1837060 sJ=-14940155 raw=0x0E04020E ; R[4] = R[4][K[14] "NRCResourceManager"]
+    [0053] SELF           A=4 B=4 C=15 k=1 Bx=7689 sBx=-57846 Ax=1968388 sJ=-14808827 raw=0x0F048214
+    [0054] MOVE           A=6 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=6 sJ=-16777209 raw=0x00000300
+    [0055] MOVE           A=7 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=519 sJ=-16776696 raw=0x00010380
+    [0056] GETTABUP       A=8 B=0 C=16 k=0 Bx=8192 sBx=-57343 Ax=2097160 sJ=-14680055 raw=0x1000040B ; R[8] = U[0][K[16] "PriorityEnum"]
+    [0057] GETFIELD       A=8 B=8 C=17 k=0 Bx=8720 sBx=-56815 Ax=2232328 sJ=-14544887 raw=0x1108040E ; R[8] = R[8][K[17] "Active_World_Combat_Boss"]
+    [0058] LOADI          A=9 B=4 C=128 k=1 Bx=65545 sBx=10 Ax=16779529 sJ=2314 raw=0x80048481
+    [0059] GETFIELD       A=10 B=0 C=18 k=0 Bx=9216 sBx=-56319 Ax=2359306 sJ=-14417909 raw=0x1200050E ; R[10] = R[0][K[18] "OnResLoadedSuccess"]
+    [0060] GETFIELD       A=11 B=0 C=19 k=0 Bx=9728 sBx=-55807 Ax=2490379 sJ=-14286836 raw=0x1300058E ; R[11] = R[0][K[19] "OnResLoadedFailed"]
+    [0061] CALL           A=4 B=8 C=2 k=0 Bx=1040 sBx=-64495 Ax=266244 sJ=-16510971 raw=0x02080244
+    [0062] RETURN0        A=5 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=517 sJ=-16776698 raw=0x000102C7
+
+  function[7] source="" lines=268-285 params=3 vararg=0 stack=255 upvalues=1
+  constants (15):
+    K[0] = "Log"
+    K[1] = "Error"
+    K[2] = "RocoMissileAction:OnResLoadedSuccess Not asset!!!"
+    K[3] = "Debug"
+    K[4] = "RocoMissileAction:OnResLoaded"
+    K[5] = "NRCModuleManager"
+    K[6] = "GetModule"
+    K[7] = "CollisionModule"
+    K[8] = "AddHitResCache"
+    K[9] = "assetPath"
+    K[10] = "_G"
+    K[11] = "NRCEventCenter"
+    K[12] = "DispatchEvent"
+    K[13] = "NRCGlobalEvent"
+    K[14] = "OnSkillResLoaded"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=9 name="_ENV"
+  locals (4):
+    L[0] = "self" pc=0-33
+    L[1] = "req" pc=0-33
+    L[2] = "asset" pc=0-33
+    L[3] = "collisionModule" pc=16-33
+  instructions (33):
+    [0001] TEST           A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x00008142
+    [0002] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0003] GETTABUP       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018B ; R[3] = U[0][K[0] "Log"]
+    [0004] GETFIELD       A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x0103018E ; R[3] = R[3][K[1] "Error"]
+    [0005] LOADK          A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010203 ; R[4] = K[2] "RocoMissileAction:OnResLoadedSuccess Not asset!!!"
+    [0006] CALL           A=3 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132099 sJ=-16645116 raw=0x010201C4
+    [0007] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7
+    [0008] GETTABUP       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018B ; R[3] = U[0][K[0] "Log"]
+    [0009] GETFIELD       A=3 B=3 C=3 k=0 Bx=1542 sBx=-63993 Ax=394755 sJ=-16382460 raw=0x0303018E ; R[3] = R[3][K[3] "Debug"]
+    [0010] LOADK          A=4 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1028 sJ=-16776187 raw=0x00020203 ; R[4] = K[4] "RocoMissileAction:OnResLoaded"
+    [0011] MOVE           A=5 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1029 sJ=-16776186 raw=0x00020280
+    [0012] CALL           A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x010301C4
+    [0013] GETTABUP       A=3 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655363 sJ=-16121852 raw=0x0500018B ; R[3] = U[0][K[5] "NRCModuleManager"]
+    [0014] SELF           A=3 B=3 C=6 k=1 Bx=3079 sBx=-62456 Ax=788227 sJ=-15988988 raw=0x06038194
+    [0015] LOADK          A=5 B=3 C=0 k=1 Bx=7 sBx=-65528 Ax=1797 sJ=-16775418 raw=0x00038283 ; R[5] = K[7] "CollisionModule"
+    [0016] CALL           A=3 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263683 sJ=-16513532 raw=0x020301C4
+    [0017] TEST           A=3 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=259 sJ=-16776956 raw=0x000081C2
+    [0018] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0019] RETURN0        A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010247
+    [0020] SELF           A=4 B=3 C=8 k=1 Bx=4103 sBx=-61432 Ax=1050372 sJ=-15726843 raw=0x08038214
+    [0021] GETFIELD       A=6 B=1 C=9 k=0 Bx=4610 sBx=-60925 Ax=1180166 sJ=-15597049 raw=0x0901030E ; R[6] = R[1][K[9] "assetPath"]
+    [0022] MOVE           A=7 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1031 sJ=-16776184 raw=0x00020380
+    [0023] CALL           A=4 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133124 sJ=-16644091 raw=0x01040244
+    [0024] GETTABUP       A=4 B=0 C=10 k=0 Bx=5120 sBx=-60415 Ax=1310724 sJ=-15466491 raw=0x0A00020B ; R[4] = U[0][K[10] "_G"]
+    [0025] GETFIELD       A=4 B=4 C=11 k=0 Bx=5640 sBx=-59895 Ax=1443844 sJ=-15333371 raw=0x0B04020E ; R[4] = R[4][K[11] "NRCEventCenter"]
+    [0026] SELF           A=4 B=4 C=12 k=1 Bx=6153 sBx=-59382 Ax=1575172 sJ=-15202043 raw=0x0C048214
+    [0027] GETTABUP       A=6 B=0 C=10 k=0 Bx=5120 sBx=-60415 Ax=1310726 sJ=-15466489 raw=0x0A00030B ; R[6] = U[0][K[10] "_G"]
+    [0028] GETFIELD       A=6 B=6 C=13 k=0 Bx=6668 sBx=-58867 Ax=1707014 sJ=-15070201 raw=0x0D06030E ; R[6] = R[6][K[13] "NRCGlobalEvent"]
+    [0029] GETFIELD       A=6 B=6 C=14 k=0 Bx=7180 sBx=-58355 Ax=1838086 sJ=-14939129 raw=0x0E06030E ; R[6] = R[6][K[14] "OnSkillResLoaded"]
+    [0030] GETFIELD       A=7 B=1 C=9 k=0 Bx=4610 sBx=-60925 Ax=1180167 sJ=-15597048 raw=0x0901038E ; R[7] = R[1][K[9] "assetPath"]
+    [0031] MOVE           A=8 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1032 sJ=-16776183 raw=0x00020400
+    [0032] CALL           A=4 B=5 C=1 k=0 Bx=522 sBx=-65013 Ax=133636 sJ=-16643579 raw=0x01050244
+    [0033] RETURN0        A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010247
+
+  function[8] source="" lines=287-289 params=3 vararg=0 stack=255 upvalues=1
+  constants (4):
+    K[0] = "Log"
+    K[1] = "Error"
+    K[2] = "RocoMissileAction:OnResLoadedFailed: "
+    K[3] = "assetPath"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=7 name="_ENV"
+  locals (3):
+    L[0] = "self" pc=0-7
+    L[1] = "req" pc=0-7
+    L[2] = "msg" pc=0-7
+  instructions (7):
+    [0001] GETTABUP       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018B ; R[3] = U[0][K[0] "Log"]
+    [0002] GETFIELD       A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x0103018E ; R[3] = R[3][K[1] "Error"]
+    [0003] LOADK          A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010203 ; R[4] = K[2] "RocoMissileAction:OnResLoadedFailed: "
+    [0004] MOVE           A=5 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1029 sJ=-16776186 raw=0x00020280
+    [0005] GETFIELD       A=6 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393734 sJ=-16383481 raw=0x0301030E ; R[6] = R[1][K[3] "assetPath"]
+    [0006] CALL           A=3 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133123 sJ=-16644092 raw=0x010401C4
+    [0007] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7

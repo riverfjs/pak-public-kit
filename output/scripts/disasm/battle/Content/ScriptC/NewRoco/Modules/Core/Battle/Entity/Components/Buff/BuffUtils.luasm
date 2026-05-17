@@ -1,0 +1,669 @@
+-- path: Content/ScriptC/NewRoco/Modules/Core/Battle/Entity/Components/Buff/BuffUtils.luac
+-- format: decrypted standard Lua 5.4 bytecode
+-- note: disassembly, not original source
+
+main source="@NewRoco\\Modules\\Core\\Battle\\Entity\\Components\\Buff\\BuffUtils.lua" lines=0-0 params=0 vararg=1 stack=255 upvalues=1
+constants (22):
+  K[0] = "require"
+  K[1] = "Data.Config.Enum"
+  K[2] = "NewRoco.Modules.Core.Battle.Common.BattleEnum"
+  K[3] = "NewRoco.Modules.Core.Battle.Common.BattleConst"
+  K[4] = "Data.PB.ProtoEnum"
+  K[5] = "NewRoco.Modules.Core.Battle.Common.BattleEvent"
+  K[6] = "NewRoco.Modules.System.Bag.BagModuleCmd"
+  K[7] = "IsDebuff"
+  K[8] = "GetBuffRemainTime"
+  K[9] = "IsShowBuffOrLetter"
+  K[10] = "GetAllBuff132AttrListFromPet"
+  K[11] = "IsGatherBuff"
+  K[12] = "IsGatherBuffEx"
+  K[13] = "IsRidOfBuff"
+  K[14] = "IsFreezeBuff"
+  K[15] = "CheckBuffType"
+  K[16] = "FindFirstBuffBaseConfByBuffType"
+  K[17] = "IsParallelBuff"
+  K[18] = "MaxParallelBuffTime"
+  K[19] = "IsNameInvisibleBuff"
+  K[20] = "IsPetHasPlayerSkillBuff"
+  K[21] = "IsPetHasBuffByType"
+upvalues (1):
+  U[0] = instack=0 idx=0 kind=8 name="_ENV"
+locals (7):
+  L[0] = "BuffUtils" pc=3-53
+  L[1] = "Enum" pc=6-53
+  L[2] = "BattleEnum" pc=9-53
+  L[3] = "BattleConst" pc=12-53
+  L[4] = "ProtoEnum" pc=15-53
+  L[5] = "BattleEvent" pc=18-53
+  L[6] = "BagModuleCmd" pc=21-53
+instructions (53):
+  [0001] VARARGPREP     A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000051
+  [0002] NEWTABLE       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000013
+  [0003] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0004] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "require"]
+  [0005] LOADK          A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x00008103 ; R[2] = K[1] "Data.Config.Enum"
+  [0006] CALL           A=1 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263169 sJ=-16514046 raw=0x020200C4
+  [0007] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "require"]
+  [0008] LOADK          A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x00010183 ; R[3] = K[2] "NewRoco.Modules.Core.Battle.Common.BattleEnum"
+  [0009] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+  [0010] GETTABUP       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018B ; R[3] = U[0][K[0] "require"]
+  [0011] LOADK          A=4 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=772 sJ=-16776443 raw=0x00018203 ; R[4] = K[3] "NewRoco.Modules.Core.Battle.Common.BattleConst"
+  [0012] CALL           A=3 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263171 sJ=-16514044 raw=0x020201C4
+  [0013] GETTABUP       A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x0000020B ; R[4] = U[0][K[0] "require"]
+  [0014] LOADK          A=5 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1029 sJ=-16776186 raw=0x00020283 ; R[5] = K[4] "Data.PB.ProtoEnum"
+  [0015] CALL           A=4 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263172 sJ=-16514043 raw=0x02020244
+  [0016] GETTABUP       A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x0000028B ; R[5] = U[0][K[0] "require"]
+  [0017] LOADK          A=6 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1286 sJ=-16775929 raw=0x00028303 ; R[6] = K[5] "NewRoco.Modules.Core.Battle.Common.BattleEvent"
+  [0018] CALL           A=5 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263173 sJ=-16514042 raw=0x020202C4
+  [0019] GETTABUP       A=6 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=6 sJ=-16777209 raw=0x0000030B ; R[6] = U[0][K[0] "require"]
+  [0020] LOADK          A=7 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1543 sJ=-16775672 raw=0x00030383 ; R[7] = K[6] "NewRoco.Modules.System.Bag.BagModuleCmd"
+  [0021] CALL           A=6 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263174 sJ=-16514041 raw=0x02020344
+  [0022] CLOSURE        A=7 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=7 sJ=-16777208 raw=0x000003CF ; R[7] = function[0]
+  [0023] SETFIELD       A=0 B=7 C=7 k=0 Bx=3598 sBx=-61937 Ax=921088 sJ=-15856127 raw=0x07070012 ; R[0][K[7] "IsDebuff"] = R[7]
+  [0024] CLOSURE        A=7 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=263 sJ=-16776952 raw=0x000083CF ; R[7] = function[1]
+  [0025] SETFIELD       A=0 B=8 C=7 k=0 Bx=3600 sBx=-61935 Ax=921600 sJ=-15855615 raw=0x07080012 ; R[0][K[8] "GetBuffRemainTime"] = R[7]
+  [0026] CLOSURE        A=7 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=519 sJ=-16776696 raw=0x000103CF ; R[7] = function[2]
+  [0027] SETFIELD       A=0 B=9 C=7 k=0 Bx=3602 sBx=-61933 Ax=922112 sJ=-15855103 raw=0x07090012 ; R[0][K[9] "IsShowBuffOrLetter"] = R[7]
+  [0028] CLOSURE        A=7 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=775 sJ=-16776440 raw=0x000183CF ; R[7] = function[3]
+  [0029] SETFIELD       A=0 B=10 C=7 k=0 Bx=3604 sBx=-61931 Ax=922624 sJ=-15854591 raw=0x070A0012 ; R[0][K[10] "GetAllBuff132AttrListFromPet"] = R[7]
+  [0030] CLOSURE        A=7 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1031 sJ=-16776184 raw=0x000203CF ; R[7] = function[4]
+  [0031] SETFIELD       A=0 B=11 C=7 k=0 Bx=3606 sBx=-61929 Ax=923136 sJ=-15854079 raw=0x070B0012 ; R[0][K[11] "IsGatherBuff"] = R[7]
+  [0032] CLOSURE        A=7 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1287 sJ=-16775928 raw=0x000283CF ; R[7] = function[5]
+  [0033] SETFIELD       A=0 B=12 C=7 k=0 Bx=3608 sBx=-61927 Ax=923648 sJ=-15853567 raw=0x070C0012 ; R[0][K[12] "IsGatherBuffEx"] = R[7]
+  [0034] CLOSURE        A=7 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1543 sJ=-16775672 raw=0x000303CF ; R[7] = function[6]
+  [0035] SETFIELD       A=0 B=13 C=7 k=0 Bx=3610 sBx=-61925 Ax=924160 sJ=-15853055 raw=0x070D0012 ; R[0][K[13] "IsRidOfBuff"] = R[7]
+  [0036] CLOSURE        A=7 B=3 C=0 k=1 Bx=7 sBx=-65528 Ax=1799 sJ=-16775416 raw=0x000383CF ; R[7] = function[7]
+  [0037] SETFIELD       A=0 B=14 C=7 k=0 Bx=3612 sBx=-61923 Ax=924672 sJ=-15852543 raw=0x070E0012 ; R[0][K[14] "IsFreezeBuff"] = R[7]
+  [0038] CLOSURE        A=7 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2055 sJ=-16775160 raw=0x000403CF ; R[7] = function[8]
+  [0039] SETFIELD       A=0 B=15 C=7 k=0 Bx=3614 sBx=-61921 Ax=925184 sJ=-15852031 raw=0x070F0012 ; R[0][K[15] "CheckBuffType"] = R[7]
+  [0040] CLOSURE        A=7 B=4 C=0 k=1 Bx=9 sBx=-65526 Ax=2311 sJ=-16774904 raw=0x000483CF ; R[7] = function[9]
+  [0041] SETFIELD       A=0 B=16 C=7 k=0 Bx=3616 sBx=-61919 Ax=925696 sJ=-15851519 raw=0x07100012 ; R[0][K[16] "FindFirstBuffBaseConfByBuffType"] = R[7]
+  [0042] CLOSURE        A=7 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2567 sJ=-16774648 raw=0x000503CF ; R[7] = function[10]
+  [0043] SETFIELD       A=0 B=17 C=7 k=0 Bx=3618 sBx=-61917 Ax=926208 sJ=-15851007 raw=0x07110012 ; R[0][K[17] "IsParallelBuff"] = R[7]
+  [0044] CLOSURE        A=7 B=5 C=0 k=1 Bx=11 sBx=-65524 Ax=2823 sJ=-16774392 raw=0x000583CF ; R[7] = function[11]
+  [0045] SETFIELD       A=0 B=18 C=7 k=0 Bx=3620 sBx=-61915 Ax=926720 sJ=-15850495 raw=0x07120012 ; R[0][K[18] "MaxParallelBuffTime"] = R[7]
+  [0046] CLOSURE        A=7 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3079 sJ=-16774136 raw=0x000603CF ; R[7] = function[12]
+  [0047] SETFIELD       A=0 B=19 C=7 k=0 Bx=3622 sBx=-61913 Ax=927232 sJ=-15849983 raw=0x07130012 ; R[0][K[19] "IsNameInvisibleBuff"] = R[7]
+  [0048] CLOSURE        A=7 B=6 C=0 k=1 Bx=13 sBx=-65522 Ax=3335 sJ=-16773880 raw=0x000683CF ; R[7] = function[13]
+  [0049] SETFIELD       A=0 B=20 C=7 k=0 Bx=3624 sBx=-61911 Ax=927744 sJ=-15849471 raw=0x07140012 ; R[0][K[20] "IsPetHasPlayerSkillBuff"] = R[7]
+  [0050] CLOSURE        A=7 B=7 C=0 k=0 Bx=14 sBx=-65521 Ax=3591 sJ=-16773624 raw=0x000703CF ; R[7] = function[14]
+  [0051] SETFIELD       A=0 B=21 C=7 k=0 Bx=3626 sBx=-61909 Ax=928256 sJ=-15848959 raw=0x07150012 ; R[0][K[21] "IsPetHasBuffByType"] = R[7]
+  [0052] RETURN         A=0 B=2 C=1 k=1 Bx=517 sBx=-65018 Ax=132352 sJ=-16644863 raw=0x01028046
+  [0053] RETURN         A=7 B=1 C=1 k=1 Bx=515 sBx=-65020 Ax=131847 sJ=-16645368 raw=0x010183C6
+
+  function[0] source="" lines=18-20 params=1 vararg=0 stack=255 upvalues=1
+  constants (3):
+    K[0] = "type"
+    K[1] = "BuffGroupType"
+    K[2] = "BGT_DEBUFF"
+  upvalues (1):
+    U[0] = instack=4 idx=0 kind=3 name="ProtoEnum"
+  locals (1):
+    L[0] = "buffCfg" pc=0-9
+  instructions (9):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "type"]
+    [0002] GETTABUP       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010B ; R[2] = U[0][K[1] "BuffGroupType"]
+    [0003] GETFIELD       A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x0202010E ; R[2] = R[2][K[2] "BGT_DEBUFF"]
+    [0004] EQ             A=1 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1281 sJ=-16775934 raw=0x000280B9
+    [0005] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0006] LFALSESKIP     A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000086
+    [0007] LOADTRUE       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000087
+    [0008] RETURN1        A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C8
+    [0009] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[1] source="" lines=24-44 params=2 vararg=0 stack=255 upvalues=3
+  constants (16):
+    K[0] = "_G"
+    K[1] = "DataConfigManager"
+    K[2] = "GetBuffConf"
+    K[3] = "type"
+    K[4] = "BuffGroupType"
+    K[5] = "BGT_AREA"
+    K[6] = "buff_group_reduce"
+    K[7] = "reduce_type"
+    K[8] = "BuffReduceType"
+    K[9] = "BRT_ROUND"
+    K[10] = "BRT_LAYER_ROUND"
+    K[11] = "reduce_param"
+    K[12] = 999
+    K[13] = "BattleManager"
+    K[14] = "battleRuntimeData"
+    K[15] = "roundIndex"
+  upvalues (3):
+    U[0] = instack=0 idx=0 kind=1 name="_ENV"
+    U[1] = instack=4 idx=0 kind=1 name="ProtoEnum"
+    U[2] = instack=1 idx=0 kind=6 name="Enum"
+  locals (6):
+    L[0] = "buff_id" pc=0-56
+    L[1] = "append_round" pc=0-56
+    L[2] = "buff_conf" pc=5-56
+    L[3] = "group_reduce" pc=14-56
+    L[4] = "roundIndex" pc=36-53
+    L[5] = "timer" pc=52-53
+  instructions (56):
+    [0001] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "_G"]
+    [0002] GETFIELD       A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x0102010E ; R[2] = R[2][K[1] "DataConfigManager"]
+    [0003] SELF           A=2 B=2 C=2 k=1 Bx=1029 sBx=-64506 Ax=263426 sJ=-16513789 raw=0x02028114
+    [0004] MOVE           A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000200
+    [0005] CALL           A=2 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263682 sJ=-16513533 raw=0x02030144
+    [0006] GETFIELD       A=3 B=2 C=3 k=0 Bx=1540 sBx=-63995 Ax=394243 sJ=-16382972 raw=0x0302018E ; R[3] = R[2][K[3] "type"]
+    [0007] GETTABUP       A=4 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524804 sJ=-16252411 raw=0x0401020B ; R[4] = U[1][K[4] "BuffGroupType"]
+    [0008] GETFIELD       A=4 B=4 C=5 k=0 Bx=2568 sBx=-62967 Ax=657412 sJ=-16119803 raw=0x0504020E ; R[4] = R[4][K[5] "BGT_AREA"]
+    [0009] EQ             A=3 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2051 sJ=-16775164 raw=0x000401B9
+    [0010] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0011] LOADI          A=3 B=255 C=127 k=0 Bx=65534 sBx=-1 Ax=16776707 sJ=-508 raw=0x7FFF0181
+    [0012] RETURN1        A=3 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1027 sJ=-16776188 raw=0x000201C8
+    [0013] GETFIELD       A=3 B=2 C=6 k=0 Bx=3076 sBx=-62459 Ax=787459 sJ=-15989756 raw=0x0602018E ; R[3] = R[2][K[6] "buff_group_reduce"]
+    [0014] GETI           A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x0103018D
+    [0015] GETFIELD       A=4 B=3 C=7 k=0 Bx=3590 sBx=-61945 Ax=919044 sJ=-15858171 raw=0x0703020E ; R[4] = R[3][K[7] "reduce_type"]
+    [0016] GETTABUP       A=5 B=2 C=8 k=0 Bx=4100 sBx=-61435 Ax=1049605 sJ=-15727610 raw=0x0802028B ; R[5] = U[2][K[8] "BuffReduceType"]
+    [0017] GETFIELD       A=5 B=5 C=9 k=0 Bx=4618 sBx=-60917 Ax=1182213 sJ=-15595002 raw=0x0905028E ; R[5] = R[5][K[9] "BRT_ROUND"]
+    [0018] EQ             A=4 B=5 C=0 k=1 Bx=11 sBx=-65524 Ax=2820 sJ=-16774395 raw=0x00058239
+    [0019] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0020] GETFIELD       A=4 B=3 C=7 k=0 Bx=3590 sBx=-61945 Ax=919044 sJ=-15858171 raw=0x0703020E ; R[4] = R[3][K[7] "reduce_type"]
+    [0021] GETTABUP       A=5 B=2 C=8 k=0 Bx=4100 sBx=-61435 Ax=1049605 sJ=-15727610 raw=0x0802028B ; R[5] = U[2][K[8] "BuffReduceType"]
+    [0022] GETFIELD       A=5 B=5 C=10 k=0 Bx=5130 sBx=-60405 Ax=1313285 sJ=-15463930 raw=0x0A05028E ; R[5] = R[5][K[10] "BRT_LAYER_ROUND"]
+    [0023] EQ             A=4 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2564 sJ=-16774651 raw=0x00050239
+    [0024] JMP            A=28 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777244 sJ=29 raw=0x80000E38
+    [0025] GETFIELD       A=4 B=3 C=11 k=0 Bx=5638 sBx=-59897 Ax=1443332 sJ=-15333883 raw=0x0B03020E ; R[4] = R[3][K[11] "reduce_param"]
+    [0026] GETI           A=4 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133124 sJ=-16644091 raw=0x0104020D
+    [0027] EQK            A=4 B=12 C=0 k=0 Bx=24 sBx=-65511 Ax=6148 sJ=-16771067 raw=0x000C023C
+    [0028] JMP            A=6 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777222 sJ=7 raw=0x80000338
+    [0029] GETFIELD       A=4 B=3 C=11 k=0 Bx=5638 sBx=-59897 Ax=1443332 sJ=-15333883 raw=0x0B03020E ; R[4] = R[3][K[11] "reduce_param"]
+    [0030] GETI           A=4 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264196 sJ=-16513019 raw=0x0204020D
+    [0031] EQI            A=4 B=127 C=0 k=0 Bx=254 sBx=-65281 Ax=65028 sJ=-16712187 raw=0x007F023D
+    [0032] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0033] LOADI          A=4 B=255 C=127 k=0 Bx=65534 sBx=-1 Ax=16776708 sJ=-507 raw=0x7FFF0201
+    [0034] RETURN1        A=4 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1028 sJ=-16776187 raw=0x00020248
+    [0035] JMP            A=17 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777233 sJ=18 raw=0x800008B8
+    [0036] LOADI          A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000201
+    [0037] GETTABUP       A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x0000028B ; R[5] = U[0][K[0] "_G"]
+    [0038] GETFIELD       A=5 B=5 C=13 k=0 Bx=6666 sBx=-58869 Ax=1706501 sJ=-15070714 raw=0x0D05028E ; R[5] = R[5][K[13] "BattleManager"]
+    [0039] GETFIELD       A=5 B=5 C=14 k=0 Bx=7178 sBx=-58357 Ax=1837573 sJ=-14939642 raw=0x0E05028E ; R[5] = R[5][K[14] "battleRuntimeData"]
+    [0040] GETFIELD       A=5 B=5 C=15 k=0 Bx=7690 sBx=-57845 Ax=1968645 sJ=-14808570 raw=0x0F05028E ; R[5] = R[5][K[15] "roundIndex"]
+    [0041] TEST           A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x000002C2
+    [0042] JMP            A=3 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777219 sJ=4 raw=0x800001B8
+    [0043] GETTABUP       A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x0000028B ; R[5] = U[0][K[0] "_G"]
+    [0044] GETFIELD       A=5 B=5 C=13 k=0 Bx=6666 sBx=-58869 Ax=1706501 sJ=-15070714 raw=0x0D05028E ; R[5] = R[5][K[13] "BattleManager"]
+    [0045] GETFIELD       A=5 B=5 C=14 k=0 Bx=7178 sBx=-58357 Ax=1837573 sJ=-14939642 raw=0x0E05028E ; R[5] = R[5][K[14] "battleRuntimeData"]
+    [0046] GETFIELD       A=4 B=5 C=15 k=0 Bx=7690 sBx=-57845 Ax=1968644 sJ=-14808571 raw=0x0F05020E ; R[4] = R[5][K[15] "roundIndex"]
+    [0047] GETFIELD       A=5 B=3 C=11 k=0 Bx=5638 sBx=-59897 Ax=1443333 sJ=-15333882 raw=0x0B03028E ; R[5] = R[3][K[11] "reduce_param"]
+    [0048] GETI           A=5 B=5 C=1 k=0 Bx=522 sBx=-65013 Ax=133637 sJ=-16643578 raw=0x0105028D
+    [0049] ADD            A=5 B=5 C=1 k=0 Bx=522 sBx=-65013 Ax=133637 sJ=-16643578 raw=0x010502A2
+    [0050] MMBIN          A=5 B=1 C=6 k=0 Bx=3074 sBx=-62461 Ax=786949 sJ=-15990266 raw=0x060102AE
+    [0051] SUB            A=5 B=5 C=4 k=0 Bx=2058 sBx=-63477 Ax=526853 sJ=-16250362 raw=0x040502A3
+    [0052] MMBIN          A=5 B=4 C=7 k=0 Bx=3592 sBx=-61943 Ax=919557 sJ=-15857658 raw=0x070402AE
+    [0053] RETURN1        A=5 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1029 sJ=-16776186 raw=0x000202C8
+    [0054] LOADI          A=4 B=255 C=127 k=0 Bx=65534 sBx=-1 Ax=16776708 sJ=-507 raw=0x7FFF0201
+    [0055] RETURN1        A=4 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1028 sJ=-16776187 raw=0x00020248
+    [0056] RETURN0        A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010247
+
+  function[2] source="" lines=48-61 params=2 vararg=0 stack=255 upvalues=2
+  constants (7):
+    K[0] = "petState"
+    K[1] = "GetMimic"
+    K[2] = "buff_list_priority"
+    K[3] = "ipairs"
+    K[4] = "buff_groupsigns"
+    K[5] = "BuffGroupSign"
+    K[6] = "BGS_SPE"
+  upvalues (2):
+    U[0] = instack=0 idx=0 kind=1 name="_ENV"
+    U[1] = instack=4 idx=0 kind=9 name="ProtoEnum"
+  locals (8):
+    L[0] = "card" pc=0-30
+    L[1] = "buffConfig" pc=0-30
+    L[2] = "(for state)" pc=17-27
+    L[3] = "(for state)" pc=17-27
+    L[4] = "(for state)" pc=17-27
+    L[5] = "(for state)" pc=17-27
+    L[6] = "_" pc=18-24
+    L[7] = "v" pc=18-24
+  instructions (30):
+    [0001] TEST           A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000042
+    [0002] JMP            A=24 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777240 sJ=25 raw=0x80000C38
+    [0003] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0004] JMP            A=22 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777238 sJ=23 raw=0x80000B38
+    [0005] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "petState"]
+    [0006] SELF           A=2 B=2 C=1 k=1 Bx=517 sBx=-65018 Ax=132354 sJ=-16644861 raw=0x01028114
+    [0007] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0008] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0009] JMP            A=17 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777233 sJ=18 raw=0x800008B8
+    [0010] GETFIELD       A=2 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262658 sJ=-16514557 raw=0x0201010E ; R[2] = R[1][K[2] "buff_list_priority"]
+    [0011] GEI            A=2 B=132 C=0 k=0 Bx=264 sBx=-65271 Ax=67586 sJ=-16709629 raw=0x00840141
+    [0012] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0013] LOADFALSE      A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000105
+    [0014] RETURN         A=2 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1282 sJ=-16775933 raw=0x00028146
+    [0015] GETTABUP       A=2 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393218 sJ=-16383997 raw=0x0300010B ; R[2] = U[0][K[3] "ipairs"]
+    [0016] GETFIELD       A=3 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524803 sJ=-16252412 raw=0x0401018E ; R[3] = R[1][K[4] "buff_groupsigns"]
+    [0017] CALL           A=2 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656386 sJ=-16120829 raw=0x05020144
+    [0018] TFORPREP       A=2 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1538 sJ=-16775677 raw=0x0003014B
+    [0019] GETTABUP       A=8 B=1 C=5 k=0 Bx=2562 sBx=-62973 Ax=655880 sJ=-16121335 raw=0x0501040B ; R[8] = U[1][K[5] "BuffGroupSign"]
+    [0020] GETFIELD       A=8 B=8 C=6 k=0 Bx=3088 sBx=-62447 Ax=790536 sJ=-15986679 raw=0x0608040E ; R[8] = R[8][K[6] "BGS_SPE"]
+    [0021] EQ             A=7 B=8 C=0 k=0 Bx=16 sBx=-65519 Ax=4103 sJ=-16773112 raw=0x000803B9
+    [0022] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0023] LOADFALSE      A=8 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=8 sJ=-16777207 raw=0x00000405
+    [0024] RETURN         A=8 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1288 sJ=-16775927 raw=0x00028446
+    [0025] TFORCALL       A=2 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262146 sJ=-16515069 raw=0x0200014C
+    [0026] TFORLOOP       A=2 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2050 sJ=-16775165 raw=0x0004014D
+    [0027] CLOSE          A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000136
+    [0028] LOADTRUE       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000107
+    [0029] RETURN         A=2 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1282 sJ=-16775933 raw=0x00028146
+    [0030] RETURN         A=2 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=770 sJ=-16776445 raw=0x00018146
+
+  function[3] source="" lines=64-83 params=1 vararg=0 stack=255 upvalues=2
+  constants (11):
+    K[0] = "buffComponent"
+    K[1] = "GetAllBuffsByOrderType"
+    K[2] = "BuffType"
+    K[3] = "BFT_O_THIRTYTWO"
+    K[4] = "ipairs"
+    K[5] = "buffInfo"
+    K[6] = "buff_data"
+    K[7] = true
+    K[8] = "pairs"
+    K[9] = "table"
+    K[10] = "insert"
+  upvalues (2):
+    U[0] = instack=4 idx=0 kind=0 name="ProtoEnum"
+    U[1] = instack=0 idx=0 kind=19 name="_ENV"
+  locals (24):
+    L[0] = "pet" pc=0-52
+    L[1] = "buffComponent" pc=3-52
+    L[2] = "allBuff132" pc=13-52
+    L[3] = "attrMap" pc=15-52
+    L[4] = "attrList" pc=17-52
+    L[5] = "(for state)" pc=20-38
+    L[6] = "(for state)" pc=20-38
+    L[7] = "(for state)" pc=20-38
+    L[8] = "(for state)" pc=20-38
+    L[9] = "i" pc=21-35
+    L[10] = "buff" pc=21-35
+    L[11] = "buff_data" pc=27-35
+    L[12] = "(for state)" pc=30-35
+    L[13] = "(for state)" pc=30-35
+    L[14] = "(for state)" pc=30-35
+    L[15] = "(for state)" pc=30-35
+    L[16] = "i" pc=31-32
+    L[17] = "attr" pc=31-32
+    L[18] = "(for state)" pc=41-50
+    L[19] = "(for state)" pc=41-50
+    L[20] = "(for state)" pc=41-50
+    L[21] = "(for state)" pc=41-50
+    L[22] = "attr" pc=42-47
+    L[23] = "_" pc=42-47
+  instructions (52):
+    [0001] TESTSET        A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C3
+    [0002] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0003] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "buffComponent"]
+    [0004] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0005] JMP            A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x800002B8
+    [0006] SELF           A=2 B=1 C=1 k=1 Bx=515 sBx=-65020 Ax=131842 sJ=-16645373 raw=0x01018114
+    [0007] GETTABUP       A=4 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262148 sJ=-16515067 raw=0x0200020B ; R[4] = U[0][K[2] "BuffType"]
+    [0008] GETFIELD       A=4 B=4 C=3 k=0 Bx=1544 sBx=-63991 Ax=395268 sJ=-16381947 raw=0x0304020E ; R[4] = R[4][K[3] "BFT_O_THIRTYTWO"]
+    [0009] CALL           A=2 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263682 sJ=-16513533 raw=0x02030144
+    [0010] TEST           A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x00008142
+    [0011] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0012] NEWTABLE       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000113
+    [0013] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0014] NEWTABLE       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000193
+    [0015] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0016] NEWTABLE       A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000213
+    [0017] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0018] GETTABUP       A=5 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524805 sJ=-16252410 raw=0x0401028B ; R[5] = U[1][K[4] "ipairs"]
+    [0019] MOVE           A=6 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1030 sJ=-16776185 raw=0x00020300
+    [0020] CALL           A=5 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656389 sJ=-16120826 raw=0x050202C4
+    [0021] TFORPREP       A=5 B=7 C=0 k=0 Bx=14 sBx=-65521 Ax=3589 sJ=-16773626 raw=0x000702CB
+    [0022] GETFIELD       A=11 B=10 C=5 k=0 Bx=2580 sBx=-62955 Ax=660491 sJ=-16116724 raw=0x050A058E ; R[11] = R[10][K[5] "buffInfo"]
+    [0023] GETFIELD       A=11 B=11 C=6 k=0 Bx=3094 sBx=-62441 Ax=792075 sJ=-15985140 raw=0x060B058E ; R[11] = R[11][K[6] "buff_data"]
+    [0024] TEST           A=11 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=267 sJ=-16776948 raw=0x000085C2
+    [0025] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0026] NEWTABLE       A=11 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=11 sJ=-16777204 raw=0x00000593
+    [0027] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0028] GETTABUP       A=12 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524812 sJ=-16252403 raw=0x0401060B ; R[12] = U[1][K[4] "ipairs"]
+    [0029] MOVE           A=13 B=11 C=0 k=0 Bx=22 sBx=-65513 Ax=5645 sJ=-16771570 raw=0x000B0680
+    [0030] CALL           A=12 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656396 sJ=-16120819 raw=0x05020644
+    [0031] TFORPREP       A=12 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=268 sJ=-16776947 raw=0x0000864B
+    [0032] SETTABLE       A=3 B=17 C=7 k=1 Bx=3619 sBx=-61916 Ax=926467 sJ=-15850748 raw=0x07118190
+    [0033] TFORCALL       A=12 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262156 sJ=-16515059 raw=0x0200064C
+    [0034] TFORLOOP       A=12 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=780 sJ=-16776435 raw=0x0001864D
+    [0035] CLOSE          A=12 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=12 sJ=-16777203 raw=0x00000636
+    [0036] TFORCALL       A=5 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262149 sJ=-16515066 raw=0x020002CC
+    [0037] TFORLOOP       A=5 B=8 C=0 k=0 Bx=16 sBx=-65519 Ax=4101 sJ=-16773114 raw=0x000802CD
+    [0038] CLOSE          A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x000002B6
+    [0039] GETTABUP       A=5 B=1 C=8 k=0 Bx=4098 sBx=-61437 Ax=1049093 sJ=-15728122 raw=0x0801028B ; R[5] = U[1][K[8] "pairs"]
+    [0040] MOVE           A=6 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1542 sJ=-16775673 raw=0x00030300
+    [0041] CALL           A=5 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656389 sJ=-16120826 raw=0x050202C4
+    [0042] TFORPREP       A=5 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1285 sJ=-16775930 raw=0x000282CB
+    [0043] GETTABUP       A=11 B=1 C=9 k=0 Bx=4610 sBx=-60925 Ax=1180171 sJ=-15597044 raw=0x0901058B ; R[11] = U[1][K[9] "table"]
+    [0044] GETFIELD       A=11 B=11 C=10 k=0 Bx=5142 sBx=-60393 Ax=1316363 sJ=-15460852 raw=0x0A0B058E ; R[11] = R[11][K[10] "insert"]
+    [0045] MOVE           A=12 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2060 sJ=-16775155 raw=0x00040600
+    [0046] MOVE           A=13 B=9 C=0 k=0 Bx=18 sBx=-65517 Ax=4621 sJ=-16772594 raw=0x00090680
+    [0047] CALL           A=11 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132619 sJ=-16644596 raw=0x010305C4
+    [0048] TFORCALL       A=5 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262149 sJ=-16515066 raw=0x020002CC
+    [0049] TFORLOOP       A=5 B=3 C=0 k=1 Bx=7 sBx=-65528 Ax=1797 sJ=-16775418 raw=0x000382CD
+    [0050] CLOSE          A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x000002B6
+    [0051] RETURN         A=4 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1284 sJ=-16775931 raw=0x00028246
+    [0052] RETURN         A=5 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=773 sJ=-16776442 raw=0x000182C6
+
+  function[4] source="" lines=86-99 params=1 vararg=0 stack=255 upvalues=2
+  constants (7):
+    K[0] = "_G"
+    K[1] = "DataConfigManager"
+    K[2] = "GetBuffConf"
+    K[3] = "pairs"
+    K[4] = "buff_groupsigns"
+    K[5] = "BuffGroupSign"
+    K[6] = "BGS_GATHER"
+  upvalues (2):
+    U[0] = instack=0 idx=0 kind=1 name="_ENV"
+    U[1] = instack=1 idx=0 kind=9 name="Enum"
+  locals (8):
+    L[0] = "buffId" pc=0-25
+    L[1] = "buff_conf" pc=5-25
+    L[2] = "(for state)" pc=12-22
+    L[3] = "(for state)" pc=12-22
+    L[4] = "(for state)" pc=12-22
+    L[5] = "(for state)" pc=12-22
+    L[6] = "i" pc=13-19
+    L[7] = "v" pc=13-19
+  instructions (25):
+    [0001] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "_G"]
+    [0002] GETFIELD       A=1 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131585 sJ=-16645630 raw=0x0101008E ; R[1] = R[1][K[1] "DataConfigManager"]
+    [0003] SELF           A=1 B=1 C=2 k=1 Bx=1027 sBx=-64508 Ax=262913 sJ=-16514302 raw=0x02018094
+    [0004] MOVE           A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000180
+    [0005] CALL           A=1 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263681 sJ=-16513534 raw=0x020300C4
+    [0006] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0007] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0008] LOADFALSE      A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000105
+    [0009] RETURN         A=2 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1282 sJ=-16775933 raw=0x00028146
+    [0010] GETTABUP       A=2 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393218 sJ=-16383997 raw=0x0300010B ; R[2] = U[0][K[3] "pairs"]
+    [0011] GETFIELD       A=3 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524803 sJ=-16252412 raw=0x0401018E ; R[3] = R[1][K[4] "buff_groupsigns"]
+    [0012] CALL           A=2 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656386 sJ=-16120829 raw=0x05020144
+    [0013] TFORPREP       A=2 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1538 sJ=-16775677 raw=0x0003014B
+    [0014] GETTABUP       A=8 B=1 C=5 k=0 Bx=2562 sBx=-62973 Ax=655880 sJ=-16121335 raw=0x0501040B ; R[8] = U[1][K[5] "BuffGroupSign"]
+    [0015] GETFIELD       A=8 B=8 C=6 k=0 Bx=3088 sBx=-62447 Ax=790536 sJ=-15986679 raw=0x0608040E ; R[8] = R[8][K[6] "BGS_GATHER"]
+    [0016] EQ             A=7 B=8 C=0 k=0 Bx=16 sBx=-65519 Ax=4103 sJ=-16773112 raw=0x000803B9
+    [0017] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0018] LOADTRUE       A=8 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=8 sJ=-16777207 raw=0x00000407
+    [0019] RETURN         A=8 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1288 sJ=-16775927 raw=0x00028446
+    [0020] TFORCALL       A=2 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262146 sJ=-16515069 raw=0x0200014C
+    [0021] TFORLOOP       A=2 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2050 sJ=-16775165 raw=0x0004014D
+    [0022] CLOSE          A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000136
+    [0023] LOADFALSE      A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000105
+    [0024] RETURN         A=2 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1282 sJ=-16775933 raw=0x00028146
+    [0025] RETURN         A=2 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=770 sJ=-16776445 raw=0x00018146
+
+  function[5] source="" lines=111-116 params=2 vararg=0 stack=255 upvalues=0
+  constants (4):
+    K[0] = nil
+    K[1] = "card"
+    K[2] = "petState"
+    K[3] = "GetGather"
+  locals (2):
+    L[0] = "hasSendGatherInfo" pc=0-9
+    L[1] = "battlePet" pc=0-9
+  instructions (9):
+    [0001] EQK            A=0 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=256 sJ=-16776959 raw=0x0000803C
+    [0002] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0003] RETURN1        A=0 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1024 sJ=-16776191 raw=0x00020048
+    [0004] GETFIELD       A=2 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131586 sJ=-16645629 raw=0x0101010E ; R[2] = R[1][K[1] "card"]
+    [0005] GETFIELD       A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x0202010E ; R[2] = R[2][K[2] "petState"]
+    [0006] SELF           A=2 B=2 C=3 k=1 Bx=1541 sBx=-63994 Ax=394498 sJ=-16382717 raw=0x03028114
+    [0007] TAILCALL       A=2 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1026 sJ=-16776189 raw=0x00020145
+    [0008] RETURN         A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000146
+    [0009] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[6] source="" lines=119-121 params=1 vararg=0 stack=255 upvalues=2
+  constants (3):
+    K[0] = "CheckBuffType"
+    K[1] = "BuffType"
+    K[2] = "BFT_PET_TRANSE"
+  upvalues (2):
+    U[0] = instack=0 idx=0 kind=1 name="BuffUtils"
+    U[1] = instack=4 idx=0 kind=4 name="ProtoEnum"
+  locals (1):
+    L[0] = "buffId" pc=0-7
+  instructions (7):
+    [0001] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "CheckBuffType"]
+    [0002] MOVE           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000100
+    [0003] GETTABUP       A=3 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131587 sJ=-16645628 raw=0x0101018B ; R[3] = U[1][K[1] "BuffType"]
+    [0004] GETFIELD       A=3 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263683 sJ=-16513532 raw=0x0203018E ; R[3] = R[3][K[2] "BFT_PET_TRANSE"]
+    [0005] TAILCALL       A=1 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1537 sJ=-16775678 raw=0x000300C5
+    [0006] RETURN         A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C6
+    [0007] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[7] source="" lines=124-126 params=1 vararg=0 stack=255 upvalues=2
+  constants (3):
+    K[0] = "CheckBuffType"
+    K[1] = "BuffType"
+    K[2] = "BFT_FREEZE"
+  upvalues (2):
+    U[0] = instack=0 idx=0 kind=1 name="BuffUtils"
+    U[1] = instack=4 idx=0 kind=4 name="ProtoEnum"
+  locals (1):
+    L[0] = "buffId" pc=0-7
+  instructions (7):
+    [0001] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "CheckBuffType"]
+    [0002] MOVE           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000100
+    [0003] GETTABUP       A=3 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131587 sJ=-16645628 raw=0x0101018B ; R[3] = U[1][K[1] "BuffType"]
+    [0004] GETFIELD       A=3 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263683 sJ=-16513532 raw=0x0203018E ; R[3] = R[3][K[2] "BFT_FREEZE"]
+    [0005] TAILCALL       A=1 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1537 sJ=-16775678 raw=0x000300C5
+    [0006] RETURN         A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C6
+    [0007] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[8] source="" lines=128-131 params=2 vararg=0 stack=255 upvalues=1
+  constants (2):
+    K[0] = "FindFirstBuffBaseConfByBuffType"
+    K[1] = nil
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=5 name="BuffUtils"
+  locals (3):
+    L[0] = "buffId" pc=0-10
+    L[1] = "BuffType" pc=0-10
+    L[2] = "buffBaseConf" pc=4-10
+  instructions (10):
+    [0001] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "FindFirstBuffBaseConfByBuffType"]
+    [0002] MOVE           A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000180
+    [0003] MOVE           A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010200
+    [0004] CALL           A=2 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263682 sJ=-16513533 raw=0x02030144
+    [0005] EQK            A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x0001013C
+    [0006] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0007] LFALSESKIP     A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000186
+    [0008] LOADTRUE       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000187
+    [0009] RETURN1        A=3 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1027 sJ=-16776188 raw=0x000201C8
+    [0010] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7
+
+  function[9] source="" lines=133-147 params=2 vararg=0 stack=255 upvalues=1
+  constants (7):
+    K[0] = "_G"
+    K[1] = "DataConfigManager"
+    K[2] = "GetBuffConf"
+    K[3] = "pairs"
+    K[4] = "buff_base_ids"
+    K[5] = "GetBuffbaseConf"
+    K[6] = "buffbase_order"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=12 name="_ENV"
+  locals (10):
+    L[0] = "buffId" pc=0-30
+    L[1] = "BuffType" pc=0-30
+    L[2] = "buff_conf" pc=5-30
+    L[3] = "(for state)" pc=12-27
+    L[4] = "(for state)" pc=12-27
+    L[5] = "(for state)" pc=12-27
+    L[6] = "(for state)" pc=12-27
+    L[7] = "i" pc=13-24
+    L[8] = "buffBaseId" pc=13-24
+    L[9] = "buffBaseConf" pc=18-24
+  instructions (30):
+    [0001] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "_G"]
+    [0002] GETFIELD       A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x0102010E ; R[2] = R[2][K[1] "DataConfigManager"]
+    [0003] SELF           A=2 B=2 C=2 k=1 Bx=1029 sBx=-64506 Ax=263426 sJ=-16513789 raw=0x02028114
+    [0004] MOVE           A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000200
+    [0005] CALL           A=2 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263682 sJ=-16513533 raw=0x02030144
+    [0006] TEST           A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x00008142
+    [0007] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0008] LOADNIL        A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000188
+    [0009] RETURN         A=3 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1283 sJ=-16775932 raw=0x000281C6
+    [0010] GETTABUP       A=3 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393219 sJ=-16383996 raw=0x0300018B ; R[3] = U[0][K[3] "pairs"]
+    [0011] GETFIELD       A=4 B=2 C=4 k=0 Bx=2052 sBx=-63483 Ax=525316 sJ=-16251899 raw=0x0402020E ; R[4] = R[2][K[4] "buff_base_ids"]
+    [0012] CALL           A=3 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656387 sJ=-16120828 raw=0x050201C4
+    [0013] TFORPREP       A=3 B=5 C=0 k=1 Bx=11 sBx=-65524 Ax=2819 sJ=-16774396 raw=0x000581CB
+    [0014] GETTABUP       A=9 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=9 sJ=-16777206 raw=0x0000048B ; R[9] = U[0][K[0] "_G"]
+    [0015] GETFIELD       A=9 B=9 C=1 k=0 Bx=530 sBx=-65005 Ax=135689 sJ=-16641526 raw=0x0109048E ; R[9] = R[9][K[1] "DataConfigManager"]
+    [0016] SELF           A=9 B=9 C=5 k=1 Bx=2579 sBx=-62956 Ax=660233 sJ=-16116982 raw=0x05098494
+    [0017] MOVE           A=11 B=8 C=0 k=0 Bx=16 sBx=-65519 Ax=4107 sJ=-16773108 raw=0x00080580
+    [0018] CALL           A=9 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263689 sJ=-16513526 raw=0x020304C4
+    [0019] TEST           A=9 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=9 sJ=-16777206 raw=0x000004C2
+    [0020] JMP            A=3 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777219 sJ=4 raw=0x800001B8
+    [0021] GETFIELD       A=10 B=9 C=6 k=0 Bx=3090 sBx=-62445 Ax=791050 sJ=-15986165 raw=0x0609050E ; R[10] = R[9][K[6] "buffbase_order"]
+    [0022] EQ             A=1 B=10 C=0 k=0 Bx=20 sBx=-65515 Ax=5121 sJ=-16772094 raw=0x000A00B9
+    [0023] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0024] RETURN         A=9 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1289 sJ=-16775926 raw=0x000284C6
+    [0025] TFORCALL       A=3 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262147 sJ=-16515068 raw=0x020001CC
+    [0026] TFORLOOP       A=3 B=6 C=0 k=1 Bx=13 sBx=-65522 Ax=3331 sJ=-16773884 raw=0x000681CD
+    [0027] CLOSE          A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x000001B6
+    [0028] LOADNIL        A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000188
+    [0029] RETURN         A=3 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1283 sJ=-16775932 raw=0x000281C6
+    [0030] RETURN         A=3 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=771 sJ=-16776444 raw=0x000181C6
+
+  function[10] source="" lines=150-159 params=1 vararg=0 stack=255 upvalues=1
+  constants (5):
+    K[0] = "DataConfigManager"
+    K[1] = "GetBattleGlobalConfig"
+    K[2] = "parallel_buff_list"
+    K[3] = "numList"
+    K[4] = "ipairs"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=9 name="_ENV"
+  locals (8):
+    L[0] = "buffId" pc=0-19
+    L[1] = "ids" pc=5-19
+    L[2] = "(for state)" pc=8-16
+    L[3] = "(for state)" pc=8-16
+    L[4] = "(for state)" pc=8-16
+    L[5] = "(for state)" pc=8-16
+    L[6] = "i" pc=9-13
+    L[7] = "v" pc=9-13
+  instructions (19):
+    [0001] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "DataConfigManager"]
+    [0002] SELF           A=1 B=1 C=1 k=1 Bx=515 sBx=-65020 Ax=131841 sJ=-16645374 raw=0x01018094
+    [0003] LOADK          A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x00010183 ; R[3] = K[2] "parallel_buff_list"
+    [0004] CALL           A=1 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263681 sJ=-16513534 raw=0x020300C4
+    [0005] GETFIELD       A=1 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393729 sJ=-16383486 raw=0x0301008E ; R[1] = R[1][K[3] "numList"]
+    [0006] GETTABUP       A=2 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524290 sJ=-16252925 raw=0x0400010B ; R[2] = U[0][K[4] "ipairs"]
+    [0007] MOVE           A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x00010180
+    [0008] CALL           A=2 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656386 sJ=-16120829 raw=0x05020144
+    [0009] TFORPREP       A=2 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1026 sJ=-16776189 raw=0x0002014B
+    [0010] EQ             A=0 B=7 C=0 k=0 Bx=14 sBx=-65521 Ax=3584 sJ=-16773631 raw=0x00070039
+    [0011] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0012] LOADTRUE       A=8 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=8 sJ=-16777207 raw=0x00000407
+    [0013] RETURN         A=8 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1288 sJ=-16775927 raw=0x00028446
+    [0014] TFORCALL       A=2 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262146 sJ=-16515069 raw=0x0200014C
+    [0015] TFORLOOP       A=2 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1538 sJ=-16775677 raw=0x0003014D
+    [0016] CLOSE          A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000136
+    [0017] LOADFALSE      A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000105
+    [0018] RETURN         A=2 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1282 sJ=-16775933 raw=0x00028146
+    [0019] RETURN         A=2 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=770 sJ=-16776445 raw=0x00018146
+
+  function[11] source="" lines=162-165 params=0 vararg=0 stack=255 upvalues=1
+  constants (5):
+    K[0] = "DataConfigManager"
+    K[1] = "GetBattleGlobalConfig"
+    K[2] = "parallel_buff_show_time"
+    K[3] = "num"
+    K[4] = 1000
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=3 name="_ENV"
+  locals (1):
+    L[0] = "time" pc=8-12
+  instructions (12):
+    [0001] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "DataConfigManager"]
+    [0002] SELF           A=0 B=0 C=1 k=1 Bx=513 sBx=-65022 Ax=131328 sJ=-16645887 raw=0x01008014
+    [0003] LOADK          A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010103 ; R[2] = K[2] "parallel_buff_show_time"
+    [0004] CALL           A=0 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263680 sJ=-16513535 raw=0x02030044
+    [0005] GETFIELD       A=0 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393216 sJ=-16383999 raw=0x0300000E ; R[0] = R[0][K[3] "num"]
+    [0006] TEST           A=0 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=256 sJ=-16776959 raw=0x00008042
+    [0007] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0008] LOADI          A=0 B=243 C=129 k=1 Bx=66535 sBx=1000 Ax=17032960 sJ=255745 raw=0x81F38001
+    [0009] DIVK           A=1 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524289 sJ=-16252926 raw=0x0400009B ; K[4] 1000
+    [0010] MMBINK         A=0 B=4 C=11 k=0 Bx=5640 sBx=-59895 Ax=1443840 sJ=-15333375 raw=0x0B040030
+    [0011] RETURN1        A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C8
+    [0012] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[12] source="" lines=167-174 params=1 vararg=0 stack=255 upvalues=1
+  constants (4):
+    K[0] = "DataConfigManager"
+    K[1] = "GetBattleGlobalConfig"
+    K[2] = "a1_finalbattle_name_buff_ID"
+    K[3] = "num"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=4 name="_ENV"
+  locals (2):
+    L[0] = "buffId" pc=0-13
+    L[1] = "id" pc=5-13
+  instructions (13):
+    [0001] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "DataConfigManager"]
+    [0002] SELF           A=1 B=1 C=1 k=1 Bx=515 sBx=-65020 Ax=131841 sJ=-16645374 raw=0x01018094
+    [0003] LOADK          A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x00010183 ; R[3] = K[2] "a1_finalbattle_name_buff_ID"
+    [0004] CALL           A=1 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263681 sJ=-16513534 raw=0x020300C4
+    [0005] GETFIELD       A=1 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393729 sJ=-16383486 raw=0x0301008E ; R[1] = R[1][K[3] "num"]
+    [0006] EQ             A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000B9
+    [0007] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0008] LOADTRUE       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000107
+    [0009] RETURN1        A=2 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1026 sJ=-16776189 raw=0x00020148
+    [0010] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0011] LOADFALSE      A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000105
+    [0012] RETURN1        A=2 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1026 sJ=-16776189 raw=0x00020148
+    [0013] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[13] source="" lines=177-184 params=1 vararg=0 stack=255 upvalues=1
+  constants (5):
+    K[0] = nil
+    K[1] = "buffComponent"
+    K[2] = "GetAllBuffsByOrderType"
+    K[3] = "BuffType"
+    K[4] = "BFT_O_TWEENTYNINE"
+  upvalues (1):
+    U[0] = instack=1 idx=0 kind=4 name="Enum"
+  locals (2):
+    L[0] = "battlePet" pc=0-16
+    L[1] = "buffs" pc=9-16
+  instructions (16):
+    [0001] EQK            A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000003C
+    [0002] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0003] LOADFALSE      A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000085
+    [0004] RETURN1        A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C8
+    [0005] GETFIELD       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008E ; R[1] = R[0][K[1] "buffComponent"]
+    [0006] SELF           A=1 B=1 C=2 k=1 Bx=1027 sBx=-64508 Ax=262913 sJ=-16514302 raw=0x02018094
+    [0007] GETTABUP       A=3 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393219 sJ=-16383996 raw=0x0300018B ; R[3] = U[0][K[3] "BuffType"]
+    [0008] GETFIELD       A=3 B=3 C=4 k=0 Bx=2054 sBx=-63481 Ax=525827 sJ=-16251388 raw=0x0403018E ; R[3] = R[3][K[4] "BFT_O_TWEENTYNINE"]
+    [0009] CALL           A=1 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263681 sJ=-16513534 raw=0x020300C4
+    [0010] LEN            A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010134
+    [0011] GTI            A=2 B=127 C=0 k=1 Bx=255 sBx=-65280 Ax=65282 sJ=-16711933 raw=0x007F8140
+    [0012] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0013] LFALSESKIP     A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000106
+    [0014] LOADTRUE       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000107
+    [0015] RETURN1        A=2 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1026 sJ=-16776189 raw=0x00020148
+    [0016] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[14] source="" lines=188-193 params=2 vararg=0 stack=255 upvalues=0
+  constants (3):
+    K[0] = nil
+    K[1] = "buffComponent"
+    K[2] = "IsExistBuffsByOrderType"
+  locals (2):
+    L[0] = "battlePet" pc=0-10
+    L[1] = "orderType" pc=0-10
+  instructions (10):
+    [0001] EQK            A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000003C
+    [0002] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0003] LOADFALSE      A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000105
+    [0004] RETURN1        A=2 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1026 sJ=-16776189 raw=0x00020148
+    [0005] GETFIELD       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010E ; R[2] = R[0][K[1] "buffComponent"]
+    [0006] SELF           A=2 B=2 C=2 k=1 Bx=1029 sBx=-64506 Ax=263426 sJ=-16513789 raw=0x02028114
+    [0007] MOVE           A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010200
+    [0008] TAILCALL       A=2 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1538 sJ=-16775677 raw=0x00030145
+    [0009] RETURN         A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000146
+    [0010] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147

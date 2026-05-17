@@ -1,0 +1,1366 @@
+-- path: Content/ScriptC/NewRoco/Modules/Core/Battle/BattleCore/BattlePerformGroup.luac
+-- format: decrypted standard Lua 5.4 bytecode
+-- note: disassembly, not original source
+
+main source="@NewRoco\\Modules\\Core\\Battle\\BattleCore\\BattlePerformGroup.lua" lines=0-0 params=0 vararg=1 stack=255 upvalues=1
+constants (25):
+  K[0] = "_G"
+  K[1] = "MakeSimpleClass"
+  K[2] = "BattlePerformGroup"
+  K[3] = "Ctor"
+  K[4] = "Reset"
+  K[5] = "AddNode"
+  K[6] = "RemoveNode"
+  K[7] = "Play"
+  K[8] = "GetWillTriggerNodesByExecId"
+  K[9] = "GetWillTriggerNodesByCastMoment"
+  K[10] = "StartRecord"
+  K[11] = "StopRecord"
+  K[12] = "AddNodesToTriggerByExecId"
+  K[13] = "TriggerNodesByCastMoment"
+  K[14] = "TriggerNext"
+  K[15] = "PlayNode"
+  K[16] = "TryTriggerNextAfterNodeComplete"
+  K[17] = "AutoTriggerAllNodes"
+  K[18] = "NodeCompleteCallBack"
+  K[19] = "CheckGroupStuck"
+  K[20] = "ForcePlayNext"
+  K[21] = "CheckGroupOver"
+  K[22] = "PlayComplete"
+  K[23] = "DoFinalize"
+  K[24] = "PrintAllNodeState"
+upvalues (1):
+  U[0] = instack=0 idx=0 kind=2 name="_ENV"
+locals (1):
+  L[0] = "BattlePerformGroup" pc=5-51
+instructions (51):
+  [0001] VARARGPREP     A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000051
+  [0002] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "_G"]
+  [0003] GETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x0100000E ; R[0] = R[0][K[1] "MakeSimpleClass"]
+  [0004] LOADK          A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x00010083 ; R[1] = K[2] "BattlePerformGroup"
+  [0005] CALL           A=0 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263168 sJ=-16514047 raw=0x02020044
+  [0006] CLOSURE        A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000CF ; R[1] = function[0]
+  [0007] SETFIELD       A=0 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132608 sJ=-16644607 raw=0x01030012 ; R[0][K[3] "Ctor"] = R[1]
+  [0008] CLOSURE        A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080CF ; R[1] = function[1]
+  [0009] SETFIELD       A=0 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133120 sJ=-16644095 raw=0x01040012 ; R[0][K[4] "Reset"] = R[1]
+  [0010] CLOSURE        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100CF ; R[1] = function[2]
+  [0011] SETFIELD       A=0 B=5 C=1 k=0 Bx=522 sBx=-65013 Ax=133632 sJ=-16643583 raw=0x01050012 ; R[0][K[5] "AddNode"] = R[1]
+  [0012] CLOSURE        A=1 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=769 sJ=-16776446 raw=0x000180CF ; R[1] = function[3]
+  [0013] SETFIELD       A=0 B=6 C=1 k=0 Bx=524 sBx=-65011 Ax=134144 sJ=-16643071 raw=0x01060012 ; R[0][K[6] "RemoveNode"] = R[1]
+  [0014] CLOSURE        A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200CF ; R[1] = function[4]
+  [0015] SETFIELD       A=0 B=7 C=1 k=0 Bx=526 sBx=-65009 Ax=134656 sJ=-16642559 raw=0x01070012 ; R[0][K[7] "Play"] = R[1]
+  [0016] CLOSURE        A=1 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1281 sJ=-16775934 raw=0x000280CF ; R[1] = function[5]
+  [0017] SETFIELD       A=0 B=8 C=1 k=0 Bx=528 sBx=-65007 Ax=135168 sJ=-16642047 raw=0x01080012 ; R[0][K[8] "GetWillTriggerNodesByExecId"] = R[1]
+  [0018] CLOSURE        A=1 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1537 sJ=-16775678 raw=0x000300CF ; R[1] = function[6]
+  [0019] SETFIELD       A=0 B=9 C=1 k=0 Bx=530 sBx=-65005 Ax=135680 sJ=-16641535 raw=0x01090012 ; R[0][K[9] "GetWillTriggerNodesByCastMoment"] = R[1]
+  [0020] CLOSURE        A=1 B=3 C=0 k=1 Bx=7 sBx=-65528 Ax=1793 sJ=-16775422 raw=0x000380CF ; R[1] = function[7]
+  [0021] SETFIELD       A=0 B=10 C=1 k=0 Bx=532 sBx=-65003 Ax=136192 sJ=-16641023 raw=0x010A0012 ; R[0][K[10] "StartRecord"] = R[1]
+  [0022] CLOSURE        A=1 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2049 sJ=-16775166 raw=0x000400CF ; R[1] = function[8]
+  [0023] SETFIELD       A=0 B=11 C=1 k=0 Bx=534 sBx=-65001 Ax=136704 sJ=-16640511 raw=0x010B0012 ; R[0][K[11] "StopRecord"] = R[1]
+  [0024] CLOSURE        A=1 B=4 C=0 k=1 Bx=9 sBx=-65526 Ax=2305 sJ=-16774910 raw=0x000480CF ; R[1] = function[9]
+  [0025] SETFIELD       A=0 B=12 C=1 k=0 Bx=536 sBx=-64999 Ax=137216 sJ=-16639999 raw=0x010C0012 ; R[0][K[12] "AddNodesToTriggerByExecId"] = R[1]
+  [0026] CLOSURE        A=1 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2561 sJ=-16774654 raw=0x000500CF ; R[1] = function[10]
+  [0027] SETFIELD       A=0 B=13 C=1 k=0 Bx=538 sBx=-64997 Ax=137728 sJ=-16639487 raw=0x010D0012 ; R[0][K[13] "TriggerNodesByCastMoment"] = R[1]
+  [0028] CLOSURE        A=1 B=5 C=0 k=1 Bx=11 sBx=-65524 Ax=2817 sJ=-16774398 raw=0x000580CF ; R[1] = function[11]
+  [0029] SETFIELD       A=0 B=14 C=1 k=0 Bx=540 sBx=-64995 Ax=138240 sJ=-16638975 raw=0x010E0012 ; R[0][K[14] "TriggerNext"] = R[1]
+  [0030] CLOSURE        A=1 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3073 sJ=-16774142 raw=0x000600CF ; R[1] = function[12]
+  [0031] SETFIELD       A=0 B=15 C=1 k=0 Bx=542 sBx=-64993 Ax=138752 sJ=-16638463 raw=0x010F0012 ; R[0][K[15] "PlayNode"] = R[1]
+  [0032] CLOSURE        A=1 B=6 C=0 k=1 Bx=13 sBx=-65522 Ax=3329 sJ=-16773886 raw=0x000680CF ; R[1] = function[13]
+  [0033] SETFIELD       A=0 B=16 C=1 k=0 Bx=544 sBx=-64991 Ax=139264 sJ=-16637951 raw=0x01100012 ; R[0][K[16] "TryTriggerNextAfterNodeComplete"] = R[1]
+  [0034] CLOSURE        A=1 B=7 C=0 k=0 Bx=14 sBx=-65521 Ax=3585 sJ=-16773630 raw=0x000700CF ; R[1] = function[14]
+  [0035] SETFIELD       A=0 B=17 C=1 k=0 Bx=546 sBx=-64989 Ax=139776 sJ=-16637439 raw=0x01110012 ; R[0][K[17] "AutoTriggerAllNodes"] = R[1]
+  [0036] CLOSURE        A=1 B=7 C=0 k=1 Bx=15 sBx=-65520 Ax=3841 sJ=-16773374 raw=0x000780CF ; R[1] = function[15]
+  [0037] SETFIELD       A=0 B=18 C=1 k=0 Bx=548 sBx=-64987 Ax=140288 sJ=-16636927 raw=0x01120012 ; R[0][K[18] "NodeCompleteCallBack"] = R[1]
+  [0038] CLOSURE        A=1 B=8 C=0 k=0 Bx=16 sBx=-65519 Ax=4097 sJ=-16773118 raw=0x000800CF ; R[1] = function[16]
+  [0039] SETFIELD       A=0 B=19 C=1 k=0 Bx=550 sBx=-64985 Ax=140800 sJ=-16636415 raw=0x01130012 ; R[0][K[19] "CheckGroupStuck"] = R[1]
+  [0040] CLOSURE        A=1 B=8 C=0 k=1 Bx=17 sBx=-65518 Ax=4353 sJ=-16772862 raw=0x000880CF ; R[1] = function[17]
+  [0041] SETFIELD       A=0 B=20 C=1 k=0 Bx=552 sBx=-64983 Ax=141312 sJ=-16635903 raw=0x01140012 ; R[0][K[20] "ForcePlayNext"] = R[1]
+  [0042] CLOSURE        A=1 B=9 C=0 k=0 Bx=18 sBx=-65517 Ax=4609 sJ=-16772606 raw=0x000900CF ; R[1] = function[18]
+  [0043] SETFIELD       A=0 B=21 C=1 k=0 Bx=554 sBx=-64981 Ax=141824 sJ=-16635391 raw=0x01150012 ; R[0][K[21] "CheckGroupOver"] = R[1]
+  [0044] CLOSURE        A=1 B=9 C=0 k=1 Bx=19 sBx=-65516 Ax=4865 sJ=-16772350 raw=0x000980CF ; R[1] = function[19]
+  [0045] SETFIELD       A=0 B=22 C=1 k=0 Bx=556 sBx=-64979 Ax=142336 sJ=-16634879 raw=0x01160012 ; R[0][K[22] "PlayComplete"] = R[1]
+  [0046] CLOSURE        A=1 B=10 C=0 k=0 Bx=20 sBx=-65515 Ax=5121 sJ=-16772094 raw=0x000A00CF ; R[1] = function[20]
+  [0047] SETFIELD       A=0 B=23 C=1 k=0 Bx=558 sBx=-64977 Ax=142848 sJ=-16634367 raw=0x01170012 ; R[0][K[23] "DoFinalize"] = R[1]
+  [0048] CLOSURE        A=1 B=10 C=0 k=1 Bx=21 sBx=-65514 Ax=5377 sJ=-16771838 raw=0x000A80CF ; R[1] = function[21]
+  [0049] SETFIELD       A=0 B=24 C=1 k=0 Bx=560 sBx=-64975 Ax=143360 sJ=-16633855 raw=0x01180012 ; R[0][K[24] "PrintAllNodeState"] = R[1]
+  [0050] RETURN         A=0 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132096 sJ=-16645119 raw=0x01020046
+  [0051] RETURN         A=1 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131585 sJ=-16645630 raw=0x010100C6
+
+  function[0] source="" lines=22-37 params=2 vararg=0 stack=255 upvalues=0
+  constants (18):
+    K[0] = "GroupNodes"
+    K[1] = "GroupId"
+    K[2] = "IsPerforming"
+    K[3] = false
+    K[4] = "IsPerformed"
+    K[5] = "NeedPerformNodeCount"
+    K[6] = 0
+    K[7] = "IsCompleteCallBack"
+    K[8] = "WillTriggerNodes"
+    K[9] = "CurTriggerNode"
+    K[10] = nil
+    K[11] = "IsFinalize"
+    K[12] = "DelayTrigger"
+    K[13] = "d_TriggerNext"
+    K[14] = "StartRecordExecIdx"
+    K[15] = "RecordMinExecIdx"
+    K[16] = -1
+    K[17] = "IsBlockByServerExecute"
+  locals (2):
+    L[0] = "self" pc=0-19
+    L[1] = "group_id" pc=0-19
+  instructions (19):
+    [0001] NEWTABLE       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000113
+    [0002] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0003] SETFIELD       A=0 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262144 sJ=-16515071 raw=0x02000012 ; R[0][K[0] "GroupNodes"] = R[2]
+    [0004] SETFIELD       A=0 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131584 sJ=-16645631 raw=0x01010012 ; R[0][K[1] "GroupId"] = R[1]
+    [0005] SETFIELD       A=0 B=2 C=3 k=1 Bx=1541 sBx=-63994 Ax=394496 sJ=-16382719 raw=0x03028012 ; R[0][K[2] "IsPerforming"] = R[3]
+    [0006] SETFIELD       A=0 B=4 C=3 k=1 Bx=1545 sBx=-63990 Ax=395520 sJ=-16381695 raw=0x03048012 ; R[0][K[4] "IsPerformed"] = R[3]
+    [0007] SETFIELD       A=0 B=5 C=6 k=1 Bx=3083 sBx=-62452 Ax=789248 sJ=-15987967 raw=0x06058012 ; R[0][K[5] "NeedPerformNodeCount"] = R[6]
+    [0008] SETFIELD       A=0 B=7 C=3 k=1 Bx=1551 sBx=-63984 Ax=397056 sJ=-16380159 raw=0x03078012 ; R[0][K[7] "IsCompleteCallBack"] = R[3]
+    [0009] NEWTABLE       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000113
+    [0010] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0011] SETFIELD       A=0 B=8 C=2 k=0 Bx=1040 sBx=-64495 Ax=266240 sJ=-16510975 raw=0x02080012 ; R[0][K[8] "WillTriggerNodes"] = R[2]
+    [0012] SETFIELD       A=0 B=9 C=10 k=1 Bx=5139 sBx=-60396 Ax=1315584 sJ=-15461631 raw=0x0A098012 ; R[0][K[9] "CurTriggerNode"] = R[10]
+    [0013] SETFIELD       A=0 B=11 C=3 k=1 Bx=1559 sBx=-63976 Ax=399104 sJ=-16378111 raw=0x030B8012 ; R[0][K[11] "IsFinalize"] = R[3]
+    [0014] SETFIELD       A=0 B=12 C=3 k=1 Bx=1561 sBx=-63974 Ax=399616 sJ=-16377599 raw=0x030C8012 ; R[0][K[12] "DelayTrigger"] = R[3]
+    [0015] SETFIELD       A=0 B=13 C=10 k=1 Bx=5147 sBx=-60388 Ax=1317632 sJ=-15459583 raw=0x0A0D8012 ; R[0][K[13] "d_TriggerNext"] = R[10]
+    [0016] SETFIELD       A=0 B=14 C=3 k=1 Bx=1565 sBx=-63970 Ax=400640 sJ=-16376575 raw=0x030E8012 ; R[0][K[14] "StartRecordExecIdx"] = R[3]
+    [0017] SETFIELD       A=0 B=15 C=16 k=1 Bx=8223 sBx=-57312 Ax=2105088 sJ=-14672127 raw=0x100F8012 ; R[0][K[15] "RecordMinExecIdx"] = R[16]
+    [0018] SETFIELD       A=0 B=17 C=3 k=1 Bx=1571 sBx=-63964 Ax=402176 sJ=-16375039 raw=0x03118012 ; R[0][K[17] "IsBlockByServerExecute"] = R[3]
+    [0019] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[1] source="" lines=39-54 params=1 vararg=0 stack=255 upvalues=1
+  constants (21):
+    K[0] = "GroupNodes"
+    K[1] = "OwnerCluster"
+    K[2] = nil
+    K[3] = "HeadNode"
+    K[4] = "IsPerforming"
+    K[5] = false
+    K[6] = "IsPerformed"
+    K[7] = "NeedPerformNodeCount"
+    K[8] = 0
+    K[9] = "IsCompleteCallBack"
+    K[10] = "WillTriggerNodes"
+    K[11] = "CurTriggerNode"
+    K[12] = "IsBlockByServerExecute"
+    K[13] = "DelayTrigger"
+    K[14] = "d_TriggerNext"
+    K[15] = "_G"
+    K[16] = "DelayManager"
+    K[17] = "CancelDelayByIdEx"
+    K[18] = "StartRecordExecIdx"
+    K[19] = "RecordMinExecIdx"
+    K[20] = -1
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=4 name="_ENV"
+  locals (1):
+    L[0] = "self" pc=0-24
+  instructions (24):
+    [0001] NEWTABLE       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000093
+    [0002] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0003] SETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x01000012 ; R[0][K[0] "GroupNodes"] = R[1]
+    [0004] SETFIELD       A=0 B=1 C=2 k=1 Bx=1027 sBx=-64508 Ax=262912 sJ=-16514303 raw=0x02018012 ; R[0][K[1] "OwnerCluster"] = R[2]
+    [0005] SETFIELD       A=0 B=3 C=2 k=1 Bx=1031 sBx=-64504 Ax=263936 sJ=-16513279 raw=0x02038012 ; R[0][K[3] "HeadNode"] = R[2]
+    [0006] SETFIELD       A=0 B=4 C=5 k=1 Bx=2569 sBx=-62966 Ax=657664 sJ=-16119551 raw=0x05048012 ; R[0][K[4] "IsPerforming"] = R[5]
+    [0007] SETFIELD       A=0 B=6 C=5 k=1 Bx=2573 sBx=-62962 Ax=658688 sJ=-16118527 raw=0x05068012 ; R[0][K[6] "IsPerformed"] = R[5]
+    [0008] SETFIELD       A=0 B=7 C=8 k=1 Bx=4111 sBx=-61424 Ax=1052416 sJ=-15724799 raw=0x08078012 ; R[0][K[7] "NeedPerformNodeCount"] = R[8]
+    [0009] SETFIELD       A=0 B=9 C=5 k=1 Bx=2579 sBx=-62956 Ax=660224 sJ=-16116991 raw=0x05098012 ; R[0][K[9] "IsCompleteCallBack"] = R[5]
+    [0010] NEWTABLE       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000093
+    [0011] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0012] SETFIELD       A=0 B=10 C=1 k=0 Bx=532 sBx=-65003 Ax=136192 sJ=-16641023 raw=0x010A0012 ; R[0][K[10] "WillTriggerNodes"] = R[1]
+    [0013] SETFIELD       A=0 B=11 C=2 k=1 Bx=1047 sBx=-64488 Ax=268032 sJ=-16509183 raw=0x020B8012 ; R[0][K[11] "CurTriggerNode"] = R[2]
+    [0014] SETFIELD       A=0 B=12 C=5 k=1 Bx=2585 sBx=-62950 Ax=661760 sJ=-16115455 raw=0x050C8012 ; R[0][K[12] "IsBlockByServerExecute"] = R[5]
+    [0015] SETFIELD       A=0 B=13 C=5 k=1 Bx=2587 sBx=-62948 Ax=662272 sJ=-16114943 raw=0x050D8012 ; R[0][K[13] "DelayTrigger"] = R[5]
+    [0016] GETTABUP       A=1 B=0 C=15 k=0 Bx=7680 sBx=-57855 Ax=1966081 sJ=-14811134 raw=0x0F00008B ; R[1] = U[0][K[15] "_G"]
+    [0017] GETFIELD       A=1 B=1 C=16 k=0 Bx=8194 sBx=-57341 Ax=2097665 sJ=-14679550 raw=0x1001008E ; R[1] = R[1][K[16] "DelayManager"]
+    [0018] SELF           A=1 B=1 C=17 k=1 Bx=8707 sBx=-56828 Ax=2228993 sJ=-14548222 raw=0x11018094
+    [0019] GETFIELD       A=3 B=0 C=14 k=0 Bx=7168 sBx=-58367 Ax=1835011 sJ=-14942204 raw=0x0E00018E ; R[3] = R[0][K[14] "d_TriggerNext"]
+    [0020] CALL           A=1 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263681 sJ=-16513534 raw=0x020300C4
+    [0021] SETFIELD       A=0 B=14 C=1 k=0 Bx=540 sBx=-64995 Ax=138240 sJ=-16638975 raw=0x010E0012 ; R[0][K[14] "d_TriggerNext"] = R[1]
+    [0022] SETFIELD       A=0 B=18 C=5 k=1 Bx=2597 sBx=-62938 Ax=664832 sJ=-16112383 raw=0x05128012 ; R[0][K[18] "StartRecordExecIdx"] = R[5]
+    [0023] SETFIELD       A=0 B=19 C=20 k=1 Bx=10279 sBx=-55256 Ax=2631424 sJ=-14145791 raw=0x14138012 ; R[0][K[19] "RecordMinExecIdx"] = R[20]
+    [0024] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[2] source="" lines=57-76 params=2 vararg=0 stack=255 upvalues=1
+  constants (15):
+    K[0] = "table"
+    K[1] = "contains"
+    K[2] = "GroupNodes"
+    K[3] = "OwnerGroup"
+    K[4] = "insert"
+    K[5] = "IsGroupHead"
+    K[6] = "HeadNode"
+    K[7] = "SetGroupID"
+    K[8] = "GroupId"
+    K[9] = "NeedPerformNodeCount"
+    K[10] = "OwnerCluster"
+    K[11] = "ipairs"
+    K[12] = "FriendlyClusters"
+    K[13] = "keepOrderClusters"
+    K[14] = "AddNodeInServerExecuteQueue"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=11 name="_ENV"
+  locals (8):
+    L[0] = "self" pc=0-52
+    L[1] = "PerformNode" pc=0-52
+    L[2] = "(for state)" pc=37-51
+    L[3] = "(for state)" pc=37-51
+    L[4] = "(for state)" pc=37-51
+    L[5] = "(for state)" pc=37-51
+    L[6] = "_" pc=38-48
+    L[7] = "v" pc=38-48
+  instructions (52):
+    [0001] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0002] JMP            A=48 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777264 sJ=49 raw=0x80001838
+    [0003] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "table"]
+    [0004] GETFIELD       A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x0102010E ; R[2] = R[2][K[1] "contains"]
+    [0005] GETFIELD       A=3 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262147 sJ=-16515068 raw=0x0200018E ; R[3] = R[0][K[2] "GroupNodes"]
+    [0006] MOVE           A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010200
+    [0007] CALL           A=2 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263682 sJ=-16513533 raw=0x02030144
+    [0008] TEST           A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x00008142
+    [0009] JMP            A=41 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777257 sJ=42 raw=0x800014B8
+    [0010] SETFIELD       A=1 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1537 sJ=-16775678 raw=0x00030092 ; R[1][K[3] "OwnerGroup"] = R[0]
+    [0011] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "table"]
+    [0012] GETFIELD       A=2 B=2 C=4 k=0 Bx=2052 sBx=-63483 Ax=525314 sJ=-16251901 raw=0x0402010E ; R[2] = R[2][K[4] "insert"]
+    [0013] GETFIELD       A=3 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262147 sJ=-16515068 raw=0x0200018E ; R[3] = R[0][K[2] "GroupNodes"]
+    [0014] MOVE           A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010200
+    [0015] CALL           A=2 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132610 sJ=-16644605 raw=0x01030144
+    [0016] SELF           A=2 B=1 C=5 k=1 Bx=2563 sBx=-62972 Ax=656130 sJ=-16121085 raw=0x05018114
+    [0017] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0018] TEST           A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x00008142
+    [0019] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0020] GETFIELD       A=2 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786434 sJ=-15990781 raw=0x0600010E ; R[2] = R[0][K[6] "HeadNode"]
+    [0021] TEST           A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x00008142
+    [0022] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0023] SETFIELD       A=0 B=6 C=1 k=0 Bx=524 sBx=-65011 Ax=134144 sJ=-16643071 raw=0x01060012 ; R[0][K[6] "HeadNode"] = R[1]
+    [0024] SELF           A=2 B=1 C=7 k=1 Bx=3587 sBx=-61948 Ax=918274 sJ=-15858941 raw=0x07018114
+    [0025] GETFIELD       A=4 B=0 C=8 k=0 Bx=4096 sBx=-61439 Ax=1048580 sJ=-15728635 raw=0x0800020E ; R[4] = R[0][K[8] "GroupId"]
+    [0026] CALL           A=2 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132610 sJ=-16644605 raw=0x01030144
+    [0027] GETFIELD       A=2 B=0 C=9 k=0 Bx=4608 sBx=-60927 Ax=1179650 sJ=-15597565 raw=0x0900010E ; R[2] = R[0][K[9] "NeedPerformNodeCount"]
+    [0028] ADDI           A=2 B=2 C=128 k=0 Bx=65540 sBx=5 Ax=16778242 sJ=1027 raw=0x80020115
+    [0029] MMBINI         A=2 B=128 C=6 k=0 Bx=3328 sBx=-62207 Ax=851970 sJ=-15925245 raw=0x0680012F
+    [0030] SETFIELD       A=0 B=9 C=2 k=0 Bx=1042 sBx=-64493 Ax=266752 sJ=-16510463 raw=0x02090012 ; R[0][K[9] "NeedPerformNodeCount"] = R[2]
+    [0031] GETFIELD       A=2 B=0 C=10 k=0 Bx=5120 sBx=-60415 Ax=1310722 sJ=-15466493 raw=0x0A00010E ; R[2] = R[0][K[10] "OwnerCluster"]
+    [0032] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0033] JMP            A=17 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777233 sJ=18 raw=0x800008B8
+    [0034] GETTABUP       A=2 B=0 C=11 k=0 Bx=5632 sBx=-59903 Ax=1441794 sJ=-15335421 raw=0x0B00010B ; R[2] = U[0][K[11] "ipairs"]
+    [0035] GETFIELD       A=3 B=0 C=10 k=0 Bx=5120 sBx=-60415 Ax=1310723 sJ=-15466492 raw=0x0A00018E ; R[3] = R[0][K[10] "OwnerCluster"]
+    [0036] GETFIELD       A=3 B=3 C=12 k=0 Bx=6150 sBx=-59385 Ax=1574403 sJ=-15202812 raw=0x0C03018E ; R[3] = R[3][K[12] "FriendlyClusters"]
+    [0037] CALL           A=2 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656386 sJ=-16120829 raw=0x05020144
+    [0038] TFORPREP       A=2 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2562 sJ=-16774653 raw=0x0005014B
+    [0039] GETTABUP       A=8 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=8 sJ=-16777207 raw=0x0000040B ; R[8] = U[0][K[0] "table"]
+    [0040] GETFIELD       A=8 B=8 C=1 k=0 Bx=528 sBx=-65007 Ax=135176 sJ=-16642039 raw=0x0108040E ; R[8] = R[8][K[1] "contains"]
+    [0041] GETFIELD       A=9 B=7 C=13 k=0 Bx=6670 sBx=-58865 Ax=1707529 sJ=-15069686 raw=0x0D07048E ; R[9] = R[7][K[13] "keepOrderClusters"]
+    [0042] GETFIELD       A=10 B=0 C=10 k=0 Bx=5120 sBx=-60415 Ax=1310730 sJ=-15466485 raw=0x0A00050E ; R[10] = R[0][K[10] "OwnerCluster"]
+    [0043] CALL           A=8 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263688 sJ=-16513527 raw=0x02030444
+    [0044] TEST           A=8 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=8 sJ=-16777207 raw=0x00000442
+    [0045] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0046] SELF           A=8 B=7 C=14 k=1 Bx=7183 sBx=-58352 Ax=1838856 sJ=-14938359 raw=0x0E078414
+    [0047] MOVE           A=10 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=522 sJ=-16776693 raw=0x00010500
+    [0048] CALL           A=8 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132616 sJ=-16644599 raw=0x01030444
+    [0049] TFORCALL       A=2 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262146 sJ=-16515069 raw=0x0200014C
+    [0050] TFORLOOP       A=2 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3074 sJ=-16774141 raw=0x0006014D
+    [0051] CLOSE          A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000136
+    [0052] RETURN         A=2 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=770 sJ=-16776445 raw=0x00018146
+
+  function[3] source="" lines=79-93 params=2 vararg=0 stack=255 upvalues=1
+  constants (14):
+    K[0] = "HeadNode"
+    K[1] = "IsGroupHead"
+    K[2] = "table"
+    K[3] = "contains"
+    K[4] = "GroupNodes"
+    K[5] = "OwnerGroup"
+    K[6] = nil
+    K[7] = "removeValue"
+    K[8] = "NeedPerformNodeCount"
+    K[9] = "OwnerCluster"
+    K[10] = "ipairs"
+    K[11] = "FriendlyClusters"
+    K[12] = "keepOrderClusters"
+    K[13] = "RemoveNodeInServerExecuteQueue"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=11 name="_ENV"
+  locals (8):
+    L[0] = "self" pc=0-48
+    L[1] = "PerformNode" pc=0-48
+    L[2] = "(for state)" pc=33-47
+    L[3] = "(for state)" pc=33-47
+    L[4] = "(for state)" pc=33-47
+    L[5] = "(for state)" pc=33-47
+    L[6] = "_" pc=34-44
+    L[7] = "v" pc=34-44
+  instructions (48):
+    [0001] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0002] JMP            A=44 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777260 sJ=45 raw=0x80001638
+    [0003] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "HeadNode"]
+    [0004] EQ             A=1 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1281 sJ=-16775934 raw=0x000280B9
+    [0005] JMP            A=41 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777257 sJ=42 raw=0x800014B8
+    [0006] SELF           A=2 B=1 C=1 k=1 Bx=515 sBx=-65020 Ax=131842 sJ=-16645373 raw=0x01018114
+    [0007] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0008] TEST           A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x00008142
+    [0009] JMP            A=37 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777253 sJ=38 raw=0x800012B8
+    [0010] GETTABUP       A=2 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262146 sJ=-16515069 raw=0x0200010B ; R[2] = U[0][K[2] "table"]
+    [0011] GETFIELD       A=2 B=2 C=3 k=0 Bx=1540 sBx=-63995 Ax=394242 sJ=-16382973 raw=0x0302010E ; R[2] = R[2][K[3] "contains"]
+    [0012] GETFIELD       A=3 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524291 sJ=-16252924 raw=0x0400018E ; R[3] = R[0][K[4] "GroupNodes"]
+    [0013] MOVE           A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010200
+    [0014] CALL           A=2 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263682 sJ=-16513533 raw=0x02030144
+    [0015] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0016] JMP            A=30 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777246 sJ=31 raw=0x80000F38
+    [0017] SETFIELD       A=1 B=5 C=6 k=1 Bx=3083 sBx=-62452 Ax=789249 sJ=-15987966 raw=0x06058092 ; R[1][K[5] "OwnerGroup"] = R[6]
+    [0018] GETTABUP       A=2 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262146 sJ=-16515069 raw=0x0200010B ; R[2] = U[0][K[2] "table"]
+    [0019] GETFIELD       A=2 B=2 C=7 k=0 Bx=3588 sBx=-61947 Ax=918530 sJ=-15858685 raw=0x0702010E ; R[2] = R[2][K[7] "removeValue"]
+    [0020] GETFIELD       A=3 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524291 sJ=-16252924 raw=0x0400018E ; R[3] = R[0][K[4] "GroupNodes"]
+    [0021] MOVE           A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010200
+    [0022] CALL           A=2 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132610 sJ=-16644605 raw=0x01030144
+    [0023] GETFIELD       A=2 B=0 C=8 k=0 Bx=4096 sBx=-61439 Ax=1048578 sJ=-15728637 raw=0x0800010E ; R[2] = R[0][K[8] "NeedPerformNodeCount"]
+    [0024] ADDI           A=2 B=2 C=126 k=0 Bx=64516 sBx=-1019 Ax=16516098 sJ=-261117 raw=0x7E020115
+    [0025] MMBINI         A=2 B=128 C=7 k=0 Bx=3840 sBx=-61695 Ax=983042 sJ=-15794173 raw=0x0780012F
+    [0026] SETFIELD       A=0 B=8 C=2 k=0 Bx=1040 sBx=-64495 Ax=266240 sJ=-16510975 raw=0x02080012 ; R[0][K[8] "NeedPerformNodeCount"] = R[2]
+    [0027] GETFIELD       A=2 B=0 C=9 k=0 Bx=4608 sBx=-60927 Ax=1179650 sJ=-15597565 raw=0x0900010E ; R[2] = R[0][K[9] "OwnerCluster"]
+    [0028] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0029] JMP            A=17 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777233 sJ=18 raw=0x800008B8
+    [0030] GETTABUP       A=2 B=0 C=10 k=0 Bx=5120 sBx=-60415 Ax=1310722 sJ=-15466493 raw=0x0A00010B ; R[2] = U[0][K[10] "ipairs"]
+    [0031] GETFIELD       A=3 B=0 C=9 k=0 Bx=4608 sBx=-60927 Ax=1179651 sJ=-15597564 raw=0x0900018E ; R[3] = R[0][K[9] "OwnerCluster"]
+    [0032] GETFIELD       A=3 B=3 C=11 k=0 Bx=5638 sBx=-59897 Ax=1443331 sJ=-15333884 raw=0x0B03018E ; R[3] = R[3][K[11] "FriendlyClusters"]
+    [0033] CALL           A=2 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656386 sJ=-16120829 raw=0x05020144
+    [0034] TFORPREP       A=2 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2562 sJ=-16774653 raw=0x0005014B
+    [0035] GETTABUP       A=8 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262152 sJ=-16515063 raw=0x0200040B ; R[8] = U[0][K[2] "table"]
+    [0036] GETFIELD       A=8 B=8 C=3 k=0 Bx=1552 sBx=-63983 Ax=397320 sJ=-16379895 raw=0x0308040E ; R[8] = R[8][K[3] "contains"]
+    [0037] GETFIELD       A=9 B=7 C=12 k=0 Bx=6158 sBx=-59377 Ax=1576457 sJ=-15200758 raw=0x0C07048E ; R[9] = R[7][K[12] "keepOrderClusters"]
+    [0038] GETFIELD       A=10 B=0 C=9 k=0 Bx=4608 sBx=-60927 Ax=1179658 sJ=-15597557 raw=0x0900050E ; R[10] = R[0][K[9] "OwnerCluster"]
+    [0039] CALL           A=8 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263688 sJ=-16513527 raw=0x02030444
+    [0040] TEST           A=8 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=8 sJ=-16777207 raw=0x00000442
+    [0041] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0042] SELF           A=8 B=7 C=13 k=1 Bx=6671 sBx=-58864 Ax=1707784 sJ=-15069431 raw=0x0D078414
+    [0043] MOVE           A=10 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=522 sJ=-16776693 raw=0x00010500
+    [0044] CALL           A=8 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132616 sJ=-16644599 raw=0x01030444
+    [0045] TFORCALL       A=2 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262146 sJ=-16515069 raw=0x0200014C
+    [0046] TFORLOOP       A=2 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3074 sJ=-16774141 raw=0x0006014D
+    [0047] CLOSE          A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000136
+    [0048] RETURN         A=2 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=770 sJ=-16776445 raw=0x00018146
+
+  function[4] source="" lines=95-104 params=1 vararg=0 stack=255 upvalues=1
+  constants (13):
+    K[0] = "IsPerforming"
+    K[1] = "IsPerformed"
+    K[2] = true
+    K[3] = false
+    K[4] = "BattlePerformDebug"
+    K[5] = "DebugGroupStart"
+    K[6] = "OwnerCluster"
+    K[7] = "RemoveNodeInServerExecuteQueue"
+    K[8] = "HeadNode"
+    K[9] = "TriggerNodesByCastMoment"
+    K[10] = "ProtoEnum"
+    K[11] = "Buffbasetrigger_type"
+    K[12] = "OnBeforeAttack"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=4 name="_ENV"
+  locals (1):
+    L[0] = "self" pc=0-22
+  instructions (22):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "IsPerforming"]
+    [0002] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0003] JMP            A=17 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777233 sJ=18 raw=0x800008B8
+    [0004] GETFIELD       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008E ; R[1] = R[0][K[1] "IsPerformed"]
+    [0005] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0006] JMP            A=14 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777230 sJ=15 raw=0x80000738
+    [0007] SETFIELD       A=0 B=0 C=2 k=1 Bx=1025 sBx=-64510 Ax=262400 sJ=-16514815 raw=0x02008012 ; R[0][K[0] "IsPerforming"] = R[2]
+    [0008] SETFIELD       A=0 B=1 C=3 k=1 Bx=1539 sBx=-63996 Ax=393984 sJ=-16383231 raw=0x03018012 ; R[0][K[1] "IsPerformed"] = R[3]
+    [0009] GETTABUP       A=1 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524289 sJ=-16252926 raw=0x0400008B ; R[1] = U[0][K[4] "BattlePerformDebug"]
+    [0010] GETFIELD       A=1 B=1 C=5 k=0 Bx=2562 sBx=-62973 Ax=655873 sJ=-16121342 raw=0x0501008E ; R[1] = R[1][K[5] "DebugGroupStart"]
+    [0011] MOVE           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000100
+    [0012] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0013] GETFIELD       A=1 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786433 sJ=-15990782 raw=0x0600008E ; R[1] = R[0][K[6] "OwnerCluster"]
+    [0014] SELF           A=1 B=1 C=7 k=1 Bx=3587 sBx=-61948 Ax=918273 sJ=-15858942 raw=0x07018094
+    [0015] GETFIELD       A=3 B=0 C=8 k=0 Bx=4096 sBx=-61439 Ax=1048579 sJ=-15728636 raw=0x0800018E ; R[3] = R[0][K[8] "HeadNode"]
+    [0016] CALL           A=1 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132609 sJ=-16644606 raw=0x010300C4
+    [0017] SELF           A=1 B=0 C=9 k=1 Bx=4609 sBx=-60926 Ax=1179905 sJ=-15597310 raw=0x09008094
+    [0018] GETTABUP       A=3 B=0 C=10 k=0 Bx=5120 sBx=-60415 Ax=1310723 sJ=-15466492 raw=0x0A00018B ; R[3] = U[0][K[10] "ProtoEnum"]
+    [0019] GETFIELD       A=3 B=3 C=11 k=0 Bx=5638 sBx=-59897 Ax=1443331 sJ=-15333884 raw=0x0B03018E ; R[3] = R[3][K[11] "Buffbasetrigger_type"]
+    [0020] GETFIELD       A=3 B=3 C=12 k=0 Bx=6150 sBx=-59385 Ax=1574403 sJ=-15202812 raw=0x0C03018E ; R[3] = R[3][K[12] "OnBeforeAttack"]
+    [0021] CALL           A=1 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132609 sJ=-16644606 raw=0x010300C4
+    [0022] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[5] source="" lines=107-117 params=3 vararg=0 stack=255 upvalues=1
+  constants (9):
+    K[0] = "ipairs"
+    K[1] = "GroupNodes"
+    K[2] = nil
+    K[3] = "performNodeType"
+    K[4] = "HeadNode"
+    K[5] = "IsValidToPerformByExecId"
+    K[6] = "GroupId"
+    K[7] = "table"
+    K[8] = "insert"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=14 name="_ENV"
+  locals (10):
+    L[0] = "self" pc=0-30
+    L[1] = "ExecId" pc=0-30
+    L[2] = "LimitType" pc=0-30
+    L[3] = "triggerNodes" pc=2-30
+    L[4] = "(for state)" pc=5-28
+    L[5] = "(for state)" pc=5-28
+    L[6] = "(for state)" pc=5-28
+    L[7] = "(for state)" pc=5-28
+    L[8] = "_" pc=6-25
+    L[9] = "n" pc=6-25
+  instructions (30):
+    [0001] NEWTABLE       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000193
+    [0002] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0003] GETTABUP       A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x0000020B ; R[4] = U[0][K[0] "ipairs"]
+    [0004] GETFIELD       A=5 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131077 sJ=-16646138 raw=0x0100028E ; R[5] = R[0][K[1] "GroupNodes"]
+    [0005] CALL           A=4 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656388 sJ=-16120827 raw=0x05020244
+    [0006] TFORPREP       A=4 B=9 C=0 k=1 Bx=19 sBx=-65516 Ax=4868 sJ=-16772347 raw=0x0009824B
+    [0007] EQK            A=2 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1282 sJ=-16775933 raw=0x0002813C
+    [0008] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0009] GETFIELD       A=10 B=9 C=3 k=0 Bx=1554 sBx=-63981 Ax=397834 sJ=-16379381 raw=0x0309050E ; R[10] = R[9][K[3] "performNodeType"]
+    [0010] EQ             A=10 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1034 sJ=-16776181 raw=0x00020539
+    [0011] JMP            A=13 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777229 sJ=14 raw=0x800006B8
+    [0012] GETFIELD       A=10 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524298 sJ=-16252917 raw=0x0400050E ; R[10] = R[0][K[4] "HeadNode"]
+    [0013] EQ             A=9 B=10 C=0 k=1 Bx=21 sBx=-65514 Ax=5385 sJ=-16771830 raw=0x000A84B9
+    [0014] JMP            A=10 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777226 sJ=11 raw=0x80000538
+    [0015] SELF           A=10 B=9 C=5 k=1 Bx=2579 sBx=-62956 Ax=660234 sJ=-16116981 raw=0x05098514
+    [0016] GETFIELD       A=12 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786444 sJ=-15990771 raw=0x0600060E ; R[12] = R[0][K[6] "GroupId"]
+    [0017] MOVE           A=13 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=525 sJ=-16776690 raw=0x00010680
+    [0018] CALL           A=10 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264202 sJ=-16513013 raw=0x02040544
+    [0019] TEST           A=10 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=10 sJ=-16777205 raw=0x00000542
+    [0020] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0021] GETTABUP       A=10 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917514 sJ=-15859701 raw=0x0700050B ; R[10] = U[0][K[7] "table"]
+    [0022] GETFIELD       A=10 B=10 C=8 k=0 Bx=4116 sBx=-61419 Ax=1053706 sJ=-15723509 raw=0x080A050E ; R[10] = R[10][K[8] "insert"]
+    [0023] MOVE           A=11 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1547 sJ=-16775668 raw=0x00030580
+    [0024] MOVE           A=12 B=9 C=0 k=0 Bx=18 sBx=-65517 Ax=4620 sJ=-16772595 raw=0x00090600
+    [0025] CALL           A=10 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132618 sJ=-16644597 raw=0x01030544
+    [0026] TFORCALL       A=4 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262148 sJ=-16515067 raw=0x0200024C
+    [0027] TFORLOOP       A=4 B=10 C=0 k=1 Bx=21 sBx=-65514 Ax=5380 sJ=-16771835 raw=0x000A824D
+    [0028] CLOSE          A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000236
+    [0029] RETURN         A=3 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1283 sJ=-16775932 raw=0x000281C6
+    [0030] RETURN         A=4 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=772 sJ=-16776443 raw=0x00018246
+
+  function[6] source="" lines=121-131 params=3 vararg=0 stack=255 upvalues=1
+  constants (9):
+    K[0] = "ipairs"
+    K[1] = "GroupNodes"
+    K[2] = nil
+    K[3] = "performNodeType"
+    K[4] = "HeadNode"
+    K[5] = "IsValidToPerform"
+    K[6] = "GroupId"
+    K[7] = "table"
+    K[8] = "insert"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=14 name="_ENV"
+  locals (10):
+    L[0] = "self" pc=0-30
+    L[1] = "castMoment" pc=0-30
+    L[2] = "LimitType" pc=0-30
+    L[3] = "triggerNodes" pc=2-30
+    L[4] = "(for state)" pc=5-28
+    L[5] = "(for state)" pc=5-28
+    L[6] = "(for state)" pc=5-28
+    L[7] = "(for state)" pc=5-28
+    L[8] = "_" pc=6-25
+    L[9] = "n" pc=6-25
+  instructions (30):
+    [0001] NEWTABLE       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000193
+    [0002] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0003] GETTABUP       A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x0000020B ; R[4] = U[0][K[0] "ipairs"]
+    [0004] GETFIELD       A=5 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131077 sJ=-16646138 raw=0x0100028E ; R[5] = R[0][K[1] "GroupNodes"]
+    [0005] CALL           A=4 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656388 sJ=-16120827 raw=0x05020244
+    [0006] TFORPREP       A=4 B=9 C=0 k=1 Bx=19 sBx=-65516 Ax=4868 sJ=-16772347 raw=0x0009824B
+    [0007] EQK            A=2 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1282 sJ=-16775933 raw=0x0002813C
+    [0008] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0009] GETFIELD       A=10 B=9 C=3 k=0 Bx=1554 sBx=-63981 Ax=397834 sJ=-16379381 raw=0x0309050E ; R[10] = R[9][K[3] "performNodeType"]
+    [0010] EQ             A=10 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1034 sJ=-16776181 raw=0x00020539
+    [0011] JMP            A=13 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777229 sJ=14 raw=0x800006B8
+    [0012] GETFIELD       A=10 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524298 sJ=-16252917 raw=0x0400050E ; R[10] = R[0][K[4] "HeadNode"]
+    [0013] EQ             A=9 B=10 C=0 k=1 Bx=21 sBx=-65514 Ax=5385 sJ=-16771830 raw=0x000A84B9
+    [0014] JMP            A=10 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777226 sJ=11 raw=0x80000538
+    [0015] SELF           A=10 B=9 C=5 k=1 Bx=2579 sBx=-62956 Ax=660234 sJ=-16116981 raw=0x05098514
+    [0016] GETFIELD       A=12 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786444 sJ=-15990771 raw=0x0600060E ; R[12] = R[0][K[6] "GroupId"]
+    [0017] MOVE           A=13 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=525 sJ=-16776690 raw=0x00010680
+    [0018] CALL           A=10 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264202 sJ=-16513013 raw=0x02040544
+    [0019] TEST           A=10 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=10 sJ=-16777205 raw=0x00000542
+    [0020] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0021] GETTABUP       A=10 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917514 sJ=-15859701 raw=0x0700050B ; R[10] = U[0][K[7] "table"]
+    [0022] GETFIELD       A=10 B=10 C=8 k=0 Bx=4116 sBx=-61419 Ax=1053706 sJ=-15723509 raw=0x080A050E ; R[10] = R[10][K[8] "insert"]
+    [0023] MOVE           A=11 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1547 sJ=-16775668 raw=0x00030580
+    [0024] MOVE           A=12 B=9 C=0 k=0 Bx=18 sBx=-65517 Ax=4620 sJ=-16772595 raw=0x00090600
+    [0025] CALL           A=10 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132618 sJ=-16644597 raw=0x01030544
+    [0026] TFORCALL       A=4 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262148 sJ=-16515067 raw=0x0200024C
+    [0027] TFORLOOP       A=4 B=10 C=0 k=1 Bx=21 sBx=-65514 Ax=5380 sJ=-16771835 raw=0x000A824D
+    [0028] CLOSE          A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000236
+    [0029] RETURN         A=3 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1283 sJ=-16775932 raw=0x000281C6
+    [0030] RETURN         A=4 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=772 sJ=-16776443 raw=0x00018246
+
+  function[7] source="" lines=133-136 params=1 vararg=0 stack=255 upvalues=0
+  constants (4):
+    K[0] = "StartRecordExecIdx"
+    K[1] = true
+    K[2] = "RecordMinExecIdx"
+    K[3] = -1
+  locals (1):
+    L[0] = "self" pc=0-3
+  instructions (3):
+    [0001] SETFIELD       A=0 B=0 C=1 k=1 Bx=513 sBx=-65022 Ax=131328 sJ=-16645887 raw=0x01008012 ; R[0][K[0] "StartRecordExecIdx"] = R[1]
+    [0002] SETFIELD       A=0 B=2 C=3 k=1 Bx=1541 sBx=-63994 Ax=394496 sJ=-16382719 raw=0x03028012 ; R[0][K[2] "RecordMinExecIdx"] = R[3]
+    [0003] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[8] source="" lines=138-140 params=1 vararg=0 stack=255 upvalues=0
+  constants (2):
+    K[0] = "StartRecordExecIdx"
+    K[1] = false
+  locals (1):
+    L[0] = "self" pc=0-2
+  instructions (2):
+    [0001] SETFIELD       A=0 B=0 C=1 k=1 Bx=513 sBx=-65022 Ax=131328 sJ=-16645887 raw=0x01008012 ; R[0][K[0] "StartRecordExecIdx"] = R[1]
+    [0002] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[9] source="" lines=142-172 params=3 vararg=0 stack=255 upvalues=1
+  constants (12):
+    K[0] = "GetWillTriggerNodesByExecId"
+    K[1] = "OwnerCluster"
+    K[2] = "GetWillTriggerGroupsByExecId"
+    K[3] = "isWaitTrigger"
+    K[4] = true
+    K[5] = "table"
+    K[6] = "insert"
+    K[7] = "WillTriggerNodes"
+    K[8] = "StartRecordExecIdx"
+    K[9] = "RecordMinExecIdx"
+    K[10] = "GetExecIdx"
+    K[11] = "sort"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=12 name="_ENV"
+  locals (13):
+    L[0] = "self" pc=0-72
+    L[1] = "ExecId" pc=0-72
+    L[2] = "LimitType" pc=0-72
+    L[3] = "triggerNodes" pc=4-72
+    L[4] = "triggerGroupNodes" pc=10-72
+    L[5] = "(for state)" pc=13-38
+    L[6] = "(for state)" pc=13-38
+    L[7] = "(for state)" pc=13-38
+    L[8] = "i" pc=14-37
+    L[9] = "(for state)" pc=41-66
+    L[10] = "(for state)" pc=41-66
+    L[11] = "(for state)" pc=41-66
+    L[12] = "i" pc=42-65
+  instructions (72):
+    [0001] SELF           A=3 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=259 sJ=-16776956 raw=0x00008194
+    [0002] MOVE           A=5 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=517 sJ=-16776698 raw=0x00010280
+    [0003] MOVE           A=6 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1030 sJ=-16776185 raw=0x00020300
+    [0004] CALL           A=3 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264195 sJ=-16513020 raw=0x020401C4
+    [0005] GETFIELD       A=4 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131076 sJ=-16646139 raw=0x0100020E ; R[4] = R[0][K[1] "OwnerCluster"]
+    [0006] SELF           A=4 B=4 C=2 k=1 Bx=1033 sBx=-64502 Ax=264452 sJ=-16512763 raw=0x02048214
+    [0007] MOVE           A=6 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=6 sJ=-16777209 raw=0x00000300
+    [0008] MOVE           A=7 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=519 sJ=-16776696 raw=0x00010380
+    [0009] MOVE           A=8 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1032 sJ=-16776183 raw=0x00020400
+    [0010] CALL           A=4 B=5 C=2 k=0 Bx=1034 sBx=-64501 Ax=264708 sJ=-16512507 raw=0x02050244
+    [0011] LOADI          A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x80000281
+    [0012] LEN            A=6 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1542 sJ=-16775673 raw=0x00030334
+    [0013] LOADI          A=7 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777223 sJ=8 raw=0x80000381
+    [0014] FORPREP        A=5 B=11 C=0 k=1 Bx=23 sBx=-65512 Ax=5893 sJ=-16771322 raw=0x000B82CA
+    [0015] GETTABLE       A=9 B=3 C=8 k=0 Bx=4102 sBx=-61433 Ax=1050121 sJ=-15727094 raw=0x0803048C
+    [0016] SETFIELD       A=9 B=3 C=4 k=1 Bx=2055 sBx=-63480 Ax=526089 sJ=-16251126 raw=0x04038492 ; R[9][K[3] "isWaitTrigger"] = R[4]
+    [0017] GETTABUP       A=9 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655369 sJ=-16121846 raw=0x0500048B ; R[9] = U[0][K[5] "table"]
+    [0018] GETFIELD       A=9 B=9 C=6 k=0 Bx=3090 sBx=-62445 Ax=791049 sJ=-15986166 raw=0x0609048E ; R[9] = R[9][K[6] "insert"]
+    [0019] GETFIELD       A=10 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917514 sJ=-15859701 raw=0x0700050E ; R[10] = R[0][K[7] "WillTriggerNodes"]
+    [0020] GETTABLE       A=11 B=3 C=8 k=0 Bx=4102 sBx=-61433 Ax=1050123 sJ=-15727092 raw=0x0803058C
+    [0021] CALL           A=9 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132617 sJ=-16644598 raw=0x010304C4
+    [0022] GETFIELD       A=9 B=0 C=8 k=0 Bx=4096 sBx=-61439 Ax=1048585 sJ=-15728630 raw=0x0800048E ; R[9] = R[0][K[8] "StartRecordExecIdx"]
+    [0023] TEST           A=9 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=9 sJ=-16777206 raw=0x000004C2
+    [0024] JMP            A=12 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777228 sJ=13 raw=0x80000638
+    [0025] GETFIELD       A=9 B=0 C=9 k=0 Bx=4608 sBx=-60927 Ax=1179657 sJ=-15597558 raw=0x0900048E ; R[9] = R[0][K[9] "RecordMinExecIdx"]
+    [0026] EQI            A=9 B=126 C=0 k=1 Bx=253 sBx=-65282 Ax=64777 sJ=-16712438 raw=0x007E84BD
+    [0027] JMP            A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x800002B8
+    [0028] GETFIELD       A=9 B=0 C=9 k=0 Bx=4608 sBx=-60927 Ax=1179657 sJ=-15597558 raw=0x0900048E ; R[9] = R[0][K[9] "RecordMinExecIdx"]
+    [0029] GETTABLE       A=10 B=3 C=8 k=0 Bx=4102 sBx=-61433 Ax=1050122 sJ=-15727093 raw=0x0803050C
+    [0030] SELF           A=10 B=10 C=10 k=1 Bx=5141 sBx=-60394 Ax=1316106 sJ=-15461109 raw=0x0A0A8514
+    [0031] CALL           A=10 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263178 sJ=-16514037 raw=0x02020544
+    [0032] LT             A=10 B=9 C=0 k=0 Bx=18 sBx=-65517 Ax=4618 sJ=-16772597 raw=0x0009053A
+    [0033] JMP            A=3 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777219 sJ=4 raw=0x800001B8
+    [0034] GETTABLE       A=9 B=3 C=8 k=0 Bx=4102 sBx=-61433 Ax=1050121 sJ=-15727094 raw=0x0803048C
+    [0035] SELF           A=9 B=9 C=10 k=1 Bx=5139 sBx=-60396 Ax=1315593 sJ=-15461622 raw=0x0A098494
+    [0036] CALL           A=9 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263177 sJ=-16514038 raw=0x020204C4
+    [0037] SETFIELD       A=0 B=9 C=9 k=0 Bx=4626 sBx=-60909 Ax=1184256 sJ=-15592959 raw=0x09090012 ; R[0][K[9] "RecordMinExecIdx"] = R[9]
+    [0038] FORLOOP        A=5 B=12 C=0 k=0 Bx=24 sBx=-65511 Ax=6149 sJ=-16771066 raw=0x000C02C9
+    [0039] LOADI          A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x80000281
+    [0040] LEN            A=6 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2054 sJ=-16775161 raw=0x00040334
+    [0041] LOADI          A=7 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777223 sJ=8 raw=0x80000381
+    [0042] FORPREP        A=5 B=11 C=0 k=1 Bx=23 sBx=-65512 Ax=5893 sJ=-16771322 raw=0x000B82CA
+    [0043] GETTABLE       A=9 B=4 C=8 k=0 Bx=4104 sBx=-61431 Ax=1050633 sJ=-15726582 raw=0x0804048C
+    [0044] SETFIELD       A=9 B=3 C=4 k=1 Bx=2055 sBx=-63480 Ax=526089 sJ=-16251126 raw=0x04038492 ; R[9][K[3] "isWaitTrigger"] = R[4]
+    [0045] GETTABUP       A=9 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655369 sJ=-16121846 raw=0x0500048B ; R[9] = U[0][K[5] "table"]
+    [0046] GETFIELD       A=9 B=9 C=6 k=0 Bx=3090 sBx=-62445 Ax=791049 sJ=-15986166 raw=0x0609048E ; R[9] = R[9][K[6] "insert"]
+    [0047] GETFIELD       A=10 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917514 sJ=-15859701 raw=0x0700050E ; R[10] = R[0][K[7] "WillTriggerNodes"]
+    [0048] GETTABLE       A=11 B=4 C=8 k=0 Bx=4104 sBx=-61431 Ax=1050635 sJ=-15726580 raw=0x0804058C
+    [0049] CALL           A=9 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132617 sJ=-16644598 raw=0x010304C4
+    [0050] GETFIELD       A=9 B=0 C=8 k=0 Bx=4096 sBx=-61439 Ax=1048585 sJ=-15728630 raw=0x0800048E ; R[9] = R[0][K[8] "StartRecordExecIdx"]
+    [0051] TEST           A=9 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=9 sJ=-16777206 raw=0x000004C2
+    [0052] JMP            A=12 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777228 sJ=13 raw=0x80000638
+    [0053] GETFIELD       A=9 B=0 C=9 k=0 Bx=4608 sBx=-60927 Ax=1179657 sJ=-15597558 raw=0x0900048E ; R[9] = R[0][K[9] "RecordMinExecIdx"]
+    [0054] EQI            A=9 B=126 C=0 k=1 Bx=253 sBx=-65282 Ax=64777 sJ=-16712438 raw=0x007E84BD
+    [0055] JMP            A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x800002B8
+    [0056] GETFIELD       A=9 B=0 C=9 k=0 Bx=4608 sBx=-60927 Ax=1179657 sJ=-15597558 raw=0x0900048E ; R[9] = R[0][K[9] "RecordMinExecIdx"]
+    [0057] GETTABLE       A=10 B=4 C=8 k=0 Bx=4104 sBx=-61431 Ax=1050634 sJ=-15726581 raw=0x0804050C
+    [0058] SELF           A=10 B=10 C=10 k=1 Bx=5141 sBx=-60394 Ax=1316106 sJ=-15461109 raw=0x0A0A8514
+    [0059] CALL           A=10 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263178 sJ=-16514037 raw=0x02020544
+    [0060] LT             A=10 B=9 C=0 k=0 Bx=18 sBx=-65517 Ax=4618 sJ=-16772597 raw=0x0009053A
+    [0061] JMP            A=3 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777219 sJ=4 raw=0x800001B8
+    [0062] GETTABLE       A=9 B=4 C=8 k=0 Bx=4104 sBx=-61431 Ax=1050633 sJ=-15726582 raw=0x0804048C
+    [0063] SELF           A=9 B=9 C=10 k=1 Bx=5139 sBx=-60396 Ax=1315593 sJ=-15461622 raw=0x0A098494
+    [0064] CALL           A=9 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263177 sJ=-16514038 raw=0x020204C4
+    [0065] SETFIELD       A=0 B=9 C=9 k=0 Bx=4626 sBx=-60909 Ax=1184256 sJ=-15592959 raw=0x09090012 ; R[0][K[9] "RecordMinExecIdx"] = R[9]
+    [0066] FORLOOP        A=5 B=12 C=0 k=0 Bx=24 sBx=-65511 Ax=6149 sJ=-16771066 raw=0x000C02C9
+    [0067] GETTABUP       A=5 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655365 sJ=-16121850 raw=0x0500028B ; R[5] = U[0][K[5] "table"]
+    [0068] GETFIELD       A=5 B=5 C=11 k=0 Bx=5642 sBx=-59893 Ax=1444357 sJ=-15332858 raw=0x0B05028E ; R[5] = R[5][K[11] "sort"]
+    [0069] GETFIELD       A=6 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917510 sJ=-15859705 raw=0x0700030E ; R[6] = R[0][K[7] "WillTriggerNodes"]
+    [0070] CLOSURE        A=7 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=7 sJ=-16777208 raw=0x000003CF ; R[7] = function[0]
+    [0071] CALL           A=5 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132613 sJ=-16644602 raw=0x010302C4
+    [0072] RETURN0        A=5 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=517 sJ=-16776698 raw=0x000102C7
+
+    function[0] source="" lines=168-170 params=2 vararg=0 stack=255 upvalues=0
+    constants (1):
+      K[0] = "GetExecIdx"
+    locals (2):
+      L[0] = "a" pc=0-10
+      L[1] = "b" pc=0-10
+    instructions (10):
+      [0001] SELF           A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x00008114
+      [0002] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+      [0003] SELF           A=3 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=771 sJ=-16776444 raw=0x00018194
+      [0004] CALL           A=3 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263171 sJ=-16514044 raw=0x020201C4
+      [0005] LT             A=2 B=3 C=0 k=1 Bx=7 sBx=-65528 Ax=1794 sJ=-16775421 raw=0x0003813A
+      [0006] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+      [0007] LFALSESKIP     A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000106
+      [0008] LOADTRUE       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000107
+      [0009] RETURN1        A=2 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1026 sJ=-16776189 raw=0x00020148
+      [0010] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[10] source="" lines=174-206 params=3 vararg=0 stack=255 upvalues=1
+  constants (13):
+    K[0] = "GetWillTriggerNodesByCastMoment"
+    K[1] = "OwnerCluster"
+    K[2] = "GetWillTriggerGroupsByCastMoment"
+    K[3] = "isWaitTrigger"
+    K[4] = true
+    K[5] = "table"
+    K[6] = "insert"
+    K[7] = "WillTriggerNodes"
+    K[8] = "StartRecordExecIdx"
+    K[9] = "RecordMinExecIdx"
+    K[10] = "GetExecIdx"
+    K[11] = "sort"
+    K[12] = "TriggerNext"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=12 name="_ENV"
+  locals (13):
+    L[0] = "self" pc=0-74
+    L[1] = "castMoment" pc=0-74
+    L[2] = "LimitType" pc=0-74
+    L[3] = "triggerNodes" pc=4-74
+    L[4] = "triggerGroupNodes" pc=10-74
+    L[5] = "(for state)" pc=13-38
+    L[6] = "(for state)" pc=13-38
+    L[7] = "(for state)" pc=13-38
+    L[8] = "i" pc=14-37
+    L[9] = "(for state)" pc=41-66
+    L[10] = "(for state)" pc=41-66
+    L[11] = "(for state)" pc=41-66
+    L[12] = "i" pc=42-65
+  instructions (74):
+    [0001] SELF           A=3 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=259 sJ=-16776956 raw=0x00008194
+    [0002] MOVE           A=5 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=517 sJ=-16776698 raw=0x00010280
+    [0003] MOVE           A=6 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1030 sJ=-16776185 raw=0x00020300
+    [0004] CALL           A=3 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264195 sJ=-16513020 raw=0x020401C4
+    [0005] GETFIELD       A=4 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131076 sJ=-16646139 raw=0x0100020E ; R[4] = R[0][K[1] "OwnerCluster"]
+    [0006] SELF           A=4 B=4 C=2 k=1 Bx=1033 sBx=-64502 Ax=264452 sJ=-16512763 raw=0x02048214
+    [0007] MOVE           A=6 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=6 sJ=-16777209 raw=0x00000300
+    [0008] MOVE           A=7 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=519 sJ=-16776696 raw=0x00010380
+    [0009] MOVE           A=8 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1032 sJ=-16776183 raw=0x00020400
+    [0010] CALL           A=4 B=5 C=2 k=0 Bx=1034 sBx=-64501 Ax=264708 sJ=-16512507 raw=0x02050244
+    [0011] LOADI          A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x80000281
+    [0012] LEN            A=6 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1542 sJ=-16775673 raw=0x00030334
+    [0013] LOADI          A=7 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777223 sJ=8 raw=0x80000381
+    [0014] FORPREP        A=5 B=11 C=0 k=1 Bx=23 sBx=-65512 Ax=5893 sJ=-16771322 raw=0x000B82CA
+    [0015] GETTABLE       A=9 B=3 C=8 k=0 Bx=4102 sBx=-61433 Ax=1050121 sJ=-15727094 raw=0x0803048C
+    [0016] SETFIELD       A=9 B=3 C=4 k=1 Bx=2055 sBx=-63480 Ax=526089 sJ=-16251126 raw=0x04038492 ; R[9][K[3] "isWaitTrigger"] = R[4]
+    [0017] GETTABUP       A=9 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655369 sJ=-16121846 raw=0x0500048B ; R[9] = U[0][K[5] "table"]
+    [0018] GETFIELD       A=9 B=9 C=6 k=0 Bx=3090 sBx=-62445 Ax=791049 sJ=-15986166 raw=0x0609048E ; R[9] = R[9][K[6] "insert"]
+    [0019] GETFIELD       A=10 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917514 sJ=-15859701 raw=0x0700050E ; R[10] = R[0][K[7] "WillTriggerNodes"]
+    [0020] GETTABLE       A=11 B=3 C=8 k=0 Bx=4102 sBx=-61433 Ax=1050123 sJ=-15727092 raw=0x0803058C
+    [0021] CALL           A=9 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132617 sJ=-16644598 raw=0x010304C4
+    [0022] GETFIELD       A=9 B=0 C=8 k=0 Bx=4096 sBx=-61439 Ax=1048585 sJ=-15728630 raw=0x0800048E ; R[9] = R[0][K[8] "StartRecordExecIdx"]
+    [0023] TEST           A=9 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=9 sJ=-16777206 raw=0x000004C2
+    [0024] JMP            A=12 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777228 sJ=13 raw=0x80000638
+    [0025] GETFIELD       A=9 B=0 C=9 k=0 Bx=4608 sBx=-60927 Ax=1179657 sJ=-15597558 raw=0x0900048E ; R[9] = R[0][K[9] "RecordMinExecIdx"]
+    [0026] EQI            A=9 B=126 C=0 k=1 Bx=253 sBx=-65282 Ax=64777 sJ=-16712438 raw=0x007E84BD
+    [0027] JMP            A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x800002B8
+    [0028] GETFIELD       A=9 B=0 C=9 k=0 Bx=4608 sBx=-60927 Ax=1179657 sJ=-15597558 raw=0x0900048E ; R[9] = R[0][K[9] "RecordMinExecIdx"]
+    [0029] GETTABLE       A=10 B=3 C=8 k=0 Bx=4102 sBx=-61433 Ax=1050122 sJ=-15727093 raw=0x0803050C
+    [0030] SELF           A=10 B=10 C=10 k=1 Bx=5141 sBx=-60394 Ax=1316106 sJ=-15461109 raw=0x0A0A8514
+    [0031] CALL           A=10 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263178 sJ=-16514037 raw=0x02020544
+    [0032] LT             A=10 B=9 C=0 k=0 Bx=18 sBx=-65517 Ax=4618 sJ=-16772597 raw=0x0009053A
+    [0033] JMP            A=3 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777219 sJ=4 raw=0x800001B8
+    [0034] GETTABLE       A=9 B=3 C=8 k=0 Bx=4102 sBx=-61433 Ax=1050121 sJ=-15727094 raw=0x0803048C
+    [0035] SELF           A=9 B=9 C=10 k=1 Bx=5139 sBx=-60396 Ax=1315593 sJ=-15461622 raw=0x0A098494
+    [0036] CALL           A=9 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263177 sJ=-16514038 raw=0x020204C4
+    [0037] SETFIELD       A=0 B=9 C=9 k=0 Bx=4626 sBx=-60909 Ax=1184256 sJ=-15592959 raw=0x09090012 ; R[0][K[9] "RecordMinExecIdx"] = R[9]
+    [0038] FORLOOP        A=5 B=12 C=0 k=0 Bx=24 sBx=-65511 Ax=6149 sJ=-16771066 raw=0x000C02C9
+    [0039] LOADI          A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x80000281
+    [0040] LEN            A=6 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2054 sJ=-16775161 raw=0x00040334
+    [0041] LOADI          A=7 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777223 sJ=8 raw=0x80000381
+    [0042] FORPREP        A=5 B=11 C=0 k=1 Bx=23 sBx=-65512 Ax=5893 sJ=-16771322 raw=0x000B82CA
+    [0043] GETTABLE       A=9 B=4 C=8 k=0 Bx=4104 sBx=-61431 Ax=1050633 sJ=-15726582 raw=0x0804048C
+    [0044] SETFIELD       A=9 B=3 C=4 k=1 Bx=2055 sBx=-63480 Ax=526089 sJ=-16251126 raw=0x04038492 ; R[9][K[3] "isWaitTrigger"] = R[4]
+    [0045] GETTABUP       A=9 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655369 sJ=-16121846 raw=0x0500048B ; R[9] = U[0][K[5] "table"]
+    [0046] GETFIELD       A=9 B=9 C=6 k=0 Bx=3090 sBx=-62445 Ax=791049 sJ=-15986166 raw=0x0609048E ; R[9] = R[9][K[6] "insert"]
+    [0047] GETFIELD       A=10 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917514 sJ=-15859701 raw=0x0700050E ; R[10] = R[0][K[7] "WillTriggerNodes"]
+    [0048] GETTABLE       A=11 B=4 C=8 k=0 Bx=4104 sBx=-61431 Ax=1050635 sJ=-15726580 raw=0x0804058C
+    [0049] CALL           A=9 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132617 sJ=-16644598 raw=0x010304C4
+    [0050] GETFIELD       A=9 B=0 C=8 k=0 Bx=4096 sBx=-61439 Ax=1048585 sJ=-15728630 raw=0x0800048E ; R[9] = R[0][K[8] "StartRecordExecIdx"]
+    [0051] TEST           A=9 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=9 sJ=-16777206 raw=0x000004C2
+    [0052] JMP            A=12 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777228 sJ=13 raw=0x80000638
+    [0053] GETFIELD       A=9 B=0 C=9 k=0 Bx=4608 sBx=-60927 Ax=1179657 sJ=-15597558 raw=0x0900048E ; R[9] = R[0][K[9] "RecordMinExecIdx"]
+    [0054] EQI            A=9 B=126 C=0 k=1 Bx=253 sBx=-65282 Ax=64777 sJ=-16712438 raw=0x007E84BD
+    [0055] JMP            A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x800002B8
+    [0056] GETFIELD       A=9 B=0 C=9 k=0 Bx=4608 sBx=-60927 Ax=1179657 sJ=-15597558 raw=0x0900048E ; R[9] = R[0][K[9] "RecordMinExecIdx"]
+    [0057] GETTABLE       A=10 B=4 C=8 k=0 Bx=4104 sBx=-61431 Ax=1050634 sJ=-15726581 raw=0x0804050C
+    [0058] SELF           A=10 B=10 C=10 k=1 Bx=5141 sBx=-60394 Ax=1316106 sJ=-15461109 raw=0x0A0A8514
+    [0059] CALL           A=10 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263178 sJ=-16514037 raw=0x02020544
+    [0060] LT             A=10 B=9 C=0 k=0 Bx=18 sBx=-65517 Ax=4618 sJ=-16772597 raw=0x0009053A
+    [0061] JMP            A=3 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777219 sJ=4 raw=0x800001B8
+    [0062] GETTABLE       A=9 B=4 C=8 k=0 Bx=4104 sBx=-61431 Ax=1050633 sJ=-15726582 raw=0x0804048C
+    [0063] SELF           A=9 B=9 C=10 k=1 Bx=5139 sBx=-60396 Ax=1315593 sJ=-15461622 raw=0x0A098494
+    [0064] CALL           A=9 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263177 sJ=-16514038 raw=0x020204C4
+    [0065] SETFIELD       A=0 B=9 C=9 k=0 Bx=4626 sBx=-60909 Ax=1184256 sJ=-15592959 raw=0x09090012 ; R[0][K[9] "RecordMinExecIdx"] = R[9]
+    [0066] FORLOOP        A=5 B=12 C=0 k=0 Bx=24 sBx=-65511 Ax=6149 sJ=-16771066 raw=0x000C02C9
+    [0067] GETTABUP       A=5 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655365 sJ=-16121850 raw=0x0500028B ; R[5] = U[0][K[5] "table"]
+    [0068] GETFIELD       A=5 B=5 C=11 k=0 Bx=5642 sBx=-59893 Ax=1444357 sJ=-15332858 raw=0x0B05028E ; R[5] = R[5][K[11] "sort"]
+    [0069] GETFIELD       A=6 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917510 sJ=-15859705 raw=0x0700030E ; R[6] = R[0][K[7] "WillTriggerNodes"]
+    [0070] CLOSURE        A=7 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=7 sJ=-16777208 raw=0x000003CF ; R[7] = function[0]
+    [0071] CALL           A=5 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132613 sJ=-16644602 raw=0x010302C4
+    [0072] SELF           A=5 B=0 C=12 k=1 Bx=6145 sBx=-59390 Ax=1573125 sJ=-15204090 raw=0x0C008294
+    [0073] CALL           A=5 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132101 sJ=-16645114 raw=0x010202C4
+    [0074] RETURN0        A=5 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=517 sJ=-16776698 raw=0x000102C7
+
+    function[0] source="" lines=200-202 params=2 vararg=0 stack=255 upvalues=0
+    constants (1):
+      K[0] = "GetExecIdx"
+    locals (2):
+      L[0] = "a" pc=0-10
+      L[1] = "b" pc=0-10
+    instructions (10):
+      [0001] SELF           A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x00008114
+      [0002] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+      [0003] SELF           A=3 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=771 sJ=-16776444 raw=0x00018194
+      [0004] CALL           A=3 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263171 sJ=-16514044 raw=0x020201C4
+      [0005] LT             A=2 B=3 C=0 k=1 Bx=7 sBx=-65528 Ax=1794 sJ=-16775421 raw=0x0003813A
+      [0006] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+      [0007] LFALSESKIP     A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000106
+      [0008] LOADTRUE       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000107
+      [0009] RETURN1        A=2 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1026 sJ=-16776189 raw=0x00020148
+      [0010] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[11] source="" lines=208-251 params=1 vararg=0 stack=255 upvalues=1
+  constants (27):
+    K[0] = "IsFinalize"
+    K[1] = "OwnerCluster"
+    K[2] = "performPlayer"
+    K[3] = "CanTriggerNext"
+    K[4] = "DelayTrigger"
+    K[5] = true
+    K[6] = "_G"
+    K[7] = "DelayManager"
+    K[8] = "CancelDelayByIdEx"
+    K[9] = "d_TriggerNext"
+    K[10] = "DelayFrames"
+    K[11] = "TriggerNext"
+    K[12] = false
+    K[13] = "CurTriggerNode"
+    K[14] = "WillTriggerNodes"
+    K[15] = "CheckCanPlayNode"
+    K[16] = "IsBlockByServerExecute"
+    K[17] = "table"
+    K[18] = "remove"
+    K[19] = "OwnerGroup"
+    K[20] = "PlayNode"
+    K[21] = "PlayGroupDelay"
+    K[22] = "AddNodeInServerExecuteQueue"
+    K[23] = "HeadNode"
+    K[24] = "IsPerformed"
+    K[25] = "IsPerforming"
+    K[26] = "CheckGroupOver"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=6 name="_ENV"
+  locals (1):
+    L[0] = "self" pc=0-95
+  instructions (95):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "IsFinalize"]
+    [0002] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0003] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0004] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+    [0005] GETFIELD       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008E ; R[1] = R[0][K[1] "OwnerCluster"]
+    [0006] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0007] JMP            A=22 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777238 sJ=23 raw=0x80000B38
+    [0008] GETFIELD       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008E ; R[1] = R[0][K[1] "OwnerCluster"]
+    [0009] GETFIELD       A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x0201008E ; R[1] = R[1][K[2] "performPlayer"]
+    [0010] SELF           A=1 B=1 C=3 k=1 Bx=1539 sBx=-63996 Ax=393985 sJ=-16383230 raw=0x03018094
+    [0011] CALL           A=1 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263169 sJ=-16514046 raw=0x020200C4
+    [0012] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0013] JMP            A=16 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777232 sJ=17 raw=0x80000838
+    [0014] GETFIELD       A=1 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524289 sJ=-16252926 raw=0x0400008E ; R[1] = R[0][K[4] "DelayTrigger"]
+    [0015] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0016] JMP            A=12 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777228 sJ=13 raw=0x80000638
+    [0017] SETFIELD       A=0 B=4 C=5 k=1 Bx=2569 sBx=-62966 Ax=657664 sJ=-16119551 raw=0x05048012 ; R[0][K[4] "DelayTrigger"] = R[5]
+    [0018] GETTABUP       A=1 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786433 sJ=-15990782 raw=0x0600008B ; R[1] = U[0][K[6] "_G"]
+    [0019] GETFIELD       A=1 B=1 C=7 k=0 Bx=3586 sBx=-61949 Ax=918017 sJ=-15859198 raw=0x0701008E ; R[1] = R[1][K[7] "DelayManager"]
+    [0020] SELF           A=1 B=1 C=8 k=1 Bx=4099 sBx=-61436 Ax=1049345 sJ=-15727870 raw=0x08018094
+    [0021] GETFIELD       A=3 B=0 C=9 k=0 Bx=4608 sBx=-60927 Ax=1179651 sJ=-15597564 raw=0x0900018E ; R[3] = R[0][K[9] "d_TriggerNext"]
+    [0022] CALL           A=1 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132609 sJ=-16644606 raw=0x010300C4
+    [0023] GETTABUP       A=1 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917505 sJ=-15859710 raw=0x0700008B ; R[1] = U[0][K[7] "DelayManager"]
+    [0024] SELF           A=1 B=1 C=10 k=1 Bx=5123 sBx=-60412 Ax=1311489 sJ=-15465726 raw=0x0A018094
+    [0025] LOADI          A=3 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777219 sJ=4 raw=0x80000181
+    [0026] GETFIELD       A=4 B=0 C=11 k=0 Bx=5632 sBx=-59903 Ax=1441796 sJ=-15335419 raw=0x0B00020E ; R[4] = R[0][K[11] "TriggerNext"]
+    [0027] MOVE           A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x00000280
+    [0028] CALL           A=1 B=5 C=2 k=0 Bx=1034 sBx=-64501 Ax=264705 sJ=-16512510 raw=0x020500C4
+    [0029] SETFIELD       A=0 B=9 C=1 k=0 Bx=530 sBx=-65005 Ax=135680 sJ=-16641535 raw=0x01090012 ; R[0][K[9] "d_TriggerNext"] = R[1]
+    [0030] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+    [0031] SETFIELD       A=0 B=4 C=12 k=1 Bx=6153 sBx=-59382 Ax=1575168 sJ=-15202047 raw=0x0C048012 ; R[0][K[4] "DelayTrigger"] = R[12]
+    [0032] GETFIELD       A=1 B=0 C=13 k=0 Bx=6656 sBx=-58879 Ax=1703937 sJ=-15073278 raw=0x0D00008E ; R[1] = R[0][K[13] "CurTriggerNode"]
+    [0033] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0034] JMP            A=59 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777275 sJ=60 raw=0x80001DB8
+    [0035] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "IsFinalize"]
+    [0036] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0037] JMP            A=56 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777272 sJ=57 raw=0x80001C38
+    [0038] GETFIELD       A=1 B=0 C=14 k=0 Bx=7168 sBx=-58367 Ax=1835009 sJ=-14942206 raw=0x0E00008E ; R[1] = R[0][K[14] "WillTriggerNodes"]
+    [0039] LEN            A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100B4
+    [0040] GTI            A=1 B=127 C=0 k=0 Bx=254 sBx=-65281 Ax=65025 sJ=-16712190 raw=0x007F00C0
+    [0041] JMP            A=36 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777252 sJ=37 raw=0x80001238
+    [0042] GETFIELD       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008E ; R[1] = R[0][K[1] "OwnerCluster"]
+    [0043] SELF           A=1 B=1 C=15 k=1 Bx=7683 sBx=-57852 Ax=1966849 sJ=-14810366 raw=0x0F018094
+    [0044] GETFIELD       A=3 B=0 C=14 k=0 Bx=7168 sBx=-58367 Ax=1835011 sJ=-14942204 raw=0x0E00018E ; R[3] = R[0][K[14] "WillTriggerNodes"]
+    [0045] GETI           A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x0103018D
+    [0046] CALL           A=1 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263681 sJ=-16513534 raw=0x020300C4
+    [0047] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0048] JMP            A=22 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777238 sJ=23 raw=0x80000B38
+    [0049] SETFIELD       A=0 B=16 C=12 k=1 Bx=6177 sBx=-59358 Ax=1581312 sJ=-15195903 raw=0x0C108012 ; R[0][K[16] "IsBlockByServerExecute"] = R[12]
+    [0050] GETFIELD       A=1 B=0 C=14 k=0 Bx=7168 sBx=-58367 Ax=1835009 sJ=-14942206 raw=0x0E00008E ; R[1] = R[0][K[14] "WillTriggerNodes"]
+    [0051] GETI           A=1 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131585 sJ=-16645630 raw=0x0101008D
+    [0052] SETFIELD       A=0 B=13 C=1 k=0 Bx=538 sBx=-64997 Ax=137728 sJ=-16639487 raw=0x010D0012 ; R[0][K[13] "CurTriggerNode"] = R[1]
+    [0053] GETTABUP       A=1 B=0 C=17 k=0 Bx=8704 sBx=-56831 Ax=2228225 sJ=-14548990 raw=0x1100008B ; R[1] = U[0][K[17] "table"]
+    [0054] GETFIELD       A=1 B=1 C=18 k=0 Bx=9218 sBx=-56317 Ax=2359809 sJ=-14417406 raw=0x1201008E ; R[1] = R[1][K[18] "remove"]
+    [0055] GETFIELD       A=2 B=0 C=14 k=0 Bx=7168 sBx=-58367 Ax=1835010 sJ=-14942205 raw=0x0E00010E ; R[2] = R[0][K[14] "WillTriggerNodes"]
+    [0056] LOADI          A=3 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777219 sJ=4 raw=0x80000181
+    [0057] CALL           A=1 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132609 sJ=-16644606 raw=0x010300C4
+    [0058] GETFIELD       A=1 B=0 C=13 k=0 Bx=6656 sBx=-58879 Ax=1703937 sJ=-15073278 raw=0x0D00008E ; R[1] = R[0][K[13] "CurTriggerNode"]
+    [0059] GETFIELD       A=1 B=1 C=19 k=0 Bx=9730 sBx=-55805 Ax=2490881 sJ=-14286334 raw=0x1301008E ; R[1] = R[1][K[19] "OwnerGroup"]
+    [0060] EQ             A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000B9
+    [0061] JMP            A=3 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777219 sJ=4 raw=0x800001B8
+    [0062] SELF           A=1 B=0 C=20 k=1 Bx=10241 sBx=-55294 Ax=2621697 sJ=-14155518 raw=0x14008094
+    [0063] GETFIELD       A=3 B=0 C=13 k=0 Bx=6656 sBx=-58879 Ax=1703939 sJ=-15073276 raw=0x0D00018E ; R[3] = R[0][K[13] "CurTriggerNode"]
+    [0064] CALL           A=1 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132609 sJ=-16644606 raw=0x010300C4
+    [0065] JMP            A=28 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777244 sJ=29 raw=0x80000E38
+    [0066] GETFIELD       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008E ; R[1] = R[0][K[1] "OwnerCluster"]
+    [0067] SELF           A=1 B=1 C=21 k=1 Bx=10755 sBx=-54780 Ax=2753281 sJ=-14023934 raw=0x15018094
+    [0068] GETFIELD       A=3 B=0 C=13 k=0 Bx=6656 sBx=-58879 Ax=1703939 sJ=-15073276 raw=0x0D00018E ; R[3] = R[0][K[13] "CurTriggerNode"]
+    [0069] GETFIELD       A=3 B=3 C=19 k=0 Bx=9734 sBx=-55801 Ax=2491907 sJ=-14285308 raw=0x1303018E ; R[3] = R[3][K[19] "OwnerGroup"]
+    [0070] CALL           A=1 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132609 sJ=-16644606 raw=0x010300C4
+    [0071] JMP            A=22 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777238 sJ=23 raw=0x80000B38
+    [0072] GETFIELD       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008E ; R[1] = R[0][K[1] "OwnerCluster"]
+    [0073] SELF           A=1 B=1 C=22 k=1 Bx=11267 sBx=-54268 Ax=2884353 sJ=-13892862 raw=0x16018094
+    [0074] GETFIELD       A=3 B=0 C=14 k=0 Bx=7168 sBx=-58367 Ax=1835011 sJ=-14942204 raw=0x0E00018E ; R[3] = R[0][K[14] "WillTriggerNodes"]
+    [0075] GETI           A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x0103018D
+    [0076] CALL           A=1 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132609 sJ=-16644606 raw=0x010300C4
+    [0077] SETFIELD       A=0 B=16 C=5 k=1 Bx=2593 sBx=-62942 Ax=663808 sJ=-16113407 raw=0x05108012 ; R[0][K[16] "IsBlockByServerExecute"] = R[5]
+    [0078] JMP            A=15 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777231 sJ=16 raw=0x800007B8
+    [0079] GETFIELD       A=1 B=0 C=23 k=0 Bx=11776 sBx=-53759 Ax=3014657 sJ=-13762558 raw=0x1700008E ; R[1] = R[0][K[23] "HeadNode"]
+    [0080] SELF           A=1 B=1 C=24 k=1 Bx=12291 sBx=-53244 Ax=3146497 sJ=-13630718 raw=0x18018094
+    [0081] CALL           A=1 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263169 sJ=-16514046 raw=0x020200C4
+    [0082] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0083] JMP            A=8 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777224 sJ=9 raw=0x80000438
+    [0084] GETFIELD       A=1 B=0 C=23 k=0 Bx=11776 sBx=-53759 Ax=3014657 sJ=-13762558 raw=0x1700008E ; R[1] = R[0][K[23] "HeadNode"]
+    [0085] SELF           A=1 B=1 C=25 k=1 Bx=12803 sBx=-52732 Ax=3277569 sJ=-13499646 raw=0x19018094
+    [0086] CALL           A=1 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263169 sJ=-16514046 raw=0x020200C4
+    [0087] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0088] JMP            A=3 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777219 sJ=4 raw=0x800001B8
+    [0089] SELF           A=1 B=0 C=20 k=1 Bx=10241 sBx=-55294 Ax=2621697 sJ=-14155518 raw=0x14008094
+    [0090] GETFIELD       A=3 B=0 C=23 k=0 Bx=11776 sBx=-53759 Ax=3014659 sJ=-13762556 raw=0x1700018E ; R[3] = R[0][K[23] "HeadNode"]
+    [0091] CALL           A=1 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132609 sJ=-16644606 raw=0x010300C4
+    [0092] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0093] SELF           A=1 B=0 C=26 k=1 Bx=13313 sBx=-52222 Ax=3408129 sJ=-13369086 raw=0x1A008094
+    [0094] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0095] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[12] source="" lines=254-266 params=2 vararg=0 stack=255 upvalues=1
+  constants (14):
+    K[0] = "OwnerGroup"
+    K[1] = "tcallForBattle"
+    K[2] = "Play"
+    K[3] = "string"
+    K[4] = "format"
+    K[5] = "zgx\u9632\u5361\u6B7B\uFF1A%s \u8282\u70B9\u64AD\u653E\u9519\u8BEF\uFF01\uFF01\uFF01\uFF01\u5F3A\u5236\u8DF3\u8FC7\u8282\u70B9\u8868\u6F14\uFF01\uFF01\uFF01 ErrorInfo:%s"
+    K[6] = "GetProfilerInfo"
+    K[7] = "Log"
+    K[8] = "Error"
+    K[9] = "BattleReplayCachePool"
+    K[10] = "UploadBattleDataTOCrashSight"
+    K[11] = "HeadNode"
+    K[12] = "ForceDonePerform"
+    K[13] = "CheckGroupOver"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=9 name="_ENV"
+  locals (6):
+    L[0] = "self" pc=0-34
+    L[1] = "node" pc=0-34
+    L[2] = "_" pc=10-30
+    L[3] = "err" pc=10-30
+    L[4] = "_" pc=10-30
+    L[5] = "errorMsg" pc=19-30
+  instructions (34):
+    [0001] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0002] JMP            A=28 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777244 sJ=29 raw=0x80000E38
+    [0003] GETFIELD       A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x0001010E ; R[2] = R[1][K[0] "OwnerGroup"]
+    [0004] EQ             A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000139
+    [0005] JMP            A=25 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777241 sJ=26 raw=0x80000CB8
+    [0006] GETTABUP       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010B ; R[2] = U[0][K[1] "tcallForBattle"]
+    [0007] MOVE           A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x00010180
+    [0008] GETFIELD       A=4 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262660 sJ=-16514555 raw=0x0201020E ; R[4] = R[1][K[2] "Play"]
+    [0009] LOADFALSE      A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x00000285
+    [0010] CALL           A=2 B=4 C=4 k=0 Bx=2056 sBx=-63479 Ax=526338 sJ=-16250877 raw=0x04040144
+    [0011] TEST           A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x000001C2
+    [0012] JMP            A=20 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777236 sJ=21 raw=0x80000A38
+    [0013] GETTABUP       A=5 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393221 sJ=-16383994 raw=0x0300028B ; R[5] = U[0][K[3] "string"]
+    [0014] GETFIELD       A=5 B=5 C=4 k=0 Bx=2058 sBx=-63477 Ax=526853 sJ=-16250362 raw=0x0405028E ; R[5] = R[5][K[4] "format"]
+    [0015] LOADK          A=6 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1286 sJ=-16775929 raw=0x00028303 ; R[6] = K[5] "zgx\u9632\u5361\u6B7B\uFF1A%s \u8282\u70B9\u64AD\u653E\u9519\u8BEF\uFF01\uFF01\uFF01\uFF01\u5F3A\u5236\u8DF3\u8FC7\u8282\u70B9\u8868\u6F14\uFF01\uFF01\uFF01 ErrorInfo:%s"
+    [0016] SELF           A=7 B=1 C=6 k=1 Bx=3075 sBx=-62460 Ax=787207 sJ=-15990008 raw=0x06018394
+    [0017] CALL           A=7 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263175 sJ=-16514040 raw=0x020203C4
+    [0018] MOVE           A=8 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1544 sJ=-16775671 raw=0x00030400
+    [0019] CALL           A=5 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264197 sJ=-16513018 raw=0x020402C4
+    [0020] GETTABUP       A=6 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917510 sJ=-15859705 raw=0x0700030B ; R[6] = U[0][K[7] "Log"]
+    [0021] GETFIELD       A=6 B=6 C=8 k=0 Bx=4108 sBx=-61427 Ax=1051654 sJ=-15725561 raw=0x0806030E ; R[6] = R[6][K[8] "Error"]
+    [0022] MOVE           A=7 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2567 sJ=-16774648 raw=0x00050380
+    [0023] CALL           A=6 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132102 sJ=-16645113 raw=0x01020344
+    [0024] GETTABUP       A=6 B=0 C=9 k=0 Bx=4608 sBx=-60927 Ax=1179654 sJ=-15597561 raw=0x0900030B ; R[6] = U[0][K[9] "BattleReplayCachePool"]
+    [0025] SELF           A=6 B=6 C=10 k=1 Bx=5133 sBx=-60402 Ax=1314054 sJ=-15463161 raw=0x0A068314
+    [0026] MOVE           A=8 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2568 sJ=-16774647 raw=0x00050400
+    [0027] CALL           A=6 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132614 sJ=-16644601 raw=0x01030344
+    [0028] GETFIELD       A=6 B=0 C=11 k=0 Bx=5632 sBx=-59903 Ax=1441798 sJ=-15335417 raw=0x0B00030E ; R[6] = R[0][K[11] "HeadNode"]
+    [0029] SELF           A=6 B=6 C=12 k=1 Bx=6157 sBx=-59378 Ax=1576198 sJ=-15201017 raw=0x0C068314
+    [0030] CALL           A=6 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132102 sJ=-16645113 raw=0x01020344
+    [0031] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0032] SELF           A=2 B=0 C=13 k=1 Bx=6657 sBx=-58878 Ax=1704194 sJ=-15073021 raw=0x0D008114
+    [0033] CALL           A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x01020144
+    [0034] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[13] source="" lines=270-275 params=2 vararg=0 stack=255 upvalues=0
+  constants (3):
+    K[0] = "CurTriggerNode"
+    K[1] = nil
+    K[2] = "TriggerNext"
+  locals (2):
+    L[0] = "self" pc=0-10
+    L[1] = "node" pc=0-10
+  instructions (10):
+    [0001] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "CurTriggerNode"]
+    [0002] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0003] JMP            A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x800002B8
+    [0004] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "CurTriggerNode"]
+    [0005] EQ             A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010139
+    [0006] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0007] SETFIELD       A=0 B=0 C=1 k=1 Bx=513 sBx=-65022 Ax=131328 sJ=-16645887 raw=0x01008012 ; R[0][K[0] "CurTriggerNode"] = R[1]
+    [0008] SELF           A=2 B=0 C=2 k=1 Bx=1025 sBx=-64510 Ax=262402 sJ=-16514813 raw=0x02008114
+    [0009] CALL           A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x01020144
+    [0010] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[14] source="" lines=278-280 params=1 vararg=0 stack=255 upvalues=1
+  constants (4):
+    K[0] = "TriggerNodesByCastMoment"
+    K[1] = "ProtoEnum"
+    K[2] = "Buffbasetrigger_type"
+    K[3] = "Immediatyly"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=4 name="_ENV"
+  locals (1):
+    L[0] = "self" pc=0-6
+  instructions (6):
+    [0001] SELF           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x00008094
+    [0002] GETTABUP       A=3 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131075 sJ=-16646140 raw=0x0100018B ; R[3] = U[0][K[1] "ProtoEnum"]
+    [0003] GETFIELD       A=3 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263683 sJ=-16513532 raw=0x0203018E ; R[3] = R[3][K[2] "Buffbasetrigger_type"]
+    [0004] GETFIELD       A=3 B=3 C=3 k=0 Bx=1542 sBx=-63993 Ax=394755 sJ=-16382460 raw=0x0303018E ; R[3] = R[3][K[3] "Immediatyly"]
+    [0005] CALL           A=1 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132609 sJ=-16644606 raw=0x010300C4
+    [0006] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[15] source="" lines=283-313 params=2 vararg=0 stack=255 upvalues=1
+  constants (16):
+    K[0] = "IsFinalize"
+    K[1] = "IsCompleteCallBack"
+    K[2] = true
+    K[3] = "NeedPerformNodeCount"
+    K[4] = "HeadNode"
+    K[5] = "AutoTriggerAllNodes"
+    K[6] = "TryTriggerNextAfterNodeComplete"
+    K[7] = "CheckGroupOver"
+    K[8] = "CheckGroupStuck"
+    K[9] = "ipairs"
+    K[10] = "OwnerCluster"
+    K[11] = "FriendlyClusters"
+    K[12] = "table"
+    K[13] = "contains"
+    K[14] = "keepOrderClusters"
+    K[15] = "RemoveNodeInServerExecuteQueue"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=11 name="_ENV"
+  locals (8):
+    L[0] = "self" pc=0-49
+    L[1] = "overNode" pc=0-49
+    L[2] = "(for state)" pc=30-44
+    L[3] = "(for state)" pc=30-44
+    L[4] = "(for state)" pc=30-44
+    L[5] = "(for state)" pc=30-44
+    L[6] = "_" pc=31-41
+    L[7] = "v" pc=31-41
+  instructions (49):
+    [0001] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "IsFinalize"]
+    [0002] TEST           A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x00008142
+    [0003] JMP            A=44 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777260 sJ=45 raw=0x80001638
+    [0004] GETFIELD       A=2 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131586 sJ=-16645629 raw=0x0101010E ; R[2] = R[1][K[1] "IsCompleteCallBack"]
+    [0005] TEST           A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x00008142
+    [0006] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0007] SETFIELD       A=1 B=1 C=2 k=1 Bx=1027 sBx=-64508 Ax=262913 sJ=-16514302 raw=0x02018092 ; R[1][K[1] "IsCompleteCallBack"] = R[2]
+    [0008] GETFIELD       A=2 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393218 sJ=-16383997 raw=0x0300010E ; R[2] = R[0][K[3] "NeedPerformNodeCount"]
+    [0009] ADDI           A=2 B=2 C=126 k=0 Bx=64516 sBx=-1019 Ax=16516098 sJ=-261117 raw=0x7E020115
+    [0010] MMBINI         A=2 B=128 C=7 k=0 Bx=3840 sBx=-61695 Ax=983042 sJ=-15794173 raw=0x0780012F
+    [0011] SETFIELD       A=0 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263680 sJ=-16513535 raw=0x02030012 ; R[0][K[3] "NeedPerformNodeCount"] = R[2]
+    [0012] GETFIELD       A=2 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524290 sJ=-16252925 raw=0x0400010E ; R[2] = R[0][K[4] "HeadNode"]
+    [0013] EQ             A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200B9
+    [0014] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0015] SELF           A=2 B=0 C=5 k=1 Bx=2561 sBx=-62974 Ax=655618 sJ=-16121597 raw=0x05008114
+    [0016] CALL           A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x01020144
+    [0017] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0018] SELF           A=2 B=0 C=6 k=1 Bx=3073 sBx=-62462 Ax=786690 sJ=-15990525 raw=0x06008114
+    [0019] MOVE           A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010200
+    [0020] CALL           A=2 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132610 sJ=-16644605 raw=0x01030144
+    [0021] SELF           A=2 B=0 C=7 k=1 Bx=3585 sBx=-61950 Ax=917762 sJ=-15859453 raw=0x07008114
+    [0022] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0023] TEST           A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x00008142
+    [0024] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0025] SELF           A=2 B=0 C=8 k=1 Bx=4097 sBx=-61438 Ax=1048834 sJ=-15728381 raw=0x08008114
+    [0026] CALL           A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x01020144
+    [0027] GETTABUP       A=2 B=0 C=9 k=0 Bx=4608 sBx=-60927 Ax=1179650 sJ=-15597565 raw=0x0900010B ; R[2] = U[0][K[9] "ipairs"]
+    [0028] GETFIELD       A=3 B=0 C=10 k=0 Bx=5120 sBx=-60415 Ax=1310723 sJ=-15466492 raw=0x0A00018E ; R[3] = R[0][K[10] "OwnerCluster"]
+    [0029] GETFIELD       A=3 B=3 C=11 k=0 Bx=5638 sBx=-59897 Ax=1443331 sJ=-15333884 raw=0x0B03018E ; R[3] = R[3][K[11] "FriendlyClusters"]
+    [0030] CALL           A=2 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656386 sJ=-16120829 raw=0x05020144
+    [0031] TFORPREP       A=2 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2562 sJ=-16774653 raw=0x0005014B
+    [0032] GETTABUP       A=8 B=0 C=12 k=0 Bx=6144 sBx=-59391 Ax=1572872 sJ=-15204343 raw=0x0C00040B ; R[8] = U[0][K[12] "table"]
+    [0033] GETFIELD       A=8 B=8 C=13 k=0 Bx=6672 sBx=-58863 Ax=1708040 sJ=-15069175 raw=0x0D08040E ; R[8] = R[8][K[13] "contains"]
+    [0034] GETFIELD       A=9 B=7 C=14 k=0 Bx=7182 sBx=-58353 Ax=1838601 sJ=-14938614 raw=0x0E07048E ; R[9] = R[7][K[14] "keepOrderClusters"]
+    [0035] GETFIELD       A=10 B=0 C=10 k=0 Bx=5120 sBx=-60415 Ax=1310730 sJ=-15466485 raw=0x0A00050E ; R[10] = R[0][K[10] "OwnerCluster"]
+    [0036] CALL           A=8 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263688 sJ=-16513527 raw=0x02030444
+    [0037] TEST           A=8 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=8 sJ=-16777207 raw=0x00000442
+    [0038] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0039] SELF           A=8 B=7 C=15 k=1 Bx=7695 sBx=-57840 Ax=1969928 sJ=-14807287 raw=0x0F078414
+    [0040] MOVE           A=10 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=522 sJ=-16776693 raw=0x00010500
+    [0041] CALL           A=8 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132616 sJ=-16644599 raw=0x01030444
+    [0042] TFORCALL       A=2 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262146 sJ=-16515069 raw=0x0200014C
+    [0043] TFORLOOP       A=2 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3074 sJ=-16774141 raw=0x0006014D
+    [0044] CLOSE          A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000136
+    [0045] GETFIELD       A=2 B=0 C=10 k=0 Bx=5120 sBx=-60415 Ax=1310722 sJ=-15466493 raw=0x0A00010E ; R[2] = R[0][K[10] "OwnerCluster"]
+    [0046] SELF           A=2 B=2 C=15 k=1 Bx=7685 sBx=-57850 Ax=1967362 sJ=-14809853 raw=0x0F028114
+    [0047] MOVE           A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010200
+    [0048] CALL           A=2 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132610 sJ=-16644605 raw=0x01030144
+    [0049] RETURN         A=2 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=770 sJ=-16776445 raw=0x00018146
+
+  function[16] source="" lines=315-320 params=1 vararg=0 stack=255 upvalues=0
+  constants (6):
+    K[0] = "HeadNode"
+    K[1] = "isPerforming"
+    K[2] = "CurTriggerNode"
+    K[3] = "IsBlockByServerExecute"
+    K[4] = "DelayTrigger"
+    K[5] = "ForcePlayNext"
+  locals (1):
+    L[0] = "self" pc=0-16
+  instructions (16):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "HeadNode"]
+    [0002] GETFIELD       A=1 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131585 sJ=-16645630 raw=0x0101008E ; R[1] = R[1][K[1] "isPerforming"]
+    [0003] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0004] JMP            A=10 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777226 sJ=11 raw=0x80000538
+    [0005] GETFIELD       A=1 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262145 sJ=-16515070 raw=0x0200008E ; R[1] = R[0][K[2] "CurTriggerNode"]
+    [0006] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0007] JMP            A=7 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777223 sJ=8 raw=0x800003B8
+    [0008] GETFIELD       A=1 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393217 sJ=-16383998 raw=0x0300008E ; R[1] = R[0][K[3] "IsBlockByServerExecute"]
+    [0009] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0010] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0011] GETFIELD       A=1 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524289 sJ=-16252926 raw=0x0400008E ; R[1] = R[0][K[4] "DelayTrigger"]
+    [0012] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0013] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0014] SELF           A=1 B=0 C=5 k=1 Bx=2561 sBx=-62974 Ax=655617 sJ=-16121598 raw=0x05008094
+    [0015] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0016] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[17] source="" lines=322-354 params=1 vararg=0 stack=255 upvalues=1
+  constants (19):
+    K[0] = "WillTriggerNodes"
+    K[1] = "zgx\u9632\u5361\u6B7B\uFF1A\u6CE8\u610F\uFF1A\u5BA2\u6237\u7AEF\u53EF\u80FD\u5DF2\u7ECF\u5361\u6B7B\u4E86\uFF0CBattlePerformGroup\u7684\u903B\u8F91\u9519\u8BEF\uFF0C\u51FA\u73B0trigger\u961F\u5217\u4E2D\u65AD\u7684\u60C5\u51B5\uFF01"
+    K[2] = "Log"
+    K[3] = "Error"
+    K[4] = "BattleReplayCachePool"
+    K[5] = "UploadBattleDataTOCrashSight"
+    K[6] = "TriggerNext"
+    K[7] = "ipairs"
+    K[8] = "GroupNodes"
+    K[9] = "isPerforming"
+    K[10] = "isPerformed"
+    K[11] = "GetExecIdx"
+    K[12] = "zgx\u9632\u5361\u6B7B\uFF1A\u6CE8\u610F\uFF1A\u5BA2\u6237\u7AEF\u53EF\u80FD\u5DF2\u7ECF\u5361\u6B7B\u4E86\uFF0C\u73B0\u5728\u5F3A\u5236\u64AD\u653E\u540C\u4E00\u4E2AGroup\u4E0B\u7684\u5176\u4ED6\u8282\u70B9:"
+    K[13] = "GetNodeIdx"
+    K[14] = "PlayNode"
+    K[15] = "zgx\u9632\u5361\u6B7B\uFF1A\u6CE8\u610F\uFF1A\u5BA2\u6237\u7AEF\u53EF\u80FD\u5DF2\u7ECF\u5361\u6B7B\u4E86\uFF0C\u53EF\u80FD\u6570\u636E\u7EDF\u8BA1\u9519\u8BEF,\u73B0\u5728\u5F3A\u5236\u7ED3\u675FGroup :"
+    K[16] = "NeedPerformNodeCount"
+    K[17] = "nil!!"
+    K[18] = "PlayComplete"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=11 name="_ENV"
+  locals (11):
+    L[0] = "self" pc=0-76
+    L[1] = "errorMsg" pc=5-15
+    L[2] = "forceNode" pc=17-75
+    L[3] = "(for state)" pc=20-41
+    L[4] = "(for state)" pc=20-41
+    L[5] = "(for state)" pc=20-41
+    L[6] = "(for state)" pc=20-41
+    L[7] = "_" pc=21-38
+    L[8] = "v" pc=21-38
+    L[9] = "errorMsg" pc=47-58
+    L[10] = "errorMsg" pc=65-75
+  instructions (76):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "WillTriggerNodes"]
+    [0002] LEN            A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100B4
+    [0003] GTI            A=1 B=127 C=0 k=0 Bx=254 sBx=-65281 Ax=65025 sJ=-16712190 raw=0x007F00C0
+    [0004] JMP            A=11 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777227 sJ=12 raw=0x800005B8
+    [0005] LOADK          A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x00008083 ; R[1] = K[1] "zgx\u9632\u5361\u6B7B\uFF1A\u6CE8\u610F\uFF1A\u5BA2\u6237\u7AEF\u53EF\u80FD\u5DF2\u7ECF\u5361\u6B7B\u4E86\uFF0CBattlePerformGroup\u7684\u903B\u8F91\u9519\u8BEF\uFF0C\u51FA\u73B0trigger\u961F\u5217\u4E2D\u65AD\u7684\u60C5\u51B5\uFF01"
+    [0006] GETTABUP       A=2 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262146 sJ=-16515069 raw=0x0200010B ; R[2] = U[0][K[2] "Log"]
+    [0007] GETFIELD       A=2 B=2 C=3 k=0 Bx=1540 sBx=-63995 Ax=394242 sJ=-16382973 raw=0x0302010E ; R[2] = R[2][K[3] "Error"]
+    [0008] MOVE           A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x00010180
+    [0009] CALL           A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x01020144
+    [0010] GETTABUP       A=2 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524290 sJ=-16252925 raw=0x0400010B ; R[2] = U[0][K[4] "BattleReplayCachePool"]
+    [0011] SELF           A=2 B=2 C=5 k=1 Bx=2565 sBx=-62970 Ax=656642 sJ=-16120573 raw=0x05028114
+    [0012] MOVE           A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010200
+    [0013] CALL           A=2 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132610 sJ=-16644605 raw=0x01030144
+    [0014] SELF           A=2 B=0 C=6 k=1 Bx=3073 sBx=-62462 Ax=786690 sJ=-15990525 raw=0x06008114
+    [0015] CALL           A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x01020144
+    [0016] JMP            A=58 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777274 sJ=59 raw=0x80001D38
+    [0017] LOADNIL        A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000088
+    [0018] GETTABUP       A=2 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917506 sJ=-15859709 raw=0x0700010B ; R[2] = U[0][K[7] "ipairs"]
+    [0019] GETFIELD       A=3 B=0 C=8 k=0 Bx=4096 sBx=-61439 Ax=1048579 sJ=-15728636 raw=0x0800018E ; R[3] = R[0][K[8] "GroupNodes"]
+    [0020] CALL           A=2 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656386 sJ=-16120829 raw=0x05020144
+    [0021] TFORPREP       A=2 B=8 C=0 k=1 Bx=17 sBx=-65518 Ax=4354 sJ=-16772861 raw=0x0008814B
+    [0022] GETFIELD       A=8 B=7 C=9 k=0 Bx=4622 sBx=-60913 Ax=1183240 sJ=-15593975 raw=0x0907040E ; R[8] = R[7][K[9] "isPerforming"]
+    [0023] TEST           A=8 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=264 sJ=-16776951 raw=0x00008442
+    [0024] JMP            A=13 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777229 sJ=14 raw=0x800006B8
+    [0025] GETFIELD       A=8 B=7 C=10 k=0 Bx=5134 sBx=-60401 Ax=1314312 sJ=-15462903 raw=0x0A07040E ; R[8] = R[7][K[10] "isPerformed"]
+    [0026] TEST           A=8 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=264 sJ=-16776951 raw=0x00008442
+    [0027] JMP            A=10 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777226 sJ=11 raw=0x80000538
+    [0028] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0029] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0030] MOVE           A=1 B=7 C=0 k=0 Bx=14 sBx=-65521 Ax=3585 sJ=-16773630 raw=0x00070080
+    [0031] JMP            A=6 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777222 sJ=7 raw=0x80000338
+    [0032] SELF           A=8 B=7 C=11 k=1 Bx=5647 sBx=-59888 Ax=1445640 sJ=-15331575 raw=0x0B078414
+    [0033] CALL           A=8 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263176 sJ=-16514039 raw=0x02020444
+    [0034] SELF           A=9 B=1 C=11 k=1 Bx=5635 sBx=-59900 Ax=1442569 sJ=-15334646 raw=0x0B018494
+    [0035] CALL           A=9 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263177 sJ=-16514038 raw=0x020204C4
+    [0036] LT             A=8 B=9 C=0 k=0 Bx=18 sBx=-65517 Ax=4616 sJ=-16772599 raw=0x0009043A
+    [0037] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0038] MOVE           A=1 B=7 C=0 k=0 Bx=14 sBx=-65521 Ax=3585 sJ=-16773630 raw=0x00070080
+    [0039] TFORCALL       A=2 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262146 sJ=-16515069 raw=0x0200014C
+    [0040] TFORLOOP       A=2 B=9 C=0 k=1 Bx=19 sBx=-65516 Ax=4866 sJ=-16772349 raw=0x0009814D
+    [0041] CLOSE          A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000136
+    [0042] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0043] JMP            A=15 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777231 sJ=16 raw=0x800007B8
+    [0044] LOADK          A=2 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3074 sJ=-16774141 raw=0x00060103 ; R[2] = K[12] "zgx\u9632\u5361\u6B7B\uFF1A\u6CE8\u610F\uFF1A\u5BA2\u6237\u7AEF\u53EF\u80FD\u5DF2\u7ECF\u5361\u6B7B\u4E86\uFF0C\u73B0\u5728\u5F3A\u5236\u64AD\u653E\u540C\u4E00\u4E2AGroup\u4E0B\u7684\u5176\u4ED6\u8282\u70B9:"
+    [0045] SELF           A=3 B=1 C=13 k=1 Bx=6659 sBx=-58876 Ax=1704707 sJ=-15072508 raw=0x0D018194
+    [0046] CALL           A=3 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263171 sJ=-16514044 raw=0x020201C4
+    [0047] CONCAT         A=2 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1026 sJ=-16776189 raw=0x00020135
+    [0048] GETTABUP       A=3 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262147 sJ=-16515068 raw=0x0200018B ; R[3] = U[0][K[2] "Log"]
+    [0049] GETFIELD       A=3 B=3 C=3 k=0 Bx=1542 sBx=-63993 Ax=394755 sJ=-16382460 raw=0x0303018E ; R[3] = R[3][K[3] "Error"]
+    [0050] MOVE           A=4 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1028 sJ=-16776187 raw=0x00020200
+    [0051] CALL           A=3 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132099 sJ=-16645116 raw=0x010201C4
+    [0052] GETTABUP       A=3 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524291 sJ=-16252924 raw=0x0400018B ; R[3] = U[0][K[4] "BattleReplayCachePool"]
+    [0053] SELF           A=3 B=3 C=5 k=1 Bx=2567 sBx=-62968 Ax=657155 sJ=-16120060 raw=0x05038194
+    [0054] MOVE           A=5 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1029 sJ=-16776186 raw=0x00020280
+    [0055] CALL           A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x010301C4
+    [0056] SELF           A=3 B=0 C=14 k=1 Bx=7169 sBx=-58366 Ax=1835267 sJ=-14941948 raw=0x0E008194
+    [0057] MOVE           A=5 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=517 sJ=-16776698 raw=0x00010280
+    [0058] CALL           A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x010301C4
+    [0059] JMP            A=15 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777231 sJ=16 raw=0x800007B8
+    [0060] LOADK          A=2 B=7 C=0 k=1 Bx=15 sBx=-65520 Ax=3842 sJ=-16773373 raw=0x00078103 ; R[2] = K[15] "zgx\u9632\u5361\u6B7B\uFF1A\u6CE8\u610F\uFF1A\u5BA2\u6237\u7AEF\u53EF\u80FD\u5DF2\u7ECF\u5361\u6B7B\u4E86\uFF0C\u53EF\u80FD\u6570\u636E\u7EDF\u8BA1\u9519\u8BEF,\u73B0\u5728\u5F3A\u5236\u7ED3\u675FGroup :"
+    [0061] GETFIELD       A=3 B=0 C=16 k=0 Bx=8192 sBx=-57343 Ax=2097155 sJ=-14680060 raw=0x1000018E ; R[3] = R[0][K[16] "NeedPerformNodeCount"]
+    [0062] TEST           A=3 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=259 sJ=-16776956 raw=0x000081C2
+    [0063] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0064] LOADK          A=3 B=8 C=0 k=1 Bx=17 sBx=-65518 Ax=4355 sJ=-16772860 raw=0x00088183 ; R[3] = K[17] "nil!!"
+    [0065] CONCAT         A=2 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1026 sJ=-16776189 raw=0x00020135
+    [0066] GETTABUP       A=3 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262147 sJ=-16515068 raw=0x0200018B ; R[3] = U[0][K[2] "Log"]
+    [0067] GETFIELD       A=3 B=3 C=3 k=0 Bx=1542 sBx=-63993 Ax=394755 sJ=-16382460 raw=0x0303018E ; R[3] = R[3][K[3] "Error"]
+    [0068] MOVE           A=4 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1028 sJ=-16776187 raw=0x00020200
+    [0069] CALL           A=3 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132099 sJ=-16645116 raw=0x010201C4
+    [0070] GETTABUP       A=3 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524291 sJ=-16252924 raw=0x0400018B ; R[3] = U[0][K[4] "BattleReplayCachePool"]
+    [0071] SELF           A=3 B=3 C=5 k=1 Bx=2567 sBx=-62968 Ax=657155 sJ=-16120060 raw=0x05038194
+    [0072] MOVE           A=5 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1029 sJ=-16776186 raw=0x00020280
+    [0073] CALL           A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x010301C4
+    [0074] SELF           A=3 B=0 C=18 k=1 Bx=9217 sBx=-56318 Ax=2359555 sJ=-14417660 raw=0x12008194
+    [0075] CALL           A=3 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132099 sJ=-16645116 raw=0x010201C4
+    [0076] RETURN         A=1 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=769 sJ=-16776446 raw=0x000180C6
+
+  function[18] source="" lines=356-362 params=1 vararg=0 stack=255 upvalues=0
+  constants (4):
+    K[0] = "NeedPerformNodeCount"
+    K[1] = "WillTriggerNodes"
+    K[2] = "CurTriggerNode"
+    K[3] = "PlayComplete"
+  locals (1):
+    L[0] = "self" pc=0-17
+  instructions (17):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "NeedPerformNodeCount"]
+    [0002] EQI            A=1 B=127 C=0 k=0 Bx=254 sBx=-65281 Ax=65025 sJ=-16712190 raw=0x007F00BD
+    [0003] JMP            A=10 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777226 sJ=11 raw=0x80000538
+    [0004] GETFIELD       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008E ; R[1] = R[0][K[1] "WillTriggerNodes"]
+    [0005] LEN            A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100B4
+    [0006] EQI            A=1 B=127 C=0 k=0 Bx=254 sBx=-65281 Ax=65025 sJ=-16712190 raw=0x007F00BD
+    [0007] JMP            A=6 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777222 sJ=7 raw=0x80000338
+    [0008] GETFIELD       A=1 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262145 sJ=-16515070 raw=0x0200008E ; R[1] = R[0][K[2] "CurTriggerNode"]
+    [0009] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0010] JMP            A=3 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777219 sJ=4 raw=0x800001B8
+    [0011] SELF           A=1 B=0 C=3 k=1 Bx=1537 sBx=-63998 Ax=393473 sJ=-16383742 raw=0x03008094
+    [0012] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0013] LOADTRUE       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000087
+    [0014] RETURN1        A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C8
+    [0015] LOADFALSE      A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000085
+    [0016] RETURN1        A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C8
+    [0017] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[19] source="" lines=364-371 params=1 vararg=0 stack=255 upvalues=1
+  constants (8):
+    K[0] = "IsPerforming"
+    K[1] = "IsPerformed"
+    K[2] = false
+    K[3] = true
+    K[4] = "BattlePerformDebug"
+    K[5] = "DebugGroupStop"
+    K[6] = "OwnerCluster"
+    K[7] = "GroupCompleteCallBack"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=4 name="_ENV"
+  locals (1):
+    L[0] = "self" pc=0-17
+  instructions (17):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "IsPerforming"]
+    [0002] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0003] JMP            A=12 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777228 sJ=13 raw=0x80000638
+    [0004] GETFIELD       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008E ; R[1] = R[0][K[1] "IsPerformed"]
+    [0005] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0006] JMP            A=9 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777225 sJ=10 raw=0x800004B8
+    [0007] SETFIELD       A=0 B=0 C=2 k=1 Bx=1025 sBx=-64510 Ax=262400 sJ=-16514815 raw=0x02008012 ; R[0][K[0] "IsPerforming"] = R[2]
+    [0008] SETFIELD       A=0 B=1 C=3 k=1 Bx=1539 sBx=-63996 Ax=393984 sJ=-16383231 raw=0x03018012 ; R[0][K[1] "IsPerformed"] = R[3]
+    [0009] GETTABUP       A=1 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524289 sJ=-16252926 raw=0x0400008B ; R[1] = U[0][K[4] "BattlePerformDebug"]
+    [0010] GETFIELD       A=1 B=1 C=5 k=0 Bx=2562 sBx=-62973 Ax=655873 sJ=-16121342 raw=0x0501008E ; R[1] = R[1][K[5] "DebugGroupStop"]
+    [0011] MOVE           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000100
+    [0012] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0013] GETFIELD       A=1 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786433 sJ=-15990782 raw=0x0600008E ; R[1] = R[0][K[6] "OwnerCluster"]
+    [0014] SELF           A=1 B=1 C=7 k=1 Bx=3587 sBx=-61948 Ax=918273 sJ=-15858942 raw=0x07018094
+    [0015] MOVE           A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000180
+    [0016] CALL           A=1 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132609 sJ=-16644606 raw=0x010300C4
+    [0017] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[20] source="" lines=373-384 params=1 vararg=0 stack=255 upvalues=1
+  constants (11):
+    K[0] = "IsFinalize"
+    K[1] = true
+    K[2] = "WillTriggerNodes"
+    K[3] = "GroupNodes"
+    K[4] = "ipairs"
+    K[5] = "isPerforming"
+    K[6] = "PlayComplete"
+    K[7] = "d_TriggerNext"
+    K[8] = "_G"
+    K[9] = "DelayManager"
+    K[10] = "CancelDelayByIdEx"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=9 name="_ENV"
+  locals (7):
+    L[0] = "self" pc=0-26
+    L[1] = "(for state)" pc=10-19
+    L[2] = "(for state)" pc=10-19
+    L[3] = "(for state)" pc=10-19
+    L[4] = "(for state)" pc=10-19
+    L[5] = "_" pc=11-16
+    L[6] = "node" pc=11-16
+  instructions (26):
+    [0001] SETFIELD       A=0 B=0 C=1 k=1 Bx=513 sBx=-65022 Ax=131328 sJ=-16645887 raw=0x01008012 ; R[0][K[0] "IsFinalize"] = R[1]
+    [0002] NEWTABLE       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000093
+    [0003] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0004] SETFIELD       A=0 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132096 sJ=-16645119 raw=0x01020012 ; R[0][K[2] "WillTriggerNodes"] = R[1]
+    [0005] GETFIELD       A=1 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393217 sJ=-16383998 raw=0x0300008E ; R[1] = R[0][K[3] "GroupNodes"]
+    [0006] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0007] JMP            A=11 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777227 sJ=12 raw=0x800005B8
+    [0008] GETTABUP       A=1 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524289 sJ=-16252926 raw=0x0400008B ; R[1] = U[0][K[4] "ipairs"]
+    [0009] GETFIELD       A=2 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393218 sJ=-16383997 raw=0x0300010E ; R[2] = R[0][K[3] "GroupNodes"]
+    [0010] CALL           A=1 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656385 sJ=-16120830 raw=0x050200C4
+    [0011] TFORPREP       A=1 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1281 sJ=-16775934 raw=0x000280CB
+    [0012] GETFIELD       A=7 B=6 C=5 k=0 Bx=2572 sBx=-62963 Ax=658439 sJ=-16118776 raw=0x0506038E ; R[7] = R[6][K[5] "isPerforming"]
+    [0013] TEST           A=7 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=7 sJ=-16777208 raw=0x000003C2
+    [0014] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0015] SELF           A=7 B=6 C=6 k=1 Bx=3085 sBx=-62450 Ax=789767 sJ=-15987448 raw=0x06068394
+    [0016] CALL           A=7 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132103 sJ=-16645112 raw=0x010203C4
+    [0017] TFORCALL       A=1 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262145 sJ=-16515070 raw=0x020000CC
+    [0018] TFORLOOP       A=1 B=3 C=0 k=1 Bx=7 sBx=-65528 Ax=1793 sJ=-16775422 raw=0x000380CD
+    [0019] CLOSE          A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000B6
+    [0020] GETTABUP       A=1 B=0 C=8 k=0 Bx=4096 sBx=-61439 Ax=1048577 sJ=-15728638 raw=0x0800008B ; R[1] = U[0][K[8] "_G"]
+    [0021] GETFIELD       A=1 B=1 C=9 k=0 Bx=4610 sBx=-60925 Ax=1180161 sJ=-15597054 raw=0x0901008E ; R[1] = R[1][K[9] "DelayManager"]
+    [0022] SELF           A=1 B=1 C=10 k=1 Bx=5123 sBx=-60412 Ax=1311489 sJ=-15465726 raw=0x0A018094
+    [0023] GETFIELD       A=3 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917507 sJ=-15859708 raw=0x0700018E ; R[3] = R[0][K[7] "d_TriggerNext"]
+    [0024] CALL           A=1 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263681 sJ=-16513534 raw=0x020300C4
+    [0025] SETFIELD       A=0 B=7 C=1 k=0 Bx=526 sBx=-65009 Ax=134656 sJ=-16642559 raw=0x01070012 ; R[0][K[7] "d_TriggerNext"] = R[1]
+    [0026] RETURN         A=1 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=769 sJ=-16776446 raw=0x000180C6
+
+  function[21] source="" lines=386-392 params=1 vararg=0 stack=255 upvalues=1
+  constants (6):
+    K[0] = "pairs"
+    K[1] = "GroupNodes"
+    K[2] = "isPerformed"
+    K[3] = "Log"
+    K[4] = "Error"
+    K[5] = "GetNodeIdx"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=10 name="_ENV"
+  locals (7):
+    L[0] = "self" pc=0-17
+    L[1] = "(for state)" pc=3-16
+    L[2] = "(for state)" pc=3-16
+    L[3] = "(for state)" pc=3-16
+    L[4] = "(for state)" pc=3-16
+    L[5] = "k" pc=4-13
+    L[6] = "v" pc=4-13
+  instructions (17):
+    [0001] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "pairs"]
+    [0002] GETFIELD       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010E ; R[2] = R[0][K[1] "GroupNodes"]
+    [0003] CALL           A=1 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656385 sJ=-16120830 raw=0x050200C4
+    [0004] TFORPREP       A=1 B=4 C=0 k=1 Bx=9 sBx=-65526 Ax=2305 sJ=-16774910 raw=0x000480CB
+    [0005] GETFIELD       A=7 B=6 C=2 k=0 Bx=1036 sBx=-64499 Ax=265223 sJ=-16511992 raw=0x0206038E ; R[7] = R[6][K[2] "isPerformed"]
+    [0006] TEST           A=7 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=263 sJ=-16776952 raw=0x000083C2
+    [0007] JMP            A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x800002B8
+    [0008] GETTABUP       A=7 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393223 sJ=-16383992 raw=0x0300038B ; R[7] = U[0][K[3] "Log"]
+    [0009] GETFIELD       A=7 B=7 C=4 k=0 Bx=2062 sBx=-63473 Ax=527879 sJ=-16249336 raw=0x0407038E ; R[7] = R[7][K[4] "Error"]
+    [0010] SELF           A=8 B=6 C=5 k=1 Bx=2573 sBx=-62962 Ax=658696 sJ=-16118519 raw=0x05068414
+    [0011] CALL           A=8 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263176 sJ=-16514039 raw=0x02020444
+    [0012] GETFIELD       A=9 B=6 C=2 k=0 Bx=1036 sBx=-64499 Ax=265225 sJ=-16511990 raw=0x0206048E ; R[9] = R[6][K[2] "isPerformed"]
+    [0013] CALL           A=7 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132615 sJ=-16644600 raw=0x010303C4
+    [0014] TFORCALL       A=1 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262145 sJ=-16515070 raw=0x020000CC
+    [0015] TFORLOOP       A=1 B=5 C=0 k=1 Bx=11 sBx=-65524 Ax=2817 sJ=-16774398 raw=0x000580CD
+    [0016] CLOSE          A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000B6
+    [0017] RETURN         A=1 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=769 sJ=-16776446 raw=0x000180C6

@@ -1,0 +1,148 @@
+-- path: Content/ScriptC/NewRoco/Modules/Core/Battle/BattleModuleHead.luac
+-- format: decrypted standard Lua 5.4 bytecode
+-- note: disassembly, not original source
+
+main source="@NewRoco\\Modules\\Core\\Battle\\BattleModuleHead.lua" lines=0-0 params=0 vararg=1 stack=255 upvalues=1
+constants (4):
+  K[0] = "NRCModuleHeadBase"
+  K[1] = "Extend"
+  K[2] = "BattleModuleHead"
+  K[3] = "OnConstruct"
+upvalues (1):
+  U[0] = instack=0 idx=0 kind=3 name="_ENV"
+locals (1):
+  L[0] = "BattleModuleHead" pc=5-9
+instructions (9):
+  [0001] VARARGPREP     A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000051
+  [0002] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "NRCModuleHeadBase"]
+  [0003] SELF           A=0 B=0 C=1 k=1 Bx=513 sBx=-65022 Ax=131328 sJ=-16645887 raw=0x01008014
+  [0004] LOADK          A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010103 ; R[2] = K[2] "BattleModuleHead"
+  [0005] CALL           A=0 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263680 sJ=-16513535 raw=0x02030044
+  [0006] CLOSURE        A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000CF ; R[1] = function[0]
+  [0007] SETFIELD       A=0 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132608 sJ=-16644607 raw=0x01030012 ; R[0][K[3] "OnConstruct"] = R[1]
+  [0008] RETURN         A=0 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132096 sJ=-16645119 raw=0x01020046
+  [0009] RETURN         A=1 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131585 sJ=-16645630 raw=0x010100C6
+
+  function[0] source="" lines=3-21 params=1 vararg=0 stack=255 upvalues=1
+  constants (35):
+    K[0] = "_G"
+    K[1] = "BattleEnv"
+    K[2] = "reload"
+    K[3] = "NewRoco.Modules.Core.Battle.Common.BattleEnv"
+    K[4] = "BattleModuleCmd"
+    K[5] = "NewRoco.Modules.Core.Battle.BattleModuleCmd"
+    K[6] = "BattleDefine"
+    K[7] = "NewRoco.Modules.Core.Battle.Common.BattleDefine"
+    K[8] = "BattleConst"
+    K[9] = "NewRoco.Modules.Core.Battle.Common.BattleConst"
+    K[10] = "BattleUtils"
+    K[11] = "require"
+    K[12] = "NewRoco.Modules.Core.Battle.Common.BattleUtils"
+    K[13] = "BattleBossChallengeUtils"
+    K[14] = "NewRoco.Modules.Core.Battle.Common.BattleBossChallengeUtils"
+    K[15] = "BindCmd"
+    K[16] = "IsInBattle"
+    K[17] = "OnIsInBattle"
+    K[18] = "GetBattleFieldCenterPos"
+    K[19] = "OnGetBattleFieldCenterPos"
+    K[20] = "GetBattleFieldRadius"
+    K[21] = "OnGetBattleFieldRadius"
+    K[22] = "CheckNpcInHideRange"
+    K[23] = "OnCheckNpcInHideRange"
+    K[24] = "OnSelectExtraCatchBall"
+    K[25] = "LoadBattleFieldLevel"
+    K[26] = "OnCmdLoadBattleFieldLevel"
+    K[27] = "GetBattleFieldLevelIsReady"
+    K[28] = "OnCmdGetBattleFieldLevelIsReady"
+    K[29] = "GetCurrentBattleFieldActor"
+    K[30] = "OnCmdGetCurrentBattleFieldActor"
+    K[31] = "CollectSkillEnhanceInfoForChangePetAttr"
+    K[32] = "OnCmdCollectSkillEnhanceInfoForChangePetAttr"
+    K[33] = "GetPvpConfByBattleType"
+    K[34] = "OnCmdGetPvpConfByBattleType"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=5 name="_ENV"
+  locals (1):
+    L[0] = "self" pc=0-81
+  instructions (81):
+    [0001] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "_G"]
+    [0002] GETTABUP       A=2 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262146 sJ=-16515069 raw=0x0200010B ; R[2] = U[0][K[2] "reload"]
+    [0003] LOADK          A=3 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=771 sJ=-16776444 raw=0x00018183 ; R[3] = K[3] "NewRoco.Modules.Core.Battle.Common.BattleEnv"
+    [0004] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0005] SETFIELD       A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x02010092 ; R[1][K[1] "BattleEnv"] = R[2]
+    [0006] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "_G"]
+    [0007] GETTABUP       A=2 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262146 sJ=-16515069 raw=0x0200010B ; R[2] = U[0][K[2] "reload"]
+    [0008] LOADK          A=3 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1283 sJ=-16775932 raw=0x00028183 ; R[3] = K[5] "NewRoco.Modules.Core.Battle.BattleModuleCmd"
+    [0009] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0010] SETFIELD       A=1 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264193 sJ=-16513022 raw=0x02040092 ; R[1][K[4] "BattleModuleCmd"] = R[2]
+    [0011] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "_G"]
+    [0012] GETTABUP       A=2 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262146 sJ=-16515069 raw=0x0200010B ; R[2] = U[0][K[2] "reload"]
+    [0013] LOADK          A=3 B=3 C=0 k=1 Bx=7 sBx=-65528 Ax=1795 sJ=-16775420 raw=0x00038183 ; R[3] = K[7] "NewRoco.Modules.Core.Battle.Common.BattleDefine"
+    [0014] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0015] SETFIELD       A=1 B=6 C=2 k=0 Bx=1036 sBx=-64499 Ax=265217 sJ=-16511998 raw=0x02060092 ; R[1][K[6] "BattleDefine"] = R[2]
+    [0016] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "_G"]
+    [0017] GETTABUP       A=2 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262146 sJ=-16515069 raw=0x0200010B ; R[2] = U[0][K[2] "reload"]
+    [0018] LOADK          A=3 B=4 C=0 k=1 Bx=9 sBx=-65526 Ax=2307 sJ=-16774908 raw=0x00048183 ; R[3] = K[9] "NewRoco.Modules.Core.Battle.Common.BattleConst"
+    [0019] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0020] SETFIELD       A=1 B=8 C=2 k=0 Bx=1040 sBx=-64495 Ax=266241 sJ=-16510974 raw=0x02080092 ; R[1][K[8] "BattleConst"] = R[2]
+    [0021] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "_G"]
+    [0022] GETTABUP       A=2 B=0 C=11 k=0 Bx=5632 sBx=-59903 Ax=1441794 sJ=-15335421 raw=0x0B00010B ; R[2] = U[0][K[11] "require"]
+    [0023] LOADK          A=3 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3075 sJ=-16774140 raw=0x00060183 ; R[3] = K[12] "NewRoco.Modules.Core.Battle.Common.BattleUtils"
+    [0024] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0025] SETFIELD       A=1 B=10 C=2 k=0 Bx=1044 sBx=-64491 Ax=267265 sJ=-16509950 raw=0x020A0092 ; R[1][K[10] "BattleUtils"] = R[2]
+    [0026] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "_G"]
+    [0027] GETTABUP       A=2 B=0 C=11 k=0 Bx=5632 sBx=-59903 Ax=1441794 sJ=-15335421 raw=0x0B00010B ; R[2] = U[0][K[11] "require"]
+    [0028] LOADK          A=3 B=7 C=0 k=0 Bx=14 sBx=-65521 Ax=3587 sJ=-16773628 raw=0x00070183 ; R[3] = K[14] "NewRoco.Modules.Core.Battle.Common.BattleBossChallengeUtils"
+    [0029] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0030] SETFIELD       A=1 B=13 C=2 k=0 Bx=1050 sBx=-64485 Ax=268801 sJ=-16508414 raw=0x020D0092 ; R[1][K[13] "BattleBossChallengeUtils"] = R[2]
+    [0031] SELF           A=1 B=0 C=15 k=1 Bx=7681 sBx=-57854 Ax=1966337 sJ=-14810878 raw=0x0F008094
+    [0032] GETTABUP       A=3 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524291 sJ=-16252924 raw=0x0400018B ; R[3] = U[0][K[4] "BattleModuleCmd"]
+    [0033] GETFIELD       A=3 B=3 C=16 k=0 Bx=8198 sBx=-57337 Ax=2098691 sJ=-14678524 raw=0x1003018E ; R[3] = R[3][K[16] "IsInBattle"]
+    [0034] LOADK          A=4 B=8 C=0 k=1 Bx=17 sBx=-65518 Ax=4356 sJ=-16772859 raw=0x00088203 ; R[4] = K[17] "OnIsInBattle"
+    [0035] CALL           A=1 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133121 sJ=-16644094 raw=0x010400C4
+    [0036] SELF           A=1 B=0 C=15 k=1 Bx=7681 sBx=-57854 Ax=1966337 sJ=-14810878 raw=0x0F008094
+    [0037] GETTABUP       A=3 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524291 sJ=-16252924 raw=0x0400018B ; R[3] = U[0][K[4] "BattleModuleCmd"]
+    [0038] GETFIELD       A=3 B=3 C=18 k=0 Bx=9222 sBx=-56313 Ax=2360835 sJ=-14416380 raw=0x1203018E ; R[3] = R[3][K[18] "GetBattleFieldCenterPos"]
+    [0039] LOADK          A=4 B=9 C=0 k=1 Bx=19 sBx=-65516 Ax=4868 sJ=-16772347 raw=0x00098203 ; R[4] = K[19] "OnGetBattleFieldCenterPos"
+    [0040] CALL           A=1 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133121 sJ=-16644094 raw=0x010400C4
+    [0041] SELF           A=1 B=0 C=15 k=1 Bx=7681 sBx=-57854 Ax=1966337 sJ=-14810878 raw=0x0F008094
+    [0042] GETTABUP       A=3 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524291 sJ=-16252924 raw=0x0400018B ; R[3] = U[0][K[4] "BattleModuleCmd"]
+    [0043] GETFIELD       A=3 B=3 C=20 k=0 Bx=10246 sBx=-55289 Ax=2622979 sJ=-14154236 raw=0x1403018E ; R[3] = R[3][K[20] "GetBattleFieldRadius"]
+    [0044] LOADK          A=4 B=10 C=0 k=1 Bx=21 sBx=-65514 Ax=5380 sJ=-16771835 raw=0x000A8203 ; R[4] = K[21] "OnGetBattleFieldRadius"
+    [0045] CALL           A=1 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133121 sJ=-16644094 raw=0x010400C4
+    [0046] SELF           A=1 B=0 C=15 k=1 Bx=7681 sBx=-57854 Ax=1966337 sJ=-14810878 raw=0x0F008094
+    [0047] GETTABUP       A=3 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524291 sJ=-16252924 raw=0x0400018B ; R[3] = U[0][K[4] "BattleModuleCmd"]
+    [0048] GETFIELD       A=3 B=3 C=22 k=0 Bx=11270 sBx=-54265 Ax=2885123 sJ=-13892092 raw=0x1603018E ; R[3] = R[3][K[22] "CheckNpcInHideRange"]
+    [0049] LOADK          A=4 B=11 C=0 k=1 Bx=23 sBx=-65512 Ax=5892 sJ=-16771323 raw=0x000B8203 ; R[4] = K[23] "OnCheckNpcInHideRange"
+    [0050] CALL           A=1 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133121 sJ=-16644094 raw=0x010400C4
+    [0051] SELF           A=1 B=0 C=15 k=1 Bx=7681 sBx=-57854 Ax=1966337 sJ=-14810878 raw=0x0F008094
+    [0052] GETTABUP       A=3 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524291 sJ=-16252924 raw=0x0400018B ; R[3] = U[0][K[4] "BattleModuleCmd"]
+    [0053] GETFIELD       A=3 B=3 C=24 k=0 Bx=12294 sBx=-53241 Ax=3147267 sJ=-13629948 raw=0x1803018E ; R[3] = R[3][K[24] "OnSelectExtraCatchBall"]
+    [0054] LOADK          A=4 B=12 C=0 k=0 Bx=24 sBx=-65511 Ax=6148 sJ=-16771067 raw=0x000C0203 ; R[4] = K[24] "OnSelectExtraCatchBall"
+    [0055] CALL           A=1 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133121 sJ=-16644094 raw=0x010400C4
+    [0056] SELF           A=1 B=0 C=15 k=1 Bx=7681 sBx=-57854 Ax=1966337 sJ=-14810878 raw=0x0F008094
+    [0057] GETTABUP       A=3 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524291 sJ=-16252924 raw=0x0400018B ; R[3] = U[0][K[4] "BattleModuleCmd"]
+    [0058] GETFIELD       A=3 B=3 C=25 k=0 Bx=12806 sBx=-52729 Ax=3278339 sJ=-13498876 raw=0x1903018E ; R[3] = R[3][K[25] "LoadBattleFieldLevel"]
+    [0059] LOADK          A=4 B=13 C=0 k=0 Bx=26 sBx=-65509 Ax=6660 sJ=-16770555 raw=0x000D0203 ; R[4] = K[26] "OnCmdLoadBattleFieldLevel"
+    [0060] CALL           A=1 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133121 sJ=-16644094 raw=0x010400C4
+    [0061] SELF           A=1 B=0 C=15 k=1 Bx=7681 sBx=-57854 Ax=1966337 sJ=-14810878 raw=0x0F008094
+    [0062] GETTABUP       A=3 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524291 sJ=-16252924 raw=0x0400018B ; R[3] = U[0][K[4] "BattleModuleCmd"]
+    [0063] GETFIELD       A=3 B=3 C=27 k=0 Bx=13830 sBx=-51705 Ax=3540483 sJ=-13236732 raw=0x1B03018E ; R[3] = R[3][K[27] "GetBattleFieldLevelIsReady"]
+    [0064] LOADK          A=4 B=14 C=0 k=0 Bx=28 sBx=-65507 Ax=7172 sJ=-16770043 raw=0x000E0203 ; R[4] = K[28] "OnCmdGetBattleFieldLevelIsReady"
+    [0065] CALL           A=1 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133121 sJ=-16644094 raw=0x010400C4
+    [0066] SELF           A=1 B=0 C=15 k=1 Bx=7681 sBx=-57854 Ax=1966337 sJ=-14810878 raw=0x0F008094
+    [0067] GETTABUP       A=3 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524291 sJ=-16252924 raw=0x0400018B ; R[3] = U[0][K[4] "BattleModuleCmd"]
+    [0068] GETFIELD       A=3 B=3 C=29 k=0 Bx=14854 sBx=-50681 Ax=3802627 sJ=-12974588 raw=0x1D03018E ; R[3] = R[3][K[29] "GetCurrentBattleFieldActor"]
+    [0069] LOADK          A=4 B=15 C=0 k=0 Bx=30 sBx=-65505 Ax=7684 sJ=-16769531 raw=0x000F0203 ; R[4] = K[30] "OnCmdGetCurrentBattleFieldActor"
+    [0070] CALL           A=1 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133121 sJ=-16644094 raw=0x010400C4
+    [0071] SELF           A=1 B=0 C=15 k=1 Bx=7681 sBx=-57854 Ax=1966337 sJ=-14810878 raw=0x0F008094
+    [0072] GETTABUP       A=3 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524291 sJ=-16252924 raw=0x0400018B ; R[3] = U[0][K[4] "BattleModuleCmd"]
+    [0073] GETFIELD       A=3 B=3 C=31 k=0 Bx=15878 sBx=-49657 Ax=4064771 sJ=-12712444 raw=0x1F03018E ; R[3] = R[3][K[31] "CollectSkillEnhanceInfoForChangePetAttr"]
+    [0074] LOADK          A=4 B=16 C=0 k=0 Bx=32 sBx=-65503 Ax=8196 sJ=-16769019 raw=0x00100203 ; R[4] = K[32] "OnCmdCollectSkillEnhanceInfoForChangePetAttr"
+    [0075] CALL           A=1 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133121 sJ=-16644094 raw=0x010400C4
+    [0076] SELF           A=1 B=0 C=15 k=1 Bx=7681 sBx=-57854 Ax=1966337 sJ=-14810878 raw=0x0F008094
+    [0077] GETTABUP       A=3 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524291 sJ=-16252924 raw=0x0400018B ; R[3] = U[0][K[4] "BattleModuleCmd"]
+    [0078] GETFIELD       A=3 B=3 C=33 k=0 Bx=16902 sBx=-48633 Ax=4326915 sJ=-12450300 raw=0x2103018E ; R[3] = R[3][K[33] "GetPvpConfByBattleType"]
+    [0079] LOADK          A=4 B=17 C=0 k=0 Bx=34 sBx=-65501 Ax=8708 sJ=-16768507 raw=0x00110203 ; R[4] = K[34] "OnCmdGetPvpConfByBattleType"
+    [0080] CALL           A=1 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133121 sJ=-16644094 raw=0x010400C4
+    [0081] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7

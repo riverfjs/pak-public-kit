@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/unzip-6.00-white?style=flat&labelColor=000000&color=white" alt="unzip 6.00" />
 </p>
 
-本项目用于从 PAK 中导出配置数据与图标资源。脚本接收 AES key、IPA 与 App 容器路径，执行后在输出目录生成 `data` 与 `assets`。默认输出目录为 `output`。
+本项目用于从 PAK 中导出配置数据与图标资源，也可以单独导出 Lua bytecode 与反汇编文本。主流程默认输出目录为 `output`。
 
 ## 使用
 
@@ -36,6 +36,24 @@
 ```
 
 如果不传 `--output`，默认输出到当前项目的 `output` 目录。
+
+## Lua
+
+Lua 单独执行，不会重复导出图片和数据。默认读取当前项目的 `paks`，输出到 `output/scripts`。
+
+```bash
+./lua.sh --aes-file path/to/aes_key.txt
+```
+
+自定义 PAK 目录和输出目录：
+
+```bash
+./lua.sh --aes-file path/to/aes_key.txt \
+  --paks path/to/paks \
+  --output path/to/output/scripts
+```
+
+默认只导出战斗、技能、buff 相关 Lua；加 `--all` 会导出全部 Lua。输出中 `luac` 是已解密的标准 Lua 5.4 bytecode，`disasm` 是可读反汇编文本。
 
 ## 处理流程
 
@@ -73,6 +91,13 @@ path/to/output/
     bloodline_index.json
     handbook-rewards.json
     types.json
+  scripts/
+    luac/
+      battle/
+        *.luac
+    disasm/
+      battle/
+        *.luasm
 ```
 
 图片目录：
@@ -89,6 +114,16 @@ path/to/output/
 --output path/to/output          自定义输出目录
 --language zh_CN                 本地化语言，默认 zh_CN
 --keep-temp                      保留 temp，方便排查中间产物
+```
+
+`./lua.sh` 额外支持：
+
+```text
+--paks path/to/paks              指定已有 PAK 目录
+--output path/to/output/scripts  指定 Lua 输出根目录
+--all                            导出全部 Lua
+--bytecode-only                  只写 luac
+--disasm-only                    只写 disasm
 ```
 
 ## 环境要求

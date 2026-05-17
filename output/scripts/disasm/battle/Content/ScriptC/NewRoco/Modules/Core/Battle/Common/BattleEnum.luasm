@@ -1,0 +1,835 @@
+-- path: Content/ScriptC/NewRoco/Modules/Core/Battle/Common/BattleEnum.luac
+-- format: decrypted standard Lua 5.4 bytecode
+-- note: disassembly, not original source
+
+main source="@NewRoco\\Modules\\Core\\Battle\\Common\\BattleEnum.lua" lines=0-0 params=0 vararg=1 stack=255 upvalues=1
+constants (316):
+  K[0] = "Team"
+  K[1] = "ENUM_TEAM"
+  K[2] = 1
+  K[3] = "ENUM_ENEMY"
+  K[4] = 2
+  K[5] = "ENUM_OBSERVER"
+  K[6] = 3
+  K[7] = "Operation"
+  K[8] = "ENUM_NONE"
+  K[9] = -1
+  K[10] = "ENUM_ESCAPE"
+  K[11] = 0
+  K[12] = "ENUM_ITEM"
+  K[13] = "ENUM_CATCH"
+  K[14] = "ENUM_CHANGE"
+  K[15] = "ENUM_SKILL"
+  K[16] = 4
+  K[17] = "ENUM_SURRENDER"
+  K[18] = 5
+  K[19] = "ENUM_PLAYERSKILL"
+  K[20] = 6
+  K[21] = "ENUM_STEPAWAY"
+  K[22] = 7
+  K[23] = "ENUM_GIVEUP"
+  K[24] = 8
+  K[25] = "SelectMarkerType"
+  K[26] = "ENUM_MYSELF"
+  K[27] = "ENUM_ALLY"
+  K[28] = "ENUM_OTHER_ALLY"
+  K[29] = "ENUM_ALL"
+  K[30] = "ENUM_ENEMY_SAME_POS"
+  K[31] = "ENUM_MYSELF_ALLY"
+  K[32] = "TypeRestraint"
+  K[33] = "ENUM_NORMAL"
+  K[34] = "ENUM_RESTRAINT"
+  K[35] = "ENUM_RESTRAINT_DOUBLE"
+  K[36] = "ENUM_WEAK"
+  K[37] = "ENUM_WEAK_DOUBLE"
+  K[38] = "SpeedCompare"
+  K[39] = "ENUM_NOTSURE"
+  K[40] = "ENUM_FASTER"
+  K[41] = "ENUM_SLOWER"
+  K[42] = "ReservesPetState"
+  K[43] = "Appeared"
+  K[44] = "NotAppeared"
+  K[45] = "NotExist"
+  K[46] = "WidgetType"
+  K[47] = "ENUM_CHANGE_PET_PANEL"
+  K[48] = "ENUM_SKILL_PANEL"
+  K[49] = "ENUM_BAGPACK_BALLS"
+  K[50] = "Enum_ALL"
+  K[51] = 9999
+  K[52] = "InfoPopupType"
+  K[53] = "SummonPet"
+  K[54] = "UseSkill"
+  K[55] = "PetRest"
+  K[56] = "PlainText"
+  K[57] = "PetStatus"
+  K[58] = "PetRunAwayCondition"
+  K[59] = "UseBuff"
+  K[60] = "UseEffect"
+  K[61] = "UseSpEnergy"
+  K[62] = 9
+  K[63] = "WaitingOther"
+  K[64] = 10
+  K[65] = "EnemyEscape"
+  K[66] = 11
+  K[67] = "PVPNoOp"
+  K[68] = 12
+  K[69] = "Sleeping"
+  K[70] = 13
+  K[71] = "WakeUp"
+  K[72] = 14
+  K[73] = "IsBacking"
+  K[74] = 16
+  K[75] = "IsNotBacking"
+  K[76] = 17
+  K[77] = "IsDrill"
+  K[78] = 18
+  K[79] = "IsStopDrill"
+  K[80] = 19
+  K[81] = "IsStatic"
+  K[82] = 20
+  K[83] = "IsStopStatic"
+  K[84] = 21
+  K[85] = "IsMimic"
+  K[86] = 22
+  K[87] = "IsStopMimic"
+  K[88] = 23
+  K[89] = "IsStun"
+  K[90] = 24
+  K[91] = "IsStopStun"
+  K[92] = 25
+  K[93] = "UseSkillCountered"
+  K[94] = 26
+  K[95] = "IsCatchDrill"
+  K[96] = 27
+  K[97] = "IsCatchStatic"
+  K[98] = 28
+  K[99] = "IsCatchMimic"
+  K[100] = 29
+  K[101] = "CheerPetEnter"
+  K[102] = 30
+  K[103] = "PetJoin1VN"
+  K[104] = 31
+  K[105] = "CheerPetEscape"
+  K[106] = 32
+  K[107] = "IsStopLeaderStun"
+  K[108] = 33
+  K[109] = "IsThunder"
+  K[110] = 34
+  K[111] = "TeamCatch"
+  K[112] = 35
+  K[113] = "PopupShowType"
+  K[114] = "Normal"
+  K[115] = "IsCritical"
+  K[116] = "IsRestraint"
+  K[117] = "IsRestrainted"
+  K[118] = "IsHeal"
+  K[119] = "StateNames"
+  K[120] = "PvePreInit"
+  K[121] = "WildPreInitState"
+  K[122] = "PvpPreInit"
+  K[123] = "BeastPreInit"
+  K[124] = "Init"
+  K[125] = "NormalEnter"
+  K[126] = "SeamlessEnter"
+  K[127] = "NearbyEnter"
+  K[128] = "PveNearbyEnter"
+  K[129] = "NearbyReconnectEnter"
+  K[130] = "LeaderEnter"
+  K[131] = "LeaderReconnectEnter"
+  K[132] = "ThrowBallEnter"
+  K[133] = "ThrowBallReconnectEnter"
+  K[134] = "PVEEnter"
+  K[135] = "PVPEnter"
+  K[136] = "PVPReconnectEnter"
+  K[137] = "NpcChallengeEnter"
+  K[138] = "NpcChallengeReconnectEnter"
+  K[139] = "WeeklyChallengeEnter"
+  K[140] = "WeeklyChallengeReconnectEnter"
+  K[141] = "TrainBattleEnter"
+  K[142] = "TrainBattleReconnectEnter"
+  K[143] = "TrainBattleOver"
+  K[144] = "TeamBloodEnter"
+  K[145] = "TeamBloodReconnectEnter"
+  K[146] = "TeamBeastEnter"
+  K[147] = "TeamBeastReconnectEnter"
+  K[148] = "FinalBattleEnter"
+  K[149] = "FinalBattleReconnectEnter"
+  K[150] = "FinalBattleToP2"
+  K[151] = "FinalBattleOver"
+  K[152] = "B1FinalBattleP1Enter"
+  K[153] = "B1FinalBattleP1ReconnectEnter"
+  K[154] = "B1FinalBattleP1ToP2"
+  K[155] = "B1FinalBattleP2ToP3"
+  K[156] = "B1FinalBattleP3FinalSkill"
+  K[157] = "B1FinalBattleOver"
+  K[158] = "FinalBattleEnterSpeedUp"
+  K[159] = "RoleShow"
+  K[160] = "ThrowBallRoleShow"
+  K[161] = "LeaderRoleShow"
+  K[162] = "WorldLeaderRoleShow"
+  K[163] = "Standby"
+  K[164] = "PrePlay"
+  K[165] = "SwapSelect"
+  K[166] = "SelectRidPet"
+  K[167] = "EvolutionSelect"
+  K[168] = "NpcAutoEscapeSelect"
+  K[169] = "SwapPlay"
+  K[170] = "RoundSelect"
+  K[171] = "StartInstant"
+  K[172] = "RoundPlay"
+  K[173] = "CatchSuccess"
+  K[174] = "EnemyNpcEscape"
+  K[175] = "NormalOver"
+  K[176] = "DirectOver"
+  K[177] = "FailOver"
+  K[178] = "SeamlessOver"
+  K[179] = "WorldLeaderSeamlessOver"
+  K[180] = "WorldLeaderRunAwayState"
+  K[181] = "Destroy"
+  K[182] = "EnterPerform"
+  K[183] = "EnterNoPC"
+  K[184] = "EnterLeaderPerform"
+  K[185] = "PVERoleShow"
+  K[186] = "PVESpecialDelayRoleShowState"
+  K[187] = "PVPRoleShow"
+  K[188] = "LeaveBattlePureBlackOut"
+  K[189] = "PVPOver"
+  K[190] = "PVPRankOver"
+  K[191] = "TeamBloodBattleOver"
+  K[192] = "TeamBattleCatch"
+  K[193] = "TeamBeastBattleOver"
+  K[194] = "TeamBeastBattleCatch"
+  K[195] = "TeamBeastDefeatState"
+  K[196] = "PlayerSkillEscape"
+  K[197] = "RevertTeamBattleState"
+  K[198] = "ReBuildBattleFieldState"
+  K[199] = "PVESpecialDelayEnterState"
+  K[200] = "PvpPlayerPerform"
+  K[201] = "NpcChallengeOver"
+  K[202] = "TerritoryTrialOver"
+  K[203] = "TerritoryTrialAgain"
+  K[204] = "WaitOtherLoad"
+  K[205] = "WeeklyChallengeOver"
+  K[206] = "WeeklyChallengeAgain"
+  K[207] = "WaitStates"
+  K[208] = "AtomicStates"
+  K[209] = "FinalBattlePreInitState"
+  K[210] = "DestroyStates"
+  K[211] = "RoundStateNames"
+  K[212] = "SkillState"
+  K[213] = "SwapState"
+  K[214] = "CatchState"
+  K[215] = "PlayerSkillState"
+  K[216] = "ItemState"
+  K[217] = "EscapeState"
+  K[218] = "NoneState"
+  K[219] = "SurrenderState"
+  K[220] = "StepAwayState"
+  K[221] = "GiveUpState"
+  K[222] = "InstantBattleState"
+  K[223] = "InstantPlay"
+  K[224] = "PerformNodeType"
+  K[225] = "Skill"
+  K[226] = "Buff"
+  K[227] = "BuffChange"
+  K[228] = "Effect"
+  K[229] = "ResCacheMode"
+  K[230] = "LowMemeory"
+  K[231] = "MiddleMemory"
+  K[232] = "HighMemory"
+  K[233] = "BattleMode"
+  K[234] = "Replay"
+  K[235] = "Observer"
+  K[236] = "SubBattleType"
+  K[237] = "Single"
+  K[238] = "MultiPlayer"
+  K[239] = "MultiPet"
+  K[240] = "SkillFailToCastReason"
+  K[241] = "Other"
+  K[242] = "IsBan"
+  K[243] = "LackHealth"
+  K[244] = "CD"
+  K[245] = "LackPP"
+  K[246] = "LackEnergy"
+  K[247] = "IsFeverBan"
+  K[248] = "IsLegendaryBan"
+  K[249] = "IsTeamBan"
+  K[250] = "IsSeal"
+  K[251] = "SkillPanelExButtonState"
+  K[252] = "Idle"
+  K[253] = "RoleHp"
+  K[254] = "PerformCmdValidCheckResult"
+  K[255] = "Success"
+  K[256] = "RefDeadLoop"
+  K[257] = "GroupIdxJump"
+  K[258] = "UnexpectedCM0"
+  K[259] = "PlayerSkillPhase"
+  K[260] = "NoSkill"
+  K[261] = "TryToActive"
+  K[262] = "TryToPetActive"
+  K[263] = "WaitingToPerform"
+  K[264] = "CheerPetPerformState"
+  K[265] = "BeAttack"
+  K[266] = "AttackOther"
+  K[267] = "BeCatch"
+  K[268] = "DeepWaterSwimState"
+  K[269] = "None"
+  K[270] = "WillIdle"
+  K[271] = "Jumping"
+  K[272] = "JumpEnd"
+  K[273] = "ContactEnterType"
+  K[274] = "PetHit"
+  K[275] = "PlayerHit"
+  K[276] = "HitTogether"
+  K[277] = "LeaderStunState"
+  K[278] = "OneStar"
+  K[279] = "TwoStar"
+  K[280] = "ThreeStar"
+  K[281] = "FourStar"
+  K[282] = "NpcAssistType"
+  K[283] = "WithNpc"
+  K[284] = "WithPet"
+  K[285] = "Max"
+  K[286] = "UmgBattleRoundStartDisplayType"
+  K[287] = "RestRound"
+  K[288] = "CountDown"
+  K[289] = "MainWindowHideAllType"
+  K[290] = "Default"
+  K[291] = "Custom"
+  K[292] = "TeamEnterCatch"
+  K[293] = "RebuildBattleField"
+  K[294] = "HpLevelType"
+  K[295] = "Red"
+  K[296] = "Yellow"
+  K[297] = "Green"
+  K[298] = "CheckAppearanceMode"
+  K[299] = "NoLimit"
+  K[300] = "LimitByBattleMode"
+  K[301] = "CheerEnemyPosType"
+  K[302] = "OneVsN"
+  K[303] = "TerritoryTrial"
+  K[304] = "ShowBlackScreenReason"
+  K[305] = "NormalEnterBattle"
+  K[306] = "RestartEnterBattle"
+  K[307] = "ExitBattle"
+  K[308] = "DiePerformType"
+  K[309] = "WithStun"
+  K[310] = "BloodItemRule"
+  K[311] = "DiMo"
+  K[312] = "BossPet"
+  K[313] = "EnterBattleState"
+  K[314] = "InSky"
+  K[315] = "InSwim"
+upvalues (1):
+  U[0] = instack=0 idx=0 kind=51 name="_ENV"
+locals (1):
+  L[0] = "BattleEnum" pc=3-508
+instructions (508):
+  [0001] VARARGPREP     A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000051
+  [0002] NEWTABLE       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000013
+  [0003] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0004] NEWTABLE       A=1 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1537 sJ=-16775678 raw=0x00030093
+  [0005] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0006] SETFIELD       A=1 B=1 C=2 k=1 Bx=1027 sBx=-64508 Ax=262913 sJ=-16514302 raw=0x02018092 ; R[1][K[1] "ENUM_TEAM"] = R[2]
+  [0007] SETFIELD       A=1 B=3 C=4 k=1 Bx=2055 sBx=-63480 Ax=526081 sJ=-16251134 raw=0x04038092 ; R[1][K[3] "ENUM_ENEMY"] = R[4]
+  [0008] SETFIELD       A=1 B=5 C=6 k=1 Bx=3083 sBx=-62452 Ax=789249 sJ=-15987966 raw=0x06058092 ; R[1][K[5] "ENUM_OBSERVER"] = R[6]
+  [0009] SETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x01000012 ; R[0][K[0] "Team"] = R[1]
+  [0010] NEWTABLE       A=1 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2561 sJ=-16774654 raw=0x00050093
+  [0011] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0012] SETFIELD       A=1 B=8 C=9 k=1 Bx=4625 sBx=-60910 Ax=1184001 sJ=-15593214 raw=0x09088092 ; R[1][K[8] "ENUM_NONE"] = R[9]
+  [0013] SETFIELD       A=1 B=10 C=11 k=1 Bx=5653 sBx=-59882 Ax=1447169 sJ=-15330046 raw=0x0B0A8092 ; R[1][K[10] "ENUM_ESCAPE"] = R[11]
+  [0014] SETFIELD       A=1 B=12 C=2 k=1 Bx=1049 sBx=-64486 Ax=268545 sJ=-16508670 raw=0x020C8092 ; R[1][K[12] "ENUM_ITEM"] = R[2]
+  [0015] SETFIELD       A=1 B=13 C=4 k=1 Bx=2075 sBx=-63460 Ax=531201 sJ=-16246014 raw=0x040D8092 ; R[1][K[13] "ENUM_CATCH"] = R[4]
+  [0016] SETFIELD       A=1 B=14 C=6 k=1 Bx=3101 sBx=-62434 Ax=793857 sJ=-15983358 raw=0x060E8092 ; R[1][K[14] "ENUM_CHANGE"] = R[6]
+  [0017] SETFIELD       A=1 B=15 C=16 k=1 Bx=8223 sBx=-57312 Ax=2105089 sJ=-14672126 raw=0x100F8092 ; R[1][K[15] "ENUM_SKILL"] = R[16]
+  [0018] SETFIELD       A=1 B=17 C=18 k=1 Bx=9251 sBx=-56284 Ax=2368257 sJ=-14408958 raw=0x12118092 ; R[1][K[17] "ENUM_SURRENDER"] = R[18]
+  [0019] SETFIELD       A=1 B=19 C=20 k=1 Bx=10279 sBx=-55256 Ax=2631425 sJ=-14145790 raw=0x14138092 ; R[1][K[19] "ENUM_PLAYERSKILL"] = R[20]
+  [0020] SETFIELD       A=1 B=21 C=22 k=1 Bx=11307 sBx=-54228 Ax=2894593 sJ=-13882622 raw=0x16158092 ; R[1][K[21] "ENUM_STEPAWAY"] = R[22]
+  [0021] SETFIELD       A=1 B=23 C=24 k=1 Bx=12335 sBx=-53200 Ax=3157761 sJ=-13619454 raw=0x18178092 ; R[1][K[23] "ENUM_GIVEUP"] = R[24]
+  [0022] SETFIELD       A=0 B=7 C=1 k=0 Bx=526 sBx=-65009 Ax=134656 sJ=-16642559 raw=0x01070012 ; R[0][K[7] "Operation"] = R[1]
+  [0023] NEWTABLE       A=1 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2049 sJ=-16775166 raw=0x00040093
+  [0024] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0025] SETFIELD       A=1 B=8 C=11 k=1 Bx=5649 sBx=-59886 Ax=1446145 sJ=-15331070 raw=0x0B088092 ; R[1][K[8] "ENUM_NONE"] = R[11]
+  [0026] SETFIELD       A=1 B=26 C=2 k=1 Bx=1077 sBx=-64458 Ax=275713 sJ=-16501502 raw=0x021A8092 ; R[1][K[26] "ENUM_MYSELF"] = R[2]
+  [0027] SETFIELD       A=1 B=27 C=4 k=1 Bx=2103 sBx=-63432 Ax=538369 sJ=-16238846 raw=0x041B8092 ; R[1][K[27] "ENUM_ALLY"] = R[4]
+  [0028] SETFIELD       A=1 B=28 C=6 k=1 Bx=3129 sBx=-62406 Ax=801025 sJ=-15976190 raw=0x061C8092 ; R[1][K[28] "ENUM_OTHER_ALLY"] = R[6]
+  [0029] SETFIELD       A=1 B=3 C=16 k=1 Bx=8199 sBx=-57336 Ax=2098945 sJ=-14678270 raw=0x10038092 ; R[1][K[3] "ENUM_ENEMY"] = R[16]
+  [0030] SETFIELD       A=1 B=29 C=18 k=1 Bx=9275 sBx=-56260 Ax=2374401 sJ=-14402814 raw=0x121D8092 ; R[1][K[29] "ENUM_ALL"] = R[18]
+  [0031] SETFIELD       A=1 B=30 C=20 k=1 Bx=10301 sBx=-55234 Ax=2637057 sJ=-14140158 raw=0x141E8092 ; R[1][K[30] "ENUM_ENEMY_SAME_POS"] = R[20]
+  [0032] SETFIELD       A=1 B=31 C=22 k=1 Bx=11327 sBx=-54208 Ax=2899713 sJ=-13877502 raw=0x161F8092 ; R[1][K[31] "ENUM_MYSELF_ALLY"] = R[22]
+  [0033] SETFIELD       A=0 B=25 C=1 k=0 Bx=562 sBx=-64973 Ax=143872 sJ=-16633343 raw=0x01190012 ; R[0][K[25] "SelectMarkerType"] = R[1]
+  [0034] NEWTABLE       A=1 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2049 sJ=-16775166 raw=0x00040093
+  [0035] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0036] SETFIELD       A=1 B=8 C=9 k=1 Bx=4625 sBx=-60910 Ax=1184001 sJ=-15593214 raw=0x09088092 ; R[1][K[8] "ENUM_NONE"] = R[9]
+  [0037] SETFIELD       A=1 B=33 C=11 k=1 Bx=5699 sBx=-59836 Ax=1458945 sJ=-15318270 raw=0x0B218092 ; R[1][K[33] "ENUM_NORMAL"] = R[11]
+  [0038] SETFIELD       A=1 B=34 C=2 k=1 Bx=1093 sBx=-64442 Ax=279809 sJ=-16497406 raw=0x02228092 ; R[1][K[34] "ENUM_RESTRAINT"] = R[2]
+  [0039] SETFIELD       A=1 B=35 C=4 k=1 Bx=2119 sBx=-63416 Ax=542465 sJ=-16234750 raw=0x04238092 ; R[1][K[35] "ENUM_RESTRAINT_DOUBLE"] = R[4]
+  [0040] SETFIELD       A=1 B=36 C=6 k=1 Bx=3145 sBx=-62390 Ax=805121 sJ=-15972094 raw=0x06248092 ; R[1][K[36] "ENUM_WEAK"] = R[6]
+  [0041] SETFIELD       A=1 B=37 C=16 k=1 Bx=8267 sBx=-57268 Ax=2116353 sJ=-14660862 raw=0x10258092 ; R[1][K[37] "ENUM_WEAK_DOUBLE"] = R[16]
+  [0042] SETFIELD       A=0 B=32 C=1 k=0 Bx=576 sBx=-64959 Ax=147456 sJ=-16629759 raw=0x01200012 ; R[0][K[32] "TypeRestraint"] = R[1]
+  [0043] NEWTABLE       A=1 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1537 sJ=-16775678 raw=0x00030093
+  [0044] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0045] SETFIELD       A=1 B=39 C=11 k=1 Bx=5711 sBx=-59824 Ax=1462017 sJ=-15315198 raw=0x0B278092 ; R[1][K[39] "ENUM_NOTSURE"] = R[11]
+  [0046] SETFIELD       A=1 B=40 C=2 k=1 Bx=1105 sBx=-64430 Ax=282881 sJ=-16494334 raw=0x02288092 ; R[1][K[40] "ENUM_FASTER"] = R[2]
+  [0047] SETFIELD       A=1 B=41 C=4 k=1 Bx=2131 sBx=-63404 Ax=545537 sJ=-16231678 raw=0x04298092 ; R[1][K[41] "ENUM_SLOWER"] = R[4]
+  [0048] SETFIELD       A=0 B=38 C=1 k=0 Bx=588 sBx=-64947 Ax=150528 sJ=-16626687 raw=0x01260012 ; R[0][K[38] "SpeedCompare"] = R[1]
+  [0049] NEWTABLE       A=1 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1537 sJ=-16775678 raw=0x00030093
+  [0050] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0051] SETFIELD       A=1 B=43 C=2 k=1 Bx=1111 sBx=-64424 Ax=284417 sJ=-16492798 raw=0x022B8092 ; R[1][K[43] "Appeared"] = R[2]
+  [0052] SETFIELD       A=1 B=44 C=4 k=1 Bx=2137 sBx=-63398 Ax=547073 sJ=-16230142 raw=0x042C8092 ; R[1][K[44] "NotAppeared"] = R[4]
+  [0053] SETFIELD       A=1 B=45 C=6 k=1 Bx=3163 sBx=-62372 Ax=809729 sJ=-15967486 raw=0x062D8092 ; R[1][K[45] "NotExist"] = R[6]
+  [0054] SETFIELD       A=0 B=42 C=1 k=0 Bx=596 sBx=-64939 Ax=152576 sJ=-16624639 raw=0x012A0012 ; R[0][K[42] "ReservesPetState"] = R[1]
+  [0055] NEWTABLE       A=1 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1537 sJ=-16775678 raw=0x00030093
+  [0056] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0057] SETFIELD       A=1 B=47 C=2 k=1 Bx=1119 sBx=-64416 Ax=286465 sJ=-16490750 raw=0x022F8092 ; R[1][K[47] "ENUM_CHANGE_PET_PANEL"] = R[2]
+  [0058] SETFIELD       A=1 B=48 C=4 k=1 Bx=2145 sBx=-63390 Ax=549121 sJ=-16228094 raw=0x04308092 ; R[1][K[48] "ENUM_SKILL_PANEL"] = R[4]
+  [0059] SETFIELD       A=1 B=49 C=16 k=1 Bx=8291 sBx=-57244 Ax=2122497 sJ=-14654718 raw=0x10318092 ; R[1][K[49] "ENUM_BAGPACK_BALLS"] = R[16]
+  [0060] SETFIELD       A=1 B=50 C=51 k=1 Bx=26213 sBx=-39322 Ax=6710529 sJ=-10066686 raw=0x33328092 ; R[1][K[50] "Enum_ALL"] = R[51]
+  [0061] SETFIELD       A=0 B=46 C=1 k=0 Bx=604 sBx=-64931 Ax=154624 sJ=-16622591 raw=0x012E0012 ; R[0][K[46] "WidgetType"] = R[1]
+  [0062] NEWTABLE       A=1 B=7 C=0 k=0 Bx=14 sBx=-65521 Ax=3585 sJ=-16773630 raw=0x00070093
+  [0063] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0064] SETFIELD       A=1 B=53 C=2 k=1 Bx=1131 sBx=-64404 Ax=289537 sJ=-16487678 raw=0x02358092 ; R[1][K[53] "SummonPet"] = R[2]
+  [0065] SETFIELD       A=1 B=54 C=4 k=1 Bx=2157 sBx=-63378 Ax=552193 sJ=-16225022 raw=0x04368092 ; R[1][K[54] "UseSkill"] = R[4]
+  [0066] SETFIELD       A=1 B=55 C=6 k=1 Bx=3183 sBx=-62352 Ax=814849 sJ=-15962366 raw=0x06378092 ; R[1][K[55] "PetRest"] = R[6]
+  [0067] SETFIELD       A=1 B=56 C=16 k=1 Bx=8305 sBx=-57230 Ax=2126081 sJ=-14651134 raw=0x10388092 ; R[1][K[56] "PlainText"] = R[16]
+  [0068] SETFIELD       A=1 B=57 C=18 k=1 Bx=9331 sBx=-56204 Ax=2388737 sJ=-14388478 raw=0x12398092 ; R[1][K[57] "PetStatus"] = R[18]
+  [0069] SETFIELD       A=1 B=58 C=20 k=1 Bx=10357 sBx=-55178 Ax=2651393 sJ=-14125822 raw=0x143A8092 ; R[1][K[58] "PetRunAwayCondition"] = R[20]
+  [0070] SETFIELD       A=1 B=59 C=22 k=1 Bx=11383 sBx=-54152 Ax=2914049 sJ=-13863166 raw=0x163B8092 ; R[1][K[59] "UseBuff"] = R[22]
+  [0071] SETFIELD       A=1 B=60 C=24 k=1 Bx=12409 sBx=-53126 Ax=3176705 sJ=-13600510 raw=0x183C8092 ; R[1][K[60] "UseEffect"] = R[24]
+  [0072] SETFIELD       A=1 B=61 C=62 k=1 Bx=31867 sBx=-33668 Ax=8157953 sJ=-8619262 raw=0x3E3D8092 ; R[1][K[61] "UseSpEnergy"] = R[62]
+  [0073] SETFIELD       A=1 B=63 C=64 k=1 Bx=32895 sBx=-32640 Ax=8421121 sJ=-8356094 raw=0x403F8092 ; R[1][K[63] "WaitingOther"] = R[64]
+  [0074] SETFIELD       A=1 B=65 C=66 k=1 Bx=33923 sBx=-31612 Ax=8684289 sJ=-8092926 raw=0x42418092 ; R[1][K[65] "EnemyEscape"] = R[66]
+  [0075] SETFIELD       A=1 B=67 C=68 k=1 Bx=34951 sBx=-30584 Ax=8947457 sJ=-7829758 raw=0x44438092 ; R[1][K[67] "PVPNoOp"] = R[68]
+  [0076] SETFIELD       A=1 B=69 C=70 k=1 Bx=35979 sBx=-29556 Ax=9210625 sJ=-7566590 raw=0x46458092 ; R[1][K[69] "Sleeping"] = R[70]
+  [0077] SETFIELD       A=1 B=71 C=72 k=1 Bx=37007 sBx=-28528 Ax=9473793 sJ=-7303422 raw=0x48478092 ; R[1][K[71] "WakeUp"] = R[72]
+  [0078] SETFIELD       A=1 B=73 C=74 k=1 Bx=38035 sBx=-27500 Ax=9736961 sJ=-7040254 raw=0x4A498092 ; R[1][K[73] "IsBacking"] = R[74]
+  [0079] SETFIELD       A=1 B=75 C=76 k=1 Bx=39063 sBx=-26472 Ax=10000129 sJ=-6777086 raw=0x4C4B8092 ; R[1][K[75] "IsNotBacking"] = R[76]
+  [0080] SETFIELD       A=1 B=77 C=78 k=1 Bx=40091 sBx=-25444 Ax=10263297 sJ=-6513918 raw=0x4E4D8092 ; R[1][K[77] "IsDrill"] = R[78]
+  [0081] SETFIELD       A=1 B=79 C=80 k=1 Bx=41119 sBx=-24416 Ax=10526465 sJ=-6250750 raw=0x504F8092 ; R[1][K[79] "IsStopDrill"] = R[80]
+  [0082] SETFIELD       A=1 B=81 C=82 k=1 Bx=42147 sBx=-23388 Ax=10789633 sJ=-5987582 raw=0x52518092 ; R[1][K[81] "IsStatic"] = R[82]
+  [0083] SETFIELD       A=1 B=83 C=84 k=1 Bx=43175 sBx=-22360 Ax=11052801 sJ=-5724414 raw=0x54538092 ; R[1][K[83] "IsStopStatic"] = R[84]
+  [0084] SETFIELD       A=1 B=85 C=86 k=1 Bx=44203 sBx=-21332 Ax=11315969 sJ=-5461246 raw=0x56558092 ; R[1][K[85] "IsMimic"] = R[86]
+  [0085] SETFIELD       A=1 B=87 C=88 k=1 Bx=45231 sBx=-20304 Ax=11579137 sJ=-5198078 raw=0x58578092 ; R[1][K[87] "IsStopMimic"] = R[88]
+  [0086] SETFIELD       A=1 B=89 C=90 k=1 Bx=46259 sBx=-19276 Ax=11842305 sJ=-4934910 raw=0x5A598092 ; R[1][K[89] "IsStun"] = R[90]
+  [0087] SETFIELD       A=1 B=91 C=92 k=1 Bx=47287 sBx=-18248 Ax=12105473 sJ=-4671742 raw=0x5C5B8092 ; R[1][K[91] "IsStopStun"] = R[92]
+  [0088] SETFIELD       A=1 B=93 C=94 k=1 Bx=48315 sBx=-17220 Ax=12368641 sJ=-4408574 raw=0x5E5D8092 ; R[1][K[93] "UseSkillCountered"] = R[94]
+  [0089] SETFIELD       A=1 B=95 C=96 k=1 Bx=49343 sBx=-16192 Ax=12631809 sJ=-4145406 raw=0x605F8092 ; R[1][K[95] "IsCatchDrill"] = R[96]
+  [0090] SETFIELD       A=1 B=97 C=98 k=1 Bx=50371 sBx=-15164 Ax=12894977 sJ=-3882238 raw=0x62618092 ; R[1][K[97] "IsCatchStatic"] = R[98]
+  [0091] SETFIELD       A=1 B=99 C=100 k=1 Bx=51399 sBx=-14136 Ax=13158145 sJ=-3619070 raw=0x64638092 ; R[1][K[99] "IsCatchMimic"] = R[100]
+  [0092] SETFIELD       A=1 B=101 C=102 k=1 Bx=52427 sBx=-13108 Ax=13421313 sJ=-3355902 raw=0x66658092 ; R[1][K[101] "CheerPetEnter"] = R[102]
+  [0093] SETFIELD       A=1 B=103 C=104 k=1 Bx=53455 sBx=-12080 Ax=13684481 sJ=-3092734 raw=0x68678092 ; R[1][K[103] "PetJoin1VN"] = R[104]
+  [0094] SETFIELD       A=1 B=105 C=106 k=1 Bx=54483 sBx=-11052 Ax=13947649 sJ=-2829566 raw=0x6A698092 ; R[1][K[105] "CheerPetEscape"] = R[106]
+  [0095] SETFIELD       A=1 B=107 C=108 k=1 Bx=55511 sBx=-10024 Ax=14210817 sJ=-2566398 raw=0x6C6B8092 ; R[1][K[107] "IsStopLeaderStun"] = R[108]
+  [0096] SETFIELD       A=1 B=109 C=110 k=1 Bx=56539 sBx=-8996 Ax=14473985 sJ=-2303230 raw=0x6E6D8092 ; R[1][K[109] "IsThunder"] = R[110]
+  [0097] SETFIELD       A=1 B=111 C=112 k=1 Bx=57567 sBx=-7968 Ax=14737153 sJ=-2040062 raw=0x706F8092 ; R[1][K[111] "TeamCatch"] = R[112]
+  [0098] SETFIELD       A=0 B=52 C=1 k=0 Bx=616 sBx=-64919 Ax=157696 sJ=-16619519 raw=0x01340012 ; R[0][K[52] "InfoPopupType"] = R[1]
+  [0099] NEWTABLE       A=1 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2049 sJ=-16775166 raw=0x00040093
+  [0100] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0101] SETFIELD       A=1 B=114 C=11 k=1 Bx=5861 sBx=-59674 Ax=1500417 sJ=-15276798 raw=0x0B728092 ; R[1][K[114] "Normal"] = R[11]
+  [0102] SETFIELD       A=1 B=115 C=2 k=1 Bx=1255 sBx=-64280 Ax=321281 sJ=-16455934 raw=0x02738092 ; R[1][K[115] "IsCritical"] = R[2]
+  [0103] SETFIELD       A=1 B=116 C=4 k=1 Bx=2281 sBx=-63254 Ax=583937 sJ=-16193278 raw=0x04748092 ; R[1][K[116] "IsRestraint"] = R[4]
+  [0104] SETFIELD       A=1 B=117 C=16 k=1 Bx=8427 sBx=-57108 Ax=2157313 sJ=-14619902 raw=0x10758092 ; R[1][K[117] "IsRestrainted"] = R[16]
+  [0105] SETFIELD       A=1 B=118 C=24 k=1 Bx=12525 sBx=-53010 Ax=3206401 sJ=-13570814 raw=0x18768092 ; R[1][K[118] "IsHeal"] = R[24]
+  [0106] SETFIELD       A=0 B=113 C=1 k=0 Bx=738 sBx=-64797 Ax=188928 sJ=-16588287 raw=0x01710012 ; R[0][K[113] "PopupShowType"] = R[1]
+  [0107] NEWTABLE       A=1 B=8 C=0 k=0 Bx=16 sBx=-65519 Ax=4097 sJ=-16773118 raw=0x00080093
+  [0108] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0109] SETFIELD       A=1 B=120 C=120 k=1 Bx=61681 sBx=-3854 Ax=15790337 sJ=-986878 raw=0x78788092 ; R[1][K[120] "PvePreInit"] = R[120]
+  [0110] SETFIELD       A=1 B=121 C=121 k=1 Bx=62195 sBx=-3340 Ax=15921921 sJ=-855294 raw=0x79798092 ; R[1][K[121] "WildPreInitState"] = R[121]
+  [0111] SETFIELD       A=1 B=122 C=122 k=1 Bx=62709 sBx=-2826 Ax=16053505 sJ=-723710 raw=0x7A7A8092 ; R[1][K[122] "PvpPreInit"] = R[122]
+  [0112] SETFIELD       A=1 B=123 C=123 k=1 Bx=63223 sBx=-2312 Ax=16185089 sJ=-592126 raw=0x7B7B8092 ; R[1][K[123] "BeastPreInit"] = R[123]
+  [0113] SETFIELD       A=1 B=124 C=124 k=1 Bx=63737 sBx=-1798 Ax=16316673 sJ=-460542 raw=0x7C7C8092 ; R[1][K[124] "Init"] = R[124]
+  [0114] SETFIELD       A=1 B=125 C=125 k=1 Bx=64251 sBx=-1284 Ax=16448257 sJ=-328958 raw=0x7D7D8092 ; R[1][K[125] "NormalEnter"] = R[125]
+  [0115] SETFIELD       A=1 B=126 C=126 k=1 Bx=64765 sBx=-770 Ax=16579841 sJ=-197374 raw=0x7E7E8092 ; R[1][K[126] "SeamlessEnter"] = R[126]
+  [0116] SETFIELD       A=1 B=127 C=127 k=1 Bx=65279 sBx=-256 Ax=16711425 sJ=-65790 raw=0x7F7F8092 ; R[1][K[127] "NearbyEnter"] = R[127]
+  [0117] SETFIELD       A=1 B=128 C=128 k=1 Bx=65793 sBx=258 Ax=16843009 sJ=65794 raw=0x80808092 ; R[1][K[128] "PveNearbyEnter"] = R[128]
+  [0118] SETFIELD       A=1 B=129 C=129 k=1 Bx=66307 sBx=772 Ax=16974593 sJ=197378 raw=0x81818092 ; R[1][K[129] "NearbyReconnectEnter"] = R[129]
+  [0119] SETFIELD       A=1 B=130 C=130 k=1 Bx=66821 sBx=1286 Ax=17106177 sJ=328962 raw=0x82828092 ; R[1][K[130] "LeaderEnter"] = R[130]
+  [0120] SETFIELD       A=1 B=131 C=131 k=1 Bx=67335 sBx=1800 Ax=17237761 sJ=460546 raw=0x83838092 ; R[1][K[131] "LeaderReconnectEnter"] = R[131]
+  [0121] SETFIELD       A=1 B=132 C=132 k=1 Bx=67849 sBx=2314 Ax=17369345 sJ=592130 raw=0x84848092 ; R[1][K[132] "ThrowBallEnter"] = R[132]
+  [0122] SETFIELD       A=1 B=133 C=133 k=1 Bx=68363 sBx=2828 Ax=17500929 sJ=723714 raw=0x85858092 ; R[1][K[133] "ThrowBallReconnectEnter"] = R[133]
+  [0123] SETFIELD       A=1 B=134 C=134 k=1 Bx=68877 sBx=3342 Ax=17632513 sJ=855298 raw=0x86868092 ; R[1][K[134] "PVEEnter"] = R[134]
+  [0124] SETFIELD       A=1 B=135 C=135 k=1 Bx=69391 sBx=3856 Ax=17764097 sJ=986882 raw=0x87878092 ; R[1][K[135] "PVPEnter"] = R[135]
+  [0125] SETFIELD       A=1 B=136 C=136 k=1 Bx=69905 sBx=4370 Ax=17895681 sJ=1118466 raw=0x88888092 ; R[1][K[136] "PVPReconnectEnter"] = R[136]
+  [0126] SETFIELD       A=1 B=137 C=137 k=1 Bx=70419 sBx=4884 Ax=18027265 sJ=1250050 raw=0x89898092 ; R[1][K[137] "NpcChallengeEnter"] = R[137]
+  [0127] SETFIELD       A=1 B=138 C=138 k=1 Bx=70933 sBx=5398 Ax=18158849 sJ=1381634 raw=0x8A8A8092 ; R[1][K[138] "NpcChallengeReconnectEnter"] = R[138]
+  [0128] SETFIELD       A=1 B=139 C=139 k=1 Bx=71447 sBx=5912 Ax=18290433 sJ=1513218 raw=0x8B8B8092 ; R[1][K[139] "WeeklyChallengeEnter"] = R[139]
+  [0129] SETFIELD       A=1 B=140 C=140 k=1 Bx=71961 sBx=6426 Ax=18422017 sJ=1644802 raw=0x8C8C8092 ; R[1][K[140] "WeeklyChallengeReconnectEnter"] = R[140]
+  [0130] SETFIELD       A=1 B=141 C=141 k=1 Bx=72475 sBx=6940 Ax=18553601 sJ=1776386 raw=0x8D8D8092 ; R[1][K[141] "TrainBattleEnter"] = R[141]
+  [0131] SETFIELD       A=1 B=142 C=142 k=1 Bx=72989 sBx=7454 Ax=18685185 sJ=1907970 raw=0x8E8E8092 ; R[1][K[142] "TrainBattleReconnectEnter"] = R[142]
+  [0132] SETFIELD       A=1 B=143 C=143 k=1 Bx=73503 sBx=7968 Ax=18816769 sJ=2039554 raw=0x8F8F8092 ; R[1][K[143] "TrainBattleOver"] = R[143]
+  [0133] SETFIELD       A=1 B=144 C=144 k=1 Bx=74017 sBx=8482 Ax=18948353 sJ=2171138 raw=0x90908092 ; R[1][K[144] "TeamBloodEnter"] = R[144]
+  [0134] SETFIELD       A=1 B=145 C=145 k=1 Bx=74531 sBx=8996 Ax=19079937 sJ=2302722 raw=0x91918092 ; R[1][K[145] "TeamBloodReconnectEnter"] = R[145]
+  [0135] SETFIELD       A=1 B=146 C=146 k=1 Bx=75045 sBx=9510 Ax=19211521 sJ=2434306 raw=0x92928092 ; R[1][K[146] "TeamBeastEnter"] = R[146]
+  [0136] SETFIELD       A=1 B=147 C=147 k=1 Bx=75559 sBx=10024 Ax=19343105 sJ=2565890 raw=0x93938092 ; R[1][K[147] "TeamBeastReconnectEnter"] = R[147]
+  [0137] SETFIELD       A=1 B=148 C=148 k=1 Bx=76073 sBx=10538 Ax=19474689 sJ=2697474 raw=0x94948092 ; R[1][K[148] "FinalBattleEnter"] = R[148]
+  [0138] SETFIELD       A=1 B=149 C=149 k=1 Bx=76587 sBx=11052 Ax=19606273 sJ=2829058 raw=0x95958092 ; R[1][K[149] "FinalBattleReconnectEnter"] = R[149]
+  [0139] SETFIELD       A=1 B=150 C=150 k=1 Bx=77101 sBx=11566 Ax=19737857 sJ=2960642 raw=0x96968092 ; R[1][K[150] "FinalBattleToP2"] = R[150]
+  [0140] SETFIELD       A=1 B=151 C=151 k=1 Bx=77615 sBx=12080 Ax=19869441 sJ=3092226 raw=0x97978092 ; R[1][K[151] "FinalBattleOver"] = R[151]
+  [0141] SETFIELD       A=1 B=152 C=152 k=1 Bx=78129 sBx=12594 Ax=20001025 sJ=3223810 raw=0x98988092 ; R[1][K[152] "B1FinalBattleP1Enter"] = R[152]
+  [0142] SETFIELD       A=1 B=153 C=153 k=1 Bx=78643 sBx=13108 Ax=20132609 sJ=3355394 raw=0x99998092 ; R[1][K[153] "B1FinalBattleP1ReconnectEnter"] = R[153]
+  [0143] SETFIELD       A=1 B=154 C=154 k=1 Bx=79157 sBx=13622 Ax=20264193 sJ=3486978 raw=0x9A9A8092 ; R[1][K[154] "B1FinalBattleP1ToP2"] = R[154]
+  [0144] SETFIELD       A=1 B=155 C=155 k=1 Bx=79671 sBx=14136 Ax=20395777 sJ=3618562 raw=0x9B9B8092 ; R[1][K[155] "B1FinalBattleP2ToP3"] = R[155]
+  [0145] SETFIELD       A=1 B=156 C=156 k=1 Bx=80185 sBx=14650 Ax=20527361 sJ=3750146 raw=0x9C9C8092 ; R[1][K[156] "B1FinalBattleP3FinalSkill"] = R[156]
+  [0146] SETFIELD       A=1 B=157 C=157 k=1 Bx=80699 sBx=15164 Ax=20658945 sJ=3881730 raw=0x9D9D8092 ; R[1][K[157] "B1FinalBattleOver"] = R[157]
+  [0147] SETFIELD       A=1 B=158 C=158 k=1 Bx=81213 sBx=15678 Ax=20790529 sJ=4013314 raw=0x9E9E8092 ; R[1][K[158] "FinalBattleEnterSpeedUp"] = R[158]
+  [0148] SETFIELD       A=1 B=159 C=159 k=1 Bx=81727 sBx=16192 Ax=20922113 sJ=4144898 raw=0x9F9F8092 ; R[1][K[159] "RoleShow"] = R[159]
+  [0149] SETFIELD       A=1 B=160 C=160 k=1 Bx=82241 sBx=16706 Ax=21053697 sJ=4276482 raw=0xA0A08092 ; R[1][K[160] "ThrowBallRoleShow"] = R[160]
+  [0150] SETFIELD       A=1 B=161 C=161 k=1 Bx=82755 sBx=17220 Ax=21185281 sJ=4408066 raw=0xA1A18092 ; R[1][K[161] "LeaderRoleShow"] = R[161]
+  [0151] SETFIELD       A=1 B=162 C=162 k=1 Bx=83269 sBx=17734 Ax=21316865 sJ=4539650 raw=0xA2A28092 ; R[1][K[162] "WorldLeaderRoleShow"] = R[162]
+  [0152] SETFIELD       A=1 B=163 C=163 k=1 Bx=83783 sBx=18248 Ax=21448449 sJ=4671234 raw=0xA3A38092 ; R[1][K[163] "Standby"] = R[163]
+  [0153] SETFIELD       A=1 B=164 C=164 k=1 Bx=84297 sBx=18762 Ax=21580033 sJ=4802818 raw=0xA4A48092 ; R[1][K[164] "PrePlay"] = R[164]
+  [0154] SETFIELD       A=1 B=165 C=165 k=1 Bx=84811 sBx=19276 Ax=21711617 sJ=4934402 raw=0xA5A58092 ; R[1][K[165] "SwapSelect"] = R[165]
+  [0155] SETFIELD       A=1 B=166 C=166 k=1 Bx=85325 sBx=19790 Ax=21843201 sJ=5065986 raw=0xA6A68092 ; R[1][K[166] "SelectRidPet"] = R[166]
+  [0156] SETFIELD       A=1 B=167 C=167 k=1 Bx=85839 sBx=20304 Ax=21974785 sJ=5197570 raw=0xA7A78092 ; R[1][K[167] "EvolutionSelect"] = R[167]
+  [0157] SETFIELD       A=1 B=168 C=168 k=1 Bx=86353 sBx=20818 Ax=22106369 sJ=5329154 raw=0xA8A88092 ; R[1][K[168] "NpcAutoEscapeSelect"] = R[168]
+  [0158] SETFIELD       A=1 B=169 C=169 k=1 Bx=86867 sBx=21332 Ax=22237953 sJ=5460738 raw=0xA9A98092 ; R[1][K[169] "SwapPlay"] = R[169]
+  [0159] SETFIELD       A=1 B=170 C=170 k=1 Bx=87381 sBx=21846 Ax=22369537 sJ=5592322 raw=0xAAAA8092 ; R[1][K[170] "RoundSelect"] = R[170]
+  [0160] SETFIELD       A=1 B=171 C=171 k=1 Bx=87895 sBx=22360 Ax=22501121 sJ=5723906 raw=0xABAB8092 ; R[1][K[171] "StartInstant"] = R[171]
+  [0161] SETFIELD       A=1 B=172 C=172 k=1 Bx=88409 sBx=22874 Ax=22632705 sJ=5855490 raw=0xACAC8092 ; R[1][K[172] "RoundPlay"] = R[172]
+  [0162] SETFIELD       A=1 B=173 C=173 k=1 Bx=88923 sBx=23388 Ax=22764289 sJ=5987074 raw=0xADAD8092 ; R[1][K[173] "CatchSuccess"] = R[173]
+  [0163] SETFIELD       A=1 B=65 C=65 k=1 Bx=33411 sBx=-32124 Ax=8553217 sJ=-8223998 raw=0x41418092 ; R[1][K[65] "EnemyEscape"] = R[65]
+  [0164] SETFIELD       A=1 B=174 C=174 k=1 Bx=89437 sBx=23902 Ax=22895873 sJ=6118658 raw=0xAEAE8092 ; R[1][K[174] "EnemyNpcEscape"] = R[174]
+  [0165] SETFIELD       A=1 B=175 C=175 k=1 Bx=89951 sBx=24416 Ax=23027457 sJ=6250242 raw=0xAFAF8092 ; R[1][K[175] "NormalOver"] = R[175]
+  [0166] SETFIELD       A=1 B=176 C=176 k=1 Bx=90465 sBx=24930 Ax=23159041 sJ=6381826 raw=0xB0B08092 ; R[1][K[176] "DirectOver"] = R[176]
+  [0167] SETFIELD       A=1 B=177 C=177 k=1 Bx=90979 sBx=25444 Ax=23290625 sJ=6513410 raw=0xB1B18092 ; R[1][K[177] "FailOver"] = R[177]
+  [0168] SETFIELD       A=1 B=178 C=178 k=1 Bx=91493 sBx=25958 Ax=23422209 sJ=6644994 raw=0xB2B28092 ; R[1][K[178] "SeamlessOver"] = R[178]
+  [0169] SETFIELD       A=1 B=179 C=179 k=1 Bx=92007 sBx=26472 Ax=23553793 sJ=6776578 raw=0xB3B38092 ; R[1][K[179] "WorldLeaderSeamlessOver"] = R[179]
+  [0170] SETFIELD       A=1 B=180 C=180 k=1 Bx=92521 sBx=26986 Ax=23685377 sJ=6908162 raw=0xB4B48092 ; R[1][K[180] "WorldLeaderRunAwayState"] = R[180]
+  [0171] SETFIELD       A=1 B=181 C=181 k=1 Bx=93035 sBx=27500 Ax=23816961 sJ=7039746 raw=0xB5B58092 ; R[1][K[181] "Destroy"] = R[181]
+  [0172] SETFIELD       A=1 B=182 C=182 k=1 Bx=93549 sBx=28014 Ax=23948545 sJ=7171330 raw=0xB6B68092 ; R[1][K[182] "EnterPerform"] = R[182]
+  [0173] SETFIELD       A=1 B=183 C=183 k=1 Bx=94063 sBx=28528 Ax=24080129 sJ=7302914 raw=0xB7B78092 ; R[1][K[183] "EnterNoPC"] = R[183]
+  [0174] SETFIELD       A=1 B=184 C=184 k=1 Bx=94577 sBx=29042 Ax=24211713 sJ=7434498 raw=0xB8B88092 ; R[1][K[184] "EnterLeaderPerform"] = R[184]
+  [0175] SETFIELD       A=1 B=185 C=185 k=1 Bx=95091 sBx=29556 Ax=24343297 sJ=7566082 raw=0xB9B98092 ; R[1][K[185] "PVERoleShow"] = R[185]
+  [0176] SETFIELD       A=1 B=186 C=186 k=1 Bx=95605 sBx=30070 Ax=24474881 sJ=7697666 raw=0xBABA8092 ; R[1][K[186] "PVESpecialDelayRoleShowState"] = R[186]
+  [0177] SETFIELD       A=1 B=187 C=187 k=1 Bx=96119 sBx=30584 Ax=24606465 sJ=7829250 raw=0xBBBB8092 ; R[1][K[187] "PVPRoleShow"] = R[187]
+  [0178] SETFIELD       A=1 B=188 C=188 k=1 Bx=96633 sBx=31098 Ax=24738049 sJ=7960834 raw=0xBCBC8092 ; R[1][K[188] "LeaveBattlePureBlackOut"] = R[188]
+  [0179] SETFIELD       A=1 B=63 C=63 k=1 Bx=32383 sBx=-33152 Ax=8290049 sJ=-8487166 raw=0x3F3F8092 ; R[1][K[63] "WaitingOther"] = R[63]
+  [0180] SETFIELD       A=1 B=189 C=189 k=1 Bx=97147 sBx=31612 Ax=24869633 sJ=8092418 raw=0xBDBD8092 ; R[1][K[189] "PVPOver"] = R[189]
+  [0181] SETFIELD       A=1 B=190 C=190 k=1 Bx=97661 sBx=32126 Ax=25001217 sJ=8224002 raw=0xBEBE8092 ; R[1][K[190] "PVPRankOver"] = R[190]
+  [0182] SETFIELD       A=1 B=191 C=191 k=1 Bx=98175 sBx=32640 Ax=25132801 sJ=8355586 raw=0xBFBF8092 ; R[1][K[191] "TeamBloodBattleOver"] = R[191]
+  [0183] SETFIELD       A=1 B=192 C=192 k=1 Bx=98689 sBx=33154 Ax=25264385 sJ=8487170 raw=0xC0C08092 ; R[1][K[192] "TeamBattleCatch"] = R[192]
+  [0184] SETFIELD       A=1 B=193 C=193 k=1 Bx=99203 sBx=33668 Ax=25395969 sJ=8618754 raw=0xC1C18092 ; R[1][K[193] "TeamBeastBattleOver"] = R[193]
+  [0185] SETFIELD       A=1 B=194 C=194 k=1 Bx=99717 sBx=34182 Ax=25527553 sJ=8750338 raw=0xC2C28092 ; R[1][K[194] "TeamBeastBattleCatch"] = R[194]
+  [0186] SETFIELD       A=1 B=195 C=195 k=1 Bx=100231 sBx=34696 Ax=25659137 sJ=8881922 raw=0xC3C38092 ; R[1][K[195] "TeamBeastDefeatState"] = R[195]
+  [0187] SETFIELD       A=1 B=196 C=196 k=1 Bx=100745 sBx=35210 Ax=25790721 sJ=9013506 raw=0xC4C48092 ; R[1][K[196] "PlayerSkillEscape"] = R[196]
+  [0188] SETFIELD       A=1 B=197 C=197 k=1 Bx=101259 sBx=35724 Ax=25922305 sJ=9145090 raw=0xC5C58092 ; R[1][K[197] "RevertTeamBattleState"] = R[197]
+  [0189] SETFIELD       A=1 B=198 C=198 k=1 Bx=101773 sBx=36238 Ax=26053889 sJ=9276674 raw=0xC6C68092 ; R[1][K[198] "ReBuildBattleFieldState"] = R[198]
+  [0190] SETFIELD       A=1 B=199 C=199 k=1 Bx=102287 sBx=36752 Ax=26185473 sJ=9408258 raw=0xC7C78092 ; R[1][K[199] "PVESpecialDelayEnterState"] = R[199]
+  [0191] SETFIELD       A=1 B=200 C=200 k=1 Bx=102801 sBx=37266 Ax=26317057 sJ=9539842 raw=0xC8C88092 ; R[1][K[200] "PvpPlayerPerform"] = R[200]
+  [0192] SETFIELD       A=1 B=201 C=201 k=1 Bx=103315 sBx=37780 Ax=26448641 sJ=9671426 raw=0xC9C98092 ; R[1][K[201] "NpcChallengeOver"] = R[201]
+  [0193] SETFIELD       A=1 B=202 C=202 k=1 Bx=103829 sBx=38294 Ax=26580225 sJ=9803010 raw=0xCACA8092 ; R[1][K[202] "TerritoryTrialOver"] = R[202]
+  [0194] SETFIELD       A=1 B=203 C=203 k=1 Bx=104343 sBx=38808 Ax=26711809 sJ=9934594 raw=0xCBCB8092 ; R[1][K[203] "TerritoryTrialAgain"] = R[203]
+  [0195] SETFIELD       A=1 B=204 C=204 k=1 Bx=104857 sBx=39322 Ax=26843393 sJ=10066178 raw=0xCCCC8092 ; R[1][K[204] "WaitOtherLoad"] = R[204]
+  [0196] SETFIELD       A=1 B=205 C=205 k=1 Bx=105371 sBx=39836 Ax=26974977 sJ=10197762 raw=0xCDCD8092 ; R[1][K[205] "WeeklyChallengeOver"] = R[205]
+  [0197] SETFIELD       A=1 B=206 C=206 k=1 Bx=105885 sBx=40350 Ax=27106561 sJ=10329346 raw=0xCECE8092 ; R[1][K[206] "WeeklyChallengeAgain"] = R[206]
+  [0198] SETFIELD       A=0 B=119 C=1 k=0 Bx=750 sBx=-64785 Ax=192000 sJ=-16585215 raw=0x01770012 ; R[0][K[119] "StateNames"] = R[1]
+  [0199] NEWTABLE       A=1 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262145 sJ=-16515070 raw=0x02000093
+  [0200] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0201] LOADK          A=2 B=81 C=0 k=1 Bx=163 sBx=-65372 Ax=41730 sJ=-16735485 raw=0x00518103 ; R[2] = K[163] "Standby"
+  [0202] LOADK          A=3 B=31 C=0 k=1 Bx=63 sBx=-65472 Ax=16131 sJ=-16761084 raw=0x001F8183 ; R[3] = K[63] "WaitingOther"
+  [0203] SETLIST        A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200CE
+  [0204] SETFIELD       A=0 B=207 C=1 k=0 Bx=926 sBx=-64609 Ax=237056 sJ=-16540159 raw=0x01CF0012 ; R[0][K[207] "WaitStates"] = R[1]
+  [0205] NEWTABLE       A=1 B=0 C=49 k=0 Bx=25088 sBx=-40447 Ax=6422529 sJ=-10354686 raw=0x31000093
+  [0206] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0207] LOADK          A=2 B=62 C=0 k=0 Bx=124 sBx=-65411 Ax=31746 sJ=-16745469 raw=0x003E0103 ; R[2] = K[124] "Init"
+  [0208] LOADK          A=3 B=62 C=0 k=1 Bx=125 sBx=-65410 Ax=32003 sJ=-16745212 raw=0x003E8183 ; R[3] = K[125] "NormalEnter"
+  [0209] LOADK          A=4 B=63 C=0 k=0 Bx=126 sBx=-65409 Ax=32260 sJ=-16744955 raw=0x003F0203 ; R[4] = K[126] "SeamlessEnter"
+  [0210] LOADK          A=5 B=91 C=0 k=0 Bx=182 sBx=-65353 Ax=46597 sJ=-16730618 raw=0x005B0283 ; R[5] = K[182] "EnterPerform"
+  [0211] LOADK          A=6 B=79 C=0 k=1 Bx=159 sBx=-65376 Ax=40710 sJ=-16736505 raw=0x004F8303 ; R[6] = K[159] "RoleShow"
+  [0212] LOADK          A=7 B=80 C=0 k=0 Bx=160 sBx=-65375 Ax=40967 sJ=-16736248 raw=0x00500383 ; R[7] = K[160] "ThrowBallRoleShow"
+  [0213] LOADK          A=8 B=93 C=0 k=1 Bx=187 sBx=-65348 Ax=47880 sJ=-16729335 raw=0x005D8403 ; R[8] = K[187] "PVPRoleShow"
+  [0214] LOADK          A=9 B=92 C=0 k=1 Bx=185 sBx=-65350 Ax=47369 sJ=-16729846 raw=0x005C8483 ; R[9] = K[185] "PVERoleShow"
+  [0215] LOADK          A=10 B=82 C=0 k=0 Bx=164 sBx=-65371 Ax=41994 sJ=-16735221 raw=0x00520503 ; R[10] = K[164] "PrePlay"
+  [0216] LOADK          A=11 B=84 C=0 k=1 Bx=169 sBx=-65366 Ax=43275 sJ=-16733940 raw=0x00548583 ; R[11] = K[169] "SwapPlay"
+  [0217] LOADK          A=12 B=86 C=0 k=0 Bx=172 sBx=-65363 Ax=44044 sJ=-16733171 raw=0x00560603 ; R[12] = K[172] "RoundPlay"
+  [0218] LOADK          A=13 B=32 C=0 k=1 Bx=65 sBx=-65470 Ax=16653 sJ=-16760562 raw=0x00208683 ; R[13] = K[65] "EnemyEscape"
+  [0219] LOADK          A=14 B=85 C=0 k=1 Bx=171 sBx=-65364 Ax=43790 sJ=-16733425 raw=0x00558703 ; R[14] = K[171] "StartInstant"
+  [0220] LOADK          A=15 B=64 C=0 k=1 Bx=129 sBx=-65406 Ax=33039 sJ=-16744176 raw=0x00408783 ; R[15] = K[129] "NearbyReconnectEnter"
+  [0221] LOADK          A=16 B=63 C=0 k=1 Bx=127 sBx=-65408 Ax=32528 sJ=-16744687 raw=0x003F8803 ; R[16] = K[127] "NearbyEnter"
+  [0222] LOADK          A=17 B=65 C=0 k=0 Bx=130 sBx=-65405 Ax=33297 sJ=-16743918 raw=0x00410883 ; R[17] = K[130] "LeaderEnter"
+  [0223] LOADK          A=18 B=65 C=0 k=1 Bx=131 sBx=-65404 Ax=33554 sJ=-16743661 raw=0x00418903 ; R[18] = K[131] "LeaderReconnectEnter"
+  [0224] LOADK          A=19 B=66 C=0 k=0 Bx=132 sBx=-65403 Ax=33811 sJ=-16743404 raw=0x00420983 ; R[19] = K[132] "ThrowBallEnter"
+  [0225] LOADK          A=20 B=66 C=0 k=1 Bx=133 sBx=-65402 Ax=34068 sJ=-16743147 raw=0x00428A03 ; R[20] = K[133] "ThrowBallReconnectEnter"
+  [0226] LOADK          A=21 B=67 C=0 k=1 Bx=135 sBx=-65400 Ax=34581 sJ=-16742634 raw=0x00438A83 ; R[21] = K[135] "PVPEnter"
+  [0227] LOADK          A=22 B=68 C=0 k=0 Bx=136 sBx=-65399 Ax=34838 sJ=-16742377 raw=0x00440B03 ; R[22] = K[136] "PVPReconnectEnter"
+  [0228] LOADK          A=23 B=96 C=0 k=0 Bx=192 sBx=-65343 Ax=49175 sJ=-16728040 raw=0x00600B83 ; R[23] = K[192] "TeamBattleCatch"
+  [0229] LOADK          A=24 B=72 C=0 k=0 Bx=144 sBx=-65391 Ax=36888 sJ=-16740327 raw=0x00480C03 ; R[24] = K[144] "TeamBloodEnter"
+  [0230] LOADK          A=25 B=72 C=0 k=1 Bx=145 sBx=-65390 Ax=37145 sJ=-16740070 raw=0x00488C83 ; R[25] = K[145] "TeamBloodReconnectEnter"
+  [0231] LOADK          A=26 B=98 C=0 k=1 Bx=197 sBx=-65338 Ax=50458 sJ=-16726757 raw=0x00628D03 ; R[26] = K[197] "RevertTeamBattleState"
+  [0232] LOADK          A=27 B=99 C=0 k=0 Bx=198 sBx=-65337 Ax=50715 sJ=-16726500 raw=0x00630D83 ; R[27] = K[198] "ReBuildBattleFieldState"
+  [0233] LOADK          A=28 B=73 C=0 k=0 Bx=146 sBx=-65389 Ax=37404 sJ=-16739811 raw=0x00490E03 ; R[28] = K[146] "TeamBeastEnter"
+  [0234] LOADK          A=29 B=73 C=0 k=1 Bx=147 sBx=-65388 Ax=37661 sJ=-16739554 raw=0x00498E83 ; R[29] = K[147] "TeamBeastReconnectEnter"
+  [0235] LOADK          A=30 B=97 C=0 k=0 Bx=194 sBx=-65341 Ax=49694 sJ=-16727521 raw=0x00610F03 ; R[30] = K[194] "TeamBeastBattleCatch"
+  [0236] LOADK          A=31 B=74 C=0 k=0 Bx=148 sBx=-65387 Ax=37919 sJ=-16739296 raw=0x004A0F83 ; R[31] = K[148] "FinalBattleEnter"
+  [0237] LOADK          A=32 B=60 C=0 k=0 Bx=120 sBx=-65415 Ax=30752 sJ=-16746463 raw=0x003C1003 ; R[32] = K[120] "PvePreInit"
+  [0238] LOADK          A=33 B=69 C=0 k=1 Bx=139 sBx=-65396 Ax=35617 sJ=-16741598 raw=0x00459083 ; R[33] = K[139] "WeeklyChallengeEnter"
+  [0239] LOADK          A=34 B=70 C=0 k=0 Bx=140 sBx=-65395 Ax=35874 sJ=-16741341 raw=0x00461103 ; R[34] = K[140] "WeeklyChallengeReconnectEnter"
+  [0240] LOADK          A=35 B=70 C=0 k=1 Bx=141 sBx=-65394 Ax=36131 sJ=-16741084 raw=0x00469183 ; R[35] = K[141] "TrainBattleEnter"
+  [0241] LOADK          A=36 B=71 C=0 k=0 Bx=142 sBx=-65393 Ax=36388 sJ=-16740827 raw=0x00471203 ; R[36] = K[142] "TrainBattleReconnectEnter"
+  [0242] LOADK          A=37 B=71 C=0 k=1 Bx=143 sBx=-65392 Ax=36645 sJ=-16740570 raw=0x00479283 ; R[37] = K[143] "TrainBattleOver"
+  [0243] LOADK          A=38 B=61 C=0 k=1 Bx=123 sBx=-65412 Ax=31526 sJ=-16745689 raw=0x003D9303 ; R[38] = K[123] "BeastPreInit"
+  [0244] LOADK          A=39 B=61 C=0 k=0 Bx=122 sBx=-65413 Ax=31271 sJ=-16745944 raw=0x003D1383 ; R[39] = K[122] "PvpPreInit"
+  [0245] LOADK          A=40 B=104 C=0 k=1 Bx=209 sBx=-65326 Ax=53544 sJ=-16723671 raw=0x00689403 ; R[40] = K[209] "FinalBattlePreInitState"
+  [0246] LOADK          A=41 B=81 C=0 k=0 Bx=162 sBx=-65373 Ax=41513 sJ=-16735702 raw=0x00511483 ; R[41] = K[162] "WorldLeaderRoleShow"
+  [0247] LOADK          A=42 B=60 C=0 k=1 Bx=121 sBx=-65414 Ax=31018 sJ=-16746197 raw=0x003C9503 ; R[42] = K[121] "WildPreInitState"
+  [0248] LOADK          A=43 B=76 C=0 k=0 Bx=152 sBx=-65383 Ax=38955 sJ=-16738260 raw=0x004C1583 ; R[43] = K[152] "B1FinalBattleP1Enter"
+  [0249] LOADK          A=44 B=79 C=0 k=0 Bx=158 sBx=-65377 Ax=40492 sJ=-16736723 raw=0x004F1603 ; R[44] = K[158] "FinalBattleEnterSpeedUp"
+  [0250] LOADK          A=45 B=101 C=0 k=0 Bx=202 sBx=-65333 Ax=51757 sJ=-16725458 raw=0x00651683 ; R[45] = K[202] "TerritoryTrialOver"
+  [0251] LOADK          A=46 B=101 C=0 k=1 Bx=203 sBx=-65332 Ax=52014 sJ=-16725201 raw=0x00659703 ; R[46] = K[203] "TerritoryTrialAgain"
+  [0252] LOADK          A=47 B=77 C=0 k=0 Bx=154 sBx=-65381 Ax=39471 sJ=-16737744 raw=0x004D1783 ; R[47] = K[154] "B1FinalBattleP1ToP2"
+  [0253] LOADK          A=48 B=77 C=0 k=1 Bx=155 sBx=-65380 Ax=39728 sJ=-16737487 raw=0x004D9803 ; R[48] = K[155] "B1FinalBattleP2ToP3"
+  [0254] LOADK          A=49 B=75 C=0 k=0 Bx=150 sBx=-65385 Ax=38449 sJ=-16738766 raw=0x004B1883 ; R[49] = K[150] "FinalBattleToP2"
+  [0255] LOADK          A=50 B=74 C=0 k=1 Bx=149 sBx=-65386 Ax=38194 sJ=-16739021 raw=0x004A9903 ; R[50] = K[149] "FinalBattleReconnectEnter"
+  [0256] SETLIST        A=1 B=49 C=0 k=0 Bx=98 sBx=-65437 Ax=25089 sJ=-16752126 raw=0x003100CE
+  [0257] SETFIELD       A=0 B=208 C=1 k=0 Bx=928 sBx=-64607 Ax=237568 sJ=-16539647 raw=0x01D00012 ; R[0][K[208] "AtomicStates"] = R[1]
+  [0258] NEWTABLE       A=1 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917505 sJ=-15859710 raw=0x07000093
+  [0259] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0260] LOADK          A=2 B=87 C=0 k=1 Bx=175 sBx=-65360 Ax=44802 sJ=-16732413 raw=0x00578103 ; R[2] = K[175] "NormalOver"
+  [0261] LOADK          A=3 B=90 C=0 k=1 Bx=181 sBx=-65354 Ax=46339 sJ=-16730876 raw=0x005A8183 ; R[3] = K[181] "Destroy"
+  [0262] LOADK          A=4 B=98 C=0 k=0 Bx=196 sBx=-65339 Ax=50180 sJ=-16727035 raw=0x00620203 ; R[4] = K[196] "PlayerSkillEscape"
+  [0263] LOADK          A=5 B=88 C=0 k=1 Bx=177 sBx=-65358 Ax=45317 sJ=-16731898 raw=0x00588283 ; R[5] = K[177] "FailOver"
+  [0264] LOADK          A=6 B=88 C=0 k=0 Bx=176 sBx=-65359 Ax=45062 sJ=-16732153 raw=0x00580303 ; R[6] = K[176] "DirectOver"
+  [0265] LOADK          A=7 B=90 C=0 k=0 Bx=180 sBx=-65355 Ax=46087 sJ=-16731128 raw=0x005A0383 ; R[7] = K[180] "WorldLeaderRunAwayState"
+  [0266] LOADK          A=8 B=103 C=0 k=0 Bx=206 sBx=-65329 Ax=52744 sJ=-16724471 raw=0x00670403 ; R[8] = K[206] "WeeklyChallengeAgain"
+  [0267] SETLIST        A=1 B=7 C=0 k=0 Bx=14 sBx=-65521 Ax=3585 sJ=-16773630 raw=0x000700CE
+  [0268] SETFIELD       A=0 B=210 C=1 k=0 Bx=932 sBx=-64603 Ax=238592 sJ=-16538623 raw=0x01D20012 ; R[0][K[210] "DestroyStates"] = R[1]
+  [0269] NEWTABLE       A=1 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2561 sJ=-16774654 raw=0x00050093
+  [0270] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0271] SETFIELD       A=1 B=212 C=212 k=1 Bx=108969 sBx=43434 Ax=27896065 sJ=11118850 raw=0xD4D48092 ; R[1][K[212] "SkillState"] = R[212]
+  [0272] SETFIELD       A=1 B=213 C=213 k=1 Bx=109483 sBx=43948 Ax=28027649 sJ=11250434 raw=0xD5D58092 ; R[1][K[213] "SwapState"] = R[213]
+  [0273] SETFIELD       A=1 B=214 C=214 k=1 Bx=109997 sBx=44462 Ax=28159233 sJ=11382018 raw=0xD6D68092 ; R[1][K[214] "CatchState"] = R[214]
+  [0274] SETFIELD       A=1 B=215 C=215 k=1 Bx=110511 sBx=44976 Ax=28290817 sJ=11513602 raw=0xD7D78092 ; R[1][K[215] "PlayerSkillState"] = R[215]
+  [0275] SETFIELD       A=1 B=216 C=216 k=1 Bx=111025 sBx=45490 Ax=28422401 sJ=11645186 raw=0xD8D88092 ; R[1][K[216] "ItemState"] = R[216]
+  [0276] SETFIELD       A=1 B=217 C=217 k=1 Bx=111539 sBx=46004 Ax=28553985 sJ=11776770 raw=0xD9D98092 ; R[1][K[217] "EscapeState"] = R[217]
+  [0277] SETFIELD       A=1 B=218 C=218 k=1 Bx=112053 sBx=46518 Ax=28685569 sJ=11908354 raw=0xDADA8092 ; R[1][K[218] "NoneState"] = R[218]
+  [0278] SETFIELD       A=1 B=219 C=219 k=1 Bx=112567 sBx=47032 Ax=28817153 sJ=12039938 raw=0xDBDB8092 ; R[1][K[219] "SurrenderState"] = R[219]
+  [0279] SETFIELD       A=1 B=220 C=220 k=1 Bx=113081 sBx=47546 Ax=28948737 sJ=12171522 raw=0xDCDC8092 ; R[1][K[220] "StepAwayState"] = R[220]
+  [0280] SETFIELD       A=1 B=221 C=221 k=1 Bx=113595 sBx=48060 Ax=29080321 sJ=12303106 raw=0xDDDD8092 ; R[1][K[221] "GiveUpState"] = R[221]
+  [0281] SETFIELD       A=0 B=211 C=1 k=0 Bx=934 sBx=-64601 Ax=239104 sJ=-16538111 raw=0x01D30012 ; R[0][K[211] "RoundStateNames"] = R[1]
+  [0282] NEWTABLE       A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x00010093
+  [0283] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0284] SETFIELD       A=1 B=223 C=223 k=1 Bx=114623 sBx=49088 Ax=29343489 sJ=12566274 raw=0xDFDF8092 ; R[1][K[223] "InstantPlay"] = R[223]
+  [0285] SETFIELD       A=0 B=222 C=1 k=0 Bx=956 sBx=-64579 Ax=244736 sJ=-16532479 raw=0x01DE0012 ; R[0][K[222] "InstantBattleState"] = R[1]
+  [0286] NEWTABLE       A=1 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1537 sJ=-16775678 raw=0x00030093
+  [0287] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0288] SETFIELD       A=1 B=225 C=225 k=1 Bx=115651 sBx=50116 Ax=29606657 sJ=12829442 raw=0xE1E18092 ; R[1][K[225] "Skill"] = R[225]
+  [0289] SETFIELD       A=1 B=226 C=226 k=1 Bx=116165 sBx=50630 Ax=29738241 sJ=12961026 raw=0xE2E28092 ; R[1][K[226] "Buff"] = R[226]
+  [0290] SETFIELD       A=1 B=227 C=227 k=1 Bx=116679 sBx=51144 Ax=29869825 sJ=13092610 raw=0xE3E38092 ; R[1][K[227] "BuffChange"] = R[227]
+  [0291] SETFIELD       A=1 B=228 C=228 k=1 Bx=117193 sBx=51658 Ax=30001409 sJ=13224194 raw=0xE4E48092 ; R[1][K[228] "Effect"] = R[228]
+  [0292] SETFIELD       A=0 B=224 C=1 k=0 Bx=960 sBx=-64575 Ax=245760 sJ=-16531455 raw=0x01E00012 ; R[0][K[224] "PerformNodeType"] = R[1]
+  [0293] NEWTABLE       A=1 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1537 sJ=-16775678 raw=0x00030093
+  [0294] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0295] SETFIELD       A=1 B=230 C=2 k=1 Bx=1485 sBx=-64050 Ax=380161 sJ=-16397054 raw=0x02E68092 ; R[1][K[230] "LowMemeory"] = R[2]
+  [0296] SETFIELD       A=1 B=231 C=4 k=1 Bx=2511 sBx=-63024 Ax=642817 sJ=-16134398 raw=0x04E78092 ; R[1][K[231] "MiddleMemory"] = R[4]
+  [0297] SETFIELD       A=1 B=232 C=6 k=1 Bx=3537 sBx=-61998 Ax=905473 sJ=-15871742 raw=0x06E88092 ; R[1][K[232] "HighMemory"] = R[6]
+  [0298] SETFIELD       A=0 B=229 C=1 k=0 Bx=970 sBx=-64565 Ax=248320 sJ=-16528895 raw=0x01E50012 ; R[0][K[229] "ResCacheMode"] = R[1]
+  [0299] NEWTABLE       A=1 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1537 sJ=-16775678 raw=0x00030093
+  [0300] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0301] SETFIELD       A=1 B=114 C=2 k=1 Bx=1253 sBx=-64282 Ax=320769 sJ=-16456446 raw=0x02728092 ; R[1][K[114] "Normal"] = R[2]
+  [0302] SETFIELD       A=1 B=234 C=4 k=1 Bx=2517 sBx=-63018 Ax=644353 sJ=-16132862 raw=0x04EA8092 ; R[1][K[234] "Replay"] = R[4]
+  [0303] SETFIELD       A=1 B=235 C=6 k=1 Bx=3543 sBx=-61992 Ax=907009 sJ=-15870206 raw=0x06EB8092 ; R[1][K[235] "Observer"] = R[6]
+  [0304] SETFIELD       A=0 B=233 C=1 k=0 Bx=978 sBx=-64557 Ax=250368 sJ=-16526847 raw=0x01E90012 ; R[0][K[233] "BattleMode"] = R[1]
+  [0305] NEWTABLE       A=1 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1537 sJ=-16775678 raw=0x00030093
+  [0306] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0307] SETFIELD       A=1 B=237 C=2 k=1 Bx=1499 sBx=-64036 Ax=383745 sJ=-16393470 raw=0x02ED8092 ; R[1][K[237] "Single"] = R[2]
+  [0308] SETFIELD       A=1 B=238 C=4 k=1 Bx=2525 sBx=-63010 Ax=646401 sJ=-16130814 raw=0x04EE8092 ; R[1][K[238] "MultiPlayer"] = R[4]
+  [0309] SETFIELD       A=1 B=239 C=6 k=1 Bx=3551 sBx=-61984 Ax=909057 sJ=-15868158 raw=0x06EF8092 ; R[1][K[239] "MultiPet"] = R[6]
+  [0310] SETFIELD       A=0 B=236 C=1 k=0 Bx=984 sBx=-64551 Ax=251904 sJ=-16525311 raw=0x01EC0012 ; R[0][K[236] "SubBattleType"] = R[1]
+  [0311] NEWTABLE       A=1 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2561 sJ=-16774654 raw=0x00050093
+  [0312] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0313] SETFIELD       A=1 B=241 C=2 k=1 Bx=1507 sBx=-64028 Ax=385793 sJ=-16391422 raw=0x02F18092 ; R[1][K[241] "Other"] = R[2]
+  [0314] SETFIELD       A=1 B=242 C=4 k=1 Bx=2533 sBx=-63002 Ax=648449 sJ=-16128766 raw=0x04F28092 ; R[1][K[242] "IsBan"] = R[4]
+  [0315] SETFIELD       A=1 B=243 C=6 k=1 Bx=3559 sBx=-61976 Ax=911105 sJ=-15866110 raw=0x06F38092 ; R[1][K[243] "LackHealth"] = R[6]
+  [0316] SETFIELD       A=1 B=244 C=16 k=1 Bx=8681 sBx=-56854 Ax=2222337 sJ=-14554878 raw=0x10F48092 ; R[1][K[244] "CD"] = R[16]
+  [0317] SETFIELD       A=1 B=245 C=18 k=1 Bx=9707 sBx=-55828 Ax=2484993 sJ=-14292222 raw=0x12F58092 ; R[1][K[245] "LackPP"] = R[18]
+  [0318] SETFIELD       A=1 B=246 C=20 k=1 Bx=10733 sBx=-54802 Ax=2747649 sJ=-14029566 raw=0x14F68092 ; R[1][K[246] "LackEnergy"] = R[20]
+  [0319] SETFIELD       A=1 B=247 C=22 k=1 Bx=11759 sBx=-53776 Ax=3010305 sJ=-13766910 raw=0x16F78092 ; R[1][K[247] "IsFeverBan"] = R[22]
+  [0320] SETFIELD       A=1 B=248 C=24 k=1 Bx=12785 sBx=-52750 Ax=3272961 sJ=-13504254 raw=0x18F88092 ; R[1][K[248] "IsLegendaryBan"] = R[24]
+  [0321] SETFIELD       A=1 B=249 C=62 k=1 Bx=32243 sBx=-33292 Ax=8254209 sJ=-8523006 raw=0x3EF98092 ; R[1][K[249] "IsTeamBan"] = R[62]
+  [0322] SETFIELD       A=1 B=250 C=64 k=1 Bx=33269 sBx=-32266 Ax=8516865 sJ=-8260350 raw=0x40FA8092 ; R[1][K[250] "IsSeal"] = R[64]
+  [0323] SETFIELD       A=0 B=240 C=1 k=0 Bx=992 sBx=-64543 Ax=253952 sJ=-16523263 raw=0x01F00012 ; R[0][K[240] "SkillFailToCastReason"] = R[1]
+  [0324] NEWTABLE       A=1 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1537 sJ=-16775678 raw=0x00030093
+  [0325] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0326] SETFIELD       A=1 B=241 C=2 k=1 Bx=1507 sBx=-64028 Ax=385793 sJ=-16391422 raw=0x02F18092 ; R[1][K[241] "Other"] = R[2]
+  [0327] SETFIELD       A=1 B=252 C=4 k=1 Bx=2553 sBx=-62982 Ax=653569 sJ=-16123646 raw=0x04FC8092 ; R[1][K[252] "Idle"] = R[4]
+  [0328] SETFIELD       A=1 B=253 C=6 k=1 Bx=3579 sBx=-61956 Ax=916225 sJ=-15860990 raw=0x06FD8092 ; R[1][K[253] "RoleHp"] = R[6]
+  [0329] SETFIELD       A=0 B=251 C=1 k=0 Bx=1014 sBx=-64521 Ax=259584 sJ=-16517631 raw=0x01FB0012 ; R[0][K[251] "SkillPanelExButtonState"] = R[1]
+  [0330] NEWTABLE       A=1 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1537 sJ=-16775678 raw=0x00030093
+  [0331] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0332] SETFIELD       A=1 B=255 C=2 k=1 Bx=1535 sBx=-64000 Ax=392961 sJ=-16384254 raw=0x02FF8092 ; R[1][K[255] "Success"] = R[2]
+  [0333] LOADK          A=2 B=128 C=0 k=0 Bx=256 sBx=-65279 Ax=65538 sJ=-16711677 raw=0x00800103 ; R[2] = K[256] "RefDeadLoop"
+  [0334] SETTABLE       A=1 B=2 C=4 k=1 Bx=2053 sBx=-63482 Ax=525569 sJ=-16251646 raw=0x04028090
+  [0335] LOADK          A=2 B=128 C=0 k=1 Bx=257 sBx=-65278 Ax=65794 sJ=-16711421 raw=0x00808103 ; R[2] = K[257] "GroupIdxJump"
+  [0336] SETTABLE       A=1 B=2 C=6 k=1 Bx=3077 sBx=-62458 Ax=787713 sJ=-15989502 raw=0x06028090
+  [0337] LOADK          A=2 B=129 C=0 k=0 Bx=258 sBx=-65277 Ax=66050 sJ=-16711165 raw=0x00810103 ; R[2] = K[258] "UnexpectedCM0"
+  [0338] SETTABLE       A=1 B=2 C=16 k=1 Bx=8197 sBx=-57338 Ax=2098433 sJ=-14678782 raw=0x10028090
+  [0339] SETFIELD       A=0 B=254 C=1 k=0 Bx=1020 sBx=-64515 Ax=261120 sJ=-16516095 raw=0x01FE0012 ; R[0][K[254] "PerformCmdValidCheckResult"] = R[1]
+  [0340] LOADK          A=1 B=129 C=0 k=1 Bx=259 sBx=-65276 Ax=66305 sJ=-16710910 raw=0x00818083 ; R[1] = K[259] "PlayerSkillPhase"
+  [0341] NEWTABLE       A=2 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1538 sJ=-16775677 raw=0x00030113
+  [0342] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0343] LOADK          A=3 B=130 C=0 k=0 Bx=260 sBx=-65275 Ax=66563 sJ=-16710652 raw=0x00820183 ; R[3] = K[260] "NoSkill"
+  [0344] SETTABLE       A=2 B=3 C=2 k=1 Bx=1031 sBx=-64504 Ax=263938 sJ=-16513277 raw=0x02038110
+  [0345] LOADK          A=3 B=130 C=0 k=1 Bx=261 sBx=-65274 Ax=66819 sJ=-16710396 raw=0x00828183 ; R[3] = K[261] "TryToActive"
+  [0346] SETTABLE       A=2 B=3 C=4 k=1 Bx=2055 sBx=-63480 Ax=526082 sJ=-16251133 raw=0x04038110
+  [0347] LOADK          A=3 B=131 C=0 k=0 Bx=262 sBx=-65273 Ax=67075 sJ=-16710140 raw=0x00830183 ; R[3] = K[262] "TryToPetActive"
+  [0348] SETTABLE       A=2 B=3 C=6 k=1 Bx=3079 sBx=-62456 Ax=788226 sJ=-15988989 raw=0x06038110
+  [0349] LOADK          A=3 B=131 C=0 k=1 Bx=263 sBx=-65272 Ax=67331 sJ=-16709884 raw=0x00838183 ; R[3] = K[263] "WaitingToPerform"
+  [0350] SETTABLE       A=2 B=3 C=16 k=1 Bx=8199 sBx=-57336 Ax=2098946 sJ=-14678269 raw=0x10038110
+  [0351] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0352] LOADK          A=1 B=132 C=0 k=0 Bx=264 sBx=-65271 Ax=67585 sJ=-16709630 raw=0x00840083 ; R[1] = K[264] "CheerPetPerformState"
+  [0353] NEWTABLE       A=2 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1538 sJ=-16775677 raw=0x00030113
+  [0354] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0355] LOADK          A=3 B=132 C=0 k=1 Bx=265 sBx=-65270 Ax=67843 sJ=-16709372 raw=0x00848183 ; R[3] = K[265] "BeAttack"
+  [0356] SETTABLE       A=2 B=3 C=2 k=1 Bx=1031 sBx=-64504 Ax=263938 sJ=-16513277 raw=0x02038110
+  [0357] LOADK          A=3 B=133 C=0 k=0 Bx=266 sBx=-65269 Ax=68099 sJ=-16709116 raw=0x00850183 ; R[3] = K[266] "AttackOther"
+  [0358] SETTABLE       A=2 B=3 C=4 k=1 Bx=2055 sBx=-63480 Ax=526082 sJ=-16251133 raw=0x04038110
+  [0359] LOADK          A=3 B=133 C=0 k=1 Bx=267 sBx=-65268 Ax=68355 sJ=-16708860 raw=0x00858183 ; R[3] = K[267] "BeCatch"
+  [0360] SETTABLE       A=2 B=3 C=6 k=1 Bx=3079 sBx=-62456 Ax=788226 sJ=-15988989 raw=0x06038110
+  [0361] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0362] LOADK          A=1 B=134 C=0 k=0 Bx=268 sBx=-65267 Ax=68609 sJ=-16708606 raw=0x00860083 ; R[1] = K[268] "DeepWaterSwimState"
+  [0363] NEWTABLE       A=2 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2050 sJ=-16775165 raw=0x00040113
+  [0364] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0365] LOADK          A=3 B=134 C=0 k=1 Bx=269 sBx=-65266 Ax=68867 sJ=-16708348 raw=0x00868183 ; R[3] = K[269] "None"
+  [0366] SETTABLE       A=2 B=3 C=11 k=1 Bx=5639 sBx=-59896 Ax=1443586 sJ=-15333629 raw=0x0B038110
+  [0367] LOADK          A=3 B=135 C=0 k=0 Bx=270 sBx=-65265 Ax=69123 sJ=-16708092 raw=0x00870183 ; R[3] = K[270] "WillIdle"
+  [0368] SETTABLE       A=2 B=3 C=2 k=1 Bx=1031 sBx=-64504 Ax=263938 sJ=-16513277 raw=0x02038110
+  [0369] SETFIELD       A=2 B=252 C=4 k=1 Bx=2553 sBx=-62982 Ax=653570 sJ=-16123645 raw=0x04FC8112 ; R[2][K[252] "Idle"] = R[4]
+  [0370] LOADK          A=3 B=135 C=0 k=1 Bx=271 sBx=-65264 Ax=69379 sJ=-16707836 raw=0x00878183 ; R[3] = K[271] "Jumping"
+  [0371] SETTABLE       A=2 B=3 C=6 k=1 Bx=3079 sBx=-62456 Ax=788226 sJ=-15988989 raw=0x06038110
+  [0372] LOADK          A=3 B=136 C=0 k=0 Bx=272 sBx=-65263 Ax=69635 sJ=-16707580 raw=0x00880183 ; R[3] = K[272] "JumpEnd"
+  [0373] SETTABLE       A=2 B=3 C=16 k=1 Bx=8199 sBx=-57336 Ax=2098946 sJ=-14678269 raw=0x10038110
+  [0374] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0375] LOADK          A=1 B=136 C=0 k=1 Bx=273 sBx=-65262 Ax=69889 sJ=-16707326 raw=0x00888083 ; R[1] = K[273] "ContactEnterType"
+  [0376] NEWTABLE       A=2 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1538 sJ=-16775677 raw=0x00030113
+  [0377] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0378] LOADK          A=3 B=134 C=0 k=1 Bx=269 sBx=-65266 Ax=68867 sJ=-16708348 raw=0x00868183 ; R[3] = K[269] "None"
+  [0379] SETTABLE       A=2 B=3 C=11 k=1 Bx=5639 sBx=-59896 Ax=1443586 sJ=-15333629 raw=0x0B038110
+  [0380] LOADK          A=3 B=137 C=0 k=0 Bx=274 sBx=-65261 Ax=70147 sJ=-16707068 raw=0x00890183 ; R[3] = K[274] "PetHit"
+  [0381] SETTABLE       A=2 B=3 C=2 k=1 Bx=1031 sBx=-64504 Ax=263938 sJ=-16513277 raw=0x02038110
+  [0382] LOADK          A=3 B=137 C=0 k=1 Bx=275 sBx=-65260 Ax=70403 sJ=-16706812 raw=0x00898183 ; R[3] = K[275] "PlayerHit"
+  [0383] SETTABLE       A=2 B=3 C=4 k=1 Bx=2055 sBx=-63480 Ax=526082 sJ=-16251133 raw=0x04038110
+  [0384] LOADK          A=3 B=138 C=0 k=0 Bx=276 sBx=-65259 Ax=70659 sJ=-16706556 raw=0x008A0183 ; R[3] = K[276] "HitTogether"
+  [0385] SETTABLE       A=2 B=3 C=6 k=1 Bx=3079 sBx=-62456 Ax=788226 sJ=-15988989 raw=0x06038110
+  [0386] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0387] LOADK          A=1 B=138 C=0 k=1 Bx=277 sBx=-65258 Ax=70913 sJ=-16706302 raw=0x008A8083 ; R[1] = K[277] "LeaderStunState"
+  [0388] NEWTABLE       A=2 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2050 sJ=-16775165 raw=0x00040113
+  [0389] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0390] SETFIELD       A=2 B=114 C=11 k=1 Bx=5861 sBx=-59674 Ax=1500418 sJ=-15276797 raw=0x0B728112 ; R[2][K[114] "Normal"] = R[11]
+  [0391] LOADK          A=3 B=139 C=0 k=0 Bx=278 sBx=-65257 Ax=71171 sJ=-16706044 raw=0x008B0183 ; R[3] = K[278] "OneStar"
+  [0392] SETTABLE       A=2 B=3 C=2 k=1 Bx=1031 sBx=-64504 Ax=263938 sJ=-16513277 raw=0x02038110
+  [0393] LOADK          A=3 B=139 C=0 k=1 Bx=279 sBx=-65256 Ax=71427 sJ=-16705788 raw=0x008B8183 ; R[3] = K[279] "TwoStar"
+  [0394] SETTABLE       A=2 B=3 C=4 k=1 Bx=2055 sBx=-63480 Ax=526082 sJ=-16251133 raw=0x04038110
+  [0395] LOADK          A=3 B=140 C=0 k=0 Bx=280 sBx=-65255 Ax=71683 sJ=-16705532 raw=0x008C0183 ; R[3] = K[280] "ThreeStar"
+  [0396] SETTABLE       A=2 B=3 C=6 k=1 Bx=3079 sBx=-62456 Ax=788226 sJ=-15988989 raw=0x06038110
+  [0397] LOADK          A=3 B=140 C=0 k=1 Bx=281 sBx=-65254 Ax=71939 sJ=-16705276 raw=0x008C8183 ; R[3] = K[281] "FourStar"
+  [0398] SETTABLE       A=2 B=3 C=16 k=1 Bx=8199 sBx=-57336 Ax=2098946 sJ=-14678269 raw=0x10038110
+  [0399] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0400] LOADK          A=1 B=141 C=0 k=0 Bx=282 sBx=-65253 Ax=72193 sJ=-16705022 raw=0x008D0083 ; R[1] = K[282] "NpcAssistType"
+  [0401] NEWTABLE       A=2 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1538 sJ=-16775677 raw=0x00030113
+  [0402] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0403] LOADK          A=3 B=134 C=0 k=1 Bx=269 sBx=-65266 Ax=68867 sJ=-16708348 raw=0x00868183 ; R[3] = K[269] "None"
+  [0404] SETTABLE       A=2 B=3 C=11 k=1 Bx=5639 sBx=-59896 Ax=1443586 sJ=-15333629 raw=0x0B038110
+  [0405] LOADK          A=3 B=141 C=0 k=1 Bx=283 sBx=-65252 Ax=72451 sJ=-16704764 raw=0x008D8183 ; R[3] = K[283] "WithNpc"
+  [0406] SETTABLE       A=2 B=3 C=2 k=1 Bx=1031 sBx=-64504 Ax=263938 sJ=-16513277 raw=0x02038110
+  [0407] LOADK          A=3 B=142 C=0 k=0 Bx=284 sBx=-65251 Ax=72707 sJ=-16704508 raw=0x008E0183 ; R[3] = K[284] "WithPet"
+  [0408] SETTABLE       A=2 B=3 C=4 k=1 Bx=2055 sBx=-63480 Ax=526082 sJ=-16251133 raw=0x04038110
+  [0409] LOADK          A=3 B=142 C=0 k=1 Bx=285 sBx=-65250 Ax=72963 sJ=-16704252 raw=0x008E8183 ; R[3] = K[285] "Max"
+  [0410] SETTABLE       A=2 B=3 C=16 k=1 Bx=8199 sBx=-57336 Ax=2098946 sJ=-14678269 raw=0x10038110
+  [0411] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0412] LOADK          A=1 B=143 C=0 k=0 Bx=286 sBx=-65249 Ax=73217 sJ=-16703998 raw=0x008F0083 ; R[1] = K[286] "UmgBattleRoundStartDisplayType"
+  [0413] NEWTABLE       A=2 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1538 sJ=-16775677 raw=0x00030113
+  [0414] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0415] LOADK          A=3 B=134 C=0 k=1 Bx=269 sBx=-65266 Ax=68867 sJ=-16708348 raw=0x00868183 ; R[3] = K[269] "None"
+  [0416] SETTABLE       A=2 B=3 C=9 k=1 Bx=4615 sBx=-60920 Ax=1181442 sJ=-15595773 raw=0x09038110
+  [0417] LOADK          A=3 B=143 C=0 k=1 Bx=287 sBx=-65248 Ax=73475 sJ=-16703740 raw=0x008F8183 ; R[3] = K[287] "RestRound"
+  [0418] SETTABLE       A=2 B=3 C=11 k=1 Bx=5639 sBx=-59896 Ax=1443586 sJ=-15333629 raw=0x0B038110
+  [0419] LOADK          A=3 B=144 C=0 k=0 Bx=288 sBx=-65247 Ax=73731 sJ=-16703484 raw=0x00900183 ; R[3] = K[288] "CountDown"
+  [0420] SETTABLE       A=2 B=3 C=2 k=1 Bx=1031 sBx=-64504 Ax=263938 sJ=-16513277 raw=0x02038110
+  [0421] LOADK          A=3 B=142 C=0 k=1 Bx=285 sBx=-65250 Ax=72963 sJ=-16704252 raw=0x008E8183 ; R[3] = K[285] "Max"
+  [0422] SETTABLE       A=2 B=3 C=4 k=1 Bx=2055 sBx=-63480 Ax=526082 sJ=-16251133 raw=0x04038110
+  [0423] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0424] LOADK          A=1 B=144 C=0 k=1 Bx=289 sBx=-65246 Ax=73985 sJ=-16703230 raw=0x00908083 ; R[1] = K[289] "MainWindowHideAllType"
+  [0425] NEWTABLE       A=2 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2050 sJ=-16775165 raw=0x00040113
+  [0426] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0427] LOADK          A=3 B=145 C=0 k=0 Bx=290 sBx=-65245 Ax=74243 sJ=-16702972 raw=0x00910183 ; R[3] = K[290] "Default"
+  [0428] SETTABLE       A=2 B=3 C=11 k=1 Bx=5639 sBx=-59896 Ax=1443586 sJ=-15333629 raw=0x0B038110
+  [0429] LOADK          A=3 B=145 C=0 k=1 Bx=291 sBx=-65244 Ax=74499 sJ=-16702716 raw=0x00918183 ; R[3] = K[291] "Custom"
+  [0430] SETTABLE       A=2 B=3 C=2 k=1 Bx=1031 sBx=-64504 Ax=263938 sJ=-16513277 raw=0x02038110
+  [0431] SETFIELD       A=2 B=172 C=4 k=1 Bx=2393 sBx=-63142 Ax=612610 sJ=-16164605 raw=0x04AC8112 ; R[2][K[172] "RoundPlay"] = R[4]
+  [0432] LOADK          A=3 B=146 C=0 k=0 Bx=292 sBx=-65243 Ax=74755 sJ=-16702460 raw=0x00920183 ; R[3] = K[292] "TeamEnterCatch"
+  [0433] SETTABLE       A=2 B=3 C=6 k=1 Bx=3079 sBx=-62456 Ax=788226 sJ=-15988989 raw=0x06038110
+  [0434] LOADK          A=3 B=146 C=0 k=1 Bx=293 sBx=-65242 Ax=75011 sJ=-16702204 raw=0x00928183 ; R[3] = K[293] "RebuildBattleField"
+  [0435] SETTABLE       A=2 B=3 C=16 k=1 Bx=8199 sBx=-57336 Ax=2098946 sJ=-14678269 raw=0x10038110
+  [0436] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0437] LOADK          A=1 B=147 C=0 k=0 Bx=294 sBx=-65241 Ax=75265 sJ=-16701950 raw=0x00930083 ; R[1] = K[294] "HpLevelType"
+  [0438] NEWTABLE       A=2 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2050 sJ=-16775165 raw=0x00040113
+  [0439] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0440] LOADK          A=3 B=134 C=0 k=1 Bx=269 sBx=-65266 Ax=68867 sJ=-16708348 raw=0x00868183 ; R[3] = K[269] "None"
+  [0441] SETTABLE       A=2 B=3 C=9 k=1 Bx=4615 sBx=-60920 Ax=1181442 sJ=-15595773 raw=0x09038110
+  [0442] LOADK          A=3 B=147 C=0 k=1 Bx=295 sBx=-65240 Ax=75523 sJ=-16701692 raw=0x00938183 ; R[3] = K[295] "Red"
+  [0443] SETTABLE       A=2 B=3 C=11 k=1 Bx=5639 sBx=-59896 Ax=1443586 sJ=-15333629 raw=0x0B038110
+  [0444] LOADK          A=3 B=148 C=0 k=0 Bx=296 sBx=-65239 Ax=75779 sJ=-16701436 raw=0x00940183 ; R[3] = K[296] "Yellow"
+  [0445] SETTABLE       A=2 B=3 C=2 k=1 Bx=1031 sBx=-64504 Ax=263938 sJ=-16513277 raw=0x02038110
+  [0446] LOADK          A=3 B=148 C=0 k=1 Bx=297 sBx=-65238 Ax=76035 sJ=-16701180 raw=0x00948183 ; R[3] = K[297] "Green"
+  [0447] SETTABLE       A=2 B=3 C=4 k=1 Bx=2055 sBx=-63480 Ax=526082 sJ=-16251133 raw=0x04038110
+  [0448] LOADK          A=3 B=142 C=0 k=1 Bx=285 sBx=-65250 Ax=72963 sJ=-16704252 raw=0x008E8183 ; R[3] = K[285] "Max"
+  [0449] SETTABLE       A=2 B=3 C=6 k=1 Bx=3079 sBx=-62456 Ax=788226 sJ=-15988989 raw=0x06038110
+  [0450] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0451] LOADK          A=1 B=149 C=0 k=0 Bx=298 sBx=-65237 Ax=76289 sJ=-16700926 raw=0x00950083 ; R[1] = K[298] "CheckAppearanceMode"
+  [0452] NEWTABLE       A=2 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1026 sJ=-16776189 raw=0x00020113
+  [0453] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0454] LOADK          A=3 B=149 C=0 k=1 Bx=299 sBx=-65236 Ax=76547 sJ=-16700668 raw=0x00958183 ; R[3] = K[299] "NoLimit"
+  [0455] SETTABLE       A=2 B=3 C=2 k=1 Bx=1031 sBx=-64504 Ax=263938 sJ=-16513277 raw=0x02038110
+  [0456] LOADK          A=3 B=150 C=0 k=0 Bx=300 sBx=-65235 Ax=76803 sJ=-16700412 raw=0x00960183 ; R[3] = K[300] "LimitByBattleMode"
+  [0457] SETTABLE       A=2 B=3 C=4 k=1 Bx=2055 sBx=-63480 Ax=526082 sJ=-16251133 raw=0x04038110
+  [0458] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0459] LOADK          A=1 B=150 C=0 k=1 Bx=301 sBx=-65234 Ax=77057 sJ=-16700158 raw=0x00968083 ; R[1] = K[301] "CheerEnemyPosType"
+  [0460] NEWTABLE       A=2 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1026 sJ=-16776189 raw=0x00020113
+  [0461] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0462] LOADK          A=3 B=151 C=0 k=0 Bx=302 sBx=-65233 Ax=77315 sJ=-16699900 raw=0x00970183 ; R[3] = K[302] "OneVsN"
+  [0463] SETTABLE       A=2 B=3 C=2 k=1 Bx=1031 sBx=-64504 Ax=263938 sJ=-16513277 raw=0x02038110
+  [0464] LOADK          A=3 B=151 C=0 k=1 Bx=303 sBx=-65232 Ax=77571 sJ=-16699644 raw=0x00978183 ; R[3] = K[303] "TerritoryTrial"
+  [0465] SETTABLE       A=2 B=3 C=4 k=1 Bx=2055 sBx=-63480 Ax=526082 sJ=-16251133 raw=0x04038110
+  [0466] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0467] LOADK          A=1 B=152 C=0 k=0 Bx=304 sBx=-65231 Ax=77825 sJ=-16699390 raw=0x00980083 ; R[1] = K[304] "ShowBlackScreenReason"
+  [0468] NEWTABLE       A=2 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1538 sJ=-16775677 raw=0x00030113
+  [0469] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0470] LOADK          A=3 B=145 C=0 k=0 Bx=290 sBx=-65245 Ax=74243 sJ=-16702972 raw=0x00910183 ; R[3] = K[290] "Default"
+  [0471] SETTABLE       A=2 B=3 C=11 k=1 Bx=5639 sBx=-59896 Ax=1443586 sJ=-15333629 raw=0x0B038110
+  [0472] LOADK          A=3 B=152 C=0 k=1 Bx=305 sBx=-65230 Ax=78083 sJ=-16699132 raw=0x00988183 ; R[3] = K[305] "NormalEnterBattle"
+  [0473] SETTABLE       A=2 B=3 C=2 k=1 Bx=1031 sBx=-64504 Ax=263938 sJ=-16513277 raw=0x02038110
+  [0474] LOADK          A=3 B=153 C=0 k=0 Bx=306 sBx=-65229 Ax=78339 sJ=-16698876 raw=0x00990183 ; R[3] = K[306] "RestartEnterBattle"
+  [0475] SETTABLE       A=2 B=3 C=4 k=1 Bx=2055 sBx=-63480 Ax=526082 sJ=-16251133 raw=0x04038110
+  [0476] LOADK          A=3 B=153 C=0 k=1 Bx=307 sBx=-65228 Ax=78595 sJ=-16698620 raw=0x00998183 ; R[3] = K[307] "ExitBattle"
+  [0477] SETTABLE       A=2 B=3 C=6 k=1 Bx=3079 sBx=-62456 Ax=788226 sJ=-15988989 raw=0x06038110
+  [0478] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0479] LOADK          A=1 B=154 C=0 k=0 Bx=308 sBx=-65227 Ax=78849 sJ=-16698366 raw=0x009A0083 ; R[1] = K[308] "DiePerformType"
+  [0480] NEWTABLE       A=2 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1026 sJ=-16776189 raw=0x00020113
+  [0481] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0482] LOADK          A=3 B=145 C=0 k=0 Bx=290 sBx=-65245 Ax=74243 sJ=-16702972 raw=0x00910183 ; R[3] = K[290] "Default"
+  [0483] SETTABLE       A=2 B=3 C=11 k=1 Bx=5639 sBx=-59896 Ax=1443586 sJ=-15333629 raw=0x0B038110
+  [0484] LOADK          A=3 B=154 C=0 k=1 Bx=309 sBx=-65226 Ax=79107 sJ=-16698108 raw=0x009A8183 ; R[3] = K[309] "WithStun"
+  [0485] SETTABLE       A=2 B=3 C=2 k=1 Bx=1031 sBx=-64504 Ax=263938 sJ=-16513277 raw=0x02038110
+  [0486] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0487] LOADK          A=1 B=155 C=0 k=0 Bx=310 sBx=-65225 Ax=79361 sJ=-16697854 raw=0x009B0083 ; R[1] = K[310] "BloodItemRule"
+  [0488] NEWTABLE       A=2 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1538 sJ=-16775677 raw=0x00030113
+  [0489] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0490] LOADK          A=3 B=145 C=0 k=0 Bx=290 sBx=-65245 Ax=74243 sJ=-16702972 raw=0x00910183 ; R[3] = K[290] "Default"
+  [0491] SETTABLE       A=2 B=3 C=11 k=1 Bx=5639 sBx=-59896 Ax=1443586 sJ=-15333629 raw=0x0B038110
+  [0492] LOADK          A=3 B=155 C=0 k=1 Bx=311 sBx=-65224 Ax=79619 sJ=-16697596 raw=0x009B8183 ; R[3] = K[311] "DiMo"
+  [0493] SETTABLE       A=2 B=3 C=2 k=1 Bx=1031 sBx=-64504 Ax=263938 sJ=-16513277 raw=0x02038110
+  [0494] LOADK          A=3 B=156 C=0 k=0 Bx=312 sBx=-65223 Ax=79875 sJ=-16697340 raw=0x009C0183 ; R[3] = K[312] "BossPet"
+  [0495] SETTABLE       A=2 B=3 C=4 k=1 Bx=2055 sBx=-63480 Ax=526082 sJ=-16251133 raw=0x04038110
+  [0496] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0497] LOADK          A=1 B=156 C=0 k=1 Bx=313 sBx=-65222 Ax=80129 sJ=-16697086 raw=0x009C8083 ; R[1] = K[313] "EnterBattleState"
+  [0498] NEWTABLE       A=2 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1538 sJ=-16775677 raw=0x00030113
+  [0499] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0500] LOADK          A=3 B=145 C=0 k=0 Bx=290 sBx=-65245 Ax=74243 sJ=-16702972 raw=0x00910183 ; R[3] = K[290] "Default"
+  [0501] SETTABLE       A=2 B=3 C=11 k=1 Bx=5639 sBx=-59896 Ax=1443586 sJ=-15333629 raw=0x0B038110
+  [0502] LOADK          A=3 B=157 C=0 k=0 Bx=314 sBx=-65221 Ax=80387 sJ=-16696828 raw=0x009D0183 ; R[3] = K[314] "InSky"
+  [0503] SETTABLE       A=2 B=3 C=2 k=1 Bx=1031 sBx=-64504 Ax=263938 sJ=-16513277 raw=0x02038110
+  [0504] LOADK          A=3 B=157 C=0 k=1 Bx=315 sBx=-65220 Ax=80643 sJ=-16696572 raw=0x009D8183 ; R[3] = K[315] "InSwim"
+  [0505] SETTABLE       A=2 B=3 C=4 k=1 Bx=2055 sBx=-63480 Ax=526082 sJ=-16251133 raw=0x04038110
+  [0506] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0507] RETURN         A=0 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132096 sJ=-16645119 raw=0x01020046
+  [0508] RETURN         A=1 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131585 sJ=-16645630 raw=0x010100C6

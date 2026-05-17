@@ -1,0 +1,1365 @@
+-- path: Content/ScriptC/NewRoco/Modules/Core/Battle/Entity/Components/Show/OnLookerCrowdShowComponent.luac
+-- format: decrypted standard Lua 5.4 bytecode
+-- note: disassembly, not original source
+
+main source="@NewRoco\\Modules\\Core\\Battle\\Entity\\Components\\Show\\OnLookerCrowdShowComponent.lua" lines=0-0 params=0 vararg=1 stack=255 upvalues=1
+constants (47):
+  K[0] = "require"
+  K[1] = "NewRoco.Modules.Core.Battle.Entity.BattleComponent"
+  K[2] = "Data.Config.Enum"
+  K[3] = "NewRoco.Modules.Core.Battle.Common.BattleConst"
+  K[4] = "Core.NRCUtils"
+  K[5] = "Extend"
+  K[6] = "OnLookerCrowdShowComponent"
+  K[7] = "EmotionType"
+  K[8] = "RARE"
+  K[9] = 1
+  K[10] = "PRAISE"
+  K[11] = 2
+  K[12] = "FEAR"
+  K[13] = 3
+  K[14] = "AFFIRM"
+  K[15] = 4
+  K[16] = "materialAnimValue"
+  K[17] = "timeSpan"
+  K[18] = 0.5
+  K[19] = 0
+  K[20] = 0.3
+  K[21] = 0.4
+  K[22] = 0.9
+  K[23] = "Ctor"
+  K[24] = "Enable"
+  K[25] = "Disable"
+  K[26] = "PlayEmotion"
+  K[27] = "OnDelayPlayEmotion"
+  K[28] = "IsPlaying"
+  K[29] = "OnLoadEmotionSkillCompleted"
+  K[30] = "PlayEmotionSkill"
+  K[31] = "OnSkillInterrupted"
+  K[32] = "OnSkillComplete"
+  K[33] = "OnSkillTimeout"
+  K[34] = "OnPlayEmotionCompleted"
+  K[35] = "GetSkillComponent"
+  K[36] = "GetOwnerView"
+  K[37] = "SetAnimMaterialValue"
+  K[38] = "StartPlayIdleAnim"
+  K[39] = "OnIdleAnimCompleted"
+  K[40] = "StopIdleAnim"
+  K[41] = "StartPlayCheerAnim"
+  K[42] = "OnCheerAnimCompleted"
+  K[43] = "StopCheerAnim"
+  K[44] = "GetRandomOffset"
+  K[45] = "OnSwitchAnimTimeout"
+  K[46] = "UpdateWithFrameData"
+upvalues (1):
+  U[0] = instack=0 idx=0 kind=13 name="_ENV"
+locals (7):
+  L[0] = "BattleComponent" pc=4-101
+  L[1] = "Enum" pc=7-101
+  L[2] = "BattleConst" pc=10-101
+  L[3] = "NRCUtils" pc=13-101
+  L[4] = "Base" pc=14-101
+  L[5] = "OnLookerCrowdShowComponent" pc=17-101
+  L[6] = "cheerAnimSequence" pc=51-101
+instructions (101):
+  [0001] VARARGPREP     A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000051
+  [0002] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "require"]
+  [0003] LOADK          A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x00008083 ; R[1] = K[1] "NewRoco.Modules.Core.Battle.Entity.BattleComponent"
+  [0004] CALL           A=0 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263168 sJ=-16514047 raw=0x02020044
+  [0005] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "require"]
+  [0006] LOADK          A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010103 ; R[2] = K[2] "Data.Config.Enum"
+  [0007] CALL           A=1 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263169 sJ=-16514046 raw=0x020200C4
+  [0008] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "require"]
+  [0009] LOADK          A=3 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=771 sJ=-16776444 raw=0x00018183 ; R[3] = K[3] "NewRoco.Modules.Core.Battle.Common.BattleConst"
+  [0010] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+  [0011] GETTABUP       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018B ; R[3] = U[0][K[0] "require"]
+  [0012] LOADK          A=4 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1028 sJ=-16776187 raw=0x00020203 ; R[4] = K[4] "Core.NRCUtils"
+  [0013] CALL           A=3 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263171 sJ=-16514044 raw=0x020201C4
+  [0014] MOVE           A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000200
+  [0015] SELF           A=5 B=4 C=5 k=1 Bx=2569 sBx=-62966 Ax=657669 sJ=-16119546 raw=0x05048294
+  [0016] LOADK          A=7 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1543 sJ=-16775672 raw=0x00030383 ; R[7] = K[6] "OnLookerCrowdShowComponent"
+  [0017] CALL           A=5 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263685 sJ=-16513530 raw=0x020302C4
+  [0018] NEWTABLE       A=6 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1542 sJ=-16775673 raw=0x00030313
+  [0019] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0020] SETFIELD       A=6 B=8 C=9 k=1 Bx=4625 sBx=-60910 Ax=1184006 sJ=-15593209 raw=0x09088312 ; R[6][K[8] "RARE"] = R[9]
+  [0021] SETFIELD       A=6 B=10 C=11 k=1 Bx=5653 sBx=-59882 Ax=1447174 sJ=-15330041 raw=0x0B0A8312 ; R[6][K[10] "PRAISE"] = R[11]
+  [0022] SETFIELD       A=6 B=12 C=13 k=1 Bx=6681 sBx=-58854 Ax=1710342 sJ=-15066873 raw=0x0D0C8312 ; R[6][K[12] "FEAR"] = R[13]
+  [0023] SETFIELD       A=6 B=14 C=15 k=1 Bx=7709 sBx=-57826 Ax=1973510 sJ=-14803705 raw=0x0F0E8312 ; R[6][K[14] "AFFIRM"] = R[15]
+  [0024] SETFIELD       A=5 B=7 C=6 k=0 Bx=3086 sBx=-62449 Ax=790021 sJ=-15987194 raw=0x06070292 ; R[5][K[7] "EmotionType"] = R[6]
+  [0025] NEWTABLE       A=6 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786438 sJ=-15990777 raw=0x06000313
+  [0026] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0027] NEWTABLE       A=7 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1031 sJ=-16776184 raw=0x00020393
+  [0028] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0029] SETFIELD       A=7 B=16 C=9 k=1 Bx=4641 sBx=-60894 Ax=1188103 sJ=-15589112 raw=0x09108392 ; R[7][K[16] "materialAnimValue"] = R[9]
+  [0030] SETFIELD       A=7 B=17 C=18 k=1 Bx=9251 sBx=-56284 Ax=2368263 sJ=-14408952 raw=0x12118392 ; R[7][K[17] "timeSpan"] = R[18]
+  [0031] NEWTABLE       A=8 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1032 sJ=-16776183 raw=0x00020413
+  [0032] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0033] SETFIELD       A=8 B=16 C=19 k=1 Bx=9761 sBx=-55774 Ax=2498824 sJ=-14278391 raw=0x13108412 ; R[8][K[16] "materialAnimValue"] = R[19]
+  [0034] SETFIELD       A=8 B=17 C=20 k=1 Bx=10275 sBx=-55260 Ax=2630408 sJ=-14146807 raw=0x14118412 ; R[8][K[17] "timeSpan"] = R[20]
+  [0035] NEWTABLE       A=9 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1033 sJ=-16776182 raw=0x00020493
+  [0036] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0037] SETFIELD       A=9 B=16 C=9 k=1 Bx=4641 sBx=-60894 Ax=1188105 sJ=-15589110 raw=0x09108492 ; R[9][K[16] "materialAnimValue"] = R[9]
+  [0038] SETFIELD       A=9 B=17 C=18 k=1 Bx=9251 sBx=-56284 Ax=2368265 sJ=-14408950 raw=0x12118492 ; R[9][K[17] "timeSpan"] = R[18]
+  [0039] NEWTABLE       A=10 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1034 sJ=-16776181 raw=0x00020513
+  [0040] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0041] SETFIELD       A=10 B=16 C=19 k=1 Bx=9761 sBx=-55774 Ax=2498826 sJ=-14278389 raw=0x13108512 ; R[10][K[16] "materialAnimValue"] = R[19]
+  [0042] SETFIELD       A=10 B=17 C=21 k=1 Bx=10787 sBx=-54748 Ax=2761482 sJ=-14015733 raw=0x15118512 ; R[10][K[17] "timeSpan"] = R[21]
+  [0043] NEWTABLE       A=11 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1035 sJ=-16776180 raw=0x00020593
+  [0044] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0045] SETFIELD       A=11 B=16 C=9 k=1 Bx=4641 sBx=-60894 Ax=1188107 sJ=-15589108 raw=0x09108592 ; R[11][K[16] "materialAnimValue"] = R[9]
+  [0046] SETFIELD       A=11 B=17 C=22 k=1 Bx=11299 sBx=-54236 Ax=2892555 sJ=-13884660 raw=0x16118592 ; R[11][K[17] "timeSpan"] = R[22]
+  [0047] NEWTABLE       A=12 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1036 sJ=-16776179 raw=0x00020613
+  [0048] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0049] SETFIELD       A=12 B=16 C=19 k=1 Bx=9761 sBx=-55774 Ax=2498828 sJ=-14278387 raw=0x13108612 ; R[12][K[16] "materialAnimValue"] = R[19]
+  [0050] SETFIELD       A=12 B=17 C=21 k=1 Bx=10787 sBx=-54748 Ax=2761484 sJ=-14015731 raw=0x15118612 ; R[12][K[17] "timeSpan"] = R[21]
+  [0051] SETLIST        A=6 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3078 sJ=-16774137 raw=0x0006034E
+  [0052] CLOSURE        A=7 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=7 sJ=-16777208 raw=0x000003CF ; R[7] = function[0]
+  [0053] SETFIELD       A=5 B=23 C=7 k=0 Bx=3630 sBx=-61905 Ax=929285 sJ=-15847930 raw=0x07170292 ; R[5][K[23] "Ctor"] = R[7]
+  [0054] CLOSURE        A=7 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=263 sJ=-16776952 raw=0x000083CF ; R[7] = function[1]
+  [0055] SETFIELD       A=5 B=24 C=7 k=0 Bx=3632 sBx=-61903 Ax=929797 sJ=-15847418 raw=0x07180292 ; R[5][K[24] "Enable"] = R[7]
+  [0056] CLOSURE        A=7 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=519 sJ=-16776696 raw=0x000103CF ; R[7] = function[2]
+  [0057] SETFIELD       A=5 B=25 C=7 k=0 Bx=3634 sBx=-61901 Ax=930309 sJ=-15846906 raw=0x07190292 ; R[5][K[25] "Disable"] = R[7]
+  [0058] CLOSURE        A=7 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=775 sJ=-16776440 raw=0x000183CF ; R[7] = function[3]
+  [0059] SETFIELD       A=5 B=26 C=7 k=0 Bx=3636 sBx=-61899 Ax=930821 sJ=-15846394 raw=0x071A0292 ; R[5][K[26] "PlayEmotion"] = R[7]
+  [0060] CLOSURE        A=7 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1031 sJ=-16776184 raw=0x000203CF ; R[7] = function[4]
+  [0061] SETFIELD       A=5 B=27 C=7 k=0 Bx=3638 sBx=-61897 Ax=931333 sJ=-15845882 raw=0x071B0292 ; R[5][K[27] "OnDelayPlayEmotion"] = R[7]
+  [0062] CLOSURE        A=7 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1287 sJ=-16775928 raw=0x000283CF ; R[7] = function[5]
+  [0063] SETFIELD       A=5 B=28 C=7 k=0 Bx=3640 sBx=-61895 Ax=931845 sJ=-15845370 raw=0x071C0292 ; R[5][K[28] "IsPlaying"] = R[7]
+  [0064] CLOSURE        A=7 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1543 sJ=-16775672 raw=0x000303CF ; R[7] = function[6]
+  [0065] SETFIELD       A=5 B=29 C=7 k=0 Bx=3642 sBx=-61893 Ax=932357 sJ=-15844858 raw=0x071D0292 ; R[5][K[29] "OnLoadEmotionSkillCompleted"] = R[7]
+  [0066] CLOSURE        A=7 B=3 C=0 k=1 Bx=7 sBx=-65528 Ax=1799 sJ=-16775416 raw=0x000383CF ; R[7] = function[7]
+  [0067] SETFIELD       A=5 B=30 C=7 k=0 Bx=3644 sBx=-61891 Ax=932869 sJ=-15844346 raw=0x071E0292 ; R[5][K[30] "PlayEmotionSkill"] = R[7]
+  [0068] CLOSURE        A=7 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2055 sJ=-16775160 raw=0x000403CF ; R[7] = function[8]
+  [0069] SETFIELD       A=5 B=31 C=7 k=0 Bx=3646 sBx=-61889 Ax=933381 sJ=-15843834 raw=0x071F0292 ; R[5][K[31] "OnSkillInterrupted"] = R[7]
+  [0070] CLOSURE        A=7 B=4 C=0 k=1 Bx=9 sBx=-65526 Ax=2311 sJ=-16774904 raw=0x000483CF ; R[7] = function[9]
+  [0071] SETFIELD       A=5 B=32 C=7 k=0 Bx=3648 sBx=-61887 Ax=933893 sJ=-15843322 raw=0x07200292 ; R[5][K[32] "OnSkillComplete"] = R[7]
+  [0072] CLOSURE        A=7 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2567 sJ=-16774648 raw=0x000503CF ; R[7] = function[10]
+  [0073] SETFIELD       A=5 B=33 C=7 k=0 Bx=3650 sBx=-61885 Ax=934405 sJ=-15842810 raw=0x07210292 ; R[5][K[33] "OnSkillTimeout"] = R[7]
+  [0074] CLOSURE        A=7 B=5 C=0 k=1 Bx=11 sBx=-65524 Ax=2823 sJ=-16774392 raw=0x000583CF ; R[7] = function[11]
+  [0075] SETFIELD       A=5 B=34 C=7 k=0 Bx=3652 sBx=-61883 Ax=934917 sJ=-15842298 raw=0x07220292 ; R[5][K[34] "OnPlayEmotionCompleted"] = R[7]
+  [0076] CLOSURE        A=7 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3079 sJ=-16774136 raw=0x000603CF ; R[7] = function[12]
+  [0077] SETFIELD       A=5 B=35 C=7 k=0 Bx=3654 sBx=-61881 Ax=935429 sJ=-15841786 raw=0x07230292 ; R[5][K[35] "GetSkillComponent"] = R[7]
+  [0078] CLOSURE        A=7 B=6 C=0 k=1 Bx=13 sBx=-65522 Ax=3335 sJ=-16773880 raw=0x000683CF ; R[7] = function[13]
+  [0079] SETFIELD       A=5 B=36 C=7 k=0 Bx=3656 sBx=-61879 Ax=935941 sJ=-15841274 raw=0x07240292 ; R[5][K[36] "GetOwnerView"] = R[7]
+  [0080] CLOSURE        A=7 B=7 C=0 k=0 Bx=14 sBx=-65521 Ax=3591 sJ=-16773624 raw=0x000703CF ; R[7] = function[14]
+  [0081] SETFIELD       A=5 B=37 C=7 k=0 Bx=3658 sBx=-61877 Ax=936453 sJ=-15840762 raw=0x07250292 ; R[5][K[37] "SetAnimMaterialValue"] = R[7]
+  [0082] CLOSURE        A=7 B=7 C=0 k=1 Bx=15 sBx=-65520 Ax=3847 sJ=-16773368 raw=0x000783CF ; R[7] = function[15]
+  [0083] SETFIELD       A=5 B=38 C=7 k=0 Bx=3660 sBx=-61875 Ax=936965 sJ=-15840250 raw=0x07260292 ; R[5][K[38] "StartPlayIdleAnim"] = R[7]
+  [0084] CLOSURE        A=7 B=8 C=0 k=0 Bx=16 sBx=-65519 Ax=4103 sJ=-16773112 raw=0x000803CF ; R[7] = function[16]
+  [0085] SETFIELD       A=5 B=39 C=7 k=0 Bx=3662 sBx=-61873 Ax=937477 sJ=-15839738 raw=0x07270292 ; R[5][K[39] "OnIdleAnimCompleted"] = R[7]
+  [0086] CLOSURE        A=7 B=8 C=0 k=1 Bx=17 sBx=-65518 Ax=4359 sJ=-16772856 raw=0x000883CF ; R[7] = function[17]
+  [0087] SETFIELD       A=5 B=40 C=7 k=0 Bx=3664 sBx=-61871 Ax=937989 sJ=-15839226 raw=0x07280292 ; R[5][K[40] "StopIdleAnim"] = R[7]
+  [0088] CLOSURE        A=7 B=9 C=0 k=0 Bx=18 sBx=-65517 Ax=4615 sJ=-16772600 raw=0x000903CF ; R[7] = function[18]
+  [0089] SETFIELD       A=5 B=41 C=7 k=0 Bx=3666 sBx=-61869 Ax=938501 sJ=-15838714 raw=0x07290292 ; R[5][K[41] "StartPlayCheerAnim"] = R[7]
+  [0090] CLOSURE        A=7 B=9 C=0 k=1 Bx=19 sBx=-65516 Ax=4871 sJ=-16772344 raw=0x000983CF ; R[7] = function[19]
+  [0091] SETFIELD       A=5 B=42 C=7 k=0 Bx=3668 sBx=-61867 Ax=939013 sJ=-15838202 raw=0x072A0292 ; R[5][K[42] "OnCheerAnimCompleted"] = R[7]
+  [0092] CLOSURE        A=7 B=10 C=0 k=0 Bx=20 sBx=-65515 Ax=5127 sJ=-16772088 raw=0x000A03CF ; R[7] = function[20]
+  [0093] SETFIELD       A=5 B=43 C=7 k=0 Bx=3670 sBx=-61865 Ax=939525 sJ=-15837690 raw=0x072B0292 ; R[5][K[43] "StopCheerAnim"] = R[7]
+  [0094] CLOSURE        A=7 B=10 C=0 k=1 Bx=21 sBx=-65514 Ax=5383 sJ=-16771832 raw=0x000A83CF ; R[7] = function[21]
+  [0095] SETFIELD       A=5 B=44 C=7 k=0 Bx=3672 sBx=-61863 Ax=940037 sJ=-15837178 raw=0x072C0292 ; R[5][K[44] "GetRandomOffset"] = R[7]
+  [0096] CLOSURE        A=7 B=11 C=0 k=0 Bx=22 sBx=-65513 Ax=5639 sJ=-16771576 raw=0x000B03CF ; R[7] = function[22]
+  [0097] SETFIELD       A=5 B=45 C=7 k=0 Bx=3674 sBx=-61861 Ax=940549 sJ=-15836666 raw=0x072D0292 ; R[5][K[45] "OnSwitchAnimTimeout"] = R[7]
+  [0098] CLOSURE        A=7 B=11 C=0 k=1 Bx=23 sBx=-65512 Ax=5895 sJ=-16771320 raw=0x000B83CF ; R[7] = function[23]
+  [0099] SETFIELD       A=5 B=46 C=7 k=0 Bx=3676 sBx=-61859 Ax=941061 sJ=-15836154 raw=0x072E0292 ; R[5][K[46] "UpdateWithFrameData"] = R[7]
+  [0100] RETURN         A=5 B=2 C=1 k=1 Bx=517 sBx=-65018 Ax=132357 sJ=-16644858 raw=0x010282C6
+  [0101] RETURN         A=7 B=1 C=1 k=1 Bx=515 sBx=-65020 Ax=131847 sJ=-16645368 raw=0x010183C6
+
+  function[0] source="" lines=82-86 params=2 vararg=0 stack=255 upvalues=1
+  constants (3):
+    K[0] = "Ctor"
+    K[1] = "owner"
+    K[2] = "emotionsContextWaitingToPlay"
+  upvalues (1):
+    U[0] = instack=4 idx=0 kind=4 name="Base"
+  locals (2):
+    L[0] = "self" pc=0-8
+    L[1] = "owner" pc=0-8
+  instructions (8):
+    [0001] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "Ctor"]
+    [0002] MOVE           A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000180
+    [0003] CALL           A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x01020144
+    [0004] SETFIELD       A=0 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131584 sJ=-16645631 raw=0x01010012 ; R[0][K[1] "owner"] = R[1]
+    [0005] NEWTABLE       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000113
+    [0006] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0007] SETFIELD       A=0 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263168 sJ=-16514047 raw=0x02020012 ; R[0][K[2] "emotionsContextWaitingToPlay"] = R[2]
+    [0008] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[1] source="" lines=88-90 params=1 vararg=0 stack=255 upvalues=0
+  constants (1):
+    K[0] = "StartPlayIdleAnim"
+  locals (1):
+    L[0] = "self" pc=0-3
+  instructions (3):
+    [0001] SELF           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x00008094
+    [0002] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0003] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[2] source="" lines=92-104 params=1 vararg=0 stack=255 upvalues=0
+  constants (10):
+    K[0] = "emotionsContextWaitingToPlay"
+    K[1] = "dynamicAnimMaterial"
+    K[2] = nil
+    K[3] = "playEmotionContext"
+    K[4] = "OnPlayEmotionCompleted"
+    K[5] = "OnLookerCrowdShowComponent disable"
+    K[6] = "playIdleAnimationContext"
+    K[7] = "StopIdleAnim"
+    K[8] = "playCheerAnimationContext"
+    K[9] = "StopCheerAnim"
+  locals (1):
+    L[0] = "self" pc=0-22
+  instructions (22):
+    [0001] NEWTABLE       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000093
+    [0002] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0003] SETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x01000012 ; R[0][K[0] "emotionsContextWaitingToPlay"] = R[1]
+    [0004] SETFIELD       A=0 B=1 C=2 k=1 Bx=1027 sBx=-64508 Ax=262912 sJ=-16514303 raw=0x02018012 ; R[0][K[1] "dynamicAnimMaterial"] = R[2]
+    [0005] GETFIELD       A=1 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393217 sJ=-16383998 raw=0x0300008E ; R[1] = R[0][K[3] "playEmotionContext"]
+    [0006] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0007] JMP            A=3 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777219 sJ=4 raw=0x800001B8
+    [0008] SELF           A=1 B=0 C=4 k=1 Bx=2049 sBx=-63486 Ax=524545 sJ=-16252670 raw=0x04008094
+    [0009] LOADFALSE      A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000185
+    [0010] LOADK          A=4 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1284 sJ=-16775931 raw=0x00028203 ; R[4] = K[5] "OnLookerCrowdShowComponent disable"
+    [0011] CALL           A=1 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133121 sJ=-16644094 raw=0x010400C4
+    [0012] GETFIELD       A=1 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786433 sJ=-15990782 raw=0x0600008E ; R[1] = R[0][K[6] "playIdleAnimationContext"]
+    [0013] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0014] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0015] SELF           A=1 B=0 C=7 k=1 Bx=3585 sBx=-61950 Ax=917761 sJ=-15859454 raw=0x07008094
+    [0016] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0017] GETFIELD       A=1 B=0 C=8 k=0 Bx=4096 sBx=-61439 Ax=1048577 sJ=-15728638 raw=0x0800008E ; R[1] = R[0][K[8] "playCheerAnimationContext"]
+    [0018] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0019] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0020] SELF           A=1 B=0 C=9 k=1 Bx=4609 sBx=-60926 Ax=1179905 sJ=-15597310 raw=0x09008094
+    [0021] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0022] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[3] source="" lines=109-142 params=4 vararg=0 stack=255 upvalues=2
+  constants (25):
+    K[0] = "IsPlaying"
+    K[1] = "emotionType"
+    K[2] = "callbackOwner"
+    K[3] = "callback"
+    K[4] = "table"
+    K[5] = "insert"
+    K[6] = "emotionsContextWaitingToPlay"
+    K[7] = "_G"
+    K[8] = "DataConfigManager"
+    K[9] = "GetEmotionConf"
+    K[10] = "action_res"
+    K[11] = "FormatBlueprintAssetPath"
+    K[12] = "playEmotionContext"
+    K[13] = "skillPath"
+    K[14] = "OnPlayEmotionCompleted"
+    K[15] = "string"
+    K[16] = "format"
+    K[17] = "skill path is nil, maybe emotion type is not valid"
+    K[18] = "math"
+    K[19] = "rand"
+    K[20] = 1000
+    K[21] = "delayPlayEmotionDelayId"
+    K[22] = "DelayManager"
+    K[23] = "DelaySeconds"
+    K[24] = "OnDelayPlayEmotion"
+  upvalues (2):
+    U[0] = instack=0 idx=0 kind=1 name="_ENV"
+    U[1] = instack=3 idx=0 kind=14 name="NRCUtils"
+  locals (9):
+    L[0] = "self" pc=0-65
+    L[1] = "emotionType" pc=0-65
+    L[2] = "callbackOwner" pc=0-65
+    L[3] = "callback" pc=0-65
+    L[4] = "context" pc=9-15
+    L[5] = "emotionConfig" pc=20-65
+    L[6] = "skillPath" pc=23-65
+    L[7] = "random_deviation" pc=48-65
+    L[8] = "random_deviation_seconds" pc=55-65
+  instructions (65):
+    [0001] SELF           A=4 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=260 sJ=-16776955 raw=0x00008214
+    [0002] CALL           A=4 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263172 sJ=-16514043 raw=0x02020244
+    [0003] TEST           A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000242
+    [0004] JMP            A=10 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777226 sJ=11 raw=0x80000538
+    [0005] NEWTABLE       A=4 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1540 sJ=-16775675 raw=0x00030213
+    [0006] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0007] SETFIELD       A=4 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131588 sJ=-16645627 raw=0x01010212 ; R[4][K[1] "emotionType"] = R[1]
+    [0008] SETFIELD       A=4 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263172 sJ=-16514043 raw=0x02020212 ; R[4][K[2] "callbackOwner"] = R[2]
+    [0009] SETFIELD       A=4 B=3 C=3 k=0 Bx=1542 sBx=-63993 Ax=394756 sJ=-16382459 raw=0x03030212 ; R[4][K[3] "callback"] = R[3]
+    [0010] GETTABUP       A=5 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524293 sJ=-16252922 raw=0x0400028B ; R[5] = U[0][K[4] "table"]
+    [0011] GETFIELD       A=5 B=5 C=5 k=0 Bx=2570 sBx=-62965 Ax=657925 sJ=-16119290 raw=0x0505028E ; R[5] = R[5][K[5] "insert"]
+    [0012] GETFIELD       A=6 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786438 sJ=-15990777 raw=0x0600030E ; R[6] = R[0][K[6] "emotionsContextWaitingToPlay"]
+    [0013] MOVE           A=7 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2055 sJ=-16775160 raw=0x00040380
+    [0014] CALL           A=5 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132613 sJ=-16644602 raw=0x010302C4
+    [0015] RETURN0        A=5 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=517 sJ=-16776698 raw=0x000102C7
+    [0016] GETTABUP       A=4 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917508 sJ=-15859707 raw=0x0700020B ; R[4] = U[0][K[7] "_G"]
+    [0017] GETFIELD       A=4 B=4 C=8 k=0 Bx=4104 sBx=-61431 Ax=1050628 sJ=-15726587 raw=0x0804020E ; R[4] = R[4][K[8] "DataConfigManager"]
+    [0018] SELF           A=4 B=4 C=9 k=1 Bx=4617 sBx=-60918 Ax=1181956 sJ=-15595259 raw=0x09048214
+    [0019] MOVE           A=6 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=518 sJ=-16776697 raw=0x00010300
+    [0020] CALL           A=4 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263684 sJ=-16513531 raw=0x02030244
+    [0021] TESTSET        A=5 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2053 sJ=-16775162 raw=0x000402C3
+    [0022] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0023] GETFIELD       A=5 B=4 C=10 k=0 Bx=5128 sBx=-60407 Ax=1312773 sJ=-15464442 raw=0x0A04028E ; R[5] = R[4][K[10] "action_res"]
+    [0024] TEST           A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x000002C2
+    [0025] JMP            A=3 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777219 sJ=4 raw=0x800001B8
+    [0026] GETTABUP       A=6 B=1 C=11 k=0 Bx=5634 sBx=-59901 Ax=1442310 sJ=-15334905 raw=0x0B01030B ; R[6] = U[1][K[11] "FormatBlueprintAssetPath"]
+    [0027] MOVE           A=7 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2567 sJ=-16774648 raw=0x00050380
+    [0028] CALL           A=6 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263174 sJ=-16514041 raw=0x02020344
+    [0029] MOVE           A=5 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3077 sJ=-16774138 raw=0x00060280
+    [0030] NEWTABLE       A=6 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1542 sJ=-16775673 raw=0x00030313
+    [0031] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0032] SETFIELD       A=6 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131590 sJ=-16645625 raw=0x01010312 ; R[6][K[1] "emotionType"] = R[1]
+    [0033] SETFIELD       A=6 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263174 sJ=-16514041 raw=0x02020312 ; R[6][K[2] "callbackOwner"] = R[2]
+    [0034] SETFIELD       A=6 B=3 C=3 k=0 Bx=1542 sBx=-63993 Ax=394758 sJ=-16382457 raw=0x03030312 ; R[6][K[3] "callback"] = R[3]
+    [0035] SETFIELD       A=6 B=13 C=5 k=0 Bx=2586 sBx=-62949 Ax=662022 sJ=-16115193 raw=0x050D0312 ; R[6][K[13] "skillPath"] = R[5]
+    [0036] SETFIELD       A=0 B=12 C=6 k=0 Bx=3096 sBx=-62439 Ax=792576 sJ=-15984639 raw=0x060C0012 ; R[0][K[12] "playEmotionContext"] = R[6]
+    [0037] TEST           A=5 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=261 sJ=-16776954 raw=0x000082C2
+    [0038] JMP            A=8 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777224 sJ=9 raw=0x80000438
+    [0039] SELF           A=6 B=0 C=14 k=1 Bx=7169 sBx=-58366 Ax=1835270 sJ=-14941945 raw=0x0E008314
+    [0040] LOADFALSE      A=8 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=8 sJ=-16777207 raw=0x00000405
+    [0041] GETTABUP       A=9 B=0 C=15 k=0 Bx=7680 sBx=-57855 Ax=1966089 sJ=-14811126 raw=0x0F00048B ; R[9] = U[0][K[15] "string"]
+    [0042] GETFIELD       A=9 B=9 C=16 k=0 Bx=8210 sBx=-57325 Ax=2101769 sJ=-14675446 raw=0x1009048E ; R[9] = R[9][K[16] "format"]
+    [0043] LOADK          A=10 B=8 C=0 k=1 Bx=17 sBx=-65518 Ax=4362 sJ=-16772853 raw=0x00088503 ; R[10] = K[17] "skill path is nil, maybe emotion type is not valid"
+    [0044] MOVE           A=11 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=523 sJ=-16776692 raw=0x00010580
+    [0045] CALL           A=9 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1545 sJ=-16775670 raw=0x000304C4
+    [0046] CALL           A=6 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131078 sJ=-16646137 raw=0x01000344
+    [0047] RETURN0        A=6 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=518 sJ=-16776697 raw=0x00010347
+    [0048] LOADI          A=6 B=237 C=130 k=1 Bx=67035 sBx=1500 Ax=17160966 sJ=383751 raw=0x82ED8301
+    [0049] GETTABUP       A=7 B=0 C=18 k=0 Bx=9216 sBx=-56319 Ax=2359303 sJ=-14417912 raw=0x1200038B ; R[7] = U[0][K[18] "math"]
+    [0050] GETFIELD       A=7 B=7 C=19 k=0 Bx=9742 sBx=-55793 Ax=2493959 sJ=-14283256 raw=0x1307038E ; R[7] = R[7][K[19] "rand"]
+    [0051] LOADI          A=8 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777224 sJ=9 raw=0x80000401
+    [0052] MOVE           A=9 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3081 sJ=-16774134 raw=0x00060480
+    [0053] CALL           A=7 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263687 sJ=-16513528 raw=0x020303C4
+    [0054] DIVK           A=7 B=7 C=20 k=0 Bx=10254 sBx=-55281 Ax=2625031 sJ=-14152184 raw=0x1407039B ; K[20] 1000
+    [0055] MMBINK         A=7 B=20 C=11 k=0 Bx=5672 sBx=-59863 Ax=1452039 sJ=-15325176 raw=0x0B1403B0
+    [0056] GETFIELD       A=8 B=0 C=12 k=0 Bx=6144 sBx=-59391 Ax=1572872 sJ=-15204343 raw=0x0C00040E ; R[8] = R[0][K[12] "playEmotionContext"]
+    [0057] GETTABUP       A=9 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917513 sJ=-15859702 raw=0x0700048B ; R[9] = U[0][K[7] "_G"]
+    [0058] GETFIELD       A=9 B=9 C=22 k=0 Bx=11282 sBx=-54253 Ax=2888201 sJ=-13889014 raw=0x1609048E ; R[9] = R[9][K[22] "DelayManager"]
+    [0059] SELF           A=9 B=9 C=23 k=1 Bx=11795 sBx=-53740 Ax=3019529 sJ=-13757686 raw=0x17098494
+    [0060] MOVE           A=11 B=7 C=0 k=0 Bx=14 sBx=-65521 Ax=3595 sJ=-16773620 raw=0x00070580
+    [0061] GETFIELD       A=12 B=0 C=24 k=0 Bx=12288 sBx=-53247 Ax=3145740 sJ=-13631475 raw=0x1800060E ; R[12] = R[0][K[24] "OnDelayPlayEmotion"]
+    [0062] MOVE           A=13 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=13 sJ=-16777202 raw=0x00000680
+    [0063] CALL           A=9 B=5 C=2 k=0 Bx=1034 sBx=-64501 Ax=264713 sJ=-16512502 raw=0x020504C4
+    [0064] SETFIELD       A=8 B=21 C=9 k=0 Bx=4650 sBx=-60885 Ax=1190408 sJ=-15586807 raw=0x09150412 ; R[8][K[21] "delayPlayEmotionDelayId"] = R[9]
+    [0065] RETURN0        A=8 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=520 sJ=-16776695 raw=0x00010447
+
+  function[4] source="" lines=144-159 params=1 vararg=0 stack=255 upvalues=1
+  constants (16):
+    K[0] = "playEmotionContext"
+    K[1] = "Log"
+    K[2] = "Warning"
+    K[3] = "OnLookerCrowdShowComponent:OnDelayPlayEmotion playEmotionContext is nil"
+    K[4] = "StartPlayCheerAnim"
+    K[5] = "skillPath"
+    K[6] = "_G"
+    K[7] = "BattleResourceManager"
+    K[8] = "GetCacheAssetDirect"
+    K[9] = "UE"
+    K[10] = "UObject"
+    K[11] = "IsValid"
+    K[12] = "OnLoadEmotionSkillCompleted"
+    K[13] = "LoadResAsyncThunk"
+    K[14] = "PriorityEnum"
+    K[15] = "Passive_Battle_NPC"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=12 name="_ENV"
+  locals (3):
+    L[0] = "self" pc=0-42
+    L[1] = "skillPath" pc=12-42
+    L[2] = "asset" pc=18-42
+  instructions (42):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "playEmotionContext"]
+    [0002] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0003] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0004] GETTABUP       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008B ; R[1] = U[0][K[1] "Log"]
+    [0005] GETFIELD       A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x0201008E ; R[1] = R[1][K[2] "Warning"]
+    [0006] LOADK          A=2 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=770 sJ=-16776445 raw=0x00018103 ; R[2] = K[3] "OnLookerCrowdShowComponent:OnDelayPlayEmotion playEmotionContext is nil"
+    [0007] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0008] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+    [0009] SELF           A=1 B=0 C=4 k=1 Bx=2049 sBx=-63486 Ax=524545 sJ=-16252670 raw=0x04008094
+    [0010] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0011] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "playEmotionContext"]
+    [0012] GETFIELD       A=1 B=1 C=5 k=0 Bx=2562 sBx=-62973 Ax=655873 sJ=-16121342 raw=0x0501008E ; R[1] = R[1][K[5] "skillPath"]
+    [0013] GETTABUP       A=2 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786434 sJ=-15990781 raw=0x0600010B ; R[2] = U[0][K[6] "_G"]
+    [0014] GETFIELD       A=2 B=2 C=7 k=0 Bx=3588 sBx=-61947 Ax=918530 sJ=-15858685 raw=0x0702010E ; R[2] = R[2][K[7] "BattleResourceManager"]
+    [0015] SELF           A=2 B=2 C=8 k=1 Bx=4101 sBx=-61434 Ax=1049858 sJ=-15727357 raw=0x08028114
+    [0016] MOVE           A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010200
+    [0017] LOADTRUE       A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x00000287
+    [0018] CALL           A=2 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264194 sJ=-16513021 raw=0x02040144
+    [0019] GETTABUP       A=3 B=0 C=9 k=0 Bx=4608 sBx=-60927 Ax=1179651 sJ=-15597564 raw=0x0900018B ; R[3] = U[0][K[9] "UE"]
+    [0020] GETFIELD       A=3 B=3 C=10 k=0 Bx=5126 sBx=-60409 Ax=1312259 sJ=-15464956 raw=0x0A03018E ; R[3] = R[3][K[10] "UObject"]
+    [0021] GETFIELD       A=3 B=3 C=11 k=0 Bx=5638 sBx=-59897 Ax=1443331 sJ=-15333884 raw=0x0B03018E ; R[3] = R[3][K[11] "IsValid"]
+    [0022] MOVE           A=4 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1028 sJ=-16776187 raw=0x00020200
+    [0023] CALL           A=3 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263171 sJ=-16514044 raw=0x020201C4
+    [0024] TEST           A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x000001C2
+    [0025] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0026] SELF           A=3 B=0 C=12 k=1 Bx=6145 sBx=-59390 Ax=1573123 sJ=-15204092 raw=0x0C008194
+    [0027] LOADTRUE       A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x00000287
+    [0028] MOVE           A=6 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1030 sJ=-16776185 raw=0x00020300
+    [0029] CALL           A=3 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133123 sJ=-16644092 raw=0x010401C4
+    [0030] JMP            A=10 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777226 sJ=11 raw=0x80000538
+    [0031] GETTABUP       A=3 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786435 sJ=-15990780 raw=0x0600018B ; R[3] = U[0][K[6] "_G"]
+    [0032] GETFIELD       A=3 B=3 C=7 k=0 Bx=3590 sBx=-61945 Ax=919043 sJ=-15858172 raw=0x0703018E ; R[3] = R[3][K[7] "BattleResourceManager"]
+    [0033] SELF           A=3 B=3 C=13 k=1 Bx=6663 sBx=-58872 Ax=1705731 sJ=-15071484 raw=0x0D038194
+    [0034] MOVE           A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x00000280
+    [0035] MOVE           A=6 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=518 sJ=-16776697 raw=0x00010300
+    [0036] LOADNIL        A=7 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1031 sJ=-16776184 raw=0x00020388
+    [0037] GETTABUP       A=10 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786442 sJ=-15990773 raw=0x0600050B ; R[10] = U[0][K[6] "_G"]
+    [0038] GETFIELD       A=10 B=10 C=14 k=0 Bx=7188 sBx=-58347 Ax=1840138 sJ=-14937077 raw=0x0E0A050E ; R[10] = R[10][K[14] "PriorityEnum"]
+    [0039] GETFIELD       A=10 B=10 C=15 k=0 Bx=7700 sBx=-57835 Ax=1971210 sJ=-14806005 raw=0x0F0A050E ; R[10] = R[10][K[15] "Passive_Battle_NPC"]
+    [0040] GETFIELD       A=11 B=0 C=12 k=0 Bx=6144 sBx=-59391 Ax=1572875 sJ=-15204340 raw=0x0C00058E ; R[11] = R[0][K[12] "OnLoadEmotionSkillCompleted"]
+    [0041] CALL           A=3 B=9 C=1 k=0 Bx=530 sBx=-65005 Ax=135683 sJ=-16641532 raw=0x010901C4
+    [0042] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7
+
+  function[5] source="" lines=161-163 params=1 vararg=0 stack=255 upvalues=0
+  constants (2):
+    K[0] = "playEmotionContext"
+    K[1] = nil
+  locals (1):
+    L[0] = "self" pc=0-7
+  instructions (7):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "playEmotionContext"]
+    [0002] EQK            A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100BC
+    [0003] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0004] LFALSESKIP     A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000086
+    [0005] LOADTRUE       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000087
+    [0006] RETURN1        A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C8
+    [0007] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[6] source="" lines=167-176 params=3 vararg=0 stack=255 upvalues=1
+  constants (6):
+    K[0] = "tostring"
+    K[1] = "OnPlayEmotionCompleted"
+    K[2] = "string"
+    K[3] = "format"
+    K[4] = "failed to load res %s"
+    K[5] = "PlayEmotionSkill"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=10 name="_ENV"
+  locals (5):
+    L[0] = "self" pc=0-19
+    L[1] = "ok" pc=0-19
+    L[2] = "asset" pc=0-19
+    L[3] = "errorMessage" pc=5-14
+    L[4] = "skillClass" pc=15-19
+  instructions (19):
+    [0001] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0002] JMP            A=11 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777227 sJ=12 raw=0x800005B8
+    [0003] GETTABUP       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018B ; R[3] = U[0][K[0] "tostring"]
+    [0004] MOVE           A=4 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1028 sJ=-16776187 raw=0x00020200
+    [0005] CALL           A=3 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263171 sJ=-16514044 raw=0x020201C4
+    [0006] SELF           A=4 B=0 C=1 k=1 Bx=513 sBx=-65022 Ax=131332 sJ=-16645883 raw=0x01008214
+    [0007] LOADFALSE      A=6 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=6 sJ=-16777209 raw=0x00000305
+    [0008] GETTABUP       A=7 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262151 sJ=-16515064 raw=0x0200038B ; R[7] = U[0][K[2] "string"]
+    [0009] GETFIELD       A=7 B=7 C=3 k=0 Bx=1550 sBx=-63985 Ax=396807 sJ=-16380408 raw=0x0307038E ; R[7] = R[7][K[3] "format"]
+    [0010] LOADK          A=8 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1032 sJ=-16776183 raw=0x00020403 ; R[8] = K[4] "failed to load res %s"
+    [0011] MOVE           A=9 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1545 sJ=-16775670 raw=0x00030480
+    [0012] CALL           A=7 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1543 sJ=-16775672 raw=0x000303C4
+    [0013] CALL           A=4 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131076 sJ=-16646139 raw=0x01000244
+    [0014] RETURN0        A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010247
+    [0015] MOVE           A=3 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1027 sJ=-16776188 raw=0x00020180
+    [0016] SELF           A=4 B=0 C=5 k=1 Bx=2561 sBx=-62974 Ax=655620 sJ=-16121595 raw=0x05008214
+    [0017] MOVE           A=6 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1542 sJ=-16775673 raw=0x00030300
+    [0018] CALL           A=4 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132612 sJ=-16644603 raw=0x01030244
+    [0019] RETURN0        A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010247
+
+  function[7] source="" lines=179-231 params=2 vararg=0 stack=255 upvalues=1
+  constants (45):
+    K[0] = "UE"
+    K[1] = "UObject"
+    K[2] = "IsValid"
+    K[3] = "OnPlayEmotionCompleted"
+    K[4] = "skillClass is not valid"
+    K[5] = "GetOwnerView"
+    K[6] = "ownerModel is not valid"
+    K[7] = "EmotionCaster"
+    K[8] = "GetChildActor"
+    K[9] = "casterModel is not valid"
+    K[10] = "GetSkillComponent"
+    K[11] = "SkillComp is not valid"
+    K[12] = "FindOrAddSkillObj"
+    K[13] = "Skill Object is not valid"
+    K[14] = "SetCaster"
+    K[15] = "SetPassive"
+    K[16] = "GetBlackboard"
+    K[17] = "Left"
+    K[18] = "EmotionDirection"
+    K[19] = "SetValueAsString"
+    K[20] = "Direction"
+    K[21] = "LoadAndPlaySkill"
+    K[22] = "GetLength"
+    K[23] = "ESkillStartResult"
+    K[24] = "Success"
+    K[25] = "Log"
+    K[26] = "Debug"
+    K[27] = "OnLookerCrowdShowComponent:OnLookerCrowdShowComponent Start"
+    K[28] = "owner"
+    K[29] = "name"
+    K[30] = "playEmotionContext"
+    K[31] = "skillObject"
+    K[32] = "skillTimeOutDelayId"
+    K[33] = "_G"
+    K[34] = "DelayManager"
+    K[35] = "DelaySeconds"
+    K[36] = 2
+    K[37] = "OnSkillTimeout"
+    K[38] = "RegisterEventCallback"
+    K[39] = "End"
+    K[40] = "OnSkillComplete"
+    K[41] = "PreEnd"
+    K[42] = "Interrupt"
+    K[43] = "OnSkillInterrupted"
+    K[44] = "skill play failed"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=16 name="_ENV"
+  locals (11):
+    L[0] = "self" pc=0-147
+    L[1] = "skillClass" pc=0-147
+    L[2] = "ownerModel" pc=14-147
+    L[3] = "emotionCaster" pc=29-147
+    L[4] = "casterModel" pc=30-147
+    L[5] = "SkillComp" pc=44-147
+    L[6] = "skillObject" pc=59-147
+    L[7] = "blackboard" pc=79-147
+    L[8] = "directionValue" pc=87-95
+    L[9] = "playSkillResult" pc=98-147
+    L[10] = "skillLength" pc=100-147
+  instructions (147):
+    [0001] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "UE"]
+    [0002] GETFIELD       A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x0102010E ; R[2] = R[2][K[1] "UObject"]
+    [0003] GETFIELD       A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x0202010E ; R[2] = R[2][K[2] "IsValid"]
+    [0004] MOVE           A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x00010180
+    [0005] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0006] TEST           A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x00008142
+    [0007] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0008] SELF           A=2 B=0 C=3 k=1 Bx=1537 sBx=-63998 Ax=393474 sJ=-16383741 raw=0x03008114
+    [0009] LOADFALSE      A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000205
+    [0010] LOADK          A=5 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1029 sJ=-16776186 raw=0x00020283 ; R[5] = K[4] "skillClass is not valid"
+    [0011] CALL           A=2 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133122 sJ=-16644093 raw=0x01040144
+    [0012] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+    [0013] SELF           A=2 B=0 C=5 k=1 Bx=2561 sBx=-62974 Ax=655618 sJ=-16121597 raw=0x05008114
+    [0014] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0015] GETTABUP       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018B ; R[3] = U[0][K[0] "UE"]
+    [0016] GETFIELD       A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x0103018E ; R[3] = R[3][K[1] "UObject"]
+    [0017] GETFIELD       A=3 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263683 sJ=-16513532 raw=0x0203018E ; R[3] = R[3][K[2] "IsValid"]
+    [0018] MOVE           A=4 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1028 sJ=-16776187 raw=0x00020200
+    [0019] CALL           A=3 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263171 sJ=-16514044 raw=0x020201C4
+    [0020] TEST           A=3 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=259 sJ=-16776956 raw=0x000081C2
+    [0021] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0022] SELF           A=3 B=0 C=3 k=1 Bx=1537 sBx=-63998 Ax=393475 sJ=-16383740 raw=0x03008194
+    [0023] LOADFALSE      A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x00000285
+    [0024] LOADK          A=6 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1542 sJ=-16775673 raw=0x00030303 ; R[6] = K[6] "ownerModel is not valid"
+    [0025] CALL           A=3 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133123 sJ=-16644092 raw=0x010401C4
+    [0026] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7
+    [0027] GETFIELD       A=3 B=2 C=7 k=0 Bx=3588 sBx=-61947 Ax=918531 sJ=-15858684 raw=0x0702018E ; R[3] = R[2][K[7] "EmotionCaster"]
+    [0028] SELF           A=3 B=3 C=8 k=1 Bx=4103 sBx=-61432 Ax=1050371 sJ=-15726844 raw=0x08038194
+    [0029] CALL           A=3 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263171 sJ=-16514044 raw=0x020201C4
+    [0030] MOVE           A=4 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1540 sJ=-16775675 raw=0x00030200
+    [0031] GETTABUP       A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x0000028B ; R[5] = U[0][K[0] "UE"]
+    [0032] GETFIELD       A=5 B=5 C=1 k=0 Bx=522 sBx=-65013 Ax=133637 sJ=-16643578 raw=0x0105028E ; R[5] = R[5][K[1] "UObject"]
+    [0033] GETFIELD       A=5 B=5 C=2 k=0 Bx=1034 sBx=-64501 Ax=264709 sJ=-16512506 raw=0x0205028E ; R[5] = R[5][K[2] "IsValid"]
+    [0034] MOVE           A=6 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2054 sJ=-16775161 raw=0x00040300
+    [0035] CALL           A=5 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263173 sJ=-16514042 raw=0x020202C4
+    [0036] TEST           A=5 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=261 sJ=-16776954 raw=0x000082C2
+    [0037] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0038] SELF           A=5 B=0 C=3 k=1 Bx=1537 sBx=-63998 Ax=393477 sJ=-16383738 raw=0x03008294
+    [0039] LOADFALSE      A=7 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=7 sJ=-16777208 raw=0x00000385
+    [0040] LOADK          A=8 B=4 C=0 k=1 Bx=9 sBx=-65526 Ax=2312 sJ=-16774903 raw=0x00048403 ; R[8] = K[9] "casterModel is not valid"
+    [0041] CALL           A=5 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133125 sJ=-16644090 raw=0x010402C4
+    [0042] RETURN0        A=5 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=517 sJ=-16776698 raw=0x000102C7
+    [0043] SELF           A=5 B=0 C=10 k=1 Bx=5121 sBx=-60414 Ax=1310981 sJ=-15466234 raw=0x0A008294
+    [0044] CALL           A=5 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263173 sJ=-16514042 raw=0x020202C4
+    [0045] GETTABUP       A=6 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=6 sJ=-16777209 raw=0x0000030B ; R[6] = U[0][K[0] "UE"]
+    [0046] GETFIELD       A=6 B=6 C=1 k=0 Bx=524 sBx=-65011 Ax=134150 sJ=-16643065 raw=0x0106030E ; R[6] = R[6][K[1] "UObject"]
+    [0047] GETFIELD       A=6 B=6 C=2 k=0 Bx=1036 sBx=-64499 Ax=265222 sJ=-16511993 raw=0x0206030E ; R[6] = R[6][K[2] "IsValid"]
+    [0048] MOVE           A=7 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2567 sJ=-16774648 raw=0x00050380
+    [0049] CALL           A=6 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263174 sJ=-16514041 raw=0x02020344
+    [0050] TEST           A=6 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=262 sJ=-16776953 raw=0x00008342
+    [0051] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0052] SELF           A=6 B=0 C=3 k=1 Bx=1537 sBx=-63998 Ax=393478 sJ=-16383737 raw=0x03008314
+    [0053] LOADFALSE      A=8 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=8 sJ=-16777207 raw=0x00000405
+    [0054] LOADK          A=9 B=5 C=0 k=1 Bx=11 sBx=-65524 Ax=2825 sJ=-16774390 raw=0x00058483 ; R[9] = K[11] "SkillComp is not valid"
+    [0055] CALL           A=6 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133126 sJ=-16644089 raw=0x01040344
+    [0056] RETURN0        A=6 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=518 sJ=-16776697 raw=0x00010347
+    [0057] SELF           A=6 B=5 C=12 k=1 Bx=6155 sBx=-59380 Ax=1575686 sJ=-15201529 raw=0x0C058314
+    [0058] MOVE           A=8 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=520 sJ=-16776695 raw=0x00010400
+    [0059] CALL           A=6 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263686 sJ=-16513529 raw=0x02030344
+    [0060] GETTABUP       A=7 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=7 sJ=-16777208 raw=0x0000038B ; R[7] = U[0][K[0] "UE"]
+    [0061] GETFIELD       A=7 B=7 C=1 k=0 Bx=526 sBx=-65009 Ax=134663 sJ=-16642552 raw=0x0107038E ; R[7] = R[7][K[1] "UObject"]
+    [0062] GETFIELD       A=7 B=7 C=2 k=0 Bx=1038 sBx=-64497 Ax=265735 sJ=-16511480 raw=0x0207038E ; R[7] = R[7][K[2] "IsValid"]
+    [0063] MOVE           A=8 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3080 sJ=-16774135 raw=0x00060400
+    [0064] CALL           A=7 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263175 sJ=-16514040 raw=0x020203C4
+    [0065] TEST           A=7 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=263 sJ=-16776952 raw=0x000083C2
+    [0066] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0067] SELF           A=7 B=0 C=3 k=1 Bx=1537 sBx=-63998 Ax=393479 sJ=-16383736 raw=0x03008394
+    [0068] LOADFALSE      A=9 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=9 sJ=-16777206 raw=0x00000485
+    [0069] LOADK          A=10 B=6 C=0 k=1 Bx=13 sBx=-65522 Ax=3338 sJ=-16773877 raw=0x00068503 ; R[10] = K[13] "Skill Object is not valid"
+    [0070] CALL           A=7 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133127 sJ=-16644088 raw=0x010403C4
+    [0071] RETURN0        A=7 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=519 sJ=-16776696 raw=0x000103C7
+    [0072] SELF           A=7 B=6 C=14 k=1 Bx=7181 sBx=-58354 Ax=1838343 sJ=-14938872 raw=0x0E068394
+    [0073] MOVE           A=9 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2057 sJ=-16775158 raw=0x00040480
+    [0074] CALL           A=7 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132615 sJ=-16644600 raw=0x010303C4
+    [0075] SELF           A=7 B=6 C=15 k=1 Bx=7693 sBx=-57842 Ax=1969415 sJ=-14807800 raw=0x0F068394
+    [0076] LOADTRUE       A=9 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=9 sJ=-16777206 raw=0x00000487
+    [0077] CALL           A=7 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132615 sJ=-16644600 raw=0x010303C4
+    [0078] SELF           A=7 B=6 C=16 k=1 Bx=8205 sBx=-57330 Ax=2100487 sJ=-14676728 raw=0x10068394
+    [0079] CALL           A=7 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263175 sJ=-16514040 raw=0x020203C4
+    [0080] GETTABUP       A=8 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=8 sJ=-16777207 raw=0x0000040B ; R[8] = U[0][K[0] "UE"]
+    [0081] GETFIELD       A=8 B=8 C=1 k=0 Bx=528 sBx=-65007 Ax=135176 sJ=-16642039 raw=0x0108040E ; R[8] = R[8][K[1] "UObject"]
+    [0082] GETFIELD       A=8 B=8 C=2 k=0 Bx=1040 sBx=-64495 Ax=266248 sJ=-16510967 raw=0x0208040E ; R[8] = R[8][K[2] "IsValid"]
+    [0083] MOVE           A=9 B=7 C=0 k=0 Bx=14 sBx=-65521 Ax=3593 sJ=-16773622 raw=0x00070480
+    [0084] CALL           A=8 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263176 sJ=-16514039 raw=0x02020444
+    [0085] TEST           A=8 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=8 sJ=-16777207 raw=0x00000442
+    [0086] JMP            A=8 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777224 sJ=9 raw=0x80000438
+    [0087] LOADK          A=8 B=8 C=0 k=1 Bx=17 sBx=-65518 Ax=4360 sJ=-16772855 raw=0x00088403 ; R[8] = K[17] "Left"
+    [0088] GETFIELD       A=9 B=2 C=18 k=0 Bx=9220 sBx=-56315 Ax=2360329 sJ=-14416886 raw=0x1202048E ; R[9] = R[2][K[18] "EmotionDirection"]
+    [0089] TEST           A=9 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=9 sJ=-16777206 raw=0x000004C2
+    [0090] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0091] GETFIELD       A=8 B=2 C=18 k=0 Bx=9220 sBx=-56315 Ax=2360328 sJ=-14416887 raw=0x1202040E ; R[8] = R[2][K[18] "EmotionDirection"]
+    [0092] SELF           A=9 B=7 C=19 k=1 Bx=9743 sBx=-55792 Ax=2494217 sJ=-14282998 raw=0x13078494
+    [0093] LOADK          A=11 B=10 C=0 k=0 Bx=20 sBx=-65515 Ax=5131 sJ=-16772084 raw=0x000A0583 ; R[11] = K[20] "Direction"
+    [0094] MOVE           A=12 B=8 C=0 k=0 Bx=16 sBx=-65519 Ax=4108 sJ=-16773107 raw=0x00080600
+    [0095] CALL           A=9 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133129 sJ=-16644086 raw=0x010404C4
+    [0096] SELF           A=8 B=5 C=21 k=1 Bx=10763 sBx=-54772 Ax=2755336 sJ=-14021879 raw=0x15058414
+    [0097] MOVE           A=10 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3082 sJ=-16774133 raw=0x00060500
+    [0098] CALL           A=8 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263688 sJ=-16513527 raw=0x02030444
+    [0099] SELF           A=9 B=6 C=22 k=1 Bx=11277 sBx=-54258 Ax=2886921 sJ=-13890294 raw=0x16068494
+    [0100] CALL           A=9 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263177 sJ=-16514038 raw=0x020204C4
+    [0101] GETTABUP       A=10 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=10 sJ=-16777205 raw=0x0000050B ; R[10] = U[0][K[0] "UE"]
+    [0102] GETFIELD       A=10 B=10 C=23 k=0 Bx=11796 sBx=-53739 Ax=3019786 sJ=-13757429 raw=0x170A050E ; R[10] = R[10][K[23] "ESkillStartResult"]
+    [0103] GETFIELD       A=10 B=10 C=24 k=0 Bx=12308 sBx=-53227 Ax=3150858 sJ=-13626357 raw=0x180A050E ; R[10] = R[10][K[24] "Success"]
+    [0104] EQ             A=8 B=10 C=0 k=0 Bx=20 sBx=-65515 Ax=5128 sJ=-16772087 raw=0x000A0439
+    [0105] JMP            A=36 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777252 sJ=37 raw=0x80001238
+    [0106] GETTABUP       A=10 B=0 C=25 k=0 Bx=12800 sBx=-52735 Ax=3276810 sJ=-13500405 raw=0x1900050B ; R[10] = U[0][K[25] "Log"]
+    [0107] GETFIELD       A=10 B=10 C=26 k=0 Bx=13332 sBx=-52203 Ax=3413002 sJ=-13364213 raw=0x1A0A050E ; R[10] = R[10][K[26] "Debug"]
+    [0108] LOADK          A=11 B=13 C=0 k=1 Bx=27 sBx=-65508 Ax=6923 sJ=-16770292 raw=0x000D8583 ; R[11] = K[27] "OnLookerCrowdShowComponent:OnLookerCrowdShowComponent Start"
+    [0109] GETFIELD       A=12 B=0 C=28 k=0 Bx=14336 sBx=-51199 Ax=3670028 sJ=-13107187 raw=0x1C00060E ; R[12] = R[0][K[28] "owner"]
+    [0110] TEST           A=12 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=12 sJ=-16777203 raw=0x00000642
+    [0111] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0112] GETFIELD       A=12 B=0 C=28 k=0 Bx=14336 sBx=-51199 Ax=3670028 sJ=-13107187 raw=0x1C00060E ; R[12] = R[0][K[28] "owner"]
+    [0113] GETFIELD       A=12 B=12 C=29 k=0 Bx=14872 sBx=-50663 Ax=3807244 sJ=-12969971 raw=0x1D0C060E ; R[12] = R[12][K[29] "name"]
+    [0114] CALL           A=10 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132618 sJ=-16644597 raw=0x01030544
+    [0115] GETFIELD       A=10 B=0 C=30 k=0 Bx=15360 sBx=-50175 Ax=3932170 sJ=-12845045 raw=0x1E00050E ; R[10] = R[0][K[30] "playEmotionContext"]
+    [0116] SETFIELD       A=10 B=31 C=6 k=0 Bx=3134 sBx=-62401 Ax=802314 sJ=-15974901 raw=0x061F0512 ; R[10][K[31] "skillObject"] = R[6]
+    [0117] GETFIELD       A=10 B=0 C=30 k=0 Bx=15360 sBx=-50175 Ax=3932170 sJ=-12845045 raw=0x1E00050E ; R[10] = R[0][K[30] "playEmotionContext"]
+    [0118] GETTABUP       A=11 B=0 C=33 k=0 Bx=16896 sBx=-48639 Ax=4325387 sJ=-12451828 raw=0x2100058B ; R[11] = U[0][K[33] "_G"]
+    [0119] GETFIELD       A=11 B=11 C=34 k=0 Bx=17430 sBx=-48105 Ax=4462091 sJ=-12315124 raw=0x220B058E ; R[11] = R[11][K[34] "DelayManager"]
+    [0120] SELF           A=11 B=11 C=35 k=1 Bx=17943 sBx=-47592 Ax=4593419 sJ=-12183796 raw=0x230B8594
+    [0121] MULK           A=13 B=9 C=36 k=0 Bx=18450 sBx=-47085 Ax=4723213 sJ=-12054002 raw=0x24090698 ; K[36] 2
+    [0122] MMBINK         A=9 B=36 C=8 k=0 Bx=4168 sBx=-61367 Ax=1067017 sJ=-15710198 raw=0x082404B0
+    [0123] GETFIELD       A=14 B=0 C=37 k=0 Bx=18944 sBx=-46591 Ax=4849678 sJ=-11927537 raw=0x2500070E ; R[14] = R[0][K[37] "OnSkillTimeout"]
+    [0124] MOVE           A=15 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=15 sJ=-16777200 raw=0x00000780
+    [0125] CALL           A=11 B=5 C=2 k=0 Bx=1034 sBx=-64501 Ax=264715 sJ=-16512500 raw=0x020505C4
+    [0126] SETFIELD       A=10 B=32 C=11 k=0 Bx=5696 sBx=-59839 Ax=1458186 sJ=-15319029 raw=0x0B200512 ; R[10][K[32] "skillTimeOutDelayId"] = R[11]
+    [0127] SELF           A=10 B=6 C=38 k=1 Bx=19469 sBx=-46066 Ax=4984074 sJ=-11793141 raw=0x26068514
+    [0128] LOADK          A=12 B=19 C=0 k=1 Bx=39 sBx=-65496 Ax=9996 sJ=-16767219 raw=0x00138603 ; R[12] = K[39] "End"
+    [0129] MOVE           A=13 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=13 sJ=-16777202 raw=0x00000680
+    [0130] GETFIELD       A=14 B=0 C=40 k=0 Bx=20480 sBx=-45055 Ax=5242894 sJ=-11534321 raw=0x2800070E ; R[14] = R[0][K[40] "OnSkillComplete"]
+    [0131] CALL           A=10 B=5 C=1 k=0 Bx=522 sBx=-65013 Ax=133642 sJ=-16643573 raw=0x01050544
+    [0132] SELF           A=10 B=6 C=38 k=1 Bx=19469 sBx=-46066 Ax=4984074 sJ=-11793141 raw=0x26068514
+    [0133] LOADK          A=12 B=20 C=0 k=1 Bx=41 sBx=-65494 Ax=10508 sJ=-16766707 raw=0x00148603 ; R[12] = K[41] "PreEnd"
+    [0134] MOVE           A=13 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=13 sJ=-16777202 raw=0x00000680
+    [0135] GETFIELD       A=14 B=0 C=40 k=0 Bx=20480 sBx=-45055 Ax=5242894 sJ=-11534321 raw=0x2800070E ; R[14] = R[0][K[40] "OnSkillComplete"]
+    [0136] CALL           A=10 B=5 C=1 k=0 Bx=522 sBx=-65013 Ax=133642 sJ=-16643573 raw=0x01050544
+    [0137] SELF           A=10 B=6 C=38 k=1 Bx=19469 sBx=-46066 Ax=4984074 sJ=-11793141 raw=0x26068514
+    [0138] LOADK          A=12 B=21 C=0 k=0 Bx=42 sBx=-65493 Ax=10764 sJ=-16766451 raw=0x00150603 ; R[12] = K[42] "Interrupt"
+    [0139] MOVE           A=13 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=13 sJ=-16777202 raw=0x00000680
+    [0140] GETFIELD       A=14 B=0 C=43 k=0 Bx=22016 sBx=-43519 Ax=5636110 sJ=-11141105 raw=0x2B00070E ; R[14] = R[0][K[43] "OnSkillInterrupted"]
+    [0141] CALL           A=10 B=5 C=1 k=0 Bx=522 sBx=-65013 Ax=133642 sJ=-16643573 raw=0x01050544
+    [0142] JMP            A=3 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777219 sJ=4 raw=0x800001B8
+    [0143] SELF           A=10 B=0 C=3 k=1 Bx=1537 sBx=-63998 Ax=393482 sJ=-16383733 raw=0x03008514
+    [0144] LOADFALSE      A=12 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=12 sJ=-16777203 raw=0x00000605
+    [0145] LOADK          A=13 B=22 C=0 k=0 Bx=44 sBx=-65491 Ax=11277 sJ=-16765938 raw=0x00160683 ; R[13] = K[44] "skill play failed"
+    [0146] CALL           A=10 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133130 sJ=-16644085 raw=0x01040544
+    [0147] RETURN0        A=10 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=522 sJ=-16776693 raw=0x00010547
+
+  function[8] source="" lines=233-235 params=1 vararg=0 stack=255 upvalues=0
+  constants (2):
+    K[0] = "OnPlayEmotionCompleted"
+    K[1] = "skill interrupt"
+  locals (1):
+    L[0] = "self" pc=0-5
+  instructions (5):
+    [0001] SELF           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x00008094
+    [0002] LOADFALSE      A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000185
+    [0003] LOADK          A=4 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=260 sJ=-16776955 raw=0x00008203 ; R[4] = K[1] "skill interrupt"
+    [0004] CALL           A=1 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133121 sJ=-16644094 raw=0x010400C4
+    [0005] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[9] source="" lines=237-239 params=1 vararg=0 stack=255 upvalues=0
+  constants (1):
+    K[0] = "OnPlayEmotionCompleted"
+  locals (1):
+    L[0] = "self" pc=0-4
+  instructions (4):
+    [0001] SELF           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x00008094
+    [0002] LOADTRUE       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000187
+    [0003] CALL           A=1 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132609 sJ=-16644606 raw=0x010300C4
+    [0004] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[10] source="" lines=241-243 params=1 vararg=0 stack=255 upvalues=0
+  constants (2):
+    K[0] = "OnPlayEmotionCompleted"
+    K[1] = "skill time out"
+  locals (1):
+    L[0] = "self" pc=0-5
+  instructions (5):
+    [0001] SELF           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x00008094
+    [0002] LOADFALSE      A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000185
+    [0003] LOADK          A=4 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=260 sJ=-16776955 raw=0x00008203 ; R[4] = K[1] "skill time out"
+    [0004] CALL           A=1 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133121 sJ=-16644094 raw=0x010400C4
+    [0005] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[11] source="" lines=247-281 params=3 vararg=0 stack=255 upvalues=1
+  constants (24):
+    K[0] = "playEmotionContext"
+    K[1] = "Log"
+    K[2] = "Warning"
+    K[3] = "OnLookerCrowdShowComponent:OnPlayEmotionCompleted playEmotionContext is nil"
+    K[4] = "skillTimeOutDelayId"
+    K[5] = "_G"
+    K[6] = "DelayManager"
+    K[7] = "CancelDelayById"
+    K[8] = "skillObject"
+    K[9] = "UnregisterEventCallback"
+    K[10] = "End"
+    K[11] = "OnSkillComplete"
+    K[12] = "PreEnd"
+    K[13] = "Interrupt"
+    K[14] = "OnSkillInterrupted"
+    K[15] = "callbackOwner"
+    K[16] = "callback"
+    K[17] = nil
+    K[18] = "tcall"
+    K[19] = "emotionsContextWaitingToPlay"
+    K[20] = "table"
+    K[21] = "remove"
+    K[22] = "PlayEmotion"
+    K[23] = "emotionType"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=11 name="_ENV"
+  locals (8):
+    L[0] = "self" pc=0-72
+    L[1] = "ok" pc=0-72
+    L[2] = "errorMessage" pc=0-72
+    L[3] = "skillTimeOutDelayId" pc=10-36
+    L[4] = "skillObject" pc=19-36
+    L[5] = "callbackOwner" pc=38-72
+    L[6] = "callback" pc=40-72
+    L[7] = "firstContext" pc=61-71
+  instructions (72):
+    [0001] GETFIELD       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018E ; R[3] = R[0][K[0] "playEmotionContext"]
+    [0002] TEST           A=3 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=259 sJ=-16776956 raw=0x000081C2
+    [0003] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0004] GETTABUP       A=3 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131075 sJ=-16646140 raw=0x0100018B ; R[3] = U[0][K[1] "Log"]
+    [0005] GETFIELD       A=3 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263683 sJ=-16513532 raw=0x0203018E ; R[3] = R[3][K[2] "Warning"]
+    [0006] LOADK          A=4 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=772 sJ=-16776443 raw=0x00018203 ; R[4] = K[3] "OnLookerCrowdShowComponent:OnPlayEmotionCompleted playEmotionContext is nil"
+    [0007] CALL           A=3 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132099 sJ=-16645116 raw=0x010201C4
+    [0008] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7
+    [0009] GETFIELD       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018E ; R[3] = R[0][K[0] "playEmotionContext"]
+    [0010] GETFIELD       A=3 B=3 C=4 k=0 Bx=2054 sBx=-63481 Ax=525827 sJ=-16251388 raw=0x0403018E ; R[3] = R[3][K[4] "skillTimeOutDelayId"]
+    [0011] TEST           A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x000001C2
+    [0012] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0013] GETTABUP       A=4 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655364 sJ=-16121851 raw=0x0500020B ; R[4] = U[0][K[5] "_G"]
+    [0014] GETFIELD       A=4 B=4 C=6 k=0 Bx=3080 sBx=-62455 Ax=788484 sJ=-15988731 raw=0x0604020E ; R[4] = R[4][K[6] "DelayManager"]
+    [0015] SELF           A=4 B=4 C=7 k=1 Bx=3593 sBx=-61942 Ax=919812 sJ=-15857403 raw=0x07048214
+    [0016] MOVE           A=6 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1542 sJ=-16775673 raw=0x00030300
+    [0017] CALL           A=4 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132612 sJ=-16644603 raw=0x01030244
+    [0018] GETFIELD       A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x0000020E ; R[4] = R[0][K[0] "playEmotionContext"]
+    [0019] GETFIELD       A=4 B=4 C=8 k=0 Bx=4104 sBx=-61431 Ax=1050628 sJ=-15726587 raw=0x0804020E ; R[4] = R[4][K[8] "skillObject"]
+    [0020] TEST           A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000242
+    [0021] JMP            A=14 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777230 sJ=15 raw=0x80000738
+    [0022] SELF           A=5 B=4 C=9 k=1 Bx=4617 sBx=-60918 Ax=1181957 sJ=-15595258 raw=0x09048294
+    [0023] LOADK          A=7 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2567 sJ=-16774648 raw=0x00050383 ; R[7] = K[10] "End"
+    [0024] MOVE           A=8 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=8 sJ=-16777207 raw=0x00000400
+    [0025] GETFIELD       A=9 B=0 C=11 k=0 Bx=5632 sBx=-59903 Ax=1441801 sJ=-15335414 raw=0x0B00048E ; R[9] = R[0][K[11] "OnSkillComplete"]
+    [0026] CALL           A=5 B=5 C=1 k=0 Bx=522 sBx=-65013 Ax=133637 sJ=-16643578 raw=0x010502C4
+    [0027] SELF           A=5 B=4 C=9 k=1 Bx=4617 sBx=-60918 Ax=1181957 sJ=-15595258 raw=0x09048294
+    [0028] LOADK          A=7 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3079 sJ=-16774136 raw=0x00060383 ; R[7] = K[12] "PreEnd"
+    [0029] MOVE           A=8 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=8 sJ=-16777207 raw=0x00000400
+    [0030] GETFIELD       A=9 B=0 C=11 k=0 Bx=5632 sBx=-59903 Ax=1441801 sJ=-15335414 raw=0x0B00048E ; R[9] = R[0][K[11] "OnSkillComplete"]
+    [0031] CALL           A=5 B=5 C=1 k=0 Bx=522 sBx=-65013 Ax=133637 sJ=-16643578 raw=0x010502C4
+    [0032] SELF           A=5 B=4 C=9 k=1 Bx=4617 sBx=-60918 Ax=1181957 sJ=-15595258 raw=0x09048294
+    [0033] LOADK          A=7 B=6 C=0 k=1 Bx=13 sBx=-65522 Ax=3335 sJ=-16773880 raw=0x00068383 ; R[7] = K[13] "Interrupt"
+    [0034] MOVE           A=8 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=8 sJ=-16777207 raw=0x00000400
+    [0035] GETFIELD       A=9 B=0 C=14 k=0 Bx=7168 sBx=-58367 Ax=1835017 sJ=-14942198 raw=0x0E00048E ; R[9] = R[0][K[14] "OnSkillInterrupted"]
+    [0036] CALL           A=5 B=5 C=1 k=0 Bx=522 sBx=-65013 Ax=133637 sJ=-16643578 raw=0x010502C4
+    [0037] GETFIELD       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018E ; R[3] = R[0][K[0] "playEmotionContext"]
+    [0038] GETFIELD       A=3 B=3 C=15 k=0 Bx=7686 sBx=-57849 Ax=1967619 sJ=-14809596 raw=0x0F03018E ; R[3] = R[3][K[15] "callbackOwner"]
+    [0039] GETFIELD       A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x0000020E ; R[4] = R[0][K[0] "playEmotionContext"]
+    [0040] GETFIELD       A=4 B=4 C=16 k=0 Bx=8200 sBx=-57335 Ax=2099204 sJ=-14678011 raw=0x1004020E ; R[4] = R[4][K[16] "callback"]
+    [0041] SETFIELD       A=0 B=0 C=17 k=1 Bx=8705 sBx=-56830 Ax=2228480 sJ=-14548735 raw=0x11008012 ; R[0][K[0] "playEmotionContext"] = R[17]
+    [0042] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0043] JMP            A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x800002B8
+    [0044] GETTABUP       A=5 B=0 C=18 k=0 Bx=9216 sBx=-56319 Ax=2359301 sJ=-14417914 raw=0x1200028B ; R[5] = U[0][K[18] "tcall"]
+    [0045] MOVE           A=6 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1542 sJ=-16775673 raw=0x00030300
+    [0046] MOVE           A=7 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2055 sJ=-16775160 raw=0x00040380
+    [0047] LOADTRUE       A=8 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=8 sJ=-16777207 raw=0x00000407
+    [0048] CALL           A=5 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133125 sJ=-16644090 raw=0x010402C4
+    [0049] JMP            A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x800002B8
+    [0050] GETTABUP       A=5 B=0 C=18 k=0 Bx=9216 sBx=-56319 Ax=2359301 sJ=-14417914 raw=0x1200028B ; R[5] = U[0][K[18] "tcall"]
+    [0051] MOVE           A=6 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1542 sJ=-16775673 raw=0x00030300
+    [0052] MOVE           A=7 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2055 sJ=-16775160 raw=0x00040380
+    [0053] LOADFALSE      A=8 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=8 sJ=-16777207 raw=0x00000405
+    [0054] MOVE           A=9 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1033 sJ=-16776182 raw=0x00020480
+    [0055] CALL           A=5 B=5 C=1 k=0 Bx=522 sBx=-65013 Ax=133637 sJ=-16643578 raw=0x010502C4
+    [0056] GETFIELD       A=5 B=0 C=19 k=0 Bx=9728 sBx=-55807 Ax=2490373 sJ=-14286842 raw=0x1300028E ; R[5] = R[0][K[19] "emotionsContextWaitingToPlay"]
+    [0057] LEN            A=5 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2565 sJ=-16774650 raw=0x000502B4
+    [0058] GTI            A=5 B=127 C=0 k=0 Bx=254 sBx=-65281 Ax=65029 sJ=-16712186 raw=0x007F02C0
+    [0059] JMP            A=11 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777227 sJ=12 raw=0x800005B8
+    [0060] GETFIELD       A=5 B=0 C=19 k=0 Bx=9728 sBx=-55807 Ax=2490373 sJ=-14286842 raw=0x1300028E ; R[5] = R[0][K[19] "emotionsContextWaitingToPlay"]
+    [0061] GETI           A=5 B=5 C=1 k=0 Bx=522 sBx=-65013 Ax=133637 sJ=-16643578 raw=0x0105028D
+    [0062] GETTABUP       A=6 B=0 C=20 k=0 Bx=10240 sBx=-55295 Ax=2621446 sJ=-14155769 raw=0x1400030B ; R[6] = U[0][K[20] "table"]
+    [0063] GETFIELD       A=6 B=6 C=21 k=0 Bx=10764 sBx=-54771 Ax=2755590 sJ=-14021625 raw=0x1506030E ; R[6] = R[6][K[21] "remove"]
+    [0064] GETFIELD       A=7 B=0 C=19 k=0 Bx=9728 sBx=-55807 Ax=2490375 sJ=-14286840 raw=0x1300038E ; R[7] = R[0][K[19] "emotionsContextWaitingToPlay"]
+    [0065] LOADI          A=8 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777224 sJ=9 raw=0x80000401
+    [0066] CALL           A=6 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132614 sJ=-16644601 raw=0x01030344
+    [0067] SELF           A=6 B=0 C=22 k=1 Bx=11265 sBx=-54270 Ax=2883846 sJ=-13893369 raw=0x16008314
+    [0068] GETFIELD       A=8 B=5 C=23 k=0 Bx=11786 sBx=-53749 Ax=3017224 sJ=-13759991 raw=0x1705040E ; R[8] = R[5][K[23] "emotionType"]
+    [0069] GETFIELD       A=9 B=5 C=15 k=0 Bx=7690 sBx=-57845 Ax=1968649 sJ=-14808566 raw=0x0F05048E ; R[9] = R[5][K[15] "callbackOwner"]
+    [0070] GETFIELD       A=10 B=5 C=16 k=0 Bx=8202 sBx=-57333 Ax=2099722 sJ=-14677493 raw=0x1005050E ; R[10] = R[5][K[16] "callback"]
+    [0071] CALL           A=6 B=5 C=1 k=0 Bx=522 sBx=-65013 Ax=133638 sJ=-16643577 raw=0x01050344
+    [0072] RETURN0        A=5 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=517 sJ=-16776698 raw=0x000102C7
+
+  function[12] source="" lines=284-290 params=1 vararg=0 stack=255 upvalues=1
+  constants (5):
+    K[0] = "GetOwnerView"
+    K[1] = "UE"
+    K[2] = "UObject"
+    K[3] = "IsValid"
+    K[4] = "Skill"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=4 name="_ENV"
+  locals (2):
+    L[0] = "self" pc=0-14
+    L[1] = "View" pc=2-14
+  instructions (14):
+    [0001] SELF           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x00008094
+    [0002] CALL           A=1 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263169 sJ=-16514046 raw=0x020200C4
+    [0003] GETTABUP       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010B ; R[2] = U[0][K[1] "UE"]
+    [0004] GETFIELD       A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x0202010E ; R[2] = R[2][K[2] "UObject"]
+    [0005] GETFIELD       A=2 B=2 C=3 k=0 Bx=1540 sBx=-63995 Ax=394242 sJ=-16382973 raw=0x0302010E ; R[2] = R[2][K[3] "IsValid"]
+    [0006] MOVE           A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x00010180
+    [0007] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0008] TEST           A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x00008142
+    [0009] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0010] LOADNIL        A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000108
+    [0011] RETURN1        A=2 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1026 sJ=-16776189 raw=0x00020148
+    [0012] GETFIELD       A=2 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524802 sJ=-16252413 raw=0x0401010E ; R[2] = R[1][K[4] "Skill"]
+    [0013] RETURN1        A=2 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1026 sJ=-16776189 raw=0x00020148
+    [0014] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[13] source="" lines=293-303 params=1 vararg=0 stack=255 upvalues=1
+  constants (5):
+    K[0] = "owner"
+    K[1] = "model"
+    K[2] = "UE"
+    K[3] = "UObject"
+    K[4] = "IsValid"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=4 name="_ENV"
+  locals (2):
+    L[0] = "self" pc=0-17
+    L[1] = "model" pc=1-17
+  instructions (17):
+    [0001] LOADNIL        A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000088
+    [0002] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "owner"]
+    [0003] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0004] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0005] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "owner"]
+    [0006] GETFIELD       A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x0102008E ; R[1] = R[2][K[1] "model"]
+    [0007] GETTABUP       A=2 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262146 sJ=-16515069 raw=0x0200010B ; R[2] = U[0][K[2] "UE"]
+    [0008] GETFIELD       A=2 B=2 C=3 k=0 Bx=1540 sBx=-63995 Ax=394242 sJ=-16382973 raw=0x0302010E ; R[2] = R[2][K[3] "UObject"]
+    [0009] GETFIELD       A=2 B=2 C=4 k=0 Bx=2052 sBx=-63483 Ax=525314 sJ=-16251901 raw=0x0402010E ; R[2] = R[2][K[4] "IsValid"]
+    [0010] MOVE           A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x00010180
+    [0011] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0012] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0013] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0014] RETURN1        A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C8
+    [0015] LOADNIL        A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000108
+    [0016] RETURN1        A=2 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1026 sJ=-16776189 raw=0x00020148
+    [0017] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[14] source="" lines=306-318 params=2 vararg=0 stack=255 upvalues=1
+  constants (10):
+    K[0] = "UE"
+    K[1] = "UObject"
+    K[2] = "IsValid"
+    K[3] = "dynamicAnimMaterial"
+    K[4] = "GetOwnerView"
+    K[5] = "NRCStaticMesh"
+    K[6] = "GetMaterial"
+    K[7] = "CreateDynamicMaterialInstance"
+    K[8] = "SetScalarParameterValue"
+    K[9] = "Anim"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=9 name="_ENV"
+  locals (5):
+    L[0] = "self" pc=0-35
+    L[1] = "newValue" pc=0-35
+    L[2] = "ownerView" pc=9-22
+    L[3] = "staticMeshComponent" pc=12-22
+    L[4] = "sourceMaterial" pc=17-22
+  instructions (35):
+    [0001] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "UE"]
+    [0002] GETFIELD       A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x0102010E ; R[2] = R[2][K[1] "UObject"]
+    [0003] GETFIELD       A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x0202010E ; R[2] = R[2][K[2] "IsValid"]
+    [0004] GETFIELD       A=3 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393219 sJ=-16383996 raw=0x0300018E ; R[3] = R[0][K[3] "dynamicAnimMaterial"]
+    [0005] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0006] TEST           A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x00008142
+    [0007] JMP            A=14 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777230 sJ=15 raw=0x80000738
+    [0008] SELF           A=2 B=0 C=4 k=1 Bx=2049 sBx=-63486 Ax=524546 sJ=-16252669 raw=0x04008114
+    [0009] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0010] TESTSET        A=3 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1027 sJ=-16776188 raw=0x000201C3
+    [0011] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0012] GETFIELD       A=3 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656387 sJ=-16120828 raw=0x0502018E ; R[3] = R[2][K[5] "NRCStaticMesh"]
+    [0013] TEST           A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x000001C2
+    [0014] JMP            A=7 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777223 sJ=8 raw=0x800003B8
+    [0015] SELF           A=4 B=3 C=6 k=1 Bx=3079 sBx=-62456 Ax=788228 sJ=-15988987 raw=0x06038214
+    [0016] LOADI          A=6 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776966 sJ=-249 raw=0x7FFF8301
+    [0017] CALL           A=4 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263684 sJ=-16513531 raw=0x02030244
+    [0018] SELF           A=5 B=3 C=7 k=1 Bx=3591 sBx=-61944 Ax=919301 sJ=-15857914 raw=0x07038294
+    [0019] LOADI          A=7 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776967 sJ=-248 raw=0x7FFF8381
+    [0020] MOVE           A=8 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2056 sJ=-16775159 raw=0x00040400
+    [0021] CALL           A=5 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264197 sJ=-16513018 raw=0x020402C4
+    [0022] SETFIELD       A=0 B=3 C=5 k=0 Bx=2566 sBx=-62969 Ax=656896 sJ=-16120319 raw=0x05030012 ; R[0][K[3] "dynamicAnimMaterial"] = R[5]
+    [0023] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "UE"]
+    [0024] GETFIELD       A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x0102010E ; R[2] = R[2][K[1] "UObject"]
+    [0025] GETFIELD       A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x0202010E ; R[2] = R[2][K[2] "IsValid"]
+    [0026] GETFIELD       A=3 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393219 sJ=-16383996 raw=0x0300018E ; R[3] = R[0][K[3] "dynamicAnimMaterial"]
+    [0027] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0028] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0029] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0030] GETFIELD       A=2 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393218 sJ=-16383997 raw=0x0300010E ; R[2] = R[0][K[3] "dynamicAnimMaterial"]
+    [0031] SELF           A=2 B=2 C=8 k=1 Bx=4101 sBx=-61434 Ax=1049858 sJ=-15727357 raw=0x08028114
+    [0032] LOADK          A=4 B=4 C=0 k=1 Bx=9 sBx=-65526 Ax=2308 sJ=-16774907 raw=0x00048203 ; R[4] = K[9] "Anim"
+    [0033] MOVE           A=5 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=517 sJ=-16776698 raw=0x00010280
+    [0034] CALL           A=2 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133122 sJ=-16644093 raw=0x01040144
+    [0035] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[15] source="" lines=320-355 params=1 vararg=0 stack=255 upvalues=1
+  constants (17):
+    K[0] = "playIdleAnimationContext"
+    K[1] = "Log"
+    K[2] = "Error"
+    K[3] = "OnLookerCrowdShowComponent:StartPlayIdleAnim another playIdleAnimationContext is playing"
+    K[4] = "math"
+    K[5] = "rand"
+    K[6] = 1000
+    K[7] = "meshRelativeOffset"
+    K[8] = "timeSpan"
+    K[9] = "GetRandomOffset"
+    K[10] = 0.5
+    K[11] = "currentSequenceIndex"
+    K[12] = 0
+    K[13] = "animSequence"
+    K[14] = "onAnimCompleted"
+    K[15] = "OnIdleAnimCompleted"
+    K[16] = "OnSwitchAnimTimeout"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=12 name="_ENV"
+  locals (3):
+    L[0] = "self" pc=0-67
+    L[1] = "random_deviation_seconds" pc=15-67
+    L[2] = "animSequence" pc=56-67
+  instructions (67):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "playIdleAnimationContext"]
+    [0002] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0003] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0004] GETTABUP       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008B ; R[1] = U[0][K[1] "Log"]
+    [0005] GETFIELD       A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x0201008E ; R[1] = R[1][K[2] "Error"]
+    [0006] LOADK          A=2 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=770 sJ=-16776445 raw=0x00018103 ; R[2] = K[3] "OnLookerCrowdShowComponent:StartPlayIdleAnim another playIdleAnimationContext is playing"
+    [0007] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0008] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+    [0009] GETTABUP       A=1 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524289 sJ=-16252926 raw=0x0400008B ; R[1] = U[0][K[4] "math"]
+    [0010] GETFIELD       A=1 B=1 C=5 k=0 Bx=2562 sBx=-62973 Ax=655873 sJ=-16121342 raw=0x0501008E ; R[1] = R[1][K[5] "rand"]
+    [0011] LOADI          A=2 B=249 C=128 k=1 Bx=66035 sBx=500 Ax=16904962 sJ=127747 raw=0x80F98101
+    [0012] LOADI          A=3 B=243 C=129 k=1 Bx=66535 sBx=1000 Ax=17032963 sJ=255748 raw=0x81F38181
+    [0013] CALL           A=1 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263681 sJ=-16513534 raw=0x020300C4
+    [0014] DIVK           A=1 B=1 C=6 k=0 Bx=3074 sBx=-62461 Ax=786945 sJ=-15990270 raw=0x0601009B ; K[6] 1000
+    [0015] MMBINK         A=1 B=6 C=11 k=0 Bx=5644 sBx=-59891 Ax=1444865 sJ=-15332350 raw=0x0B0600B0
+    [0016] NEWTABLE       A=2 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655362 sJ=-16121853 raw=0x05000113
+    [0017] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0018] NEWTABLE       A=3 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1027 sJ=-16776188 raw=0x00020193
+    [0019] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0020] NEWTABLE       A=4 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393220 sJ=-16383995 raw=0x03000213
+    [0021] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0022] LOADI          A=5 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776965 sJ=-250 raw=0x7FFF8281
+    [0023] LOADI          A=6 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776966 sJ=-249 raw=0x7FFF8301
+    [0024] LOADI          A=7 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776967 sJ=-248 raw=0x7FFF8381
+    [0025] SETLIST        A=4 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1540 sJ=-16775675 raw=0x0003024E
+    [0026] SETFIELD       A=3 B=7 C=4 k=0 Bx=2062 sBx=-63473 Ax=527875 sJ=-16249340 raw=0x04070192 ; R[3][K[7] "meshRelativeOffset"] = R[4]
+    [0027] SETFIELD       A=3 B=8 C=1 k=0 Bx=528 sBx=-65007 Ax=135171 sJ=-16642044 raw=0x01080192 ; R[3][K[8] "timeSpan"] = R[1]
+    [0028] NEWTABLE       A=4 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1028 sJ=-16776187 raw=0x00020213
+    [0029] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0030] SELF           A=5 B=0 C=9 k=1 Bx=4609 sBx=-60926 Ax=1179909 sJ=-15597306 raw=0x09008294
+    [0031] CALL           A=5 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263173 sJ=-16514042 raw=0x020202C4
+    [0032] SETFIELD       A=4 B=7 C=5 k=0 Bx=2574 sBx=-62961 Ax=658948 sJ=-16118267 raw=0x05070212 ; R[4][K[7] "meshRelativeOffset"] = R[5]
+    [0033] SETFIELD       A=4 B=8 C=10 k=1 Bx=5137 sBx=-60398 Ax=1315076 sJ=-15462139 raw=0x0A088212 ; R[4][K[8] "timeSpan"] = R[10]
+    [0034] NEWTABLE       A=5 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1029 sJ=-16776186 raw=0x00020293
+    [0035] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0036] SELF           A=6 B=0 C=9 k=1 Bx=4609 sBx=-60926 Ax=1179910 sJ=-15597305 raw=0x09008314
+    [0037] CALL           A=6 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263174 sJ=-16514041 raw=0x02020344
+    [0038] SETFIELD       A=5 B=7 C=6 k=0 Bx=3086 sBx=-62449 Ax=790021 sJ=-15987194 raw=0x06070292 ; R[5][K[7] "meshRelativeOffset"] = R[6]
+    [0039] SETFIELD       A=5 B=8 C=10 k=1 Bx=5137 sBx=-60398 Ax=1315077 sJ=-15462138 raw=0x0A088292 ; R[5][K[8] "timeSpan"] = R[10]
+    [0040] NEWTABLE       A=6 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1030 sJ=-16776185 raw=0x00020313
+    [0041] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0042] SELF           A=7 B=0 C=9 k=1 Bx=4609 sBx=-60926 Ax=1179911 sJ=-15597304 raw=0x09008394
+    [0043] CALL           A=7 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263175 sJ=-16514040 raw=0x020203C4
+    [0044] SETFIELD       A=6 B=7 C=7 k=0 Bx=3598 sBx=-61937 Ax=921094 sJ=-15856121 raw=0x07070312 ; R[6][K[7] "meshRelativeOffset"] = R[7]
+    [0045] SETFIELD       A=6 B=8 C=10 k=1 Bx=5137 sBx=-60398 Ax=1315078 sJ=-15462137 raw=0x0A088312 ; R[6][K[8] "timeSpan"] = R[10]
+    [0046] NEWTABLE       A=7 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1031 sJ=-16776184 raw=0x00020393
+    [0047] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0048] NEWTABLE       A=8 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393224 sJ=-16383991 raw=0x03000413
+    [0049] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0050] LOADI          A=9 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776969 sJ=-246 raw=0x7FFF8481
+    [0051] LOADI          A=10 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776970 sJ=-245 raw=0x7FFF8501
+    [0052] LOADI          A=11 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776971 sJ=-244 raw=0x7FFF8581
+    [0053] SETLIST        A=8 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1544 sJ=-16775671 raw=0x0003044E
+    [0054] SETFIELD       A=7 B=7 C=8 k=0 Bx=4110 sBx=-61425 Ax=1052167 sJ=-15725048 raw=0x08070392 ; R[7][K[7] "meshRelativeOffset"] = R[8]
+    [0055] SETFIELD       A=7 B=8 C=10 k=1 Bx=5137 sBx=-60398 Ax=1315079 sJ=-15462136 raw=0x0A088392 ; R[7][K[8] "timeSpan"] = R[10]
+    [0056] SETLIST        A=2 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2562 sJ=-16774653 raw=0x0005014E
+    [0057] NEWTABLE       A=3 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1539 sJ=-16775676 raw=0x00030193
+    [0058] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0059] SETFIELD       A=3 B=11 C=12 k=1 Bx=6167 sBx=-59368 Ax=1578755 sJ=-15198460 raw=0x0C0B8192 ; R[3][K[11] "currentSequenceIndex"] = R[12]
+    [0060] SETFIELD       A=3 B=13 C=2 k=0 Bx=1050 sBx=-64485 Ax=268803 sJ=-16508412 raw=0x020D0192 ; R[3][K[13] "animSequence"] = R[2]
+    [0061] GETFIELD       A=4 B=0 C=15 k=0 Bx=7680 sBx=-57855 Ax=1966084 sJ=-14811131 raw=0x0F00020E ; R[4] = R[0][K[15] "OnIdleAnimCompleted"]
+    [0062] SETFIELD       A=3 B=14 C=4 k=0 Bx=2076 sBx=-63459 Ax=531459 sJ=-16245756 raw=0x040E0192 ; R[3][K[14] "onAnimCompleted"] = R[4]
+    [0063] SETFIELD       A=0 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393216 sJ=-16383999 raw=0x03000012 ; R[0][K[0] "playIdleAnimationContext"] = R[3]
+    [0064] SELF           A=3 B=0 C=16 k=1 Bx=8193 sBx=-57342 Ax=2097411 sJ=-14679804 raw=0x10008194
+    [0065] GETFIELD       A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x0000028E ; R[5] = R[0][K[0] "playIdleAnimationContext"]
+    [0066] CALL           A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x010301C4
+    [0067] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7
+
+  function[16] source="" lines=357-367 params=1 vararg=0 stack=255 upvalues=1
+  constants (7):
+    K[0] = "playIdleAnimationContext"
+    K[1] = "Log"
+    K[2] = "Error"
+    K[3] = "OnLookerCrowdShowComponent:OnIdleAnimCompleted playIdleAnimationContext is nil"
+    K[4] = "StopIdleAnim"
+    K[5] = "enable"
+    K[6] = "StartPlayIdleAnim"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=3 name="_ENV"
+  locals (1):
+    L[0] = "self" pc=0-16
+  instructions (16):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "playIdleAnimationContext"]
+    [0002] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0003] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0004] GETTABUP       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008B ; R[1] = U[0][K[1] "Log"]
+    [0005] GETFIELD       A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x0201008E ; R[1] = R[1][K[2] "Error"]
+    [0006] LOADK          A=2 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=770 sJ=-16776445 raw=0x00018103 ; R[2] = K[3] "OnLookerCrowdShowComponent:OnIdleAnimCompleted playIdleAnimationContext is nil"
+    [0007] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0008] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+    [0009] SELF           A=1 B=0 C=4 k=1 Bx=2049 sBx=-63486 Ax=524545 sJ=-16252670 raw=0x04008094
+    [0010] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0011] GETFIELD       A=1 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655361 sJ=-16121854 raw=0x0500008E ; R[1] = R[0][K[5] "enable"]
+    [0012] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0013] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0014] SELF           A=1 B=0 C=6 k=1 Bx=3073 sBx=-62462 Ax=786689 sJ=-15990526 raw=0x06008094
+    [0015] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0016] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[17] source="" lines=369-379 params=1 vararg=0 stack=255 upvalues=1
+  constants (9):
+    K[0] = "playIdleAnimationContext"
+    K[1] = "Log"
+    K[2] = "Error"
+    K[3] = "OnLookerCrowdShowComponent:StopPlayIdleAnim playIdleAnimationContext is nil"
+    K[4] = "delaySwitchId"
+    K[5] = "_G"
+    K[6] = "DelayManager"
+    K[7] = "CancelDelayById"
+    K[8] = nil
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=5 name="_ENV"
+  locals (2):
+    L[0] = "self" pc=0-19
+    L[1] = "delaySwitchId" pc=10-19
+  instructions (19):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "playIdleAnimationContext"]
+    [0002] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0003] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0004] GETTABUP       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008B ; R[1] = U[0][K[1] "Log"]
+    [0005] GETFIELD       A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x0201008E ; R[1] = R[1][K[2] "Error"]
+    [0006] LOADK          A=2 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=770 sJ=-16776445 raw=0x00018103 ; R[2] = K[3] "OnLookerCrowdShowComponent:StopPlayIdleAnim playIdleAnimationContext is nil"
+    [0007] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0008] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+    [0009] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "playIdleAnimationContext"]
+    [0010] GETFIELD       A=1 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524801 sJ=-16252414 raw=0x0401008E ; R[1] = R[1][K[4] "delaySwitchId"]
+    [0011] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0012] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0013] GETTABUP       A=2 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655362 sJ=-16121853 raw=0x0500010B ; R[2] = U[0][K[5] "_G"]
+    [0014] GETFIELD       A=2 B=2 C=6 k=0 Bx=3076 sBx=-62459 Ax=787458 sJ=-15989757 raw=0x0602010E ; R[2] = R[2][K[6] "DelayManager"]
+    [0015] SELF           A=2 B=2 C=7 k=1 Bx=3589 sBx=-61946 Ax=918786 sJ=-15858429 raw=0x07028114
+    [0016] MOVE           A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010200
+    [0017] CALL           A=2 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132610 sJ=-16644605 raw=0x01030144
+    [0018] SETFIELD       A=0 B=0 C=8 k=1 Bx=4097 sBx=-61438 Ax=1048832 sJ=-15728383 raw=0x08008012 ; R[0][K[0] "playIdleAnimationContext"] = R[8]
+    [0019] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[18] source="" lines=381-392 params=1 vararg=0 stack=255 upvalues=1
+  constants (8):
+    K[0] = "playCheerAnimationContext"
+    K[1] = "StopCheerAnim"
+    K[2] = "currentSequenceIndex"
+    K[3] = 0
+    K[4] = "animSequence"
+    K[5] = "onAnimCompleted"
+    K[6] = "OnCheerAnimCompleted"
+    K[7] = "OnSwitchAnimTimeout"
+  upvalues (1):
+    U[0] = instack=6 idx=0 kind=4 name="cheerAnimSequence"
+  locals (1):
+    L[0] = "self" pc=0-18
+  instructions (18):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "playCheerAnimationContext"]
+    [0002] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0003] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0004] SELF           A=1 B=0 C=1 k=1 Bx=513 sBx=-65022 Ax=131329 sJ=-16645886 raw=0x01008094
+    [0005] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0006] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+    [0007] NEWTABLE       A=1 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1537 sJ=-16775678 raw=0x00030093
+    [0008] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0009] SETFIELD       A=1 B=2 C=3 k=1 Bx=1541 sBx=-63994 Ax=394497 sJ=-16382718 raw=0x03028092 ; R[1][K[2] "currentSequenceIndex"] = R[3]
+    [0010] GETUPVAL       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000109
+    [0011] SETFIELD       A=1 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264193 sJ=-16513022 raw=0x02040092 ; R[1][K[4] "animSequence"] = R[2]
+    [0012] GETFIELD       A=2 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786434 sJ=-15990781 raw=0x0600010E ; R[2] = R[0][K[6] "OnCheerAnimCompleted"]
+    [0013] SETFIELD       A=1 B=5 C=2 k=0 Bx=1034 sBx=-64501 Ax=264705 sJ=-16512510 raw=0x02050092 ; R[1][K[5] "onAnimCompleted"] = R[2]
+    [0014] SETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x01000012 ; R[0][K[0] "playCheerAnimationContext"] = R[1]
+    [0015] SELF           A=1 B=0 C=7 k=1 Bx=3585 sBx=-61950 Ax=917761 sJ=-15859454 raw=0x07008094
+    [0016] GETFIELD       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018E ; R[3] = R[0][K[0] "playCheerAnimationContext"]
+    [0017] CALL           A=1 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132609 sJ=-16644606 raw=0x010300C4
+    [0018] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[19] source="" lines=394-400 params=1 vararg=0 stack=255 upvalues=1
+  constants (5):
+    K[0] = "playCheerAnimationContext"
+    K[1] = "Log"
+    K[2] = "Error"
+    K[3] = "OnLookerCrowdShowComponent:OnCheerAnimCompleted playCheerAnimationContext is nil"
+    K[4] = "StopCheerAnim"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=3 name="_ENV"
+  locals (1):
+    L[0] = "self" pc=0-11
+  instructions (11):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "playCheerAnimationContext"]
+    [0002] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0003] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0004] GETTABUP       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008B ; R[1] = U[0][K[1] "Log"]
+    [0005] GETFIELD       A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x0201008E ; R[1] = R[1][K[2] "Error"]
+    [0006] LOADK          A=2 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=770 sJ=-16776445 raw=0x00018103 ; R[2] = K[3] "OnLookerCrowdShowComponent:OnCheerAnimCompleted playCheerAnimationContext is nil"
+    [0007] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0008] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+    [0009] SELF           A=1 B=0 C=4 k=1 Bx=2049 sBx=-63486 Ax=524545 sJ=-16252670 raw=0x04008094
+    [0010] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0011] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[20] source="" lines=402-412 params=1 vararg=0 stack=255 upvalues=1
+  constants (9):
+    K[0] = "playCheerAnimationContext"
+    K[1] = "Log"
+    K[2] = "Error"
+    K[3] = "OnLookerCrowdShowComponent:StopCheerAnim playCheerAnimationContext is nil"
+    K[4] = "delaySwitchId"
+    K[5] = "_G"
+    K[6] = "DelayManager"
+    K[7] = "CancelDelayById"
+    K[8] = nil
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=5 name="_ENV"
+  locals (2):
+    L[0] = "self" pc=0-19
+    L[1] = "delaySwitchId" pc=10-19
+  instructions (19):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "playCheerAnimationContext"]
+    [0002] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0003] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0004] GETTABUP       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008B ; R[1] = U[0][K[1] "Log"]
+    [0005] GETFIELD       A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x0201008E ; R[1] = R[1][K[2] "Error"]
+    [0006] LOADK          A=2 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=770 sJ=-16776445 raw=0x00018103 ; R[2] = K[3] "OnLookerCrowdShowComponent:StopCheerAnim playCheerAnimationContext is nil"
+    [0007] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0008] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+    [0009] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "playCheerAnimationContext"]
+    [0010] GETFIELD       A=1 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524801 sJ=-16252414 raw=0x0401008E ; R[1] = R[1][K[4] "delaySwitchId"]
+    [0011] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0012] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0013] GETTABUP       A=2 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655362 sJ=-16121853 raw=0x0500010B ; R[2] = U[0][K[5] "_G"]
+    [0014] GETFIELD       A=2 B=2 C=6 k=0 Bx=3076 sBx=-62459 Ax=787458 sJ=-15989757 raw=0x0602010E ; R[2] = R[2][K[6] "DelayManager"]
+    [0015] SELF           A=2 B=2 C=7 k=1 Bx=3589 sBx=-61946 Ax=918786 sJ=-15858429 raw=0x07028114
+    [0016] MOVE           A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010200
+    [0017] CALL           A=2 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132610 sJ=-16644605 raw=0x01030144
+    [0018] SETFIELD       A=0 B=0 C=8 k=1 Bx=4097 sBx=-61438 Ax=1048832 sJ=-15728383 raw=0x08008012 ; R[0][K[0] "playCheerAnimationContext"] = R[8]
+    [0019] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[21] source="" lines=414-418 params=1 vararg=0 stack=255 upvalues=2
+  constants (5):
+    K[0] = "math"
+    K[1] = "rand"
+    K[2] = "BattleCrowdNpc"
+    K[3] = "RandomOffsetRangeH"
+    K[4] = "RandomOffsetRangeV"
+  upvalues (2):
+    U[0] = instack=0 idx=0 kind=1 name="_ENV"
+    U[1] = instack=2 idx=0 kind=7 name="BattleConst"
+  locals (3):
+    L[0] = "self" pc=0-24
+    L[1] = "v" pc=8-24
+    L[2] = "h" pc=16-24
+  instructions (24):
+    [0001] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "math"]
+    [0002] GETFIELD       A=1 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131585 sJ=-16645630 raw=0x0101008E ; R[1] = R[1][K[1] "rand"]
+    [0003] GETTABUP       A=2 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262658 sJ=-16514557 raw=0x0201010B ; R[2] = U[1][K[2] "BattleCrowdNpc"]
+    [0004] GETFIELD       A=2 B=2 C=3 k=0 Bx=1540 sBx=-63995 Ax=394242 sJ=-16382973 raw=0x0302010E ; R[2] = R[2][K[3] "RandomOffsetRangeH"]
+    [0005] UNM            A=2 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1026 sJ=-16776189 raw=0x00020131
+    [0006] GETTABUP       A=3 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262659 sJ=-16514556 raw=0x0201018B ; R[3] = U[1][K[2] "BattleCrowdNpc"]
+    [0007] GETFIELD       A=3 B=3 C=3 k=0 Bx=1542 sBx=-63993 Ax=394755 sJ=-16382460 raw=0x0303018E ; R[3] = R[3][K[3] "RandomOffsetRangeH"]
+    [0008] CALL           A=1 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263681 sJ=-16513534 raw=0x020300C4
+    [0009] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "math"]
+    [0010] GETFIELD       A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x0102010E ; R[2] = R[2][K[1] "rand"]
+    [0011] GETTABUP       A=3 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262659 sJ=-16514556 raw=0x0201018B ; R[3] = U[1][K[2] "BattleCrowdNpc"]
+    [0012] GETFIELD       A=3 B=3 C=4 k=0 Bx=2054 sBx=-63481 Ax=525827 sJ=-16251388 raw=0x0403018E ; R[3] = R[3][K[4] "RandomOffsetRangeV"]
+    [0013] UNM            A=3 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1539 sJ=-16775676 raw=0x000301B1
+    [0014] GETTABUP       A=4 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262660 sJ=-16514555 raw=0x0201020B ; R[4] = U[1][K[2] "BattleCrowdNpc"]
+    [0015] GETFIELD       A=4 B=4 C=4 k=0 Bx=2056 sBx=-63479 Ax=526340 sJ=-16250875 raw=0x0404020E ; R[4] = R[4][K[4] "RandomOffsetRangeV"]
+    [0016] CALL           A=2 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263682 sJ=-16513533 raw=0x02030144
+    [0017] NEWTABLE       A=3 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393219 sJ=-16383996 raw=0x03000193
+    [0018] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0019] LOADI          A=4 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776964 sJ=-251 raw=0x7FFF8201
+    [0020] MOVE           A=5 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=517 sJ=-16776698 raw=0x00010280
+    [0021] MOVE           A=6 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1030 sJ=-16776185 raw=0x00020300
+    [0022] SETLIST        A=3 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1539 sJ=-16775676 raw=0x000301CE
+    [0023] RETURN1        A=3 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1027 sJ=-16776188 raw=0x000201C8
+    [0024] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7
+
+  function[22] source="" lines=421-441 params=2 vararg=0 stack=255 upvalues=1
+  constants (15):
+    K[0] = "Log"
+    K[1] = "Error"
+    K[2] = "OnLookerCrowdShowComponent:OnSwitchAnimTimeout context is nil"
+    K[3] = "currentSequenceIndex"
+    K[4] = "animSequence"
+    K[5] = "tcall"
+    K[6] = "onAnimCompleted"
+    K[7] = "UpdateWithFrameData"
+    K[8] = "timeSpan"
+    K[9] = 0.05
+    K[10] = "_G"
+    K[11] = "DelayManager"
+    K[12] = "DelaySeconds"
+    K[13] = "OnSwitchAnimTimeout"
+    K[14] = "delaySwitchId"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=11 name="_ENV"
+  locals (6):
+    L[0] = "self" pc=0-39
+    L[1] = "context" pc=0-39
+    L[2] = "currentSequenceIndex" pc=8-39
+    L[3] = "frameData" pc=22-39
+    L[4] = "timeSpan" pc=26-39
+    L[5] = "delaySwitchId" pc=37-39
+  instructions (39):
+    [0001] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0002] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0003] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "Log"]
+    [0004] GETFIELD       A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x0102010E ; R[2] = R[2][K[1] "Error"]
+    [0005] LOADK          A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x00010183 ; R[3] = K[2] "OnLookerCrowdShowComponent:OnSwitchAnimTimeout context is nil"
+    [0006] CALL           A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x01020144
+    [0007] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+    [0008] GETFIELD       A=2 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393730 sJ=-16383485 raw=0x0301010E ; R[2] = R[1][K[3] "currentSequenceIndex"]
+    [0009] ADDI           A=2 B=2 C=128 k=0 Bx=65540 sBx=5 Ax=16778242 sJ=1027 raw=0x80020115
+    [0010] MMBINI         A=2 B=128 C=6 k=0 Bx=3328 sBx=-62207 Ax=851970 sJ=-15925245 raw=0x0680012F
+    [0011] SETFIELD       A=1 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263681 sJ=-16513534 raw=0x02030092 ; R[1][K[3] "currentSequenceIndex"] = R[2]
+    [0012] GETFIELD       A=3 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524803 sJ=-16252412 raw=0x0401018E ; R[3] = R[1][K[4] "animSequence"]
+    [0013] LEN            A=3 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1539 sJ=-16775676 raw=0x000301B4
+    [0014] LT             A=3 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1027 sJ=-16776188 raw=0x000201BA
+    [0015] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0016] GETTABUP       A=3 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655363 sJ=-16121852 raw=0x0500018B ; R[3] = U[0][K[5] "tcall"]
+    [0017] MOVE           A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000200
+    [0018] GETFIELD       A=5 B=1 C=6 k=0 Bx=3074 sBx=-62461 Ax=786949 sJ=-15990266 raw=0x0601028E ; R[5] = R[1][K[6] "onAnimCompleted"]
+    [0019] CALL           A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x010301C4
+    [0020] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7
+    [0021] GETFIELD       A=3 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524803 sJ=-16252412 raw=0x0401018E ; R[3] = R[1][K[4] "animSequence"]
+    [0022] GETTABLE       A=3 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263683 sJ=-16513532 raw=0x0203018C
+    [0023] SELF           A=4 B=0 C=7 k=1 Bx=3585 sBx=-61950 Ax=917764 sJ=-15859451 raw=0x07008214
+    [0024] MOVE           A=6 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1542 sJ=-16775673 raw=0x00030300
+    [0025] CALL           A=4 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132612 sJ=-16644603 raw=0x01030244
+    [0026] GETFIELD       A=4 B=3 C=8 k=0 Bx=4102 sBx=-61433 Ax=1050116 sJ=-15727099 raw=0x0803020E ; R[4] = R[3][K[8] "timeSpan"]
+    [0027] LEI            A=4 B=127 C=0 k=0 Bx=254 sBx=-65281 Ax=65028 sJ=-16712187 raw=0x007F023F
+    [0028] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0029] LOADK          A=4 B=4 C=0 k=1 Bx=9 sBx=-65526 Ax=2308 sJ=-16774907 raw=0x00048203 ; R[4] = K[9] 0.05
+    [0030] GETTABUP       A=5 B=0 C=10 k=0 Bx=5120 sBx=-60415 Ax=1310725 sJ=-15466490 raw=0x0A00028B ; R[5] = U[0][K[10] "_G"]
+    [0031] GETFIELD       A=5 B=5 C=11 k=0 Bx=5642 sBx=-59893 Ax=1444357 sJ=-15332858 raw=0x0B05028E ; R[5] = R[5][K[11] "DelayManager"]
+    [0032] SELF           A=5 B=5 C=12 k=1 Bx=6155 sBx=-59380 Ax=1575685 sJ=-15201530 raw=0x0C058294
+    [0033] MOVE           A=7 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2055 sJ=-16775160 raw=0x00040380
+    [0034] GETFIELD       A=8 B=0 C=13 k=0 Bx=6656 sBx=-58879 Ax=1703944 sJ=-15073271 raw=0x0D00040E ; R[8] = R[0][K[13] "OnSwitchAnimTimeout"]
+    [0035] MOVE           A=9 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=9 sJ=-16777206 raw=0x00000480
+    [0036] MOVE           A=10 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=522 sJ=-16776693 raw=0x00010500
+    [0037] CALL           A=5 B=6 C=2 k=0 Bx=1036 sBx=-64499 Ax=265221 sJ=-16511994 raw=0x020602C4
+    [0038] SETFIELD       A=1 B=14 C=5 k=0 Bx=2588 sBx=-62947 Ax=662529 sJ=-16114686 raw=0x050E0092 ; R[1][K[14] "delaySwitchId"] = R[5]
+    [0039] RETURN0        A=6 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=518 sJ=-16776697 raw=0x00010347
+
+  function[23] source="" lines=444-459 params=2 vararg=0 stack=255 upvalues=1
+  constants (8):
+    K[0] = "materialAnimValue"
+    K[1] = "SetAnimMaterialValue"
+    K[2] = "meshRelativeOffset"
+    K[3] = "GetOwnerView"
+    K[4] = "NRCStaticMesh"
+    K[5] = "UE4"
+    K[6] = "FVector"
+    K[7] = "K2_SetRelativeLocation"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=14 name="_ENV"
+  locals (8):
+    L[0] = "self" pc=0-44
+    L[1] = "data" pc=0-44
+    L[2] = "x" pc=14-43
+    L[3] = "y" pc=19-43
+    L[4] = "z" pc=24-43
+    L[5] = "ownerView" pc=26-43
+    L[6] = "staticMeshComponent" pc=29-43
+    L[7] = "newRelativePosition" pc=37-43
+  instructions (44):
+    [0001] GETFIELD       A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x0001010E ; R[2] = R[1][K[0] "materialAnimValue"]
+    [0002] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0003] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0004] SELF           A=2 B=0 C=1 k=1 Bx=513 sBx=-65022 Ax=131330 sJ=-16645885 raw=0x01008114
+    [0005] GETFIELD       A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x0001020E ; R[4] = R[1][K[0] "materialAnimValue"]
+    [0006] CALL           A=2 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132610 sJ=-16644605 raw=0x01030144
+    [0007] GETFIELD       A=2 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262658 sJ=-16514557 raw=0x0201010E ; R[2] = R[1][K[2] "meshRelativeOffset"]
+    [0008] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0009] JMP            A=33 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777249 sJ=34 raw=0x800010B8
+    [0010] GETFIELD       A=2 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262658 sJ=-16514557 raw=0x0201010E ; R[2] = R[1][K[2] "meshRelativeOffset"]
+    [0011] GETI           A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x0102010D
+    [0012] TEST           A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x00008142
+    [0013] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0014] LOADI          A=2 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776962 sJ=-253 raw=0x7FFF8101
+    [0015] GETFIELD       A=3 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262659 sJ=-16514556 raw=0x0201018E ; R[3] = R[1][K[2] "meshRelativeOffset"]
+    [0016] GETI           A=3 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263683 sJ=-16513532 raw=0x0203018D
+    [0017] TEST           A=3 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=259 sJ=-16776956 raw=0x000081C2
+    [0018] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0019] LOADI          A=3 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776963 sJ=-252 raw=0x7FFF8181
+    [0020] GETFIELD       A=4 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262660 sJ=-16514555 raw=0x0201020E ; R[4] = R[1][K[2] "meshRelativeOffset"]
+    [0021] GETI           A=4 B=4 C=3 k=0 Bx=1544 sBx=-63991 Ax=395268 sJ=-16381947 raw=0x0304020D
+    [0022] TEST           A=4 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=260 sJ=-16776955 raw=0x00008242
+    [0023] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0024] LOADI          A=4 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776964 sJ=-251 raw=0x7FFF8201
+    [0025] SELF           A=5 B=0 C=3 k=1 Bx=1537 sBx=-63998 Ax=393477 sJ=-16383738 raw=0x03008294
+    [0026] CALL           A=5 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263173 sJ=-16514042 raw=0x020202C4
+    [0027] TESTSET        A=6 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2566 sJ=-16774649 raw=0x00050343
+    [0028] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0029] GETFIELD       A=6 B=5 C=4 k=0 Bx=2058 sBx=-63477 Ax=526854 sJ=-16250361 raw=0x0405030E ; R[6] = R[5][K[4] "NRCStaticMesh"]
+    [0030] TEST           A=6 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=6 sJ=-16777209 raw=0x00000342
+    [0031] JMP            A=11 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777227 sJ=12 raw=0x800005B8
+    [0032] GETTABUP       A=7 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655367 sJ=-16121848 raw=0x0500038B ; R[7] = U[0][K[5] "UE4"]
+    [0033] GETFIELD       A=7 B=7 C=6 k=0 Bx=3086 sBx=-62449 Ax=790023 sJ=-15987192 raw=0x0607038E ; R[7] = R[7][K[6] "FVector"]
+    [0034] MOVE           A=8 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1032 sJ=-16776183 raw=0x00020400
+    [0035] MOVE           A=9 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1545 sJ=-16775670 raw=0x00030480
+    [0036] MOVE           A=10 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2058 sJ=-16775157 raw=0x00040500
+    [0037] CALL           A=7 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264199 sJ=-16513016 raw=0x020403C4
+    [0038] SELF           A=8 B=6 C=7 k=1 Bx=3597 sBx=-61938 Ax=920840 sJ=-15856375 raw=0x07068414
+    [0039] MOVE           A=10 B=7 C=0 k=0 Bx=14 sBx=-65521 Ax=3594 sJ=-16773621 raw=0x00070500
+    [0040] LOADFALSE      A=11 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=11 sJ=-16777204 raw=0x00000585
+    [0041] LOADNIL        A=12 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=12 sJ=-16777203 raw=0x00000608
+    [0042] LOADFALSE      A=13 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=13 sJ=-16777202 raw=0x00000685
+    [0043] CALL           A=8 B=6 C=1 k=0 Bx=524 sBx=-65011 Ax=134152 sJ=-16643063 raw=0x01060444
+    [0044] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147

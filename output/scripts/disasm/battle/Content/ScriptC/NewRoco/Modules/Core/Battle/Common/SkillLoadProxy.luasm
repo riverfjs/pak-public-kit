@@ -1,0 +1,418 @@
+-- path: Content/ScriptC/NewRoco/Modules/Core/Battle/Common/SkillLoadProxy.luac
+-- format: decrypted standard Lua 5.4 bytecode
+-- note: disassembly, not original source
+
+main source="@NewRoco\\Modules\\Core\\Battle\\Common\\SkillLoadProxy.lua" lines=0-0 params=0 vararg=1 stack=255 upvalues=1
+constants (16):
+  K[0] = "_G"
+  K[1] = "MakeSimpleClass"
+  K[2] = "SkillLoadProxy"
+  K[3] = "LoadClass"
+  K[4] = 1
+  K[5] = "LoadSkill"
+  K[6] = 2
+  K[7] = "LoadActionRes"
+  K[8] = 3
+  K[9] = "Ctor"
+  K[10] = "LoadSkillClass"
+  K[11] = "OnLoadSkillClassSucceed"
+  K[12] = "OnLoadSkillClassFailed"
+  K[13] = "LoadSkillObj"
+  K[14] = "AsyncLoadActionRes"
+  K[15] = "OnActionLoadEnd"
+upvalues (1):
+  U[0] = instack=0 idx=0 kind=3 name="_ENV"
+locals (2):
+  L[0] = "SkillLoadProxy" pc=5-32
+  L[1] = "LoadType" pc=10-32
+instructions (32):
+  [0001] VARARGPREP     A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000051
+  [0002] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "_G"]
+  [0003] GETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x0100000E ; R[0] = R[0][K[1] "MakeSimpleClass"]
+  [0004] LOADK          A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x00010083 ; R[1] = K[2] "SkillLoadProxy"
+  [0005] CALL           A=0 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263168 sJ=-16514047 raw=0x02020044
+  [0006] NEWTABLE       A=1 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1537 sJ=-16775678 raw=0x00030093
+  [0007] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0008] SETFIELD       A=1 B=3 C=4 k=1 Bx=2055 sBx=-63480 Ax=526081 sJ=-16251134 raw=0x04038092 ; R[1][K[3] "LoadClass"] = R[4]
+  [0009] SETFIELD       A=1 B=5 C=6 k=1 Bx=3083 sBx=-62452 Ax=789249 sJ=-15987966 raw=0x06058092 ; R[1][K[5] "LoadSkill"] = R[6]
+  [0010] SETFIELD       A=1 B=7 C=8 k=1 Bx=4111 sBx=-61424 Ax=1052417 sJ=-15724798 raw=0x08078092 ; R[1][K[7] "LoadActionRes"] = R[8]
+  [0011] CLOSURE        A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000014F ; R[2] = function[0]
+  [0012] SETFIELD       A=0 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263680 sJ=-16513535 raw=0x02030012 ; R[0][K[3] "LoadClass"] = R[2]
+  [0013] CLOSURE        A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x0000814F ; R[2] = function[1]
+  [0014] SETFIELD       A=0 B=5 C=2 k=0 Bx=1034 sBx=-64501 Ax=264704 sJ=-16512511 raw=0x02050012 ; R[0][K[5] "LoadSkill"] = R[2]
+  [0015] CLOSURE        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x0001014F ; R[2] = function[2]
+  [0016] SETFIELD       A=0 B=7 C=2 k=0 Bx=1038 sBx=-64497 Ax=265728 sJ=-16511487 raw=0x02070012 ; R[0][K[7] "LoadActionRes"] = R[2]
+  [0017] CLOSURE        A=2 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=770 sJ=-16776445 raw=0x0001814F ; R[2] = function[3]
+  [0018] SETFIELD       A=0 B=9 C=2 k=0 Bx=1042 sBx=-64493 Ax=266752 sJ=-16510463 raw=0x02090012 ; R[0][K[9] "Ctor"] = R[2]
+  [0019] CLOSURE        A=2 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1026 sJ=-16776189 raw=0x0002014F ; R[2] = function[4]
+  [0020] SETFIELD       A=0 B=10 C=2 k=0 Bx=1044 sBx=-64491 Ax=267264 sJ=-16509951 raw=0x020A0012 ; R[0][K[10] "LoadSkillClass"] = R[2]
+  [0021] CLOSURE        A=2 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1282 sJ=-16775933 raw=0x0002814F ; R[2] = function[5]
+  [0022] SETFIELD       A=0 B=11 C=2 k=0 Bx=1046 sBx=-64489 Ax=267776 sJ=-16509439 raw=0x020B0012 ; R[0][K[11] "OnLoadSkillClassSucceed"] = R[2]
+  [0023] CLOSURE        A=2 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1538 sJ=-16775677 raw=0x0003014F ; R[2] = function[6]
+  [0024] SETFIELD       A=0 B=12 C=2 k=0 Bx=1048 sBx=-64487 Ax=268288 sJ=-16508927 raw=0x020C0012 ; R[0][K[12] "OnLoadSkillClassFailed"] = R[2]
+  [0025] CLOSURE        A=2 B=3 C=0 k=1 Bx=7 sBx=-65528 Ax=1794 sJ=-16775421 raw=0x0003814F ; R[2] = function[7]
+  [0026] SETFIELD       A=0 B=13 C=2 k=0 Bx=1050 sBx=-64485 Ax=268800 sJ=-16508415 raw=0x020D0012 ; R[0][K[13] "LoadSkillObj"] = R[2]
+  [0027] CLOSURE        A=2 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2050 sJ=-16775165 raw=0x0004014F ; R[2] = function[8]
+  [0028] SETFIELD       A=0 B=14 C=2 k=0 Bx=1052 sBx=-64483 Ax=269312 sJ=-16507903 raw=0x020E0012 ; R[0][K[14] "AsyncLoadActionRes"] = R[2]
+  [0029] CLOSURE        A=2 B=4 C=0 k=1 Bx=9 sBx=-65526 Ax=2306 sJ=-16774909 raw=0x0004814F ; R[2] = function[9]
+  [0030] SETFIELD       A=0 B=15 C=2 k=0 Bx=1054 sBx=-64481 Ax=269824 sJ=-16507391 raw=0x020F0012 ; R[0][K[15] "OnActionLoadEnd"] = R[2]
+  [0031] RETURN         A=0 B=2 C=1 k=1 Bx=517 sBx=-65018 Ax=132352 sJ=-16644863 raw=0x01028046
+  [0032] RETURN         A=2 B=1 C=1 k=1 Bx=515 sBx=-65020 Ax=131842 sJ=-16645373 raw=0x01018146
+
+  function[0] source="" lines=28-33 params=3 vararg=0 stack=255 upvalues=3
+  constants (5):
+    K[0] = "LoadClass"
+    K[1] = "SkillPath"
+    K[2] = "NRCUtils"
+    K[3] = "FormatBlueprintAssetPath"
+    K[4] = "LoadSkillClass"
+  upvalues (3):
+    U[0] = instack=0 idx=0 kind=1 name="SkillLoadProxy"
+    U[1] = instack=1 idx=0 kind=0 name="LoadType"
+    U[2] = instack=0 idx=0 kind=7 name="_ENV"
+  locals (4):
+    L[0] = "skillPath" pc=0-14
+    L[1] = "owner" pc=0-14
+    L[2] = "callBack" pc=0-14
+    L[3] = "loader" pc=5-14
+  instructions (14):
+    [0001] GETUPVAL       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000189
+    [0002] GETTABUP       A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x0001020B ; R[4] = U[1][K[0] "LoadClass"]
+    [0003] MOVE           A=5 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=517 sJ=-16776698 raw=0x00010280
+    [0004] MOVE           A=6 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1030 sJ=-16776185 raw=0x00020300
+    [0005] CALL           A=3 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264195 sJ=-16513020 raw=0x020401C4
+    [0006] GETTABUP       A=4 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263172 sJ=-16514043 raw=0x0202020B ; R[4] = U[2][K[2] "NRCUtils"]
+    [0007] GETFIELD       A=4 B=4 C=3 k=0 Bx=1544 sBx=-63991 Ax=395268 sJ=-16381947 raw=0x0304020E ; R[4] = R[4][K[3] "FormatBlueprintAssetPath"]
+    [0008] MOVE           A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x00000280
+    [0009] CALL           A=4 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263172 sJ=-16514043 raw=0x02020244
+    [0010] SETFIELD       A=3 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524803 sJ=-16252412 raw=0x04010192 ; R[3][K[1] "SkillPath"] = R[4]
+    [0011] SELF           A=4 B=3 C=4 k=1 Bx=2055 sBx=-63480 Ax=526084 sJ=-16251131 raw=0x04038214
+    [0012] CALL           A=4 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132100 sJ=-16645115 raw=0x01020244
+    [0013] RETURN1        A=3 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1027 sJ=-16776188 raw=0x000201C8
+    [0014] RETURN0        A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010247
+
+  function[1] source="" lines=42-49 params=5 vararg=0 stack=255 upvalues=3
+  constants (7):
+    K[0] = "LoadSkill"
+    K[1] = "SkillPath"
+    K[2] = "NRCUtils"
+    K[3] = "FormatBlueprintAssetPath"
+    K[4] = "SkillComp"
+    K[5] = "blackBoard"
+    K[6] = "LoadSkillObj"
+  upvalues (3):
+    U[0] = instack=0 idx=0 kind=1 name="SkillLoadProxy"
+    U[1] = instack=1 idx=0 kind=0 name="LoadType"
+    U[2] = instack=0 idx=0 kind=9 name="_ENV"
+  locals (6):
+    L[0] = "skillPath" pc=0-16
+    L[1] = "Comp" pc=0-16
+    L[2] = "owner" pc=0-16
+    L[3] = "callBack" pc=0-16
+    L[4] = "blackBoard" pc=0-16
+    L[5] = "loader" pc=5-16
+  instructions (16):
+    [0001] GETUPVAL       A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x00000289
+    [0002] GETTABUP       A=6 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=518 sJ=-16776697 raw=0x0001030B ; R[6] = U[1][K[0] "LoadSkill"]
+    [0003] MOVE           A=7 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1031 sJ=-16776184 raw=0x00020380
+    [0004] MOVE           A=8 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1544 sJ=-16775671 raw=0x00030400
+    [0005] CALL           A=5 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264197 sJ=-16513018 raw=0x020402C4
+    [0006] GETTABUP       A=6 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263174 sJ=-16514041 raw=0x0202030B ; R[6] = U[2][K[2] "NRCUtils"]
+    [0007] GETFIELD       A=6 B=6 C=3 k=0 Bx=1548 sBx=-63987 Ax=396294 sJ=-16380921 raw=0x0306030E ; R[6] = R[6][K[3] "FormatBlueprintAssetPath"]
+    [0008] MOVE           A=7 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=7 sJ=-16777208 raw=0x00000380
+    [0009] CALL           A=6 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263174 sJ=-16514041 raw=0x02020344
+    [0010] SETFIELD       A=5 B=1 C=6 k=0 Bx=3074 sBx=-62461 Ax=786949 sJ=-15990266 raw=0x06010292 ; R[5][K[1] "SkillPath"] = R[6]
+    [0011] SETFIELD       A=5 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133125 sJ=-16644090 raw=0x01040292 ; R[5][K[4] "SkillComp"] = R[1]
+    [0012] SETFIELD       A=5 B=5 C=4 k=0 Bx=2058 sBx=-63477 Ax=526853 sJ=-16250362 raw=0x04050292 ; R[5][K[5] "blackBoard"] = R[4]
+    [0013] SELF           A=6 B=5 C=6 k=1 Bx=3083 sBx=-62452 Ax=789254 sJ=-15987961 raw=0x06058314
+    [0014] CALL           A=6 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132102 sJ=-16645113 raw=0x01020344
+    [0015] RETURN1        A=5 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1029 sJ=-16776186 raw=0x000202C8
+    [0016] RETURN0        A=6 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=518 sJ=-16776697 raw=0x00010347
+
+  function[2] source="" lines=57-63 params=4 vararg=0 stack=255 upvalues=2
+  constants (4):
+    K[0] = "LoadActionRes"
+    K[1] = "skillObj"
+    K[2] = "blackBoard"
+    K[3] = "AsyncLoadActionRes"
+  upvalues (2):
+    U[0] = instack=0 idx=0 kind=1 name="SkillLoadProxy"
+    U[1] = instack=1 idx=0 kind=8 name="LoadType"
+  locals (5):
+    L[0] = "skillObj" pc=0-11
+    L[1] = "owner" pc=0-11
+    L[2] = "callBack" pc=0-11
+    L[3] = "blackBoard" pc=0-11
+    L[4] = "loader" pc=5-11
+  instructions (11):
+    [0001] GETUPVAL       A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000209
+    [0002] GETTABUP       A=5 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=517 sJ=-16776698 raw=0x0001028B ; R[5] = U[1][K[0] "LoadActionRes"]
+    [0003] MOVE           A=6 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=518 sJ=-16776697 raw=0x00010300
+    [0004] MOVE           A=7 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1031 sJ=-16776184 raw=0x00020380
+    [0005] CALL           A=4 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264196 sJ=-16513019 raw=0x02040244
+    [0006] SETFIELD       A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010212 ; R[4][K[1] "skillObj"] = R[0]
+    [0007] SETFIELD       A=4 B=2 C=3 k=0 Bx=1540 sBx=-63995 Ax=394244 sJ=-16382971 raw=0x03020212 ; R[4][K[2] "blackBoard"] = R[3]
+    [0008] SELF           A=5 B=4 C=3 k=1 Bx=1545 sBx=-63990 Ax=395525 sJ=-16381690 raw=0x03048294
+    [0009] CALL           A=5 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132101 sJ=-16645114 raw=0x010202C4
+    [0010] RETURN1        A=4 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1028 sJ=-16776187 raw=0x00020248
+    [0011] RETURN0        A=5 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=517 sJ=-16776698 raw=0x000102C7
+
+  function[3] source="" lines=65-69 params=4 vararg=0 stack=255 upvalues=0
+  constants (3):
+    K[0] = "loadType"
+    K[1] = "owner"
+    K[2] = "callBack"
+  locals (4):
+    L[0] = "self" pc=0-4
+    L[1] = "loadType" pc=0-4
+    L[2] = "owner" pc=0-4
+    L[3] = "callBack" pc=0-4
+  instructions (4):
+    [0001] SETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x01000012 ; R[0][K[0] "loadType"] = R[1]
+    [0002] SETFIELD       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010012 ; R[0][K[1] "owner"] = R[2]
+    [0003] SETFIELD       A=0 B=2 C=3 k=0 Bx=1540 sBx=-63995 Ax=394240 sJ=-16382975 raw=0x03020012 ; R[0][K[2] "callBack"] = R[3]
+    [0004] RETURN0        A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010247
+
+  function[4] source="" lines=72-78 params=1 vararg=0 stack=255 upvalues=1
+  constants (8):
+    K[0] = "string"
+    K[1] = "IsNilOrEmpty"
+    K[2] = "SkillPath"
+    K[3] = "OnLoadSkillClassFailed"
+    K[4] = "_G"
+    K[5] = "NRCResourceManager"
+    K[6] = "LoadResAsync"
+    K[7] = "OnLoadSkillClassSucceed"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=9 name="_ENV"
+  locals (1):
+    L[0] = "self" pc=0-19
+  instructions (19):
+    [0001] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "string"]
+    [0002] GETFIELD       A=1 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131585 sJ=-16645630 raw=0x0101008E ; R[1] = R[1][K[1] "IsNilOrEmpty"]
+    [0003] GETFIELD       A=2 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262146 sJ=-16515069 raw=0x0200010E ; R[2] = R[0][K[2] "SkillPath"]
+    [0004] CALL           A=1 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263169 sJ=-16514046 raw=0x020200C4
+    [0005] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0006] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0007] SELF           A=1 B=0 C=3 k=1 Bx=1537 sBx=-63998 Ax=393473 sJ=-16383742 raw=0x03008094
+    [0008] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0009] GETTABUP       A=1 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524289 sJ=-16252926 raw=0x0400008B ; R[1] = U[0][K[4] "_G"]
+    [0010] GETFIELD       A=1 B=1 C=5 k=0 Bx=2562 sBx=-62973 Ax=655873 sJ=-16121342 raw=0x0501008E ; R[1] = R[1][K[5] "NRCResourceManager"]
+    [0011] SELF           A=1 B=1 C=6 k=1 Bx=3075 sBx=-62460 Ax=787201 sJ=-15990014 raw=0x06018094
+    [0012] MOVE           A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000180
+    [0013] GETFIELD       A=4 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262148 sJ=-16515067 raw=0x0200020E ; R[4] = R[0][K[2] "SkillPath"]
+    [0014] LOADI          A=5 B=127 C=128 k=0 Bx=65790 sBx=255 Ax=16842245 sJ=65030 raw=0x807F0281
+    [0015] LOADI          A=6 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776966 sJ=-249 raw=0x7FFF8301
+    [0016] GETFIELD       A=7 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917511 sJ=-15859704 raw=0x0700038E ; R[7] = R[0][K[7] "OnLoadSkillClassSucceed"]
+    [0017] GETFIELD       A=8 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393224 sJ=-16383991 raw=0x0300040E ; R[8] = R[0][K[3] "OnLoadSkillClassFailed"]
+    [0018] CALL           A=1 B=8 C=1 k=0 Bx=528 sBx=-65007 Ax=135169 sJ=-16642046 raw=0x010800C4
+    [0019] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[5] source="" lines=80-108 params=3 vararg=0 stack=255 upvalues=2
+  constants (17):
+    K[0] = "OnLoadSkillClassFailed"
+    K[1] = "loadType"
+    K[2] = "LoadClass"
+    K[3] = "callBack"
+    K[4] = "owner"
+    K[5] = "LoadSkill"
+    K[6] = "UE4"
+    K[7] = "UObject"
+    K[8] = "IsValid"
+    K[9] = "SkillComp"
+    K[10] = "Log"
+    K[11] = "Error"
+    K[12] = "SkillLoadProxy:OnLoadSkillClassFailed \u6280\u80FD\u7EC4\u4EF6\u4E3A\u7A7A"
+    K[13] = "skillObj"
+    K[14] = "AddSkillObjFromClassAndReturn"
+    K[15] = "SkillLoadProxy:OnLoadSkillClassFailed \u6280\u80FD\u5B9E\u4F8B\u5316\u5931\u8D25"
+    K[16] = "AsyncLoadActionRes"
+  upvalues (2):
+    U[0] = instack=1 idx=0 kind=0 name="LoadType"
+    U[1] = instack=0 idx=0 kind=6 name="_ENV"
+  locals (3):
+    L[0] = "self" pc=0-65
+    L[1] = "Request" pc=0-65
+    L[2] = "Klass" pc=0-65
+  instructions (65):
+    [0001] TEST           A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x00008142
+    [0002] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0003] SELF           A=3 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=259 sJ=-16776956 raw=0x00008194
+    [0004] CALL           A=3 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132099 sJ=-16645116 raw=0x010201C4
+    [0005] GETFIELD       A=3 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131075 sJ=-16646140 raw=0x0100018E ; R[3] = R[0][K[1] "loadType"]
+    [0006] GETTABUP       A=4 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262148 sJ=-16515067 raw=0x0200020B ; R[4] = U[0][K[2] "LoadClass"]
+    [0007] EQ             A=3 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2051 sJ=-16775164 raw=0x000401B9
+    [0008] JMP            A=7 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777223 sJ=8 raw=0x800003B8
+    [0009] GETFIELD       A=3 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393219 sJ=-16383996 raw=0x0300018E ; R[3] = R[0][K[3] "callBack"]
+    [0010] TEST           A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x000001C2
+    [0011] JMP            A=52 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777268 sJ=53 raw=0x80001A38
+    [0012] GETFIELD       A=3 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393219 sJ=-16383996 raw=0x0300018E ; R[3] = R[0][K[3] "callBack"]
+    [0013] GETFIELD       A=4 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524292 sJ=-16252923 raw=0x0400020E ; R[4] = R[0][K[4] "owner"]
+    [0014] MOVE           A=5 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1029 sJ=-16776186 raw=0x00020280
+    [0015] CALL           A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x010301C4
+    [0016] JMP            A=47 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777263 sJ=48 raw=0x800017B8
+    [0017] GETFIELD       A=3 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131075 sJ=-16646140 raw=0x0100018E ; R[3] = R[0][K[1] "loadType"]
+    [0018] GETTABUP       A=4 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655364 sJ=-16121851 raw=0x0500020B ; R[4] = U[0][K[5] "LoadSkill"]
+    [0019] EQ             A=3 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2051 sJ=-16775164 raw=0x000401B9
+    [0020] JMP            A=43 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777259 sJ=44 raw=0x800015B8
+    [0021] GETTABUP       A=3 B=1 C=6 k=0 Bx=3074 sBx=-62461 Ax=786947 sJ=-15990268 raw=0x0601018B ; R[3] = U[1][K[6] "UE4"]
+    [0022] GETFIELD       A=3 B=3 C=7 k=0 Bx=3590 sBx=-61945 Ax=919043 sJ=-15858172 raw=0x0703018E ; R[3] = R[3][K[7] "UObject"]
+    [0023] GETFIELD       A=3 B=3 C=8 k=0 Bx=4102 sBx=-61433 Ax=1050115 sJ=-15727100 raw=0x0803018E ; R[3] = R[3][K[8] "IsValid"]
+    [0024] GETFIELD       A=4 B=0 C=9 k=0 Bx=4608 sBx=-60927 Ax=1179652 sJ=-15597563 raw=0x0900020E ; R[4] = R[0][K[9] "SkillComp"]
+    [0025] CALL           A=3 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263171 sJ=-16514044 raw=0x020201C4
+    [0026] TEST           A=3 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=259 sJ=-16776956 raw=0x000081C2
+    [0027] JMP            A=9 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777225 sJ=10 raw=0x800004B8
+    [0028] GETFIELD       A=3 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393219 sJ=-16383996 raw=0x0300018E ; R[3] = R[0][K[3] "callBack"]
+    [0029] TEST           A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x000001C2
+    [0030] JMP            A=6 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777222 sJ=7 raw=0x80000338
+    [0031] GETTABUP       A=3 B=1 C=10 k=0 Bx=5122 sBx=-60413 Ax=1311235 sJ=-15465980 raw=0x0A01018B ; R[3] = U[1][K[10] "Log"]
+    [0032] GETFIELD       A=3 B=3 C=11 k=0 Bx=5638 sBx=-59897 Ax=1443331 sJ=-15333884 raw=0x0B03018E ; R[3] = R[3][K[11] "Error"]
+    [0033] LOADK          A=4 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3076 sJ=-16774139 raw=0x00060203 ; R[4] = K[12] "SkillLoadProxy:OnLoadSkillClassFailed \u6280\u80FD\u7EC4\u4EF6\u4E3A\u7A7A"
+    [0034] CALL           A=3 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132099 sJ=-16645116 raw=0x010201C4
+    [0035] GETFIELD       A=3 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393219 sJ=-16383996 raw=0x0300018E ; R[3] = R[0][K[3] "callBack"]
+    [0036] GETFIELD       A=4 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524292 sJ=-16252923 raw=0x0400020E ; R[4] = R[0][K[4] "owner"]
+    [0037] CALL           A=3 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132099 sJ=-16645116 raw=0x010201C4
+    [0038] GETFIELD       A=3 B=0 C=9 k=0 Bx=4608 sBx=-60927 Ax=1179651 sJ=-15597564 raw=0x0900018E ; R[3] = R[0][K[9] "SkillComp"]
+    [0039] SELF           A=3 B=3 C=14 k=1 Bx=7175 sBx=-58360 Ax=1836803 sJ=-14940412 raw=0x0E038194
+    [0040] MOVE           A=5 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1029 sJ=-16776186 raw=0x00020280
+    [0041] CALL           A=3 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263683 sJ=-16513532 raw=0x020301C4
+    [0042] SETFIELD       A=0 B=13 C=3 k=0 Bx=1562 sBx=-63973 Ax=399872 sJ=-16377343 raw=0x030D0012 ; R[0][K[13] "skillObj"] = R[3]
+    [0043] GETFIELD       A=3 B=0 C=13 k=0 Bx=6656 sBx=-58879 Ax=1703939 sJ=-15073276 raw=0x0D00018E ; R[3] = R[0][K[13] "skillObj"]
+    [0044] TEST           A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x000001C2
+    [0045] JMP            A=6 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777222 sJ=7 raw=0x80000338
+    [0046] GETTABUP       A=3 B=1 C=6 k=0 Bx=3074 sBx=-62461 Ax=786947 sJ=-15990268 raw=0x0601018B ; R[3] = U[1][K[6] "UE4"]
+    [0047] GETFIELD       A=3 B=3 C=7 k=0 Bx=3590 sBx=-61945 Ax=919043 sJ=-15858172 raw=0x0703018E ; R[3] = R[3][K[7] "UObject"]
+    [0048] GETFIELD       A=3 B=3 C=8 k=0 Bx=4102 sBx=-61433 Ax=1050115 sJ=-15727100 raw=0x0803018E ; R[3] = R[3][K[8] "IsValid"]
+    [0049] GETFIELD       A=4 B=0 C=13 k=0 Bx=6656 sBx=-58879 Ax=1703940 sJ=-15073275 raw=0x0D00020E ; R[4] = R[0][K[13] "skillObj"]
+    [0050] CALL           A=3 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263171 sJ=-16514044 raw=0x020201C4
+    [0051] TEST           A=3 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=259 sJ=-16776956 raw=0x000081C2
+    [0052] JMP            A=9 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777225 sJ=10 raw=0x800004B8
+    [0053] GETFIELD       A=3 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393219 sJ=-16383996 raw=0x0300018E ; R[3] = R[0][K[3] "callBack"]
+    [0054] TEST           A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x000001C2
+    [0055] JMP            A=6 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777222 sJ=7 raw=0x80000338
+    [0056] GETTABUP       A=3 B=1 C=10 k=0 Bx=5122 sBx=-60413 Ax=1311235 sJ=-15465980 raw=0x0A01018B ; R[3] = U[1][K[10] "Log"]
+    [0057] GETFIELD       A=3 B=3 C=11 k=0 Bx=5638 sBx=-59897 Ax=1443331 sJ=-15333884 raw=0x0B03018E ; R[3] = R[3][K[11] "Error"]
+    [0058] LOADK          A=4 B=7 C=0 k=1 Bx=15 sBx=-65520 Ax=3844 sJ=-16773371 raw=0x00078203 ; R[4] = K[15] "SkillLoadProxy:OnLoadSkillClassFailed \u6280\u80FD\u5B9E\u4F8B\u5316\u5931\u8D25"
+    [0059] CALL           A=3 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132099 sJ=-16645116 raw=0x010201C4
+    [0060] GETFIELD       A=3 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393219 sJ=-16383996 raw=0x0300018E ; R[3] = R[0][K[3] "callBack"]
+    [0061] GETFIELD       A=4 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524292 sJ=-16252923 raw=0x0400020E ; R[4] = R[0][K[4] "owner"]
+    [0062] CALL           A=3 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132099 sJ=-16645116 raw=0x010201C4
+    [0063] SELF           A=3 B=0 C=16 k=1 Bx=8193 sBx=-57342 Ax=2097411 sJ=-14679804 raw=0x10008194
+    [0064] CALL           A=3 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132099 sJ=-16645116 raw=0x010201C4
+    [0065] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7
+
+  function[6] source="" lines=110-115 params=1 vararg=0 stack=255 upvalues=1
+  constants (6):
+    K[0] = "callBack"
+    K[1] = "Log"
+    K[2] = "Error"
+    K[3] = "SkillLoadProxy:OnLoadSkillClassFailed \u6280\u80FD\u8D44\u6E90\u52A0\u8F7D\u5931\u8D25"
+    K[4] = "SkillPath"
+    K[5] = "owner"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=4 name="_ENV"
+  locals (1):
+    L[0] = "self" pc=0-12
+  instructions (12):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "callBack"]
+    [0002] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0003] JMP            A=7 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777223 sJ=8 raw=0x800003B8
+    [0004] GETTABUP       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008B ; R[1] = U[0][K[1] "Log"]
+    [0005] GETFIELD       A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x0201008E ; R[1] = R[1][K[2] "Error"]
+    [0006] LOADK          A=2 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=770 sJ=-16776445 raw=0x00018103 ; R[2] = K[3] "SkillLoadProxy:OnLoadSkillClassFailed \u6280\u80FD\u8D44\u6E90\u52A0\u8F7D\u5931\u8D25"
+    [0007] GETFIELD       A=3 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524291 sJ=-16252924 raw=0x0400018E ; R[3] = R[0][K[4] "SkillPath"]
+    [0008] CALL           A=1 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132609 sJ=-16644606 raw=0x010300C4
+    [0009] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "callBack"]
+    [0010] GETFIELD       A=2 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655362 sJ=-16121853 raw=0x0500010E ; R[2] = R[0][K[5] "owner"]
+    [0011] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0012] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[7] source="" lines=118-120 params=1 vararg=0 stack=255 upvalues=0
+  constants (1):
+    K[0] = "LoadSkillClass"
+  locals (1):
+    L[0] = "self" pc=0-3
+  instructions (3):
+    [0001] SELF           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x00008094
+    [0002] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0003] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[8] source="" lines=123-135 params=1 vararg=0 stack=255 upvalues=1
+  constants (12):
+    K[0] = "blackBoard"
+    K[1] = "skillObj"
+    K[2] = "GetBlackboard"
+    K[3] = "UE"
+    K[4] = "UObject"
+    K[5] = "IsValid"
+    K[6] = "pairs"
+    K[7] = "SetValueAsString"
+    K[8] = "RegisterEventCallback"
+    K[9] = "OnAsyncLoadActionEnd"
+    K[10] = "OnActionLoadEnd"
+    K[11] = "StartAsyncLoading"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=12 name="_ENV"
+  locals (8):
+    L[0] = "self" pc=0-36
+    L[1] = "blackboard" pc=6-26
+    L[2] = "(for state)" pc=18-26
+    L[3] = "(for state)" pc=18-26
+    L[4] = "(for state)" pc=18-26
+    L[5] = "(for state)" pc=18-26
+    L[6] = "i" pc=19-23
+    L[7] = "v" pc=19-23
+  instructions (36):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "blackBoard"]
+    [0002] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0003] JMP            A=22 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777238 sJ=23 raw=0x80000B38
+    [0004] GETFIELD       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008E ; R[1] = R[0][K[1] "skillObj"]
+    [0005] SELF           A=1 B=1 C=2 k=1 Bx=1027 sBx=-64508 Ax=262913 sJ=-16514302 raw=0x02018094
+    [0006] CALL           A=1 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263169 sJ=-16514046 raw=0x020200C4
+    [0007] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0008] JMP            A=17 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777233 sJ=18 raw=0x800008B8
+    [0009] GETTABUP       A=2 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393218 sJ=-16383997 raw=0x0300010B ; R[2] = U[0][K[3] "UE"]
+    [0010] GETFIELD       A=2 B=2 C=4 k=0 Bx=2052 sBx=-63483 Ax=525314 sJ=-16251901 raw=0x0402010E ; R[2] = R[2][K[4] "UObject"]
+    [0011] GETFIELD       A=2 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656386 sJ=-16120829 raw=0x0502010E ; R[2] = R[2][K[5] "IsValid"]
+    [0012] MOVE           A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x00010180
+    [0013] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0014] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0015] JMP            A=10 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777226 sJ=11 raw=0x80000538
+    [0016] GETTABUP       A=2 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786434 sJ=-15990781 raw=0x0600010B ; R[2] = U[0][K[6] "pairs"]
+    [0017] GETFIELD       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018E ; R[3] = R[0][K[0] "blackBoard"]
+    [0018] CALL           A=2 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656386 sJ=-16120829 raw=0x05020144
+    [0019] TFORPREP       A=2 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1026 sJ=-16776189 raw=0x0002014B
+    [0020] SELF           A=8 B=1 C=7 k=1 Bx=3587 sBx=-61948 Ax=918280 sJ=-15858935 raw=0x07018414
+    [0021] MOVE           A=10 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3082 sJ=-16774133 raw=0x00060500
+    [0022] MOVE           A=11 B=7 C=0 k=0 Bx=14 sBx=-65521 Ax=3595 sJ=-16773620 raw=0x00070580
+    [0023] CALL           A=8 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133128 sJ=-16644087 raw=0x01040444
+    [0024] TFORCALL       A=2 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262146 sJ=-16515069 raw=0x0200014C
+    [0025] TFORLOOP       A=2 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1538 sJ=-16775677 raw=0x0003014D
+    [0026] CLOSE          A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000136
+    [0027] GETFIELD       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008E ; R[1] = R[0][K[1] "skillObj"]
+    [0028] SELF           A=1 B=1 C=8 k=1 Bx=4099 sBx=-61436 Ax=1049345 sJ=-15727870 raw=0x08018094
+    [0029] LOADK          A=3 B=4 C=0 k=1 Bx=9 sBx=-65526 Ax=2307 sJ=-16774908 raw=0x00048183 ; R[3] = K[9] "OnAsyncLoadActionEnd"
+    [0030] MOVE           A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000200
+    [0031] GETFIELD       A=5 B=0 C=10 k=0 Bx=5120 sBx=-60415 Ax=1310725 sJ=-15466490 raw=0x0A00028E ; R[5] = R[0][K[10] "OnActionLoadEnd"]
+    [0032] CALL           A=1 B=5 C=1 k=0 Bx=522 sBx=-65013 Ax=133633 sJ=-16643582 raw=0x010500C4
+    [0033] GETFIELD       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008E ; R[1] = R[0][K[1] "skillObj"]
+    [0034] SELF           A=1 B=1 C=11 k=1 Bx=5635 sBx=-59900 Ax=1442561 sJ=-15334654 raw=0x0B018094
+    [0035] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0036] RETURN         A=1 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=769 sJ=-16776446 raw=0x000180C6
+
+  function[9] source="" lines=137-142 params=1 vararg=0 stack=255 upvalues=0
+  constants (3):
+    K[0] = "callBack"
+    K[1] = "owner"
+    K[2] = "skillObj"
+  locals (1):
+    L[0] = "self" pc=0-8
+  instructions (8):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "callBack"]
+    [0002] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0003] JMP            A=3 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777219 sJ=4 raw=0x800001B8
+    [0004] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "callBack"]
+    [0005] GETFIELD       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010E ; R[2] = R[0][K[1] "owner"]
+    [0006] GETFIELD       A=3 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262147 sJ=-16515068 raw=0x0200018E ; R[3] = R[0][K[2] "skillObj"]
+    [0007] CALL           A=1 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132609 sJ=-16644606 raw=0x010300C4
+    [0008] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7

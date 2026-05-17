@@ -1,0 +1,155 @@
+-- path: Content/ScriptC/NewRoco/Modules/Core/Battle/AI/BP_BattleEQSRunner_C.luac
+-- format: decrypted standard Lua 5.4 bytecode
+-- note: disassembly, not original source
+
+main source="@NewRoco\\Modules\\Core\\Battle\\AI\\BP_BattleEQSRunner_C.lua" lines=0-0 params=0 vararg=1 stack=255 upvalues=1
+constants (11):
+  K[0] = "require"
+  K[1] = "UnLuaEx"
+  K[2] = "Utils.Delegate"
+  K[3] = "_G"
+  K[4] = "NRCClass"
+  K[5] = "BP_BattleEQSRunner_C"
+  K[6] = "UE"
+  K[7] = "FNRCQueryResult"
+  K[8] = "Initialize"
+  K[9] = "StartQuery"
+  K[10] = "QueryComplete"
+upvalues (1):
+  U[0] = instack=0 idx=0 kind=4 name="_ENV"
+locals (3):
+  L[0] = "Delegate" pc=7-22
+  L[1] = "BP_BattleEQSRunner_C" pc=11-22
+  L[2] = "FailedResult" pc=14-22
+instructions (22):
+  [0001] VARARGPREP     A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000051
+  [0002] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "require"]
+  [0003] LOADK          A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x00008083 ; R[1] = K[1] "UnLuaEx"
+  [0004] CALL           A=0 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132096 sJ=-16645119 raw=0x01020044
+  [0005] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "require"]
+  [0006] LOADK          A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x00010083 ; R[1] = K[2] "Utils.Delegate"
+  [0007] CALL           A=0 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263168 sJ=-16514047 raw=0x02020044
+  [0008] GETTABUP       A=1 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393217 sJ=-16383998 raw=0x0300008B ; R[1] = U[0][K[3] "_G"]
+  [0009] GETFIELD       A=1 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524801 sJ=-16252414 raw=0x0401008E ; R[1] = R[1][K[4] "NRCClass"]
+  [0010] LOADK          A=2 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1282 sJ=-16775933 raw=0x00028103 ; R[2] = K[5] "BP_BattleEQSRunner_C"
+  [0011] CALL           A=1 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263169 sJ=-16514046 raw=0x020200C4
+  [0012] GETTABUP       A=2 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786434 sJ=-15990781 raw=0x0600010B ; R[2] = U[0][K[6] "UE"]
+  [0013] GETFIELD       A=2 B=2 C=7 k=0 Bx=3588 sBx=-61947 Ax=918530 sJ=-15858685 raw=0x0702010E ; R[2] = R[2][K[7] "FNRCQueryResult"]
+  [0014] CALL           A=2 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262658 sJ=-16514557 raw=0x02010144
+  [0015] CLOSURE        A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x000001CF ; R[3] = function[0]
+  [0016] SETFIELD       A=1 B=8 C=3 k=0 Bx=1552 sBx=-63983 Ax=397313 sJ=-16379902 raw=0x03080092 ; R[1][K[8] "Initialize"] = R[3]
+  [0017] CLOSURE        A=3 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=259 sJ=-16776956 raw=0x000081CF ; R[3] = function[1]
+  [0018] SETFIELD       A=1 B=9 C=3 k=0 Bx=1554 sBx=-63981 Ax=397825 sJ=-16379390 raw=0x03090092 ; R[1][K[9] "StartQuery"] = R[3]
+  [0019] CLOSURE        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101CF ; R[3] = function[2]
+  [0020] SETFIELD       A=1 B=10 C=3 k=0 Bx=1556 sBx=-63979 Ax=398337 sJ=-16378878 raw=0x030A0092 ; R[1][K[10] "QueryComplete"] = R[3]
+  [0021] RETURN         A=1 B=2 C=1 k=1 Bx=517 sBx=-65018 Ax=132353 sJ=-16644862 raw=0x010280C6
+  [0022] RETURN         A=3 B=1 C=1 k=1 Bx=515 sBx=-65020 Ax=131843 sJ=-16645372 raw=0x010181C6
+
+  function[0] source="" lines=13-16 params=2 vararg=0 stack=255 upvalues=0
+  constants (3):
+    K[0] = "CompleteDelegate"
+    K[1] = "QueryID"
+    K[2] = -1
+  locals (2):
+    L[0] = "self" pc=0-5
+    L[1] = "Initializer" pc=0-5
+  instructions (5):
+    [0001] NEWTABLE       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000113
+    [0002] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0003] SETFIELD       A=0 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262144 sJ=-16515071 raw=0x02000012 ; R[0][K[0] "CompleteDelegate"] = R[2]
+    [0004] SETFIELD       A=0 B=1 C=2 k=1 Bx=1027 sBx=-64508 Ax=262912 sJ=-16514303 raw=0x02018012 ; R[0][K[1] "QueryID"] = R[2]
+    [0005] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[1] source="" lines=23-46 params=6 vararg=0 stack=255 upvalues=2
+  constants (6):
+    K[0] = "Query"
+    K[1] = "QueryID"
+    K[2] = "RunQuery"
+    K[3] = "Add"
+    K[4] = "CompleteDelegate"
+    K[5] = -1
+  upvalues (2):
+    U[0] = instack=2 idx=0 kind=1 name="FailedResult"
+    U[1] = instack=0 idx=0 kind=11 name="Delegate"
+  locals (7):
+    L[0] = "self" pc=0-43
+    L[1] = "Mode" pc=0-43
+    L[2] = "Query" pc=0-43
+    L[3] = "Querier" pc=0-43
+    L[4] = "Owner" pc=0-43
+    L[5] = "Callback" pc=0-43
+    L[6] = "Del" pc=23-30
+  instructions (43):
+    [0001] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0002] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0003] SETFIELD       A=0 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262144 sJ=-16515071 raw=0x02000012 ; R[0][K[0] "Query"] = R[2]
+    [0004] GETFIELD       A=6 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=6 sJ=-16777209 raw=0x0000030E ; R[6] = R[0][K[0] "Query"]
+    [0005] TEST           A=6 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=6 sJ=-16777209 raw=0x00000342
+    [0006] JMP            A=26 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777242 sJ=27 raw=0x80000D38
+    [0007] SELF           A=6 B=0 C=2 k=1 Bx=1025 sBx=-64510 Ax=262406 sJ=-16514809 raw=0x02008314
+    [0008] MOVE           A=8 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=520 sJ=-16776695 raw=0x00010400
+    [0009] MOVE           A=9 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1545 sJ=-16775670 raw=0x00030480
+    [0010] CALL           A=6 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264198 sJ=-16513017 raw=0x02040344
+    [0011] SETFIELD       A=0 B=1 C=6 k=0 Bx=3074 sBx=-62461 Ax=786944 sJ=-15990271 raw=0x06010012 ; R[0][K[1] "QueryID"] = R[6]
+    [0012] GETFIELD       A=6 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131078 sJ=-16646137 raw=0x0100030E ; R[6] = R[0][K[1] "QueryID"]
+    [0013] EQI            A=6 B=126 C=0 k=0 Bx=252 sBx=-65283 Ax=64518 sJ=-16712697 raw=0x007E033D
+    [0014] JMP            A=6 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777222 sJ=7 raw=0x80000338
+    [0015] TEST           A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x000002C2
+    [0016] JMP            A=13 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777229 sJ=14 raw=0x800006B8
+    [0017] MOVE           A=6 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2566 sJ=-16774649 raw=0x00050300
+    [0018] MOVE           A=7 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2055 sJ=-16775160 raw=0x00040380
+    [0019] GETUPVAL       A=8 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=8 sJ=-16777207 raw=0x00000409
+    [0020] CALL           A=6 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132614 sJ=-16644601 raw=0x01030344
+    [0021] JMP            A=8 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777224 sJ=9 raw=0x80000438
+    [0022] GETUPVAL       A=6 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=518 sJ=-16776697 raw=0x00010309
+    [0023] CALL           A=6 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262662 sJ=-16514553 raw=0x02010344
+    [0024] SELF           A=7 B=6 C=3 k=1 Bx=1549 sBx=-63986 Ax=396551 sJ=-16380664 raw=0x03068394
+    [0025] MOVE           A=9 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2057 sJ=-16775158 raw=0x00040480
+    [0026] MOVE           A=10 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2570 sJ=-16774645 raw=0x00050500
+    [0027] CALL           A=7 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133127 sJ=-16644088 raw=0x010403C4
+    [0028] GETFIELD       A=7 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524295 sJ=-16252920 raw=0x0400038E ; R[7] = R[0][K[4] "CompleteDelegate"]
+    [0029] GETFIELD       A=8 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131080 sJ=-16646135 raw=0x0100040E ; R[8] = R[0][K[1] "QueryID"]
+    [0030] SETTABLE       A=7 B=8 C=6 k=0 Bx=3088 sBx=-62447 Ax=790535 sJ=-15986680 raw=0x06080390
+    [0031] GETFIELD       A=6 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131078 sJ=-16646137 raw=0x0100030E ; R[6] = R[0][K[1] "QueryID"]
+    [0032] RETURN1        A=6 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1030 sJ=-16776185 raw=0x00020348
+    [0033] JMP            A=8 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777224 sJ=9 raw=0x80000438
+    [0034] SETFIELD       A=0 B=1 C=5 k=1 Bx=2563 sBx=-62972 Ax=656128 sJ=-16121087 raw=0x05018012 ; R[0][K[1] "QueryID"] = R[5]
+    [0035] TEST           A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x000002C2
+    [0036] JMP            A=3 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777219 sJ=4 raw=0x800001B8
+    [0037] MOVE           A=6 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2566 sJ=-16774649 raw=0x00050300
+    [0038] MOVE           A=7 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2055 sJ=-16775160 raw=0x00040380
+    [0039] GETUPVAL       A=8 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=8 sJ=-16777207 raw=0x00000409
+    [0040] CALL           A=6 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132614 sJ=-16644601 raw=0x01030344
+    [0041] LOADI          A=6 B=255 C=127 k=0 Bx=65534 sBx=-1 Ax=16776710 sJ=-505 raw=0x7FFF0301
+    [0042] RETURN1        A=6 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1030 sJ=-16776185 raw=0x00020348
+    [0043] RETURN0        A=6 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=518 sJ=-16776697 raw=0x00010347
+
+  function[2] source="" lines=48-56 params=2 vararg=0 stack=255 upvalues=0
+  constants (6):
+    K[0] = "CompleteDelegate"
+    K[1] = "QueryID"
+    K[2] = "Invoke"
+    K[3] = "Clear"
+    K[4] = nil
+    K[5] = "Release"
+  locals (3):
+    L[0] = "self" pc=0-16
+    L[1] = "Result" pc=0-16
+    L[2] = "Del" pc=3-16
+  instructions (16):
+    [0001] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "CompleteDelegate"]
+    [0002] GETFIELD       A=3 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131587 sJ=-16645628 raw=0x0101018E ; R[3] = R[1][K[1] "QueryID"]
+    [0003] GETTABLE       A=2 B=2 C=3 k=0 Bx=1540 sBx=-63995 Ax=394242 sJ=-16382973 raw=0x0302010C
+    [0004] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0005] JMP            A=9 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777225 sJ=10 raw=0x800004B8
+    [0006] SELF           A=3 B=2 C=2 k=1 Bx=1029 sBx=-64506 Ax=263427 sJ=-16513788 raw=0x02028194
+    [0007] MOVE           A=5 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=517 sJ=-16776698 raw=0x00010280
+    [0008] CALL           A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x010301C4
+    [0009] SELF           A=3 B=2 C=3 k=1 Bx=1541 sBx=-63994 Ax=394499 sJ=-16382716 raw=0x03028194
+    [0010] CALL           A=3 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132099 sJ=-16645116 raw=0x010201C4
+    [0011] GETFIELD       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018E ; R[3] = R[0][K[0] "CompleteDelegate"]
+    [0012] GETFIELD       A=4 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131588 sJ=-16645627 raw=0x0101020E ; R[4] = R[1][K[1] "QueryID"]
+    [0013] SETTABLE       A=3 B=4 C=4 k=1 Bx=2057 sBx=-63478 Ax=526595 sJ=-16250620 raw=0x04048190
+    [0014] SELF           A=3 B=0 C=5 k=1 Bx=2561 sBx=-62974 Ax=655619 sJ=-16121596 raw=0x05008194
+    [0015] CALL           A=3 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132099 sJ=-16645116 raw=0x010201C4
+    [0016] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7

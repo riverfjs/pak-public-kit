@@ -62,7 +62,7 @@ public class NRCLuaReader
             Code = [.. Ar.ReadLuaArray(() => Ar.ReadBytes(4)).SelectMany(x => x)],
             LastLineDefined = Ar.ReadLuaInt(), // Shuffled
             NumParams = Ar.Read<byte>(), // Shuffled
-            Constants = Ar.ReadLuaArray(() => FLuaReader.ReadConstant(Ar)),
+            Constants = Ar.ReadLuaArray(() => ReadConstant(Ar)),
             IsVarArg = Ar.Read<byte>() // Shuffled
         };
 
@@ -73,6 +73,18 @@ public class NRCLuaReader
         MapOpcodes(f.Code); // Opcode is shuffled
 
         return f;
+    }
+
+    private static LuaConstant ReadConstant(FNRCLuaArchive Ar)
+    {
+        var constant = FLuaReader.ReadConstant(Ar);
+        constant.Type = (constant.Type & 0x3F) switch
+        {
+            3 => (byte) ((constant.Type & ~0x3F) | 19), // Integer/float tags are shuffled
+            19 => (byte) ((constant.Type & ~0x3F) | 3),
+            _ => constant.Type
+        };
+        return constant;
     }
 
     private static LuaUpvalue[] ReadUpvalues(FNRCLuaArchive Ar, LuaFunction f)

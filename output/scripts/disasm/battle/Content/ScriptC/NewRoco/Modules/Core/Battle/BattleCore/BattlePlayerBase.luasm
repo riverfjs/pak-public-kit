@@ -1,0 +1,223 @@
+-- path: Content/ScriptC/NewRoco/Modules/Core/Battle/BattleCore/BattlePlayerBase.luac
+-- format: decrypted standard Lua 5.4 bytecode
+-- note: disassembly, not original source
+
+main source="@NewRoco\\Modules\\Core\\Battle\\BattleCore\\BattlePlayerBase.lua" lines=0-0 params=0 vararg=1 stack=255 upvalues=1
+constants (15):
+  K[0] = "require"
+  K[1] = "NewRoco.Modules.Core.Battle.Common.DelaySafeCaller"
+  K[2] = "NRCClass"
+  K[3] = "Extend"
+  K[4] = "Ctor"
+  K[5] = "SetRuntimeData"
+  K[6] = "GetRuntimeData"
+  K[7] = "Start"
+  K[8] = "Stop"
+  K[9] = "Release"
+  K[10] = "Clear"
+  K[11] = "SafeDelaySeconds"
+  K[12] = "SafeDelayFrames"
+  K[13] = "SafeCancelDelayById"
+  K[14] = "SafeFindDelayById"
+upvalues (1):
+  U[0] = instack=0 idx=0 kind=3 name="_ENV"
+locals (2):
+  L[0] = "DelaySafeCaller" pc=4-31
+  L[1] = "BattlePlayerBase" pc=7-31
+instructions (31):
+  [0001] VARARGPREP     A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000051
+  [0002] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "require"]
+  [0003] LOADK          A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x00008083 ; R[1] = K[1] "NewRoco.Modules.Core.Battle.Common.DelaySafeCaller"
+  [0004] CALL           A=0 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263168 sJ=-16514047 raw=0x02020044
+  [0005] GETTABUP       A=1 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262145 sJ=-16515070 raw=0x0200008B ; R[1] = U[0][K[2] "NRCClass"]
+  [0006] SELF           A=1 B=1 C=3 k=1 Bx=1539 sBx=-63996 Ax=393985 sJ=-16383230 raw=0x03018094
+  [0007] CALL           A=1 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263169 sJ=-16514046 raw=0x020200C4
+  [0008] CLOSURE        A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000014F ; R[2] = function[0]
+  [0009] SETFIELD       A=1 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264193 sJ=-16513022 raw=0x02040092 ; R[1][K[4] "Ctor"] = R[2]
+  [0010] CLOSURE        A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x0000814F ; R[2] = function[1]
+  [0011] SETFIELD       A=1 B=5 C=2 k=0 Bx=1034 sBx=-64501 Ax=264705 sJ=-16512510 raw=0x02050092 ; R[1][K[5] "SetRuntimeData"] = R[2]
+  [0012] CLOSURE        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x0001014F ; R[2] = function[2]
+  [0013] SETFIELD       A=1 B=6 C=2 k=0 Bx=1036 sBx=-64499 Ax=265217 sJ=-16511998 raw=0x02060092 ; R[1][K[6] "GetRuntimeData"] = R[2]
+  [0014] CLOSURE        A=2 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=770 sJ=-16776445 raw=0x0001814F ; R[2] = function[3]
+  [0015] SETFIELD       A=1 B=7 C=2 k=0 Bx=1038 sBx=-64497 Ax=265729 sJ=-16511486 raw=0x02070092 ; R[1][K[7] "Start"] = R[2]
+  [0016] CLOSURE        A=2 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1026 sJ=-16776189 raw=0x0002014F ; R[2] = function[4]
+  [0017] SETFIELD       A=1 B=8 C=2 k=0 Bx=1040 sBx=-64495 Ax=266241 sJ=-16510974 raw=0x02080092 ; R[1][K[8] "Stop"] = R[2]
+  [0018] CLOSURE        A=2 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1282 sJ=-16775933 raw=0x0002814F ; R[2] = function[5]
+  [0019] SETFIELD       A=1 B=9 C=2 k=0 Bx=1042 sBx=-64493 Ax=266753 sJ=-16510462 raw=0x02090092 ; R[1][K[9] "Release"] = R[2]
+  [0020] CLOSURE        A=2 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1538 sJ=-16775677 raw=0x0003014F ; R[2] = function[6]
+  [0021] SETFIELD       A=1 B=10 C=2 k=0 Bx=1044 sBx=-64491 Ax=267265 sJ=-16509950 raw=0x020A0092 ; R[1][K[10] "Clear"] = R[2]
+  [0022] CLOSURE        A=2 B=3 C=0 k=1 Bx=7 sBx=-65528 Ax=1794 sJ=-16775421 raw=0x0003814F ; R[2] = function[7]
+  [0023] SETFIELD       A=1 B=11 C=2 k=0 Bx=1046 sBx=-64489 Ax=267777 sJ=-16509438 raw=0x020B0092 ; R[1][K[11] "SafeDelaySeconds"] = R[2]
+  [0024] CLOSURE        A=2 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2050 sJ=-16775165 raw=0x0004014F ; R[2] = function[8]
+  [0025] SETFIELD       A=1 B=12 C=2 k=0 Bx=1048 sBx=-64487 Ax=268289 sJ=-16508926 raw=0x020C0092 ; R[1][K[12] "SafeDelayFrames"] = R[2]
+  [0026] CLOSURE        A=2 B=4 C=0 k=1 Bx=9 sBx=-65526 Ax=2306 sJ=-16774909 raw=0x0004814F ; R[2] = function[9]
+  [0027] SETFIELD       A=1 B=13 C=2 k=0 Bx=1050 sBx=-64485 Ax=268801 sJ=-16508414 raw=0x020D0092 ; R[1][K[13] "SafeCancelDelayById"] = R[2]
+  [0028] CLOSURE        A=2 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2562 sJ=-16774653 raw=0x0005014F ; R[2] = function[10]
+  [0029] SETFIELD       A=1 B=14 C=2 k=0 Bx=1052 sBx=-64483 Ax=269313 sJ=-16507902 raw=0x020E0092 ; R[1][K[14] "SafeFindDelayById"] = R[2]
+  [0030] RETURN         A=1 B=2 C=1 k=1 Bx=517 sBx=-65018 Ax=132353 sJ=-16644862 raw=0x010280C6
+  [0031] RETURN         A=2 B=1 C=1 k=1 Bx=515 sBx=-65020 Ax=131842 sJ=-16645373 raw=0x01018146
+
+  function[0] source="" lines=11-19 params=1 vararg=0 stack=255 upvalues=2
+  constants (9):
+    K[0] = "isFree"
+    K[1] = false
+    K[2] = "playerPool"
+    K[3] = "BattlePlayerPool"
+    K[4] = "playerType"
+    K[5] = 0
+    K[6] = "isWorking"
+    K[7] = "delaySafeCaller"
+    K[8] = "runtime_data"
+  upvalues (2):
+    U[0] = instack=0 idx=0 kind=1 name="_ENV"
+    U[1] = instack=0 idx=0 kind=2 name="DelaySafeCaller"
+  locals (1):
+    L[0] = "self" pc=0-12
+  instructions (12):
+    [0001] SETFIELD       A=0 B=0 C=1 k=1 Bx=513 sBx=-65022 Ax=131328 sJ=-16645887 raw=0x01008012 ; R[0][K[0] "isFree"] = R[1]
+    [0002] GETTABUP       A=1 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393217 sJ=-16383998 raw=0x0300008B ; R[1] = U[0][K[3] "BattlePlayerPool"]
+    [0003] SETFIELD       A=0 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132096 sJ=-16645119 raw=0x01020012 ; R[0][K[2] "playerPool"] = R[1]
+    [0004] SETFIELD       A=0 B=4 C=5 k=1 Bx=2569 sBx=-62966 Ax=657664 sJ=-16119551 raw=0x05048012 ; R[0][K[4] "playerType"] = R[5]
+    [0005] SETFIELD       A=0 B=6 C=1 k=1 Bx=525 sBx=-65010 Ax=134400 sJ=-16642815 raw=0x01068012 ; R[0][K[6] "isWorking"] = R[1]
+    [0006] GETUPVAL       A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x00010089
+    [0007] CALL           A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x020100C4
+    [0008] SETFIELD       A=0 B=7 C=1 k=0 Bx=526 sBx=-65009 Ax=134656 sJ=-16642559 raw=0x01070012 ; R[0][K[7] "delaySafeCaller"] = R[1]
+    [0009] NEWTABLE       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000093
+    [0010] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0011] SETFIELD       A=0 B=8 C=1 k=0 Bx=528 sBx=-65007 Ax=135168 sJ=-16642047 raw=0x01080012 ; R[0][K[8] "runtime_data"] = R[1]
+    [0012] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[1] source="" lines=21-23 params=3 vararg=0 stack=255 upvalues=0
+  constants (1):
+    K[0] = "runtime_data"
+  locals (3):
+    L[0] = "self" pc=0-3
+    L[1] = "key" pc=0-3
+    L[2] = "value" pc=0-3
+  instructions (3):
+    [0001] GETFIELD       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018E ; R[3] = R[0][K[0] "runtime_data"]
+    [0002] SETTABLE       A=3 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262659 sJ=-16514556 raw=0x02010190
+    [0003] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7
+
+  function[2] source="" lines=25-27 params=2 vararg=0 stack=255 upvalues=0
+  constants (1):
+    K[0] = "runtime_data"
+  locals (2):
+    L[0] = "self" pc=0-4
+    L[1] = "key" pc=0-4
+  instructions (4):
+    [0001] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "runtime_data"]
+    [0002] GETTABLE       A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x0102010C
+    [0003] RETURN1        A=2 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1026 sJ=-16776189 raw=0x00020148
+    [0004] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[3] source="" lines=29-32 params=1 vararg=0 stack=255 upvalues=0
+  constants (4):
+    K[0] = "isWorking"
+    K[1] = true
+    K[2] = "isFree"
+    K[3] = false
+  locals (1):
+    L[0] = "self" pc=0-3
+  instructions (3):
+    [0001] SETFIELD       A=0 B=0 C=1 k=1 Bx=513 sBx=-65022 Ax=131328 sJ=-16645887 raw=0x01008012 ; R[0][K[0] "isWorking"] = R[1]
+    [0002] SETFIELD       A=0 B=2 C=3 k=1 Bx=1541 sBx=-63994 Ax=394496 sJ=-16382719 raw=0x03028012 ; R[0][K[2] "isFree"] = R[3]
+    [0003] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[4] source="" lines=34-39 params=1 vararg=0 stack=255 upvalues=0
+  constants (6):
+    K[0] = "delaySafeCaller"
+    K[1] = "SafeCancelAllDelay"
+    K[2] = "isWorking"
+    K[3] = false
+    K[4] = "isFree"
+    K[5] = true
+  locals (1):
+    L[0] = "self" pc=0-6
+  instructions (6):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "delaySafeCaller"]
+    [0002] SELF           A=1 B=1 C=1 k=1 Bx=515 sBx=-65020 Ax=131841 sJ=-16645374 raw=0x01018094
+    [0003] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0004] SETFIELD       A=0 B=2 C=3 k=1 Bx=1541 sBx=-63994 Ax=394496 sJ=-16382719 raw=0x03028012 ; R[0][K[2] "isWorking"] = R[3]
+    [0005] SETFIELD       A=0 B=4 C=5 k=1 Bx=2569 sBx=-62966 Ax=657664 sJ=-16119551 raw=0x05048012 ; R[0][K[4] "isFree"] = R[5]
+    [0006] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[5] source="" lines=41-43 params=1 vararg=0 stack=255 upvalues=0
+  constants (2):
+    K[0] = "playerPool"
+    K[1] = "ReleasePlayer"
+  locals (1):
+    L[0] = "self" pc=0-5
+  instructions (5):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "playerPool"]
+    [0002] SELF           A=1 B=1 C=1 k=1 Bx=515 sBx=-65020 Ax=131841 sJ=-16645374 raw=0x01018094
+    [0003] MOVE           A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000180
+    [0004] CALL           A=1 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132609 sJ=-16644606 raw=0x010300C4
+    [0005] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[6] source="" lines=45-46 params=1 vararg=0 stack=255 upvalues=0
+  locals (1):
+    L[0] = "self" pc=0-1
+  instructions (1):
+    [0001] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[7] source="" lines=48-50 params=2 vararg=1 stack=255 upvalues=0
+  constants (2):
+    K[0] = "delaySafeCaller"
+    K[1] = "SafeDelaySeconds"
+  locals (2):
+    L[0] = "self" pc=0-7
+    L[1] = "idName" pc=0-7
+  instructions (7):
+    [0001] VARARGPREP     A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000151
+    [0002] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "delaySafeCaller"]
+    [0003] SELF           A=2 B=2 C=1 k=1 Bx=517 sBx=-65018 Ax=132354 sJ=-16644861 raw=0x01028114
+    [0004] MOVE           A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010200
+    [0005] VARARG         A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x000002D0
+    [0006] CALL           A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x01000144
+    [0007] RETURN         A=2 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393730 sJ=-16383485 raw=0x03010146
+
+  function[8] source="" lines=52-54 params=2 vararg=1 stack=255 upvalues=0
+  constants (2):
+    K[0] = "delaySafeCaller"
+    K[1] = "SafeDelayFrames"
+  locals (2):
+    L[0] = "self" pc=0-7
+    L[1] = "idName" pc=0-7
+  instructions (7):
+    [0001] VARARGPREP     A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000151
+    [0002] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "delaySafeCaller"]
+    [0003] SELF           A=2 B=2 C=1 k=1 Bx=517 sBx=-65018 Ax=132354 sJ=-16644861 raw=0x01028114
+    [0004] MOVE           A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010200
+    [0005] VARARG         A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x000002D0
+    [0006] CALL           A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x01000144
+    [0007] RETURN         A=2 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393730 sJ=-16383485 raw=0x03010146
+
+  function[9] source="" lines=56-58 params=2 vararg=0 stack=255 upvalues=0
+  constants (2):
+    K[0] = "delaySafeCaller"
+    K[1] = "SafeCancelDelayById"
+  locals (2):
+    L[0] = "self" pc=0-5
+    L[1] = "idName" pc=0-5
+  instructions (5):
+    [0001] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "delaySafeCaller"]
+    [0002] SELF           A=2 B=2 C=1 k=1 Bx=517 sBx=-65018 Ax=132354 sJ=-16644861 raw=0x01028114
+    [0003] MOVE           A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010200
+    [0004] CALL           A=2 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132610 sJ=-16644605 raw=0x01030144
+    [0005] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[10] source="" lines=60-62 params=2 vararg=0 stack=255 upvalues=0
+  constants (2):
+    K[0] = "delaySafeCaller"
+    K[1] = "SafeFindDelayById"
+  locals (2):
+    L[0] = "self" pc=0-6
+    L[1] = "idName" pc=0-6
+  instructions (6):
+    [0001] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "delaySafeCaller"]
+    [0002] SELF           A=2 B=2 C=1 k=1 Bx=517 sBx=-65018 Ax=132354 sJ=-16644861 raw=0x01028114
+    [0003] MOVE           A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010200
+    [0004] TAILCALL       A=2 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1538 sJ=-16775677 raw=0x00030145
+    [0005] RETURN         A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000146
+    [0006] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147

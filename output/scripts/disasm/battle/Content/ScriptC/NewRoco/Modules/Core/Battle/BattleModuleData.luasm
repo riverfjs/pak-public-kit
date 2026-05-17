@@ -1,0 +1,115 @@
+-- path: Content/ScriptC/NewRoco/Modules/Core/Battle/BattleModuleData.luac
+-- format: decrypted standard Lua 5.4 bytecode
+-- note: disassembly, not original source
+
+main source="@NewRoco\\Modules\\Core\\Battle\\BattleModuleData.lua" lines=0-0 params=0 vararg=1 stack=255 upvalues=1
+constants (14):
+  K[0] = "_G"
+  K[1] = "NRCData"
+  K[2] = "Extend"
+  K[3] = "BattleModuleData"
+  K[4] = "BattleFieldLoadingState"
+  K[5] = "WAITING_FOR_LOAD"
+  K[6] = 0
+  K[7] = "LOADING"
+  K[8] = 1
+  K[9] = "SUCCESS"
+  K[10] = 2
+  K[11] = "ERROR"
+  K[12] = 3
+  K[13] = "Ctor"
+upvalues (1):
+  U[0] = instack=0 idx=0 kind=3 name="_ENV"
+locals (1):
+  L[0] = "BattleModuleData" pc=6-17
+instructions (17):
+  [0001] VARARGPREP     A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000051
+  [0002] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "_G"]
+  [0003] GETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x0100000E ; R[0] = R[0][K[1] "NRCData"]
+  [0004] SELF           A=0 B=0 C=2 k=1 Bx=1025 sBx=-64510 Ax=262400 sJ=-16514815 raw=0x02008014
+  [0005] LOADK          A=2 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=770 sJ=-16776445 raw=0x00018103 ; R[2] = K[3] "BattleModuleData"
+  [0006] CALL           A=0 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263680 sJ=-16513535 raw=0x02030044
+  [0007] NEWTABLE       A=1 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1537 sJ=-16775678 raw=0x00030093
+  [0008] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0009] SETFIELD       A=1 B=5 C=6 k=1 Bx=3083 sBx=-62452 Ax=789249 sJ=-15987966 raw=0x06058092 ; R[1][K[5] "WAITING_FOR_LOAD"] = R[6]
+  [0010] SETFIELD       A=1 B=7 C=8 k=1 Bx=4111 sBx=-61424 Ax=1052417 sJ=-15724798 raw=0x08078092 ; R[1][K[7] "LOADING"] = R[8]
+  [0011] SETFIELD       A=1 B=9 C=10 k=1 Bx=5139 sBx=-60396 Ax=1315585 sJ=-15461630 raw=0x0A098092 ; R[1][K[9] "SUCCESS"] = R[10]
+  [0012] SETFIELD       A=1 B=11 C=12 k=1 Bx=6167 sBx=-59368 Ax=1578753 sJ=-15198462 raw=0x0C0B8092 ; R[1][K[11] "ERROR"] = R[12]
+  [0013] SETFIELD       A=0 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133120 sJ=-16644095 raw=0x01040012 ; R[0][K[4] "BattleFieldLoadingState"] = R[1]
+  [0014] CLOSURE        A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000CF ; R[1] = function[0]
+  [0015] SETFIELD       A=0 B=13 C=1 k=0 Bx=538 sBx=-64997 Ax=137728 sJ=-16639487 raw=0x010D0012 ; R[0][K[13] "Ctor"] = R[1]
+  [0016] RETURN         A=0 B=2 C=1 k=1 Bx=517 sBx=-65018 Ax=132352 sJ=-16644863 raw=0x01028046
+  [0017] RETURN         A=1 B=1 C=1 k=1 Bx=515 sBx=-65020 Ax=131841 sJ=-16645374 raw=0x010180C6
+
+  function[0] source="" lines=34-51 params=1 vararg=0 stack=255 upvalues=2
+  constants (13):
+    K[0] = "NRCData"
+    K[1] = "Ctor"
+    K[2] = "battleFieldLevelLoadingState"
+    K[3] = "BattleFieldLoadingState"
+    K[4] = "WAITING_FOR_LOAD"
+    K[5] = "pvpConfIdToBattleConf"
+    K[6] = "_G"
+    K[7] = "DataConfigManager"
+    K[8] = "GetAllByName"
+    K[9] = "PVP_CONF"
+    K[10] = "pairs"
+    K[11] = "battle_config"
+    K[12] = "GetBattleConf"
+  upvalues (2):
+    U[0] = instack=0 idx=0 kind=1 name="_ENV"
+    U[1] = instack=0 idx=0 kind=13 name="BattleModuleData"
+  locals (10):
+    L[0] = "self" pc=0-42
+    L[1] = "PvpConfList" pc=19-42
+    L[2] = "(for state)" pc=22-41
+    L[3] = "(for state)" pc=22-41
+    L[4] = "(for state)" pc=22-41
+    L[5] = "(for state)" pc=22-41
+    L[6] = "pvpConfId" pc=23-38
+    L[7] = "pvpConf" pc=23-38
+    L[8] = "battleConfId" pc=26-38
+    L[9] = "battleConf" pc=32-38
+  instructions (42):
+    [0001] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "NRCData"]
+    [0002] GETFIELD       A=1 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131585 sJ=-16645630 raw=0x0101008E ; R[1] = R[1][K[1] "Ctor"]
+    [0003] MOVE           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000100
+    [0004] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0005] GETTABUP       A=1 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393729 sJ=-16383486 raw=0x0301008B ; R[1] = U[1][K[3] "BattleFieldLoadingState"]
+    [0006] GETFIELD       A=1 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524801 sJ=-16252414 raw=0x0401008E ; R[1] = R[1][K[4] "WAITING_FOR_LOAD"]
+    [0007] SETFIELD       A=0 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132096 sJ=-16645119 raw=0x01020012 ; R[0][K[2] "battleFieldLevelLoadingState"] = R[1]
+    [0008] NEWTABLE       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000093
+    [0009] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0010] SETFIELD       A=0 B=5 C=1 k=0 Bx=522 sBx=-65013 Ax=133632 sJ=-16643583 raw=0x01050012 ; R[0][K[5] "pvpConfIdToBattleConf"] = R[1]
+    [0011] GETTABUP       A=1 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786433 sJ=-15990782 raw=0x0600008B ; R[1] = U[0][K[6] "_G"]
+    [0012] GETFIELD       A=1 B=1 C=7 k=0 Bx=3586 sBx=-61949 Ax=918017 sJ=-15859198 raw=0x0701008E ; R[1] = R[1][K[7] "DataConfigManager"]
+    [0013] SELF           A=1 B=1 C=8 k=1 Bx=4099 sBx=-61436 Ax=1049345 sJ=-15727870 raw=0x08018094
+    [0014] LOADK          A=3 B=4 C=0 k=1 Bx=9 sBx=-65526 Ax=2307 sJ=-16774908 raw=0x00048183 ; R[3] = K[9] "PVP_CONF"
+    [0015] CALL           A=1 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263681 sJ=-16513534 raw=0x020300C4
+    [0016] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0017] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0018] NEWTABLE       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000093
+    [0019] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0020] GETTABUP       A=2 B=0 C=10 k=0 Bx=5120 sBx=-60415 Ax=1310722 sJ=-15466493 raw=0x0A00010B ; R[2] = U[0][K[10] "pairs"]
+    [0021] MOVE           A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x00010180
+    [0022] CALL           A=2 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656386 sJ=-16120829 raw=0x05020144
+    [0023] TFORPREP       A=2 B=7 C=0 k=1 Bx=15 sBx=-65520 Ax=3842 sJ=-16773373 raw=0x0007814B
+    [0024] TESTSET        A=8 B=7 C=0 k=0 Bx=14 sBx=-65521 Ax=3592 sJ=-16773623 raw=0x00070443
+    [0025] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0026] GETFIELD       A=8 B=7 C=11 k=0 Bx=5646 sBx=-59889 Ax=1445384 sJ=-15331831 raw=0x0B07040E ; R[8] = R[7][K[11] "battle_config"]
+    [0027] GETTABUP       A=9 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786441 sJ=-15990774 raw=0x0600048B ; R[9] = U[0][K[6] "_G"]
+    [0028] GETFIELD       A=9 B=9 C=7 k=0 Bx=3602 sBx=-61933 Ax=922121 sJ=-15855094 raw=0x0709048E ; R[9] = R[9][K[7] "DataConfigManager"]
+    [0029] SELF           A=9 B=9 C=12 k=1 Bx=6163 sBx=-59372 Ax=1577737 sJ=-15199478 raw=0x0C098494
+    [0030] MOVE           A=11 B=8 C=0 k=0 Bx=16 sBx=-65519 Ax=4107 sJ=-16773108 raw=0x00080580
+    [0031] LOADTRUE       A=12 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=12 sJ=-16777203 raw=0x00000607
+    [0032] CALL           A=9 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264201 sJ=-16513014 raw=0x020404C4
+    [0033] TEST           A=6 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=6 sJ=-16777209 raw=0x00000342
+    [0034] JMP            A=3 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777219 sJ=4 raw=0x800001B8
+    [0035] TEST           A=9 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=9 sJ=-16777206 raw=0x000004C2
+    [0036] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0037] GETFIELD       A=10 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655370 sJ=-16121845 raw=0x0500050E ; R[10] = R[0][K[5] "pvpConfIdToBattleConf"]
+    [0038] SETTABLE       A=10 B=6 C=9 k=0 Bx=4620 sBx=-60915 Ax=1182730 sJ=-15594485 raw=0x09060510
+    [0039] TFORCALL       A=2 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262146 sJ=-16515069 raw=0x0200014C
+    [0040] TFORLOOP       A=2 B=8 C=0 k=1 Bx=17 sBx=-65518 Ax=4354 sJ=-16772861 raw=0x0008814D
+    [0041] CLOSE          A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000136
+    [0042] RETURN         A=2 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=770 sJ=-16776445 raw=0x00018146

@@ -1,0 +1,312 @@
+-- path: Content/ScriptC/NewRoco/Modules/Core/Battle/CraneCamera/BattleCraneCameraDebug.luac
+-- format: decrypted standard Lua 5.4 bytecode
+-- note: disassembly, not original source
+
+main source="@NewRoco\\Modules\\Core\\Battle\\CraneCamera\\BattleCraneCameraDebug.lua" lines=0-0 params=0 vararg=1 stack=255 upvalues=1
+constants (4):
+  K[0] = "NRCClass"
+  K[1] = "Ctor"
+  K[2] = "BindCamera"
+  K[3] = "DrawDebugLine"
+upvalues (1):
+  U[0] = instack=0 idx=0 kind=2 name="_ENV"
+locals (1):
+  L[0] = "BattleCraneCameraDebug" pc=3-11
+instructions (11):
+  [0001] VARARGPREP     A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000051
+  [0002] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "NRCClass"]
+  [0003] CALL           A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010044
+  [0004] CLOSURE        A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000CF ; R[1] = function[0]
+  [0005] SETFIELD       A=0 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131584 sJ=-16645631 raw=0x01010012 ; R[0][K[1] "Ctor"] = R[1]
+  [0006] CLOSURE        A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080CF ; R[1] = function[1]
+  [0007] SETFIELD       A=0 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132096 sJ=-16645119 raw=0x01020012 ; R[0][K[2] "BindCamera"] = R[1]
+  [0008] CLOSURE        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100CF ; R[1] = function[2]
+  [0009] SETFIELD       A=0 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132608 sJ=-16644607 raw=0x01030012 ; R[0][K[3] "DrawDebugLine"] = R[1]
+  [0010] RETURN         A=0 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132096 sJ=-16645119 raw=0x01020046
+  [0011] RETURN         A=1 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131585 sJ=-16645630 raw=0x010100C6
+
+  function[0] source="" lines=11-13 params=1 vararg=0 stack=255 upvalues=0
+  locals (1):
+    L[0] = "self" pc=0-1
+  instructions (1):
+    [0001] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[1] source="" lines=15-17 params=1 vararg=0 stack=255 upvalues=0
+  locals (1):
+    L[0] = "self" pc=0-1
+  instructions (1):
+    [0001] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[2] source="" lines=19-61 params=1 vararg=0 stack=255 upvalues=1
+  constants (29):
+    K[0] = "_G"
+    K[1] = "BattleManager"
+    K[2] = "GetCraneCamera"
+    K[3] = "CameraComponent"
+    K[4] = "GetComponentByClass"
+    K[5] = "UE4"
+    K[6] = "UCameraComponent"
+    K[7] = "Abs_K2_GetComponentLocation"
+    K[8] = "Abs_K2_GetActorLocation"
+    K[9] = "UE4Helper"
+    K[10] = "GetCurrentWorld"
+    K[11] = "UKismetSystemLibrary"
+    K[12] = "Abs_DrawDebugSphere"
+    K[13] = "FLinearColor"
+    K[14] = "Abs_DrawDebugLine"
+    K[15] = "require"
+    K[16] = "NewRoco.Modules.Core.Battle.Common.BattleEnum"
+    K[17] = "vBattleField"
+    K[18] = "battleCraneCamera"
+    K[19] = "confData"
+    K[20] = "targetPos1"
+    K[21] = "targetPos2"
+    K[22] = "GetAidRotationCam"
+    K[23] = "battlePawnManager"
+    K[24] = "GetPlayerTeamPets"
+    K[25] = "pairs"
+    K[26] = "GetBattleFieldLocationByAttachPoint"
+    K[27] = "AttachPoint"
+    K[28] = "GetEnemyAllPets"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=28 name="_ENV"
+  locals (25):
+    L[0] = "self" pc=0-213
+    L[1] = "CameraActor" pc=4-213
+    L[2] = "pos1" pc=14-212
+    L[3] = "pos2" pc=16-212
+    L[4] = "World" pc=19-212
+    L[5] = "BattleEnum" pc=59-212
+    L[6] = "pet1" pc=64-212
+    L[7] = "pet2" pc=69-212
+    L[8] = "GetAidRotationCam" pc=89-212
+    L[9] = "AidCamPos" pc=91-212
+    L[10] = "pets" pc=111-212
+    L[11] = "(for state)" pc=114-159
+    L[12] = "(for state)" pc=114-159
+    L[13] = "(for state)" pc=114-159
+    L[14] = "(for state)" pc=114-159
+    L[15] = "_" pc=115-156
+    L[16] = "pet" pc=115-156
+    L[17] = "Location" pc=121-156
+    L[18] = "(for state)" pc=167-212
+    L[19] = "(for state)" pc=167-212
+    L[20] = "(for state)" pc=167-212
+    L[21] = "(for state)" pc=167-212
+    L[22] = "_" pc=168-209
+    L[23] = "pet" pc=168-209
+    L[24] = "Location" pc=174-209
+  instructions (213):
+    [0001] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "_G"]
+    [0002] GETFIELD       A=1 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131585 sJ=-16645630 raw=0x0101008E ; R[1] = R[1][K[1] "BattleManager"]
+    [0003] SELF           A=1 B=1 C=2 k=1 Bx=1027 sBx=-64508 Ax=262913 sJ=-16514302 raw=0x02018094
+    [0004] CALL           A=1 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263169 sJ=-16514046 raw=0x020200C4
+    [0005] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0006] JMP            A=205 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777421 sJ=206 raw=0x800066B8
+    [0007] SELF           A=2 B=1 C=4 k=1 Bx=2051 sBx=-63484 Ax=525058 sJ=-16252157 raw=0x04018114
+    [0008] GETTABUP       A=4 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655364 sJ=-16121851 raw=0x0500020B ; R[4] = U[0][K[5] "UE4"]
+    [0009] GETFIELD       A=4 B=4 C=6 k=0 Bx=3080 sBx=-62455 Ax=788484 sJ=-15988731 raw=0x0604020E ; R[4] = R[4][K[6] "UCameraComponent"]
+    [0010] CALL           A=2 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263682 sJ=-16513533 raw=0x02030144
+    [0011] SETFIELD       A=0 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263680 sJ=-16513535 raw=0x02030012 ; R[0][K[3] "CameraComponent"] = R[2]
+    [0012] GETFIELD       A=2 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393218 sJ=-16383997 raw=0x0300010E ; R[2] = R[0][K[3] "CameraComponent"]
+    [0013] SELF           A=2 B=2 C=7 k=1 Bx=3589 sBx=-61946 Ax=918786 sJ=-15858429 raw=0x07028114
+    [0014] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0015] SELF           A=3 B=1 C=8 k=1 Bx=4099 sBx=-61436 Ax=1049347 sJ=-15727868 raw=0x08018194
+    [0016] CALL           A=3 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263171 sJ=-16514044 raw=0x020201C4
+    [0017] GETTABUP       A=4 B=0 C=9 k=0 Bx=4608 sBx=-60927 Ax=1179652 sJ=-15597563 raw=0x0900020B ; R[4] = U[0][K[9] "UE4Helper"]
+    [0018] GETFIELD       A=4 B=4 C=10 k=0 Bx=5128 sBx=-60407 Ax=1312772 sJ=-15464443 raw=0x0A04020E ; R[4] = R[4][K[10] "GetCurrentWorld"]
+    [0019] CALL           A=4 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262660 sJ=-16514555 raw=0x02010244
+    [0020] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0021] JMP            A=34 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777250 sJ=35 raw=0x80001138
+    [0022] TEST           A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x000001C2
+    [0023] JMP            A=32 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777248 sJ=33 raw=0x80001038
+    [0024] GETTABUP       A=5 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655365 sJ=-16121850 raw=0x0500028B ; R[5] = U[0][K[5] "UE4"]
+    [0025] GETFIELD       A=5 B=5 C=11 k=0 Bx=5642 sBx=-59893 Ax=1444357 sJ=-15332858 raw=0x0B05028E ; R[5] = R[5][K[11] "UKismetSystemLibrary"]
+    [0026] GETFIELD       A=5 B=5 C=12 k=0 Bx=6154 sBx=-59381 Ax=1575429 sJ=-15201786 raw=0x0C05028E ; R[5] = R[5][K[12] "Abs_DrawDebugSphere"]
+    [0027] MOVE           A=6 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2054 sJ=-16775161 raw=0x00040300
+    [0028] MOVE           A=7 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1031 sJ=-16776184 raw=0x00020380
+    [0029] LOADI          A=8 B=2 C=128 k=0 Bx=65540 sBx=5 Ax=16778248 sJ=1033 raw=0x80020401
+    [0030] LOADI          A=9 B=4 C=128 k=1 Bx=65545 sBx=10 Ax=16779529 sJ=2314 raw=0x80048481
+    [0031] GETTABUP       A=10 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655370 sJ=-16121845 raw=0x0500050B ; R[10] = U[0][K[5] "UE4"]
+    [0032] GETFIELD       A=10 B=10 C=13 k=0 Bx=6676 sBx=-58859 Ax=1709066 sJ=-15068149 raw=0x0D0A050E ; R[10] = R[10][K[13] "FLinearColor"]
+    [0033] LOADI          A=11 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776971 sJ=-244 raw=0x7FFF8581
+    [0034] LOADI          A=12 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777228 sJ=13 raw=0x80000601
+    [0035] LOADI          A=13 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776973 sJ=-242 raw=0x7FFF8681
+    [0036] LOADI          A=14 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777230 sJ=15 raw=0x80000701
+    [0037] CALL           A=10 B=5 C=2 k=0 Bx=1034 sBx=-64501 Ax=264714 sJ=-16512501 raw=0x02050544
+    [0038] LOADI          A=11 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776971 sJ=-244 raw=0x7FFF8581
+    [0039] LOADI          A=12 B=0 C=128 k=1 Bx=65537 sBx=2 Ax=16777484 sJ=269 raw=0x80008601
+    [0040] CALL           A=5 B=8 C=1 k=0 Bx=528 sBx=-65007 Ax=135173 sJ=-16642042 raw=0x010802C4
+    [0041] GETTABUP       A=5 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655365 sJ=-16121850 raw=0x0500028B ; R[5] = U[0][K[5] "UE4"]
+    [0042] GETFIELD       A=5 B=5 C=11 k=0 Bx=5642 sBx=-59893 Ax=1444357 sJ=-15332858 raw=0x0B05028E ; R[5] = R[5][K[11] "UKismetSystemLibrary"]
+    [0043] GETFIELD       A=5 B=5 C=14 k=0 Bx=7178 sBx=-58357 Ax=1837573 sJ=-14939642 raw=0x0E05028E ; R[5] = R[5][K[14] "Abs_DrawDebugLine"]
+    [0044] MOVE           A=6 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2054 sJ=-16775161 raw=0x00040300
+    [0045] MOVE           A=7 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1543 sJ=-16775672 raw=0x00030380
+    [0046] MOVE           A=8 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1032 sJ=-16776183 raw=0x00020400
+    [0047] GETTABUP       A=9 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655369 sJ=-16121846 raw=0x0500048B ; R[9] = U[0][K[5] "UE4"]
+    [0048] GETFIELD       A=9 B=9 C=13 k=0 Bx=6674 sBx=-58861 Ax=1708553 sJ=-15068662 raw=0x0D09048E ; R[9] = R[9][K[13] "FLinearColor"]
+    [0049] LOADI          A=10 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777226 sJ=11 raw=0x80000501
+    [0050] LOADI          A=11 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776971 sJ=-244 raw=0x7FFF8581
+    [0051] LOADI          A=12 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776972 sJ=-243 raw=0x7FFF8601
+    [0052] LOADI          A=13 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777229 sJ=14 raw=0x80000681
+    [0053] CALL           A=9 B=5 C=2 k=0 Bx=1034 sBx=-64501 Ax=264713 sJ=-16512502 raw=0x020504C4
+    [0054] LOADI          A=10 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776970 sJ=-245 raw=0x7FFF8501
+    [0055] LOADI          A=11 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777227 sJ=12 raw=0x80000581
+    [0056] CALL           A=5 B=7 C=1 k=0 Bx=526 sBx=-65009 Ax=134661 sJ=-16642554 raw=0x010702C4
+    [0057] GETTABUP       A=5 B=0 C=15 k=0 Bx=7680 sBx=-57855 Ax=1966085 sJ=-14811130 raw=0x0F00028B ; R[5] = U[0][K[15] "require"]
+    [0058] LOADK          A=6 B=8 C=0 k=0 Bx=16 sBx=-65519 Ax=4102 sJ=-16773113 raw=0x00080303 ; R[6] = K[16] "NewRoco.Modules.Core.Battle.Common.BattleEnum"
+    [0059] CALL           A=5 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263173 sJ=-16514042 raw=0x020202C4
+    [0060] GETTABUP       A=6 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131078 sJ=-16646137 raw=0x0100030B ; R[6] = U[0][K[1] "BattleManager"]
+    [0061] GETFIELD       A=6 B=6 C=17 k=0 Bx=8716 sBx=-56819 Ax=2231302 sJ=-14545913 raw=0x1106030E ; R[6] = R[6][K[17] "vBattleField"]
+    [0062] GETFIELD       A=6 B=6 C=18 k=0 Bx=9228 sBx=-56307 Ax=2362374 sJ=-14414841 raw=0x1206030E ; R[6] = R[6][K[18] "battleCraneCamera"]
+    [0063] GETFIELD       A=6 B=6 C=19 k=0 Bx=9740 sBx=-55795 Ax=2493446 sJ=-14283769 raw=0x1306030E ; R[6] = R[6][K[19] "confData"]
+    [0064] GETFIELD       A=6 B=6 C=20 k=0 Bx=10252 sBx=-55283 Ax=2624518 sJ=-14152697 raw=0x1406030E ; R[6] = R[6][K[20] "targetPos1"]
+    [0065] GETTABUP       A=7 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131079 sJ=-16646136 raw=0x0100038B ; R[7] = U[0][K[1] "BattleManager"]
+    [0066] GETFIELD       A=7 B=7 C=17 k=0 Bx=8718 sBx=-56817 Ax=2231815 sJ=-14545400 raw=0x1107038E ; R[7] = R[7][K[17] "vBattleField"]
+    [0067] GETFIELD       A=7 B=7 C=18 k=0 Bx=9230 sBx=-56305 Ax=2362887 sJ=-14414328 raw=0x1207038E ; R[7] = R[7][K[18] "battleCraneCamera"]
+    [0068] GETFIELD       A=7 B=7 C=19 k=0 Bx=9742 sBx=-55793 Ax=2493959 sJ=-14283256 raw=0x1307038E ; R[7] = R[7][K[19] "confData"]
+    [0069] GETFIELD       A=7 B=7 C=21 k=0 Bx=10766 sBx=-54769 Ax=2756103 sJ=-14021112 raw=0x1507038E ; R[7] = R[7][K[21] "targetPos2"]
+    [0070] GETTABUP       A=8 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655368 sJ=-16121847 raw=0x0500040B ; R[8] = U[0][K[5] "UE4"]
+    [0071] GETFIELD       A=8 B=8 C=11 k=0 Bx=5648 sBx=-59887 Ax=1445896 sJ=-15331319 raw=0x0B08040E ; R[8] = R[8][K[11] "UKismetSystemLibrary"]
+    [0072] GETFIELD       A=8 B=8 C=14 k=0 Bx=7184 sBx=-58351 Ax=1839112 sJ=-14938103 raw=0x0E08040E ; R[8] = R[8][K[14] "Abs_DrawDebugLine"]
+    [0073] MOVE           A=9 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2057 sJ=-16775158 raw=0x00040480
+    [0074] MOVE           A=10 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3082 sJ=-16774133 raw=0x00060500
+    [0075] MOVE           A=11 B=7 C=0 k=0 Bx=14 sBx=-65521 Ax=3595 sJ=-16773620 raw=0x00070580
+    [0076] GETTABUP       A=12 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655372 sJ=-16121843 raw=0x0500060B ; R[12] = U[0][K[5] "UE4"]
+    [0077] GETFIELD       A=12 B=12 C=13 k=0 Bx=6680 sBx=-58855 Ax=1710092 sJ=-15067123 raw=0x0D0C060E ; R[12] = R[12][K[13] "FLinearColor"]
+    [0078] LOADI          A=13 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777229 sJ=14 raw=0x80000681
+    [0079] LOADI          A=14 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776974 sJ=-241 raw=0x7FFF8701
+    [0080] LOADI          A=15 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776975 sJ=-240 raw=0x7FFF8781
+    [0081] LOADI          A=16 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777232 sJ=17 raw=0x80000801
+    [0082] CALL           A=12 B=5 C=2 k=0 Bx=1034 sBx=-64501 Ax=264716 sJ=-16512499 raw=0x02050644
+    [0083] LOADI          A=13 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776973 sJ=-242 raw=0x7FFF8681
+    [0084] LOADI          A=14 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777230 sJ=15 raw=0x80000701
+    [0085] CALL           A=8 B=7 C=1 k=0 Bx=526 sBx=-65009 Ax=134664 sJ=-16642551 raw=0x01070444
+    [0086] GETTABUP       A=8 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=8 sJ=-16777207 raw=0x0000040B ; R[8] = U[0][K[0] "_G"]
+    [0087] GETFIELD       A=8 B=8 C=1 k=0 Bx=528 sBx=-65007 Ax=135176 sJ=-16642039 raw=0x0108040E ; R[8] = R[8][K[1] "BattleManager"]
+    [0088] SELF           A=8 B=8 C=22 k=1 Bx=11281 sBx=-54254 Ax=2887944 sJ=-13889271 raw=0x16088414
+    [0089] CALL           A=8 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263176 sJ=-16514039 raw=0x02020444
+    [0090] SELF           A=9 B=8 C=8 k=1 Bx=4113 sBx=-61422 Ax=1052937 sJ=-15724278 raw=0x08088494
+    [0091] CALL           A=9 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263177 sJ=-16514038 raw=0x020204C4
+    [0092] GETTABUP       A=10 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655370 sJ=-16121845 raw=0x0500050B ; R[10] = U[0][K[5] "UE4"]
+    [0093] GETFIELD       A=10 B=10 C=11 k=0 Bx=5652 sBx=-59883 Ax=1446922 sJ=-15330293 raw=0x0B0A050E ; R[10] = R[10][K[11] "UKismetSystemLibrary"]
+    [0094] GETFIELD       A=10 B=10 C=14 k=0 Bx=7188 sBx=-58347 Ax=1840138 sJ=-14937077 raw=0x0E0A050E ; R[10] = R[10][K[14] "Abs_DrawDebugLine"]
+    [0095] MOVE           A=11 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2059 sJ=-16775156 raw=0x00040580
+    [0096] MOVE           A=12 B=9 C=0 k=0 Bx=18 sBx=-65517 Ax=4620 sJ=-16772595 raw=0x00090600
+    [0097] MOVE           A=13 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1037 sJ=-16776178 raw=0x00020680
+    [0098] GETTABUP       A=14 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655374 sJ=-16121841 raw=0x0500070B ; R[14] = U[0][K[5] "UE4"]
+    [0099] GETFIELD       A=14 B=14 C=13 k=0 Bx=6684 sBx=-58851 Ax=1711118 sJ=-15066097 raw=0x0D0E070E ; R[14] = R[14][K[13] "FLinearColor"]
+    [0100] LOADI          A=15 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777231 sJ=16 raw=0x80000781
+    [0101] LOADI          A=16 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776976 sJ=-239 raw=0x7FFF8801
+    [0102] LOADI          A=17 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776977 sJ=-238 raw=0x7FFF8881
+    [0103] LOADI          A=18 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777234 sJ=19 raw=0x80000901
+    [0104] CALL           A=14 B=5 C=2 k=0 Bx=1034 sBx=-64501 Ax=264718 sJ=-16512497 raw=0x02050744
+    [0105] LOADI          A=15 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776975 sJ=-240 raw=0x7FFF8781
+    [0106] LOADI          A=16 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777232 sJ=17 raw=0x80000801
+    [0107] CALL           A=10 B=7 C=1 k=0 Bx=526 sBx=-65009 Ax=134666 sJ=-16642549 raw=0x01070544
+    [0108] GETTABUP       A=10 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131082 sJ=-16646133 raw=0x0100050B ; R[10] = U[0][K[1] "BattleManager"]
+    [0109] GETFIELD       A=10 B=10 C=23 k=0 Bx=11796 sBx=-53739 Ax=3019786 sJ=-13757429 raw=0x170A050E ; R[10] = R[10][K[23] "battlePawnManager"]
+    [0110] SELF           A=10 B=10 C=24 k=1 Bx=12309 sBx=-53226 Ax=3151114 sJ=-13626101 raw=0x180A8514
+    [0111] CALL           A=10 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263178 sJ=-16514037 raw=0x02020544
+    [0112] GETTABUP       A=11 B=0 C=25 k=0 Bx=12800 sBx=-52735 Ax=3276811 sJ=-13500404 raw=0x1900058B ; R[11] = U[0][K[25] "pairs"]
+    [0113] MOVE           A=12 B=10 C=0 k=0 Bx=20 sBx=-65515 Ax=5132 sJ=-16772083 raw=0x000A0600
+    [0114] CALL           A=11 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656395 sJ=-16120820 raw=0x050205C4
+    [0115] TFORPREP       A=11 B=20 C=0 k=1 Bx=41 sBx=-65494 Ax=10507 sJ=-16766708 raw=0x001485CB
+    [0116] GETTABUP       A=17 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=17 sJ=-16777198 raw=0x0000088B ; R[17] = U[0][K[0] "_G"]
+    [0117] GETFIELD       A=17 B=17 C=1 k=0 Bx=546 sBx=-64989 Ax=139793 sJ=-16637422 raw=0x0111088E ; R[17] = R[17][K[1] "BattleManager"]
+    [0118] GETFIELD       A=17 B=17 C=17 k=0 Bx=8738 sBx=-56797 Ax=2236945 sJ=-14540270 raw=0x1111088E ; R[17] = R[17][K[17] "vBattleField"]
+    [0119] SELF           A=17 B=17 C=26 k=1 Bx=13347 sBx=-52188 Ax=3416849 sJ=-13360366 raw=0x1A118894
+    [0120] GETFIELD       A=19 B=16 C=27 k=0 Bx=13856 sBx=-51679 Ax=3547155 sJ=-13230060 raw=0x1B10098E ; R[19] = R[16][K[27] "AttachPoint"]
+    [0121] CALL           A=17 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263697 sJ=-16513518 raw=0x020308C4
+    [0122] TEST           A=17 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=17 sJ=-16777198 raw=0x000008C2
+    [0123] JMP            A=32 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777248 sJ=33 raw=0x80001038
+    [0124] GETTABUP       A=18 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655378 sJ=-16121837 raw=0x0500090B ; R[18] = U[0][K[5] "UE4"]
+    [0125] GETFIELD       A=18 B=18 C=11 k=0 Bx=5668 sBx=-59867 Ax=1451026 sJ=-15326189 raw=0x0B12090E ; R[18] = R[18][K[11] "UKismetSystemLibrary"]
+    [0126] GETFIELD       A=18 B=18 C=14 k=0 Bx=7204 sBx=-58331 Ax=1844242 sJ=-14932973 raw=0x0E12090E ; R[18] = R[18][K[14] "Abs_DrawDebugLine"]
+    [0127] MOVE           A=19 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2067 sJ=-16775148 raw=0x00040980
+    [0128] MOVE           A=20 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1044 sJ=-16776171 raw=0x00020A00
+    [0129] MOVE           A=21 B=17 C=0 k=0 Bx=34 sBx=-65501 Ax=8725 sJ=-16768490 raw=0x00110A80
+    [0130] GETTABUP       A=22 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655382 sJ=-16121833 raw=0x05000B0B ; R[22] = U[0][K[5] "UE4"]
+    [0131] GETFIELD       A=22 B=22 C=13 k=0 Bx=6700 sBx=-58835 Ax=1715222 sJ=-15061993 raw=0x0D160B0E ; R[22] = R[22][K[13] "FLinearColor"]
+    [0132] LOADI          A=23 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776983 sJ=-232 raw=0x7FFF8B81
+    [0133] LOADI          A=24 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777240 sJ=25 raw=0x80000C01
+    [0134] LOADI          A=25 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776985 sJ=-230 raw=0x7FFF8C81
+    [0135] LOADI          A=26 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777242 sJ=27 raw=0x80000D01
+    [0136] CALL           A=22 B=5 C=2 k=0 Bx=1034 sBx=-64501 Ax=264726 sJ=-16512489 raw=0x02050B44
+    [0137] LOADI          A=23 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776983 sJ=-232 raw=0x7FFF8B81
+    [0138] LOADI          A=24 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777240 sJ=25 raw=0x80000C01
+    [0139] CALL           A=18 B=7 C=1 k=0 Bx=526 sBx=-65009 Ax=134674 sJ=-16642541 raw=0x01070944
+    [0140] GETTABUP       A=18 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655378 sJ=-16121837 raw=0x0500090B ; R[18] = U[0][K[5] "UE4"]
+    [0141] GETFIELD       A=18 B=18 C=11 k=0 Bx=5668 sBx=-59867 Ax=1451026 sJ=-15326189 raw=0x0B12090E ; R[18] = R[18][K[11] "UKismetSystemLibrary"]
+    [0142] GETFIELD       A=18 B=18 C=12 k=0 Bx=6180 sBx=-59355 Ax=1582098 sJ=-15195117 raw=0x0C12090E ; R[18] = R[18][K[12] "Abs_DrawDebugSphere"]
+    [0143] MOVE           A=19 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2067 sJ=-16775148 raw=0x00040980
+    [0144] MOVE           A=20 B=17 C=0 k=0 Bx=34 sBx=-65501 Ax=8724 sJ=-16768491 raw=0x00110A00
+    [0145] LOADI          A=21 B=2 C=128 k=0 Bx=65540 sBx=5 Ax=16778261 sJ=1046 raw=0x80020A81
+    [0146] LOADI          A=22 B=4 C=128 k=1 Bx=65545 sBx=10 Ax=16779542 sJ=2327 raw=0x80048B01
+    [0147] GETTABUP       A=23 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655383 sJ=-16121832 raw=0x05000B8B ; R[23] = U[0][K[5] "UE4"]
+    [0148] GETFIELD       A=23 B=23 C=13 k=0 Bx=6702 sBx=-58833 Ax=1715735 sJ=-15061480 raw=0x0D170B8E ; R[23] = R[23][K[13] "FLinearColor"]
+    [0149] LOADI          A=24 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776984 sJ=-231 raw=0x7FFF8C01
+    [0150] LOADI          A=25 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777241 sJ=26 raw=0x80000C81
+    [0151] LOADI          A=26 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776986 sJ=-229 raw=0x7FFF8D01
+    [0152] LOADI          A=27 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777243 sJ=28 raw=0x80000D81
+    [0153] CALL           A=23 B=5 C=2 k=0 Bx=1034 sBx=-64501 Ax=264727 sJ=-16512488 raw=0x02050BC4
+    [0154] LOADI          A=24 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776984 sJ=-231 raw=0x7FFF8C01
+    [0155] LOADI          A=25 B=0 C=128 k=1 Bx=65537 sBx=2 Ax=16777497 sJ=282 raw=0x80008C81
+    [0156] CALL           A=18 B=8 C=1 k=0 Bx=528 sBx=-65007 Ax=135186 sJ=-16642029 raw=0x01080944
+    [0157] TFORCALL       A=11 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262155 sJ=-16515060 raw=0x020005CC
+    [0158] TFORLOOP       A=11 B=21 C=0 k=1 Bx=43 sBx=-65492 Ax=11019 sJ=-16766196 raw=0x001585CD
+    [0159] CLOSE          A=11 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=11 sJ=-16777204 raw=0x000005B6
+    [0160] GETTABUP       A=11 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131083 sJ=-16646132 raw=0x0100058B ; R[11] = U[0][K[1] "BattleManager"]
+    [0161] GETFIELD       A=11 B=11 C=23 k=0 Bx=11798 sBx=-53737 Ax=3020299 sJ=-13756916 raw=0x170B058E ; R[11] = R[11][K[23] "battlePawnManager"]
+    [0162] SELF           A=11 B=11 C=28 k=1 Bx=14359 sBx=-51176 Ax=3675915 sJ=-13101300 raw=0x1C0B8594
+    [0163] CALL           A=11 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263179 sJ=-16514036 raw=0x020205C4
+    [0164] MOVE           A=10 B=11 C=0 k=0 Bx=22 sBx=-65513 Ax=5642 sJ=-16771573 raw=0x000B0500
+    [0165] GETTABUP       A=11 B=0 C=25 k=0 Bx=12800 sBx=-52735 Ax=3276811 sJ=-13500404 raw=0x1900058B ; R[11] = U[0][K[25] "pairs"]
+    [0166] MOVE           A=12 B=10 C=0 k=0 Bx=20 sBx=-65515 Ax=5132 sJ=-16772083 raw=0x000A0600
+    [0167] CALL           A=11 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656395 sJ=-16120820 raw=0x050205C4
+    [0168] TFORPREP       A=11 B=20 C=0 k=1 Bx=41 sBx=-65494 Ax=10507 sJ=-16766708 raw=0x001485CB
+    [0169] GETTABUP       A=17 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=17 sJ=-16777198 raw=0x0000088B ; R[17] = U[0][K[0] "_G"]
+    [0170] GETFIELD       A=17 B=17 C=1 k=0 Bx=546 sBx=-64989 Ax=139793 sJ=-16637422 raw=0x0111088E ; R[17] = R[17][K[1] "BattleManager"]
+    [0171] GETFIELD       A=17 B=17 C=17 k=0 Bx=8738 sBx=-56797 Ax=2236945 sJ=-14540270 raw=0x1111088E ; R[17] = R[17][K[17] "vBattleField"]
+    [0172] SELF           A=17 B=17 C=26 k=1 Bx=13347 sBx=-52188 Ax=3416849 sJ=-13360366 raw=0x1A118894
+    [0173] GETFIELD       A=19 B=16 C=27 k=0 Bx=13856 sBx=-51679 Ax=3547155 sJ=-13230060 raw=0x1B10098E ; R[19] = R[16][K[27] "AttachPoint"]
+    [0174] CALL           A=17 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263697 sJ=-16513518 raw=0x020308C4
+    [0175] TEST           A=17 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=17 sJ=-16777198 raw=0x000008C2
+    [0176] JMP            A=32 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777248 sJ=33 raw=0x80001038
+    [0177] GETTABUP       A=18 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655378 sJ=-16121837 raw=0x0500090B ; R[18] = U[0][K[5] "UE4"]
+    [0178] GETFIELD       A=18 B=18 C=11 k=0 Bx=5668 sBx=-59867 Ax=1451026 sJ=-15326189 raw=0x0B12090E ; R[18] = R[18][K[11] "UKismetSystemLibrary"]
+    [0179] GETFIELD       A=18 B=18 C=14 k=0 Bx=7204 sBx=-58331 Ax=1844242 sJ=-14932973 raw=0x0E12090E ; R[18] = R[18][K[14] "Abs_DrawDebugLine"]
+    [0180] MOVE           A=19 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2067 sJ=-16775148 raw=0x00040980
+    [0181] MOVE           A=20 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1044 sJ=-16776171 raw=0x00020A00
+    [0182] MOVE           A=21 B=17 C=0 k=0 Bx=34 sBx=-65501 Ax=8725 sJ=-16768490 raw=0x00110A80
+    [0183] GETTABUP       A=22 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655382 sJ=-16121833 raw=0x05000B0B ; R[22] = U[0][K[5] "UE4"]
+    [0184] GETFIELD       A=22 B=22 C=13 k=0 Bx=6700 sBx=-58835 Ax=1715222 sJ=-15061993 raw=0x0D160B0E ; R[22] = R[22][K[13] "FLinearColor"]
+    [0185] LOADI          A=23 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776983 sJ=-232 raw=0x7FFF8B81
+    [0186] LOADI          A=24 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777240 sJ=25 raw=0x80000C01
+    [0187] LOADI          A=25 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776985 sJ=-230 raw=0x7FFF8C81
+    [0188] LOADI          A=26 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777242 sJ=27 raw=0x80000D01
+    [0189] CALL           A=22 B=5 C=2 k=0 Bx=1034 sBx=-64501 Ax=264726 sJ=-16512489 raw=0x02050B44
+    [0190] LOADI          A=23 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776983 sJ=-232 raw=0x7FFF8B81
+    [0191] LOADI          A=24 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777240 sJ=25 raw=0x80000C01
+    [0192] CALL           A=18 B=7 C=1 k=0 Bx=526 sBx=-65009 Ax=134674 sJ=-16642541 raw=0x01070944
+    [0193] GETTABUP       A=18 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655378 sJ=-16121837 raw=0x0500090B ; R[18] = U[0][K[5] "UE4"]
+    [0194] GETFIELD       A=18 B=18 C=11 k=0 Bx=5668 sBx=-59867 Ax=1451026 sJ=-15326189 raw=0x0B12090E ; R[18] = R[18][K[11] "UKismetSystemLibrary"]
+    [0195] GETFIELD       A=18 B=18 C=12 k=0 Bx=6180 sBx=-59355 Ax=1582098 sJ=-15195117 raw=0x0C12090E ; R[18] = R[18][K[12] "Abs_DrawDebugSphere"]
+    [0196] MOVE           A=19 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2067 sJ=-16775148 raw=0x00040980
+    [0197] MOVE           A=20 B=17 C=0 k=0 Bx=34 sBx=-65501 Ax=8724 sJ=-16768491 raw=0x00110A00
+    [0198] LOADI          A=21 B=2 C=128 k=0 Bx=65540 sBx=5 Ax=16778261 sJ=1046 raw=0x80020A81
+    [0199] LOADI          A=22 B=4 C=128 k=1 Bx=65545 sBx=10 Ax=16779542 sJ=2327 raw=0x80048B01
+    [0200] GETTABUP       A=23 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655383 sJ=-16121832 raw=0x05000B8B ; R[23] = U[0][K[5] "UE4"]
+    [0201] GETFIELD       A=23 B=23 C=13 k=0 Bx=6702 sBx=-58833 Ax=1715735 sJ=-15061480 raw=0x0D170B8E ; R[23] = R[23][K[13] "FLinearColor"]
+    [0202] LOADI          A=24 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776984 sJ=-231 raw=0x7FFF8C01
+    [0203] LOADI          A=25 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777241 sJ=26 raw=0x80000C81
+    [0204] LOADI          A=26 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776986 sJ=-229 raw=0x7FFF8D01
+    [0205] LOADI          A=27 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777243 sJ=28 raw=0x80000D81
+    [0206] CALL           A=23 B=5 C=2 k=0 Bx=1034 sBx=-64501 Ax=264727 sJ=-16512488 raw=0x02050BC4
+    [0207] LOADI          A=24 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776984 sJ=-231 raw=0x7FFF8C01
+    [0208] LOADI          A=25 B=0 C=128 k=1 Bx=65537 sBx=2 Ax=16777497 sJ=282 raw=0x80008C81
+    [0209] CALL           A=18 B=8 C=1 k=0 Bx=528 sBx=-65007 Ax=135186 sJ=-16642029 raw=0x01080944
+    [0210] TFORCALL       A=11 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262155 sJ=-16515060 raw=0x020005CC
+    [0211] TFORLOOP       A=11 B=21 C=0 k=1 Bx=43 sBx=-65492 Ax=11019 sJ=-16766196 raw=0x001585CD
+    [0212] CLOSE          A=11 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=11 sJ=-16777204 raw=0x000005B6
+    [0213] RETURN         A=2 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=770 sJ=-16776445 raw=0x00018146

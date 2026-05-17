@@ -1,0 +1,1282 @@
+-- path: Content/ScriptC/NewRoco/Modules/Core/Battle/Common/BattleEvent.luac
+-- format: decrypted standard Lua 5.4 bytecode
+-- note: disassembly, not original source
+
+main source="@NewRoco\\Modules\\Core\\Battle\\Common\\BattleEvent.lua" lines=0-0 params=0 vararg=1 stack=255 upvalues=1
+constants (536):
+  K[0] = "OnSkillResLoaded"
+  K[1] = "OnSkillBeforeAsync"
+  K[2] = "OnAllSkillResLoaded"
+  K[3] = "OnSummerResLoaded"
+  K[4] = "LeaveBattle"
+  K[5] = "BattleOver"
+  K[6] = "BattleStateOver"
+  K[7] = "BattleStartFocus"
+  K[8] = "EnterPvePreInit"
+  K[9] = "EnterWildPreInit"
+  K[10] = "EnterPvpPreInit"
+  K[11] = "EnterBeastPreInit"
+  K[12] = "EnterBattle"
+  K[13] = "ENTER_BATTLE"
+  K[14] = "EnterNormalEnter"
+  K[15] = "ENTER_NORMAL_ENTER"
+  K[16] = "EnterSeamlessEnter"
+  K[17] = "ENTER_SEAMLESS_ENTER"
+  K[18] = "EnterNearbyThrowBall"
+  K[19] = "BattleEvent.EnterNearbyThrowBall"
+  K[20] = "EnterNearbyThrowBallReconnect"
+  K[21] = "BattleEvent.EnterNearbyThrowBallReconnect"
+  K[22] = "EnterNearbyEnter"
+  K[23] = "ENTER_NEARBY_ENTER"
+  K[24] = "EnterNearbyEnterPVE"
+  K[25] = "ENTER_NEARBY_ENTER_PVE"
+  K[26] = "EnterNearbyEnterPVESpecialDelay"
+  K[27] = "ENTER_NEARBY_ENTER_PVE_SPECIALDELAY"
+  K[28] = "EnterNearbyReconnectEnter"
+  K[29] = "EnterLeaderEnter"
+  K[30] = "EnterLeaderReconnectEnter"
+  K[31] = "EnterPVPEnter"
+  K[32] = "EnterPVPReconnectEnter"
+  K[33] = "EnterNpcChallengeEnter"
+  K[34] = "EnterNpcChallengeReconnectEnter"
+  K[35] = "EnterWeeklyChallengeEnter"
+  K[36] = "EnterWeeklyChallengeReconnectEnter"
+  K[37] = "EnterTrainBattleEnter"
+  K[38] = "EnterTrainBattleReconnectEnter"
+  K[39] = "EnterTeamBlood"
+  K[40] = "EnterTeamBloodReconnect"
+  K[41] = "EnterTeamBeast"
+  K[42] = "EnterTeamBeastReconnect"
+  K[43] = "EnterFinalBattleSpeedUp"
+  K[44] = "EnterFinalBattle"
+  K[45] = "EnterFinalBattleReconnect"
+  K[46] = "OnFinalBattleSummer"
+  K[47] = "PVEIntro"
+  K[48] = "PVPIntro"
+  K[49] = "PVESpecialDelay"
+  K[50] = "LeaderIntro"
+  K[51] = "WorldLeaderIntro"
+  K[52] = "Intro"
+  K[53] = "EnterPrePlay"
+  K[54] = "ENTER_PRE_PLAY"
+  K[55] = "EnterSwapSelect"
+  K[56] = "ENTER_SWAP_SELECT"
+  K[57] = "EnterSelectRidPet"
+  K[58] = "ENTER_SELECT_RID_PET"
+  K[59] = "EnterSwapPlay"
+  K[60] = "ENTER_SWAP_PLAY"
+  K[61] = "EnterEvolutionPlay"
+  K[62] = "ENTER_EVOLUTION_PLAY"
+  K[63] = "EnterRoundSelect"
+  K[64] = "ENTER_ROUND_SELECT"
+  K[65] = "EnterTeamCatch"
+  K[66] = "ENTER_TEAM_CATCH"
+  K[67] = "FinalBattleToP2"
+  K[68] = "EnterTeamBeastCatch"
+  K[69] = "ENTER_TEAM_BEAST_CATCH"
+  K[70] = "EnterTeamBeastDefeat"
+  K[71] = "ENTER_TEAM_BEAST_DEFEAT"
+  K[72] = "EnterWaitOther"
+  K[73] = "ENTER_WAIT_OTHER"
+  K[74] = "EnterInstantPlay"
+  K[75] = "ENTER_INSTANT_PLAY"
+  K[76] = "EnterRoundPlay"
+  K[77] = "ENTER_ROUND_PLAY"
+  K[78] = "EnterEvolutionSelect"
+  K[79] = "EnterNpcAutoEscape"
+  K[80] = "ENTER_NPC_AUTO_ESCAPE"
+  K[81] = "EnterCatchSuccess"
+  K[82] = "ENTER_CATCH_SUCCESS"
+  K[83] = "RefreshVisitCatch"
+  K[84] = "EnterEnemyEscape"
+  K[85] = "ENTER_ENEMY_ESCAPE"
+  K[86] = "EnterEnemyNpcEscape"
+  K[87] = "ENTER_ENEMY_NPC_ESCAPE"
+  K[88] = "EnterNormalOver"
+  K[89] = "ENTER_NORMAL_OVER"
+  K[90] = "EnterFailOver"
+  K[91] = "ENTER_FAIL_OVER"
+  K[92] = "EnterSeamlessOver"
+  K[93] = "ENTER_SEAMLESS_OVER"
+  K[94] = "EnterWorldLeaderSeamlessOver"
+  K[95] = "ENTER_WORLD_LEADER_SEAMLESS_OVER"
+  K[96] = "EnterPureBlackOut"
+  K[97] = "ENTER_PURE_BLACK_OUT"
+  K[98] = "EnterPVPOver"
+  K[99] = "ENTER_PVP_OVER"
+  K[100] = "EnterPVPRankOver"
+  K[101] = "ENTER_PVP_RANK_OVER"
+  K[102] = "EnterBloodTeamBattleOver"
+  K[103] = "ENTER_BLOOD_TEAM_BATTLE_OVER"
+  K[104] = "EnterBeastTeamBattleOver"
+  K[105] = "ENTER_BEAST_TEAM_BATTLE_OVER"
+  K[106] = "DirectOverBattle"
+  K[107] = "DIRECT_OVER_BATTLE"
+  K[108] = "ExitBattle"
+  K[109] = "EXIT_BATTLE"
+  K[110] = "EnterPlayerSkillEscape"
+  K[111] = "ENTER_PLAYER_SKILL_ESCAPE"
+  K[112] = "EnterPvpPlayerPerform"
+  K[113] = "ENTER_PVP_PLAYER_PERFORM"
+  K[114] = "EnterRevertTeamBattle"
+  K[115] = "ENTER_REVERT_TEAM_BATTLE"
+  K[116] = "EnterRebuildBattleField"
+  K[117] = "ENTER_REBUILD_BATTLE_FIELD"
+  K[118] = "PrepareBattleOver"
+  K[119] = "PREPARE_BATTLE_OVER"
+  K[120] = "EnterRunAwayLeadFight"
+  K[121] = "ENTER_RUNAWAY_LEADER_FIGHT"
+  K[122] = "EnterNpcChallengeOver"
+  K[123] = "ENTER_NPC_CHALLENGE_OVER"
+  K[124] = "FinalBattleOver"
+  K[125] = "FINAL_BATTLE_OVER"
+  K[126] = "EnterWaitOtherLoad"
+  K[127] = "ENTER_WAIT_OTHER_LOAD"
+  K[128] = "EnterWeeklyChallengeOver"
+  K[129] = "ENTER_WEEKLY_CHALLENGE_OVER"
+  K[130] = "EnterWeeklyChallengeAgain"
+  K[131] = "ENTER_WEEKLY_CHALLENGE_AGAIN"
+  K[132] = "EnterTrainBattleOver"
+  K[133] = "ENTER_WEEKLY_TRAIN_BATTLE_OVER"
+  K[134] = "EnterTerritoryTrialOver"
+  K[135] = "ENTER_TERRITORY_TRIAL_OVER"
+  K[136] = "EnterTerritoryTrialAgain"
+  K[137] = "ENTER_TERRITORY_TRIAL_AGAIN"
+  K[138] = "EnterB1FinalBattle"
+  K[139] = "EnterB1FinalBattleReconnect"
+  K[140] = "B1FinalBattleToP2"
+  K[141] = "B1FinalBattleToP3"
+  K[142] = "B1FBP3FinalSkill"
+  K[143] = "B1BattleRefreshSkillItem"
+  K[144] = "EnterNoPC"
+  K[145] = "EnterNoPCState"
+  K[146] = "RoundEvent"
+  K[147] = "EnterSkill"
+  K[148] = "EnterSwap"
+  K[149] = "EnterCatch"
+  K[150] = "EnterPlayerSkill"
+  K[151] = "EnterItem"
+  K[152] = "EnterEscape"
+  K[153] = "EnterNone"
+  K[154] = "EnterSurrender"
+  K[155] = "EnterStepAway"
+  K[156] = "EnterGiveUp"
+  K[157] = "FailedUIClicked"
+  K[158] = "BattleEvent.FailedUIClicked"
+  K[159] = "StartTweenOut"
+  K[160] = "BattleEvent.StartTweenOut"
+  K[161] = "LoadingTweenInComplete"
+  K[162] = "BattleEvent.LoadingTweenInComplete"
+  K[163] = "LoadingTweenOutComplete"
+  K[164] = "BattleEvent.LoadingTweenOutComplete"
+  K[165] = "TransformLoadingOpened"
+  K[166] = "BattleEvent.TransformLoadingOpened"
+  K[167] = "SceneLoadingOpened"
+  K[168] = "BattleEvent.SceneLoadingOpened"
+  K[169] = "LoadingBattleFailedUIComplete"
+  K[170] = "BattleEvent.LoadingBattleFailedUIComplete"
+  K[171] = "ROUND_STATE_SELECT"
+  K[172] = "BattleEvent.ROUND_STATE_SELECT"
+  K[173] = "UI_SHOW_INFO_POPUP"
+  K[174] = "BattleEvent.UI_SHOW_INFO_POPUP"
+  K[175] = "UI_HIDE_INFO_POPUP"
+  K[176] = "BattleEvent.UI_HIDE_INFO_POPUP"
+  K[177] = "UI_CLEAR_PRESELECT_POPUPS"
+  K[178] = "BattleEvent.UI_CLEAR_PRESELECT_POPUPS"
+  K[179] = "UI_SHOW_ENTITY_POPUP"
+  K[180] = "BattleEvent.UI_SHOW_ENTITY_POPUP"
+  K[181] = "UI_HIDE_ENTITY_POPUP"
+  K[182] = "BattleEvent.UI_HIDE_ENTITY_POPUP"
+  K[183] = "UI_ENERGY_TRACK_FINISH"
+  K[184] = "BattleEvent.UI_ENERGY_TRACK_FINISH"
+  K[185] = "UI_UPDATE_ENERGY"
+  K[186] = "BattleEvent.UI_UPDATE_ENERGY"
+  K[187] = "UI_UPDATE_PETNUM"
+  K[188] = "BattleEvent.UI_UPDATE_PETNUM"
+  K[189] = "UI_INSTANT_UPDATE_ITEM"
+  K[190] = "BattleEvent.UI_INSTANT_UPDATE_ITEM"
+  K[191] = "UI_UPDATE_PLAYERSKILL_TUTORIAL"
+  K[192] = "BattleEvent.UI_UPDATE_PLAYERSKILL_TUTORIAL"
+  K[193] = "PET_DEAD"
+  K[194] = "BattleEvent.PET_DEAD"
+  K[195] = "BATTLE_CLICKED_PET"
+  K[196] = "BattleEvent.BATTLE_CLICKED_PET"
+  K[197] = "BATTLE_CLICKED_SKILL"
+  K[198] = "BattleEvent.BATTLE_CLICKED_SKILL"
+  K[199] = "BATTLE_CLICKED_BAG_PET"
+  K[200] = "BattleEvent.BATTLE_CLICKED_BAG_PET"
+  K[201] = "BATTLE_CLICKED_BALL"
+  K[202] = "BattleEvent.BATTLE_CLICKED_BALL"
+  K[203] = "BATTLE_CLICKED_ITEM"
+  K[204] = "BattleEvent.BATTLE_CLICKED_ITEM"
+  K[205] = "BATTLE_CLICKED_PLAYERSKILL"
+  K[206] = "BattleEvent.BATTLE_CLICKED_PLAYERSKILL"
+  K[207] = "BATTLE_CLICKED_CANCELPLAYERSKILL"
+  K[208] = "BattleEvent.BATTLE_CLICKED_CANCELPLAYERSKILL"
+  K[209] = "BATTLE_CLICKED_UI_CANCELPLAYERSKILL"
+  K[210] = "BattleEvent.BATTLE_CLICKED_UI_CANCELPLAYERSKILL"
+  K[211] = "BATTLE_BEGIN_USE_PLAYERSKILL"
+  K[212] = "BattleEvent.BATTLE_BEGIN_USE_PLAYERSKILL"
+  K[213] = "BATTLE_USE_PLAYERSKILL_SUCCESS"
+  K[214] = "BattleEvent.BATTLE_USE_PLAYERSKILL_SUCCESS"
+  K[215] = "BATTLE_RECOVER_PLAYERSKILL"
+  K[216] = "BattleEvent.BATTLE_RECOVER_PLAYERSKILL"
+  K[217] = "BATTLE_SET_PLAYERSKILL"
+  K[218] = "BattleEvent.BATTLE_SET_PLAYERSKILL"
+  K[219] = "BATTLE_USE_RECOVER_ITEM_SUCCESS"
+  K[220] = "BattleEvent.BATTLE_USE_RECOVER_ITEM_SUCCESS"
+  K[221] = "BATTLE_BEGING_USE_CHANGE_PET_SKILL"
+  K[222] = "BattleEvent.BATTLE_BEGING_USE_CHANGE_PET_SKILL"
+  K[223] = "BATTLE_PLAY_PLAYERSKILL_SUCCESS"
+  K[224] = "BattleEvent.BATTLE_PLAY_PLAYERSKILL_SUCCESS"
+  K[225] = "BATTLE_CANCEL_USE_PLAYERSKILL"
+  K[226] = "BattleEvent.BATTLE_CANCEL_USE_PLAYERSKILL"
+  K[227] = "BATTLE_PLAYERSKILL_ISHIDE_HP"
+  K[228] = "BBattleEvent.BATTLE_PLAYERSKILL_ISHIDE_HP"
+  K[229] = "CHANGE_OPERATE_TYPE"
+  K[230] = "BattleEvent.CHANGE_OPERATE_TYPE"
+  K[231] = "UI_HIDE"
+  K[232] = "BattleEvent.UI_HIDE"
+  K[233] = "UI_SHOW"
+  K[234] = "BattleEvent.UI_SHOW"
+  K[235] = "UI_USE_PLAYERSKILL_UPDATE"
+  K[236] = "BattleEvent.UI_USE_PLAYERSKILL_UPDATE"
+  K[237] = "PLAYER_LOAD_MODEL_OVER"
+  K[238] = "BattleEvent.PLAYER_LOAD_MODEL_OVER"
+  K[239] = "PLAYER_SPAWNED"
+  K[240] = "BattleEvent.PLAYER_SPAWNED"
+  K[241] = "ALL_ONLOOKER_SPAWNED"
+  K[242] = "BattleEvent.ALL_ONLOOKER_SPAWNED"
+  K[243] = "FADE_OBJECT_REACH_TARGET_ALPHA"
+  K[244] = "PET_HP_CHANGED"
+  K[245] = "BattleEvent.PET_HP_CHANGED"
+  K[246] = "PET_CATCH_CHANGED"
+  K[247] = "BattleEvent.PET_CATCH_CHANGED"
+  K[248] = "PET_TYPES_CHANGED"
+  K[249] = "BattleEvent.PET_TYPES_CHANGED"
+  K[250] = "PET_RUNAWAY_CHANGE"
+  K[251] = "BattleEvent.PET_RUNAWAY_CHANGED"
+  K[252] = "MONSTER_RUNAWAY_SHOW_POPUP"
+  K[253] = "BattleEvent.MONSTER_RUNAWAY_SHOW_POPUP"
+  K[254] = "BATTLE_PET_DIE"
+  K[255] = "BattleEvent.BATTLE_PET_DIE"
+  K[256] = "PLAYER_DESTROYED"
+  K[257] = "BattleEvent.PLAYER_DESTROYED"
+  K[258] = "BATTLE_PET_CATCH_SUCCESS"
+  K[259] = "BattleEvent.BATTLE_PET_CATCH_SUCCESS"
+  K[260] = "PET_SPAWNED"
+  K[261] = "BattleEvent.PET_SPAWNED"
+  K[262] = "PET_DISTROYED"
+  K[263] = "BattleEvent.PET_DISTROYED"
+  K[264] = "PET_TURN_IS_UP"
+  K[265] = "BattleEvent.PET_TURN_IS_UP"
+  K[266] = "BATTLE_STATE_SETTLEMENT"
+  K[267] = "BattleEvent.BATTLE_STATE_SETTLEMENT"
+  K[268] = "BATTLE_CLICKED_CHANGEPET"
+  K[269] = "BattleEvent.BATTLE_CLICKED_CHANGEPET"
+  K[270] = "BATTLE_PET_SELECT_SKILL_COMPLETE"
+  K[271] = "BattleEvent.BATTLE_PET_SELECT_SKILL_COMPLETE"
+  K[272] = "BATTLE_PET_SELECT_IDLE"
+  K[273] = "BattleEvent.BATTLE_PET_SELECT_IDLE"
+  K[274] = "BATTLE_PET_SELECT_ROLE_HP"
+  K[275] = "BattleEvent.BATTLE_PET_SELECT_ROLE_HP"
+  K[276] = "BATTLE_PET_SELECT_TARGET_COMPLETE"
+  K[277] = "BattleEvent.BATTLE_PET_SELECT_TARGET_COMPLETE"
+  K[278] = "PET_CHANGE_BUFF_VISIBILITY"
+  K[279] = "BattleEvent.PET_CHANGE_BUFF_VISIBILITY"
+  K[280] = "PUSHBACK_CMD_SENT"
+  K[281] = "BattleEvent.PUSHBACK_CMD_SENT"
+  K[282] = "BATTLE_PROCESS_ENERGY_TRACK_END"
+  K[283] = "BattleEvent.BATTLE_PROCESS_ENERGY_TRACK_END"
+  K[284] = "BATTLE_PROCESS_EVOLUTION_END"
+  K[285] = "BattleEvent.BATTLE_PROCESS_EVOLUTION_END"
+  K[286] = "BATTLE_PROCESS_ROLE_HP_END"
+  K[287] = "BattleEvent.BATTLE_PROCESS_ROLE_HP_END"
+  K[288] = "BATTLE_PET_DEATH_PENDING_ANIMATION_FINISH"
+  K[289] = "BattleEvent.BATTLE_PET_DEATH_PENDING_ANIMATION_FINISH"
+  K[290] = "ON_CLICK_ESCAPE"
+  K[291] = "BattleEvent.ON_CLICK_ESCAPE"
+  K[292] = "ON_CLICK_STEPAWAY"
+  K[293] = "BattleEvent.ON_CLICK_STEPAWAY"
+  K[294] = "ON_CLICK_GIVEUP"
+  K[295] = "BattleEvent.ON_CLICK_GIVEUP"
+  K[296] = "ROUND_START"
+  K[297] = "BattleEvent.ROUND_START"
+  K[298] = "ROUND_SELECT_START"
+  K[299] = "BattleEvent.ROUND_SELECT_START"
+  K[300] = "SWAP_SELECT_START"
+  K[301] = "BattleEvent.SWAP_SELECT_START"
+  K[302] = "TEAM_SWAP_SELECT_START"
+  K[303] = "BattleEvent.TEAM_SWAP_SELECT_START"
+  K[304] = "INPUT_ACTION_TRIGGER"
+  K[305] = "BattleEvent.INPUT_ACTION_TRIGGER"
+  K[306] = "BATTLE_SCREEN_MOUSE_WHEEL"
+  K[307] = "BattleEvent.BATTLE_SCREEN_MOUSE_WHEEL"
+  K[308] = "REFRESH_BUFF"
+  K[309] = "BattleEvent.REFRESH_BUFF"
+  K[310] = "REMOVE_BUFF"
+  K[311] = "BattleEvent.REMOVE_BUFF"
+  K[312] = "Replay_Resume"
+  K[313] = "BattleEvent.Replay_Resume"
+  K[314] = "Replay_Pause"
+  K[315] = "BattleEvent.Replay_Pause"
+  K[316] = "Replay_Fast"
+  K[317] = "BattleEvent.Replay_Fast"
+  K[318] = "Replay_Slow"
+  K[319] = "BattleEvent.Replay_Slow"
+  K[320] = "Replay_Undo"
+  K[321] = "BattleEvent.Replay_Undo"
+  K[322] = "Replay_Redo"
+  K[323] = "BattleEvent.Replay_Redo"
+  K[324] = "Replay_RefreshRoundIdx"
+  K[325] = "BattleEvent.Replay_RefreshRoundIdx"
+  K[326] = "Replay_RefreshRoundIdxUI"
+  K[327] = "BattleEvent.Replay_RefreshRoundIdxUI"
+  K[328] = "Replay_RefreshBottomSkillText"
+  K[329] = "BattleEvent.Replay_RefreshBottomSkillText"
+  K[330] = "Replay_RefreshPauseUi"
+  K[331] = "BattleEvent.Replay_RefreshPauseUi"
+  K[332] = "Replay_RefreshPlaySpeedUi"
+  K[333] = "BattleEvent.Replay_RefreshPlaySpeedUi"
+  K[334] = "Replay_Exit"
+  K[335] = "BattleEvent.Replay_Exit"
+  K[336] = "SP_ENERGY_TRIGGER"
+  K[337] = "BattleEvent.SP_ENERGY_TRIGGER"
+  K[338] = "PET_LOAD_MODE_LOVER"
+  K[339] = "BattleEvent.PET_LOAD_MODE_LOVER "
+  K[340] = "START_BATTLE_PERFORM"
+  K[341] = "BattleEvent.StartBattlePerform "
+  K[342] = "MULTI_PLAYER_TIP_CHANGE"
+  K[343] = "BattleEvent.MultiPlayerTipChange "
+  K[344] = "BATTLE_ROUND_START"
+  K[345] = "BattleEvent.BattleRoundStart"
+  K[346] = "UPDATE_DATA"
+  K[347] = "BattleEvent.UpdateData"
+  K[348] = "DIRECT_UPDATE_UI"
+  K[349] = "BattleEvent.DirectUpdateUI"
+  K[350] = "RESULT_UI_STATE_UPDATE"
+  K[351] = "BattleEvent.ResultUiStateUpdate"
+  K[352] = "PLAYER_LEAVE_GAME"
+  K[353] = "BattleEvent.PlayerLeaveGame"
+  K[354] = "START_BATTLE_ATTACK"
+  K[355] = "BattleEvent.START_BATTLE_ATTACK"
+  K[356] = "START_PVP_ROUND_TIME"
+  K[357] = "BattleEvent.START_PVP_ROUND_TIME"
+  K[358] = "END_PVP_ROUND_TIME"
+  K[359] = "BattleEvent.END_PVP_ROUND_TIME"
+  K[360] = "RECORD_AI_OP"
+  K[361] = "BattleEvent.RECORD_AI_OP"
+  K[362] = "AUTOTEST_NODE_FINISH"
+  K[363] = "BattleEvent.AUTOTEST_NODE_FINISH"
+  K[364] = "PK_AGAIN"
+  K[365] = "BattleEvent.PK_AGAIN"
+  K[366] = "PVP_OBSERVER_CHANGE"
+  K[367] = "BattleEvent.PVP_OBSERVER_CHANGE"
+  K[368] = "SimulateClickBag"
+  K[369] = "BattleEvent.SimulateClickBag"
+  K[370] = "ARRIVE_TARGETED_SHOW_ENEMY_HP"
+  K[371] = "BattleEvent.ARRIVE_TARGETED_SHOW_ENEMY_HP"
+  K[372] = "CHEER_SWITCH"
+  K[373] = "BattleEvent.CHEER_SWITCH"
+  K[374] = "SHOW_NO_MOVE_HP"
+  K[375] = "BattleEvent.SHOW_NO_MOVE_HP"
+  K[376] = "CHEER_ESCAPE"
+  K[377] = "BattleEvent.CHEER_ESCAPE"
+  K[378] = "WAIT_PERFORM_END"
+  K[379] = "BattleEvent.WAIT_PERFORM_END"
+  K[380] = "RECEIVE_SERVER_SEQ"
+  K[381] = "BattleEvent.RECEIVE_SERVER_SEQ"
+  K[382] = "CLICKED_WAIT_EMO_LIST"
+  K[383] = "CLICKED_WAIT_EMO_BACK"
+  K[384] = "EMO_HIDE_OVER"
+  K[385] = "CLICKED_WAIT_EMO"
+  K[386] = "CLICKED_Result_Close"
+  K[387] = "CLICKED_RESULT_CLOSE"
+  K[388] = "BATTLE_TEAMBATTLE_BALANCELENS"
+  K[389] = "BATTLE_TEAMBATTLE_BALANCELENS_END"
+  K[390] = "BattleEvent.BATTLE_TEAMBATTLE_BALANCELENS_END"
+  K[391] = "CLICKED_RewardsPanel_Close"
+  K[392] = "BattleEvent.CLICKED_RewardsPanel_Close"
+  K[393] = "NPC_ENTER_ANIM_DISAPPEAR"
+  K[394] = "BattleEvent.NPC_ENTER_ANIM_DISAPPEAR"
+  K[395] = "WEEKLY_CHALLENGE_AGAIN"
+  K[396] = "TERRITORY_TRIAL_AGAIN"
+  K[397] = "EVOLUTION_CONFIRM"
+  K[398] = "BattleEvent.EVOLUTION_CONFIRM"
+  K[399] = "EVOLUTION_OPEN_RESULT"
+  K[400] = "BattleEvent.EVOLUTION_OPEN_RESULT"
+  K[401] = "NPC_AUTO_ESCAPE_Accept"
+  K[402] = "BattleEvent.NPC_AUTO_ESCAPE_Accept"
+  K[403] = "NPC_AUTO_ESCAPE_Deny"
+  K[404] = "BattleEvent.NPC_AUTO_ESCAPE_Deny"
+  K[405] = "REFRESH_PVE_ENTER_ROLE_HP"
+  K[406] = "BattleEvent.REFRESH_PVE_ENTER_ROLE_HP"
+  K[407] = "REFRESH_PVE_ENTER_ROLE_HP_END"
+  K[408] = "BattleEvent.REFRESH_PVE_ENTER_ROLE_HP_END"
+  K[409] = "REFRESH_ROLE_HP_CRITICAL_TIP"
+  K[410] = "BattleEvent.REFRESH_ROLE_HP_CRITICAL_TIP"
+  K[411] = "REFRESH_ROLE_HP_CRITICAL_TIP_END"
+  K[412] = "BattleEvent.REFRESH_ROLE_HP_CRITICAL_TIP_END"
+  K[413] = "REFRESH_ROLE_HP_DEFEAT_TIP_END"
+  K[414] = "BattleEvent.REFRESH_ROLE_HP_DEFEAT_TIP_END"
+  K[415] = "HIDE_HP_RED"
+  K[416] = "BattleEvent.HIDE_HP_RED"
+  K[417] = "SHOW_HP_RED"
+  K[418] = "BattleEvent.SHOW_HP_RED"
+  K[419] = "BATTLE_WEATHER_CHANGED"
+  K[420] = "BattleEvent.BATTLE_WEATHER_CHANGED"
+  K[421] = "PetSelectSkill"
+  K[422] = "BattleEvent.PetSelectSkill"
+  K[423] = "LeaveSkillRound"
+  K[424] = "BattleEvent.LeaveSkillRound"
+  K[425] = "PlayClickEffect"
+  K[426] = "BattleEvent.PlayClickEffect"
+  K[427] = "OnBallChanged"
+  K[428] = "BattleEvent.OnBallChanged"
+  K[429] = "GetBattleFinish"
+  K[430] = "BattleEvent.GetBattleFinish"
+  K[431] = "UPDATE_BATTLEFIELD_POS"
+  K[432] = "BattleEvent.UPDATE_BATTLEFIELD_POS"
+  K[433] = "InstantPlayOver"
+  K[434] = "BattleEvent.InstantPlayOver"
+  K[435] = "Show_RecordingBtn"
+  K[436] = "BattleEvent.Show_RecordingBtn"
+  K[437] = "UI_SET_BATTLE_POS"
+  K[438] = "BattleEvent.UI_SET_BATTLE_POS"
+  K[439] = "FX_PERF_ON_SKILL_PLAY_START"
+  K[440] = "BattleEvent.FX_PERF_ON_SKILL_PLAY_START"
+  K[441] = "FX_PERF_ON_SKILL_PLAY_PAUSE"
+  K[442] = "BattleEvent.FX_PERF_ON_SKILL_PLAY_PAUSE"
+  K[443] = "PLAYER_CHOOSE_SKILL"
+  K[444] = "BattleEvent.PLAYER_CHOOSE_SKILL"
+  K[445] = "PLAYER_PERFORM_SKILL"
+  K[446] = "BattleEvent.PLAYER_PERFORM_SKILL"
+  K[447] = "PLAYER_PERFORM_OVER"
+  K[448] = "BattleEvent.PLAYER_PERFORM_OVER"
+  K[449] = "TEAM_BATTLE_CATCH"
+  K[450] = "BattleEvent.TEAM_BATTLE_CATCH"
+  K[451] = "HIDE_TEAM_HP"
+  K[452] = "BattleEvent.HIDE_TEAM_HP"
+  K[453] = "HIDE_TEAMBATTLE_HP"
+  K[454] = "BattleEvent.HIDE_TEAMBATTLE_HP"
+  K[455] = "SHOW_TEAMBATTLE_HP"
+  K[456] = "BattleEvent.SHOW_TEAMBATTLE_HP"
+  K[457] = "SHOW_MAIN_WHEN_SKILLOVER"
+  K[458] = "BattleEvent.SHOW_MAIN_WHEN_SKILLOVER"
+  K[459] = "LEAVE_ESCAPE_STATE"
+  K[460] = "BattleEvent.LEAVE_ESCAPE_STATE"
+  K[461] = "UPDATE_UI_ON_ROUND_SELECT"
+  K[462] = "BattleEvent.UPDATE_UI_ON_ROUND_SELECT"
+  K[463] = "UPDATE_TEAMBOSS_HP"
+  K[464] = "BattleEvent.UPDATE_TEAMBOSS_HP"
+  K[465] = "BLOOD_HIDE_MONEY"
+  K[466] = "BattleEvent.BLOOD_HIDE_MONEY"
+  K[467] = "BLOOD_SHOW_MONEY"
+  K[468] = "BattleEvent.BLOOD_SHOW_MONEY"
+  K[469] = "CloseIFCatchPanel"
+  K[470] = "BattleEvent.CloseIFCatchPanel"
+  K[471] = "Skill_Preload"
+  K[472] = "BattleEvent.Skill_Preload"
+  K[473] = "Skill_FinalDisplay"
+  K[474] = "BattleEvent.Skill_FinalDisplay"
+  K[475] = "Clear_SkillList"
+  K[476] = "BattleEvent.Clear_SkillList"
+  K[477] = "DisConnectionSetSkillList"
+  K[478] = "BattleEvent.DisConnectionSetSkillList"
+  K[479] = "SkillListChangeUpdate"
+  K[480] = "BattleEvent.SkillListChangeUpdate"
+  K[481] = "ChangeGatherState"
+  K[482] = "BattleEvent.ChangeGatherState"
+  K[483] = "MechanismValidationClosed"
+  K[484] = "BattleEvent.MechanismValidationClosed"
+  K[485] = "SKillEvent_TriggerBeHit"
+  K[486] = "BattleEvent.SKillEvent_TriggerBeHit"
+  K[487] = "SKillEvent_AllHitEnd"
+  K[488] = "BattleEvent.SKillEvent_AllHitEnd"
+  K[489] = "SKillEvent_StateEffectEnd"
+  K[490] = "BattleEvent.SKillEvent_StateEffectEnd"
+  K[491] = "SKillEvent_EnterBulletTime"
+  K[492] = "BattleEvent.SKillEvent_EnterBulletTime"
+  K[493] = "SKillEvent_LeaveBulletTime"
+  K[494] = "BattleEvent.SKillEvent_LeaveBulletTime"
+  K[495] = "SKillEvent_OnCounterEnd"
+  K[496] = "BattleEvent.SKillEvent_OnCounterEnd"
+  K[497] = "SKillEvent_BeCounterEnd"
+  K[498] = "BattleEvent.SKillEvent_BeCounterEnd"
+  K[499] = "MultiAttack_TookDamage"
+  K[500] = "BattleEvent.MultiAttack_TookDamage"
+  K[501] = "NightmareShieldBreak"
+  K[502] = "BattleEvent.NightmareShieldBreak"
+  K[503] = "ReconnetBattle_RoundStrart"
+  K[504] = "BattleEvent.Reconnet_Battle_RoundStrart "
+  K[505] = "Resend_SkillList"
+  K[506] = "BattleEvent.Resend_SkillList"
+  K[507] = "PlayUIAnimation"
+  K[508] = "BattleEvent.PlayUIAnimation"
+  K[509] = "RefreshSilhouetteTaskState"
+  K[510] = "BattleEvent.RefreshSilhouetteTaskState"
+  K[511] = "DefenceOtherStart"
+  K[512] = "BattleEvent.DefenceOtherStart"
+  K[513] = "DefenceOtherEnd"
+  K[514] = "BattleEvent.DefenceOtherEnd"
+  K[515] = "EntryHudSkillStartPlayerEvent"
+  K[516] = "BattleEvent.EntryHudSkillStartPlayerEvent"
+  K[517] = "MutationChange"
+  K[518] = "BattleEvent.MutationChange"
+  K[519] = "StartSkill_AutoPerform"
+  K[520] = "BattleEvent.StartSkill_AutoPerform"
+  K[521] = "Popup_CommandInfo"
+  K[522] = "BattleEvent.Popup_CommandInfo"
+  K[523] = "Popup_CommandInfo_End"
+  K[524] = "BattleEvent.Popup_CommandInfo_End"
+  K[525] = "OnCallCrashSight"
+  K[526] = "BattleEvent.OnCallCrashSight"
+  K[527] = "OnCloseBattleMainWindow"
+  K[528] = "BattleEvent.OnCloseBattleMainWindow"
+  K[529] = "FunctionBanRemoveBattleType"
+  K[530] = "BattleEvent.FunctionBanRemoveBattleType"
+  K[531] = "ShowResonanceTip"
+  K[532] = "BattleEvent.ShowResonanceTip"
+  K[533] = "setmetatable"
+  K[534] = "__index"
+  K[535] = "__newindex"
+upvalues (1):
+  U[0] = instack=0 idx=0 kind=7 name="_ENV"
+locals (2):
+  L[0] = "BattleEvent" pc=3-619
+  L[1] = "BattleEventRaw" pc=589-619
+instructions (619):
+  [0001] VARARGPREP     A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000051
+  [0002] NEWTABLE       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000013
+  [0003] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0004] SETFIELD       A=0 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=256 sJ=-16776959 raw=0x00008012 ; R[0][K[0] "OnSkillResLoaded"] = R[0]
+  [0005] SETFIELD       A=0 B=1 C=1 k=1 Bx=515 sBx=-65020 Ax=131840 sJ=-16645375 raw=0x01018012 ; R[0][K[1] "OnSkillBeforeAsync"] = R[1]
+  [0006] SETFIELD       A=0 B=2 C=2 k=1 Bx=1029 sBx=-64506 Ax=263424 sJ=-16513791 raw=0x02028012 ; R[0][K[2] "OnAllSkillResLoaded"] = R[2]
+  [0007] SETFIELD       A=0 B=3 C=3 k=1 Bx=1543 sBx=-63992 Ax=395008 sJ=-16382207 raw=0x03038012 ; R[0][K[3] "OnSummerResLoaded"] = R[3]
+  [0008] SETFIELD       A=0 B=4 C=4 k=1 Bx=2057 sBx=-63478 Ax=526592 sJ=-16250623 raw=0x04048012 ; R[0][K[4] "LeaveBattle"] = R[4]
+  [0009] SETFIELD       A=0 B=5 C=5 k=1 Bx=2571 sBx=-62964 Ax=658176 sJ=-16119039 raw=0x05058012 ; R[0][K[5] "BattleOver"] = R[5]
+  [0010] SETFIELD       A=0 B=6 C=6 k=1 Bx=3085 sBx=-62450 Ax=789760 sJ=-15987455 raw=0x06068012 ; R[0][K[6] "BattleStateOver"] = R[6]
+  [0011] SETFIELD       A=0 B=7 C=7 k=1 Bx=3599 sBx=-61936 Ax=921344 sJ=-15855871 raw=0x07078012 ; R[0][K[7] "BattleStartFocus"] = R[7]
+  [0012] SETFIELD       A=0 B=8 C=8 k=1 Bx=4113 sBx=-61422 Ax=1052928 sJ=-15724287 raw=0x08088012 ; R[0][K[8] "EnterPvePreInit"] = R[8]
+  [0013] SETFIELD       A=0 B=9 C=9 k=1 Bx=4627 sBx=-60908 Ax=1184512 sJ=-15592703 raw=0x09098012 ; R[0][K[9] "EnterWildPreInit"] = R[9]
+  [0014] SETFIELD       A=0 B=10 C=10 k=1 Bx=5141 sBx=-60394 Ax=1316096 sJ=-15461119 raw=0x0A0A8012 ; R[0][K[10] "EnterPvpPreInit"] = R[10]
+  [0015] SETFIELD       A=0 B=11 C=11 k=1 Bx=5655 sBx=-59880 Ax=1447680 sJ=-15329535 raw=0x0B0B8012 ; R[0][K[11] "EnterBeastPreInit"] = R[11]
+  [0016] SETFIELD       A=0 B=12 C=13 k=1 Bx=6681 sBx=-58854 Ax=1710336 sJ=-15066879 raw=0x0D0C8012 ; R[0][K[12] "EnterBattle"] = R[13]
+  [0017] SETFIELD       A=0 B=14 C=15 k=1 Bx=7709 sBx=-57826 Ax=1973504 sJ=-14803711 raw=0x0F0E8012 ; R[0][K[14] "EnterNormalEnter"] = R[15]
+  [0018] SETFIELD       A=0 B=16 C=17 k=1 Bx=8737 sBx=-56798 Ax=2236672 sJ=-14540543 raw=0x11108012 ; R[0][K[16] "EnterSeamlessEnter"] = R[17]
+  [0019] SETFIELD       A=0 B=18 C=19 k=1 Bx=9765 sBx=-55770 Ax=2499840 sJ=-14277375 raw=0x13128012 ; R[0][K[18] "EnterNearbyThrowBall"] = R[19]
+  [0020] SETFIELD       A=0 B=20 C=21 k=1 Bx=10793 sBx=-54742 Ax=2763008 sJ=-14014207 raw=0x15148012 ; R[0][K[20] "EnterNearbyThrowBallReconnect"] = R[21]
+  [0021] SETFIELD       A=0 B=22 C=23 k=1 Bx=11821 sBx=-53714 Ax=3026176 sJ=-13751039 raw=0x17168012 ; R[0][K[22] "EnterNearbyEnter"] = R[23]
+  [0022] SETFIELD       A=0 B=24 C=25 k=1 Bx=12849 sBx=-52686 Ax=3289344 sJ=-13487871 raw=0x19188012 ; R[0][K[24] "EnterNearbyEnterPVE"] = R[25]
+  [0023] SETFIELD       A=0 B=26 C=27 k=1 Bx=13877 sBx=-51658 Ax=3552512 sJ=-13224703 raw=0x1B1A8012 ; R[0][K[26] "EnterNearbyEnterPVESpecialDelay"] = R[27]
+  [0024] SETFIELD       A=0 B=28 C=28 k=1 Bx=14393 sBx=-51142 Ax=3684608 sJ=-13092607 raw=0x1C1C8012 ; R[0][K[28] "EnterNearbyReconnectEnter"] = R[28]
+  [0025] SETFIELD       A=0 B=29 C=29 k=1 Bx=14907 sBx=-50628 Ax=3816192 sJ=-12961023 raw=0x1D1D8012 ; R[0][K[29] "EnterLeaderEnter"] = R[29]
+  [0026] SETFIELD       A=0 B=30 C=30 k=1 Bx=15421 sBx=-50114 Ax=3947776 sJ=-12829439 raw=0x1E1E8012 ; R[0][K[30] "EnterLeaderReconnectEnter"] = R[30]
+  [0027] SETFIELD       A=0 B=31 C=31 k=1 Bx=15935 sBx=-49600 Ax=4079360 sJ=-12697855 raw=0x1F1F8012 ; R[0][K[31] "EnterPVPEnter"] = R[31]
+  [0028] SETFIELD       A=0 B=32 C=32 k=1 Bx=16449 sBx=-49086 Ax=4210944 sJ=-12566271 raw=0x20208012 ; R[0][K[32] "EnterPVPReconnectEnter"] = R[32]
+  [0029] SETFIELD       A=0 B=33 C=33 k=1 Bx=16963 sBx=-48572 Ax=4342528 sJ=-12434687 raw=0x21218012 ; R[0][K[33] "EnterNpcChallengeEnter"] = R[33]
+  [0030] SETFIELD       A=0 B=34 C=34 k=1 Bx=17477 sBx=-48058 Ax=4474112 sJ=-12303103 raw=0x22228012 ; R[0][K[34] "EnterNpcChallengeReconnectEnter"] = R[34]
+  [0031] SETFIELD       A=0 B=35 C=35 k=1 Bx=17991 sBx=-47544 Ax=4605696 sJ=-12171519 raw=0x23238012 ; R[0][K[35] "EnterWeeklyChallengeEnter"] = R[35]
+  [0032] SETFIELD       A=0 B=36 C=36 k=1 Bx=18505 sBx=-47030 Ax=4737280 sJ=-12039935 raw=0x24248012 ; R[0][K[36] "EnterWeeklyChallengeReconnectEnter"] = R[36]
+  [0033] SETFIELD       A=0 B=37 C=37 k=1 Bx=19019 sBx=-46516 Ax=4868864 sJ=-11908351 raw=0x25258012 ; R[0][K[37] "EnterTrainBattleEnter"] = R[37]
+  [0034] SETFIELD       A=0 B=38 C=38 k=1 Bx=19533 sBx=-46002 Ax=5000448 sJ=-11776767 raw=0x26268012 ; R[0][K[38] "EnterTrainBattleReconnectEnter"] = R[38]
+  [0035] SETFIELD       A=0 B=39 C=39 k=1 Bx=20047 sBx=-45488 Ax=5132032 sJ=-11645183 raw=0x27278012 ; R[0][K[39] "EnterTeamBlood"] = R[39]
+  [0036] SETFIELD       A=0 B=40 C=40 k=1 Bx=20561 sBx=-44974 Ax=5263616 sJ=-11513599 raw=0x28288012 ; R[0][K[40] "EnterTeamBloodReconnect"] = R[40]
+  [0037] SETFIELD       A=0 B=41 C=41 k=1 Bx=21075 sBx=-44460 Ax=5395200 sJ=-11382015 raw=0x29298012 ; R[0][K[41] "EnterTeamBeast"] = R[41]
+  [0038] SETFIELD       A=0 B=42 C=42 k=1 Bx=21589 sBx=-43946 Ax=5526784 sJ=-11250431 raw=0x2A2A8012 ; R[0][K[42] "EnterTeamBeastReconnect"] = R[42]
+  [0039] SETFIELD       A=0 B=43 C=43 k=1 Bx=22103 sBx=-43432 Ax=5658368 sJ=-11118847 raw=0x2B2B8012 ; R[0][K[43] "EnterFinalBattleSpeedUp"] = R[43]
+  [0040] SETFIELD       A=0 B=44 C=44 k=1 Bx=22617 sBx=-42918 Ax=5789952 sJ=-10987263 raw=0x2C2C8012 ; R[0][K[44] "EnterFinalBattle"] = R[44]
+  [0041] SETFIELD       A=0 B=45 C=45 k=1 Bx=23131 sBx=-42404 Ax=5921536 sJ=-10855679 raw=0x2D2D8012 ; R[0][K[45] "EnterFinalBattleReconnect"] = R[45]
+  [0042] SETFIELD       A=0 B=46 C=46 k=1 Bx=23645 sBx=-41890 Ax=6053120 sJ=-10724095 raw=0x2E2E8012 ; R[0][K[46] "OnFinalBattleSummer"] = R[46]
+  [0043] SETFIELD       A=0 B=47 C=47 k=1 Bx=24159 sBx=-41376 Ax=6184704 sJ=-10592511 raw=0x2F2F8012 ; R[0][K[47] "PVEIntro"] = R[47]
+  [0044] SETFIELD       A=0 B=48 C=48 k=1 Bx=24673 sBx=-40862 Ax=6316288 sJ=-10460927 raw=0x30308012 ; R[0][K[48] "PVPIntro"] = R[48]
+  [0045] SETFIELD       A=0 B=49 C=49 k=1 Bx=25187 sBx=-40348 Ax=6447872 sJ=-10329343 raw=0x31318012 ; R[0][K[49] "PVESpecialDelay"] = R[49]
+  [0046] SETFIELD       A=0 B=50 C=50 k=1 Bx=25701 sBx=-39834 Ax=6579456 sJ=-10197759 raw=0x32328012 ; R[0][K[50] "LeaderIntro"] = R[50]
+  [0047] SETFIELD       A=0 B=51 C=51 k=1 Bx=26215 sBx=-39320 Ax=6711040 sJ=-10066175 raw=0x33338012 ; R[0][K[51] "WorldLeaderIntro"] = R[51]
+  [0048] SETFIELD       A=0 B=52 C=52 k=1 Bx=26729 sBx=-38806 Ax=6842624 sJ=-9934591 raw=0x34348012 ; R[0][K[52] "Intro"] = R[52]
+  [0049] SETFIELD       A=0 B=53 C=54 k=1 Bx=27755 sBx=-37780 Ax=7105280 sJ=-9671935 raw=0x36358012 ; R[0][K[53] "EnterPrePlay"] = R[54]
+  [0050] SETFIELD       A=0 B=55 C=56 k=1 Bx=28783 sBx=-36752 Ax=7368448 sJ=-9408767 raw=0x38378012 ; R[0][K[55] "EnterSwapSelect"] = R[56]
+  [0051] SETFIELD       A=0 B=57 C=58 k=1 Bx=29811 sBx=-35724 Ax=7631616 sJ=-9145599 raw=0x3A398012 ; R[0][K[57] "EnterSelectRidPet"] = R[58]
+  [0052] SETFIELD       A=0 B=59 C=60 k=1 Bx=30839 sBx=-34696 Ax=7894784 sJ=-8882431 raw=0x3C3B8012 ; R[0][K[59] "EnterSwapPlay"] = R[60]
+  [0053] SETFIELD       A=0 B=61 C=62 k=1 Bx=31867 sBx=-33668 Ax=8157952 sJ=-8619263 raw=0x3E3D8012 ; R[0][K[61] "EnterEvolutionPlay"] = R[62]
+  [0054] SETFIELD       A=0 B=63 C=64 k=1 Bx=32895 sBx=-32640 Ax=8421120 sJ=-8356095 raw=0x403F8012 ; R[0][K[63] "EnterRoundSelect"] = R[64]
+  [0055] SETFIELD       A=0 B=65 C=66 k=1 Bx=33923 sBx=-31612 Ax=8684288 sJ=-8092927 raw=0x42418012 ; R[0][K[65] "EnterTeamCatch"] = R[66]
+  [0056] SETFIELD       A=0 B=67 C=67 k=1 Bx=34439 sBx=-31096 Ax=8816384 sJ=-7960831 raw=0x43438012 ; R[0][K[67] "FinalBattleToP2"] = R[67]
+  [0057] SETFIELD       A=0 B=68 C=69 k=1 Bx=35465 sBx=-30070 Ax=9079040 sJ=-7698175 raw=0x45448012 ; R[0][K[68] "EnterTeamBeastCatch"] = R[69]
+  [0058] SETFIELD       A=0 B=70 C=71 k=1 Bx=36493 sBx=-29042 Ax=9342208 sJ=-7435007 raw=0x47468012 ; R[0][K[70] "EnterTeamBeastDefeat"] = R[71]
+  [0059] SETFIELD       A=0 B=72 C=73 k=1 Bx=37521 sBx=-28014 Ax=9605376 sJ=-7171839 raw=0x49488012 ; R[0][K[72] "EnterWaitOther"] = R[73]
+  [0060] SETFIELD       A=0 B=74 C=75 k=1 Bx=38549 sBx=-26986 Ax=9868544 sJ=-6908671 raw=0x4B4A8012 ; R[0][K[74] "EnterInstantPlay"] = R[75]
+  [0061] SETFIELD       A=0 B=76 C=77 k=1 Bx=39577 sBx=-25958 Ax=10131712 sJ=-6645503 raw=0x4D4C8012 ; R[0][K[76] "EnterRoundPlay"] = R[77]
+  [0062] SETFIELD       A=0 B=78 C=78 k=1 Bx=40093 sBx=-25442 Ax=10263808 sJ=-6513407 raw=0x4E4E8012 ; R[0][K[78] "EnterEvolutionSelect"] = R[78]
+  [0063] SETFIELD       A=0 B=79 C=80 k=1 Bx=41119 sBx=-24416 Ax=10526464 sJ=-6250751 raw=0x504F8012 ; R[0][K[79] "EnterNpcAutoEscape"] = R[80]
+  [0064] SETFIELD       A=0 B=81 C=82 k=1 Bx=42147 sBx=-23388 Ax=10789632 sJ=-5987583 raw=0x52518012 ; R[0][K[81] "EnterCatchSuccess"] = R[82]
+  [0065] SETFIELD       A=0 B=83 C=83 k=1 Bx=42663 sBx=-22872 Ax=10921728 sJ=-5855487 raw=0x53538012 ; R[0][K[83] "RefreshVisitCatch"] = R[83]
+  [0066] SETFIELD       A=0 B=84 C=85 k=1 Bx=43689 sBx=-21846 Ax=11184384 sJ=-5592831 raw=0x55548012 ; R[0][K[84] "EnterEnemyEscape"] = R[85]
+  [0067] SETFIELD       A=0 B=86 C=87 k=1 Bx=44717 sBx=-20818 Ax=11447552 sJ=-5329663 raw=0x57568012 ; R[0][K[86] "EnterEnemyNpcEscape"] = R[87]
+  [0068] SETFIELD       A=0 B=88 C=89 k=1 Bx=45745 sBx=-19790 Ax=11710720 sJ=-5066495 raw=0x59588012 ; R[0][K[88] "EnterNormalOver"] = R[89]
+  [0069] SETFIELD       A=0 B=90 C=91 k=1 Bx=46773 sBx=-18762 Ax=11973888 sJ=-4803327 raw=0x5B5A8012 ; R[0][K[90] "EnterFailOver"] = R[91]
+  [0070] SETFIELD       A=0 B=92 C=93 k=1 Bx=47801 sBx=-17734 Ax=12237056 sJ=-4540159 raw=0x5D5C8012 ; R[0][K[92] "EnterSeamlessOver"] = R[93]
+  [0071] SETFIELD       A=0 B=94 C=95 k=1 Bx=48829 sBx=-16706 Ax=12500224 sJ=-4276991 raw=0x5F5E8012 ; R[0][K[94] "EnterWorldLeaderSeamlessOver"] = R[95]
+  [0072] SETFIELD       A=0 B=96 C=97 k=1 Bx=49857 sBx=-15678 Ax=12763392 sJ=-4013823 raw=0x61608012 ; R[0][K[96] "EnterPureBlackOut"] = R[97]
+  [0073] SETFIELD       A=0 B=98 C=99 k=1 Bx=50885 sBx=-14650 Ax=13026560 sJ=-3750655 raw=0x63628012 ; R[0][K[98] "EnterPVPOver"] = R[99]
+  [0074] SETFIELD       A=0 B=100 C=101 k=1 Bx=51913 sBx=-13622 Ax=13289728 sJ=-3487487 raw=0x65648012 ; R[0][K[100] "EnterPVPRankOver"] = R[101]
+  [0075] SETFIELD       A=0 B=102 C=103 k=1 Bx=52941 sBx=-12594 Ax=13552896 sJ=-3224319 raw=0x67668012 ; R[0][K[102] "EnterBloodTeamBattleOver"] = R[103]
+  [0076] SETFIELD       A=0 B=104 C=105 k=1 Bx=53969 sBx=-11566 Ax=13816064 sJ=-2961151 raw=0x69688012 ; R[0][K[104] "EnterBeastTeamBattleOver"] = R[105]
+  [0077] SETFIELD       A=0 B=106 C=107 k=1 Bx=54997 sBx=-10538 Ax=14079232 sJ=-2697983 raw=0x6B6A8012 ; R[0][K[106] "DirectOverBattle"] = R[107]
+  [0078] SETFIELD       A=0 B=108 C=109 k=1 Bx=56025 sBx=-9510 Ax=14342400 sJ=-2434815 raw=0x6D6C8012 ; R[0][K[108] "ExitBattle"] = R[109]
+  [0079] SETFIELD       A=0 B=110 C=111 k=1 Bx=57053 sBx=-8482 Ax=14605568 sJ=-2171647 raw=0x6F6E8012 ; R[0][K[110] "EnterPlayerSkillEscape"] = R[111]
+  [0080] SETFIELD       A=0 B=112 C=113 k=1 Bx=58081 sBx=-7454 Ax=14868736 sJ=-1908479 raw=0x71708012 ; R[0][K[112] "EnterPvpPlayerPerform"] = R[113]
+  [0081] SETFIELD       A=0 B=114 C=115 k=1 Bx=59109 sBx=-6426 Ax=15131904 sJ=-1645311 raw=0x73728012 ; R[0][K[114] "EnterRevertTeamBattle"] = R[115]
+  [0082] SETFIELD       A=0 B=116 C=117 k=1 Bx=60137 sBx=-5398 Ax=15395072 sJ=-1382143 raw=0x75748012 ; R[0][K[116] "EnterRebuildBattleField"] = R[117]
+  [0083] SETFIELD       A=0 B=118 C=119 k=1 Bx=61165 sBx=-4370 Ax=15658240 sJ=-1118975 raw=0x77768012 ; R[0][K[118] "PrepareBattleOver"] = R[119]
+  [0084] SETFIELD       A=0 B=120 C=121 k=1 Bx=62193 sBx=-3342 Ax=15921408 sJ=-855807 raw=0x79788012 ; R[0][K[120] "EnterRunAwayLeadFight"] = R[121]
+  [0085] SETFIELD       A=0 B=122 C=123 k=1 Bx=63221 sBx=-2314 Ax=16184576 sJ=-592639 raw=0x7B7A8012 ; R[0][K[122] "EnterNpcChallengeOver"] = R[123]
+  [0086] SETFIELD       A=0 B=124 C=125 k=1 Bx=64249 sBx=-1286 Ax=16447744 sJ=-329471 raw=0x7D7C8012 ; R[0][K[124] "FinalBattleOver"] = R[125]
+  [0087] SETFIELD       A=0 B=126 C=127 k=1 Bx=65277 sBx=-258 Ax=16710912 sJ=-66303 raw=0x7F7E8012 ; R[0][K[126] "EnterWaitOtherLoad"] = R[127]
+  [0088] SETFIELD       A=0 B=128 C=129 k=1 Bx=66305 sBx=770 Ax=16974080 sJ=196865 raw=0x81808012 ; R[0][K[128] "EnterWeeklyChallengeOver"] = R[129]
+  [0089] SETFIELD       A=0 B=130 C=131 k=1 Bx=67333 sBx=1798 Ax=17237248 sJ=460033 raw=0x83828012 ; R[0][K[130] "EnterWeeklyChallengeAgain"] = R[131]
+  [0090] SETFIELD       A=0 B=132 C=133 k=1 Bx=68361 sBx=2826 Ax=17500416 sJ=723201 raw=0x85848012 ; R[0][K[132] "EnterTrainBattleOver"] = R[133]
+  [0091] SETFIELD       A=0 B=134 C=135 k=1 Bx=69389 sBx=3854 Ax=17763584 sJ=986369 raw=0x87868012 ; R[0][K[134] "EnterTerritoryTrialOver"] = R[135]
+  [0092] SETFIELD       A=0 B=136 C=137 k=1 Bx=70417 sBx=4882 Ax=18026752 sJ=1249537 raw=0x89888012 ; R[0][K[136] "EnterTerritoryTrialAgain"] = R[137]
+  [0093] SETFIELD       A=0 B=138 C=138 k=1 Bx=70933 sBx=5398 Ax=18158848 sJ=1381633 raw=0x8A8A8012 ; R[0][K[138] "EnterB1FinalBattle"] = R[138]
+  [0094] SETFIELD       A=0 B=139 C=139 k=1 Bx=71447 sBx=5912 Ax=18290432 sJ=1513217 raw=0x8B8B8012 ; R[0][K[139] "EnterB1FinalBattleReconnect"] = R[139]
+  [0095] SETFIELD       A=0 B=140 C=140 k=1 Bx=71961 sBx=6426 Ax=18422016 sJ=1644801 raw=0x8C8C8012 ; R[0][K[140] "B1FinalBattleToP2"] = R[140]
+  [0096] SETFIELD       A=0 B=141 C=141 k=1 Bx=72475 sBx=6940 Ax=18553600 sJ=1776385 raw=0x8D8D8012 ; R[0][K[141] "B1FinalBattleToP3"] = R[141]
+  [0097] SETFIELD       A=0 B=142 C=142 k=1 Bx=72989 sBx=7454 Ax=18685184 sJ=1907969 raw=0x8E8E8012 ; R[0][K[142] "B1FBP3FinalSkill"] = R[142]
+  [0098] SETFIELD       A=0 B=143 C=143 k=1 Bx=73503 sBx=7968 Ax=18816768 sJ=2039553 raw=0x8F8F8012 ; R[0][K[143] "B1BattleRefreshSkillItem"] = R[143]
+  [0099] SETFIELD       A=0 B=144 C=145 k=1 Bx=74529 sBx=8994 Ax=19079424 sJ=2302209 raw=0x91908012 ; R[0][K[144] "EnterNoPC"] = R[145]
+  [0100] NEWTABLE       A=1 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2561 sJ=-16774654 raw=0x00050093
+  [0101] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0102] SETFIELD       A=1 B=147 C=147 k=1 Bx=75559 sBx=10024 Ax=19343105 sJ=2565890 raw=0x93938092 ; R[1][K[147] "EnterSkill"] = R[147]
+  [0103] SETFIELD       A=1 B=148 C=148 k=1 Bx=76073 sBx=10538 Ax=19474689 sJ=2697474 raw=0x94948092 ; R[1][K[148] "EnterSwap"] = R[148]
+  [0104] SETFIELD       A=1 B=149 C=149 k=1 Bx=76587 sBx=11052 Ax=19606273 sJ=2829058 raw=0x95958092 ; R[1][K[149] "EnterCatch"] = R[149]
+  [0105] SETFIELD       A=1 B=150 C=150 k=1 Bx=77101 sBx=11566 Ax=19737857 sJ=2960642 raw=0x96968092 ; R[1][K[150] "EnterPlayerSkill"] = R[150]
+  [0106] SETFIELD       A=1 B=151 C=151 k=1 Bx=77615 sBx=12080 Ax=19869441 sJ=3092226 raw=0x97978092 ; R[1][K[151] "EnterItem"] = R[151]
+  [0107] SETFIELD       A=1 B=152 C=152 k=1 Bx=78129 sBx=12594 Ax=20001025 sJ=3223810 raw=0x98988092 ; R[1][K[152] "EnterEscape"] = R[152]
+  [0108] SETFIELD       A=1 B=153 C=153 k=1 Bx=78643 sBx=13108 Ax=20132609 sJ=3355394 raw=0x99998092 ; R[1][K[153] "EnterNone"] = R[153]
+  [0109] SETFIELD       A=1 B=154 C=154 k=1 Bx=79157 sBx=13622 Ax=20264193 sJ=3486978 raw=0x9A9A8092 ; R[1][K[154] "EnterSurrender"] = R[154]
+  [0110] SETFIELD       A=1 B=155 C=155 k=1 Bx=79671 sBx=14136 Ax=20395777 sJ=3618562 raw=0x9B9B8092 ; R[1][K[155] "EnterStepAway"] = R[155]
+  [0111] SETFIELD       A=1 B=156 C=156 k=1 Bx=80185 sBx=14650 Ax=20527361 sJ=3750146 raw=0x9C9C8092 ; R[1][K[156] "EnterGiveUp"] = R[156]
+  [0112] SETFIELD       A=0 B=146 C=1 k=0 Bx=804 sBx=-64731 Ax=205824 sJ=-16571391 raw=0x01920012 ; R[0][K[146] "RoundEvent"] = R[1]
+  [0113] SETFIELD       A=0 B=157 C=158 k=1 Bx=81211 sBx=15676 Ax=20790016 sJ=4012801 raw=0x9E9D8012 ; R[0][K[157] "FailedUIClicked"] = R[158]
+  [0114] SETFIELD       A=0 B=159 C=160 k=1 Bx=82239 sBx=16704 Ax=21053184 sJ=4275969 raw=0xA09F8012 ; R[0][K[159] "StartTweenOut"] = R[160]
+  [0115] SETFIELD       A=0 B=161 C=162 k=1 Bx=83267 sBx=17732 Ax=21316352 sJ=4539137 raw=0xA2A18012 ; R[0][K[161] "LoadingTweenInComplete"] = R[162]
+  [0116] SETFIELD       A=0 B=163 C=164 k=1 Bx=84295 sBx=18760 Ax=21579520 sJ=4802305 raw=0xA4A38012 ; R[0][K[163] "LoadingTweenOutComplete"] = R[164]
+  [0117] SETFIELD       A=0 B=165 C=166 k=1 Bx=85323 sBx=19788 Ax=21842688 sJ=5065473 raw=0xA6A58012 ; R[0][K[165] "TransformLoadingOpened"] = R[166]
+  [0118] SETFIELD       A=0 B=167 C=168 k=1 Bx=86351 sBx=20816 Ax=22105856 sJ=5328641 raw=0xA8A78012 ; R[0][K[167] "SceneLoadingOpened"] = R[168]
+  [0119] SETFIELD       A=0 B=169 C=170 k=1 Bx=87379 sBx=21844 Ax=22369024 sJ=5591809 raw=0xAAA98012 ; R[0][K[169] "LoadingBattleFailedUIComplete"] = R[170]
+  [0120] SETFIELD       A=0 B=171 C=172 k=1 Bx=88407 sBx=22872 Ax=22632192 sJ=5854977 raw=0xACAB8012 ; R[0][K[171] "ROUND_STATE_SELECT"] = R[172]
+  [0121] SETFIELD       A=0 B=173 C=174 k=1 Bx=89435 sBx=23900 Ax=22895360 sJ=6118145 raw=0xAEAD8012 ; R[0][K[173] "UI_SHOW_INFO_POPUP"] = R[174]
+  [0122] SETFIELD       A=0 B=175 C=176 k=1 Bx=90463 sBx=24928 Ax=23158528 sJ=6381313 raw=0xB0AF8012 ; R[0][K[175] "UI_HIDE_INFO_POPUP"] = R[176]
+  [0123] SETFIELD       A=0 B=177 C=178 k=1 Bx=91491 sBx=25956 Ax=23421696 sJ=6644481 raw=0xB2B18012 ; R[0][K[177] "UI_CLEAR_PRESELECT_POPUPS"] = R[178]
+  [0124] SETFIELD       A=0 B=179 C=180 k=1 Bx=92519 sBx=26984 Ax=23684864 sJ=6907649 raw=0xB4B38012 ; R[0][K[179] "UI_SHOW_ENTITY_POPUP"] = R[180]
+  [0125] SETFIELD       A=0 B=181 C=182 k=1 Bx=93547 sBx=28012 Ax=23948032 sJ=7170817 raw=0xB6B58012 ; R[0][K[181] "UI_HIDE_ENTITY_POPUP"] = R[182]
+  [0126] SETFIELD       A=0 B=183 C=184 k=1 Bx=94575 sBx=29040 Ax=24211200 sJ=7433985 raw=0xB8B78012 ; R[0][K[183] "UI_ENERGY_TRACK_FINISH"] = R[184]
+  [0127] SETFIELD       A=0 B=185 C=186 k=1 Bx=95603 sBx=30068 Ax=24474368 sJ=7697153 raw=0xBAB98012 ; R[0][K[185] "UI_UPDATE_ENERGY"] = R[186]
+  [0128] SETFIELD       A=0 B=187 C=188 k=1 Bx=96631 sBx=31096 Ax=24737536 sJ=7960321 raw=0xBCBB8012 ; R[0][K[187] "UI_UPDATE_PETNUM"] = R[188]
+  [0129] SETFIELD       A=0 B=189 C=190 k=1 Bx=97659 sBx=32124 Ax=25000704 sJ=8223489 raw=0xBEBD8012 ; R[0][K[189] "UI_INSTANT_UPDATE_ITEM"] = R[190]
+  [0130] SETFIELD       A=0 B=191 C=192 k=1 Bx=98687 sBx=33152 Ax=25263872 sJ=8486657 raw=0xC0BF8012 ; R[0][K[191] "UI_UPDATE_PLAYERSKILL_TUTORIAL"] = R[192]
+  [0131] SETFIELD       A=0 B=193 C=194 k=1 Bx=99715 sBx=34180 Ax=25527040 sJ=8749825 raw=0xC2C18012 ; R[0][K[193] "PET_DEAD"] = R[194]
+  [0132] SETFIELD       A=0 B=195 C=196 k=1 Bx=100743 sBx=35208 Ax=25790208 sJ=9012993 raw=0xC4C38012 ; R[0][K[195] "BATTLE_CLICKED_PET"] = R[196]
+  [0133] SETFIELD       A=0 B=197 C=198 k=1 Bx=101771 sBx=36236 Ax=26053376 sJ=9276161 raw=0xC6C58012 ; R[0][K[197] "BATTLE_CLICKED_SKILL"] = R[198]
+  [0134] SETFIELD       A=0 B=199 C=200 k=1 Bx=102799 sBx=37264 Ax=26316544 sJ=9539329 raw=0xC8C78012 ; R[0][K[199] "BATTLE_CLICKED_BAG_PET"] = R[200]
+  [0135] SETFIELD       A=0 B=201 C=202 k=1 Bx=103827 sBx=38292 Ax=26579712 sJ=9802497 raw=0xCAC98012 ; R[0][K[201] "BATTLE_CLICKED_BALL"] = R[202]
+  [0136] SETFIELD       A=0 B=203 C=204 k=1 Bx=104855 sBx=39320 Ax=26842880 sJ=10065665 raw=0xCCCB8012 ; R[0][K[203] "BATTLE_CLICKED_ITEM"] = R[204]
+  [0137] SETFIELD       A=0 B=205 C=206 k=1 Bx=105883 sBx=40348 Ax=27106048 sJ=10328833 raw=0xCECD8012 ; R[0][K[205] "BATTLE_CLICKED_PLAYERSKILL"] = R[206]
+  [0138] SETFIELD       A=0 B=207 C=208 k=1 Bx=106911 sBx=41376 Ax=27369216 sJ=10592001 raw=0xD0CF8012 ; R[0][K[207] "BATTLE_CLICKED_CANCELPLAYERSKILL"] = R[208]
+  [0139] SETFIELD       A=0 B=209 C=210 k=1 Bx=107939 sBx=42404 Ax=27632384 sJ=10855169 raw=0xD2D18012 ; R[0][K[209] "BATTLE_CLICKED_UI_CANCELPLAYERSKILL"] = R[210]
+  [0140] SETFIELD       A=0 B=211 C=212 k=1 Bx=108967 sBx=43432 Ax=27895552 sJ=11118337 raw=0xD4D38012 ; R[0][K[211] "BATTLE_BEGIN_USE_PLAYERSKILL"] = R[212]
+  [0141] SETFIELD       A=0 B=213 C=214 k=1 Bx=109995 sBx=44460 Ax=28158720 sJ=11381505 raw=0xD6D58012 ; R[0][K[213] "BATTLE_USE_PLAYERSKILL_SUCCESS"] = R[214]
+  [0142] SETFIELD       A=0 B=215 C=216 k=1 Bx=111023 sBx=45488 Ax=28421888 sJ=11644673 raw=0xD8D78012 ; R[0][K[215] "BATTLE_RECOVER_PLAYERSKILL"] = R[216]
+  [0143] SETFIELD       A=0 B=217 C=218 k=1 Bx=112051 sBx=46516 Ax=28685056 sJ=11907841 raw=0xDAD98012 ; R[0][K[217] "BATTLE_SET_PLAYERSKILL"] = R[218]
+  [0144] SETFIELD       A=0 B=219 C=220 k=1 Bx=113079 sBx=47544 Ax=28948224 sJ=12171009 raw=0xDCDB8012 ; R[0][K[219] "BATTLE_USE_RECOVER_ITEM_SUCCESS"] = R[220]
+  [0145] SETFIELD       A=0 B=221 C=222 k=1 Bx=114107 sBx=48572 Ax=29211392 sJ=12434177 raw=0xDEDD8012 ; R[0][K[221] "BATTLE_BEGING_USE_CHANGE_PET_SKILL"] = R[222]
+  [0146] SETFIELD       A=0 B=223 C=224 k=1 Bx=115135 sBx=49600 Ax=29474560 sJ=12697345 raw=0xE0DF8012 ; R[0][K[223] "BATTLE_PLAY_PLAYERSKILL_SUCCESS"] = R[224]
+  [0147] SETFIELD       A=0 B=225 C=226 k=1 Bx=116163 sBx=50628 Ax=29737728 sJ=12960513 raw=0xE2E18012 ; R[0][K[225] "BATTLE_CANCEL_USE_PLAYERSKILL"] = R[226]
+  [0148] SETFIELD       A=0 B=227 C=228 k=1 Bx=117191 sBx=51656 Ax=30000896 sJ=13223681 raw=0xE4E38012 ; R[0][K[227] "BATTLE_PLAYERSKILL_ISHIDE_HP"] = R[228]
+  [0149] SETFIELD       A=0 B=229 C=230 k=1 Bx=118219 sBx=52684 Ax=30264064 sJ=13486849 raw=0xE6E58012 ; R[0][K[229] "CHANGE_OPERATE_TYPE"] = R[230]
+  [0150] SETFIELD       A=0 B=231 C=232 k=1 Bx=119247 sBx=53712 Ax=30527232 sJ=13750017 raw=0xE8E78012 ; R[0][K[231] "UI_HIDE"] = R[232]
+  [0151] SETFIELD       A=0 B=233 C=234 k=1 Bx=120275 sBx=54740 Ax=30790400 sJ=14013185 raw=0xEAE98012 ; R[0][K[233] "UI_SHOW"] = R[234]
+  [0152] SETFIELD       A=0 B=235 C=236 k=1 Bx=121303 sBx=55768 Ax=31053568 sJ=14276353 raw=0xECEB8012 ; R[0][K[235] "UI_USE_PLAYERSKILL_UPDATE"] = R[236]
+  [0153] SETFIELD       A=0 B=237 C=238 k=1 Bx=122331 sBx=56796 Ax=31316736 sJ=14539521 raw=0xEEED8012 ; R[0][K[237] "PLAYER_LOAD_MODEL_OVER"] = R[238]
+  [0154] SETFIELD       A=0 B=239 C=240 k=1 Bx=123359 sBx=57824 Ax=31579904 sJ=14802689 raw=0xF0EF8012 ; R[0][K[239] "PLAYER_SPAWNED"] = R[240]
+  [0155] SETFIELD       A=0 B=241 C=242 k=1 Bx=124387 sBx=58852 Ax=31843072 sJ=15065857 raw=0xF2F18012 ; R[0][K[241] "ALL_ONLOOKER_SPAWNED"] = R[242]
+  [0156] SETFIELD       A=0 B=243 C=242 k=1 Bx=124391 sBx=58856 Ax=31844096 sJ=15066881 raw=0xF2F38012 ; R[0][K[243] "FADE_OBJECT_REACH_TARGET_ALPHA"] = R[242]
+  [0157] SETFIELD       A=0 B=244 C=245 k=1 Bx=125929 sBx=60394 Ax=32237824 sJ=15460609 raw=0xF5F48012 ; R[0][K[244] "PET_HP_CHANGED"] = R[245]
+  [0158] SETFIELD       A=0 B=246 C=247 k=1 Bx=126957 sBx=61422 Ax=32500992 sJ=15723777 raw=0xF7F68012 ; R[0][K[246] "PET_CATCH_CHANGED"] = R[247]
+  [0159] SETFIELD       A=0 B=248 C=249 k=1 Bx=127985 sBx=62450 Ax=32764160 sJ=15986945 raw=0xF9F88012 ; R[0][K[248] "PET_TYPES_CHANGED"] = R[249]
+  [0160] SETFIELD       A=0 B=250 C=251 k=1 Bx=129013 sBx=63478 Ax=33027328 sJ=16250113 raw=0xFBFA8012 ; R[0][K[250] "PET_RUNAWAY_CHANGE"] = R[251]
+  [0161] SETFIELD       A=0 B=252 C=253 k=1 Bx=130041 sBx=64506 Ax=33290496 sJ=16513281 raw=0xFDFC8012 ; R[0][K[252] "MONSTER_RUNAWAY_SHOW_POPUP"] = R[253]
+  [0162] SETFIELD       A=0 B=254 C=255 k=1 Bx=131069 sBx=65534 Ax=33553664 sJ=16776449 raw=0xFFFE8012 ; R[0][K[254] "BATTLE_PET_DIE"] = R[255]
+  [0163] LOADK          A=1 B=128 C=0 k=0 Bx=256 sBx=-65279 Ax=65537 sJ=-16711678 raw=0x00800083 ; R[1] = K[256] "PLAYER_DESTROYED"
+  [0164] LOADK          A=2 B=128 C=0 k=1 Bx=257 sBx=-65278 Ax=65794 sJ=-16711421 raw=0x00808103 ; R[2] = K[257] "BattleEvent.PLAYER_DESTROYED"
+  [0165] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0166] LOADK          A=1 B=129 C=0 k=0 Bx=258 sBx=-65277 Ax=66049 sJ=-16711166 raw=0x00810083 ; R[1] = K[258] "BATTLE_PET_CATCH_SUCCESS"
+  [0167] LOADK          A=2 B=129 C=0 k=1 Bx=259 sBx=-65276 Ax=66306 sJ=-16710909 raw=0x00818103 ; R[2] = K[259] "BattleEvent.BATTLE_PET_CATCH_SUCCESS"
+  [0168] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0169] LOADK          A=1 B=130 C=0 k=0 Bx=260 sBx=-65275 Ax=66561 sJ=-16710654 raw=0x00820083 ; R[1] = K[260] "PET_SPAWNED"
+  [0170] LOADK          A=2 B=130 C=0 k=1 Bx=261 sBx=-65274 Ax=66818 sJ=-16710397 raw=0x00828103 ; R[2] = K[261] "BattleEvent.PET_SPAWNED"
+  [0171] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0172] LOADK          A=1 B=131 C=0 k=0 Bx=262 sBx=-65273 Ax=67073 sJ=-16710142 raw=0x00830083 ; R[1] = K[262] "PET_DISTROYED"
+  [0173] LOADK          A=2 B=131 C=0 k=1 Bx=263 sBx=-65272 Ax=67330 sJ=-16709885 raw=0x00838103 ; R[2] = K[263] "BattleEvent.PET_DISTROYED"
+  [0174] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0175] LOADK          A=1 B=132 C=0 k=0 Bx=264 sBx=-65271 Ax=67585 sJ=-16709630 raw=0x00840083 ; R[1] = K[264] "PET_TURN_IS_UP"
+  [0176] LOADK          A=2 B=132 C=0 k=1 Bx=265 sBx=-65270 Ax=67842 sJ=-16709373 raw=0x00848103 ; R[2] = K[265] "BattleEvent.PET_TURN_IS_UP"
+  [0177] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0178] LOADK          A=1 B=133 C=0 k=0 Bx=266 sBx=-65269 Ax=68097 sJ=-16709118 raw=0x00850083 ; R[1] = K[266] "BATTLE_STATE_SETTLEMENT"
+  [0179] LOADK          A=2 B=133 C=0 k=1 Bx=267 sBx=-65268 Ax=68354 sJ=-16708861 raw=0x00858103 ; R[2] = K[267] "BattleEvent.BATTLE_STATE_SETTLEMENT"
+  [0180] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0181] LOADK          A=1 B=134 C=0 k=0 Bx=268 sBx=-65267 Ax=68609 sJ=-16708606 raw=0x00860083 ; R[1] = K[268] "BATTLE_CLICKED_CHANGEPET"
+  [0182] LOADK          A=2 B=134 C=0 k=1 Bx=269 sBx=-65266 Ax=68866 sJ=-16708349 raw=0x00868103 ; R[2] = K[269] "BattleEvent.BATTLE_CLICKED_CHANGEPET"
+  [0183] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0184] LOADK          A=1 B=135 C=0 k=0 Bx=270 sBx=-65265 Ax=69121 sJ=-16708094 raw=0x00870083 ; R[1] = K[270] "BATTLE_PET_SELECT_SKILL_COMPLETE"
+  [0185] LOADK          A=2 B=135 C=0 k=1 Bx=271 sBx=-65264 Ax=69378 sJ=-16707837 raw=0x00878103 ; R[2] = K[271] "BattleEvent.BATTLE_PET_SELECT_SKILL_COMPLETE"
+  [0186] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0187] LOADK          A=1 B=136 C=0 k=0 Bx=272 sBx=-65263 Ax=69633 sJ=-16707582 raw=0x00880083 ; R[1] = K[272] "BATTLE_PET_SELECT_IDLE"
+  [0188] LOADK          A=2 B=136 C=0 k=1 Bx=273 sBx=-65262 Ax=69890 sJ=-16707325 raw=0x00888103 ; R[2] = K[273] "BattleEvent.BATTLE_PET_SELECT_IDLE"
+  [0189] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0190] LOADK          A=1 B=137 C=0 k=0 Bx=274 sBx=-65261 Ax=70145 sJ=-16707070 raw=0x00890083 ; R[1] = K[274] "BATTLE_PET_SELECT_ROLE_HP"
+  [0191] LOADK          A=2 B=137 C=0 k=1 Bx=275 sBx=-65260 Ax=70402 sJ=-16706813 raw=0x00898103 ; R[2] = K[275] "BattleEvent.BATTLE_PET_SELECT_ROLE_HP"
+  [0192] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0193] LOADK          A=1 B=138 C=0 k=0 Bx=276 sBx=-65259 Ax=70657 sJ=-16706558 raw=0x008A0083 ; R[1] = K[276] "BATTLE_PET_SELECT_TARGET_COMPLETE"
+  [0194] LOADK          A=2 B=138 C=0 k=1 Bx=277 sBx=-65258 Ax=70914 sJ=-16706301 raw=0x008A8103 ; R[2] = K[277] "BattleEvent.BATTLE_PET_SELECT_TARGET_COMPLETE"
+  [0195] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0196] LOADK          A=1 B=139 C=0 k=0 Bx=278 sBx=-65257 Ax=71169 sJ=-16706046 raw=0x008B0083 ; R[1] = K[278] "PET_CHANGE_BUFF_VISIBILITY"
+  [0197] LOADK          A=2 B=139 C=0 k=1 Bx=279 sBx=-65256 Ax=71426 sJ=-16705789 raw=0x008B8103 ; R[2] = K[279] "BattleEvent.PET_CHANGE_BUFF_VISIBILITY"
+  [0198] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0199] LOADK          A=1 B=140 C=0 k=0 Bx=280 sBx=-65255 Ax=71681 sJ=-16705534 raw=0x008C0083 ; R[1] = K[280] "PUSHBACK_CMD_SENT"
+  [0200] LOADK          A=2 B=140 C=0 k=1 Bx=281 sBx=-65254 Ax=71938 sJ=-16705277 raw=0x008C8103 ; R[2] = K[281] "BattleEvent.PUSHBACK_CMD_SENT"
+  [0201] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0202] LOADK          A=1 B=141 C=0 k=0 Bx=282 sBx=-65253 Ax=72193 sJ=-16705022 raw=0x008D0083 ; R[1] = K[282] "BATTLE_PROCESS_ENERGY_TRACK_END"
+  [0203] LOADK          A=2 B=141 C=0 k=1 Bx=283 sBx=-65252 Ax=72450 sJ=-16704765 raw=0x008D8103 ; R[2] = K[283] "BattleEvent.BATTLE_PROCESS_ENERGY_TRACK_END"
+  [0204] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0205] LOADK          A=1 B=142 C=0 k=0 Bx=284 sBx=-65251 Ax=72705 sJ=-16704510 raw=0x008E0083 ; R[1] = K[284] "BATTLE_PROCESS_EVOLUTION_END"
+  [0206] LOADK          A=2 B=142 C=0 k=1 Bx=285 sBx=-65250 Ax=72962 sJ=-16704253 raw=0x008E8103 ; R[2] = K[285] "BattleEvent.BATTLE_PROCESS_EVOLUTION_END"
+  [0207] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0208] LOADK          A=1 B=143 C=0 k=0 Bx=286 sBx=-65249 Ax=73217 sJ=-16703998 raw=0x008F0083 ; R[1] = K[286] "BATTLE_PROCESS_ROLE_HP_END"
+  [0209] LOADK          A=2 B=143 C=0 k=1 Bx=287 sBx=-65248 Ax=73474 sJ=-16703741 raw=0x008F8103 ; R[2] = K[287] "BattleEvent.BATTLE_PROCESS_ROLE_HP_END"
+  [0210] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0211] LOADK          A=1 B=144 C=0 k=0 Bx=288 sBx=-65247 Ax=73729 sJ=-16703486 raw=0x00900083 ; R[1] = K[288] "BATTLE_PET_DEATH_PENDING_ANIMATION_FINISH"
+  [0212] LOADK          A=2 B=144 C=0 k=1 Bx=289 sBx=-65246 Ax=73986 sJ=-16703229 raw=0x00908103 ; R[2] = K[289] "BattleEvent.BATTLE_PET_DEATH_PENDING_ANIMATION_FINISH"
+  [0213] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0214] LOADK          A=1 B=145 C=0 k=0 Bx=290 sBx=-65245 Ax=74241 sJ=-16702974 raw=0x00910083 ; R[1] = K[290] "ON_CLICK_ESCAPE"
+  [0215] LOADK          A=2 B=145 C=0 k=1 Bx=291 sBx=-65244 Ax=74498 sJ=-16702717 raw=0x00918103 ; R[2] = K[291] "BattleEvent.ON_CLICK_ESCAPE"
+  [0216] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0217] LOADK          A=1 B=146 C=0 k=0 Bx=292 sBx=-65243 Ax=74753 sJ=-16702462 raw=0x00920083 ; R[1] = K[292] "ON_CLICK_STEPAWAY"
+  [0218] LOADK          A=2 B=146 C=0 k=1 Bx=293 sBx=-65242 Ax=75010 sJ=-16702205 raw=0x00928103 ; R[2] = K[293] "BattleEvent.ON_CLICK_STEPAWAY"
+  [0219] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0220] LOADK          A=1 B=147 C=0 k=0 Bx=294 sBx=-65241 Ax=75265 sJ=-16701950 raw=0x00930083 ; R[1] = K[294] "ON_CLICK_GIVEUP"
+  [0221] LOADK          A=2 B=147 C=0 k=1 Bx=295 sBx=-65240 Ax=75522 sJ=-16701693 raw=0x00938103 ; R[2] = K[295] "BattleEvent.ON_CLICK_GIVEUP"
+  [0222] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0223] LOADK          A=1 B=148 C=0 k=0 Bx=296 sBx=-65239 Ax=75777 sJ=-16701438 raw=0x00940083 ; R[1] = K[296] "ROUND_START"
+  [0224] LOADK          A=2 B=148 C=0 k=1 Bx=297 sBx=-65238 Ax=76034 sJ=-16701181 raw=0x00948103 ; R[2] = K[297] "BattleEvent.ROUND_START"
+  [0225] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0226] LOADK          A=1 B=149 C=0 k=0 Bx=298 sBx=-65237 Ax=76289 sJ=-16700926 raw=0x00950083 ; R[1] = K[298] "ROUND_SELECT_START"
+  [0227] LOADK          A=2 B=149 C=0 k=1 Bx=299 sBx=-65236 Ax=76546 sJ=-16700669 raw=0x00958103 ; R[2] = K[299] "BattleEvent.ROUND_SELECT_START"
+  [0228] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0229] LOADK          A=1 B=150 C=0 k=0 Bx=300 sBx=-65235 Ax=76801 sJ=-16700414 raw=0x00960083 ; R[1] = K[300] "SWAP_SELECT_START"
+  [0230] LOADK          A=2 B=150 C=0 k=1 Bx=301 sBx=-65234 Ax=77058 sJ=-16700157 raw=0x00968103 ; R[2] = K[301] "BattleEvent.SWAP_SELECT_START"
+  [0231] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0232] LOADK          A=1 B=151 C=0 k=0 Bx=302 sBx=-65233 Ax=77313 sJ=-16699902 raw=0x00970083 ; R[1] = K[302] "TEAM_SWAP_SELECT_START"
+  [0233] LOADK          A=2 B=151 C=0 k=1 Bx=303 sBx=-65232 Ax=77570 sJ=-16699645 raw=0x00978103 ; R[2] = K[303] "BattleEvent.TEAM_SWAP_SELECT_START"
+  [0234] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0235] LOADK          A=1 B=152 C=0 k=0 Bx=304 sBx=-65231 Ax=77825 sJ=-16699390 raw=0x00980083 ; R[1] = K[304] "INPUT_ACTION_TRIGGER"
+  [0236] LOADK          A=2 B=152 C=0 k=1 Bx=305 sBx=-65230 Ax=78082 sJ=-16699133 raw=0x00988103 ; R[2] = K[305] "BattleEvent.INPUT_ACTION_TRIGGER"
+  [0237] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0238] LOADK          A=1 B=153 C=0 k=0 Bx=306 sBx=-65229 Ax=78337 sJ=-16698878 raw=0x00990083 ; R[1] = K[306] "BATTLE_SCREEN_MOUSE_WHEEL"
+  [0239] LOADK          A=2 B=153 C=0 k=1 Bx=307 sBx=-65228 Ax=78594 sJ=-16698621 raw=0x00998103 ; R[2] = K[307] "BattleEvent.BATTLE_SCREEN_MOUSE_WHEEL"
+  [0240] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0241] LOADK          A=1 B=154 C=0 k=0 Bx=308 sBx=-65227 Ax=78849 sJ=-16698366 raw=0x009A0083 ; R[1] = K[308] "REFRESH_BUFF"
+  [0242] LOADK          A=2 B=154 C=0 k=1 Bx=309 sBx=-65226 Ax=79106 sJ=-16698109 raw=0x009A8103 ; R[2] = K[309] "BattleEvent.REFRESH_BUFF"
+  [0243] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0244] LOADK          A=1 B=155 C=0 k=0 Bx=310 sBx=-65225 Ax=79361 sJ=-16697854 raw=0x009B0083 ; R[1] = K[310] "REMOVE_BUFF"
+  [0245] LOADK          A=2 B=155 C=0 k=1 Bx=311 sBx=-65224 Ax=79618 sJ=-16697597 raw=0x009B8103 ; R[2] = K[311] "BattleEvent.REMOVE_BUFF"
+  [0246] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0247] LOADK          A=1 B=156 C=0 k=0 Bx=312 sBx=-65223 Ax=79873 sJ=-16697342 raw=0x009C0083 ; R[1] = K[312] "Replay_Resume"
+  [0248] LOADK          A=2 B=156 C=0 k=1 Bx=313 sBx=-65222 Ax=80130 sJ=-16697085 raw=0x009C8103 ; R[2] = K[313] "BattleEvent.Replay_Resume"
+  [0249] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0250] LOADK          A=1 B=157 C=0 k=0 Bx=314 sBx=-65221 Ax=80385 sJ=-16696830 raw=0x009D0083 ; R[1] = K[314] "Replay_Pause"
+  [0251] LOADK          A=2 B=157 C=0 k=1 Bx=315 sBx=-65220 Ax=80642 sJ=-16696573 raw=0x009D8103 ; R[2] = K[315] "BattleEvent.Replay_Pause"
+  [0252] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0253] LOADK          A=1 B=158 C=0 k=0 Bx=316 sBx=-65219 Ax=80897 sJ=-16696318 raw=0x009E0083 ; R[1] = K[316] "Replay_Fast"
+  [0254] LOADK          A=2 B=158 C=0 k=1 Bx=317 sBx=-65218 Ax=81154 sJ=-16696061 raw=0x009E8103 ; R[2] = K[317] "BattleEvent.Replay_Fast"
+  [0255] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0256] LOADK          A=1 B=159 C=0 k=0 Bx=318 sBx=-65217 Ax=81409 sJ=-16695806 raw=0x009F0083 ; R[1] = K[318] "Replay_Slow"
+  [0257] LOADK          A=2 B=159 C=0 k=1 Bx=319 sBx=-65216 Ax=81666 sJ=-16695549 raw=0x009F8103 ; R[2] = K[319] "BattleEvent.Replay_Slow"
+  [0258] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0259] LOADK          A=1 B=160 C=0 k=0 Bx=320 sBx=-65215 Ax=81921 sJ=-16695294 raw=0x00A00083 ; R[1] = K[320] "Replay_Undo"
+  [0260] LOADK          A=2 B=160 C=0 k=1 Bx=321 sBx=-65214 Ax=82178 sJ=-16695037 raw=0x00A08103 ; R[2] = K[321] "BattleEvent.Replay_Undo"
+  [0261] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0262] LOADK          A=1 B=161 C=0 k=0 Bx=322 sBx=-65213 Ax=82433 sJ=-16694782 raw=0x00A10083 ; R[1] = K[322] "Replay_Redo"
+  [0263] LOADK          A=2 B=161 C=0 k=1 Bx=323 sBx=-65212 Ax=82690 sJ=-16694525 raw=0x00A18103 ; R[2] = K[323] "BattleEvent.Replay_Redo"
+  [0264] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0265] LOADK          A=1 B=162 C=0 k=0 Bx=324 sBx=-65211 Ax=82945 sJ=-16694270 raw=0x00A20083 ; R[1] = K[324] "Replay_RefreshRoundIdx"
+  [0266] LOADK          A=2 B=162 C=0 k=1 Bx=325 sBx=-65210 Ax=83202 sJ=-16694013 raw=0x00A28103 ; R[2] = K[325] "BattleEvent.Replay_RefreshRoundIdx"
+  [0267] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0268] LOADK          A=1 B=163 C=0 k=0 Bx=326 sBx=-65209 Ax=83457 sJ=-16693758 raw=0x00A30083 ; R[1] = K[326] "Replay_RefreshRoundIdxUI"
+  [0269] LOADK          A=2 B=163 C=0 k=1 Bx=327 sBx=-65208 Ax=83714 sJ=-16693501 raw=0x00A38103 ; R[2] = K[327] "BattleEvent.Replay_RefreshRoundIdxUI"
+  [0270] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0271] LOADK          A=1 B=164 C=0 k=0 Bx=328 sBx=-65207 Ax=83969 sJ=-16693246 raw=0x00A40083 ; R[1] = K[328] "Replay_RefreshBottomSkillText"
+  [0272] LOADK          A=2 B=164 C=0 k=1 Bx=329 sBx=-65206 Ax=84226 sJ=-16692989 raw=0x00A48103 ; R[2] = K[329] "BattleEvent.Replay_RefreshBottomSkillText"
+  [0273] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0274] LOADK          A=1 B=165 C=0 k=0 Bx=330 sBx=-65205 Ax=84481 sJ=-16692734 raw=0x00A50083 ; R[1] = K[330] "Replay_RefreshPauseUi"
+  [0275] LOADK          A=2 B=165 C=0 k=1 Bx=331 sBx=-65204 Ax=84738 sJ=-16692477 raw=0x00A58103 ; R[2] = K[331] "BattleEvent.Replay_RefreshPauseUi"
+  [0276] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0277] LOADK          A=1 B=166 C=0 k=0 Bx=332 sBx=-65203 Ax=84993 sJ=-16692222 raw=0x00A60083 ; R[1] = K[332] "Replay_RefreshPlaySpeedUi"
+  [0278] LOADK          A=2 B=166 C=0 k=1 Bx=333 sBx=-65202 Ax=85250 sJ=-16691965 raw=0x00A68103 ; R[2] = K[333] "BattleEvent.Replay_RefreshPlaySpeedUi"
+  [0279] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0280] LOADK          A=1 B=167 C=0 k=0 Bx=334 sBx=-65201 Ax=85505 sJ=-16691710 raw=0x00A70083 ; R[1] = K[334] "Replay_Exit"
+  [0281] LOADK          A=2 B=167 C=0 k=1 Bx=335 sBx=-65200 Ax=85762 sJ=-16691453 raw=0x00A78103 ; R[2] = K[335] "BattleEvent.Replay_Exit"
+  [0282] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0283] LOADK          A=1 B=168 C=0 k=0 Bx=336 sBx=-65199 Ax=86017 sJ=-16691198 raw=0x00A80083 ; R[1] = K[336] "SP_ENERGY_TRIGGER"
+  [0284] LOADK          A=2 B=168 C=0 k=1 Bx=337 sBx=-65198 Ax=86274 sJ=-16690941 raw=0x00A88103 ; R[2] = K[337] "BattleEvent.SP_ENERGY_TRIGGER"
+  [0285] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0286] LOADK          A=1 B=169 C=0 k=0 Bx=338 sBx=-65197 Ax=86529 sJ=-16690686 raw=0x00A90083 ; R[1] = K[338] "PET_LOAD_MODE_LOVER"
+  [0287] LOADK          A=2 B=169 C=0 k=1 Bx=339 sBx=-65196 Ax=86786 sJ=-16690429 raw=0x00A98103 ; R[2] = K[339] "BattleEvent.PET_LOAD_MODE_LOVER "
+  [0288] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0289] LOADK          A=1 B=170 C=0 k=0 Bx=340 sBx=-65195 Ax=87041 sJ=-16690174 raw=0x00AA0083 ; R[1] = K[340] "START_BATTLE_PERFORM"
+  [0290] LOADK          A=2 B=170 C=0 k=1 Bx=341 sBx=-65194 Ax=87298 sJ=-16689917 raw=0x00AA8103 ; R[2] = K[341] "BattleEvent.StartBattlePerform "
+  [0291] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0292] LOADK          A=1 B=171 C=0 k=0 Bx=342 sBx=-65193 Ax=87553 sJ=-16689662 raw=0x00AB0083 ; R[1] = K[342] "MULTI_PLAYER_TIP_CHANGE"
+  [0293] LOADK          A=2 B=171 C=0 k=1 Bx=343 sBx=-65192 Ax=87810 sJ=-16689405 raw=0x00AB8103 ; R[2] = K[343] "BattleEvent.MultiPlayerTipChange "
+  [0294] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0295] LOADK          A=1 B=172 C=0 k=0 Bx=344 sBx=-65191 Ax=88065 sJ=-16689150 raw=0x00AC0083 ; R[1] = K[344] "BATTLE_ROUND_START"
+  [0296] LOADK          A=2 B=172 C=0 k=1 Bx=345 sBx=-65190 Ax=88322 sJ=-16688893 raw=0x00AC8103 ; R[2] = K[345] "BattleEvent.BattleRoundStart"
+  [0297] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0298] LOADK          A=1 B=173 C=0 k=0 Bx=346 sBx=-65189 Ax=88577 sJ=-16688638 raw=0x00AD0083 ; R[1] = K[346] "UPDATE_DATA"
+  [0299] LOADK          A=2 B=173 C=0 k=1 Bx=347 sBx=-65188 Ax=88834 sJ=-16688381 raw=0x00AD8103 ; R[2] = K[347] "BattleEvent.UpdateData"
+  [0300] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0301] LOADK          A=1 B=174 C=0 k=0 Bx=348 sBx=-65187 Ax=89089 sJ=-16688126 raw=0x00AE0083 ; R[1] = K[348] "DIRECT_UPDATE_UI"
+  [0302] LOADK          A=2 B=174 C=0 k=1 Bx=349 sBx=-65186 Ax=89346 sJ=-16687869 raw=0x00AE8103 ; R[2] = K[349] "BattleEvent.DirectUpdateUI"
+  [0303] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0304] LOADK          A=1 B=175 C=0 k=0 Bx=350 sBx=-65185 Ax=89601 sJ=-16687614 raw=0x00AF0083 ; R[1] = K[350] "RESULT_UI_STATE_UPDATE"
+  [0305] LOADK          A=2 B=175 C=0 k=1 Bx=351 sBx=-65184 Ax=89858 sJ=-16687357 raw=0x00AF8103 ; R[2] = K[351] "BattleEvent.ResultUiStateUpdate"
+  [0306] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0307] LOADK          A=1 B=176 C=0 k=0 Bx=352 sBx=-65183 Ax=90113 sJ=-16687102 raw=0x00B00083 ; R[1] = K[352] "PLAYER_LEAVE_GAME"
+  [0308] LOADK          A=2 B=176 C=0 k=1 Bx=353 sBx=-65182 Ax=90370 sJ=-16686845 raw=0x00B08103 ; R[2] = K[353] "BattleEvent.PlayerLeaveGame"
+  [0309] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0310] LOADK          A=1 B=177 C=0 k=0 Bx=354 sBx=-65181 Ax=90625 sJ=-16686590 raw=0x00B10083 ; R[1] = K[354] "START_BATTLE_ATTACK"
+  [0311] LOADK          A=2 B=177 C=0 k=1 Bx=355 sBx=-65180 Ax=90882 sJ=-16686333 raw=0x00B18103 ; R[2] = K[355] "BattleEvent.START_BATTLE_ATTACK"
+  [0312] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0313] LOADK          A=1 B=178 C=0 k=0 Bx=356 sBx=-65179 Ax=91137 sJ=-16686078 raw=0x00B20083 ; R[1] = K[356] "START_PVP_ROUND_TIME"
+  [0314] LOADK          A=2 B=178 C=0 k=1 Bx=357 sBx=-65178 Ax=91394 sJ=-16685821 raw=0x00B28103 ; R[2] = K[357] "BattleEvent.START_PVP_ROUND_TIME"
+  [0315] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0316] LOADK          A=1 B=179 C=0 k=0 Bx=358 sBx=-65177 Ax=91649 sJ=-16685566 raw=0x00B30083 ; R[1] = K[358] "END_PVP_ROUND_TIME"
+  [0317] LOADK          A=2 B=179 C=0 k=1 Bx=359 sBx=-65176 Ax=91906 sJ=-16685309 raw=0x00B38103 ; R[2] = K[359] "BattleEvent.END_PVP_ROUND_TIME"
+  [0318] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0319] LOADK          A=1 B=180 C=0 k=0 Bx=360 sBx=-65175 Ax=92161 sJ=-16685054 raw=0x00B40083 ; R[1] = K[360] "RECORD_AI_OP"
+  [0320] LOADK          A=2 B=180 C=0 k=1 Bx=361 sBx=-65174 Ax=92418 sJ=-16684797 raw=0x00B48103 ; R[2] = K[361] "BattleEvent.RECORD_AI_OP"
+  [0321] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0322] LOADK          A=1 B=181 C=0 k=0 Bx=362 sBx=-65173 Ax=92673 sJ=-16684542 raw=0x00B50083 ; R[1] = K[362] "AUTOTEST_NODE_FINISH"
+  [0323] LOADK          A=2 B=181 C=0 k=1 Bx=363 sBx=-65172 Ax=92930 sJ=-16684285 raw=0x00B58103 ; R[2] = K[363] "BattleEvent.AUTOTEST_NODE_FINISH"
+  [0324] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0325] LOADK          A=1 B=182 C=0 k=0 Bx=364 sBx=-65171 Ax=93185 sJ=-16684030 raw=0x00B60083 ; R[1] = K[364] "PK_AGAIN"
+  [0326] LOADK          A=2 B=182 C=0 k=1 Bx=365 sBx=-65170 Ax=93442 sJ=-16683773 raw=0x00B68103 ; R[2] = K[365] "BattleEvent.PK_AGAIN"
+  [0327] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0328] LOADK          A=1 B=183 C=0 k=0 Bx=366 sBx=-65169 Ax=93697 sJ=-16683518 raw=0x00B70083 ; R[1] = K[366] "PVP_OBSERVER_CHANGE"
+  [0329] LOADK          A=2 B=183 C=0 k=1 Bx=367 sBx=-65168 Ax=93954 sJ=-16683261 raw=0x00B78103 ; R[2] = K[367] "BattleEvent.PVP_OBSERVER_CHANGE"
+  [0330] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0331] LOADK          A=1 B=184 C=0 k=0 Bx=368 sBx=-65167 Ax=94209 sJ=-16683006 raw=0x00B80083 ; R[1] = K[368] "SimulateClickBag"
+  [0332] LOADK          A=2 B=184 C=0 k=1 Bx=369 sBx=-65166 Ax=94466 sJ=-16682749 raw=0x00B88103 ; R[2] = K[369] "BattleEvent.SimulateClickBag"
+  [0333] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0334] LOADK          A=1 B=185 C=0 k=0 Bx=370 sBx=-65165 Ax=94721 sJ=-16682494 raw=0x00B90083 ; R[1] = K[370] "ARRIVE_TARGETED_SHOW_ENEMY_HP"
+  [0335] LOADK          A=2 B=185 C=0 k=1 Bx=371 sBx=-65164 Ax=94978 sJ=-16682237 raw=0x00B98103 ; R[2] = K[371] "BattleEvent.ARRIVE_TARGETED_SHOW_ENEMY_HP"
+  [0336] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0337] LOADK          A=1 B=186 C=0 k=0 Bx=372 sBx=-65163 Ax=95233 sJ=-16681982 raw=0x00BA0083 ; R[1] = K[372] "CHEER_SWITCH"
+  [0338] LOADK          A=2 B=186 C=0 k=1 Bx=373 sBx=-65162 Ax=95490 sJ=-16681725 raw=0x00BA8103 ; R[2] = K[373] "BattleEvent.CHEER_SWITCH"
+  [0339] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0340] LOADK          A=1 B=187 C=0 k=0 Bx=374 sBx=-65161 Ax=95745 sJ=-16681470 raw=0x00BB0083 ; R[1] = K[374] "SHOW_NO_MOVE_HP"
+  [0341] LOADK          A=2 B=187 C=0 k=1 Bx=375 sBx=-65160 Ax=96002 sJ=-16681213 raw=0x00BB8103 ; R[2] = K[375] "BattleEvent.SHOW_NO_MOVE_HP"
+  [0342] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0343] LOADK          A=1 B=188 C=0 k=0 Bx=376 sBx=-65159 Ax=96257 sJ=-16680958 raw=0x00BC0083 ; R[1] = K[376] "CHEER_ESCAPE"
+  [0344] LOADK          A=2 B=188 C=0 k=1 Bx=377 sBx=-65158 Ax=96514 sJ=-16680701 raw=0x00BC8103 ; R[2] = K[377] "BattleEvent.CHEER_ESCAPE"
+  [0345] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0346] LOADK          A=1 B=189 C=0 k=0 Bx=378 sBx=-65157 Ax=96769 sJ=-16680446 raw=0x00BD0083 ; R[1] = K[378] "WAIT_PERFORM_END"
+  [0347] LOADK          A=2 B=189 C=0 k=1 Bx=379 sBx=-65156 Ax=97026 sJ=-16680189 raw=0x00BD8103 ; R[2] = K[379] "BattleEvent.WAIT_PERFORM_END"
+  [0348] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0349] LOADK          A=1 B=190 C=0 k=0 Bx=380 sBx=-65155 Ax=97281 sJ=-16679934 raw=0x00BE0083 ; R[1] = K[380] "RECEIVE_SERVER_SEQ"
+  [0350] LOADK          A=2 B=190 C=0 k=1 Bx=381 sBx=-65154 Ax=97538 sJ=-16679677 raw=0x00BE8103 ; R[2] = K[381] "BattleEvent.RECEIVE_SERVER_SEQ"
+  [0351] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0352] LOADK          A=1 B=191 C=0 k=0 Bx=382 sBx=-65153 Ax=97793 sJ=-16679422 raw=0x00BF0083 ; R[1] = K[382] "CLICKED_WAIT_EMO_LIST"
+  [0353] LOADK          A=2 B=191 C=0 k=0 Bx=382 sBx=-65153 Ax=97794 sJ=-16679421 raw=0x00BF0103 ; R[2] = K[382] "CLICKED_WAIT_EMO_LIST"
+  [0354] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0355] LOADK          A=1 B=191 C=0 k=1 Bx=383 sBx=-65152 Ax=98049 sJ=-16679166 raw=0x00BF8083 ; R[1] = K[383] "CLICKED_WAIT_EMO_BACK"
+  [0356] LOADK          A=2 B=191 C=0 k=1 Bx=383 sBx=-65152 Ax=98050 sJ=-16679165 raw=0x00BF8103 ; R[2] = K[383] "CLICKED_WAIT_EMO_BACK"
+  [0357] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0358] LOADK          A=1 B=192 C=0 k=0 Bx=384 sBx=-65151 Ax=98305 sJ=-16678910 raw=0x00C00083 ; R[1] = K[384] "EMO_HIDE_OVER"
+  [0359] LOADK          A=2 B=192 C=0 k=0 Bx=384 sBx=-65151 Ax=98306 sJ=-16678909 raw=0x00C00103 ; R[2] = K[384] "EMO_HIDE_OVER"
+  [0360] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0361] LOADK          A=1 B=192 C=0 k=1 Bx=385 sBx=-65150 Ax=98561 sJ=-16678654 raw=0x00C08083 ; R[1] = K[385] "CLICKED_WAIT_EMO"
+  [0362] LOADK          A=2 B=192 C=0 k=1 Bx=385 sBx=-65150 Ax=98562 sJ=-16678653 raw=0x00C08103 ; R[2] = K[385] "CLICKED_WAIT_EMO"
+  [0363] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0364] LOADK          A=1 B=193 C=0 k=0 Bx=386 sBx=-65149 Ax=98817 sJ=-16678398 raw=0x00C10083 ; R[1] = K[386] "CLICKED_Result_Close"
+  [0365] LOADK          A=2 B=193 C=0 k=1 Bx=387 sBx=-65148 Ax=99074 sJ=-16678141 raw=0x00C18103 ; R[2] = K[387] "CLICKED_RESULT_CLOSE"
+  [0366] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0367] LOADK          A=1 B=194 C=0 k=0 Bx=388 sBx=-65147 Ax=99329 sJ=-16677886 raw=0x00C20083 ; R[1] = K[388] "BATTLE_TEAMBATTLE_BALANCELENS"
+  [0368] LOADK          A=2 B=194 C=0 k=0 Bx=388 sBx=-65147 Ax=99330 sJ=-16677885 raw=0x00C20103 ; R[2] = K[388] "BATTLE_TEAMBATTLE_BALANCELENS"
+  [0369] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0370] LOADK          A=1 B=194 C=0 k=1 Bx=389 sBx=-65146 Ax=99585 sJ=-16677630 raw=0x00C28083 ; R[1] = K[389] "BATTLE_TEAMBATTLE_BALANCELENS_END"
+  [0371] LOADK          A=2 B=195 C=0 k=0 Bx=390 sBx=-65145 Ax=99842 sJ=-16677373 raw=0x00C30103 ; R[2] = K[390] "BattleEvent.BATTLE_TEAMBATTLE_BALANCELENS_END"
+  [0372] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0373] LOADK          A=1 B=195 C=0 k=1 Bx=391 sBx=-65144 Ax=100097 sJ=-16677118 raw=0x00C38083 ; R[1] = K[391] "CLICKED_RewardsPanel_Close"
+  [0374] LOADK          A=2 B=196 C=0 k=0 Bx=392 sBx=-65143 Ax=100354 sJ=-16676861 raw=0x00C40103 ; R[2] = K[392] "BattleEvent.CLICKED_RewardsPanel_Close"
+  [0375] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0376] LOADK          A=1 B=196 C=0 k=1 Bx=393 sBx=-65142 Ax=100609 sJ=-16676606 raw=0x00C48083 ; R[1] = K[393] "NPC_ENTER_ANIM_DISAPPEAR"
+  [0377] LOADK          A=2 B=197 C=0 k=0 Bx=394 sBx=-65141 Ax=100866 sJ=-16676349 raw=0x00C50103 ; R[2] = K[394] "BattleEvent.NPC_ENTER_ANIM_DISAPPEAR"
+  [0378] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0379] LOADK          A=1 B=197 C=0 k=1 Bx=395 sBx=-65140 Ax=101121 sJ=-16676094 raw=0x00C58083 ; R[1] = K[395] "WEEKLY_CHALLENGE_AGAIN"
+  [0380] LOADK          A=2 B=197 C=0 k=1 Bx=395 sBx=-65140 Ax=101122 sJ=-16676093 raw=0x00C58103 ; R[2] = K[395] "WEEKLY_CHALLENGE_AGAIN"
+  [0381] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0382] LOADK          A=1 B=198 C=0 k=0 Bx=396 sBx=-65139 Ax=101377 sJ=-16675838 raw=0x00C60083 ; R[1] = K[396] "TERRITORY_TRIAL_AGAIN"
+  [0383] LOADK          A=2 B=198 C=0 k=0 Bx=396 sBx=-65139 Ax=101378 sJ=-16675837 raw=0x00C60103 ; R[2] = K[396] "TERRITORY_TRIAL_AGAIN"
+  [0384] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0385] LOADK          A=1 B=198 C=0 k=1 Bx=397 sBx=-65138 Ax=101633 sJ=-16675582 raw=0x00C68083 ; R[1] = K[397] "EVOLUTION_CONFIRM"
+  [0386] LOADK          A=2 B=199 C=0 k=0 Bx=398 sBx=-65137 Ax=101890 sJ=-16675325 raw=0x00C70103 ; R[2] = K[398] "BattleEvent.EVOLUTION_CONFIRM"
+  [0387] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0388] LOADK          A=1 B=199 C=0 k=1 Bx=399 sBx=-65136 Ax=102145 sJ=-16675070 raw=0x00C78083 ; R[1] = K[399] "EVOLUTION_OPEN_RESULT"
+  [0389] LOADK          A=2 B=200 C=0 k=0 Bx=400 sBx=-65135 Ax=102402 sJ=-16674813 raw=0x00C80103 ; R[2] = K[400] "BattleEvent.EVOLUTION_OPEN_RESULT"
+  [0390] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0391] LOADK          A=1 B=200 C=0 k=1 Bx=401 sBx=-65134 Ax=102657 sJ=-16674558 raw=0x00C88083 ; R[1] = K[401] "NPC_AUTO_ESCAPE_Accept"
+  [0392] LOADK          A=2 B=201 C=0 k=0 Bx=402 sBx=-65133 Ax=102914 sJ=-16674301 raw=0x00C90103 ; R[2] = K[402] "BattleEvent.NPC_AUTO_ESCAPE_Accept"
+  [0393] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0394] LOADK          A=1 B=201 C=0 k=1 Bx=403 sBx=-65132 Ax=103169 sJ=-16674046 raw=0x00C98083 ; R[1] = K[403] "NPC_AUTO_ESCAPE_Deny"
+  [0395] LOADK          A=2 B=202 C=0 k=0 Bx=404 sBx=-65131 Ax=103426 sJ=-16673789 raw=0x00CA0103 ; R[2] = K[404] "BattleEvent.NPC_AUTO_ESCAPE_Deny"
+  [0396] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0397] LOADK          A=1 B=202 C=0 k=1 Bx=405 sBx=-65130 Ax=103681 sJ=-16673534 raw=0x00CA8083 ; R[1] = K[405] "REFRESH_PVE_ENTER_ROLE_HP"
+  [0398] LOADK          A=2 B=203 C=0 k=0 Bx=406 sBx=-65129 Ax=103938 sJ=-16673277 raw=0x00CB0103 ; R[2] = K[406] "BattleEvent.REFRESH_PVE_ENTER_ROLE_HP"
+  [0399] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0400] LOADK          A=1 B=203 C=0 k=1 Bx=407 sBx=-65128 Ax=104193 sJ=-16673022 raw=0x00CB8083 ; R[1] = K[407] "REFRESH_PVE_ENTER_ROLE_HP_END"
+  [0401] LOADK          A=2 B=204 C=0 k=0 Bx=408 sBx=-65127 Ax=104450 sJ=-16672765 raw=0x00CC0103 ; R[2] = K[408] "BattleEvent.REFRESH_PVE_ENTER_ROLE_HP_END"
+  [0402] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0403] LOADK          A=1 B=204 C=0 k=1 Bx=409 sBx=-65126 Ax=104705 sJ=-16672510 raw=0x00CC8083 ; R[1] = K[409] "REFRESH_ROLE_HP_CRITICAL_TIP"
+  [0404] LOADK          A=2 B=205 C=0 k=0 Bx=410 sBx=-65125 Ax=104962 sJ=-16672253 raw=0x00CD0103 ; R[2] = K[410] "BattleEvent.REFRESH_ROLE_HP_CRITICAL_TIP"
+  [0405] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0406] LOADK          A=1 B=205 C=0 k=1 Bx=411 sBx=-65124 Ax=105217 sJ=-16671998 raw=0x00CD8083 ; R[1] = K[411] "REFRESH_ROLE_HP_CRITICAL_TIP_END"
+  [0407] LOADK          A=2 B=206 C=0 k=0 Bx=412 sBx=-65123 Ax=105474 sJ=-16671741 raw=0x00CE0103 ; R[2] = K[412] "BattleEvent.REFRESH_ROLE_HP_CRITICAL_TIP_END"
+  [0408] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0409] LOADK          A=1 B=206 C=0 k=1 Bx=413 sBx=-65122 Ax=105729 sJ=-16671486 raw=0x00CE8083 ; R[1] = K[413] "REFRESH_ROLE_HP_DEFEAT_TIP_END"
+  [0410] LOADK          A=2 B=207 C=0 k=0 Bx=414 sBx=-65121 Ax=105986 sJ=-16671229 raw=0x00CF0103 ; R[2] = K[414] "BattleEvent.REFRESH_ROLE_HP_DEFEAT_TIP_END"
+  [0411] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0412] LOADK          A=1 B=207 C=0 k=1 Bx=415 sBx=-65120 Ax=106241 sJ=-16670974 raw=0x00CF8083 ; R[1] = K[415] "HIDE_HP_RED"
+  [0413] LOADK          A=2 B=208 C=0 k=0 Bx=416 sBx=-65119 Ax=106498 sJ=-16670717 raw=0x00D00103 ; R[2] = K[416] "BattleEvent.HIDE_HP_RED"
+  [0414] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0415] LOADK          A=1 B=208 C=0 k=1 Bx=417 sBx=-65118 Ax=106753 sJ=-16670462 raw=0x00D08083 ; R[1] = K[417] "SHOW_HP_RED"
+  [0416] LOADK          A=2 B=209 C=0 k=0 Bx=418 sBx=-65117 Ax=107010 sJ=-16670205 raw=0x00D10103 ; R[2] = K[418] "BattleEvent.SHOW_HP_RED"
+  [0417] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0418] LOADK          A=1 B=209 C=0 k=1 Bx=419 sBx=-65116 Ax=107265 sJ=-16669950 raw=0x00D18083 ; R[1] = K[419] "BATTLE_WEATHER_CHANGED"
+  [0419] LOADK          A=2 B=210 C=0 k=0 Bx=420 sBx=-65115 Ax=107522 sJ=-16669693 raw=0x00D20103 ; R[2] = K[420] "BattleEvent.BATTLE_WEATHER_CHANGED"
+  [0420] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0421] LOADK          A=1 B=210 C=0 k=1 Bx=421 sBx=-65114 Ax=107777 sJ=-16669438 raw=0x00D28083 ; R[1] = K[421] "PetSelectSkill"
+  [0422] LOADK          A=2 B=211 C=0 k=0 Bx=422 sBx=-65113 Ax=108034 sJ=-16669181 raw=0x00D30103 ; R[2] = K[422] "BattleEvent.PetSelectSkill"
+  [0423] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0424] LOADK          A=1 B=211 C=0 k=1 Bx=423 sBx=-65112 Ax=108289 sJ=-16668926 raw=0x00D38083 ; R[1] = K[423] "LeaveSkillRound"
+  [0425] LOADK          A=2 B=212 C=0 k=0 Bx=424 sBx=-65111 Ax=108546 sJ=-16668669 raw=0x00D40103 ; R[2] = K[424] "BattleEvent.LeaveSkillRound"
+  [0426] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0427] LOADK          A=1 B=212 C=0 k=1 Bx=425 sBx=-65110 Ax=108801 sJ=-16668414 raw=0x00D48083 ; R[1] = K[425] "PlayClickEffect"
+  [0428] LOADK          A=2 B=213 C=0 k=0 Bx=426 sBx=-65109 Ax=109058 sJ=-16668157 raw=0x00D50103 ; R[2] = K[426] "BattleEvent.PlayClickEffect"
+  [0429] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0430] LOADK          A=1 B=213 C=0 k=1 Bx=427 sBx=-65108 Ax=109313 sJ=-16667902 raw=0x00D58083 ; R[1] = K[427] "OnBallChanged"
+  [0431] LOADK          A=2 B=214 C=0 k=0 Bx=428 sBx=-65107 Ax=109570 sJ=-16667645 raw=0x00D60103 ; R[2] = K[428] "BattleEvent.OnBallChanged"
+  [0432] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0433] LOADK          A=1 B=214 C=0 k=1 Bx=429 sBx=-65106 Ax=109825 sJ=-16667390 raw=0x00D68083 ; R[1] = K[429] "GetBattleFinish"
+  [0434] LOADK          A=2 B=215 C=0 k=0 Bx=430 sBx=-65105 Ax=110082 sJ=-16667133 raw=0x00D70103 ; R[2] = K[430] "BattleEvent.GetBattleFinish"
+  [0435] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0436] LOADK          A=1 B=215 C=0 k=1 Bx=431 sBx=-65104 Ax=110337 sJ=-16666878 raw=0x00D78083 ; R[1] = K[431] "UPDATE_BATTLEFIELD_POS"
+  [0437] LOADK          A=2 B=216 C=0 k=0 Bx=432 sBx=-65103 Ax=110594 sJ=-16666621 raw=0x00D80103 ; R[2] = K[432] "BattleEvent.UPDATE_BATTLEFIELD_POS"
+  [0438] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0439] LOADK          A=1 B=216 C=0 k=1 Bx=433 sBx=-65102 Ax=110849 sJ=-16666366 raw=0x00D88083 ; R[1] = K[433] "InstantPlayOver"
+  [0440] LOADK          A=2 B=217 C=0 k=0 Bx=434 sBx=-65101 Ax=111106 sJ=-16666109 raw=0x00D90103 ; R[2] = K[434] "BattleEvent.InstantPlayOver"
+  [0441] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0442] LOADK          A=1 B=217 C=0 k=1 Bx=435 sBx=-65100 Ax=111361 sJ=-16665854 raw=0x00D98083 ; R[1] = K[435] "Show_RecordingBtn"
+  [0443] LOADK          A=2 B=218 C=0 k=0 Bx=436 sBx=-65099 Ax=111618 sJ=-16665597 raw=0x00DA0103 ; R[2] = K[436] "BattleEvent.Show_RecordingBtn"
+  [0444] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0445] LOADK          A=1 B=218 C=0 k=1 Bx=437 sBx=-65098 Ax=111873 sJ=-16665342 raw=0x00DA8083 ; R[1] = K[437] "UI_SET_BATTLE_POS"
+  [0446] LOADK          A=2 B=219 C=0 k=0 Bx=438 sBx=-65097 Ax=112130 sJ=-16665085 raw=0x00DB0103 ; R[2] = K[438] "BattleEvent.UI_SET_BATTLE_POS"
+  [0447] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0448] LOADK          A=1 B=219 C=0 k=1 Bx=439 sBx=-65096 Ax=112385 sJ=-16664830 raw=0x00DB8083 ; R[1] = K[439] "FX_PERF_ON_SKILL_PLAY_START"
+  [0449] LOADK          A=2 B=220 C=0 k=0 Bx=440 sBx=-65095 Ax=112642 sJ=-16664573 raw=0x00DC0103 ; R[2] = K[440] "BattleEvent.FX_PERF_ON_SKILL_PLAY_START"
+  [0450] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0451] LOADK          A=1 B=220 C=0 k=1 Bx=441 sBx=-65094 Ax=112897 sJ=-16664318 raw=0x00DC8083 ; R[1] = K[441] "FX_PERF_ON_SKILL_PLAY_PAUSE"
+  [0452] LOADK          A=2 B=221 C=0 k=0 Bx=442 sBx=-65093 Ax=113154 sJ=-16664061 raw=0x00DD0103 ; R[2] = K[442] "BattleEvent.FX_PERF_ON_SKILL_PLAY_PAUSE"
+  [0453] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0454] LOADK          A=1 B=221 C=0 k=1 Bx=443 sBx=-65092 Ax=113409 sJ=-16663806 raw=0x00DD8083 ; R[1] = K[443] "PLAYER_CHOOSE_SKILL"
+  [0455] LOADK          A=2 B=222 C=0 k=0 Bx=444 sBx=-65091 Ax=113666 sJ=-16663549 raw=0x00DE0103 ; R[2] = K[444] "BattleEvent.PLAYER_CHOOSE_SKILL"
+  [0456] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0457] LOADK          A=1 B=222 C=0 k=1 Bx=445 sBx=-65090 Ax=113921 sJ=-16663294 raw=0x00DE8083 ; R[1] = K[445] "PLAYER_PERFORM_SKILL"
+  [0458] LOADK          A=2 B=223 C=0 k=0 Bx=446 sBx=-65089 Ax=114178 sJ=-16663037 raw=0x00DF0103 ; R[2] = K[446] "BattleEvent.PLAYER_PERFORM_SKILL"
+  [0459] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0460] LOADK          A=1 B=223 C=0 k=1 Bx=447 sBx=-65088 Ax=114433 sJ=-16662782 raw=0x00DF8083 ; R[1] = K[447] "PLAYER_PERFORM_OVER"
+  [0461] LOADK          A=2 B=224 C=0 k=0 Bx=448 sBx=-65087 Ax=114690 sJ=-16662525 raw=0x00E00103 ; R[2] = K[448] "BattleEvent.PLAYER_PERFORM_OVER"
+  [0462] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0463] LOADK          A=1 B=224 C=0 k=1 Bx=449 sBx=-65086 Ax=114945 sJ=-16662270 raw=0x00E08083 ; R[1] = K[449] "TEAM_BATTLE_CATCH"
+  [0464] LOADK          A=2 B=225 C=0 k=0 Bx=450 sBx=-65085 Ax=115202 sJ=-16662013 raw=0x00E10103 ; R[2] = K[450] "BattleEvent.TEAM_BATTLE_CATCH"
+  [0465] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0466] LOADK          A=1 B=225 C=0 k=1 Bx=451 sBx=-65084 Ax=115457 sJ=-16661758 raw=0x00E18083 ; R[1] = K[451] "HIDE_TEAM_HP"
+  [0467] LOADK          A=2 B=226 C=0 k=0 Bx=452 sBx=-65083 Ax=115714 sJ=-16661501 raw=0x00E20103 ; R[2] = K[452] "BattleEvent.HIDE_TEAM_HP"
+  [0468] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0469] LOADK          A=1 B=226 C=0 k=1 Bx=453 sBx=-65082 Ax=115969 sJ=-16661246 raw=0x00E28083 ; R[1] = K[453] "HIDE_TEAMBATTLE_HP"
+  [0470] LOADK          A=2 B=227 C=0 k=0 Bx=454 sBx=-65081 Ax=116226 sJ=-16660989 raw=0x00E30103 ; R[2] = K[454] "BattleEvent.HIDE_TEAMBATTLE_HP"
+  [0471] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0472] LOADK          A=1 B=227 C=0 k=1 Bx=455 sBx=-65080 Ax=116481 sJ=-16660734 raw=0x00E38083 ; R[1] = K[455] "SHOW_TEAMBATTLE_HP"
+  [0473] LOADK          A=2 B=228 C=0 k=0 Bx=456 sBx=-65079 Ax=116738 sJ=-16660477 raw=0x00E40103 ; R[2] = K[456] "BattleEvent.SHOW_TEAMBATTLE_HP"
+  [0474] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0475] LOADK          A=1 B=228 C=0 k=1 Bx=457 sBx=-65078 Ax=116993 sJ=-16660222 raw=0x00E48083 ; R[1] = K[457] "SHOW_MAIN_WHEN_SKILLOVER"
+  [0476] LOADK          A=2 B=229 C=0 k=0 Bx=458 sBx=-65077 Ax=117250 sJ=-16659965 raw=0x00E50103 ; R[2] = K[458] "BattleEvent.SHOW_MAIN_WHEN_SKILLOVER"
+  [0477] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0478] LOADK          A=1 B=229 C=0 k=1 Bx=459 sBx=-65076 Ax=117505 sJ=-16659710 raw=0x00E58083 ; R[1] = K[459] "LEAVE_ESCAPE_STATE"
+  [0479] LOADK          A=2 B=230 C=0 k=0 Bx=460 sBx=-65075 Ax=117762 sJ=-16659453 raw=0x00E60103 ; R[2] = K[460] "BattleEvent.LEAVE_ESCAPE_STATE"
+  [0480] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0481] LOADK          A=1 B=230 C=0 k=1 Bx=461 sBx=-65074 Ax=118017 sJ=-16659198 raw=0x00E68083 ; R[1] = K[461] "UPDATE_UI_ON_ROUND_SELECT"
+  [0482] LOADK          A=2 B=231 C=0 k=0 Bx=462 sBx=-65073 Ax=118274 sJ=-16658941 raw=0x00E70103 ; R[2] = K[462] "BattleEvent.UPDATE_UI_ON_ROUND_SELECT"
+  [0483] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0484] LOADK          A=1 B=231 C=0 k=1 Bx=463 sBx=-65072 Ax=118529 sJ=-16658686 raw=0x00E78083 ; R[1] = K[463] "UPDATE_TEAMBOSS_HP"
+  [0485] LOADK          A=2 B=232 C=0 k=0 Bx=464 sBx=-65071 Ax=118786 sJ=-16658429 raw=0x00E80103 ; R[2] = K[464] "BattleEvent.UPDATE_TEAMBOSS_HP"
+  [0486] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0487] LOADK          A=1 B=232 C=0 k=1 Bx=465 sBx=-65070 Ax=119041 sJ=-16658174 raw=0x00E88083 ; R[1] = K[465] "BLOOD_HIDE_MONEY"
+  [0488] LOADK          A=2 B=233 C=0 k=0 Bx=466 sBx=-65069 Ax=119298 sJ=-16657917 raw=0x00E90103 ; R[2] = K[466] "BattleEvent.BLOOD_HIDE_MONEY"
+  [0489] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0490] LOADK          A=1 B=233 C=0 k=1 Bx=467 sBx=-65068 Ax=119553 sJ=-16657662 raw=0x00E98083 ; R[1] = K[467] "BLOOD_SHOW_MONEY"
+  [0491] LOADK          A=2 B=234 C=0 k=0 Bx=468 sBx=-65067 Ax=119810 sJ=-16657405 raw=0x00EA0103 ; R[2] = K[468] "BattleEvent.BLOOD_SHOW_MONEY"
+  [0492] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0493] LOADK          A=1 B=234 C=0 k=1 Bx=469 sBx=-65066 Ax=120065 sJ=-16657150 raw=0x00EA8083 ; R[1] = K[469] "CloseIFCatchPanel"
+  [0494] LOADK          A=2 B=235 C=0 k=0 Bx=470 sBx=-65065 Ax=120322 sJ=-16656893 raw=0x00EB0103 ; R[2] = K[470] "BattleEvent.CloseIFCatchPanel"
+  [0495] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0496] LOADK          A=1 B=235 C=0 k=1 Bx=471 sBx=-65064 Ax=120577 sJ=-16656638 raw=0x00EB8083 ; R[1] = K[471] "Skill_Preload"
+  [0497] LOADK          A=2 B=236 C=0 k=0 Bx=472 sBx=-65063 Ax=120834 sJ=-16656381 raw=0x00EC0103 ; R[2] = K[472] "BattleEvent.Skill_Preload"
+  [0498] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0499] LOADK          A=1 B=236 C=0 k=1 Bx=473 sBx=-65062 Ax=121089 sJ=-16656126 raw=0x00EC8083 ; R[1] = K[473] "Skill_FinalDisplay"
+  [0500] LOADK          A=2 B=237 C=0 k=0 Bx=474 sBx=-65061 Ax=121346 sJ=-16655869 raw=0x00ED0103 ; R[2] = K[474] "BattleEvent.Skill_FinalDisplay"
+  [0501] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0502] LOADK          A=1 B=237 C=0 k=1 Bx=475 sBx=-65060 Ax=121601 sJ=-16655614 raw=0x00ED8083 ; R[1] = K[475] "Clear_SkillList"
+  [0503] LOADK          A=2 B=238 C=0 k=0 Bx=476 sBx=-65059 Ax=121858 sJ=-16655357 raw=0x00EE0103 ; R[2] = K[476] "BattleEvent.Clear_SkillList"
+  [0504] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0505] LOADK          A=1 B=238 C=0 k=1 Bx=477 sBx=-65058 Ax=122113 sJ=-16655102 raw=0x00EE8083 ; R[1] = K[477] "DisConnectionSetSkillList"
+  [0506] LOADK          A=2 B=239 C=0 k=0 Bx=478 sBx=-65057 Ax=122370 sJ=-16654845 raw=0x00EF0103 ; R[2] = K[478] "BattleEvent.DisConnectionSetSkillList"
+  [0507] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0508] LOADK          A=1 B=239 C=0 k=1 Bx=479 sBx=-65056 Ax=122625 sJ=-16654590 raw=0x00EF8083 ; R[1] = K[479] "SkillListChangeUpdate"
+  [0509] LOADK          A=2 B=240 C=0 k=0 Bx=480 sBx=-65055 Ax=122882 sJ=-16654333 raw=0x00F00103 ; R[2] = K[480] "BattleEvent.SkillListChangeUpdate"
+  [0510] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0511] LOADK          A=1 B=240 C=0 k=1 Bx=481 sBx=-65054 Ax=123137 sJ=-16654078 raw=0x00F08083 ; R[1] = K[481] "ChangeGatherState"
+  [0512] LOADK          A=2 B=241 C=0 k=0 Bx=482 sBx=-65053 Ax=123394 sJ=-16653821 raw=0x00F10103 ; R[2] = K[482] "BattleEvent.ChangeGatherState"
+  [0513] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0514] LOADK          A=1 B=241 C=0 k=1 Bx=483 sBx=-65052 Ax=123649 sJ=-16653566 raw=0x00F18083 ; R[1] = K[483] "MechanismValidationClosed"
+  [0515] LOADK          A=2 B=242 C=0 k=0 Bx=484 sBx=-65051 Ax=123906 sJ=-16653309 raw=0x00F20103 ; R[2] = K[484] "BattleEvent.MechanismValidationClosed"
+  [0516] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0517] LOADK          A=1 B=242 C=0 k=1 Bx=485 sBx=-65050 Ax=124161 sJ=-16653054 raw=0x00F28083 ; R[1] = K[485] "SKillEvent_TriggerBeHit"
+  [0518] LOADK          A=2 B=243 C=0 k=0 Bx=486 sBx=-65049 Ax=124418 sJ=-16652797 raw=0x00F30103 ; R[2] = K[486] "BattleEvent.SKillEvent_TriggerBeHit"
+  [0519] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0520] LOADK          A=1 B=243 C=0 k=1 Bx=487 sBx=-65048 Ax=124673 sJ=-16652542 raw=0x00F38083 ; R[1] = K[487] "SKillEvent_AllHitEnd"
+  [0521] LOADK          A=2 B=244 C=0 k=0 Bx=488 sBx=-65047 Ax=124930 sJ=-16652285 raw=0x00F40103 ; R[2] = K[488] "BattleEvent.SKillEvent_AllHitEnd"
+  [0522] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0523] LOADK          A=1 B=244 C=0 k=1 Bx=489 sBx=-65046 Ax=125185 sJ=-16652030 raw=0x00F48083 ; R[1] = K[489] "SKillEvent_StateEffectEnd"
+  [0524] LOADK          A=2 B=245 C=0 k=0 Bx=490 sBx=-65045 Ax=125442 sJ=-16651773 raw=0x00F50103 ; R[2] = K[490] "BattleEvent.SKillEvent_StateEffectEnd"
+  [0525] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0526] LOADK          A=1 B=245 C=0 k=1 Bx=491 sBx=-65044 Ax=125697 sJ=-16651518 raw=0x00F58083 ; R[1] = K[491] "SKillEvent_EnterBulletTime"
+  [0527] LOADK          A=2 B=246 C=0 k=0 Bx=492 sBx=-65043 Ax=125954 sJ=-16651261 raw=0x00F60103 ; R[2] = K[492] "BattleEvent.SKillEvent_EnterBulletTime"
+  [0528] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0529] LOADK          A=1 B=246 C=0 k=1 Bx=493 sBx=-65042 Ax=126209 sJ=-16651006 raw=0x00F68083 ; R[1] = K[493] "SKillEvent_LeaveBulletTime"
+  [0530] LOADK          A=2 B=247 C=0 k=0 Bx=494 sBx=-65041 Ax=126466 sJ=-16650749 raw=0x00F70103 ; R[2] = K[494] "BattleEvent.SKillEvent_LeaveBulletTime"
+  [0531] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0532] LOADK          A=1 B=247 C=0 k=1 Bx=495 sBx=-65040 Ax=126721 sJ=-16650494 raw=0x00F78083 ; R[1] = K[495] "SKillEvent_OnCounterEnd"
+  [0533] LOADK          A=2 B=248 C=0 k=0 Bx=496 sBx=-65039 Ax=126978 sJ=-16650237 raw=0x00F80103 ; R[2] = K[496] "BattleEvent.SKillEvent_OnCounterEnd"
+  [0534] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0535] LOADK          A=1 B=248 C=0 k=1 Bx=497 sBx=-65038 Ax=127233 sJ=-16649982 raw=0x00F88083 ; R[1] = K[497] "SKillEvent_BeCounterEnd"
+  [0536] LOADK          A=2 B=249 C=0 k=0 Bx=498 sBx=-65037 Ax=127490 sJ=-16649725 raw=0x00F90103 ; R[2] = K[498] "BattleEvent.SKillEvent_BeCounterEnd"
+  [0537] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0538] LOADK          A=1 B=249 C=0 k=1 Bx=499 sBx=-65036 Ax=127745 sJ=-16649470 raw=0x00F98083 ; R[1] = K[499] "MultiAttack_TookDamage"
+  [0539] LOADK          A=2 B=250 C=0 k=0 Bx=500 sBx=-65035 Ax=128002 sJ=-16649213 raw=0x00FA0103 ; R[2] = K[500] "BattleEvent.MultiAttack_TookDamage"
+  [0540] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0541] LOADK          A=1 B=250 C=0 k=1 Bx=501 sBx=-65034 Ax=128257 sJ=-16648958 raw=0x00FA8083 ; R[1] = K[501] "NightmareShieldBreak"
+  [0542] LOADK          A=2 B=251 C=0 k=0 Bx=502 sBx=-65033 Ax=128514 sJ=-16648701 raw=0x00FB0103 ; R[2] = K[502] "BattleEvent.NightmareShieldBreak"
+  [0543] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0544] LOADK          A=1 B=251 C=0 k=1 Bx=503 sBx=-65032 Ax=128769 sJ=-16648446 raw=0x00FB8083 ; R[1] = K[503] "ReconnetBattle_RoundStrart"
+  [0545] LOADK          A=2 B=252 C=0 k=0 Bx=504 sBx=-65031 Ax=129026 sJ=-16648189 raw=0x00FC0103 ; R[2] = K[504] "BattleEvent.Reconnet_Battle_RoundStrart "
+  [0546] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0547] LOADK          A=1 B=252 C=0 k=1 Bx=505 sBx=-65030 Ax=129281 sJ=-16647934 raw=0x00FC8083 ; R[1] = K[505] "Resend_SkillList"
+  [0548] LOADK          A=2 B=253 C=0 k=0 Bx=506 sBx=-65029 Ax=129538 sJ=-16647677 raw=0x00FD0103 ; R[2] = K[506] "BattleEvent.Resend_SkillList"
+  [0549] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0550] LOADK          A=1 B=253 C=0 k=1 Bx=507 sBx=-65028 Ax=129793 sJ=-16647422 raw=0x00FD8083 ; R[1] = K[507] "PlayUIAnimation"
+  [0551] LOADK          A=2 B=254 C=0 k=0 Bx=508 sBx=-65027 Ax=130050 sJ=-16647165 raw=0x00FE0103 ; R[2] = K[508] "BattleEvent.PlayUIAnimation"
+  [0552] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0553] LOADK          A=1 B=254 C=0 k=1 Bx=509 sBx=-65026 Ax=130305 sJ=-16646910 raw=0x00FE8083 ; R[1] = K[509] "RefreshSilhouetteTaskState"
+  [0554] LOADK          A=2 B=255 C=0 k=0 Bx=510 sBx=-65025 Ax=130562 sJ=-16646653 raw=0x00FF0103 ; R[2] = K[510] "BattleEvent.RefreshSilhouetteTaskState"
+  [0555] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0556] LOADK          A=1 B=255 C=0 k=1 Bx=511 sBx=-65024 Ax=130817 sJ=-16646398 raw=0x00FF8083 ; R[1] = K[511] "DefenceOtherStart"
+  [0557] LOADK          A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x01000103 ; R[2] = K[512] "BattleEvent.DefenceOtherStart"
+  [0558] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0559] LOADK          A=1 B=0 C=1 k=1 Bx=513 sBx=-65022 Ax=131329 sJ=-16645886 raw=0x01008083 ; R[1] = K[513] "DefenceOtherEnd"
+  [0560] LOADK          A=2 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131586 sJ=-16645629 raw=0x01010103 ; R[2] = K[514] "BattleEvent.DefenceOtherEnd"
+  [0561] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0562] LOADK          A=1 B=1 C=1 k=1 Bx=515 sBx=-65020 Ax=131841 sJ=-16645374 raw=0x01018083 ; R[1] = K[515] "EntryHudSkillStartPlayerEvent"
+  [0563] LOADK          A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x01020103 ; R[2] = K[516] "BattleEvent.EntryHudSkillStartPlayerEvent"
+  [0564] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0565] LOADK          A=1 B=2 C=1 k=1 Bx=517 sBx=-65018 Ax=132353 sJ=-16644862 raw=0x01028083 ; R[1] = K[517] "MutationChange"
+  [0566] LOADK          A=2 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132610 sJ=-16644605 raw=0x01030103 ; R[2] = K[518] "BattleEvent.MutationChange"
+  [0567] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0568] LOADK          A=1 B=3 C=1 k=1 Bx=519 sBx=-65016 Ax=132865 sJ=-16644350 raw=0x01038083 ; R[1] = K[519] "StartSkill_AutoPerform"
+  [0569] LOADK          A=2 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133122 sJ=-16644093 raw=0x01040103 ; R[2] = K[520] "BattleEvent.StartSkill_AutoPerform"
+  [0570] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0571] LOADK          A=1 B=4 C=1 k=1 Bx=521 sBx=-65014 Ax=133377 sJ=-16643838 raw=0x01048083 ; R[1] = K[521] "Popup_CommandInfo"
+  [0572] LOADK          A=2 B=5 C=1 k=0 Bx=522 sBx=-65013 Ax=133634 sJ=-16643581 raw=0x01050103 ; R[2] = K[522] "BattleEvent.Popup_CommandInfo"
+  [0573] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0574] LOADK          A=1 B=5 C=1 k=1 Bx=523 sBx=-65012 Ax=133889 sJ=-16643326 raw=0x01058083 ; R[1] = K[523] "Popup_CommandInfo_End"
+  [0575] LOADK          A=2 B=6 C=1 k=0 Bx=524 sBx=-65011 Ax=134146 sJ=-16643069 raw=0x01060103 ; R[2] = K[524] "BattleEvent.Popup_CommandInfo_End"
+  [0576] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0577] LOADK          A=1 B=6 C=1 k=1 Bx=525 sBx=-65010 Ax=134401 sJ=-16642814 raw=0x01068083 ; R[1] = K[525] "OnCallCrashSight"
+  [0578] LOADK          A=2 B=7 C=1 k=0 Bx=526 sBx=-65009 Ax=134658 sJ=-16642557 raw=0x01070103 ; R[2] = K[526] "BattleEvent.OnCallCrashSight"
+  [0579] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0580] LOADK          A=1 B=7 C=1 k=1 Bx=527 sBx=-65008 Ax=134913 sJ=-16642302 raw=0x01078083 ; R[1] = K[527] "OnCloseBattleMainWindow"
+  [0581] LOADK          A=2 B=8 C=1 k=0 Bx=528 sBx=-65007 Ax=135170 sJ=-16642045 raw=0x01080103 ; R[2] = K[528] "BattleEvent.OnCloseBattleMainWindow"
+  [0582] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0583] LOADK          A=1 B=8 C=1 k=1 Bx=529 sBx=-65006 Ax=135425 sJ=-16641790 raw=0x01088083 ; R[1] = K[529] "FunctionBanRemoveBattleType"
+  [0584] LOADK          A=2 B=9 C=1 k=0 Bx=530 sBx=-65005 Ax=135682 sJ=-16641533 raw=0x01090103 ; R[2] = K[530] "BattleEvent.FunctionBanRemoveBattleType"
+  [0585] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0586] LOADK          A=1 B=9 C=1 k=1 Bx=531 sBx=-65004 Ax=135937 sJ=-16641278 raw=0x01098083 ; R[1] = K[531] "ShowResonanceTip"
+  [0587] LOADK          A=2 B=10 C=1 k=0 Bx=532 sBx=-65003 Ax=136194 sJ=-16641021 raw=0x010A0103 ; R[2] = K[532] "BattleEvent.ShowResonanceTip"
+  [0588] SETTABLE       A=0 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262656 sJ=-16514559 raw=0x02010010
+  [0589] MOVE           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000080
+  [0590] NEWTABLE       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000113
+  [0591] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0592] MOVE           A=0 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1024 sJ=-16776191 raw=0x00020000
+  [0593] GETUPVAL       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000109
+  [0594] LOADK          A=3 B=10 C=1 k=1 Bx=533 sBx=-65002 Ax=136451 sJ=-16640764 raw=0x010A8183 ; R[3] = K[533] "setmetatable"
+  [0595] GETTABLE       A=2 B=2 C=3 k=0 Bx=1540 sBx=-63995 Ax=394242 sJ=-16382973 raw=0x0302010C
+  [0596] MOVE           A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x00010180
+  [0597] NEWTABLE       A=4 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1028 sJ=-16776187 raw=0x00020213
+  [0598] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0599] LOADK          A=5 B=11 C=1 k=0 Bx=534 sBx=-65001 Ax=136709 sJ=-16640506 raw=0x010B0283 ; R[5] = K[534] "__index"
+  [0600] CLOSURE        A=6 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=6 sJ=-16777209 raw=0x0000034F ; R[6] = function[0]
+  [0601] SETTABLE       A=4 B=5 C=6 k=0 Bx=3082 sBx=-62453 Ax=788996 sJ=-15988219 raw=0x06050210
+  [0602] LOADK          A=5 B=11 C=1 k=1 Bx=535 sBx=-65000 Ax=136965 sJ=-16640250 raw=0x010B8283 ; R[5] = K[535] "__newindex"
+  [0603] CLOSURE        A=6 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=262 sJ=-16776953 raw=0x0000834F ; R[6] = function[1]
+  [0604] SETTABLE       A=4 B=5 C=6 k=0 Bx=3082 sBx=-62453 Ax=788996 sJ=-15988219 raw=0x06050210
+  [0605] CALL           A=2 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132610 sJ=-16644605 raw=0x01030144
+  [0606] GETUPVAL       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000109
+  [0607] LOADK          A=3 B=10 C=1 k=1 Bx=533 sBx=-65002 Ax=136451 sJ=-16640764 raw=0x010A8183 ; R[3] = K[533] "setmetatable"
+  [0608] GETTABLE       A=2 B=2 C=3 k=0 Bx=1540 sBx=-63995 Ax=394242 sJ=-16382973 raw=0x0302010C
+  [0609] MOVE           A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000180
+  [0610] NEWTABLE       A=4 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1028 sJ=-16776187 raw=0x00020213
+  [0611] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+  [0612] LOADK          A=5 B=11 C=1 k=0 Bx=534 sBx=-65001 Ax=136709 sJ=-16640506 raw=0x010B0283 ; R[5] = K[534] "__index"
+  [0613] SETTABLE       A=4 B=5 C=1 k=0 Bx=522 sBx=-65013 Ax=133636 sJ=-16643579 raw=0x01050210
+  [0614] LOADK          A=5 B=11 C=1 k=1 Bx=535 sBx=-65000 Ax=136965 sJ=-16640250 raw=0x010B8283 ; R[5] = K[535] "__newindex"
+  [0615] CLOSURE        A=6 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=518 sJ=-16776697 raw=0x0001034F ; R[6] = function[2]
+  [0616] SETTABLE       A=4 B=5 C=6 k=0 Bx=3082 sBx=-62453 Ax=788996 sJ=-15988219 raw=0x06050210
+  [0617] CALL           A=2 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132610 sJ=-16644605 raw=0x01030144
+  [0618] RETURN         A=0 B=2 C=1 k=1 Bx=517 sBx=-65018 Ax=132352 sJ=-16644863 raw=0x01028046
+  [0619] RETURN         A=2 B=1 C=1 k=1 Bx=515 sBx=-65020 Ax=131842 sJ=-16645373 raw=0x01018146
+
+  function[0] source="" lines=375-385 params=2 vararg=0 stack=255 upvalues=1
+  constants (8):
+    K[0] = "rawget"
+    K[1] = "Log"
+    K[2] = "ErrorFormat"
+    K[3] = "BattleEvent missing %s!!"
+    K[4] = "string"
+    K[5] = "format"
+    K[6] = "BattleEventMissing(%s)"
+    K[7] = "rawset"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=7 name="_ENV"
+  locals (3):
+    L[0] = "t" pc=0-26
+    L[1] = "k" pc=0-26
+    L[2] = "value" pc=4-26
+  instructions (26):
+    [0001] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "rawget"]
+    [0002] MOVE           A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000180
+    [0003] MOVE           A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010200
+    [0004] CALL           A=2 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263682 sJ=-16513533 raw=0x02030144
+    [0005] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0006] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0007] RETURN1        A=2 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1026 sJ=-16776189 raw=0x00020148
+    [0008] JMP            A=16 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777232 sJ=17 raw=0x80000838
+    [0009] GETTABUP       A=3 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131075 sJ=-16646140 raw=0x0100018B ; R[3] = U[0][K[1] "Log"]
+    [0010] GETFIELD       A=3 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263683 sJ=-16513532 raw=0x0203018E ; R[3] = R[3][K[2] "ErrorFormat"]
+    [0011] LOADK          A=4 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=772 sJ=-16776443 raw=0x00018203 ; R[4] = K[3] "BattleEvent missing %s!!"
+    [0012] MOVE           A=5 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=517 sJ=-16776698 raw=0x00010280
+    [0013] CALL           A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x010301C4
+    [0014] GETTABUP       A=3 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524291 sJ=-16252924 raw=0x0400018B ; R[3] = U[0][K[4] "string"]
+    [0015] GETFIELD       A=3 B=3 C=5 k=0 Bx=2566 sBx=-62969 Ax=656899 sJ=-16120316 raw=0x0503018E ; R[3] = R[3][K[5] "format"]
+    [0016] LOADK          A=4 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1540 sJ=-16775675 raw=0x00030203 ; R[4] = K[6] "BattleEventMissing(%s)"
+    [0017] MOVE           A=5 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=517 sJ=-16776698 raw=0x00010280
+    [0018] CALL           A=3 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263683 sJ=-16513532 raw=0x020301C4
+    [0019] MOVE           A=2 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1538 sJ=-16775677 raw=0x00030100
+    [0020] GETTABUP       A=3 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917507 sJ=-15859708 raw=0x0700018B ; R[3] = U[0][K[7] "rawset"]
+    [0021] MOVE           A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000200
+    [0022] MOVE           A=5 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=517 sJ=-16776698 raw=0x00010280
+    [0023] MOVE           A=6 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1030 sJ=-16776185 raw=0x00020300
+    [0024] CALL           A=3 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133123 sJ=-16644092 raw=0x010401C4
+    [0025] RETURN1        A=2 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1026 sJ=-16776189 raw=0x00020148
+    [0026] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7
+
+  function[1] source="" lines=386-389 params=3 vararg=0 stack=255 upvalues=1
+  constants (4):
+    K[0] = "Log"
+    K[1] = "ErrorFormat"
+    K[2] = "BattleEvent(Raw) can not add new key, k=%s, v=%s!!"
+    K[3] = "tostring"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=8 name="_ENV"
+  locals (3):
+    L[0] = "t" pc=0-12
+    L[1] = "k" pc=0-12
+    L[2] = "v" pc=0-12
+  instructions (12):
+    [0001] GETTABUP       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018B ; R[3] = U[0][K[0] "Log"]
+    [0002] GETFIELD       A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x0103018E ; R[3] = R[3][K[1] "ErrorFormat"]
+    [0003] LOADK          A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010203 ; R[4] = K[2] "BattleEvent(Raw) can not add new key, k=%s, v=%s!!"
+    [0004] GETTABUP       A=5 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393221 sJ=-16383994 raw=0x0300028B ; R[5] = U[0][K[3] "tostring"]
+    [0005] MOVE           A=6 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=518 sJ=-16776697 raw=0x00010300
+    [0006] CALL           A=5 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263173 sJ=-16514042 raw=0x020202C4
+    [0007] GETTABUP       A=6 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393222 sJ=-16383993 raw=0x0300030B ; R[6] = U[0][K[3] "tostring"]
+    [0008] MOVE           A=7 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1031 sJ=-16776184 raw=0x00020380
+    [0009] CALL           A=6 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1030 sJ=-16776185 raw=0x00020344
+    [0010] CALL           A=3 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131075 sJ=-16646140 raw=0x010001C4
+    [0011] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7
+    [0012] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7
+
+  function[2] source="" lines=394-400 params=3 vararg=0 stack=255 upvalues=2
+  constants (6):
+    K[0] = "rawget"
+    K[1] = "Log"
+    K[2] = "ErrorFormat"
+    K[3] = "BattleEvent can not modify exist key, k=%s, v=%s!!"
+    K[4] = "tostring"
+    K[5] = "BattleEvent can not add new key, k=%s, v=%s!!"
+  upvalues (2):
+    U[0] = instack=0 idx=0 kind=1 name="_ENV"
+    U[1] = instack=1 idx=0 kind=8 name="BattleEventRaw"
+  locals (3):
+    L[0] = "t" pc=0-28
+    L[1] = "k" pc=0-28
+    L[2] = "v" pc=0-28
+  instructions (28):
+    [0001] GETTABUP       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018B ; R[3] = U[0][K[0] "rawget"]
+    [0002] GETUPVAL       A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010209
+    [0003] MOVE           A=5 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=517 sJ=-16776698 raw=0x00010280
+    [0004] CALL           A=3 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263683 sJ=-16513532 raw=0x020301C4
+    [0005] TEST           A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x000001C2
+    [0006] JMP            A=10 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777226 sJ=11 raw=0x80000538
+    [0007] GETTABUP       A=3 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131075 sJ=-16646140 raw=0x0100018B ; R[3] = U[0][K[1] "Log"]
+    [0008] GETFIELD       A=3 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263683 sJ=-16513532 raw=0x0203018E ; R[3] = R[3][K[2] "ErrorFormat"]
+    [0009] LOADK          A=4 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=772 sJ=-16776443 raw=0x00018203 ; R[4] = K[3] "BattleEvent can not modify exist key, k=%s, v=%s!!"
+    [0010] GETTABUP       A=5 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524293 sJ=-16252922 raw=0x0400028B ; R[5] = U[0][K[4] "tostring"]
+    [0011] MOVE           A=6 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=518 sJ=-16776697 raw=0x00010300
+    [0012] CALL           A=5 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263173 sJ=-16514042 raw=0x020202C4
+    [0013] GETTABUP       A=6 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524294 sJ=-16252921 raw=0x0400030B ; R[6] = U[0][K[4] "tostring"]
+    [0014] MOVE           A=7 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1031 sJ=-16776184 raw=0x00020380
+    [0015] CALL           A=6 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1030 sJ=-16776185 raw=0x00020344
+    [0016] CALL           A=3 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131075 sJ=-16646140 raw=0x010001C4
+    [0017] JMP            A=9 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777225 sJ=10 raw=0x800004B8
+    [0018] GETTABUP       A=3 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131075 sJ=-16646140 raw=0x0100018B ; R[3] = U[0][K[1] "Log"]
+    [0019] GETFIELD       A=3 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263683 sJ=-16513532 raw=0x0203018E ; R[3] = R[3][K[2] "ErrorFormat"]
+    [0020] LOADK          A=4 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1284 sJ=-16775931 raw=0x00028203 ; R[4] = K[5] "BattleEvent can not add new key, k=%s, v=%s!!"
+    [0021] GETTABUP       A=5 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524293 sJ=-16252922 raw=0x0400028B ; R[5] = U[0][K[4] "tostring"]
+    [0022] MOVE           A=6 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=518 sJ=-16776697 raw=0x00010300
+    [0023] CALL           A=5 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263173 sJ=-16514042 raw=0x020202C4
+    [0024] GETTABUP       A=6 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524294 sJ=-16252921 raw=0x0400030B ; R[6] = U[0][K[4] "tostring"]
+    [0025] MOVE           A=7 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1031 sJ=-16776184 raw=0x00020380
+    [0026] CALL           A=6 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1030 sJ=-16776185 raw=0x00020344
+    [0027] CALL           A=3 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131075 sJ=-16646140 raw=0x010001C4
+    [0028] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7

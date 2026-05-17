@@ -1,0 +1,297 @@
+-- path: Content/ScriptC/NewRoco/Modules/Core/Battle/Fsm/RoundSelectFsm.luac
+-- format: decrypted standard Lua 5.4 bytecode
+-- note: disassembly, not original source
+
+main source="@NewRoco\\Modules\\Core\\Battle\\Fsm\\RoundSelectFsm.lua" lines=0-0 params=0 vararg=1 stack=255 upvalues=1
+constants (13):
+  K[0] = "require"
+  K[1] = "NewRoco.Modules.Core.Battle.Common.BattleEnum"
+  K[2] = "NewRoco.Modules.Core.Battle.Common.BattleEvent"
+  K[3] = "NewRoco.Modules.Core.Fsm.Fsm"
+  K[4] = "NewRoco.Modules.Core.Battle.Fsm.Actions.Round.RoundSkillAction"
+  K[5] = "NewRoco.Modules.Core.Battle.Fsm.Actions.Round.RoundSwapAction"
+  K[6] = "NewRoco.Modules.Core.Battle.Fsm.Actions.Round.RoundCatchAction"
+  K[7] = "NewRoco.Modules.Core.Battle.Fsm.Actions.Round.RoundItemAction"
+  K[8] = "NewRoco.Modules.Core.Battle.Fsm.Actions.Round.RoundEscapeAction"
+  K[9] = "NewRoco.Modules.Core.Battle.Fsm.Actions.Round.RoundNoneAction"
+  K[10] = "NewRoco.Modules.Core.Battle.Fsm.Actions.Round.RoundSurrenderAction"
+  K[11] = "NewRoco.Modules.Core.Battle.Fsm.Actions.Round.RoundStepAwayAction"
+  K[12] = "NewRoco.Modules.Core.Battle.Fsm.Actions.Round.RoundGiveUpAction"
+upvalues (1):
+  U[0] = instack=0 idx=0 kind=13 name="_ENV"
+locals (13):
+  L[0] = "BattleEnum" pc=4-40
+  L[1] = "BattleEvent" pc=7-40
+  L[2] = "Fsm" pc=10-40
+  L[3] = "RoundSkillAction" pc=13-40
+  L[4] = "RoundSwapAction" pc=16-40
+  L[5] = "RoundCatchAction" pc=19-40
+  L[6] = "RoundItemAction" pc=22-40
+  L[7] = "RoundEscapeAction" pc=25-40
+  L[8] = "RoundNoneAction" pc=28-40
+  L[9] = "RoundSurrenderAction" pc=31-40
+  L[10] = "RoundStepAwayAction" pc=34-40
+  L[11] = "RoundGiveUpAction" pc=37-40
+  L[12] = "CreateFsm" pc=38-40
+instructions (40):
+  [0001] VARARGPREP     A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000051
+  [0002] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "require"]
+  [0003] LOADK          A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x00008083 ; R[1] = K[1] "NewRoco.Modules.Core.Battle.Common.BattleEnum"
+  [0004] CALL           A=0 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263168 sJ=-16514047 raw=0x02020044
+  [0005] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "require"]
+  [0006] LOADK          A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010103 ; R[2] = K[2] "NewRoco.Modules.Core.Battle.Common.BattleEvent"
+  [0007] CALL           A=1 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263169 sJ=-16514046 raw=0x020200C4
+  [0008] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "require"]
+  [0009] LOADK          A=3 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=771 sJ=-16776444 raw=0x00018183 ; R[3] = K[3] "NewRoco.Modules.Core.Fsm.Fsm"
+  [0010] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+  [0011] GETTABUP       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018B ; R[3] = U[0][K[0] "require"]
+  [0012] LOADK          A=4 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1028 sJ=-16776187 raw=0x00020203 ; R[4] = K[4] "NewRoco.Modules.Core.Battle.Fsm.Actions.Round.RoundSkillAction"
+  [0013] CALL           A=3 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263171 sJ=-16514044 raw=0x020201C4
+  [0014] GETTABUP       A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x0000020B ; R[4] = U[0][K[0] "require"]
+  [0015] LOADK          A=5 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1285 sJ=-16775930 raw=0x00028283 ; R[5] = K[5] "NewRoco.Modules.Core.Battle.Fsm.Actions.Round.RoundSwapAction"
+  [0016] CALL           A=4 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263172 sJ=-16514043 raw=0x02020244
+  [0017] GETTABUP       A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x0000028B ; R[5] = U[0][K[0] "require"]
+  [0018] LOADK          A=6 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1542 sJ=-16775673 raw=0x00030303 ; R[6] = K[6] "NewRoco.Modules.Core.Battle.Fsm.Actions.Round.RoundCatchAction"
+  [0019] CALL           A=5 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263173 sJ=-16514042 raw=0x020202C4
+  [0020] GETTABUP       A=6 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=6 sJ=-16777209 raw=0x0000030B ; R[6] = U[0][K[0] "require"]
+  [0021] LOADK          A=7 B=3 C=0 k=1 Bx=7 sBx=-65528 Ax=1799 sJ=-16775416 raw=0x00038383 ; R[7] = K[7] "NewRoco.Modules.Core.Battle.Fsm.Actions.Round.RoundItemAction"
+  [0022] CALL           A=6 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263174 sJ=-16514041 raw=0x02020344
+  [0023] GETTABUP       A=7 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=7 sJ=-16777208 raw=0x0000038B ; R[7] = U[0][K[0] "require"]
+  [0024] LOADK          A=8 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2056 sJ=-16775159 raw=0x00040403 ; R[8] = K[8] "NewRoco.Modules.Core.Battle.Fsm.Actions.Round.RoundEscapeAction"
+  [0025] CALL           A=7 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263175 sJ=-16514040 raw=0x020203C4
+  [0026] GETTABUP       A=8 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=8 sJ=-16777207 raw=0x0000040B ; R[8] = U[0][K[0] "require"]
+  [0027] LOADK          A=9 B=4 C=0 k=1 Bx=9 sBx=-65526 Ax=2313 sJ=-16774902 raw=0x00048483 ; R[9] = K[9] "NewRoco.Modules.Core.Battle.Fsm.Actions.Round.RoundNoneAction"
+  [0028] CALL           A=8 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263176 sJ=-16514039 raw=0x02020444
+  [0029] GETTABUP       A=9 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=9 sJ=-16777206 raw=0x0000048B ; R[9] = U[0][K[0] "require"]
+  [0030] LOADK          A=10 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2570 sJ=-16774645 raw=0x00050503 ; R[10] = K[10] "NewRoco.Modules.Core.Battle.Fsm.Actions.Round.RoundSurrenderAction"
+  [0031] CALL           A=9 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263177 sJ=-16514038 raw=0x020204C4
+  [0032] GETTABUP       A=10 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=10 sJ=-16777205 raw=0x0000050B ; R[10] = U[0][K[0] "require"]
+  [0033] LOADK          A=11 B=5 C=0 k=1 Bx=11 sBx=-65524 Ax=2827 sJ=-16774388 raw=0x00058583 ; R[11] = K[11] "NewRoco.Modules.Core.Battle.Fsm.Actions.Round.RoundStepAwayAction"
+  [0034] CALL           A=10 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263178 sJ=-16514037 raw=0x02020544
+  [0035] GETTABUP       A=11 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=11 sJ=-16777204 raw=0x0000058B ; R[11] = U[0][K[0] "require"]
+  [0036] LOADK          A=12 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3084 sJ=-16774131 raw=0x00060603 ; R[12] = K[12] "NewRoco.Modules.Core.Battle.Fsm.Actions.Round.RoundGiveUpAction"
+  [0037] CALL           A=11 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263179 sJ=-16514036 raw=0x020205C4
+  [0038] CLOSURE        A=12 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=12 sJ=-16777203 raw=0x0000064F ; R[12] = function[0]
+  [0039] RETURN         A=12 B=2 C=1 k=1 Bx=517 sBx=-65018 Ax=132364 sJ=-16644851 raw=0x01028646
+  [0040] RETURN         A=13 B=1 C=1 k=1 Bx=515 sBx=-65020 Ax=131853 sJ=-16645362 raw=0x010186C6
+
+  function[0] source="" lines=26-70 params=0 vararg=0 stack=255 upvalues=12
+  constants (39):
+    K[0] = "RoundSelectFsm"
+    K[1] = "CreateVar"
+    K[2] = "CurrentPet"
+    K[3] = "StateEvent"
+    K[4] = "MarkerManager"
+    K[5] = "CurrentSelectGuid"
+    K[6] = "CreateSequentialState"
+    K[7] = "RoundStateNames"
+    K[8] = "SkillState"
+    K[9] = "SwapState"
+    K[10] = "CatchState"
+    K[11] = "ItemState"
+    K[12] = "EscapeState"
+    K[13] = "SurrenderState"
+    K[14] = "StepAwayState"
+    K[15] = "GiveUpState"
+    K[16] = "NoneState"
+    K[17] = "AddAction"
+    K[18] = "Skill"
+    K[19] = "Swap"
+    K[20] = "Catch"
+    K[21] = "Item"
+    K[22] = "Escape"
+    K[23] = "Surrender"
+    K[24] = "StepAway"
+    K[25] = "GiveUp"
+    K[26] = "None"
+    K[27] = "AddTransitionToState"
+    K[28] = "RoundEvent"
+    K[29] = "EnterSkill"
+    K[30] = "EnterSwap"
+    K[31] = "EnterCatch"
+    K[32] = "EnterItem"
+    K[33] = "EnterEscape"
+    K[34] = "EnterSurrender"
+    K[35] = "EnterStepAway"
+    K[36] = "EnterGiveUp"
+    K[37] = "EnterNone"
+    K[38] = "SetInitState"
+  upvalues (12):
+    U[0] = instack=2 idx=0 kind=1 name="Fsm"
+    U[1] = instack=0 idx=0 kind=1 name="BattleEnum"
+    U[2] = instack=3 idx=0 kind=1 name="RoundSkillAction"
+    U[3] = instack=4 idx=0 kind=1 name="RoundSwapAction"
+    U[4] = instack=5 idx=0 kind=1 name="RoundCatchAction"
+    U[5] = instack=6 idx=0 kind=1 name="RoundItemAction"
+    U[6] = instack=7 idx=0 kind=1 name="RoundEscapeAction"
+    U[7] = instack=9 idx=0 kind=1 name="RoundSurrenderAction"
+    U[8] = instack=10 idx=0 kind=1 name="RoundStepAwayAction"
+    U[9] = instack=11 idx=0 kind=1 name="RoundGiveUpAction"
+    U[10] = instack=8 idx=0 kind=1 name="RoundNoneAction"
+    U[11] = instack=1 idx=0 kind=19 name="BattleEvent"
+  locals (14):
+    L[0] = "fsm" pc=3-150
+    L[1] = "CurrentPet" pc=6-150
+    L[2] = "StateEvent" pc=9-150
+    L[3] = "SelectMarkerManager" pc=12-150
+    L[4] = "CurrentSelectGuid" pc=16-150
+    L[5] = "SkillState" pc=20-150
+    L[6] = "SwapState" pc=24-150
+    L[7] = "CatchState" pc=28-150
+    L[8] = "ItemState" pc=32-150
+    L[9] = "EscapeState" pc=36-150
+    L[10] = "SurrenderState" pc=40-150
+    L[11] = "StepAwayState" pc=44-150
+    L[12] = "GiveUpState" pc=48-150
+    L[13] = "NoneState" pc=52-150
+  instructions (150):
+    [0001] GETUPVAL       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000009
+    [0002] LOADK          A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000083 ; R[1] = K[0] "RoundSelectFsm"
+    [0003] CALL           A=0 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263168 sJ=-16514047 raw=0x02020044
+    [0004] SELF           A=1 B=0 C=1 k=1 Bx=513 sBx=-65022 Ax=131329 sJ=-16645886 raw=0x01008094
+    [0005] LOADK          A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x00010183 ; R[3] = K[2] "CurrentPet"
+    [0006] CALL           A=1 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263681 sJ=-16513534 raw=0x020300C4
+    [0007] SELF           A=2 B=0 C=1 k=1 Bx=513 sBx=-65022 Ax=131330 sJ=-16645885 raw=0x01008114
+    [0008] LOADK          A=4 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=772 sJ=-16776443 raw=0x00018203 ; R[4] = K[3] "StateEvent"
+    [0009] CALL           A=2 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263682 sJ=-16513533 raw=0x02030144
+    [0010] SELF           A=3 B=0 C=1 k=1 Bx=513 sBx=-65022 Ax=131331 sJ=-16645884 raw=0x01008194
+    [0011] LOADK          A=5 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1029 sJ=-16776186 raw=0x00020283 ; R[5] = K[4] "MarkerManager"
+    [0012] CALL           A=3 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263683 sJ=-16513532 raw=0x020301C4
+    [0013] SELF           A=4 B=0 C=1 k=1 Bx=513 sBx=-65022 Ax=131332 sJ=-16645883 raw=0x01008214
+    [0014] LOADK          A=6 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1286 sJ=-16775929 raw=0x00028303 ; R[6] = K[5] "CurrentSelectGuid"
+    [0015] LOADI          A=7 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776967 sJ=-248 raw=0x7FFF8381
+    [0016] CALL           A=4 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264196 sJ=-16513019 raw=0x02040244
+    [0017] SELF           A=5 B=0 C=6 k=1 Bx=3073 sBx=-62462 Ax=786693 sJ=-15990522 raw=0x06008294
+    [0018] GETTABUP       A=7 B=1 C=7 k=0 Bx=3586 sBx=-61949 Ax=918023 sJ=-15859192 raw=0x0701038B ; R[7] = U[1][K[7] "RoundStateNames"]
+    [0019] GETFIELD       A=7 B=7 C=8 k=0 Bx=4110 sBx=-61425 Ax=1052167 sJ=-15725048 raw=0x0807038E ; R[7] = R[7][K[8] "SkillState"]
+    [0020] CALL           A=5 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263685 sJ=-16513530 raw=0x020302C4
+    [0021] SELF           A=6 B=0 C=6 k=1 Bx=3073 sBx=-62462 Ax=786694 sJ=-15990521 raw=0x06008314
+    [0022] GETTABUP       A=8 B=1 C=7 k=0 Bx=3586 sBx=-61949 Ax=918024 sJ=-15859191 raw=0x0701040B ; R[8] = U[1][K[7] "RoundStateNames"]
+    [0023] GETFIELD       A=8 B=8 C=9 k=0 Bx=4624 sBx=-60911 Ax=1183752 sJ=-15593463 raw=0x0908040E ; R[8] = R[8][K[9] "SwapState"]
+    [0024] CALL           A=6 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263686 sJ=-16513529 raw=0x02030344
+    [0025] SELF           A=7 B=0 C=6 k=1 Bx=3073 sBx=-62462 Ax=786695 sJ=-15990520 raw=0x06008394
+    [0026] GETTABUP       A=9 B=1 C=7 k=0 Bx=3586 sBx=-61949 Ax=918025 sJ=-15859190 raw=0x0701048B ; R[9] = U[1][K[7] "RoundStateNames"]
+    [0027] GETFIELD       A=9 B=9 C=10 k=0 Bx=5138 sBx=-60397 Ax=1315337 sJ=-15461878 raw=0x0A09048E ; R[9] = R[9][K[10] "CatchState"]
+    [0028] CALL           A=7 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263687 sJ=-16513528 raw=0x020303C4
+    [0029] SELF           A=8 B=0 C=6 k=1 Bx=3073 sBx=-62462 Ax=786696 sJ=-15990519 raw=0x06008414
+    [0030] GETTABUP       A=10 B=1 C=7 k=0 Bx=3586 sBx=-61949 Ax=918026 sJ=-15859189 raw=0x0701050B ; R[10] = U[1][K[7] "RoundStateNames"]
+    [0031] GETFIELD       A=10 B=10 C=11 k=0 Bx=5652 sBx=-59883 Ax=1446922 sJ=-15330293 raw=0x0B0A050E ; R[10] = R[10][K[11] "ItemState"]
+    [0032] CALL           A=8 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263688 sJ=-16513527 raw=0x02030444
+    [0033] SELF           A=9 B=0 C=6 k=1 Bx=3073 sBx=-62462 Ax=786697 sJ=-15990518 raw=0x06008494
+    [0034] GETTABUP       A=11 B=1 C=7 k=0 Bx=3586 sBx=-61949 Ax=918027 sJ=-15859188 raw=0x0701058B ; R[11] = U[1][K[7] "RoundStateNames"]
+    [0035] GETFIELD       A=11 B=11 C=12 k=0 Bx=6166 sBx=-59369 Ax=1578507 sJ=-15198708 raw=0x0C0B058E ; R[11] = R[11][K[12] "EscapeState"]
+    [0036] CALL           A=9 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263689 sJ=-16513526 raw=0x020304C4
+    [0037] SELF           A=10 B=0 C=6 k=1 Bx=3073 sBx=-62462 Ax=786698 sJ=-15990517 raw=0x06008514
+    [0038] GETTABUP       A=12 B=1 C=7 k=0 Bx=3586 sBx=-61949 Ax=918028 sJ=-15859187 raw=0x0701060B ; R[12] = U[1][K[7] "RoundStateNames"]
+    [0039] GETFIELD       A=12 B=12 C=13 k=0 Bx=6680 sBx=-58855 Ax=1710092 sJ=-15067123 raw=0x0D0C060E ; R[12] = R[12][K[13] "SurrenderState"]
+    [0040] CALL           A=10 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263690 sJ=-16513525 raw=0x02030544
+    [0041] SELF           A=11 B=0 C=6 k=1 Bx=3073 sBx=-62462 Ax=786699 sJ=-15990516 raw=0x06008594
+    [0042] GETTABUP       A=13 B=1 C=7 k=0 Bx=3586 sBx=-61949 Ax=918029 sJ=-15859186 raw=0x0701068B ; R[13] = U[1][K[7] "RoundStateNames"]
+    [0043] GETFIELD       A=13 B=13 C=14 k=0 Bx=7194 sBx=-58341 Ax=1841677 sJ=-14935538 raw=0x0E0D068E ; R[13] = R[13][K[14] "StepAwayState"]
+    [0044] CALL           A=11 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263691 sJ=-16513524 raw=0x020305C4
+    [0045] SELF           A=12 B=0 C=6 k=1 Bx=3073 sBx=-62462 Ax=786700 sJ=-15990515 raw=0x06008614
+    [0046] GETTABUP       A=14 B=1 C=7 k=0 Bx=3586 sBx=-61949 Ax=918030 sJ=-15859185 raw=0x0701070B ; R[14] = U[1][K[7] "RoundStateNames"]
+    [0047] GETFIELD       A=14 B=14 C=15 k=0 Bx=7708 sBx=-57827 Ax=1973262 sJ=-14803953 raw=0x0F0E070E ; R[14] = R[14][K[15] "GiveUpState"]
+    [0048] CALL           A=12 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263692 sJ=-16513523 raw=0x02030644
+    [0049] SELF           A=13 B=0 C=6 k=1 Bx=3073 sBx=-62462 Ax=786701 sJ=-15990514 raw=0x06008694
+    [0050] GETTABUP       A=15 B=1 C=7 k=0 Bx=3586 sBx=-61949 Ax=918031 sJ=-15859184 raw=0x0701078B ; R[15] = U[1][K[7] "RoundStateNames"]
+    [0051] GETFIELD       A=15 B=15 C=16 k=0 Bx=8222 sBx=-57313 Ax=2104847 sJ=-14672368 raw=0x100F078E ; R[15] = R[15][K[16] "NoneState"]
+    [0052] CALL           A=13 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263693 sJ=-16513522 raw=0x020306C4
+    [0053] SELF           A=14 B=5 C=17 k=1 Bx=8715 sBx=-56820 Ax=2231054 sJ=-14546161 raw=0x11058714
+    [0054] GETUPVAL       A=16 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1040 sJ=-16776175 raw=0x00020809
+    [0055] LOADK          A=17 B=9 C=0 k=0 Bx=18 sBx=-65517 Ax=4625 sJ=-16772590 raw=0x00090883 ; R[17] = K[18] "Skill"
+    [0056] CALL           A=16 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1040 sJ=-16776175 raw=0x00020844
+    [0057] CALL           A=14 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131086 sJ=-16646129 raw=0x01000744
+    [0058] SELF           A=14 B=6 C=17 k=1 Bx=8717 sBx=-56818 Ax=2231566 sJ=-14545649 raw=0x11068714
+    [0059] GETUPVAL       A=16 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1552 sJ=-16775663 raw=0x00030809
+    [0060] LOADK          A=17 B=9 C=0 k=1 Bx=19 sBx=-65516 Ax=4881 sJ=-16772334 raw=0x00098883 ; R[17] = K[19] "Swap"
+    [0061] NEWTABLE       A=18 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=530 sJ=-16776685 raw=0x00010913
+    [0062] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0063] SETFIELD       A=18 B=5 C=4 k=0 Bx=2058 sBx=-63477 Ax=526866 sJ=-16250349 raw=0x04050912 ; R[18][K[5] "CurrentSelectGuid"] = R[4]
+    [0064] CALL           A=16 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1552 sJ=-16775663 raw=0x00030844
+    [0065] CALL           A=14 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131086 sJ=-16646129 raw=0x01000744
+    [0066] SELF           A=14 B=7 C=17 k=1 Bx=8719 sBx=-56816 Ax=2232078 sJ=-14545137 raw=0x11078714
+    [0067] GETUPVAL       A=16 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2064 sJ=-16775151 raw=0x00040809
+    [0068] LOADK          A=17 B=10 C=0 k=0 Bx=20 sBx=-65515 Ax=5137 sJ=-16772078 raw=0x000A0883 ; R[17] = K[20] "Catch"
+    [0069] CALL           A=16 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1040 sJ=-16776175 raw=0x00020844
+    [0070] CALL           A=14 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131086 sJ=-16646129 raw=0x01000744
+    [0071] SELF           A=14 B=8 C=17 k=1 Bx=8721 sBx=-56814 Ax=2232590 sJ=-14544625 raw=0x11088714
+    [0072] GETUPVAL       A=16 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2576 sJ=-16774639 raw=0x00050809
+    [0073] LOADK          A=17 B=10 C=0 k=1 Bx=21 sBx=-65514 Ax=5393 sJ=-16771822 raw=0x000A8883 ; R[17] = K[21] "Item"
+    [0074] CALL           A=16 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1040 sJ=-16776175 raw=0x00020844
+    [0075] CALL           A=14 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131086 sJ=-16646129 raw=0x01000744
+    [0076] SELF           A=14 B=9 C=17 k=1 Bx=8723 sBx=-56812 Ax=2233102 sJ=-14544113 raw=0x11098714
+    [0077] GETUPVAL       A=16 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3088 sJ=-16774127 raw=0x00060809
+    [0078] LOADK          A=17 B=11 C=0 k=0 Bx=22 sBx=-65513 Ax=5649 sJ=-16771566 raw=0x000B0883 ; R[17] = K[22] "Escape"
+    [0079] CALL           A=16 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1040 sJ=-16776175 raw=0x00020844
+    [0080] CALL           A=14 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131086 sJ=-16646129 raw=0x01000744
+    [0081] SELF           A=14 B=10 C=17 k=1 Bx=8725 sBx=-56810 Ax=2233614 sJ=-14543601 raw=0x110A8714
+    [0082] GETUPVAL       A=16 B=7 C=0 k=0 Bx=14 sBx=-65521 Ax=3600 sJ=-16773615 raw=0x00070809
+    [0083] LOADK          A=17 B=11 C=0 k=1 Bx=23 sBx=-65512 Ax=5905 sJ=-16771310 raw=0x000B8883 ; R[17] = K[23] "Surrender"
+    [0084] CALL           A=16 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1040 sJ=-16776175 raw=0x00020844
+    [0085] CALL           A=14 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131086 sJ=-16646129 raw=0x01000744
+    [0086] SELF           A=14 B=11 C=17 k=1 Bx=8727 sBx=-56808 Ax=2234126 sJ=-14543089 raw=0x110B8714
+    [0087] GETUPVAL       A=16 B=8 C=0 k=0 Bx=16 sBx=-65519 Ax=4112 sJ=-16773103 raw=0x00080809
+    [0088] LOADK          A=17 B=12 C=0 k=0 Bx=24 sBx=-65511 Ax=6161 sJ=-16771054 raw=0x000C0883 ; R[17] = K[24] "StepAway"
+    [0089] CALL           A=16 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1040 sJ=-16776175 raw=0x00020844
+    [0090] CALL           A=14 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131086 sJ=-16646129 raw=0x01000744
+    [0091] SELF           A=14 B=12 C=17 k=1 Bx=8729 sBx=-56806 Ax=2234638 sJ=-14542577 raw=0x110C8714
+    [0092] GETUPVAL       A=16 B=9 C=0 k=0 Bx=18 sBx=-65517 Ax=4624 sJ=-16772591 raw=0x00090809
+    [0093] LOADK          A=17 B=12 C=0 k=1 Bx=25 sBx=-65510 Ax=6417 sJ=-16770798 raw=0x000C8883 ; R[17] = K[25] "GiveUp"
+    [0094] CALL           A=16 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1040 sJ=-16776175 raw=0x00020844
+    [0095] CALL           A=14 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131086 sJ=-16646129 raw=0x01000744
+    [0096] SELF           A=14 B=13 C=17 k=1 Bx=8731 sBx=-56804 Ax=2235150 sJ=-14542065 raw=0x110D8714
+    [0097] GETUPVAL       A=16 B=10 C=0 k=0 Bx=20 sBx=-65515 Ax=5136 sJ=-16772079 raw=0x000A0809
+    [0098] LOADK          A=17 B=13 C=0 k=0 Bx=26 sBx=-65509 Ax=6673 sJ=-16770542 raw=0x000D0883 ; R[17] = K[26] "None"
+    [0099] CALL           A=16 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1040 sJ=-16776175 raw=0x00020844
+    [0100] CALL           A=14 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131086 sJ=-16646129 raw=0x01000744
+    [0101] SELF           A=14 B=0 C=27 k=1 Bx=13825 sBx=-51710 Ax=3539214 sJ=-13238001 raw=0x1B008714
+    [0102] GETTABUP       A=16 B=11 C=28 k=0 Bx=14358 sBx=-51177 Ax=3675664 sJ=-13101551 raw=0x1C0B080B ; R[16] = U[11][K[28] "RoundEvent"]
+    [0103] GETFIELD       A=16 B=16 C=29 k=0 Bx=14880 sBx=-50655 Ax=3809296 sJ=-12967919 raw=0x1D10080E ; R[16] = R[16][K[29] "EnterSkill"]
+    [0104] MOVE           A=17 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2577 sJ=-16774638 raw=0x00050880
+    [0105] CALL           A=14 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133134 sJ=-16644081 raw=0x01040744
+    [0106] SELF           A=14 B=0 C=27 k=1 Bx=13825 sBx=-51710 Ax=3539214 sJ=-13238001 raw=0x1B008714
+    [0107] GETTABUP       A=16 B=11 C=28 k=0 Bx=14358 sBx=-51177 Ax=3675664 sJ=-13101551 raw=0x1C0B080B ; R[16] = U[11][K[28] "RoundEvent"]
+    [0108] GETFIELD       A=16 B=16 C=30 k=0 Bx=15392 sBx=-50143 Ax=3940368 sJ=-12836847 raw=0x1E10080E ; R[16] = R[16][K[30] "EnterSwap"]
+    [0109] MOVE           A=17 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3089 sJ=-16774126 raw=0x00060880
+    [0110] CALL           A=14 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133134 sJ=-16644081 raw=0x01040744
+    [0111] SELF           A=14 B=0 C=27 k=1 Bx=13825 sBx=-51710 Ax=3539214 sJ=-13238001 raw=0x1B008714
+    [0112] GETTABUP       A=16 B=11 C=28 k=0 Bx=14358 sBx=-51177 Ax=3675664 sJ=-13101551 raw=0x1C0B080B ; R[16] = U[11][K[28] "RoundEvent"]
+    [0113] GETFIELD       A=16 B=16 C=31 k=0 Bx=15904 sBx=-49631 Ax=4071440 sJ=-12705775 raw=0x1F10080E ; R[16] = R[16][K[31] "EnterCatch"]
+    [0114] MOVE           A=17 B=7 C=0 k=0 Bx=14 sBx=-65521 Ax=3601 sJ=-16773614 raw=0x00070880
+    [0115] CALL           A=14 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133134 sJ=-16644081 raw=0x01040744
+    [0116] SELF           A=14 B=0 C=27 k=1 Bx=13825 sBx=-51710 Ax=3539214 sJ=-13238001 raw=0x1B008714
+    [0117] GETTABUP       A=16 B=11 C=28 k=0 Bx=14358 sBx=-51177 Ax=3675664 sJ=-13101551 raw=0x1C0B080B ; R[16] = U[11][K[28] "RoundEvent"]
+    [0118] GETFIELD       A=16 B=16 C=32 k=0 Bx=16416 sBx=-49119 Ax=4202512 sJ=-12574703 raw=0x2010080E ; R[16] = R[16][K[32] "EnterItem"]
+    [0119] MOVE           A=17 B=8 C=0 k=0 Bx=16 sBx=-65519 Ax=4113 sJ=-16773102 raw=0x00080880
+    [0120] CALL           A=14 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133134 sJ=-16644081 raw=0x01040744
+    [0121] SELF           A=14 B=0 C=27 k=1 Bx=13825 sBx=-51710 Ax=3539214 sJ=-13238001 raw=0x1B008714
+    [0122] GETTABUP       A=16 B=11 C=28 k=0 Bx=14358 sBx=-51177 Ax=3675664 sJ=-13101551 raw=0x1C0B080B ; R[16] = U[11][K[28] "RoundEvent"]
+    [0123] GETFIELD       A=16 B=16 C=33 k=0 Bx=16928 sBx=-48607 Ax=4333584 sJ=-12443631 raw=0x2110080E ; R[16] = R[16][K[33] "EnterEscape"]
+    [0124] MOVE           A=17 B=9 C=0 k=0 Bx=18 sBx=-65517 Ax=4625 sJ=-16772590 raw=0x00090880
+    [0125] CALL           A=14 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133134 sJ=-16644081 raw=0x01040744
+    [0126] SELF           A=14 B=0 C=27 k=1 Bx=13825 sBx=-51710 Ax=3539214 sJ=-13238001 raw=0x1B008714
+    [0127] GETTABUP       A=16 B=11 C=28 k=0 Bx=14358 sBx=-51177 Ax=3675664 sJ=-13101551 raw=0x1C0B080B ; R[16] = U[11][K[28] "RoundEvent"]
+    [0128] GETFIELD       A=16 B=16 C=34 k=0 Bx=17440 sBx=-48095 Ax=4464656 sJ=-12312559 raw=0x2210080E ; R[16] = R[16][K[34] "EnterSurrender"]
+    [0129] MOVE           A=17 B=10 C=0 k=0 Bx=20 sBx=-65515 Ax=5137 sJ=-16772078 raw=0x000A0880
+    [0130] CALL           A=14 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133134 sJ=-16644081 raw=0x01040744
+    [0131] SELF           A=14 B=0 C=27 k=1 Bx=13825 sBx=-51710 Ax=3539214 sJ=-13238001 raw=0x1B008714
+    [0132] GETTABUP       A=16 B=11 C=28 k=0 Bx=14358 sBx=-51177 Ax=3675664 sJ=-13101551 raw=0x1C0B080B ; R[16] = U[11][K[28] "RoundEvent"]
+    [0133] GETFIELD       A=16 B=16 C=35 k=0 Bx=17952 sBx=-47583 Ax=4595728 sJ=-12181487 raw=0x2310080E ; R[16] = R[16][K[35] "EnterStepAway"]
+    [0134] MOVE           A=17 B=11 C=0 k=0 Bx=22 sBx=-65513 Ax=5649 sJ=-16771566 raw=0x000B0880
+    [0135] CALL           A=14 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133134 sJ=-16644081 raw=0x01040744
+    [0136] SELF           A=14 B=0 C=27 k=1 Bx=13825 sBx=-51710 Ax=3539214 sJ=-13238001 raw=0x1B008714
+    [0137] GETTABUP       A=16 B=11 C=28 k=0 Bx=14358 sBx=-51177 Ax=3675664 sJ=-13101551 raw=0x1C0B080B ; R[16] = U[11][K[28] "RoundEvent"]
+    [0138] GETFIELD       A=16 B=16 C=36 k=0 Bx=18464 sBx=-47071 Ax=4726800 sJ=-12050415 raw=0x2410080E ; R[16] = R[16][K[36] "EnterGiveUp"]
+    [0139] MOVE           A=17 B=12 C=0 k=0 Bx=24 sBx=-65511 Ax=6161 sJ=-16771054 raw=0x000C0880
+    [0140] CALL           A=14 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133134 sJ=-16644081 raw=0x01040744
+    [0141] SELF           A=14 B=0 C=27 k=1 Bx=13825 sBx=-51710 Ax=3539214 sJ=-13238001 raw=0x1B008714
+    [0142] GETTABUP       A=16 B=11 C=28 k=0 Bx=14358 sBx=-51177 Ax=3675664 sJ=-13101551 raw=0x1C0B080B ; R[16] = U[11][K[28] "RoundEvent"]
+    [0143] GETFIELD       A=16 B=16 C=37 k=0 Bx=18976 sBx=-46559 Ax=4857872 sJ=-11919343 raw=0x2510080E ; R[16] = R[16][K[37] "EnterNone"]
+    [0144] MOVE           A=17 B=13 C=0 k=0 Bx=26 sBx=-65509 Ax=6673 sJ=-16770542 raw=0x000D0880
+    [0145] CALL           A=14 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133134 sJ=-16644081 raw=0x01040744
+    [0146] SELF           A=14 B=0 C=38 k=1 Bx=19457 sBx=-46078 Ax=4981006 sJ=-11796209 raw=0x26008714
+    [0147] MOVE           A=16 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2576 sJ=-16774639 raw=0x00050800
+    [0148] CALL           A=14 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132622 sJ=-16644593 raw=0x01030744
+    [0149] RETURN1        A=0 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1024 sJ=-16776191 raw=0x00020048
+    [0150] RETURN0        A=14 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=526 sJ=-16776689 raw=0x00010747

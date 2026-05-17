@@ -1,0 +1,378 @@
+-- path: Content/ScriptC/NewRoco/Modules/Core/Battle/Fsm/Actions/BattleWeeklyChallengeEnterAction.luac
+-- format: decrypted standard Lua 5.4 bytecode
+-- note: disassembly, not original source
+
+main source="@NewRoco\\Modules\\Core\\Battle\\Fsm\\Actions\\BattleWeeklyChallengeEnterAction.lua" lines=0-0 params=0 vararg=1 stack=255 upvalues=1
+constants (12):
+  K[0] = "require"
+  K[1] = "NewRoco.Modules.Core.Battle.Common.BattleUtils"
+  K[2] = "NewRoco.Modules.System.BattleUI.BattleUIModuleCmd"
+  K[3] = "BattleActionBase"
+  K[4] = "Extend"
+  K[5] = "BattleWeeklyChallengeEnterAction"
+  K[6] = "OnEnter"
+  K[7] = "OnLoadSuccess"
+  K[8] = "OnLoadFailed"
+  K[9] = "SetCurtainMaterial"
+  K[10] = "GetMaterialPath"
+  K[11] = "OnExit"
+upvalues (1):
+  U[0] = instack=0 idx=0 kind=6 name="_ENV"
+locals (4):
+  L[0] = "BattleUtils" pc=4-25
+  L[1] = "BattleUIModuleCmd" pc=7-25
+  L[2] = "Base" pc=8-25
+  L[3] = "BattleWeeklyChallengeEnterAction" pc=11-25
+instructions (25):
+  [0001] VARARGPREP     A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000051
+  [0002] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "require"]
+  [0003] LOADK          A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x00008083 ; R[1] = K[1] "NewRoco.Modules.Core.Battle.Common.BattleUtils"
+  [0004] CALL           A=0 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263168 sJ=-16514047 raw=0x02020044
+  [0005] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "require"]
+  [0006] LOADK          A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010103 ; R[2] = K[2] "NewRoco.Modules.System.BattleUI.BattleUIModuleCmd"
+  [0007] CALL           A=1 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263169 sJ=-16514046 raw=0x020200C4
+  [0008] GETTABUP       A=2 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393218 sJ=-16383997 raw=0x0300010B ; R[2] = U[0][K[3] "BattleActionBase"]
+  [0009] SELF           A=3 B=2 C=4 k=1 Bx=2053 sBx=-63482 Ax=525571 sJ=-16251644 raw=0x04028194
+  [0010] LOADK          A=5 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1285 sJ=-16775930 raw=0x00028283 ; R[5] = K[5] "BattleWeeklyChallengeEnterAction"
+  [0011] CALL           A=3 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263683 sJ=-16513532 raw=0x020301C4
+  [0012] CLOSURE        A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x0000024F ; R[4] = function[0]
+  [0013] SETFIELD       A=3 B=6 C=4 k=0 Bx=2060 sBx=-63475 Ax=527363 sJ=-16249852 raw=0x04060192 ; R[3][K[6] "OnEnter"] = R[4]
+  [0014] CLOSURE        A=4 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=260 sJ=-16776955 raw=0x0000824F ; R[4] = function[1]
+  [0015] SETFIELD       A=3 B=7 C=4 k=0 Bx=2062 sBx=-63473 Ax=527875 sJ=-16249340 raw=0x04070192 ; R[3][K[7] "OnLoadSuccess"] = R[4]
+  [0016] CLOSURE        A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x0001024F ; R[4] = function[2]
+  [0017] SETFIELD       A=3 B=8 C=4 k=0 Bx=2064 sBx=-63471 Ax=528387 sJ=-16248828 raw=0x04080192 ; R[3][K[8] "OnLoadFailed"] = R[4]
+  [0018] CLOSURE        A=4 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=772 sJ=-16776443 raw=0x0001824F ; R[4] = function[3]
+  [0019] SETFIELD       A=3 B=9 C=4 k=0 Bx=2066 sBx=-63469 Ax=528899 sJ=-16248316 raw=0x04090192 ; R[3][K[9] "SetCurtainMaterial"] = R[4]
+  [0020] CLOSURE        A=4 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1028 sJ=-16776187 raw=0x0002024F ; R[4] = function[4]
+  [0021] SETFIELD       A=3 B=10 C=4 k=0 Bx=2068 sBx=-63467 Ax=529411 sJ=-16247804 raw=0x040A0192 ; R[3][K[10] "GetMaterialPath"] = R[4]
+  [0022] CLOSURE        A=4 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1284 sJ=-16775931 raw=0x0002824F ; R[4] = function[5]
+  [0023] SETFIELD       A=3 B=11 C=4 k=0 Bx=2070 sBx=-63465 Ax=529923 sJ=-16247292 raw=0x040B0192 ; R[3][K[11] "OnExit"] = R[4]
+  [0024] RETURN         A=3 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132099 sJ=-16645116 raw=0x010201C6
+  [0025] RETURN         A=4 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131588 sJ=-16645627 raw=0x01010246
+
+  function[0] source="" lines=16-24 params=1 vararg=0 stack=255 upvalues=1
+  constants (8):
+    K[0] = "materialPath"
+    K[1] = "GetMaterialPath"
+    K[2] = "_G"
+    K[3] = "NRCResourceManager"
+    K[4] = "LoadResAsync"
+    K[5] = "OnLoadSuccess"
+    K[6] = "OnLoadFailed"
+    K[7] = "Finish"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=9 name="_ENV"
+  locals (1):
+    L[0] = "self" pc=0-19
+  instructions (19):
+    [0001] SELF           A=1 B=0 C=1 k=1 Bx=513 sBx=-65022 Ax=131329 sJ=-16645886 raw=0x01008094
+    [0002] CALL           A=1 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263169 sJ=-16514046 raw=0x020200C4
+    [0003] SETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x01000012 ; R[0][K[0] "materialPath"] = R[1]
+    [0004] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "materialPath"]
+    [0005] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0006] JMP            A=9 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777225 sJ=10 raw=0x800004B8
+    [0007] GETTABUP       A=1 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262145 sJ=-16515070 raw=0x0200008B ; R[1] = U[0][K[2] "_G"]
+    [0008] GETFIELD       A=1 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393729 sJ=-16383486 raw=0x0301008E ; R[1] = R[1][K[3] "NRCResourceManager"]
+    [0009] SELF           A=1 B=1 C=4 k=1 Bx=2051 sBx=-63484 Ax=525057 sJ=-16252158 raw=0x04018094
+    [0010] MOVE           A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000180
+    [0011] GETFIELD       A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x0000020E ; R[4] = R[0][K[0] "materialPath"]
+    [0012] LOADI          A=5 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776965 sJ=-250 raw=0x7FFF8281
+    [0013] LOADI          A=6 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776966 sJ=-249 raw=0x7FFF8301
+    [0014] GETFIELD       A=7 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655367 sJ=-16121848 raw=0x0500038E ; R[7] = R[0][K[5] "OnLoadSuccess"]
+    [0015] GETFIELD       A=8 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786440 sJ=-15990775 raw=0x0600040E ; R[8] = R[0][K[6] "OnLoadFailed"]
+    [0016] CALL           A=1 B=8 C=1 k=0 Bx=528 sBx=-65007 Ax=135169 sJ=-16642046 raw=0x010800C4
+    [0017] SELF           A=1 B=0 C=7 k=1 Bx=3585 sBx=-61950 Ax=917761 sJ=-15859454 raw=0x07008094
+    [0018] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0019] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[1] source="" lines=28-36 params=3 vararg=0 stack=255 upvalues=1
+  constants (12):
+    K[0] = "MaterialClass"
+    K[1] = "UE"
+    K[2] = "TArray"
+    K[3] = "AActor"
+    K[4] = "_G"
+    K[5] = "UE4Helper"
+    K[6] = "GetCurrentWorld"
+    K[7] = "UGameplayStatics"
+    K[8] = "GetAllActorsWithTag"
+    K[9] = "CurtainAssetTag"
+    K[10] = "pairs"
+    K[11] = "SetCurtainMaterial"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=14 name="_ENV"
+  locals (11):
+    L[0] = "self" pc=0-28
+    L[1] = "Request" pc=0-28
+    L[2] = "Asset" pc=0-28
+    L[3] = "actors" pc=6-28
+    L[4] = "CurrentWorld" pc=10-28
+    L[5] = "(for state)" pc=20-27
+    L[6] = "(for state)" pc=20-27
+    L[7] = "(for state)" pc=20-27
+    L[8] = "(for state)" pc=20-27
+    L[9] = "_" pc=21-24
+    L[10] = "actor" pc=21-24
+  instructions (28):
+    [0001] SETFIELD       A=0 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262144 sJ=-16515071 raw=0x02000012 ; R[0][K[0] "MaterialClass"] = R[2]
+    [0002] GETTABUP       A=3 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131075 sJ=-16646140 raw=0x0100018B ; R[3] = U[0][K[1] "UE"]
+    [0003] GETFIELD       A=3 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263683 sJ=-16513532 raw=0x0203018E ; R[3] = R[3][K[2] "TArray"]
+    [0004] GETTABUP       A=4 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131076 sJ=-16646139 raw=0x0100020B ; R[4] = U[0][K[1] "UE"]
+    [0005] GETFIELD       A=4 B=4 C=3 k=0 Bx=1544 sBx=-63991 Ax=395268 sJ=-16381947 raw=0x0304020E ; R[4] = R[4][K[3] "AActor"]
+    [0006] CALL           A=3 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263171 sJ=-16514044 raw=0x020201C4
+    [0007] GETTABUP       A=4 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524292 sJ=-16252923 raw=0x0400020B ; R[4] = U[0][K[4] "_G"]
+    [0008] GETFIELD       A=4 B=4 C=5 k=0 Bx=2568 sBx=-62967 Ax=657412 sJ=-16119803 raw=0x0504020E ; R[4] = R[4][K[5] "UE4Helper"]
+    [0009] GETFIELD       A=4 B=4 C=6 k=0 Bx=3080 sBx=-62455 Ax=788484 sJ=-15988731 raw=0x0604020E ; R[4] = R[4][K[6] "GetCurrentWorld"]
+    [0010] CALL           A=4 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262660 sJ=-16514555 raw=0x02010244
+    [0011] GETTABUP       A=5 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131077 sJ=-16646138 raw=0x0100028B ; R[5] = U[0][K[1] "UE"]
+    [0012] GETFIELD       A=5 B=5 C=7 k=0 Bx=3594 sBx=-61941 Ax=920069 sJ=-15857146 raw=0x0705028E ; R[5] = R[5][K[7] "UGameplayStatics"]
+    [0013] GETFIELD       A=5 B=5 C=8 k=0 Bx=4106 sBx=-61429 Ax=1051141 sJ=-15726074 raw=0x0805028E ; R[5] = R[5][K[8] "GetAllActorsWithTag"]
+    [0014] MOVE           A=6 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2054 sJ=-16775161 raw=0x00040300
+    [0015] LOADK          A=7 B=4 C=0 k=1 Bx=9 sBx=-65526 Ax=2311 sJ=-16774904 raw=0x00048383 ; R[7] = K[9] "CurtainAssetTag"
+    [0016] MOVE           A=8 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1544 sJ=-16775671 raw=0x00030400
+    [0017] CALL           A=5 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133125 sJ=-16644090 raw=0x010402C4
+    [0018] GETTABUP       A=5 B=0 C=10 k=0 Bx=5120 sBx=-60415 Ax=1310725 sJ=-15466490 raw=0x0A00028B ; R[5] = U[0][K[10] "pairs"]
+    [0019] MOVE           A=6 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1542 sJ=-16775673 raw=0x00030300
+    [0020] CALL           A=5 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656389 sJ=-16120826 raw=0x050202C4
+    [0021] TFORPREP       A=5 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=773 sJ=-16776442 raw=0x000182CB
+    [0022] SELF           A=11 B=0 C=11 k=1 Bx=5633 sBx=-59902 Ax=1442059 sJ=-15335156 raw=0x0B008594
+    [0023] MOVE           A=13 B=10 C=0 k=0 Bx=20 sBx=-65515 Ax=5133 sJ=-16772082 raw=0x000A0680
+    [0024] CALL           A=11 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132619 sJ=-16644596 raw=0x010305C4
+    [0025] TFORCALL       A=5 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262149 sJ=-16515066 raw=0x020002CC
+    [0026] TFORLOOP       A=5 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1285 sJ=-16775930 raw=0x000282CD
+    [0027] CLOSE          A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x000002B6
+    [0028] RETURN         A=5 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=773 sJ=-16776442 raw=0x000182C6
+
+  function[2] source="" lines=40-42 params=3 vararg=0 stack=255 upvalues=1
+  constants (5):
+    K[0] = "Log"
+    K[1] = "Warning"
+    K[2] = "BattleWeeklyChallengeEnterAction \u52A0\u8F7D\u6750\u8D28\u5931\u8D25\uFF0C\u68C0\u67E5\u6750\u8D28\u8DEF\u5F84 materialPath="
+    K[3] = "materialPath"
+    K[4] = "error="
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=8 name="_ENV"
+  locals (3):
+    L[0] = "self" pc=0-8
+    L[1] = "Request" pc=0-8
+    L[2] = "message" pc=0-8
+  instructions (8):
+    [0001] GETTABUP       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018B ; R[3] = U[0][K[0] "Log"]
+    [0002] GETFIELD       A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x0103018E ; R[3] = R[3][K[1] "Warning"]
+    [0003] LOADK          A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010203 ; R[4] = K[2] "BattleWeeklyChallengeEnterAction \u52A0\u8F7D\u6750\u8D28\u5931\u8D25\uFF0C\u68C0\u67E5\u6750\u8D28\u8DEF\u5F84 materialPath="
+    [0004] GETFIELD       A=5 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393221 sJ=-16383994 raw=0x0300028E ; R[5] = R[0][K[3] "materialPath"]
+    [0005] LOADK          A=6 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1030 sJ=-16776185 raw=0x00020303 ; R[6] = K[4] "error="
+    [0006] MOVE           A=7 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1031 sJ=-16776184 raw=0x00020380
+    [0007] CALL           A=3 B=5 C=1 k=0 Bx=522 sBx=-65013 Ax=133635 sJ=-16643580 raw=0x010501C4
+    [0008] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7
+
+  function[3] source="" lines=44-56 params=2 vararg=0 stack=255 upvalues=1
+  constants (6):
+    K[0] = "MaterialClass"
+    K[1] = "GetComponentByClass"
+    K[2] = "UE4"
+    K[3] = "UStaticMeshComponent"
+    K[4] = "CreateDynamicMaterialInstance"
+    K[5] = "SetMaterial"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=8 name="_ENV"
+  locals (4):
+    L[0] = "self" pc=0-19
+    L[1] = "curtainActor" pc=0-19
+    L[2] = "bgMeshComponent" pc=10-18
+    L[3] = "dynamicAnimMaterial" pc=14-18
+  instructions (19):
+    [0001] TEST           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x000080C2
+    [0002] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0003] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+    [0004] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "MaterialClass"]
+    [0005] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0006] JMP            A=11 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777227 sJ=12 raw=0x800005B8
+    [0007] SELF           A=2 B=1 C=1 k=1 Bx=515 sBx=-65020 Ax=131842 sJ=-16645373 raw=0x01018114
+    [0008] GETTABUP       A=4 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262148 sJ=-16515067 raw=0x0200020B ; R[4] = U[0][K[2] "UE4"]
+    [0009] GETFIELD       A=4 B=4 C=3 k=0 Bx=1544 sBx=-63991 Ax=395268 sJ=-16381947 raw=0x0304020E ; R[4] = R[4][K[3] "UStaticMeshComponent"]
+    [0010] CALL           A=2 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263682 sJ=-16513533 raw=0x02030144
+    [0011] SELF           A=3 B=2 C=4 k=1 Bx=2053 sBx=-63482 Ax=525571 sJ=-16251644 raw=0x04028194
+    [0012] LOADI          A=5 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776965 sJ=-250 raw=0x7FFF8281
+    [0013] GETFIELD       A=6 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=6 sJ=-16777209 raw=0x0000030E ; R[6] = R[0][K[0] "MaterialClass"]
+    [0014] CALL           A=3 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264195 sJ=-16513020 raw=0x020401C4
+    [0015] SELF           A=4 B=2 C=5 k=1 Bx=2565 sBx=-62970 Ax=656644 sJ=-16120571 raw=0x05028214
+    [0016] LOADI          A=6 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776966 sJ=-249 raw=0x7FFF8301
+    [0017] MOVE           A=7 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1543 sJ=-16775672 raw=0x00030380
+    [0018] CALL           A=4 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133124 sJ=-16644091 raw=0x01040244
+    [0019] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[4] source="" lines=59-102 params=1 vararg=0 stack=255 upvalues=1
+  constants (33):
+    K[0] = "_G"
+    K[1] = "BattleManager"
+    K[2] = "GetBattleNpcChallengeInfo"
+    K[3] = "challenge_level_id"
+    K[4] = "DataConfigManager"
+    K[5] = "GetWeeklyChallengeConf"
+    K[6] = "photo"
+    K[7] = "NRCModuleManager"
+    K[8] = "DoCmd"
+    K[9] = "WeeklyChallengeBattleModuleCmd"
+    K[10] = "GetMaterialFileNameFromPhotoID"
+    K[11] = "GetWeeklyPhotoConf"
+    K[12] = "background"
+    K[13] = "string"
+    K[14] = "match"
+    K[15] = "^MI_Curtain_(%d\u002B_%d\u002B)_Skeletal$"
+    K[16] = "Log"
+    K[17] = "Error"
+    K[18] = "BattleWeeklyChallengeEnterAction.GetMaterialPath \u62CD\u7167\u914D\u7F6EWEEKLY_PHOTO_CONF\u5F02\u5E38challengeId="
+    K[19] = "photoId="
+    K[20] = "materialName="
+    K[21] = "result="
+    K[22] = "materialName\u4E0D\u7B26\u5408\u683C\u5F0F\uFF0C\u8BF7\u7B56\u5212\u68C0\u6D4B\u914D\u7F6E"
+    K[23] = "MI_Curtain_"
+    K[24] = "_01_3uA"
+    K[25] = "table"
+    K[26] = "concat"
+    K[27] = "/Game/ArtRes/Asset/Environment/Interator/Curtain/TEX/"
+    K[28] = "."
+    K[29] = "Warning"
+    K[30] = "BattleWeeklyChallengeEnterAction.GetMaterialPath \u5468\u6311\u6218\u914D\u7F6EWEEKLY_CHALLENGE_CONF\u5F02\u5E38challengeId="
+    K[31] = "BattleWeeklyChallengeEnterAction.GetMaterialPath \u6CA1\u6709\u6570\u636EchallengeId="
+    K[32] = "\u7ED3\u7B97\u6570\u636E\u5F02\u5E38"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=17 name="_ENV"
+  locals (11):
+    L[0] = "self" pc=0-118
+    L[1] = "NpcChallengeInfo" pc=4-118
+    L[2] = "challengeId" pc=7-110
+    L[3] = "challengeConf" pc=14-102
+    L[4] = "photoId" pc=17-94
+    L[5] = "materialName" pc=25-94
+    L[6] = "photoConf" pc=32-38
+    L[7] = "result" pc=45-84
+    L[8] = "stringList" pc=67-84
+    L[9] = "curMaterialName" pc=71-84
+    L[10] = "resPath" pc=83-84
+  instructions (118):
+    [0001] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "_G"]
+    [0002] GETFIELD       A=1 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131585 sJ=-16645630 raw=0x0101008E ; R[1] = R[1][K[1] "BattleManager"]
+    [0003] SELF           A=1 B=1 C=2 k=1 Bx=1027 sBx=-64508 Ax=262913 sJ=-16514302 raw=0x02018094
+    [0004] CALL           A=1 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263169 sJ=-16514046 raw=0x020200C4
+    [0005] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0006] JMP            A=104 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777320 sJ=105 raw=0x80003438
+    [0007] GETFIELD       A=2 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393730 sJ=-16383485 raw=0x0301010E ; R[2] = R[1][K[3] "challenge_level_id"]
+    [0008] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0009] JMP            A=93 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777309 sJ=94 raw=0x80002EB8
+    [0010] GETTABUP       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018B ; R[3] = U[0][K[0] "_G"]
+    [0011] GETFIELD       A=3 B=3 C=4 k=0 Bx=2054 sBx=-63481 Ax=525827 sJ=-16251388 raw=0x0403018E ; R[3] = R[3][K[4] "DataConfigManager"]
+    [0012] SELF           A=3 B=3 C=5 k=1 Bx=2567 sBx=-62968 Ax=657155 sJ=-16120060 raw=0x05038194
+    [0013] MOVE           A=5 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1029 sJ=-16776186 raw=0x00020280
+    [0014] CALL           A=3 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263683 sJ=-16513532 raw=0x020301C4
+    [0015] TEST           A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x000001C2
+    [0016] JMP            A=78 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777294 sJ=79 raw=0x80002738
+    [0017] GETFIELD       A=4 B=3 C=6 k=0 Bx=3078 sBx=-62457 Ax=787972 sJ=-15989243 raw=0x0603020E ; R[4] = R[3][K[6] "photo"]
+    [0018] GETTABUP       A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x0000028B ; R[5] = U[0][K[0] "_G"]
+    [0019] GETFIELD       A=5 B=5 C=7 k=0 Bx=3594 sBx=-61941 Ax=920069 sJ=-15857146 raw=0x0705028E ; R[5] = R[5][K[7] "NRCModuleManager"]
+    [0020] SELF           A=5 B=5 C=8 k=1 Bx=4107 sBx=-61428 Ax=1051397 sJ=-15725818 raw=0x08058294
+    [0021] GETTABUP       A=7 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=7 sJ=-16777208 raw=0x0000038B ; R[7] = U[0][K[0] "_G"]
+    [0022] GETFIELD       A=7 B=7 C=9 k=0 Bx=4622 sBx=-60913 Ax=1183239 sJ=-15593976 raw=0x0907038E ; R[7] = R[7][K[9] "WeeklyChallengeBattleModuleCmd"]
+    [0023] GETFIELD       A=7 B=7 C=10 k=0 Bx=5134 sBx=-60401 Ax=1314311 sJ=-15462904 raw=0x0A07038E ; R[7] = R[7][K[10] "GetMaterialFileNameFromPhotoID"]
+    [0024] MOVE           A=8 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2056 sJ=-16775159 raw=0x00040400
+    [0025] CALL           A=5 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264197 sJ=-16513018 raw=0x020402C4
+    [0026] TEST           A=5 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=261 sJ=-16776954 raw=0x000082C2
+    [0027] JMP            A=10 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777226 sJ=11 raw=0x80000538
+    [0028] GETTABUP       A=6 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=6 sJ=-16777209 raw=0x0000030B ; R[6] = U[0][K[0] "_G"]
+    [0029] GETFIELD       A=6 B=6 C=4 k=0 Bx=2060 sBx=-63475 Ax=527366 sJ=-16249849 raw=0x0406030E ; R[6] = R[6][K[4] "DataConfigManager"]
+    [0030] SELF           A=6 B=6 C=11 k=1 Bx=5645 sBx=-59890 Ax=1445126 sJ=-15332089 raw=0x0B068314
+    [0031] MOVE           A=8 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2056 sJ=-16775159 raw=0x00040400
+    [0032] CALL           A=6 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263686 sJ=-16513529 raw=0x02030344
+    [0033] TEST           A=6 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=6 sJ=-16777209 raw=0x00000342
+    [0034] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0035] GETFIELD       A=7 B=6 C=12 k=0 Bx=6156 sBx=-59379 Ax=1575943 sJ=-15201272 raw=0x0C06038E ; R[7] = R[6][K[12] "background"]
+    [0036] TESTSET        A=5 B=7 C=0 k=1 Bx=15 sBx=-65520 Ax=3845 sJ=-16773370 raw=0x000782C3
+    [0037] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0038] LOADNIL        A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x00000288
+    [0039] TEST           A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x000002C2
+    [0040] JMP            A=44 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777260 sJ=45 raw=0x80001638
+    [0041] GETTABUP       A=6 B=0 C=13 k=0 Bx=6656 sBx=-58879 Ax=1703942 sJ=-15073273 raw=0x0D00030B ; R[6] = U[0][K[13] "string"]
+    [0042] GETFIELD       A=6 B=6 C=14 k=0 Bx=7180 sBx=-58355 Ax=1838086 sJ=-14939129 raw=0x0E06030E ; R[6] = R[6][K[14] "match"]
+    [0043] MOVE           A=7 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2567 sJ=-16774648 raw=0x00050380
+    [0044] LOADK          A=8 B=7 C=0 k=1 Bx=15 sBx=-65520 Ax=3848 sJ=-16773367 raw=0x00078403 ; R[8] = K[15] "^MI_Curtain_(%d\u002B_%d\u002B)_Skeletal$"
+    [0045] CALL           A=6 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263686 sJ=-16513529 raw=0x02030344
+    [0046] TEST           A=6 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=262 sJ=-16776953 raw=0x00008342
+    [0047] JMP            A=13 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777229 sJ=14 raw=0x800006B8
+    [0048] GETTABUP       A=7 B=0 C=16 k=0 Bx=8192 sBx=-57343 Ax=2097159 sJ=-14680056 raw=0x1000038B ; R[7] = U[0][K[16] "Log"]
+    [0049] GETFIELD       A=7 B=7 C=17 k=0 Bx=8718 sBx=-56817 Ax=2231815 sJ=-14545400 raw=0x1107038E ; R[7] = R[7][K[17] "Error"]
+    [0050] LOADK          A=8 B=9 C=0 k=0 Bx=18 sBx=-65517 Ax=4616 sJ=-16772599 raw=0x00090403 ; R[8] = K[18] "BattleWeeklyChallengeEnterAction.GetMaterialPath \u62CD\u7167\u914D\u7F6EWEEKLY_PHOTO_CONF\u5F02\u5E38challengeId="
+    [0051] MOVE           A=9 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1033 sJ=-16776182 raw=0x00020480
+    [0052] LOADK          A=10 B=9 C=0 k=1 Bx=19 sBx=-65516 Ax=4874 sJ=-16772341 raw=0x00098503 ; R[10] = K[19] "photoId="
+    [0053] MOVE           A=11 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2059 sJ=-16775156 raw=0x00040580
+    [0054] LOADK          A=12 B=10 C=0 k=0 Bx=20 sBx=-65515 Ax=5132 sJ=-16772083 raw=0x000A0603 ; R[12] = K[20] "materialName="
+    [0055] MOVE           A=13 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2573 sJ=-16774642 raw=0x00050680
+    [0056] LOADK          A=14 B=10 C=0 k=1 Bx=21 sBx=-65514 Ax=5390 sJ=-16771825 raw=0x000A8703 ; R[14] = K[21] "result="
+    [0057] MOVE           A=15 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3087 sJ=-16774128 raw=0x00060780
+    [0058] LOADK          A=16 B=11 C=0 k=0 Bx=22 sBx=-65513 Ax=5648 sJ=-16771567 raw=0x000B0803 ; R[16] = K[22] "materialName\u4E0D\u7B26\u5408\u683C\u5F0F\uFF0C\u8BF7\u7B56\u5212\u68C0\u6D4B\u914D\u7F6E"
+    [0059] CALL           A=7 B=10 C=1 k=0 Bx=532 sBx=-65003 Ax=136199 sJ=-16641016 raw=0x010A03C4
+    [0060] LOADNIL        A=7 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=7 sJ=-16777208 raw=0x00000388
+    [0061] RETURN1        A=7 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1031 sJ=-16776184 raw=0x000203C8
+    [0062] NEWTABLE       A=7 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393223 sJ=-16383992 raw=0x03000393
+    [0063] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0064] LOADK          A=8 B=11 C=0 k=1 Bx=23 sBx=-65512 Ax=5896 sJ=-16771319 raw=0x000B8403 ; R[8] = K[23] "MI_Curtain_"
+    [0065] MOVE           A=9 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3081 sJ=-16774134 raw=0x00060480
+    [0066] LOADK          A=10 B=12 C=0 k=0 Bx=24 sBx=-65511 Ax=6154 sJ=-16771061 raw=0x000C0503 ; R[10] = K[24] "_01_3uA"
+    [0067] SETLIST        A=7 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1543 sJ=-16775672 raw=0x000303CE
+    [0068] GETTABUP       A=8 B=0 C=25 k=0 Bx=12800 sBx=-52735 Ax=3276808 sJ=-13500407 raw=0x1900040B ; R[8] = U[0][K[25] "table"]
+    [0069] GETFIELD       A=8 B=8 C=26 k=0 Bx=13328 sBx=-52207 Ax=3411976 sJ=-13365239 raw=0x1A08040E ; R[8] = R[8][K[26] "concat"]
+    [0070] MOVE           A=9 B=7 C=0 k=0 Bx=14 sBx=-65521 Ax=3593 sJ=-16773622 raw=0x00070480
+    [0071] CALL           A=8 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263176 sJ=-16514039 raw=0x02020444
+    [0072] NEWTABLE       A=9 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524297 sJ=-16252918 raw=0x04000493
+    [0073] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0074] LOADK          A=10 B=13 C=0 k=1 Bx=27 sBx=-65508 Ax=6922 sJ=-16770293 raw=0x000D8503 ; R[10] = K[27] "/Game/ArtRes/Asset/Environment/Interator/Curtain/TEX/"
+    [0075] MOVE           A=11 B=8 C=0 k=0 Bx=16 sBx=-65519 Ax=4107 sJ=-16773108 raw=0x00080580
+    [0076] LOADK          A=12 B=14 C=0 k=0 Bx=28 sBx=-65507 Ax=7180 sJ=-16770035 raw=0x000E0603 ; R[12] = K[28] "."
+    [0077] MOVE           A=13 B=8 C=0 k=0 Bx=16 sBx=-65519 Ax=4109 sJ=-16773106 raw=0x00080680
+    [0078] SETLIST        A=9 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2057 sJ=-16775158 raw=0x000404CE
+    [0079] MOVE           A=7 B=9 C=0 k=0 Bx=18 sBx=-65517 Ax=4615 sJ=-16772600 raw=0x00090380
+    [0080] GETTABUP       A=9 B=0 C=25 k=0 Bx=12800 sBx=-52735 Ax=3276809 sJ=-13500406 raw=0x1900048B ; R[9] = U[0][K[25] "table"]
+    [0081] GETFIELD       A=9 B=9 C=26 k=0 Bx=13330 sBx=-52205 Ax=3412489 sJ=-13364726 raw=0x1A09048E ; R[9] = R[9][K[26] "concat"]
+    [0082] MOVE           A=10 B=7 C=0 k=0 Bx=14 sBx=-65521 Ax=3594 sJ=-16773621 raw=0x00070500
+    [0083] CALL           A=9 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263177 sJ=-16514038 raw=0x020204C4
+    [0084] RETURN1        A=9 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1033 sJ=-16776182 raw=0x000204C8
+    [0085] JMP            A=31 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777247 sJ=32 raw=0x80000FB8
+    [0086] GETTABUP       A=6 B=0 C=16 k=0 Bx=8192 sBx=-57343 Ax=2097158 sJ=-14680057 raw=0x1000030B ; R[6] = U[0][K[16] "Log"]
+    [0087] GETFIELD       A=6 B=6 C=29 k=0 Bx=14860 sBx=-50675 Ax=3804166 sJ=-12973049 raw=0x1D06030E ; R[6] = R[6][K[29] "Warning"]
+    [0088] LOADK          A=7 B=9 C=0 k=0 Bx=18 sBx=-65517 Ax=4615 sJ=-16772600 raw=0x00090383 ; R[7] = K[18] "BattleWeeklyChallengeEnterAction.GetMaterialPath \u62CD\u7167\u914D\u7F6EWEEKLY_PHOTO_CONF\u5F02\u5E38challengeId="
+    [0089] MOVE           A=8 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1032 sJ=-16776183 raw=0x00020400
+    [0090] LOADK          A=9 B=9 C=0 k=1 Bx=19 sBx=-65516 Ax=4873 sJ=-16772342 raw=0x00098483 ; R[9] = K[19] "photoId="
+    [0091] MOVE           A=10 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2058 sJ=-16775157 raw=0x00040500
+    [0092] CALL           A=6 B=5 C=1 k=0 Bx=522 sBx=-65013 Ax=133638 sJ=-16643577 raw=0x01050344
+    [0093] LOADNIL        A=6 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=6 sJ=-16777209 raw=0x00000308
+    [0094] RETURN1        A=6 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1030 sJ=-16776185 raw=0x00020348
+    [0095] JMP            A=21 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777237 sJ=22 raw=0x80000AB8
+    [0096] GETTABUP       A=4 B=0 C=16 k=0 Bx=8192 sBx=-57343 Ax=2097156 sJ=-14680059 raw=0x1000020B ; R[4] = U[0][K[16] "Log"]
+    [0097] GETFIELD       A=4 B=4 C=29 k=0 Bx=14856 sBx=-50679 Ax=3803140 sJ=-12974075 raw=0x1D04020E ; R[4] = R[4][K[29] "Warning"]
+    [0098] LOADK          A=5 B=15 C=0 k=0 Bx=30 sBx=-65505 Ax=7685 sJ=-16769530 raw=0x000F0283 ; R[5] = K[30] "BattleWeeklyChallengeEnterAction.GetMaterialPath \u5468\u6311\u6218\u914D\u7F6EWEEKLY_CHALLENGE_CONF\u5F02\u5E38challengeId="
+    [0099] MOVE           A=6 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1030 sJ=-16776185 raw=0x00020300
+    [0100] CALL           A=4 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132612 sJ=-16644603 raw=0x01030244
+    [0101] LOADNIL        A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000208
+    [0102] RETURN1        A=4 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1028 sJ=-16776187 raw=0x00020248
+    [0103] JMP            A=13 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777229 sJ=14 raw=0x800006B8
+    [0104] GETTABUP       A=3 B=0 C=16 k=0 Bx=8192 sBx=-57343 Ax=2097155 sJ=-14680060 raw=0x1000018B ; R[3] = U[0][K[16] "Log"]
+    [0105] GETFIELD       A=3 B=3 C=29 k=0 Bx=14854 sBx=-50681 Ax=3802627 sJ=-12974588 raw=0x1D03018E ; R[3] = R[3][K[29] "Warning"]
+    [0106] LOADK          A=4 B=15 C=0 k=1 Bx=31 sBx=-65504 Ax=7940 sJ=-16769275 raw=0x000F8203 ; R[4] = K[31] "BattleWeeklyChallengeEnterAction.GetMaterialPath \u6CA1\u6709\u6570\u636EchallengeId="
+    [0107] MOVE           A=5 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1029 sJ=-16776186 raw=0x00020280
+    [0108] CALL           A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x010301C4
+    [0109] LOADNIL        A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x00000188
+    [0110] RETURN1        A=3 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1027 sJ=-16776188 raw=0x000201C8
+    [0111] JMP            A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x800002B8
+    [0112] GETTABUP       A=2 B=0 C=16 k=0 Bx=8192 sBx=-57343 Ax=2097154 sJ=-14680061 raw=0x1000010B ; R[2] = U[0][K[16] "Log"]
+    [0113] GETFIELD       A=2 B=2 C=29 k=0 Bx=14852 sBx=-50683 Ax=3802114 sJ=-12975101 raw=0x1D02010E ; R[2] = R[2][K[29] "Warning"]
+    [0114] LOADK          A=3 B=16 C=0 k=0 Bx=32 sBx=-65503 Ax=8195 sJ=-16769020 raw=0x00100183 ; R[3] = K[32] "\u7ED3\u7B97\u6570\u636E\u5F02\u5E38"
+    [0115] CALL           A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x01020144
+    [0116] LOADNIL        A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000108
+    [0117] RETURN1        A=2 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1026 sJ=-16776189 raw=0x00020148
+    [0118] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[5] source="" lines=104-106 params=1 vararg=0 stack=255 upvalues=0
+  locals (1):
+    L[0] = "self" pc=0-1
+  instructions (1):
+    [0001] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7

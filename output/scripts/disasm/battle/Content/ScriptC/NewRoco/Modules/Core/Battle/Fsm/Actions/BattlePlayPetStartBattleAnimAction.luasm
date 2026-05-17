@@ -1,0 +1,1350 @@
+-- path: Content/ScriptC/NewRoco/Modules/Core/Battle/Fsm/Actions/BattlePlayPetStartBattleAnimAction.luac
+-- format: decrypted standard Lua 5.4 bytecode
+-- note: disassembly, not original source
+
+main source="@NewRoco\\Modules\\Core\\Battle\\Fsm\\Actions\\BattlePlayPetStartBattleAnimAction.lua" lines=0-0 params=0 vararg=1 stack=255 upvalues=1
+constants (23):
+  K[0] = "require"
+  K[1] = "NewRoco.Modules.Core.Battle.Fsm.Actions.Base.BattlePlayAnimBaseAction"
+  K[2] = "NewRoco.Modules.Core.Battle.Common.BattleUtils"
+  K[3] = "NewRoco.Modules.Core.Battle.Common.BattleConst"
+  K[4] = "NewRoco.Modules.Core.Battle.Common.BattleEnum"
+  K[5] = "Extend"
+  K[6] = "BattlePlayPetStartBattleAnimAction"
+  K[7] = "Ctor"
+  K[8] = "OnEnter"
+  K[9] = "CustomCastG6BeforePlay"
+  K[10] = "ChangeCameraToSkill"
+  K[11] = "OnPlayPetAnim"
+  K[12] = "GetLastAiStatus"
+  K[13] = "HideWorldPet0"
+  K[14] = "ActionStart"
+  K[15] = "SaveBlackBoardValues"
+  K[16] = "GetEnemyAIStatus"
+  K[17] = "OnHidePlayer"
+  K[18] = "OnShowBattlePlayer"
+  K[19] = "ShowPlayer"
+  K[20] = "OnHideBattlePet"
+  K[21] = "End"
+  K[22] = "SaveObject"
+upvalues (1):
+  U[0] = instack=0 idx=0 kind=8 name="_ENV"
+locals (6):
+  L[0] = "BattlePlayAnimBaseAction" pc=4-51
+  L[1] = "BattleUtils" pc=7-51
+  L[2] = "BattleConst" pc=10-51
+  L[3] = "BattleEnum" pc=13-51
+  L[4] = "Base" pc=14-51
+  L[5] = "BattlePlayPetStartBattleAnimAction" pc=17-51
+instructions (51):
+  [0001] VARARGPREP     A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000051
+  [0002] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "require"]
+  [0003] LOADK          A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x00008083 ; R[1] = K[1] "NewRoco.Modules.Core.Battle.Fsm.Actions.Base.BattlePlayAnimBaseAction"
+  [0004] CALL           A=0 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263168 sJ=-16514047 raw=0x02020044
+  [0005] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "require"]
+  [0006] LOADK          A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010103 ; R[2] = K[2] "NewRoco.Modules.Core.Battle.Common.BattleUtils"
+  [0007] CALL           A=1 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263169 sJ=-16514046 raw=0x020200C4
+  [0008] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "require"]
+  [0009] LOADK          A=3 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=771 sJ=-16776444 raw=0x00018183 ; R[3] = K[3] "NewRoco.Modules.Core.Battle.Common.BattleConst"
+  [0010] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+  [0011] GETTABUP       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018B ; R[3] = U[0][K[0] "require"]
+  [0012] LOADK          A=4 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1028 sJ=-16776187 raw=0x00020203 ; R[4] = K[4] "NewRoco.Modules.Core.Battle.Common.BattleEnum"
+  [0013] CALL           A=3 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263171 sJ=-16514044 raw=0x020201C4
+  [0014] MOVE           A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000200
+  [0015] SELF           A=5 B=4 C=5 k=1 Bx=2569 sBx=-62966 Ax=657669 sJ=-16119546 raw=0x05048294
+  [0016] LOADK          A=7 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1543 sJ=-16775672 raw=0x00030383 ; R[7] = K[6] "BattlePlayPetStartBattleAnimAction"
+  [0017] CALL           A=5 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263685 sJ=-16513530 raw=0x020302C4
+  [0018] CLOSURE        A=6 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=6 sJ=-16777209 raw=0x0000034F ; R[6] = function[0]
+  [0019] SETFIELD       A=5 B=7 C=6 k=0 Bx=3086 sBx=-62449 Ax=790021 sJ=-15987194 raw=0x06070292 ; R[5][K[7] "Ctor"] = R[6]
+  [0020] CLOSURE        A=6 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=262 sJ=-16776953 raw=0x0000834F ; R[6] = function[1]
+  [0021] SETFIELD       A=5 B=8 C=6 k=0 Bx=3088 sBx=-62447 Ax=790533 sJ=-15986682 raw=0x06080292 ; R[5][K[8] "OnEnter"] = R[6]
+  [0022] CLOSURE        A=6 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=518 sJ=-16776697 raw=0x0001034F ; R[6] = function[2]
+  [0023] SETFIELD       A=5 B=9 C=6 k=0 Bx=3090 sBx=-62445 Ax=791045 sJ=-15986170 raw=0x06090292 ; R[5][K[9] "CustomCastG6BeforePlay"] = R[6]
+  [0024] CLOSURE        A=6 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=774 sJ=-16776441 raw=0x0001834F ; R[6] = function[3]
+  [0025] SETFIELD       A=5 B=10 C=6 k=0 Bx=3092 sBx=-62443 Ax=791557 sJ=-15985658 raw=0x060A0292 ; R[5][K[10] "ChangeCameraToSkill"] = R[6]
+  [0026] CLOSURE        A=6 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1030 sJ=-16776185 raw=0x0002034F ; R[6] = function[4]
+  [0027] SETFIELD       A=5 B=11 C=6 k=0 Bx=3094 sBx=-62441 Ax=792069 sJ=-15985146 raw=0x060B0292 ; R[5][K[11] "OnPlayPetAnim"] = R[6]
+  [0028] CLOSURE        A=6 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1286 sJ=-16775929 raw=0x0002834F ; R[6] = function[5]
+  [0029] SETFIELD       A=5 B=12 C=6 k=0 Bx=3096 sBx=-62439 Ax=792581 sJ=-15984634 raw=0x060C0292 ; R[5][K[12] "GetLastAiStatus"] = R[6]
+  [0030] CLOSURE        A=6 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1542 sJ=-16775673 raw=0x0003034F ; R[6] = function[6]
+  [0031] SETFIELD       A=5 B=13 C=6 k=0 Bx=3098 sBx=-62437 Ax=793093 sJ=-15984122 raw=0x060D0292 ; R[5][K[13] "HideWorldPet0"] = R[6]
+  [0032] CLOSURE        A=6 B=3 C=0 k=1 Bx=7 sBx=-65528 Ax=1798 sJ=-16775417 raw=0x0003834F ; R[6] = function[7]
+  [0033] SETFIELD       A=5 B=14 C=6 k=0 Bx=3100 sBx=-62435 Ax=793605 sJ=-15983610 raw=0x060E0292 ; R[5][K[14] "ActionStart"] = R[6]
+  [0034] CLOSURE        A=6 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2054 sJ=-16775161 raw=0x0004034F ; R[6] = function[8]
+  [0035] SETFIELD       A=5 B=15 C=6 k=0 Bx=3102 sBx=-62433 Ax=794117 sJ=-15983098 raw=0x060F0292 ; R[5][K[15] "SaveBlackBoardValues"] = R[6]
+  [0036] CLOSURE        A=6 B=4 C=0 k=1 Bx=9 sBx=-65526 Ax=2310 sJ=-16774905 raw=0x0004834F ; R[6] = function[9]
+  [0037] SETFIELD       A=5 B=16 C=6 k=0 Bx=3104 sBx=-62431 Ax=794629 sJ=-15982586 raw=0x06100292 ; R[5][K[16] "GetEnemyAIStatus"] = R[6]
+  [0038] CLOSURE        A=6 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2566 sJ=-16774649 raw=0x0005034F ; R[6] = function[10]
+  [0039] SETFIELD       A=5 B=17 C=6 k=0 Bx=3106 sBx=-62429 Ax=795141 sJ=-15982074 raw=0x06110292 ; R[5][K[17] "OnHidePlayer"] = R[6]
+  [0040] CLOSURE        A=6 B=5 C=0 k=1 Bx=11 sBx=-65524 Ax=2822 sJ=-16774393 raw=0x0005834F ; R[6] = function[11]
+  [0041] SETFIELD       A=5 B=18 C=6 k=0 Bx=3108 sBx=-62427 Ax=795653 sJ=-15981562 raw=0x06120292 ; R[5][K[18] "OnShowBattlePlayer"] = R[6]
+  [0042] CLOSURE        A=6 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3078 sJ=-16774137 raw=0x0006034F ; R[6] = function[12]
+  [0043] SETFIELD       A=5 B=19 C=6 k=0 Bx=3110 sBx=-62425 Ax=796165 sJ=-15981050 raw=0x06130292 ; R[5][K[19] "ShowPlayer"] = R[6]
+  [0044] CLOSURE        A=6 B=6 C=0 k=1 Bx=13 sBx=-65522 Ax=3334 sJ=-16773881 raw=0x0006834F ; R[6] = function[13]
+  [0045] SETFIELD       A=5 B=20 C=6 k=0 Bx=3112 sBx=-62423 Ax=796677 sJ=-15980538 raw=0x06140292 ; R[5][K[20] "OnHideBattlePet"] = R[6]
+  [0046] CLOSURE        A=6 B=7 C=0 k=0 Bx=14 sBx=-65521 Ax=3590 sJ=-16773625 raw=0x0007034F ; R[6] = function[14]
+  [0047] SETFIELD       A=5 B=21 C=6 k=0 Bx=3114 sBx=-62421 Ax=797189 sJ=-15980026 raw=0x06150292 ; R[5][K[21] "End"] = R[6]
+  [0048] CLOSURE        A=6 B=7 C=0 k=1 Bx=15 sBx=-65520 Ax=3846 sJ=-16773369 raw=0x0007834F ; R[6] = function[15]
+  [0049] SETFIELD       A=5 B=22 C=6 k=0 Bx=3116 sBx=-62419 Ax=797701 sJ=-15979514 raw=0x06160292 ; R[5][K[22] "SaveObject"] = R[6]
+  [0050] RETURN         A=5 B=2 C=1 k=1 Bx=517 sBx=-65018 Ax=132357 sJ=-16644858 raw=0x010282C6
+  [0051] RETURN         A=6 B=1 C=1 k=1 Bx=515 sBx=-65020 Ax=131846 sJ=-16645369 raw=0x01018346
+
+  function[0] source="" lines=19-22 params=3 vararg=0 stack=255 upvalues=2
+  constants (5):
+    K[0] = "Ctor"
+    K[1] = "PawnManager"
+    K[2] = "_G"
+    K[3] = "BattleManager"
+    K[4] = "battlePawnManager"
+  upvalues (2):
+    U[0] = instack=4 idx=0 kind=0 name="Base"
+    U[1] = instack=0 idx=0 kind=7 name="_ENV"
+  locals (3):
+    L[0] = "self" pc=0-10
+    L[1] = "name" pc=0-10
+    L[2] = "properties" pc=0-10
+  instructions (10):
+    [0001] GETTABUP       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018B ; R[3] = U[0][K[0] "Ctor"]
+    [0002] MOVE           A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000200
+    [0003] MOVE           A=5 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=517 sJ=-16776698 raw=0x00010280
+    [0004] MOVE           A=6 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1030 sJ=-16776185 raw=0x00020300
+    [0005] CALL           A=3 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133123 sJ=-16644092 raw=0x010401C4
+    [0006] GETTABUP       A=3 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262659 sJ=-16514556 raw=0x0201018B ; R[3] = U[1][K[2] "_G"]
+    [0007] GETFIELD       A=3 B=3 C=3 k=0 Bx=1542 sBx=-63993 Ax=394755 sJ=-16382460 raw=0x0303018E ; R[3] = R[3][K[3] "BattleManager"]
+    [0008] GETFIELD       A=3 B=3 C=4 k=0 Bx=2054 sBx=-63481 Ax=525827 sJ=-16251388 raw=0x0403018E ; R[3] = R[3][K[4] "battlePawnManager"]
+    [0009] SETFIELD       A=0 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393728 sJ=-16383487 raw=0x03010012 ; R[0][K[1] "PawnManager"] = R[3]
+    [0010] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7
+
+  function[1] source="" lines=24-65 params=1 vararg=0 stack=255 upvalues=4
+  constants (29):
+    K[0] = "Log"
+    K[1] = "Debug"
+    K[2] = "BattlePlayPetStartBattleAnimAction OnEnter"
+    K[3] = "GetProperty"
+    K[4] = "CheckAppearanceMode"
+    K[5] = "IsTriggerAppearanceInField"
+    K[6] = "Finish"
+    K[7] = "IsFriendAssist"
+    K[8] = "CloseBattleAndTaskBlackLoading"
+    K[9] = "BattleManager"
+    K[10] = "battlePawnManager"
+    K[11] = "GetTeamPet"
+    K[12] = "Team"
+    K[13] = "ENUM_TEAM"
+    K[14] = "ENUM_ENEMY"
+    K[15] = "Define"
+    K[16] = "ThrowFrontEnterSecond"
+    K[17] = "card"
+    K[18] = "petState"
+    K[19] = "GetBackStab"
+    K[20] = "ThrowBackEnterSecond"
+    K[21] = "SaveBlackBoardValues"
+    K[22] = "LerpCamera"
+    K[23] = false
+    K[24] = "model"
+    K[25] = "GetSleep"
+    K[26] = "Play"
+    K[27] = "_G"
+    K[28] = "PlayBattleBGM"
+  upvalues (4):
+    U[0] = instack=0 idx=0 kind=1 name="_ENV"
+    U[1] = instack=1 idx=0 kind=1 name="BattleUtils"
+    U[2] = instack=3 idx=0 kind=1 name="BattleEnum"
+    U[3] = instack=2 idx=0 kind=12 name="BattleConst"
+  locals (6):
+    L[0] = "self" pc=0-85
+    L[1] = "CheckAppearanceMode" pc=8-85
+    L[2] = "pet" pc=34-85
+    L[3] = "enemyPet" pc=41-85
+    L[4] = "animCla" pc=50-85
+    L[5] = "targets" pc=65-85
+  instructions (85):
+    [0001] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "Log"]
+    [0002] GETFIELD       A=1 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131585 sJ=-16645630 raw=0x0101008E ; R[1] = R[1][K[1] "Debug"]
+    [0003] LOADK          A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010103 ; R[2] = K[2] "BattlePlayPetStartBattleAnimAction OnEnter"
+    [0004] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0005] SELF           A=1 B=0 C=3 k=1 Bx=1537 sBx=-63998 Ax=393473 sJ=-16383742 raw=0x03008094
+    [0006] LOADK          A=3 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1027 sJ=-16776188 raw=0x00020183 ; R[3] = K[4] "CheckAppearanceMode"
+    [0007] LOADFALSE      A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000205
+    [0008] CALL           A=1 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264193 sJ=-16513022 raw=0x020400C4
+    [0009] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0010] JMP            A=7 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777223 sJ=8 raw=0x800003B8
+    [0011] GETTABUP       A=2 B=1 C=5 k=0 Bx=2562 sBx=-62973 Ax=655874 sJ=-16121341 raw=0x0501010B ; R[2] = U[1][K[5] "IsTriggerAppearanceInField"]
+    [0012] MOVE           A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x00010180
+    [0013] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0014] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0015] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0016] SELF           A=2 B=0 C=6 k=1 Bx=3073 sBx=-62462 Ax=786690 sJ=-15990525 raw=0x06008114
+    [0017] CALL           A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x01020144
+    [0018] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+    [0019] GETTABUP       A=2 B=1 C=7 k=0 Bx=3586 sBx=-61949 Ax=918018 sJ=-15859197 raw=0x0701010B ; R[2] = U[1][K[7] "IsFriendAssist"]
+    [0020] CALL           A=2 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262658 sJ=-16514557 raw=0x02010144
+    [0021] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0022] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0023] SELF           A=2 B=0 C=6 k=1 Bx=3073 sBx=-62462 Ax=786690 sJ=-15990525 raw=0x06008114
+    [0024] CALL           A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x01020144
+    [0025] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+    [0026] GETTABUP       A=2 B=1 C=8 k=0 Bx=4098 sBx=-61437 Ax=1049090 sJ=-15728125 raw=0x0801010B ; R[2] = U[1][K[8] "CloseBattleAndTaskBlackLoading"]
+    [0027] CALL           A=2 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131586 sJ=-16645629 raw=0x01010144
+    [0028] GETTABUP       A=2 B=0 C=9 k=0 Bx=4608 sBx=-60927 Ax=1179650 sJ=-15597565 raw=0x0900010B ; R[2] = U[0][K[9] "BattleManager"]
+    [0029] GETFIELD       A=2 B=2 C=10 k=0 Bx=5124 sBx=-60411 Ax=1311746 sJ=-15465469 raw=0x0A02010E ; R[2] = R[2][K[10] "battlePawnManager"]
+    [0030] SELF           A=2 B=2 C=11 k=1 Bx=5637 sBx=-59898 Ax=1443074 sJ=-15334141 raw=0x0B028114
+    [0031] GETTABUP       A=4 B=2 C=12 k=0 Bx=6148 sBx=-59387 Ax=1573892 sJ=-15203323 raw=0x0C02020B ; R[4] = U[2][K[12] "Team"]
+    [0032] GETFIELD       A=4 B=4 C=13 k=0 Bx=6664 sBx=-58871 Ax=1705988 sJ=-15071227 raw=0x0D04020E ; R[4] = R[4][K[13] "ENUM_TEAM"]
+    [0033] LOADI          A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x80000281
+    [0034] CALL           A=2 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264194 sJ=-16513021 raw=0x02040144
+    [0035] GETTABUP       A=3 B=0 C=9 k=0 Bx=4608 sBx=-60927 Ax=1179651 sJ=-15597564 raw=0x0900018B ; R[3] = U[0][K[9] "BattleManager"]
+    [0036] GETFIELD       A=3 B=3 C=10 k=0 Bx=5126 sBx=-60409 Ax=1312259 sJ=-15464956 raw=0x0A03018E ; R[3] = R[3][K[10] "battlePawnManager"]
+    [0037] SELF           A=3 B=3 C=11 k=1 Bx=5639 sBx=-59896 Ax=1443587 sJ=-15333628 raw=0x0B038194
+    [0038] GETTABUP       A=5 B=2 C=12 k=0 Bx=6148 sBx=-59387 Ax=1573893 sJ=-15203322 raw=0x0C02028B ; R[5] = U[2][K[12] "Team"]
+    [0039] GETFIELD       A=5 B=5 C=14 k=0 Bx=7178 sBx=-58357 Ax=1837573 sJ=-14939642 raw=0x0E05028E ; R[5] = R[5][K[14] "ENUM_ENEMY"]
+    [0040] LOADI          A=6 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777222 sJ=7 raw=0x80000301
+    [0041] CALL           A=3 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264195 sJ=-16513020 raw=0x020401C4
+    [0042] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0043] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0044] TEST           A=3 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=259 sJ=-16776956 raw=0x000081C2
+    [0045] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0046] SELF           A=4 B=0 C=6 k=1 Bx=3073 sBx=-62462 Ax=786692 sJ=-15990523 raw=0x06008214
+    [0047] CALL           A=4 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132100 sJ=-16645115 raw=0x01020244
+    [0048] RETURN0        A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010247
+    [0049] GETTABUP       A=4 B=3 C=15 k=0 Bx=7686 sBx=-57849 Ax=1967620 sJ=-14809595 raw=0x0F03020B ; R[4] = U[3][K[15] "Define"]
+    [0050] GETFIELD       A=4 B=4 C=16 k=0 Bx=8200 sBx=-57335 Ax=2099204 sJ=-14678011 raw=0x1004020E ; R[4] = R[4][K[16] "ThrowFrontEnterSecond"]
+    [0051] GETFIELD       A=5 B=3 C=17 k=0 Bx=8710 sBx=-56825 Ax=2229765 sJ=-14547450 raw=0x1103028E ; R[5] = R[3][K[17] "card"]
+    [0052] GETFIELD       A=5 B=5 C=18 k=0 Bx=9226 sBx=-56309 Ax=2361861 sJ=-14415354 raw=0x1205028E ; R[5] = R[5][K[18] "petState"]
+    [0053] SELF           A=5 B=5 C=19 k=1 Bx=9739 sBx=-55796 Ax=2493189 sJ=-14284026 raw=0x13058294
+    [0054] CALL           A=5 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263173 sJ=-16514042 raw=0x020202C4
+    [0055] TEST           A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x000002C2
+    [0056] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0057] GETTABUP       A=5 B=3 C=15 k=0 Bx=7686 sBx=-57849 Ax=1967621 sJ=-14809594 raw=0x0F03028B ; R[5] = U[3][K[15] "Define"]
+    [0058] GETFIELD       A=4 B=5 C=20 k=0 Bx=10250 sBx=-55285 Ax=2624004 sJ=-14153211 raw=0x1405020E ; R[4] = R[5][K[20] "ThrowBackEnterSecond"]
+    [0059] SELF           A=5 B=0 C=21 k=1 Bx=10753 sBx=-54782 Ax=2752773 sJ=-14024442 raw=0x15008294
+    [0060] CALL           A=5 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132101 sJ=-16645114 raw=0x010202C4
+    [0061] SETFIELD       A=0 B=22 C=23 k=1 Bx=11821 sBx=-53714 Ax=3026176 sJ=-13751039 raw=0x17168012 ; R[0][K[22] "LerpCamera"] = R[23]
+    [0062] NEWTABLE       A=5 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131077 sJ=-16646138 raw=0x01000293
+    [0063] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0064] GETFIELD       A=6 B=3 C=24 k=0 Bx=12294 sBx=-53241 Ax=3147270 sJ=-13629945 raw=0x1803030E ; R[6] = R[3][K[24] "model"]
+    [0065] SETLIST        A=5 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=517 sJ=-16776698 raw=0x000102CE
+    [0066] GETFIELD       A=6 B=3 C=17 k=0 Bx=8710 sBx=-56825 Ax=2229766 sJ=-14547449 raw=0x1103030E ; R[6] = R[3][K[17] "card"]
+    [0067] GETFIELD       A=6 B=6 C=18 k=0 Bx=9228 sBx=-56307 Ax=2362374 sJ=-14414841 raw=0x1206030E ; R[6] = R[6][K[18] "petState"]
+    [0068] SELF           A=6 B=6 C=25 k=1 Bx=12813 sBx=-52722 Ax=3280134 sJ=-13497081 raw=0x19068314
+    [0069] CALL           A=6 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263174 sJ=-16514041 raw=0x02020344
+    [0070] TEST           A=6 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=6 sJ=-16777209 raw=0x00000342
+    [0071] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0072] NEWTABLE       A=6 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=6 sJ=-16777209 raw=0x00000313
+    [0073] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0074] MOVE           A=5 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3077 sJ=-16774138 raw=0x00060280
+    [0075] SELF           A=6 B=0 C=26 k=1 Bx=13313 sBx=-52222 Ax=3408134 sJ=-13369081 raw=0x1A008314
+    [0076] MOVE           A=8 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1032 sJ=-16776183 raw=0x00020400
+    [0077] MOVE           A=9 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2569 sJ=-16774646 raw=0x00050480
+    [0078] MOVE           A=10 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2058 sJ=-16775157 raw=0x00040500
+    [0079] LOADTRUE       A=11 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=11 sJ=-16777204 raw=0x00000587
+    [0080] CALL           A=6 B=6 C=1 k=0 Bx=524 sBx=-65011 Ax=134150 sJ=-16643065 raw=0x01060344
+    [0081] GETTABUP       A=6 B=0 C=27 k=0 Bx=13824 sBx=-51711 Ax=3538950 sJ=-13238265 raw=0x1B00030B ; R[6] = U[0][K[27] "_G"]
+    [0082] GETFIELD       A=6 B=6 C=9 k=0 Bx=4620 sBx=-60915 Ax=1182726 sJ=-15594489 raw=0x0906030E ; R[6] = R[6][K[9] "BattleManager"]
+    [0083] SELF           A=6 B=6 C=28 k=1 Bx=14349 sBx=-51186 Ax=3673350 sJ=-13103865 raw=0x1C068314
+    [0084] CALL           A=6 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132102 sJ=-16645113 raw=0x01020344
+    [0085] RETURN0        A=6 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=518 sJ=-16776697 raw=0x00010347
+
+  function[2] source="" lines=68-75 params=2 vararg=0 stack=255 upvalues=1
+  constants (7):
+    K[0] = "caster"
+    K[1] = "model"
+    K[2] = "card"
+    K[3] = "SetParticleKeyForSkillObj"
+    K[4] = "medalBlackBoard"
+    K[5] = "RegisterEventCallback"
+    K[6] = "ChangeCameraToSkill"
+  upvalues (1):
+    U[0] = instack=1 idx=0 kind=7 name="BattleUtils"
+  locals (2):
+    L[0] = "self" pc=0-25
+    L[1] = "skillObj" pc=0-25
+  instructions (25):
+    [0001] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "caster"]
+    [0002] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0003] JMP            A=15 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777231 sJ=16 raw=0x800007B8
+    [0004] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "caster"]
+    [0005] GETFIELD       A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x0102010E ; R[2] = R[2][K[1] "model"]
+    [0006] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0007] JMP            A=11 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777227 sJ=12 raw=0x800005B8
+    [0008] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "caster"]
+    [0009] GETFIELD       A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x0202010E ; R[2] = R[2][K[2] "card"]
+    [0010] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0011] JMP            A=7 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777223 sJ=8 raw=0x800003B8
+    [0012] GETTABUP       A=2 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393218 sJ=-16383997 raw=0x0300010B ; R[2] = U[0][K[3] "SetParticleKeyForSkillObj"]
+    [0013] GETFIELD       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018E ; R[3] = R[0][K[0] "caster"]
+    [0014] GETFIELD       A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x0103018E ; R[3] = R[3][K[1] "model"]
+    [0015] MOVE           A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010200
+    [0016] GETFIELD       A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x0000028E ; R[5] = R[0][K[0] "caster"]
+    [0017] GETFIELD       A=5 B=5 C=2 k=0 Bx=1034 sBx=-64501 Ax=264709 sJ=-16512506 raw=0x0205028E ; R[5] = R[5][K[2] "card"]
+    [0018] GETFIELD       A=5 B=5 C=4 k=0 Bx=2058 sBx=-63477 Ax=526853 sJ=-16250362 raw=0x0405028E ; R[5] = R[5][K[4] "medalBlackBoard"]
+    [0019] CALL           A=2 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133122 sJ=-16644093 raw=0x01040144
+    [0020] SELF           A=2 B=1 C=5 k=1 Bx=2563 sBx=-62972 Ax=656130 sJ=-16121085 raw=0x05018114
+    [0021] LOADK          A=4 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1540 sJ=-16775675 raw=0x00030203 ; R[4] = K[6] "ChangeCameraToSkill"
+    [0022] MOVE           A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x00000280
+    [0023] GETFIELD       A=6 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786438 sJ=-15990777 raw=0x0600030E ; R[6] = R[0][K[6] "ChangeCameraToSkill"]
+    [0024] CALL           A=2 B=5 C=1 k=0 Bx=522 sBx=-65013 Ax=133634 sJ=-16643581 raw=0x01050144
+    [0025] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[3] source="" lines=77-79 params=1 vararg=0 stack=255 upvalues=1
+  constants (10):
+    K[0] = "_G"
+    K[1] = "BattleManager"
+    K[2] = "TransBattleCamera"
+    K[3] = "UE"
+    K[4] = "ESkillBattleTransCamera"
+    K[5] = "SkillPlayer"
+    K[6] = 0.5
+    K[7] = "UE4"
+    K[8] = "EViewTargetBlendFunction"
+    K[9] = "VTBlend_Linear"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=5 name="_ENV"
+  locals (1):
+    L[0] = "self" pc=0-12
+  instructions (12):
+    [0001] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "_G"]
+    [0002] GETFIELD       A=1 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131585 sJ=-16645630 raw=0x0101008E ; R[1] = R[1][K[1] "BattleManager"]
+    [0003] GETFIELD       A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x0201008E ; R[1] = R[1][K[2] "TransBattleCamera"]
+    [0004] GETTABUP       A=2 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393218 sJ=-16383997 raw=0x0300010B ; R[2] = U[0][K[3] "UE"]
+    [0005] GETFIELD       A=2 B=2 C=4 k=0 Bx=2052 sBx=-63483 Ax=525314 sJ=-16251901 raw=0x0402010E ; R[2] = R[2][K[4] "ESkillBattleTransCamera"]
+    [0006] GETFIELD       A=2 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656386 sJ=-16120829 raw=0x0502010E ; R[2] = R[2][K[5] "SkillPlayer"]
+    [0007] LOADK          A=3 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1539 sJ=-16775676 raw=0x00030183 ; R[3] = K[6] 0.5
+    [0008] GETTABUP       A=4 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917508 sJ=-15859707 raw=0x0700020B ; R[4] = U[0][K[7] "UE4"]
+    [0009] GETFIELD       A=4 B=4 C=8 k=0 Bx=4104 sBx=-61431 Ax=1050628 sJ=-15726587 raw=0x0804020E ; R[4] = R[4][K[8] "EViewTargetBlendFunction"]
+    [0010] GETFIELD       A=4 B=4 C=9 k=0 Bx=4616 sBx=-60919 Ax=1181700 sJ=-15595515 raw=0x0904020E ; R[4] = R[4][K[9] "VTBlend_Linear"]
+    [0011] CALL           A=1 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133121 sJ=-16644094 raw=0x010400C4
+    [0012] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[4] source="" lines=82-87 params=1 vararg=0 stack=255 upvalues=3
+  constants (14):
+    K[0] = "BattleManager"
+    K[1] = "battlePawnManager"
+    K[2] = "GetTeamPet"
+    K[3] = "Team"
+    K[4] = "ENUM_ENEMY"
+    K[5] = "GetLastAiStatus"
+    K[6] = "card"
+    K[7] = "petInfo"
+    K[8] = "battle_inside_pet_info"
+    K[9] = "ai_info"
+    K[10] = "ai_status"
+    K[11] = "PlayAnimByName"
+    K[12] = "EnterAnimName"
+    K[13] = 0.25
+  upvalues (3):
+    U[0] = instack=0 idx=0 kind=1 name="_ENV"
+    U[1] = instack=3 idx=0 kind=1 name="BattleEnum"
+    U[2] = instack=2 idx=0 kind=12 name="BattleConst"
+  locals (3):
+    L[0] = "self" pc=0-34
+    L[1] = "enemyPet" pc=7-34
+    L[2] = "state" pc=17-34
+  instructions (34):
+    [0001] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "BattleManager"]
+    [0002] GETFIELD       A=1 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131585 sJ=-16645630 raw=0x0101008E ; R[1] = R[1][K[1] "battlePawnManager"]
+    [0003] SELF           A=1 B=1 C=2 k=1 Bx=1027 sBx=-64508 Ax=262913 sJ=-16514302 raw=0x02018094
+    [0004] GETTABUP       A=3 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393731 sJ=-16383484 raw=0x0301018B ; R[3] = U[1][K[3] "Team"]
+    [0005] GETFIELD       A=3 B=3 C=4 k=0 Bx=2054 sBx=-63481 Ax=525827 sJ=-16251388 raw=0x0403018E ; R[3] = R[3][K[4] "ENUM_ENEMY"]
+    [0006] LOADI          A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000201
+    [0007] CALL           A=1 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264193 sJ=-16513022 raw=0x020400C4
+    [0008] SELF           A=2 B=0 C=5 k=1 Bx=2561 sBx=-62974 Ax=655618 sJ=-16121597 raw=0x05008114
+    [0009] GETFIELD       A=4 B=1 C=6 k=0 Bx=3074 sBx=-62461 Ax=786948 sJ=-15990267 raw=0x0601020E ; R[4] = R[1][K[6] "card"]
+    [0010] GETFIELD       A=4 B=4 C=7 k=0 Bx=3592 sBx=-61943 Ax=919556 sJ=-15857659 raw=0x0704020E ; R[4] = R[4][K[7] "petInfo"]
+    [0011] GETFIELD       A=4 B=4 C=8 k=0 Bx=4104 sBx=-61431 Ax=1050628 sJ=-15726587 raw=0x0804020E ; R[4] = R[4][K[8] "battle_inside_pet_info"]
+    [0012] GETFIELD       A=4 B=4 C=9 k=0 Bx=4616 sBx=-60919 Ax=1181700 sJ=-15595515 raw=0x0904020E ; R[4] = R[4][K[9] "ai_info"]
+    [0013] GETFIELD       A=4 B=4 C=10 k=0 Bx=5128 sBx=-60407 Ax=1312772 sJ=-15464443 raw=0x0A04020E ; R[4] = R[4][K[10] "ai_status"]
+    [0014] TEST           A=4 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=260 sJ=-16776955 raw=0x00008242
+    [0015] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0016] LOADI          A=4 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776964 sJ=-251 raw=0x7FFF8201
+    [0017] CALL           A=2 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263682 sJ=-16513533 raw=0x02030144
+    [0018] SELF           A=3 B=1 C=11 k=1 Bx=5635 sBx=-59900 Ax=1442563 sJ=-15334652 raw=0x0B018194
+    [0019] GETTABUP       A=5 B=2 C=12 k=0 Bx=6148 sBx=-59387 Ax=1573893 sJ=-15203322 raw=0x0C02028B ; R[5] = U[2][K[12] "EnterAnimName"]
+    [0020] ADDI           A=6 B=2 C=128 k=0 Bx=65540 sBx=5 Ax=16778246 sJ=1031 raw=0x80020315
+    [0021] MMBINI         A=2 B=128 C=6 k=0 Bx=3328 sBx=-62207 Ax=851970 sJ=-15925245 raw=0x0680012F
+    [0022] GETTABLE       A=5 B=5 C=6 k=0 Bx=3082 sBx=-62453 Ax=788997 sJ=-15988218 raw=0x0605028C
+    [0023] TEST           A=5 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=261 sJ=-16776954 raw=0x000082C2
+    [0024] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0025] GETTABUP       A=5 B=2 C=12 k=0 Bx=6148 sBx=-59387 Ax=1573893 sJ=-15203322 raw=0x0C02028B ; R[5] = U[2][K[12] "EnterAnimName"]
+    [0026] GETI           A=5 B=5 C=1 k=0 Bx=522 sBx=-65013 Ax=133637 sJ=-16643578 raw=0x0105028D
+    [0027] LOADI          A=6 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777222 sJ=7 raw=0x80000301
+    [0028] LOADI          A=7 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776967 sJ=-248 raw=0x7FFF8381
+    [0029] LOADK          A=8 B=6 C=0 k=1 Bx=13 sBx=-65522 Ax=3336 sJ=-16773879 raw=0x00068403 ; R[8] = K[13] 0.25
+    [0030] LOADK          A=9 B=6 C=0 k=1 Bx=13 sBx=-65522 Ax=3337 sJ=-16773878 raw=0x00068483 ; R[9] = K[13] 0.25
+    [0031] LOADI          A=10 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777226 sJ=11 raw=0x80000501
+    [0032] LOADI          A=11 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776971 sJ=-244 raw=0x7FFF8581
+    [0033] CALL           A=3 B=9 C=1 k=0 Bx=530 sBx=-65005 Ax=135683 sJ=-16641532 raw=0x010901C4
+    [0034] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7
+
+  function[5] source="" lines=89-108 params=2 vararg=0 stack=255 upvalues=1
+  constants (7):
+    K[0] = "_G"
+    K[1] = "DataConfigManager"
+    K[2] = "GetAllByName"
+    K[3] = "ENTERBATTLE_BUFF_PRIORITY"
+    K[4] = "pairs"
+    K[5] = "ai_status"
+    K[6] = "buff_priority"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=12 name="_ENV"
+  locals (11):
+    L[0] = "self" pc=0-36
+    L[1] = "status" pc=0-36
+    L[2] = "realAIStatus" pc=7-36
+    L[3] = "realAIStatusPriority" pc=8-36
+    L[4] = "enterBattles" pc=13-36
+    L[5] = "(for state)" pc=16-34
+    L[6] = "(for state)" pc=16-34
+    L[7] = "(for state)" pc=16-34
+    L[8] = "(for state)" pc=16-34
+    L[9] = "_" pc=17-31
+    L[10] = "v" pc=17-31
+  instructions (36):
+    [0001] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0002] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0003] LEI            A=1 B=127 C=0 k=0 Bx=254 sBx=-65281 Ax=65025 sJ=-16712190 raw=0x007F00BF
+    [0004] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0005] LOADI          A=2 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776962 sJ=-253 raw=0x7FFF8101
+    [0006] RETURN         A=2 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1282 sJ=-16775933 raw=0x00028146
+    [0007] LOADI          A=2 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776962 sJ=-253 raw=0x7FFF8101
+    [0008] LOADI          A=3 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776963 sJ=-252 raw=0x7FFF8181
+    [0009] GETTABUP       A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x0000020B ; R[4] = U[0][K[0] "_G"]
+    [0010] GETFIELD       A=4 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133124 sJ=-16644091 raw=0x0104020E ; R[4] = R[4][K[1] "DataConfigManager"]
+    [0011] SELF           A=4 B=4 C=2 k=1 Bx=1033 sBx=-64502 Ax=264452 sJ=-16512763 raw=0x02048214
+    [0012] LOADK          A=6 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=774 sJ=-16776441 raw=0x00018303 ; R[6] = K[3] "ENTERBATTLE_BUFF_PRIORITY"
+    [0013] CALL           A=4 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263684 sJ=-16513531 raw=0x02030244
+    [0014] GETTABUP       A=5 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524293 sJ=-16252922 raw=0x0400028B ; R[5] = U[0][K[4] "pairs"]
+    [0015] MOVE           A=6 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2054 sJ=-16775161 raw=0x00040300
+    [0016] CALL           A=5 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656389 sJ=-16120826 raw=0x050202C4
+    [0017] TFORPREP       A=5 B=7 C=0 k=0 Bx=14 sBx=-65521 Ax=3589 sJ=-16773626 raw=0x000702CB
+    [0018] GETFIELD       A=11 B=10 C=5 k=0 Bx=2580 sBx=-62955 Ax=660491 sJ=-16116724 raw=0x050A058E ; R[11] = R[10][K[5] "ai_status"]
+    [0019] SHLI           A=11 B=11 C=128 k=0 Bx=65558 sBx=23 Ax=16782859 sJ=5644 raw=0x800B05A1
+    [0020] MMBINI         A=11 B=128 C=16 k=1 Bx=8449 sBx=-57086 Ax=2162955 sJ=-14614260 raw=0x108085AF
+    [0021] BAND           A=11 B=1 C=11 k=0 Bx=5634 sBx=-59901 Ax=1442315 sJ=-15334900 raw=0x0B0105A9
+    [0022] MMBIN          A=1 B=11 C=13 k=0 Bx=6678 sBx=-58857 Ax=1709569 sJ=-15067646 raw=0x0D0B00AE
+    [0023] GTI            A=11 B=127 C=0 k=0 Bx=254 sBx=-65281 Ax=65035 sJ=-16712180 raw=0x007F05C0
+    [0024] JMP            A=6 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777222 sJ=7 raw=0x80000338
+    [0025] EQI            A=2 B=127 C=0 k=1 Bx=255 sBx=-65280 Ax=65282 sJ=-16711933 raw=0x007F813D
+    [0026] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0027] GETFIELD       A=11 B=10 C=6 k=0 Bx=3092 sBx=-62443 Ax=791563 sJ=-15985652 raw=0x060A058E ; R[11] = R[10][K[6] "buff_priority"]
+    [0028] LT             A=3 B=11 C=0 k=0 Bx=22 sBx=-65513 Ax=5635 sJ=-16771580 raw=0x000B01BA
+    [0029] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0030] GETFIELD       A=2 B=10 C=5 k=0 Bx=2580 sBx=-62955 Ax=660482 sJ=-16116733 raw=0x050A010E ; R[2] = R[10][K[5] "ai_status"]
+    [0031] GETFIELD       A=3 B=10 C=6 k=0 Bx=3092 sBx=-62443 Ax=791555 sJ=-15985660 raw=0x060A018E ; R[3] = R[10][K[6] "buff_priority"]
+    [0032] TFORCALL       A=5 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262149 sJ=-16515066 raw=0x020002CC
+    [0033] TFORLOOP       A=5 B=8 C=0 k=0 Bx=16 sBx=-65519 Ax=4101 sJ=-16773114 raw=0x000802CD
+    [0034] CLOSE          A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x000002B6
+    [0035] RETURN         A=2 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1282 sJ=-16775933 raw=0x00028146
+    [0036] RETURN         A=5 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=773 sJ=-16776442 raw=0x000182C6
+
+  function[6] source="" lines=110-161 params=1 vararg=0 stack=255 upvalues=4
+  constants (29):
+    K[0] = "OnHideBattlePet"
+    K[1] = "OnShowBattlePlayer"
+    K[2] = "OnHidePlayer"
+    K[3] = "GetProperty"
+    K[4] = "FsmVarNames"
+    K[5] = "HideSceneTreesDelegate"
+    K[6] = "Invoke"
+    K[7] = "GetTraceNpc"
+    K[8] = "npc"
+    K[9] = "SetVisibleForBattleReason"
+    K[10] = "PawnManager"
+    K[11] = "GetAllTeam"
+    K[12] = "Team"
+    K[13] = "ENUM_TEAM"
+    K[14] = "ipairs"
+    K[15] = "player"
+    K[16] = "model"
+    K[17] = "ShowPlayer"
+    K[18] = "pets"
+    K[19] = "pairs"
+    K[20] = "card"
+    K[21] = "IsInBattle"
+    K[22] = "IsBeCatch"
+    K[23] = "IsAlive"
+    K[24] = "ShowPet"
+    K[25] = "SetActorScale3D"
+    K[26] = "UE4"
+    K[27] = "FVector"
+    K[28] = "ENUM_ENEMY"
+  upvalues (4):
+    U[0] = instack=2 idx=0 kind=1 name="BattleConst"
+    U[1] = instack=1 idx=0 kind=1 name="BattleUtils"
+    U[2] = instack=3 idx=0 kind=0 name="BattleEnum"
+    U[3] = instack=0 idx=0 kind=22 name="_ENV"
+  locals (28):
+    L[0] = "self" pc=0-145
+    L[1] = "HideSceneTreesDelegate" pc=10-145
+    L[2] = "Cache" pc=16-145
+    L[3] = "playerTeams" pc=30-145
+    L[4] = "(for state)" pc=33-84
+    L[5] = "(for state)" pc=33-84
+    L[6] = "(for state)" pc=33-84
+    L[7] = "(for state)" pc=33-84
+    L[8] = "_" pc=34-81
+    L[9] = "v" pc=34-81
+    L[10] = "(for state)" pc=48-81
+    L[11] = "(for state)" pc=48-81
+    L[12] = "(for state)" pc=48-81
+    L[13] = "(for state)" pc=48-81
+    L[14] = "_" pc=49-78
+    L[15] = "p" pc=49-78
+    L[16] = "(for state)" pc=93-144
+    L[17] = "(for state)" pc=93-144
+    L[18] = "(for state)" pc=93-144
+    L[19] = "(for state)" pc=93-144
+    L[20] = "_" pc=94-141
+    L[21] = "v" pc=94-141
+    L[22] = "(for state)" pc=108-141
+    L[23] = "(for state)" pc=108-141
+    L[24] = "(for state)" pc=108-141
+    L[25] = "(for state)" pc=108-141
+    L[26] = "_" pc=109-138
+    L[27] = "p" pc=109-138
+  instructions (145):
+    [0001] SELF           A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x00008094
+    [0002] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0003] SELF           A=1 B=0 C=1 k=1 Bx=513 sBx=-65022 Ax=131329 sJ=-16645886 raw=0x01008094
+    [0004] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0005] SELF           A=1 B=0 C=2 k=1 Bx=1025 sBx=-64510 Ax=262401 sJ=-16514814 raw=0x02008094
+    [0006] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0007] SELF           A=1 B=0 C=3 k=1 Bx=1537 sBx=-63998 Ax=393473 sJ=-16383742 raw=0x03008094
+    [0008] GETTABUP       A=3 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524291 sJ=-16252924 raw=0x0400018B ; R[3] = U[0][K[4] "FsmVarNames"]
+    [0009] GETFIELD       A=3 B=3 C=5 k=0 Bx=2566 sBx=-62969 Ax=656899 sJ=-16120316 raw=0x0503018E ; R[3] = R[3][K[5] "HideSceneTreesDelegate"]
+    [0010] CALL           A=1 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263681 sJ=-16513534 raw=0x020300C4
+    [0011] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0012] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0013] SELF           A=2 B=1 C=6 k=1 Bx=3075 sBx=-62460 Ax=787202 sJ=-15990013 raw=0x06018114
+    [0014] CALL           A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x01020144
+    [0015] GETTABUP       A=2 B=1 C=7 k=0 Bx=3586 sBx=-61949 Ax=918018 sJ=-15859197 raw=0x0701010B ; R[2] = U[1][K[7] "GetTraceNpc"]
+    [0016] CALL           A=2 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262658 sJ=-16514557 raw=0x02010144
+    [0017] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0018] JMP            A=6 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777222 sJ=7 raw=0x80000338
+    [0019] GETFIELD       A=3 B=2 C=8 k=0 Bx=4100 sBx=-61435 Ax=1049603 sJ=-15727612 raw=0x0802018E ; R[3] = R[2][K[8] "npc"]
+    [0020] TEST           A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x000001C2
+    [0021] JMP            A=3 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777219 sJ=4 raw=0x800001B8
+    [0022] GETFIELD       A=3 B=2 C=8 k=0 Bx=4100 sBx=-61435 Ax=1049603 sJ=-15727612 raw=0x0802018E ; R[3] = R[2][K[8] "npc"]
+    [0023] SELF           A=3 B=3 C=9 k=1 Bx=4615 sBx=-60920 Ax=1181443 sJ=-15595772 raw=0x09038194
+    [0024] LOADFALSE      A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x00000285
+    [0025] CALL           A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x010301C4
+    [0026] GETFIELD       A=3 B=0 C=10 k=0 Bx=5120 sBx=-60415 Ax=1310723 sJ=-15466492 raw=0x0A00018E ; R[3] = R[0][K[10] "PawnManager"]
+    [0027] SELF           A=3 B=3 C=11 k=1 Bx=5639 sBx=-59896 Ax=1443587 sJ=-15333628 raw=0x0B038194
+    [0028] GETTABUP       A=5 B=2 C=12 k=0 Bx=6148 sBx=-59387 Ax=1573893 sJ=-15203322 raw=0x0C02028B ; R[5] = U[2][K[12] "Team"]
+    [0029] GETFIELD       A=5 B=5 C=13 k=0 Bx=6666 sBx=-58869 Ax=1706501 sJ=-15070714 raw=0x0D05028E ; R[5] = R[5][K[13] "ENUM_TEAM"]
+    [0030] CALL           A=3 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263683 sJ=-16513532 raw=0x020301C4
+    [0031] GETTABUP       A=4 B=3 C=14 k=0 Bx=7174 sBx=-58361 Ax=1836548 sJ=-14940667 raw=0x0E03020B ; R[4] = U[3][K[14] "ipairs"]
+    [0032] MOVE           A=5 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1541 sJ=-16775674 raw=0x00030280
+    [0033] CALL           A=4 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656388 sJ=-16120827 raw=0x05020244
+    [0034] TFORPREP       A=4 B=23 C=0 k=1 Bx=47 sBx=-65488 Ax=12036 sJ=-16765179 raw=0x0017824B
+    [0035] GETFIELD       A=10 B=9 C=15 k=0 Bx=7698 sBx=-57837 Ax=1970698 sJ=-14806517 raw=0x0F09050E ; R[10] = R[9][K[15] "player"]
+    [0036] GETFIELD       A=10 B=10 C=16 k=0 Bx=8212 sBx=-57323 Ax=2102282 sJ=-14674933 raw=0x100A050E ; R[10] = R[10][K[16] "model"]
+    [0037] TEST           A=10 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=10 sJ=-16777205 raw=0x00000542
+    [0038] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0039] GETFIELD       A=10 B=9 C=15 k=0 Bx=7698 sBx=-57837 Ax=1970698 sJ=-14806517 raw=0x0F09050E ; R[10] = R[9][K[15] "player"]
+    [0040] SELF           A=10 B=10 C=17 k=1 Bx=8725 sBx=-56810 Ax=2233610 sJ=-14543605 raw=0x110A8514
+    [0041] CALL           A=10 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132106 sJ=-16645109 raw=0x01020544
+    [0042] GETFIELD       A=10 B=9 C=18 k=0 Bx=9234 sBx=-56301 Ax=2363914 sJ=-14413301 raw=0x1209050E ; R[10] = R[9][K[18] "pets"]
+    [0043] LEN            A=10 B=10 C=0 k=0 Bx=20 sBx=-65515 Ax=5130 sJ=-16772085 raw=0x000A0534
+    [0044] GTI            A=10 B=127 C=0 k=0 Bx=254 sBx=-65281 Ax=65034 sJ=-16712181 raw=0x007F0540
+    [0045] JMP            A=35 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777251 sJ=36 raw=0x800011B8
+    [0046] GETTABUP       A=10 B=3 C=19 k=0 Bx=9734 sBx=-55801 Ax=2491914 sJ=-14285301 raw=0x1303050B ; R[10] = U[3][K[19] "pairs"]
+    [0047] GETFIELD       A=11 B=9 C=18 k=0 Bx=9234 sBx=-56301 Ax=2363915 sJ=-14413300 raw=0x1209058E ; R[11] = R[9][K[18] "pets"]
+    [0048] CALL           A=10 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656394 sJ=-16120821 raw=0x05020544
+    [0049] TFORPREP       A=10 B=14 C=0 k=1 Bx=29 sBx=-65506 Ax=7434 sJ=-16769781 raw=0x000E854B
+    [0050] GETFIELD       A=16 B=15 C=16 k=0 Bx=8222 sBx=-57313 Ax=2104848 sJ=-14672367 raw=0x100F080E ; R[16] = R[15][K[16] "model"]
+    [0051] TEST           A=16 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=16 sJ=-16777199 raw=0x00000842
+    [0052] JMP            A=25 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777241 sJ=26 raw=0x80000CB8
+    [0053] GETFIELD       A=16 B=15 C=20 k=0 Bx=10270 sBx=-55265 Ax=2629136 sJ=-14148079 raw=0x140F080E ; R[16] = R[15][K[20] "card"]
+    [0054] SELF           A=16 B=16 C=21 k=1 Bx=10785 sBx=-54750 Ax=2760976 sJ=-14016239 raw=0x15108814
+    [0055] CALL           A=16 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263184 sJ=-16514031 raw=0x02020844
+    [0056] TEST           A=16 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=16 sJ=-16777199 raw=0x00000842
+    [0057] JMP            A=20 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777236 sJ=21 raw=0x80000A38
+    [0058] GETFIELD       A=16 B=15 C=20 k=0 Bx=10270 sBx=-55265 Ax=2629136 sJ=-14148079 raw=0x140F080E ; R[16] = R[15][K[20] "card"]
+    [0059] SELF           A=16 B=16 C=22 k=1 Bx=11297 sBx=-54238 Ax=2892048 sJ=-13885167 raw=0x16108814
+    [0060] CALL           A=16 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263184 sJ=-16514031 raw=0x02020844
+    [0061] TEST           A=16 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=272 sJ=-16776943 raw=0x00008842
+    [0062] JMP            A=15 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777231 sJ=16 raw=0x800007B8
+    [0063] GETFIELD       A=16 B=15 C=20 k=0 Bx=10270 sBx=-55265 Ax=2629136 sJ=-14148079 raw=0x140F080E ; R[16] = R[15][K[20] "card"]
+    [0064] SELF           A=16 B=16 C=23 k=1 Bx=11809 sBx=-53726 Ax=3023120 sJ=-13754095 raw=0x17108814
+    [0065] CALL           A=16 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263184 sJ=-16514031 raw=0x02020844
+    [0066] TEST           A=16 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=16 sJ=-16777199 raw=0x00000842
+    [0067] JMP            A=10 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777226 sJ=11 raw=0x80000538
+    [0068] SELF           A=16 B=15 C=24 k=1 Bx=12319 sBx=-53216 Ax=3153680 sJ=-13623535 raw=0x180F8814
+    [0069] CALL           A=16 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132112 sJ=-16645103 raw=0x01020844
+    [0070] GETFIELD       A=16 B=15 C=16 k=0 Bx=8222 sBx=-57313 Ax=2104848 sJ=-14672367 raw=0x100F080E ; R[16] = R[15][K[16] "model"]
+    [0071] SELF           A=16 B=16 C=25 k=1 Bx=12833 sBx=-52702 Ax=3285264 sJ=-13491951 raw=0x19108814
+    [0072] GETTABUP       A=18 B=3 C=26 k=0 Bx=13318 sBx=-52217 Ax=3409426 sJ=-13367789 raw=0x1A03090B ; R[18] = U[3][K[26] "UE4"]
+    [0073] GETFIELD       A=18 B=18 C=27 k=0 Bx=13860 sBx=-51675 Ax=3548178 sJ=-13229037 raw=0x1B12090E ; R[18] = R[18][K[27] "FVector"]
+    [0074] LOADI          A=19 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777235 sJ=20 raw=0x80000981
+    [0075] LOADI          A=20 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777236 sJ=21 raw=0x80000A01
+    [0076] LOADI          A=21 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777237 sJ=22 raw=0x80000A81
+    [0077] CALL           A=18 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2066 sJ=-16775149 raw=0x00040944
+    [0078] CALL           A=16 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131088 sJ=-16646127 raw=0x01000844
+    [0079] TFORCALL       A=10 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262154 sJ=-16515061 raw=0x0200054C
+    [0080] TFORLOOP       A=10 B=15 C=0 k=1 Bx=31 sBx=-65504 Ax=7946 sJ=-16769269 raw=0x000F854D
+    [0081] CLOSE          A=10 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=10 sJ=-16777205 raw=0x00000536
+    [0082] TFORCALL       A=4 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262148 sJ=-16515067 raw=0x0200024C
+    [0083] TFORLOOP       A=4 B=24 C=0 k=1 Bx=49 sBx=-65486 Ax=12548 sJ=-16764667 raw=0x0018824D
+    [0084] CLOSE          A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000236
+    [0085] GETFIELD       A=4 B=0 C=10 k=0 Bx=5120 sBx=-60415 Ax=1310724 sJ=-15466491 raw=0x0A00020E ; R[4] = R[0][K[10] "PawnManager"]
+    [0086] SELF           A=4 B=4 C=11 k=1 Bx=5641 sBx=-59894 Ax=1444100 sJ=-15333115 raw=0x0B048214
+    [0087] GETTABUP       A=6 B=2 C=12 k=0 Bx=6148 sBx=-59387 Ax=1573894 sJ=-15203321 raw=0x0C02030B ; R[6] = U[2][K[12] "Team"]
+    [0088] GETFIELD       A=6 B=6 C=28 k=0 Bx=14348 sBx=-51187 Ax=3673094 sJ=-13104121 raw=0x1C06030E ; R[6] = R[6][K[28] "ENUM_ENEMY"]
+    [0089] CALL           A=4 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263684 sJ=-16513531 raw=0x02030244
+    [0090] MOVE           A=3 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2051 sJ=-16775164 raw=0x00040180
+    [0091] GETTABUP       A=4 B=3 C=14 k=0 Bx=7174 sBx=-58361 Ax=1836548 sJ=-14940667 raw=0x0E03020B ; R[4] = U[3][K[14] "ipairs"]
+    [0092] MOVE           A=5 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1541 sJ=-16775674 raw=0x00030280
+    [0093] CALL           A=4 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656388 sJ=-16120827 raw=0x05020244
+    [0094] TFORPREP       A=4 B=23 C=0 k=1 Bx=47 sBx=-65488 Ax=12036 sJ=-16765179 raw=0x0017824B
+    [0095] GETFIELD       A=10 B=9 C=15 k=0 Bx=7698 sBx=-57837 Ax=1970698 sJ=-14806517 raw=0x0F09050E ; R[10] = R[9][K[15] "player"]
+    [0096] GETFIELD       A=10 B=10 C=16 k=0 Bx=8212 sBx=-57323 Ax=2102282 sJ=-14674933 raw=0x100A050E ; R[10] = R[10][K[16] "model"]
+    [0097] TEST           A=10 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=10 sJ=-16777205 raw=0x00000542
+    [0098] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0099] GETFIELD       A=10 B=9 C=15 k=0 Bx=7698 sBx=-57837 Ax=1970698 sJ=-14806517 raw=0x0F09050E ; R[10] = R[9][K[15] "player"]
+    [0100] SELF           A=10 B=10 C=17 k=1 Bx=8725 sBx=-56810 Ax=2233610 sJ=-14543605 raw=0x110A8514
+    [0101] CALL           A=10 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132106 sJ=-16645109 raw=0x01020544
+    [0102] GETFIELD       A=10 B=9 C=18 k=0 Bx=9234 sBx=-56301 Ax=2363914 sJ=-14413301 raw=0x1209050E ; R[10] = R[9][K[18] "pets"]
+    [0103] LEN            A=10 B=10 C=0 k=0 Bx=20 sBx=-65515 Ax=5130 sJ=-16772085 raw=0x000A0534
+    [0104] GTI            A=10 B=127 C=0 k=0 Bx=254 sBx=-65281 Ax=65034 sJ=-16712181 raw=0x007F0540
+    [0105] JMP            A=35 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777251 sJ=36 raw=0x800011B8
+    [0106] GETTABUP       A=10 B=3 C=19 k=0 Bx=9734 sBx=-55801 Ax=2491914 sJ=-14285301 raw=0x1303050B ; R[10] = U[3][K[19] "pairs"]
+    [0107] GETFIELD       A=11 B=9 C=18 k=0 Bx=9234 sBx=-56301 Ax=2363915 sJ=-14413300 raw=0x1209058E ; R[11] = R[9][K[18] "pets"]
+    [0108] CALL           A=10 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656394 sJ=-16120821 raw=0x05020544
+    [0109] TFORPREP       A=10 B=14 C=0 k=1 Bx=29 sBx=-65506 Ax=7434 sJ=-16769781 raw=0x000E854B
+    [0110] GETFIELD       A=16 B=15 C=16 k=0 Bx=8222 sBx=-57313 Ax=2104848 sJ=-14672367 raw=0x100F080E ; R[16] = R[15][K[16] "model"]
+    [0111] TEST           A=16 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=16 sJ=-16777199 raw=0x00000842
+    [0112] JMP            A=25 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777241 sJ=26 raw=0x80000CB8
+    [0113] GETFIELD       A=16 B=15 C=20 k=0 Bx=10270 sBx=-55265 Ax=2629136 sJ=-14148079 raw=0x140F080E ; R[16] = R[15][K[20] "card"]
+    [0114] SELF           A=16 B=16 C=21 k=1 Bx=10785 sBx=-54750 Ax=2760976 sJ=-14016239 raw=0x15108814
+    [0115] CALL           A=16 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263184 sJ=-16514031 raw=0x02020844
+    [0116] TEST           A=16 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=16 sJ=-16777199 raw=0x00000842
+    [0117] JMP            A=20 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777236 sJ=21 raw=0x80000A38
+    [0118] GETFIELD       A=16 B=15 C=20 k=0 Bx=10270 sBx=-55265 Ax=2629136 sJ=-14148079 raw=0x140F080E ; R[16] = R[15][K[20] "card"]
+    [0119] SELF           A=16 B=16 C=22 k=1 Bx=11297 sBx=-54238 Ax=2892048 sJ=-13885167 raw=0x16108814
+    [0120] CALL           A=16 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263184 sJ=-16514031 raw=0x02020844
+    [0121] TEST           A=16 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=272 sJ=-16776943 raw=0x00008842
+    [0122] JMP            A=15 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777231 sJ=16 raw=0x800007B8
+    [0123] GETFIELD       A=16 B=15 C=20 k=0 Bx=10270 sBx=-55265 Ax=2629136 sJ=-14148079 raw=0x140F080E ; R[16] = R[15][K[20] "card"]
+    [0124] SELF           A=16 B=16 C=23 k=1 Bx=11809 sBx=-53726 Ax=3023120 sJ=-13754095 raw=0x17108814
+    [0125] CALL           A=16 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263184 sJ=-16514031 raw=0x02020844
+    [0126] TEST           A=16 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=16 sJ=-16777199 raw=0x00000842
+    [0127] JMP            A=10 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777226 sJ=11 raw=0x80000538
+    [0128] SELF           A=16 B=15 C=24 k=1 Bx=12319 sBx=-53216 Ax=3153680 sJ=-13623535 raw=0x180F8814
+    [0129] CALL           A=16 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132112 sJ=-16645103 raw=0x01020844
+    [0130] GETFIELD       A=16 B=15 C=16 k=0 Bx=8222 sBx=-57313 Ax=2104848 sJ=-14672367 raw=0x100F080E ; R[16] = R[15][K[16] "model"]
+    [0131] SELF           A=16 B=16 C=25 k=1 Bx=12833 sBx=-52702 Ax=3285264 sJ=-13491951 raw=0x19108814
+    [0132] GETTABUP       A=18 B=3 C=26 k=0 Bx=13318 sBx=-52217 Ax=3409426 sJ=-13367789 raw=0x1A03090B ; R[18] = U[3][K[26] "UE4"]
+    [0133] GETFIELD       A=18 B=18 C=27 k=0 Bx=13860 sBx=-51675 Ax=3548178 sJ=-13229037 raw=0x1B12090E ; R[18] = R[18][K[27] "FVector"]
+    [0134] LOADI          A=19 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777235 sJ=20 raw=0x80000981
+    [0135] LOADI          A=20 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777236 sJ=21 raw=0x80000A01
+    [0136] LOADI          A=21 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777237 sJ=22 raw=0x80000A81
+    [0137] CALL           A=18 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2066 sJ=-16775149 raw=0x00040944
+    [0138] CALL           A=16 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131088 sJ=-16646127 raw=0x01000844
+    [0139] TFORCALL       A=10 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262154 sJ=-16515061 raw=0x0200054C
+    [0140] TFORLOOP       A=10 B=15 C=0 k=1 Bx=31 sBx=-65504 Ax=7946 sJ=-16769269 raw=0x000F854D
+    [0141] CLOSE          A=10 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=10 sJ=-16777205 raw=0x00000536
+    [0142] TFORCALL       A=4 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262148 sJ=-16515067 raw=0x0200024C
+    [0143] TFORLOOP       A=4 B=24 C=0 k=1 Bx=49 sBx=-65486 Ax=12548 sJ=-16764667 raw=0x0018824D
+    [0144] CLOSE          A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000236
+    [0145] RETURN         A=4 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=772 sJ=-16776443 raw=0x00018246
+
+  function[7] source="" lines=163-165 params=1 vararg=0 stack=255 upvalues=0
+  locals (1):
+    L[0] = "self" pc=0-1
+  instructions (1):
+    [0001] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[8] source="" lines=167-200 params=1 vararg=0 stack=255 upvalues=3
+  constants (17):
+    K[0] = "GetEnemyAIStatus"
+    K[1] = "table"
+    K[2] = "insert"
+    K[3] = "Normal"
+    K[4] = "True"
+    K[5] = "IsBattleAIStatus"
+    K[6] = "Hanging"
+    K[7] = "BattleManager"
+    K[8] = "battlePawnManager"
+    K[9] = "GetTeamPet"
+    K[10] = "Team"
+    K[11] = "ENUM_ENEMY"
+    K[12] = "require"
+    K[13] = "NewRoco.Modules.Core.Battle.Scene.BattleThrowBallEnterFocusPet"
+    K[14] = "GetAnimComponent"
+    K[15] = "TrySetupBBValueForSleep"
+    K[16] = "SetCacheBlackboardValue"
+  upvalues (3):
+    U[0] = instack=0 idx=0 kind=1 name="_ENV"
+    U[1] = instack=1 idx=0 kind=1 name="BattleUtils"
+    U[2] = instack=3 idx=0 kind=13 name="BattleEnum"
+  locals (9):
+    L[0] = "self" pc=0-72
+    L[1] = "bbValues" pc=2-72
+    L[2] = "aiStatus" pc=4-72
+    L[3] = "isAIStatus" pc=20-68
+    L[4] = "statusString" pc=20-68
+    L[5] = "bSetupSleep" pc=36-68
+    L[6] = "enemyPet" pc=43-56
+    L[7] = "BattleThrowBallEnterFocusPet" pc=48-56
+    L[8] = "animComponent" pc=50-56
+  instructions (72):
+    [0001] NEWTABLE       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000093
+    [0002] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0003] SELF           A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x00008114
+    [0004] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0005] TEST           A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x00008142
+    [0006] JMP            A=9 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777225 sJ=10 raw=0x800004B8
+    [0007] GETTABUP       A=3 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131075 sJ=-16646140 raw=0x0100018B ; R[3] = U[0][K[1] "table"]
+    [0008] GETFIELD       A=3 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263683 sJ=-16513532 raw=0x0203018E ; R[3] = R[3][K[2] "insert"]
+    [0009] MOVE           A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010200
+    [0010] NEWTABLE       A=5 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262149 sJ=-16515066 raw=0x02000293
+    [0011] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0012] LOADK          A=6 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=774 sJ=-16776441 raw=0x00018303 ; R[6] = K[3] "Normal"
+    [0013] LOADK          A=7 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1031 sJ=-16776184 raw=0x00020383 ; R[7] = K[4] "True"
+    [0014] SETLIST        A=5 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1029 sJ=-16776186 raw=0x000202CE
+    [0015] CALL           A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x010301C4
+    [0016] JMP            A=51 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777267 sJ=52 raw=0x800019B8
+    [0017] GETTABUP       A=3 B=1 C=5 k=0 Bx=2562 sBx=-62973 Ax=655875 sJ=-16121340 raw=0x0501018B ; R[3] = U[1][K[5] "IsBattleAIStatus"]
+    [0018] MOVE           A=4 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1028 sJ=-16776187 raw=0x00020200
+    [0019] LOADTRUE       A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x00000287
+    [0020] CALL           A=3 B=3 C=3 k=0 Bx=1542 sBx=-63993 Ax=394755 sJ=-16382460 raw=0x030301C4
+    [0021] TEST           A=3 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=259 sJ=-16776956 raw=0x000081C2
+    [0022] JMP            A=9 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777225 sJ=10 raw=0x800004B8
+    [0023] GETTABUP       A=5 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131077 sJ=-16646138 raw=0x0100028B ; R[5] = U[0][K[1] "table"]
+    [0024] GETFIELD       A=5 B=5 C=2 k=0 Bx=1034 sBx=-64501 Ax=264709 sJ=-16512506 raw=0x0205028E ; R[5] = R[5][K[2] "insert"]
+    [0025] MOVE           A=6 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=518 sJ=-16776697 raw=0x00010300
+    [0026] NEWTABLE       A=7 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262151 sJ=-16515064 raw=0x02000393
+    [0027] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0028] LOADK          A=8 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=776 sJ=-16776439 raw=0x00018403 ; R[8] = K[3] "Normal"
+    [0029] LOADK          A=9 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1033 sJ=-16776182 raw=0x00020483 ; R[9] = K[4] "True"
+    [0030] SETLIST        A=7 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1031 sJ=-16776184 raw=0x000203CE
+    [0031] CALL           A=5 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132613 sJ=-16644602 raw=0x010302C4
+    [0032] JMP            A=35 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777251 sJ=36 raw=0x800011B8
+    [0033] EQK            A=4 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3076 sJ=-16774139 raw=0x0006023C
+    [0034] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0035] JMP            A=32 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777248 sJ=33 raw=0x80001038
+    [0036] LOADFALSE      A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x00000285
+    [0037] GETTABUP       A=6 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917510 sJ=-15859705 raw=0x0700030B ; R[6] = U[0][K[7] "BattleManager"]
+    [0038] GETFIELD       A=6 B=6 C=8 k=0 Bx=4108 sBx=-61427 Ax=1051654 sJ=-15725561 raw=0x0806030E ; R[6] = R[6][K[8] "battlePawnManager"]
+    [0039] SELF           A=6 B=6 C=9 k=1 Bx=4621 sBx=-60914 Ax=1182982 sJ=-15594233 raw=0x09068314
+    [0040] GETTABUP       A=8 B=2 C=10 k=0 Bx=5124 sBx=-60411 Ax=1311752 sJ=-15465463 raw=0x0A02040B ; R[8] = U[2][K[10] "Team"]
+    [0041] GETFIELD       A=8 B=8 C=11 k=0 Bx=5648 sBx=-59887 Ax=1445896 sJ=-15331319 raw=0x0B08040E ; R[8] = R[8][K[11] "ENUM_ENEMY"]
+    [0042] LOADI          A=9 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777225 sJ=10 raw=0x80000481
+    [0043] CALL           A=6 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264198 sJ=-16513017 raw=0x02040344
+    [0044] TEST           A=6 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=6 sJ=-16777209 raw=0x00000342
+    [0045] JMP            A=10 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777226 sJ=11 raw=0x80000538
+    [0046] GETTABUP       A=7 B=0 C=12 k=0 Bx=6144 sBx=-59391 Ax=1572871 sJ=-15204344 raw=0x0C00038B ; R[7] = U[0][K[12] "require"]
+    [0047] LOADK          A=8 B=6 C=0 k=1 Bx=13 sBx=-65522 Ax=3336 sJ=-16773879 raw=0x00068403 ; R[8] = K[13] "NewRoco.Modules.Core.Battle.Scene.BattleThrowBallEnterFocusPet"
+    [0048] CALL           A=7 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263175 sJ=-16514040 raw=0x020203C4
+    [0049] SELF           A=8 B=6 C=14 k=1 Bx=7181 sBx=-58354 Ax=1838344 sJ=-14938871 raw=0x0E068414
+    [0050] CALL           A=8 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263176 sJ=-16514039 raw=0x02020444
+    [0051] GETFIELD       A=9 B=7 C=15 k=0 Bx=7694 sBx=-57841 Ax=1969673 sJ=-14807542 raw=0x0F07048E ; R[9] = R[7][K[15] "TrySetupBBValueForSleep"]
+    [0052] MOVE           A=10 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1034 sJ=-16776181 raw=0x00020500
+    [0053] MOVE           A=11 B=8 C=0 k=0 Bx=16 sBx=-65519 Ax=4107 sJ=-16773108 raw=0x00080580
+    [0054] MOVE           A=12 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=524 sJ=-16776691 raw=0x00010600
+    [0055] CALL           A=9 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264201 sJ=-16513014 raw=0x020404C4
+    [0056] MOVE           A=5 B=9 C=0 k=0 Bx=18 sBx=-65517 Ax=4613 sJ=-16772602 raw=0x00090280
+    [0057] TEST           A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x000002C2
+    [0058] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0059] JMP            A=8 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777224 sJ=9 raw=0x80000438
+    [0060] GETTABUP       A=6 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131078 sJ=-16646137 raw=0x0100030B ; R[6] = U[0][K[1] "table"]
+    [0061] GETFIELD       A=6 B=6 C=2 k=0 Bx=1036 sBx=-64499 Ax=265222 sJ=-16511993 raw=0x0206030E ; R[6] = R[6][K[2] "insert"]
+    [0062] MOVE           A=7 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=519 sJ=-16776696 raw=0x00010380
+    [0063] NEWTABLE       A=8 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262152 sJ=-16515063 raw=0x02000413
+    [0064] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0065] MOVE           A=9 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2057 sJ=-16775158 raw=0x00040480
+    [0066] LOADK          A=10 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1034 sJ=-16776181 raw=0x00020503 ; R[10] = K[4] "True"
+    [0067] SETLIST        A=8 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1032 sJ=-16776183 raw=0x0002044E
+    [0068] CALL           A=6 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132614 sJ=-16644601 raw=0x01030344
+    [0069] SELF           A=3 B=0 C=16 k=1 Bx=8193 sBx=-57342 Ax=2097411 sJ=-14679804 raw=0x10008194
+    [0070] MOVE           A=5 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=517 sJ=-16776698 raw=0x00010280
+    [0071] CALL           A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x010301C4
+    [0072] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7
+
+  function[9] source="" lines=202-212 params=1 vararg=0 stack=255 upvalues=2
+  constants (8):
+    K[0] = "GetBattleInitInfo"
+    K[1] = "ipairs"
+    K[2] = "enemy_team"
+    K[3] = "pets"
+    K[4] = "GetInBattle"
+    K[5] = "battle_inside_pet_info"
+    K[6] = "ai_info"
+    K[7] = "ai_status"
+  upvalues (2):
+    U[0] = instack=1 idx=0 kind=0 name="BattleUtils"
+    U[1] = instack=0 idx=0 kind=16 name="_ENV"
+  locals (14):
+    L[0] = "self" pc=0-32
+    L[1] = "initInfo" pc=2-32
+    L[2] = "(for state)" pc=5-29
+    L[3] = "(for state)" pc=5-29
+    L[4] = "(for state)" pc=5-29
+    L[5] = "(for state)" pc=5-29
+    L[6] = "_" pc=6-26
+    L[7] = "v" pc=6-26
+    L[8] = "(for state)" pc=13-26
+    L[9] = "(for state)" pc=13-26
+    L[10] = "(for state)" pc=13-26
+    L[11] = "(for state)" pc=13-26
+    L[12] = "i" pc=14-23
+    L[13] = "pet" pc=14-23
+  instructions (32):
+    [0001] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "GetBattleInitInfo"]
+    [0002] CALL           A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x020100C4
+    [0003] GETTABUP       A=2 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131586 sJ=-16645629 raw=0x0101010B ; R[2] = U[1][K[1] "ipairs"]
+    [0004] GETFIELD       A=3 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262659 sJ=-16514556 raw=0x0201018E ; R[3] = R[1][K[2] "enemy_team"]
+    [0005] CALL           A=2 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656386 sJ=-16120829 raw=0x05020144
+    [0006] TFORPREP       A=2 B=10 C=0 k=0 Bx=20 sBx=-65515 Ax=5122 sJ=-16772093 raw=0x000A014B
+    [0007] GETTABUP       A=8 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131592 sJ=-16645623 raw=0x0101040B ; R[8] = U[1][K[1] "ipairs"]
+    [0008] GETFIELD       A=9 B=7 C=3 k=0 Bx=1550 sBx=-63985 Ax=396809 sJ=-16380406 raw=0x0307048E ; R[9] = R[7][K[3] "pets"]
+    [0009] TEST           A=9 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=265 sJ=-16776950 raw=0x000084C2
+    [0010] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0011] NEWTABLE       A=9 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=9 sJ=-16777206 raw=0x00000493
+    [0012] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0013] CALL           A=8 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656392 sJ=-16120823 raw=0x05020444
+    [0014] TFORPREP       A=8 B=4 C=0 k=1 Bx=9 sBx=-65526 Ax=2312 sJ=-16774903 raw=0x0004844B
+    [0015] GETTABUP       A=14 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524302 sJ=-16252913 raw=0x0400070B ; R[14] = U[0][K[4] "GetInBattle"]
+    [0016] GETFIELD       A=15 B=13 C=5 k=0 Bx=2586 sBx=-62949 Ax=662031 sJ=-16115184 raw=0x050D078E ; R[15] = R[13][K[5] "battle_inside_pet_info"]
+    [0017] CALL           A=14 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263182 sJ=-16514033 raw=0x02020744
+    [0018] TEST           A=14 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=14 sJ=-16777201 raw=0x00000742
+    [0019] JMP            A=3 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777219 sJ=4 raw=0x800001B8
+    [0020] GETFIELD       A=14 B=13 C=5 k=0 Bx=2586 sBx=-62949 Ax=662030 sJ=-16115185 raw=0x050D070E ; R[14] = R[13][K[5] "battle_inside_pet_info"]
+    [0021] GETFIELD       A=14 B=14 C=6 k=0 Bx=3100 sBx=-62435 Ax=793614 sJ=-15983601 raw=0x060E070E ; R[14] = R[14][K[6] "ai_info"]
+    [0022] GETFIELD       A=14 B=14 C=7 k=0 Bx=3612 sBx=-61923 Ax=924686 sJ=-15852529 raw=0x070E070E ; R[14] = R[14][K[7] "ai_status"]
+    [0023] RETURN         A=14 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1294 sJ=-16775921 raw=0x00028746
+    [0024] TFORCALL       A=8 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262152 sJ=-16515063 raw=0x0200044C
+    [0025] TFORLOOP       A=8 B=5 C=0 k=1 Bx=11 sBx=-65524 Ax=2824 sJ=-16774391 raw=0x0005844D
+    [0026] CLOSE          A=8 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=8 sJ=-16777207 raw=0x00000436
+    [0027] TFORCALL       A=2 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262146 sJ=-16515069 raw=0x0200014C
+    [0028] TFORLOOP       A=2 B=11 C=0 k=0 Bx=22 sBx=-65513 Ax=5634 sJ=-16771581 raw=0x000B014D
+    [0029] CLOSE          A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000136
+    [0030] LOADNIL        A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000108
+    [0031] RETURN         A=2 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1282 sJ=-16775933 raw=0x00028146
+    [0032] RETURN         A=2 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=770 sJ=-16776445 raw=0x00018146
+
+  function[10] source="" lines=214-232 params=1 vararg=0 stack=255 upvalues=3
+  constants (21):
+    K[0] = "Log"
+    K[1] = "Debug"
+    K[2] = "BattlePlayThrowBallEnterAnimAction OnHidePlayer"
+    K[3] = "GetAllTraceNpc"
+    K[4] = "ipairs"
+    K[5] = "npc"
+    K[6] = "AIComponent"
+    K[7] = "LockForBattleReason"
+    K[8] = "SetVisibleForBattleReason"
+    K[9] = "NRCModeManager"
+    K[10] = "DoCmd"
+    K[11] = "PlayerModuleCmd"
+    K[12] = "HIDE_ALL"
+    K[13] = "NPCModuleCmd"
+    K[14] = "EnterBattle"
+    K[15] = "BattleManager"
+    K[16] = "battleRuntimeData"
+    K[17] = "NearbyValidBattleLocation"
+    K[18] = "Define"
+    K[19] = "BattleFieldRange"
+    K[20] = "PinOnTheGroundForAllPawn"
+  upvalues (3):
+    U[0] = instack=0 idx=0 kind=1 name="_ENV"
+    U[1] = instack=1 idx=0 kind=1 name="BattleUtils"
+    U[2] = instack=2 idx=0 kind=11 name="BattleConst"
+  locals (8):
+    L[0] = "self" pc=0-51
+    L[1] = "Caches" pc=6-51
+    L[2] = "(for state)" pc=11-32
+    L[3] = "(for state)" pc=11-32
+    L[4] = "(for state)" pc=11-32
+    L[5] = "(for state)" pc=11-32
+    L[6] = "_" pc=12-29
+    L[7] = "Cache" pc=12-29
+  instructions (51):
+    [0001] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "Log"]
+    [0002] GETFIELD       A=1 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131585 sJ=-16645630 raw=0x0101008E ; R[1] = R[1][K[1] "Debug"]
+    [0003] LOADK          A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010103 ; R[2] = K[2] "BattlePlayThrowBallEnterAnimAction OnHidePlayer"
+    [0004] CALL           A=1 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132097 sJ=-16645118 raw=0x010200C4
+    [0005] GETTABUP       A=1 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393729 sJ=-16383486 raw=0x0301008B ; R[1] = U[1][K[3] "GetAllTraceNpc"]
+    [0006] CALL           A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x020100C4
+    [0007] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0008] JMP            A=23 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777239 sJ=24 raw=0x80000BB8
+    [0009] GETTABUP       A=2 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524290 sJ=-16252925 raw=0x0400010B ; R[2] = U[0][K[4] "ipairs"]
+    [0010] MOVE           A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x00010180
+    [0011] CALL           A=2 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656386 sJ=-16120829 raw=0x05020144
+    [0012] TFORPREP       A=2 B=8 C=0 k=1 Bx=17 sBx=-65518 Ax=4354 sJ=-16772861 raw=0x0008814B
+    [0013] TEST           A=7 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=7 sJ=-16777208 raw=0x000003C2
+    [0014] JMP            A=14 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777230 sJ=15 raw=0x80000738
+    [0015] GETFIELD       A=8 B=7 C=5 k=0 Bx=2574 sBx=-62961 Ax=658952 sJ=-16118263 raw=0x0507040E ; R[8] = R[7][K[5] "npc"]
+    [0016] TEST           A=8 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=8 sJ=-16777207 raw=0x00000442
+    [0017] JMP            A=11 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777227 sJ=12 raw=0x800005B8
+    [0018] GETFIELD       A=8 B=7 C=5 k=0 Bx=2574 sBx=-62961 Ax=658952 sJ=-16118263 raw=0x0507040E ; R[8] = R[7][K[5] "npc"]
+    [0019] GETFIELD       A=8 B=8 C=6 k=0 Bx=3088 sBx=-62447 Ax=790536 sJ=-15986679 raw=0x0608040E ; R[8] = R[8][K[6] "AIComponent"]
+    [0020] TEST           A=8 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=8 sJ=-16777207 raw=0x00000442
+    [0021] JMP            A=3 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777219 sJ=4 raw=0x800001B8
+    [0022] GETFIELD       A=8 B=7 C=5 k=0 Bx=2574 sBx=-62961 Ax=658952 sJ=-16118263 raw=0x0507040E ; R[8] = R[7][K[5] "npc"]
+    [0023] GETFIELD       A=8 B=8 C=6 k=0 Bx=3088 sBx=-62447 Ax=790536 sJ=-15986679 raw=0x0608040E ; R[8] = R[8][K[6] "AIComponent"]
+    [0024] SELF           A=8 B=8 C=7 k=1 Bx=3601 sBx=-61934 Ax=921864 sJ=-15855351 raw=0x07088414
+    [0025] CALL           A=8 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132104 sJ=-16645111 raw=0x01020444
+    [0026] GETFIELD       A=8 B=7 C=5 k=0 Bx=2574 sBx=-62961 Ax=658952 sJ=-16118263 raw=0x0507040E ; R[8] = R[7][K[5] "npc"]
+    [0027] SELF           A=8 B=8 C=8 k=1 Bx=4113 sBx=-61422 Ax=1052936 sJ=-15724279 raw=0x08088414
+    [0028] LOADFALSE      A=10 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=10 sJ=-16777205 raw=0x00000505
+    [0029] CALL           A=8 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132616 sJ=-16644599 raw=0x01030444
+    [0030] TFORCALL       A=2 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262146 sJ=-16515069 raw=0x0200014C
+    [0031] TFORLOOP       A=2 B=9 C=0 k=1 Bx=19 sBx=-65516 Ax=4866 sJ=-16772349 raw=0x0009814D
+    [0032] CLOSE          A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000136
+    [0033] GETTABUP       A=2 B=0 C=9 k=0 Bx=4608 sBx=-60927 Ax=1179650 sJ=-15597565 raw=0x0900010B ; R[2] = U[0][K[9] "NRCModeManager"]
+    [0034] SELF           A=2 B=2 C=10 k=1 Bx=5125 sBx=-60410 Ax=1312002 sJ=-15465213 raw=0x0A028114
+    [0035] GETTABUP       A=4 B=0 C=11 k=0 Bx=5632 sBx=-59903 Ax=1441796 sJ=-15335419 raw=0x0B00020B ; R[4] = U[0][K[11] "PlayerModuleCmd"]
+    [0036] GETFIELD       A=4 B=4 C=12 k=0 Bx=6152 sBx=-59383 Ax=1574916 sJ=-15202299 raw=0x0C04020E ; R[4] = R[4][K[12] "HIDE_ALL"]
+    [0037] LOADTRUE       A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x00000287
+    [0038] CALL           A=2 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133122 sJ=-16644093 raw=0x01040144
+    [0039] GETTABUP       A=2 B=0 C=9 k=0 Bx=4608 sBx=-60927 Ax=1179650 sJ=-15597565 raw=0x0900010B ; R[2] = U[0][K[9] "NRCModeManager"]
+    [0040] SELF           A=2 B=2 C=10 k=1 Bx=5125 sBx=-60410 Ax=1312002 sJ=-15465213 raw=0x0A028114
+    [0041] GETTABUP       A=4 B=0 C=13 k=0 Bx=6656 sBx=-58879 Ax=1703940 sJ=-15073275 raw=0x0D00020B ; R[4] = U[0][K[13] "NPCModuleCmd"]
+    [0042] GETFIELD       A=4 B=4 C=14 k=0 Bx=7176 sBx=-58359 Ax=1837060 sJ=-14940155 raw=0x0E04020E ; R[4] = R[4][K[14] "EnterBattle"]
+    [0043] GETTABUP       A=5 B=0 C=15 k=0 Bx=7680 sBx=-57855 Ax=1966085 sJ=-14811130 raw=0x0F00028B ; R[5] = U[0][K[15] "BattleManager"]
+    [0044] GETFIELD       A=5 B=5 C=16 k=0 Bx=8202 sBx=-57333 Ax=2099717 sJ=-14677498 raw=0x1005028E ; R[5] = R[5][K[16] "battleRuntimeData"]
+    [0045] GETFIELD       A=5 B=5 C=17 k=0 Bx=8714 sBx=-56821 Ax=2230789 sJ=-14546426 raw=0x1105028E ; R[5] = R[5][K[17] "NearbyValidBattleLocation"]
+    [0046] GETTABUP       A=6 B=2 C=18 k=0 Bx=9220 sBx=-56315 Ax=2360326 sJ=-14416889 raw=0x1202030B ; R[6] = U[2][K[18] "Define"]
+    [0047] GETFIELD       A=6 B=6 C=19 k=0 Bx=9740 sBx=-55795 Ax=2493446 sJ=-14283769 raw=0x1306030E ; R[6] = R[6][K[19] "BattleFieldRange"]
+    [0048] CALL           A=2 B=5 C=1 k=0 Bx=522 sBx=-65013 Ax=133634 sJ=-16643581 raw=0x01050144
+    [0049] GETTABUP       A=2 B=1 C=20 k=0 Bx=10242 sBx=-55293 Ax=2621954 sJ=-14155261 raw=0x1401010B ; R[2] = U[1][K[20] "PinOnTheGroundForAllPawn"]
+    [0050] CALL           A=2 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131586 sJ=-16645629 raw=0x01010144
+    [0051] RETURN         A=2 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=770 sJ=-16776445 raw=0x00018146
+
+  function[11] source="" lines=234-244 params=1 vararg=0 stack=255 upvalues=2
+  constants (8):
+    K[0] = "ipairs"
+    K[1] = "BattleManager"
+    K[2] = "battlePawnManager"
+    K[3] = "GetAllTeam"
+    K[4] = "Team"
+    K[5] = "ENUM_TEAM"
+    K[6] = "ShowPlayer"
+    K[7] = "ENUM_ENEMY"
+  upvalues (2):
+    U[0] = instack=0 idx=0 kind=1 name="_ENV"
+    U[1] = instack=3 idx=0 kind=10 name="BattleEnum"
+  locals (13):
+    L[0] = "self" pc=0-31
+    L[1] = "(for state)" pc=8-15
+    L[2] = "(for state)" pc=8-15
+    L[3] = "(for state)" pc=8-15
+    L[4] = "(for state)" pc=8-15
+    L[5] = "i" pc=9-12
+    L[6] = "v" pc=9-12
+    L[7] = "(for state)" pc=23-30
+    L[8] = "(for state)" pc=23-30
+    L[9] = "(for state)" pc=23-30
+    L[10] = "(for state)" pc=23-30
+    L[11] = "i" pc=24-27
+    L[12] = "v" pc=24-27
+  instructions (31):
+    [0001] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "ipairs"]
+    [0002] GETTABUP       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010B ; R[2] = U[0][K[1] "BattleManager"]
+    [0003] GETFIELD       A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x0202010E ; R[2] = R[2][K[2] "battlePawnManager"]
+    [0004] SELF           A=2 B=2 C=3 k=1 Bx=1541 sBx=-63994 Ax=394498 sJ=-16382717 raw=0x03028114
+    [0005] GETTABUP       A=4 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524804 sJ=-16252411 raw=0x0401020B ; R[4] = U[1][K[4] "Team"]
+    [0006] GETFIELD       A=4 B=4 C=5 k=0 Bx=2568 sBx=-62967 Ax=657412 sJ=-16119803 raw=0x0504020E ; R[4] = R[4][K[5] "ENUM_TEAM"]
+    [0007] CALL           A=2 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1538 sJ=-16775677 raw=0x00030144
+    [0008] CALL           A=1 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655361 sJ=-16121854 raw=0x050000C4
+    [0009] TFORPREP       A=1 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=769 sJ=-16776446 raw=0x000180CB
+    [0010] SELF           A=7 B=0 C=6 k=1 Bx=3073 sBx=-62462 Ax=786695 sJ=-15990520 raw=0x06008394
+    [0011] MOVE           A=9 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3081 sJ=-16774134 raw=0x00060480
+    [0012] CALL           A=7 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132615 sJ=-16644600 raw=0x010303C4
+    [0013] TFORCALL       A=1 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262145 sJ=-16515070 raw=0x020000CC
+    [0014] TFORLOOP       A=1 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1281 sJ=-16775934 raw=0x000280CD
+    [0015] CLOSE          A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000B6
+    [0016] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "ipairs"]
+    [0017] GETTABUP       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010B ; R[2] = U[0][K[1] "BattleManager"]
+    [0018] GETFIELD       A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x0202010E ; R[2] = R[2][K[2] "battlePawnManager"]
+    [0019] SELF           A=2 B=2 C=3 k=1 Bx=1541 sBx=-63994 Ax=394498 sJ=-16382717 raw=0x03028114
+    [0020] GETTABUP       A=4 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524804 sJ=-16252411 raw=0x0401020B ; R[4] = U[1][K[4] "Team"]
+    [0021] GETFIELD       A=4 B=4 C=7 k=0 Bx=3592 sBx=-61943 Ax=919556 sJ=-15857659 raw=0x0704020E ; R[4] = R[4][K[7] "ENUM_ENEMY"]
+    [0022] CALL           A=2 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1538 sJ=-16775677 raw=0x00030144
+    [0023] CALL           A=1 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655361 sJ=-16121854 raw=0x050000C4
+    [0024] TFORPREP       A=1 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=769 sJ=-16776446 raw=0x000180CB
+    [0025] SELF           A=7 B=0 C=6 k=1 Bx=3073 sBx=-62462 Ax=786695 sJ=-15990520 raw=0x06008394
+    [0026] MOVE           A=9 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3081 sJ=-16774134 raw=0x00060480
+    [0027] CALL           A=7 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132615 sJ=-16644600 raw=0x010303C4
+    [0028] TFORCALL       A=1 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262145 sJ=-16515070 raw=0x020000CC
+    [0029] TFORLOOP       A=1 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1281 sJ=-16775934 raw=0x000280CD
+    [0030] CLOSE          A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000B6
+    [0031] RETURN         A=1 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=769 sJ=-16776446 raw=0x000180C6
+
+  function[12] source="" lines=247-270 params=2 vararg=0 stack=255 upvalues=1
+  constants (20):
+    K[0] = "Log"
+    K[1] = "Warning"
+    K[2] = "BattlePlayPetStartBattleAnimAction:ShowBattlePet"
+    K[3] = "player"
+    K[4] = "model"
+    K[5] = "UE4"
+    K[6] = "UObject"
+    K[7] = "IsValid"
+    K[8] = "ShowPlayer"
+    K[9] = "GetComponentByClass"
+    K[10] = "USceneComponent"
+    K[11] = "SetVisibility"
+    K[12] = "TryHelmetOn"
+    K[13] = "battlePlayerComponents"
+    K[14] = "HideMark"
+    K[15] = "pets"
+    K[16] = "pairs"
+    K[17] = "card"
+    K[18] = "IsExistAtField"
+    K[19] = "ShowPet"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=10 name="_ENV"
+  locals (10):
+    L[0] = "self" pc=0-69
+    L[1] = "battleTeam" pc=0-69
+    L[2] = "sceneComp" pc=28-48
+    L[3] = "battlePlayerComponents" pc=39-48
+    L[4] = "(for state)" pc=54-68
+    L[5] = "(for state)" pc=54-68
+    L[6] = "(for state)" pc=54-68
+    L[7] = "(for state)" pc=54-68
+    L[8] = "_" pc=55-65
+    L[9] = "p" pc=55-65
+  instructions (69):
+    [0001] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "Log"]
+    [0002] GETFIELD       A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x0102010E ; R[2] = R[2][K[1] "Warning"]
+    [0003] LOADK          A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x00010183 ; R[3] = K[2] "BattlePlayPetStartBattleAnimAction:ShowBattlePet"
+    [0004] CALL           A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x01020144
+    [0005] GETFIELD       A=2 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393730 sJ=-16383485 raw=0x0301010E ; R[2] = R[1][K[3] "player"]
+    [0006] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0007] JMP            A=40 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777256 sJ=41 raw=0x80001438
+    [0008] GETFIELD       A=2 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393730 sJ=-16383485 raw=0x0301010E ; R[2] = R[1][K[3] "player"]
+    [0009] GETFIELD       A=2 B=2 C=4 k=0 Bx=2052 sBx=-63483 Ax=525314 sJ=-16251901 raw=0x0402010E ; R[2] = R[2][K[4] "model"]
+    [0010] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0011] JMP            A=36 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777252 sJ=37 raw=0x80001238
+    [0012] GETTABUP       A=2 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655362 sJ=-16121853 raw=0x0500010B ; R[2] = U[0][K[5] "UE4"]
+    [0013] GETFIELD       A=2 B=2 C=6 k=0 Bx=3076 sBx=-62459 Ax=787458 sJ=-15989757 raw=0x0602010E ; R[2] = R[2][K[6] "UObject"]
+    [0014] GETFIELD       A=2 B=2 C=7 k=0 Bx=3588 sBx=-61947 Ax=918530 sJ=-15858685 raw=0x0702010E ; R[2] = R[2][K[7] "IsValid"]
+    [0015] GETFIELD       A=3 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393731 sJ=-16383484 raw=0x0301018E ; R[3] = R[1][K[3] "player"]
+    [0016] GETFIELD       A=3 B=3 C=4 k=0 Bx=2054 sBx=-63481 Ax=525827 sJ=-16251388 raw=0x0403018E ; R[3] = R[3][K[4] "model"]
+    [0017] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0018] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0019] JMP            A=28 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777244 sJ=29 raw=0x80000E38
+    [0020] GETFIELD       A=2 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393730 sJ=-16383485 raw=0x0301010E ; R[2] = R[1][K[3] "player"]
+    [0021] SELF           A=2 B=2 C=8 k=1 Bx=4101 sBx=-61434 Ax=1049858 sJ=-15727357 raw=0x08028114
+    [0022] CALL           A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x01020144
+    [0023] GETFIELD       A=2 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393730 sJ=-16383485 raw=0x0301010E ; R[2] = R[1][K[3] "player"]
+    [0024] GETFIELD       A=2 B=2 C=4 k=0 Bx=2052 sBx=-63483 Ax=525314 sJ=-16251901 raw=0x0402010E ; R[2] = R[2][K[4] "model"]
+    [0025] SELF           A=2 B=2 C=9 k=1 Bx=4613 sBx=-60922 Ax=1180930 sJ=-15596285 raw=0x09028114
+    [0026] GETTABUP       A=4 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655364 sJ=-16121851 raw=0x0500020B ; R[4] = U[0][K[5] "UE4"]
+    [0027] GETFIELD       A=4 B=4 C=10 k=0 Bx=5128 sBx=-60407 Ax=1312772 sJ=-15464443 raw=0x0A04020E ; R[4] = R[4][K[10] "USceneComponent"]
+    [0028] CALL           A=2 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263682 sJ=-16513533 raw=0x02030144
+    [0029] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0030] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0031] SELF           A=3 B=2 C=11 k=1 Bx=5637 sBx=-59898 Ax=1443075 sJ=-15334140 raw=0x0B028194
+    [0032] LOADTRUE       A=5 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=5 sJ=-16777210 raw=0x00000287
+    [0033] CALL           A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x010301C4
+    [0034] GETFIELD       A=3 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393731 sJ=-16383484 raw=0x0301018E ; R[3] = R[1][K[3] "player"]
+    [0035] GETFIELD       A=3 B=3 C=4 k=0 Bx=2054 sBx=-63481 Ax=525827 sJ=-16251388 raw=0x0403018E ; R[3] = R[3][K[4] "model"]
+    [0036] SELF           A=3 B=3 C=12 k=1 Bx=6151 sBx=-59384 Ax=1574659 sJ=-15202556 raw=0x0C038194
+    [0037] CALL           A=3 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132099 sJ=-16645116 raw=0x010201C4
+    [0038] GETFIELD       A=3 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393731 sJ=-16383484 raw=0x0301018E ; R[3] = R[1][K[3] "player"]
+    [0039] GETFIELD       A=3 B=3 C=13 k=0 Bx=6662 sBx=-58873 Ax=1705475 sJ=-15071740 raw=0x0D03018E ; R[3] = R[3][K[13] "battlePlayerComponents"]
+    [0040] TEST           A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x000001C2
+    [0041] JMP            A=6 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777222 sJ=7 raw=0x80000338
+    [0042] GETFIELD       A=4 B=3 C=14 k=0 Bx=7174 sBx=-58361 Ax=1836548 sJ=-14940667 raw=0x0E03020E ; R[4] = R[3][K[14] "HideMark"]
+    [0043] TEST           A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000242
+    [0044] JMP            A=3 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777219 sJ=4 raw=0x800001B8
+    [0045] GETFIELD       A=4 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393732 sJ=-16383483 raw=0x0301020E ; R[4] = R[1][K[3] "player"]
+    [0046] GETFIELD       A=4 B=4 C=13 k=0 Bx=6664 sBx=-58871 Ax=1705988 sJ=-15071227 raw=0x0D04020E ; R[4] = R[4][K[13] "battlePlayerComponents"]
+    [0047] SELF           A=4 B=4 C=14 k=1 Bx=7177 sBx=-58358 Ax=1837316 sJ=-14939899 raw=0x0E048214
+    [0048] CALL           A=4 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132100 sJ=-16645115 raw=0x01020244
+    [0049] GETFIELD       A=2 B=1 C=15 k=0 Bx=7682 sBx=-57853 Ax=1966594 sJ=-14810621 raw=0x0F01010E ; R[2] = R[1][K[15] "pets"]
+    [0050] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0051] JMP            A=16 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777232 sJ=17 raw=0x80000838
+    [0052] GETTABUP       A=2 B=0 C=16 k=0 Bx=8192 sBx=-57343 Ax=2097154 sJ=-14680061 raw=0x1000010B ; R[2] = U[0][K[16] "pairs"]
+    [0053] GETFIELD       A=3 B=1 C=15 k=0 Bx=7682 sBx=-57853 Ax=1966595 sJ=-14810620 raw=0x0F01018E ; R[3] = R[1][K[15] "pets"]
+    [0054] CALL           A=2 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656386 sJ=-16120829 raw=0x05020144
+    [0055] TFORPREP       A=2 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2562 sJ=-16774653 raw=0x0005014B
+    [0056] GETFIELD       A=8 B=7 C=4 k=0 Bx=2062 sBx=-63473 Ax=527880 sJ=-16249335 raw=0x0407040E ; R[8] = R[7][K[4] "model"]
+    [0057] TEST           A=8 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=8 sJ=-16777207 raw=0x00000442
+    [0058] JMP            A=6 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777222 sJ=7 raw=0x80000338
+    [0059] GETFIELD       A=8 B=7 C=17 k=0 Bx=8718 sBx=-56817 Ax=2231816 sJ=-14545399 raw=0x1107040E ; R[8] = R[7][K[17] "card"]
+    [0060] SELF           A=8 B=8 C=18 k=1 Bx=9233 sBx=-56302 Ax=2363656 sJ=-14413559 raw=0x12088414
+    [0061] CALL           A=8 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263176 sJ=-16514039 raw=0x02020444
+    [0062] TEST           A=8 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=8 sJ=-16777207 raw=0x00000442
+    [0063] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0064] SELF           A=8 B=7 C=19 k=1 Bx=9743 sBx=-55792 Ax=2494216 sJ=-14282999 raw=0x13078414
+    [0065] CALL           A=8 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132104 sJ=-16645111 raw=0x01020444
+    [0066] TFORCALL       A=2 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262146 sJ=-16515069 raw=0x0200014C
+    [0067] TFORLOOP       A=2 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3074 sJ=-16774141 raw=0x0006014D
+    [0068] CLOSE          A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000136
+    [0069] RETURN         A=2 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=770 sJ=-16776445 raw=0x00018146
+
+  function[13] source="" lines=272-314 params=1 vararg=0 stack=255 upvalues=2
+  constants (19):
+    K[0] = "ipairs"
+    K[1] = "BattleManager"
+    K[2] = "battlePawnManager"
+    K[3] = "GetAllTeam"
+    K[4] = "Team"
+    K[5] = "ENUM_TEAM"
+    K[6] = "player"
+    K[7] = "model"
+    K[8] = "HidePlayer"
+    K[9] = "GetComponentByClass"
+    K[10] = "UE4"
+    K[11] = "USceneComponent"
+    K[12] = "SetVisibility"
+    K[13] = "pets"
+    K[14] = "pairs"
+    K[15] = "card"
+    K[16] = "IsExistAtField"
+    K[17] = "HidePet"
+    K[18] = "ENUM_ENEMY"
+  upvalues (2):
+    U[0] = instack=0 idx=0 kind=1 name="_ENV"
+    U[1] = instack=3 idx=0 kind=15 name="BattleEnum"
+  locals (27):
+    L[0] = "self" pc=0-109
+    L[1] = "(for state)" pc=8-54
+    L[2] = "(for state)" pc=8-54
+    L[3] = "(for state)" pc=8-54
+    L[4] = "(for state)" pc=8-54
+    L[5] = "i" pc=9-51
+    L[6] = "v" pc=9-51
+    L[7] = "sceneComp" pc=25-30
+    L[8] = "(for state)" pc=37-51
+    L[9] = "(for state)" pc=37-51
+    L[10] = "(for state)" pc=37-51
+    L[11] = "(for state)" pc=37-51
+    L[12] = "_" pc=38-48
+    L[13] = "p" pc=38-48
+    L[14] = "(for state)" pc=62-108
+    L[15] = "(for state)" pc=62-108
+    L[16] = "(for state)" pc=62-108
+    L[17] = "(for state)" pc=62-108
+    L[18] = "i" pc=63-105
+    L[19] = "v" pc=63-105
+    L[20] = "sceneComp" pc=79-84
+    L[21] = "(for state)" pc=91-105
+    L[22] = "(for state)" pc=91-105
+    L[23] = "(for state)" pc=91-105
+    L[24] = "(for state)" pc=91-105
+    L[25] = "_" pc=92-102
+    L[26] = "p" pc=92-102
+  instructions (109):
+    [0001] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "ipairs"]
+    [0002] GETTABUP       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010B ; R[2] = U[0][K[1] "BattleManager"]
+    [0003] GETFIELD       A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x0202010E ; R[2] = R[2][K[2] "battlePawnManager"]
+    [0004] SELF           A=2 B=2 C=3 k=1 Bx=1541 sBx=-63994 Ax=394498 sJ=-16382717 raw=0x03028114
+    [0005] GETTABUP       A=4 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524804 sJ=-16252411 raw=0x0401020B ; R[4] = U[1][K[4] "Team"]
+    [0006] GETFIELD       A=4 B=4 C=5 k=0 Bx=2568 sBx=-62967 Ax=657412 sJ=-16119803 raw=0x0504020E ; R[4] = R[4][K[5] "ENUM_TEAM"]
+    [0007] CALL           A=2 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1538 sJ=-16775677 raw=0x00030144
+    [0008] CALL           A=1 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655361 sJ=-16121854 raw=0x050000C4
+    [0009] TFORPREP       A=1 B=21 C=0 k=0 Bx=42 sBx=-65493 Ax=10753 sJ=-16766462 raw=0x001500CB
+    [0010] GETFIELD       A=7 B=6 C=6 k=0 Bx=3084 sBx=-62451 Ax=789511 sJ=-15987704 raw=0x0606038E ; R[7] = R[6][K[6] "player"]
+    [0011] TEST           A=7 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=7 sJ=-16777208 raw=0x000003C2
+    [0012] JMP            A=17 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777233 sJ=18 raw=0x800008B8
+    [0013] GETFIELD       A=7 B=6 C=6 k=0 Bx=3084 sBx=-62451 Ax=789511 sJ=-15987704 raw=0x0606038E ; R[7] = R[6][K[6] "player"]
+    [0014] GETFIELD       A=7 B=7 C=7 k=0 Bx=3598 sBx=-61937 Ax=921095 sJ=-15856120 raw=0x0707038E ; R[7] = R[7][K[7] "model"]
+    [0015] TEST           A=7 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=7 sJ=-16777208 raw=0x000003C2
+    [0016] JMP            A=13 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777229 sJ=14 raw=0x800006B8
+    [0017] GETFIELD       A=7 B=6 C=6 k=0 Bx=3084 sBx=-62451 Ax=789511 sJ=-15987704 raw=0x0606038E ; R[7] = R[6][K[6] "player"]
+    [0018] SELF           A=7 B=7 C=8 k=1 Bx=4111 sBx=-61424 Ax=1052423 sJ=-15724792 raw=0x08078394
+    [0019] CALL           A=7 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132103 sJ=-16645112 raw=0x010203C4
+    [0020] GETFIELD       A=7 B=6 C=6 k=0 Bx=3084 sBx=-62451 Ax=789511 sJ=-15987704 raw=0x0606038E ; R[7] = R[6][K[6] "player"]
+    [0021] GETFIELD       A=7 B=7 C=7 k=0 Bx=3598 sBx=-61937 Ax=921095 sJ=-15856120 raw=0x0707038E ; R[7] = R[7][K[7] "model"]
+    [0022] SELF           A=7 B=7 C=9 k=1 Bx=4623 sBx=-60912 Ax=1183495 sJ=-15593720 raw=0x09078394
+    [0023] GETTABUP       A=9 B=0 C=10 k=0 Bx=5120 sBx=-60415 Ax=1310729 sJ=-15466486 raw=0x0A00048B ; R[9] = U[0][K[10] "UE4"]
+    [0024] GETFIELD       A=9 B=9 C=11 k=0 Bx=5650 sBx=-59885 Ax=1446409 sJ=-15330806 raw=0x0B09048E ; R[9] = R[9][K[11] "USceneComponent"]
+    [0025] CALL           A=7 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263687 sJ=-16513528 raw=0x020303C4
+    [0026] TEST           A=7 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=7 sJ=-16777208 raw=0x000003C2
+    [0027] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0028] SELF           A=8 B=7 C=12 k=1 Bx=6159 sBx=-59376 Ax=1576712 sJ=-15200503 raw=0x0C078414
+    [0029] LOADFALSE      A=10 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=10 sJ=-16777205 raw=0x00000505
+    [0030] CALL           A=8 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132616 sJ=-16644599 raw=0x01030444
+    [0031] GETFIELD       A=7 B=6 C=13 k=0 Bx=6668 sBx=-58867 Ax=1707015 sJ=-15070200 raw=0x0D06038E ; R[7] = R[6][K[13] "pets"]
+    [0032] LEN            A=7 B=7 C=0 k=0 Bx=14 sBx=-65521 Ax=3591 sJ=-16773624 raw=0x000703B4
+    [0033] GTI            A=7 B=127 C=0 k=0 Bx=254 sBx=-65281 Ax=65031 sJ=-16712184 raw=0x007F03C0
+    [0034] JMP            A=16 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777232 sJ=17 raw=0x80000838
+    [0035] GETTABUP       A=7 B=0 C=14 k=0 Bx=7168 sBx=-58367 Ax=1835015 sJ=-14942200 raw=0x0E00038B ; R[7] = U[0][K[14] "pairs"]
+    [0036] GETFIELD       A=8 B=6 C=13 k=0 Bx=6668 sBx=-58867 Ax=1707016 sJ=-15070199 raw=0x0D06040E ; R[8] = R[6][K[13] "pets"]
+    [0037] CALL           A=7 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656391 sJ=-16120824 raw=0x050203C4
+    [0038] TFORPREP       A=7 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2567 sJ=-16774648 raw=0x000503CB
+    [0039] GETFIELD       A=13 B=12 C=7 k=0 Bx=3608 sBx=-61927 Ax=923661 sJ=-15853554 raw=0x070C068E ; R[13] = R[12][K[7] "model"]
+    [0040] TEST           A=13 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=13 sJ=-16777202 raw=0x000006C2
+    [0041] JMP            A=6 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777222 sJ=7 raw=0x80000338
+    [0042] GETFIELD       A=13 B=12 C=15 k=0 Bx=7704 sBx=-57831 Ax=1972237 sJ=-14804978 raw=0x0F0C068E ; R[13] = R[12][K[15] "card"]
+    [0043] SELF           A=13 B=13 C=16 k=1 Bx=8219 sBx=-57316 Ax=2104077 sJ=-14673138 raw=0x100D8694
+    [0044] CALL           A=13 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263181 sJ=-16514034 raw=0x020206C4
+    [0045] TEST           A=13 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=13 sJ=-16777202 raw=0x000006C2
+    [0046] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0047] SELF           A=13 B=12 C=17 k=1 Bx=8729 sBx=-56806 Ax=2234637 sJ=-14542578 raw=0x110C8694
+    [0048] CALL           A=13 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132109 sJ=-16645106 raw=0x010206C4
+    [0049] TFORCALL       A=7 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262151 sJ=-16515064 raw=0x020003CC
+    [0050] TFORLOOP       A=7 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3079 sJ=-16774136 raw=0x000603CD
+    [0051] CLOSE          A=7 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=7 sJ=-16777208 raw=0x000003B6
+    [0052] TFORCALL       A=1 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262145 sJ=-16515070 raw=0x020000CC
+    [0053] TFORLOOP       A=1 B=22 C=0 k=0 Bx=44 sBx=-65491 Ax=11265 sJ=-16765950 raw=0x001600CD
+    [0054] CLOSE          A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000B6
+    [0055] GETTABUP       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008B ; R[1] = U[0][K[0] "ipairs"]
+    [0056] GETTABUP       A=2 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131074 sJ=-16646141 raw=0x0100010B ; R[2] = U[0][K[1] "BattleManager"]
+    [0057] GETFIELD       A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x0202010E ; R[2] = R[2][K[2] "battlePawnManager"]
+    [0058] SELF           A=2 B=2 C=3 k=1 Bx=1541 sBx=-63994 Ax=394498 sJ=-16382717 raw=0x03028114
+    [0059] GETTABUP       A=4 B=1 C=4 k=0 Bx=2050 sBx=-63485 Ax=524804 sJ=-16252411 raw=0x0401020B ; R[4] = U[1][K[4] "Team"]
+    [0060] GETFIELD       A=4 B=4 C=18 k=0 Bx=9224 sBx=-56311 Ax=2361348 sJ=-14415867 raw=0x1204020E ; R[4] = R[4][K[18] "ENUM_ENEMY"]
+    [0061] CALL           A=2 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1538 sJ=-16775677 raw=0x00030144
+    [0062] CALL           A=1 B=0 C=5 k=0 Bx=2560 sBx=-62975 Ax=655361 sJ=-16121854 raw=0x050000C4
+    [0063] TFORPREP       A=1 B=21 C=0 k=0 Bx=42 sBx=-65493 Ax=10753 sJ=-16766462 raw=0x001500CB
+    [0064] GETFIELD       A=7 B=6 C=6 k=0 Bx=3084 sBx=-62451 Ax=789511 sJ=-15987704 raw=0x0606038E ; R[7] = R[6][K[6] "player"]
+    [0065] TEST           A=7 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=7 sJ=-16777208 raw=0x000003C2
+    [0066] JMP            A=17 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777233 sJ=18 raw=0x800008B8
+    [0067] GETFIELD       A=7 B=6 C=6 k=0 Bx=3084 sBx=-62451 Ax=789511 sJ=-15987704 raw=0x0606038E ; R[7] = R[6][K[6] "player"]
+    [0068] GETFIELD       A=7 B=7 C=7 k=0 Bx=3598 sBx=-61937 Ax=921095 sJ=-15856120 raw=0x0707038E ; R[7] = R[7][K[7] "model"]
+    [0069] TEST           A=7 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=7 sJ=-16777208 raw=0x000003C2
+    [0070] JMP            A=13 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777229 sJ=14 raw=0x800006B8
+    [0071] GETFIELD       A=7 B=6 C=6 k=0 Bx=3084 sBx=-62451 Ax=789511 sJ=-15987704 raw=0x0606038E ; R[7] = R[6][K[6] "player"]
+    [0072] SELF           A=7 B=7 C=8 k=1 Bx=4111 sBx=-61424 Ax=1052423 sJ=-15724792 raw=0x08078394
+    [0073] CALL           A=7 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132103 sJ=-16645112 raw=0x010203C4
+    [0074] GETFIELD       A=7 B=6 C=6 k=0 Bx=3084 sBx=-62451 Ax=789511 sJ=-15987704 raw=0x0606038E ; R[7] = R[6][K[6] "player"]
+    [0075] GETFIELD       A=7 B=7 C=7 k=0 Bx=3598 sBx=-61937 Ax=921095 sJ=-15856120 raw=0x0707038E ; R[7] = R[7][K[7] "model"]
+    [0076] SELF           A=7 B=7 C=9 k=1 Bx=4623 sBx=-60912 Ax=1183495 sJ=-15593720 raw=0x09078394
+    [0077] GETTABUP       A=9 B=0 C=10 k=0 Bx=5120 sBx=-60415 Ax=1310729 sJ=-15466486 raw=0x0A00048B ; R[9] = U[0][K[10] "UE4"]
+    [0078] GETFIELD       A=9 B=9 C=11 k=0 Bx=5650 sBx=-59885 Ax=1446409 sJ=-15330806 raw=0x0B09048E ; R[9] = R[9][K[11] "USceneComponent"]
+    [0079] CALL           A=7 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263687 sJ=-16513528 raw=0x020303C4
+    [0080] TEST           A=7 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=7 sJ=-16777208 raw=0x000003C2
+    [0081] JMP            A=2 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777218 sJ=3 raw=0x80000138
+    [0082] SELF           A=8 B=7 C=12 k=1 Bx=6159 sBx=-59376 Ax=1576712 sJ=-15200503 raw=0x0C078414
+    [0083] LOADFALSE      A=10 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=10 sJ=-16777205 raw=0x00000505
+    [0084] CALL           A=8 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132616 sJ=-16644599 raw=0x01030444
+    [0085] GETFIELD       A=7 B=6 C=13 k=0 Bx=6668 sBx=-58867 Ax=1707015 sJ=-15070200 raw=0x0D06038E ; R[7] = R[6][K[13] "pets"]
+    [0086] LEN            A=7 B=7 C=0 k=0 Bx=14 sBx=-65521 Ax=3591 sJ=-16773624 raw=0x000703B4
+    [0087] GTI            A=7 B=127 C=0 k=0 Bx=254 sBx=-65281 Ax=65031 sJ=-16712184 raw=0x007F03C0
+    [0088] JMP            A=16 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777232 sJ=17 raw=0x80000838
+    [0089] GETTABUP       A=7 B=0 C=14 k=0 Bx=7168 sBx=-58367 Ax=1835015 sJ=-14942200 raw=0x0E00038B ; R[7] = U[0][K[14] "pairs"]
+    [0090] GETFIELD       A=8 B=6 C=13 k=0 Bx=6668 sBx=-58867 Ax=1707016 sJ=-15070199 raw=0x0D06040E ; R[8] = R[6][K[13] "pets"]
+    [0091] CALL           A=7 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656391 sJ=-16120824 raw=0x050203C4
+    [0092] TFORPREP       A=7 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2567 sJ=-16774648 raw=0x000503CB
+    [0093] GETFIELD       A=13 B=12 C=7 k=0 Bx=3608 sBx=-61927 Ax=923661 sJ=-15853554 raw=0x070C068E ; R[13] = R[12][K[7] "model"]
+    [0094] TEST           A=13 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=13 sJ=-16777202 raw=0x000006C2
+    [0095] JMP            A=6 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777222 sJ=7 raw=0x80000338
+    [0096] GETFIELD       A=13 B=12 C=15 k=0 Bx=7704 sBx=-57831 Ax=1972237 sJ=-14804978 raw=0x0F0C068E ; R[13] = R[12][K[15] "card"]
+    [0097] SELF           A=13 B=13 C=16 k=1 Bx=8219 sBx=-57316 Ax=2104077 sJ=-14673138 raw=0x100D8694
+    [0098] CALL           A=13 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263181 sJ=-16514034 raw=0x020206C4
+    [0099] TEST           A=13 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=13 sJ=-16777202 raw=0x000006C2
+    [0100] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0101] SELF           A=13 B=12 C=17 k=1 Bx=8729 sBx=-56806 Ax=2234637 sJ=-14542578 raw=0x110C8694
+    [0102] CALL           A=13 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132109 sJ=-16645106 raw=0x010206C4
+    [0103] TFORCALL       A=7 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262151 sJ=-16515064 raw=0x020003CC
+    [0104] TFORLOOP       A=7 B=6 C=0 k=0 Bx=12 sBx=-65523 Ax=3079 sJ=-16774136 raw=0x000603CD
+    [0105] CLOSE          A=7 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=7 sJ=-16777208 raw=0x000003B6
+    [0106] TFORCALL       A=1 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262145 sJ=-16515070 raw=0x020000CC
+    [0107] TFORLOOP       A=1 B=22 C=0 k=0 Bx=44 sBx=-65491 Ax=11265 sJ=-16765950 raw=0x001600CD
+    [0108] CLOSE          A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000B6
+    [0109] RETURN         A=1 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=769 sJ=-16776446 raw=0x000180C6
+
+  function[14] source="" lines=316-327 params=1 vararg=0 stack=255 upvalues=4
+  constants (15):
+    K[0] = "skillObj"
+    K[1] = "UE4"
+    K[2] = "UObject"
+    K[3] = "IsValid"
+    K[4] = "GetBlackboard"
+    K[5] = "SaveObject"
+    K[6] = "BattleThrowBallEnter"
+    K[7] = "CameraID1"
+    K[8] = "CameraID1_SA"
+    K[9] = "CameraID2"
+    K[10] = "CameraID2_SA"
+    K[11] = "SetTeamCollisionState"
+    K[12] = "Team"
+    K[13] = "ENUM_TEAM"
+    K[14] = "ENUM_ENEMY"
+  upvalues (4):
+    U[0] = instack=0 idx=0 kind=1 name="_ENV"
+    U[1] = instack=2 idx=0 kind=1 name="BattleConst"
+    U[2] = instack=1 idx=0 kind=1 name="BattleUtils"
+    U[3] = instack=3 idx=0 kind=6 name="BattleEnum"
+  locals (2):
+    L[0] = "self" pc=0-44
+    L[1] = "Blackboard" pc=13-43
+  instructions (44):
+    [0001] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "skillObj"]
+    [0002] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0003] JMP            A=39 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777255 sJ=40 raw=0x800013B8
+    [0004] GETTABUP       A=1 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131073 sJ=-16646142 raw=0x0100008B ; R[1] = U[0][K[1] "UE4"]
+    [0005] GETFIELD       A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x0201008E ; R[1] = R[1][K[2] "UObject"]
+    [0006] GETFIELD       A=1 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393729 sJ=-16383486 raw=0x0301008E ; R[1] = R[1][K[3] "IsValid"]
+    [0007] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "skillObj"]
+    [0008] CALL           A=1 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263169 sJ=-16514046 raw=0x020200C4
+    [0009] TEST           A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x000000C2
+    [0010] JMP            A=32 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777248 sJ=33 raw=0x80001038
+    [0011] GETFIELD       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x0000008E ; R[1] = R[0][K[0] "skillObj"]
+    [0012] SELF           A=1 B=1 C=4 k=1 Bx=2051 sBx=-63484 Ax=525057 sJ=-16252158 raw=0x04018094
+    [0013] CALL           A=1 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263169 sJ=-16514046 raw=0x020200C4
+    [0014] SELF           A=2 B=0 C=5 k=1 Bx=2561 sBx=-62974 Ax=655618 sJ=-16121597 raw=0x05008114
+    [0015] MOVE           A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010200
+    [0016] GETTABUP       A=5 B=1 C=6 k=0 Bx=3074 sBx=-62461 Ax=786949 sJ=-15990266 raw=0x0601028B ; R[5] = U[1][K[6] "BattleThrowBallEnter"]
+    [0017] GETFIELD       A=5 B=5 C=7 k=0 Bx=3594 sBx=-61941 Ax=920069 sJ=-15857146 raw=0x0705028E ; R[5] = R[5][K[7] "CameraID1"]
+    [0018] CALL           A=2 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133122 sJ=-16644093 raw=0x01040144
+    [0019] SELF           A=2 B=0 C=5 k=1 Bx=2561 sBx=-62974 Ax=655618 sJ=-16121597 raw=0x05008114
+    [0020] MOVE           A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010200
+    [0021] GETTABUP       A=5 B=1 C=6 k=0 Bx=3074 sBx=-62461 Ax=786949 sJ=-15990266 raw=0x0601028B ; R[5] = U[1][K[6] "BattleThrowBallEnter"]
+    [0022] GETFIELD       A=5 B=5 C=8 k=0 Bx=4106 sBx=-61429 Ax=1051141 sJ=-15726074 raw=0x0805028E ; R[5] = R[5][K[8] "CameraID1_SA"]
+    [0023] CALL           A=2 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133122 sJ=-16644093 raw=0x01040144
+    [0024] SELF           A=2 B=0 C=5 k=1 Bx=2561 sBx=-62974 Ax=655618 sJ=-16121597 raw=0x05008114
+    [0025] MOVE           A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010200
+    [0026] GETTABUP       A=5 B=1 C=6 k=0 Bx=3074 sBx=-62461 Ax=786949 sJ=-15990266 raw=0x0601028B ; R[5] = U[1][K[6] "BattleThrowBallEnter"]
+    [0027] GETFIELD       A=5 B=5 C=9 k=0 Bx=4618 sBx=-60917 Ax=1182213 sJ=-15595002 raw=0x0905028E ; R[5] = R[5][K[9] "CameraID2"]
+    [0028] CALL           A=2 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133122 sJ=-16644093 raw=0x01040144
+    [0029] SELF           A=2 B=0 C=5 k=1 Bx=2561 sBx=-62974 Ax=655618 sJ=-16121597 raw=0x05008114
+    [0030] MOVE           A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010200
+    [0031] GETTABUP       A=5 B=1 C=6 k=0 Bx=3074 sBx=-62461 Ax=786949 sJ=-15990266 raw=0x0601028B ; R[5] = U[1][K[6] "BattleThrowBallEnter"]
+    [0032] GETFIELD       A=5 B=5 C=10 k=0 Bx=5130 sBx=-60405 Ax=1313285 sJ=-15463930 raw=0x0A05028E ; R[5] = R[5][K[10] "CameraID2_SA"]
+    [0033] CALL           A=2 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133122 sJ=-16644093 raw=0x01040144
+    [0034] GETTABUP       A=2 B=2 C=11 k=0 Bx=5636 sBx=-59899 Ax=1442818 sJ=-15334397 raw=0x0B02010B ; R[2] = U[2][K[11] "SetTeamCollisionState"]
+    [0035] GETTABUP       A=3 B=3 C=12 k=0 Bx=6150 sBx=-59385 Ax=1574403 sJ=-15202812 raw=0x0C03018B ; R[3] = U[3][K[12] "Team"]
+    [0036] GETFIELD       A=3 B=3 C=13 k=0 Bx=6662 sBx=-58873 Ax=1705475 sJ=-15071740 raw=0x0D03018E ; R[3] = R[3][K[13] "ENUM_TEAM"]
+    [0037] LOADFALSE      A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000205
+    [0038] CALL           A=2 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132610 sJ=-16644605 raw=0x01030144
+    [0039] GETTABUP       A=2 B=2 C=11 k=0 Bx=5636 sBx=-59899 Ax=1442818 sJ=-15334397 raw=0x0B02010B ; R[2] = U[2][K[11] "SetTeamCollisionState"]
+    [0040] GETTABUP       A=3 B=3 C=12 k=0 Bx=6150 sBx=-59385 Ax=1574403 sJ=-15202812 raw=0x0C03018B ; R[3] = U[3][K[12] "Team"]
+    [0041] GETFIELD       A=3 B=3 C=14 k=0 Bx=7174 sBx=-58361 Ax=1836547 sJ=-14940668 raw=0x0E03018E ; R[3] = R[3][K[14] "ENUM_ENEMY"]
+    [0042] LOADFALSE      A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x00000205
+    [0043] CALL           A=2 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132610 sJ=-16644605 raw=0x01030144
+    [0044] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[15] source="" lines=331-335 params=3 vararg=0 stack=255 upvalues=1
+  constants (7):
+    K[0] = "Log"
+    K[1] = "Debug"
+    K[2] = "BattlePlayThrowBallEnterAnimAction SaveObject:"
+    K[3] = "GetValueAsObject"
+    K[4] = "fsm"
+    K[5] = "SetProperty"
+    K[6] = "RemoveObjectValue"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=9 name="_ENV"
+  locals (3):
+    L[0] = "self" pc=0-19
+    L[1] = "bb" pc=0-19
+    L[2] = "name" pc=0-19
+  instructions (19):
+    [0001] GETTABUP       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018B ; R[3] = U[0][K[0] "Log"]
+    [0002] GETFIELD       A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x0103018E ; R[3] = R[3][K[1] "Debug"]
+    [0003] LOADK          A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010203 ; R[4] = K[2] "BattlePlayThrowBallEnterAnimAction SaveObject:"
+    [0004] MOVE           A=5 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1029 sJ=-16776186 raw=0x00020280
+    [0005] SELF           A=6 B=1 C=3 k=1 Bx=1539 sBx=-63996 Ax=393990 sJ=-16383225 raw=0x03018314
+    [0006] MOVE           A=8 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1032 sJ=-16776183 raw=0x00020400
+    [0007] CALL           A=6 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1542 sJ=-16775673 raw=0x00030344
+    [0008] CALL           A=3 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131075 sJ=-16646140 raw=0x010001C4
+    [0009] GETFIELD       A=3 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524291 sJ=-16252924 raw=0x0400018E ; R[3] = R[0][K[4] "fsm"]
+    [0010] SELF           A=3 B=3 C=5 k=1 Bx=2567 sBx=-62968 Ax=657155 sJ=-16120060 raw=0x05038194
+    [0011] MOVE           A=5 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1029 sJ=-16776186 raw=0x00020280
+    [0012] SELF           A=6 B=1 C=3 k=1 Bx=1539 sBx=-63996 Ax=393990 sJ=-16383225 raw=0x03018314
+    [0013] MOVE           A=8 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1032 sJ=-16776183 raw=0x00020400
+    [0014] CALL           A=6 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1542 sJ=-16775673 raw=0x00030344
+    [0015] CALL           A=3 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131075 sJ=-16646140 raw=0x010001C4
+    [0016] SELF           A=3 B=1 C=6 k=1 Bx=3075 sBx=-62460 Ax=787203 sJ=-15990012 raw=0x06018194
+    [0017] MOVE           A=5 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1029 sJ=-16776186 raw=0x00020280
+    [0018] CALL           A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x010301C4
+    [0019] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7

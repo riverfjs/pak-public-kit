@@ -1,0 +1,555 @@
+-- path: Content/ScriptC/NewRoco/Modules/Core/Battle/View/BattleFadeManager.luac
+-- format: decrypted standard Lua 5.4 bytecode
+-- note: disassembly, not original source
+
+main source="@NewRoco\\Modules\\Core\\Battle\\View\\BattleFadeManager.lua" lines=0-0 params=0 vararg=1 stack=255 upvalues=1
+constants (15):
+  K[0] = "require"
+  K[1] = "NewRoco.Modules.Core.Battle.Common.BattleEvent"
+  K[2] = "NRCClass"
+  K[3] = "DefaultOriginalAlpha"
+  K[4] = 1
+  K[5] = "DefaultLerpSpeed"
+  K[6] = 2
+  K[7] = "Ctor"
+  K[8] = "OnTick"
+  K[9] = "LerpAlpha"
+  K[10] = "SetMeshFade"
+  K[11] = "ApplyFadeRule"
+  K[12] = "RemoveFadeRule"
+  K[13] = "LeaveBattle"
+  K[14] = "IsFadeObjectReachedLastFrame"
+upvalues (1):
+  U[0] = instack=0 idx=0 kind=3 name="_ENV"
+locals (2):
+  L[0] = "BattleEvent" pc=4-26
+  L[1] = "BattleFadeManager" pc=6-26
+instructions (26):
+  [0001] VARARGPREP     A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000051
+  [0002] GETTABUP       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x0000000B ; R[0] = U[0][K[0] "require"]
+  [0003] LOADK          A=1 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=257 sJ=-16776958 raw=0x00008083 ; R[1] = K[1] "NewRoco.Modules.Core.Battle.Common.BattleEvent"
+  [0004] CALL           A=0 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263168 sJ=-16514047 raw=0x02020044
+  [0005] GETTABUP       A=1 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262145 sJ=-16515070 raw=0x0200008B ; R[1] = U[0][K[2] "NRCClass"]
+  [0006] CALL           A=1 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262657 sJ=-16514558 raw=0x020100C4
+  [0007] SETFIELD       A=1 B=3 C=4 k=1 Bx=2055 sBx=-63480 Ax=526081 sJ=-16251134 raw=0x04038092 ; R[1][K[3] "DefaultOriginalAlpha"] = R[4]
+  [0008] SETFIELD       A=1 B=5 C=6 k=1 Bx=3083 sBx=-62452 Ax=789249 sJ=-15987966 raw=0x06058092 ; R[1][K[5] "DefaultLerpSpeed"] = R[6]
+  [0009] CLOSURE        A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000014F ; R[2] = function[0]
+  [0010] SETFIELD       A=1 B=7 C=2 k=0 Bx=1038 sBx=-64497 Ax=265729 sJ=-16511486 raw=0x02070092 ; R[1][K[7] "Ctor"] = R[2]
+  [0011] CLOSURE        A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x0000814F ; R[2] = function[1]
+  [0012] SETFIELD       A=1 B=8 C=2 k=0 Bx=1040 sBx=-64495 Ax=266241 sJ=-16510974 raw=0x02080092 ; R[1][K[8] "OnTick"] = R[2]
+  [0013] CLOSURE        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x0001014F ; R[2] = function[2]
+  [0014] SETFIELD       A=1 B=9 C=2 k=0 Bx=1042 sBx=-64493 Ax=266753 sJ=-16510462 raw=0x02090092 ; R[1][K[9] "LerpAlpha"] = R[2]
+  [0015] CLOSURE        A=2 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=770 sJ=-16776445 raw=0x0001814F ; R[2] = function[3]
+  [0016] SETFIELD       A=1 B=10 C=2 k=0 Bx=1044 sBx=-64491 Ax=267265 sJ=-16509950 raw=0x020A0092 ; R[1][K[10] "SetMeshFade"] = R[2]
+  [0017] CLOSURE        A=2 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1026 sJ=-16776189 raw=0x0002014F ; R[2] = function[4]
+  [0018] SETFIELD       A=1 B=11 C=2 k=0 Bx=1046 sBx=-64489 Ax=267777 sJ=-16509438 raw=0x020B0092 ; R[1][K[11] "ApplyFadeRule"] = R[2]
+  [0019] CLOSURE        A=2 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1282 sJ=-16775933 raw=0x0002814F ; R[2] = function[5]
+  [0020] SETFIELD       A=1 B=12 C=2 k=0 Bx=1048 sBx=-64487 Ax=268289 sJ=-16508926 raw=0x020C0092 ; R[1][K[12] "RemoveFadeRule"] = R[2]
+  [0021] CLOSURE        A=2 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1538 sJ=-16775677 raw=0x0003014F ; R[2] = function[6]
+  [0022] SETFIELD       A=1 B=13 C=2 k=0 Bx=1050 sBx=-64485 Ax=268801 sJ=-16508414 raw=0x020D0092 ; R[1][K[13] "LeaveBattle"] = R[2]
+  [0023] CLOSURE        A=2 B=3 C=0 k=1 Bx=7 sBx=-65528 Ax=1794 sJ=-16775421 raw=0x0003814F ; R[2] = function[7]
+  [0024] SETFIELD       A=1 B=14 C=2 k=0 Bx=1052 sBx=-64483 Ax=269313 sJ=-16507902 raw=0x020E0092 ; R[1][K[14] "IsFadeObjectReachedLastFrame"] = R[2]
+  [0025] RETURN         A=1 B=2 C=1 k=1 Bx=517 sBx=-65018 Ax=132353 sJ=-16644862 raw=0x010280C6
+  [0026] RETURN         A=2 B=1 C=1 k=1 Bx=515 sBx=-65020 Ax=131842 sJ=-16645373 raw=0x01018146
+
+  function[0] source="" lines=32-45 params=1 vararg=0 stack=255 upvalues=0
+  constants (8):
+    K[0] = "fadeRules"
+    K[1] = "internalTargetFadeInfoMap"
+    K[2] = "fadeRuleMaxId"
+    K[3] = 0
+    K[4] = "actorsReachedTargetAlphaLastFrame"
+    K[5] = "targetFadeInfoMap"
+    K[6] = "actorsReachedTargetAlphaThisFrame"
+    K[7] = "lastInternalTargetFadeInfoMap"
+  locals (1):
+    L[0] = "self" pc=0-20
+  instructions (20):
+    [0001] NEWTABLE       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000093
+    [0002] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0003] SETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x01000012 ; R[0][K[0] "fadeRules"] = R[1]
+    [0004] NEWTABLE       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000093
+    [0005] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0006] SETFIELD       A=0 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131584 sJ=-16645631 raw=0x01010012 ; R[0][K[1] "internalTargetFadeInfoMap"] = R[1]
+    [0007] SETFIELD       A=0 B=2 C=3 k=1 Bx=1541 sBx=-63994 Ax=394496 sJ=-16382719 raw=0x03028012 ; R[0][K[2] "fadeRuleMaxId"] = R[3]
+    [0008] NEWTABLE       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000093
+    [0009] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0010] SETFIELD       A=0 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133120 sJ=-16644095 raw=0x01040012 ; R[0][K[4] "actorsReachedTargetAlphaLastFrame"] = R[1]
+    [0011] NEWTABLE       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000093
+    [0012] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0013] SETFIELD       A=0 B=5 C=1 k=0 Bx=522 sBx=-65013 Ax=133632 sJ=-16643583 raw=0x01050012 ; R[0][K[5] "targetFadeInfoMap"] = R[1]
+    [0014] NEWTABLE       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000093
+    [0015] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0016] SETFIELD       A=0 B=6 C=1 k=0 Bx=524 sBx=-65011 Ax=134144 sJ=-16643071 raw=0x01060012 ; R[0][K[6] "actorsReachedTargetAlphaThisFrame"] = R[1]
+    [0017] NEWTABLE       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000093
+    [0018] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0019] SETFIELD       A=0 B=7 C=1 k=0 Bx=526 sBx=-65009 Ax=134656 sJ=-16642559 raw=0x01070012 ; R[0][K[7] "lastInternalTargetFadeInfoMap"] = R[1]
+    [0020] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[1] source="" lines=48-140 params=2 vararg=0 stack=255 upvalues=3
+  constants (30):
+    K[0] = "table"
+    K[1] = "clear"
+    K[2] = "actorsReachedTargetAlphaThisFrame"
+    K[3] = "targetFadeInfoMap"
+    K[4] = "lastInternalTargetFadeInfoMap"
+    K[5] = "deepCopy"
+    K[6] = "internalTargetFadeInfoMap"
+    K[7] = "pairs"
+    K[8] = "fadeRules"
+    K[9] = "IsA"
+    K[10] = "UE"
+    K[11] = "AActor"
+    K[12] = "targetAlpha"
+    K[13] = "originalAlpha"
+    K[14] = nil
+    K[15] = "DefaultOriginalAlpha"
+    K[16] = "lerpSpeed"
+    K[17] = "DefaultLerpSpeed"
+    K[18] = "LerpAlpha"
+    K[19] = "defaultAlpha"
+    K[20] = true
+    K[21] = "SetMeshFade"
+    K[22] = "insert"
+    K[23] = "ipairs"
+    K[24] = "IsFadeObjectReachedLastFrame"
+    K[25] = "_G"
+    K[26] = "BattleEventCenter"
+    K[27] = "Dispatch"
+    K[28] = "FADE_OBJECT_REACH_TARGET_ALPHA"
+    K[29] = "actorsReachedTargetAlphaLastFrame"
+  upvalues (3):
+    U[0] = instack=0 idx=0 kind=1 name="_ENV"
+    U[1] = instack=1 idx=0 kind=1 name="BattleFadeManager"
+    U[2] = instack=0 idx=0 kind=19 name="BattleEvent"
+  locals (57):
+    L[0] = "self" pc=0-199
+    L[1] = "deltaTime" pc=0-199
+    L[2] = "(for state)" pc=20-46
+    L[3] = "(for state)" pc=20-46
+    L[4] = "(for state)" pc=20-46
+    L[5] = "(for state)" pc=20-46
+    L[6] = "id" pc=21-43
+    L[7] = "fadeRuleFn" pc=21-43
+    L[8] = "fadeContext" pc=23-43
+    L[9] = "additionalTargetFadeInfo" pc=26-43
+    L[10] = "(for state)" pc=31-43
+    L[11] = "(for state)" pc=31-43
+    L[12] = "(for state)" pc=31-43
+    L[13] = "(for state)" pc=31-43
+    L[14] = "actor" pc=32-40
+    L[15] = "targetFadeInfo" pc=32-40
+    L[16] = "(for state)" pc=49-88
+    L[17] = "(for state)" pc=49-88
+    L[18] = "(for state)" pc=49-88
+    L[19] = "(for state)" pc=49-88
+    L[20] = "actor" pc=50-85
+    L[21] = "fadeInfoItem" pc=50-85
+    L[22] = "currentAlpha" pc=53-85
+    L[23] = "lerpSpeed" pc=68-85
+    L[24] = "maskRemove" pc=90-199
+    L[25] = "(for state)" pc=93-128
+    L[26] = "(for state)" pc=93-128
+    L[27] = "(for state)" pc=93-128
+    L[28] = "(for state)" pc=93-128
+    L[29] = "actor" pc=94-125
+    L[30] = "fadeInfoItem" pc=94-125
+    L[31] = "defaultAlpha" pc=99-125
+    L[32] = "lerpSpeed" pc=104-125
+    L[33] = "(for state)" pc=131-155
+    L[34] = "(for state)" pc=131-155
+    L[35] = "(for state)" pc=131-155
+    L[36] = "(for state)" pc=131-155
+    L[37] = "actor" pc=132-152
+    L[38] = "fadeInfoItem" pc=132-152
+    L[39] = "(for state)" pc=158-164
+    L[40] = "(for state)" pc=158-164
+    L[41] = "(for state)" pc=158-164
+    L[42] = "(for state)" pc=158-164
+    L[43] = "mesh" pc=159-161
+    L[44] = "_" pc=159-161
+    L[45] = "(for state)" pc=167-182
+    L[46] = "(for state)" pc=167-182
+    L[47] = "(for state)" pc=167-182
+    L[48] = "(for state)" pc=167-182
+    L[49] = "i" pc=168-179
+    L[50] = "actor" pc=168-179
+    L[51] = "(for state)" pc=189-198
+    L[52] = "(for state)" pc=189-198
+    L[53] = "(for state)" pc=189-198
+    L[54] = "(for state)" pc=189-198
+    L[55] = "i" pc=190-195
+    L[56] = "actor" pc=190-195
+  instructions (199):
+    [0001] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "table"]
+    [0002] GETFIELD       A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x0102010E ; R[2] = R[2][K[1] "clear"]
+    [0003] GETFIELD       A=3 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262147 sJ=-16515068 raw=0x0200018E ; R[3] = R[0][K[2] "actorsReachedTargetAlphaThisFrame"]
+    [0004] CALL           A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x01020144
+    [0005] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "table"]
+    [0006] GETFIELD       A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x0102010E ; R[2] = R[2][K[1] "clear"]
+    [0007] GETFIELD       A=3 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393219 sJ=-16383996 raw=0x0300018E ; R[3] = R[0][K[3] "targetFadeInfoMap"]
+    [0008] CALL           A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x01020144
+    [0009] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "table"]
+    [0010] GETFIELD       A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x0102010E ; R[2] = R[2][K[1] "clear"]
+    [0011] GETFIELD       A=3 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524291 sJ=-16252924 raw=0x0400018E ; R[3] = R[0][K[4] "lastInternalTargetFadeInfoMap"]
+    [0012] CALL           A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x01020144
+    [0013] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "table"]
+    [0014] GETFIELD       A=2 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656386 sJ=-16120829 raw=0x0502010E ; R[2] = R[2][K[5] "deepCopy"]
+    [0015] GETFIELD       A=3 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786435 sJ=-15990780 raw=0x0600018E ; R[3] = R[0][K[6] "internalTargetFadeInfoMap"]
+    [0016] GETFIELD       A=4 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524292 sJ=-16252923 raw=0x0400020E ; R[4] = R[0][K[4] "lastInternalTargetFadeInfoMap"]
+    [0017] CALL           A=2 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132610 sJ=-16644605 raw=0x01030144
+    [0018] GETTABUP       A=2 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917506 sJ=-15859709 raw=0x0700010B ; R[2] = U[0][K[7] "pairs"]
+    [0019] GETFIELD       A=3 B=0 C=8 k=0 Bx=4096 sBx=-61439 Ax=1048579 sJ=-15728636 raw=0x0800018E ; R[3] = R[0][K[8] "fadeRules"]
+    [0020] CALL           A=2 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656386 sJ=-16120829 raw=0x05020144
+    [0021] TFORPREP       A=2 B=11 C=0 k=0 Bx=22 sBx=-65513 Ax=5634 sJ=-16771581 raw=0x000B014B
+    [0022] NEWTABLE       A=8 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=8 sJ=-16777207 raw=0x00000413
+    [0023] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0024] MOVE           A=9 B=7 C=0 k=0 Bx=14 sBx=-65521 Ax=3593 sJ=-16773622 raw=0x00070480
+    [0025] MOVE           A=10 B=8 C=0 k=0 Bx=16 sBx=-65519 Ax=4106 sJ=-16773109 raw=0x00080500
+    [0026] CALL           A=9 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263177 sJ=-16514038 raw=0x020204C4
+    [0027] TEST           A=9 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=9 sJ=-16777206 raw=0x000004C2
+    [0028] JMP            A=14 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777230 sJ=15 raw=0x80000738
+    [0029] GETTABUP       A=10 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917514 sJ=-15859701 raw=0x0700050B ; R[10] = U[0][K[7] "pairs"]
+    [0030] MOVE           A=11 B=9 C=0 k=0 Bx=18 sBx=-65517 Ax=4619 sJ=-16772596 raw=0x00090580
+    [0031] CALL           A=10 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656394 sJ=-16120821 raw=0x05020544
+    [0032] TFORPREP       A=10 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2058 sJ=-16775157 raw=0x0004054B
+    [0033] SELF           A=16 B=14 C=9 k=1 Bx=4637 sBx=-60898 Ax=1187088 sJ=-15590127 raw=0x090E8814
+    [0034] GETTABUP       A=18 B=0 C=10 k=0 Bx=5120 sBx=-60415 Ax=1310738 sJ=-15466477 raw=0x0A00090B ; R[18] = U[0][K[10] "UE"]
+    [0035] GETFIELD       A=18 B=18 C=11 k=0 Bx=5668 sBx=-59867 Ax=1451026 sJ=-15326189 raw=0x0B12090E ; R[18] = R[18][K[11] "AActor"]
+    [0036] CALL           A=16 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263696 sJ=-16513519 raw=0x02030844
+    [0037] TEST           A=16 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=16 sJ=-16777199 raw=0x00000842
+    [0038] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0039] GETFIELD       A=16 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393232 sJ=-16383983 raw=0x0300080E ; R[16] = R[0][K[3] "targetFadeInfoMap"]
+    [0040] SETTABLE       A=16 B=14 C=15 k=0 Bx=7708 sBx=-57827 Ax=1973264 sJ=-14803951 raw=0x0F0E0810
+    [0041] TFORCALL       A=10 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262154 sJ=-16515061 raw=0x0200054C
+    [0042] TFORLOOP       A=10 B=5 C=0 k=0 Bx=10 sBx=-65525 Ax=2570 sJ=-16774645 raw=0x0005054D
+    [0043] CLOSE          A=10 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=10 sJ=-16777205 raw=0x00000536
+    [0044] TFORCALL       A=2 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262146 sJ=-16515069 raw=0x0200014C
+    [0045] TFORLOOP       A=2 B=12 C=0 k=0 Bx=24 sBx=-65511 Ax=6146 sJ=-16771069 raw=0x000C014D
+    [0046] CLOSE          A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000136
+    [0047] GETTABUP       A=2 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917506 sJ=-15859709 raw=0x0700010B ; R[2] = U[0][K[7] "pairs"]
+    [0048] GETFIELD       A=3 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393219 sJ=-16383996 raw=0x0300018E ; R[3] = R[0][K[3] "targetFadeInfoMap"]
+    [0049] CALL           A=2 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656386 sJ=-16120829 raw=0x05020144
+    [0050] TFORPREP       A=2 B=17 C=0 k=1 Bx=35 sBx=-65500 Ax=8962 sJ=-16768253 raw=0x0011814B
+    [0051] TEST           A=6 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=6 sJ=-16777209 raw=0x00000342
+    [0052] JMP            A=32 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777248 sJ=33 raw=0x80001038
+    [0053] LOADNIL        A=8 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=8 sJ=-16777207 raw=0x00000408
+    [0054] GETFIELD       A=9 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786441 sJ=-15990774 raw=0x0600048E ; R[9] = R[0][K[6] "internalTargetFadeInfoMap"]
+    [0055] GETTABLE       A=9 B=9 C=6 k=0 Bx=3090 sBx=-62445 Ax=791049 sJ=-15986166 raw=0x0609048C
+    [0056] TEST           A=9 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=9 sJ=-16777206 raw=0x000004C2
+    [0057] JMP            A=3 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777219 sJ=4 raw=0x800001B8
+    [0058] GETFIELD       A=9 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786441 sJ=-15990774 raw=0x0600048E ; R[9] = R[0][K[6] "internalTargetFadeInfoMap"]
+    [0059] GETTABLE       A=9 B=9 C=6 k=0 Bx=3090 sBx=-62445 Ax=791049 sJ=-15986166 raw=0x0609048C
+    [0060] GETFIELD       A=8 B=9 C=12 k=0 Bx=6162 sBx=-59373 Ax=1577480 sJ=-15199735 raw=0x0C09040E ; R[8] = R[9][K[12] "targetAlpha"]
+    [0061] JMP            A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x800002B8
+    [0062] GETFIELD       A=9 B=7 C=13 k=0 Bx=6670 sBx=-58865 Ax=1707529 sJ=-15069686 raw=0x0D07048E ; R[9] = R[7][K[13] "originalAlpha"]
+    [0063] EQK            A=9 B=14 C=0 k=1 Bx=29 sBx=-65506 Ax=7433 sJ=-16769782 raw=0x000E84BC
+    [0064] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0065] GETFIELD       A=8 B=7 C=13 k=0 Bx=6670 sBx=-58865 Ax=1707528 sJ=-15069687 raw=0x0D07040E ; R[8] = R[7][K[13] "originalAlpha"]
+    [0066] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0067] GETTABUP       A=8 B=1 C=15 k=0 Bx=7682 sBx=-57853 Ax=1966600 sJ=-14810615 raw=0x0F01040B ; R[8] = U[1][K[15] "DefaultOriginalAlpha"]
+    [0068] LOADNIL        A=9 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=9 sJ=-16777206 raw=0x00000488
+    [0069] GETFIELD       A=10 B=7 C=16 k=0 Bx=8206 sBx=-57329 Ax=2100746 sJ=-14676469 raw=0x1007050E ; R[10] = R[7][K[16] "lerpSpeed"]
+    [0070] EQK            A=10 B=14 C=0 k=1 Bx=29 sBx=-65506 Ax=7434 sJ=-16769781 raw=0x000E853C
+    [0071] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0072] GETFIELD       A=9 B=7 C=16 k=0 Bx=8206 sBx=-57329 Ax=2100745 sJ=-14676470 raw=0x1007048E ; R[9] = R[7][K[16] "lerpSpeed"]
+    [0073] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0074] GETTABUP       A=9 B=1 C=17 k=0 Bx=8706 sBx=-56829 Ax=2228745 sJ=-14548470 raw=0x1101048B ; R[9] = U[1][K[17] "DefaultLerpSpeed"]
+    [0075] GETFIELD       A=10 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786442 sJ=-15990773 raw=0x0600050E ; R[10] = R[0][K[6] "internalTargetFadeInfoMap"]
+    [0076] SETTABLE       A=10 B=6 C=7 k=0 Bx=3596 sBx=-61939 Ax=920586 sJ=-15856629 raw=0x07060510
+    [0077] GETFIELD       A=10 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786442 sJ=-15990773 raw=0x0600050E ; R[10] = R[0][K[6] "internalTargetFadeInfoMap"]
+    [0078] GETTABLE       A=10 B=10 C=6 k=0 Bx=3092 sBx=-62443 Ax=791562 sJ=-15985653 raw=0x060A050C
+    [0079] SELF           A=11 B=0 C=18 k=1 Bx=9217 sBx=-56318 Ax=2359563 sJ=-14417652 raw=0x12008594
+    [0080] MOVE           A=13 B=8 C=0 k=0 Bx=16 sBx=-65519 Ax=4109 sJ=-16773106 raw=0x00080680
+    [0081] GETFIELD       A=14 B=7 C=12 k=0 Bx=6158 sBx=-59377 Ax=1576462 sJ=-15200753 raw=0x0C07070E ; R[14] = R[7][K[12] "targetAlpha"]
+    [0082] MUL            A=15 B=1 C=9 k=0 Bx=4610 sBx=-60925 Ax=1180175 sJ=-15597040 raw=0x090107A4
+    [0083] MMBIN          A=1 B=9 C=8 k=0 Bx=4114 sBx=-61421 Ax=1053185 sJ=-15724030 raw=0x080900AE
+    [0084] CALL           A=11 B=5 C=2 k=0 Bx=1034 sBx=-64501 Ax=264715 sJ=-16512500 raw=0x020505C4
+    [0085] SETFIELD       A=10 B=12 C=11 k=0 Bx=5656 sBx=-59879 Ax=1447946 sJ=-15329269 raw=0x0B0C0512 ; R[10][K[12] "targetAlpha"] = R[11]
+    [0086] TFORCALL       A=2 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262146 sJ=-16515069 raw=0x0200014C
+    [0087] TFORLOOP       A=2 B=18 C=0 k=1 Bx=37 sBx=-65498 Ax=9474 sJ=-16767741 raw=0x0012814D
+    [0088] CLOSE          A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000136
+    [0089] NEWTABLE       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000113
+    [0090] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0091] GETTABUP       A=3 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917507 sJ=-15859708 raw=0x0700018B ; R[3] = U[0][K[7] "pairs"]
+    [0092] GETFIELD       A=4 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786436 sJ=-15990779 raw=0x0600020E ; R[4] = R[0][K[6] "internalTargetFadeInfoMap"]
+    [0093] CALL           A=3 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656387 sJ=-16120828 raw=0x050201C4
+    [0094] TFORPREP       A=3 B=15 C=0 k=1 Bx=31 sBx=-65504 Ax=7939 sJ=-16769276 raw=0x000F81CB
+    [0095] GETFIELD       A=9 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393225 sJ=-16383990 raw=0x0300048E ; R[9] = R[0][K[3] "targetFadeInfoMap"]
+    [0096] GETTABLE       A=9 B=9 C=7 k=0 Bx=3602 sBx=-61933 Ax=922121 sJ=-15855094 raw=0x0709048C
+    [0097] EQK            A=9 B=14 C=0 k=0 Bx=28 sBx=-65507 Ax=7177 sJ=-16770038 raw=0x000E04BC
+    [0098] JMP            A=26 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777242 sJ=27 raw=0x80000D38
+    [0099] LOADI          A=9 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777225 sJ=10 raw=0x80000481
+    [0100] GETFIELD       A=10 B=8 C=19 k=0 Bx=9744 sBx=-55791 Ax=2494474 sJ=-14282741 raw=0x1308050E ; R[10] = R[8][K[19] "defaultAlpha"]
+    [0101] EQK            A=10 B=14 C=0 k=1 Bx=29 sBx=-65506 Ax=7434 sJ=-16769781 raw=0x000E853C
+    [0102] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0103] GETFIELD       A=9 B=8 C=19 k=0 Bx=9744 sBx=-55791 Ax=2494473 sJ=-14282742 raw=0x1308048E ; R[9] = R[8][K[19] "defaultAlpha"]
+    [0104] LOADNIL        A=10 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=10 sJ=-16777205 raw=0x00000508
+    [0105] GETFIELD       A=11 B=8 C=16 k=0 Bx=8208 sBx=-57327 Ax=2101259 sJ=-14675956 raw=0x1008058E ; R[11] = R[8][K[16] "lerpSpeed"]
+    [0106] EQK            A=11 B=14 C=0 k=1 Bx=29 sBx=-65506 Ax=7435 sJ=-16769780 raw=0x000E85BC
+    [0107] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0108] GETFIELD       A=10 B=8 C=16 k=0 Bx=8208 sBx=-57327 Ax=2101258 sJ=-14675957 raw=0x1008050E ; R[10] = R[8][K[16] "lerpSpeed"]
+    [0109] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0110] GETTABUP       A=10 B=1 C=17 k=0 Bx=8706 sBx=-56829 Ax=2228746 sJ=-14548469 raw=0x1101050B ; R[10] = U[1][K[17] "DefaultLerpSpeed"]
+    [0111] GETFIELD       A=11 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786443 sJ=-15990772 raw=0x0600058E ; R[11] = R[0][K[6] "internalTargetFadeInfoMap"]
+    [0112] GETTABLE       A=11 B=11 C=7 k=0 Bx=3606 sBx=-61929 Ax=923147 sJ=-15854068 raw=0x070B058C
+    [0113] SELF           A=12 B=0 C=18 k=1 Bx=9217 sBx=-56318 Ax=2359564 sJ=-14417651 raw=0x12008614
+    [0114] GETFIELD       A=14 B=8 C=12 k=0 Bx=6160 sBx=-59375 Ax=1576974 sJ=-15200241 raw=0x0C08070E ; R[14] = R[8][K[12] "targetAlpha"]
+    [0115] MOVE           A=15 B=9 C=0 k=0 Bx=18 sBx=-65517 Ax=4623 sJ=-16772592 raw=0x00090780
+    [0116] MUL            A=16 B=1 C=10 k=0 Bx=5122 sBx=-60413 Ax=1311248 sJ=-15465967 raw=0x0A010824
+    [0117] MMBIN          A=1 B=10 C=8 k=0 Bx=4116 sBx=-61419 Ax=1053697 sJ=-15723518 raw=0x080A00AE
+    [0118] CALL           A=12 B=5 C=2 k=0 Bx=1034 sBx=-64501 Ax=264716 sJ=-16512499 raw=0x02050644
+    [0119] SETFIELD       A=11 B=12 C=12 k=0 Bx=6168 sBx=-59367 Ax=1579019 sJ=-15198196 raw=0x0C0C0592 ; R[11][K[12] "targetAlpha"] = R[12]
+    [0120] GETFIELD       A=11 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786443 sJ=-15990772 raw=0x0600058E ; R[11] = R[0][K[6] "internalTargetFadeInfoMap"]
+    [0121] GETTABLE       A=11 B=11 C=7 k=0 Bx=3606 sBx=-61929 Ax=923147 sJ=-15854068 raw=0x070B058C
+    [0122] GETFIELD       A=11 B=11 C=12 k=0 Bx=6166 sBx=-59369 Ax=1578507 sJ=-15198708 raw=0x0C0B058E ; R[11] = R[11][K[12] "targetAlpha"]
+    [0123] EQ             A=11 B=9 C=0 k=0 Bx=18 sBx=-65517 Ax=4619 sJ=-16772596 raw=0x000905B9
+    [0124] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0125] SETTABLE       A=2 B=7 C=20 k=1 Bx=10255 sBx=-55280 Ax=2625282 sJ=-14151933 raw=0x14078110
+    [0126] TFORCALL       A=3 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262147 sJ=-16515068 raw=0x020001CC
+    [0127] TFORLOOP       A=3 B=16 C=0 k=1 Bx=33 sBx=-65502 Ax=8451 sJ=-16768764 raw=0x001081CD
+    [0128] CLOSE          A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x000001B6
+    [0129] GETTABUP       A=3 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917507 sJ=-15859708 raw=0x0700018B ; R[3] = U[0][K[7] "pairs"]
+    [0130] GETFIELD       A=4 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786436 sJ=-15990779 raw=0x0600020E ; R[4] = R[0][K[6] "internalTargetFadeInfoMap"]
+    [0131] CALL           A=3 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656387 sJ=-16120828 raw=0x050201C4
+    [0132] TFORPREP       A=3 B=10 C=0 k=0 Bx=20 sBx=-65515 Ax=5123 sJ=-16772092 raw=0x000A01CB
+    [0133] GETFIELD       A=9 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524297 sJ=-16252918 raw=0x0400048E ; R[9] = R[0][K[4] "lastInternalTargetFadeInfoMap"]
+    [0134] GETTABLE       A=9 B=9 C=7 k=0 Bx=3602 sBx=-61933 Ax=922121 sJ=-15855094 raw=0x0709048C
+    [0135] EQK            A=9 B=14 C=0 k=1 Bx=29 sBx=-65506 Ax=7433 sJ=-16769782 raw=0x000E84BC
+    [0136] JMP            A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x800002B8
+    [0137] GETFIELD       A=9 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524297 sJ=-16252918 raw=0x0400048E ; R[9] = R[0][K[4] "lastInternalTargetFadeInfoMap"]
+    [0138] GETTABLE       A=9 B=9 C=7 k=0 Bx=3602 sBx=-61933 Ax=922121 sJ=-15855094 raw=0x0709048C
+    [0139] GETFIELD       A=9 B=9 C=12 k=0 Bx=6162 sBx=-59373 Ax=1577481 sJ=-15199734 raw=0x0C09048E ; R[9] = R[9][K[12] "targetAlpha"]
+    [0140] GETFIELD       A=10 B=8 C=12 k=0 Bx=6160 sBx=-59375 Ax=1576970 sJ=-15200245 raw=0x0C08050E ; R[10] = R[8][K[12] "targetAlpha"]
+    [0141] EQ             A=9 B=10 C=0 k=1 Bx=21 sBx=-65514 Ax=5385 sJ=-16771830 raw=0x000A84B9
+    [0142] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0143] SELF           A=9 B=0 C=21 k=1 Bx=10753 sBx=-54782 Ax=2752777 sJ=-14024438 raw=0x15008494
+    [0144] MOVE           A=11 B=7 C=0 k=0 Bx=14 sBx=-65521 Ax=3595 sJ=-16773620 raw=0x00070580
+    [0145] GETFIELD       A=12 B=8 C=12 k=0 Bx=6160 sBx=-59375 Ax=1576972 sJ=-15200243 raw=0x0C08060E ; R[12] = R[8][K[12] "targetAlpha"]
+    [0146] CALL           A=9 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133129 sJ=-16644086 raw=0x010404C4
+    [0147] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0148] GETTABUP       A=9 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=9 sJ=-16777206 raw=0x0000048B ; R[9] = U[0][K[0] "table"]
+    [0149] GETFIELD       A=9 B=9 C=22 k=0 Bx=11282 sBx=-54253 Ax=2888201 sJ=-13889014 raw=0x1609048E ; R[9] = R[9][K[22] "insert"]
+    [0150] GETFIELD       A=10 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262154 sJ=-16515061 raw=0x0200050E ; R[10] = R[0][K[2] "actorsReachedTargetAlphaThisFrame"]
+    [0151] MOVE           A=11 B=7 C=0 k=0 Bx=14 sBx=-65521 Ax=3595 sJ=-16773620 raw=0x00070580
+    [0152] CALL           A=9 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132617 sJ=-16644598 raw=0x010304C4
+    [0153] TFORCALL       A=3 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262147 sJ=-16515068 raw=0x020001CC
+    [0154] TFORLOOP       A=3 B=11 C=0 k=0 Bx=22 sBx=-65513 Ax=5635 sJ=-16771580 raw=0x000B01CD
+    [0155] CLOSE          A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x000001B6
+    [0156] GETTABUP       A=3 B=0 C=7 k=0 Bx=3584 sBx=-61951 Ax=917507 sJ=-15859708 raw=0x0700018B ; R[3] = U[0][K[7] "pairs"]
+    [0157] MOVE           A=4 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1028 sJ=-16776187 raw=0x00020200
+    [0158] CALL           A=3 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656387 sJ=-16120828 raw=0x050201C4
+    [0159] TFORPREP       A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101CB
+    [0160] GETFIELD       A=9 B=0 C=6 k=0 Bx=3072 sBx=-62463 Ax=786441 sJ=-15990774 raw=0x0600048E ; R[9] = R[0][K[6] "internalTargetFadeInfoMap"]
+    [0161] SETTABLE       A=9 B=7 C=14 k=1 Bx=7183 sBx=-58352 Ax=1838857 sJ=-14938358 raw=0x0E078490
+    [0162] TFORCALL       A=3 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262147 sJ=-16515068 raw=0x020001CC
+    [0163] TFORLOOP       A=3 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1027 sJ=-16776188 raw=0x000201CD
+    [0164] CLOSE          A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x000001B6
+    [0165] GETTABUP       A=3 B=0 C=23 k=0 Bx=11776 sBx=-53759 Ax=3014659 sJ=-13762556 raw=0x1700018B ; R[3] = U[0][K[23] "ipairs"]
+    [0166] GETFIELD       A=4 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262148 sJ=-16515067 raw=0x0200020E ; R[4] = R[0][K[2] "actorsReachedTargetAlphaThisFrame"]
+    [0167] CALL           A=3 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656387 sJ=-16120828 raw=0x050201C4
+    [0168] TFORPREP       A=3 B=5 C=0 k=1 Bx=11 sBx=-65524 Ax=2819 sJ=-16774396 raw=0x000581CB
+    [0169] SELF           A=9 B=0 C=24 k=1 Bx=12289 sBx=-53246 Ax=3145993 sJ=-13631222 raw=0x18008494
+    [0170] MOVE           A=11 B=8 C=0 k=0 Bx=16 sBx=-65519 Ax=4107 sJ=-16773108 raw=0x00080580
+    [0171] CALL           A=9 B=3 C=2 k=0 Bx=1030 sBx=-64505 Ax=263689 sJ=-16513526 raw=0x020304C4
+    [0172] TEST           A=9 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=265 sJ=-16776950 raw=0x000084C2
+    [0173] JMP            A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x800002B8
+    [0174] GETTABUP       A=9 B=0 C=25 k=0 Bx=12800 sBx=-52735 Ax=3276809 sJ=-13500406 raw=0x1900048B ; R[9] = U[0][K[25] "_G"]
+    [0175] GETFIELD       A=9 B=9 C=26 k=0 Bx=13330 sBx=-52205 Ax=3412489 sJ=-13364726 raw=0x1A09048E ; R[9] = R[9][K[26] "BattleEventCenter"]
+    [0176] SELF           A=9 B=9 C=27 k=1 Bx=13843 sBx=-51692 Ax=3543817 sJ=-13233398 raw=0x1B098494
+    [0177] GETTABUP       A=11 B=2 C=28 k=0 Bx=14340 sBx=-51195 Ax=3671051 sJ=-13106164 raw=0x1C02058B ; R[11] = U[2][K[28] "FADE_OBJECT_REACH_TARGET_ALPHA"]
+    [0178] MOVE           A=12 B=8 C=0 k=0 Bx=16 sBx=-65519 Ax=4108 sJ=-16773107 raw=0x00080600
+    [0179] CALL           A=9 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133129 sJ=-16644086 raw=0x010404C4
+    [0180] TFORCALL       A=3 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262147 sJ=-16515068 raw=0x020001CC
+    [0181] TFORLOOP       A=3 B=6 C=0 k=1 Bx=13 sBx=-65522 Ax=3331 sJ=-16773884 raw=0x000681CD
+    [0182] CLOSE          A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x000001B6
+    [0183] GETTABUP       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018B ; R[3] = U[0][K[0] "table"]
+    [0184] GETFIELD       A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x0103018E ; R[3] = R[3][K[1] "clear"]
+    [0185] GETFIELD       A=4 B=0 C=29 k=0 Bx=14848 sBx=-50687 Ax=3801092 sJ=-12976123 raw=0x1D00020E ; R[4] = R[0][K[29] "actorsReachedTargetAlphaLastFrame"]
+    [0186] CALL           A=3 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132099 sJ=-16645116 raw=0x010201C4
+    [0187] GETTABUP       A=3 B=0 C=23 k=0 Bx=11776 sBx=-53759 Ax=3014659 sJ=-13762556 raw=0x1700018B ; R[3] = U[0][K[23] "ipairs"]
+    [0188] GETFIELD       A=4 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262148 sJ=-16515067 raw=0x0200020E ; R[4] = R[0][K[2] "actorsReachedTargetAlphaThisFrame"]
+    [0189] CALL           A=3 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656387 sJ=-16120828 raw=0x050201C4
+    [0190] TFORPREP       A=3 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1283 sJ=-16775932 raw=0x000281CB
+    [0191] GETTABUP       A=9 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=9 sJ=-16777206 raw=0x0000048B ; R[9] = U[0][K[0] "table"]
+    [0192] GETFIELD       A=9 B=9 C=22 k=0 Bx=11282 sBx=-54253 Ax=2888201 sJ=-13889014 raw=0x1609048E ; R[9] = R[9][K[22] "insert"]
+    [0193] GETFIELD       A=10 B=0 C=29 k=0 Bx=14848 sBx=-50687 Ax=3801098 sJ=-12976117 raw=0x1D00050E ; R[10] = R[0][K[29] "actorsReachedTargetAlphaLastFrame"]
+    [0194] MOVE           A=11 B=8 C=0 k=0 Bx=16 sBx=-65519 Ax=4107 sJ=-16773108 raw=0x00080580
+    [0195] CALL           A=9 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132617 sJ=-16644598 raw=0x010304C4
+    [0196] TFORCALL       A=3 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262147 sJ=-16515068 raw=0x020001CC
+    [0197] TFORLOOP       A=3 B=3 C=0 k=1 Bx=7 sBx=-65528 Ax=1795 sJ=-16775420 raw=0x000381CD
+    [0198] CLOSE          A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x000001B6
+    [0199] RETURN         A=3 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=771 sJ=-16776444 raw=0x000181C6
+
+  function[2] source="" lines=145-159 params=4 vararg=0 stack=255 upvalues=1
+  constants (3):
+    K[0] = "math"
+    K[1] = "max"
+    K[2] = "min"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=8 name="_ENV"
+  locals (4):
+    L[0] = "self" pc=0-28
+    L[1] = "currentAlpha" pc=0-28
+    L[2] = "targetAlpha" pc=0-28
+    L[3] = "deltaValue" pc=0-28
+  instructions (28):
+    [0001] EQ             A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200B9
+    [0002] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0003] RETURN1        A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C8
+    [0004] LT             A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x0001013A
+    [0005] JMP            A=9 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777225 sJ=10 raw=0x800004B8
+    [0006] SUB            A=1 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393729 sJ=-16383486 raw=0x030100A3
+    [0007] MMBIN          A=1 B=3 C=7 k=0 Bx=3590 sBx=-61945 Ax=919041 sJ=-15858174 raw=0x070300AE
+    [0008] GETTABUP       A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x0000020B ; R[4] = U[0][K[0] "math"]
+    [0009] GETFIELD       A=4 B=4 C=1 k=0 Bx=520 sBx=-65015 Ax=133124 sJ=-16644091 raw=0x0104020E ; R[4] = R[4][K[1] "max"]
+    [0010] MOVE           A=5 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=517 sJ=-16776698 raw=0x00010280
+    [0011] MOVE           A=6 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1030 sJ=-16776185 raw=0x00020300
+    [0012] LOADI          A=7 B=255 C=127 k=1 Bx=65535 sBx=0 Ax=16776967 sJ=-248 raw=0x7FFF8381
+    [0013] CALL           A=4 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264196 sJ=-16513019 raw=0x02040244
+    [0014] MOVE           A=1 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2049 sJ=-16775166 raw=0x00040080
+    [0015] RETURN1        A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C8
+    [0016] LT             A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200BA
+    [0017] JMP            A=9 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777225 sJ=10 raw=0x800004B8
+    [0018] ADD            A=1 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393729 sJ=-16383486 raw=0x030100A2
+    [0019] MMBIN          A=1 B=3 C=6 k=0 Bx=3078 sBx=-62457 Ax=787969 sJ=-15989246 raw=0x060300AE
+    [0020] GETTABUP       A=4 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=4 sJ=-16777211 raw=0x0000020B ; R[4] = U[0][K[0] "math"]
+    [0021] GETFIELD       A=4 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264196 sJ=-16513019 raw=0x0204020E ; R[4] = R[4][K[2] "min"]
+    [0022] MOVE           A=5 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=517 sJ=-16776698 raw=0x00010280
+    [0023] MOVE           A=6 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1030 sJ=-16776185 raw=0x00020300
+    [0024] LOADI          A=7 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777223 sJ=8 raw=0x80000381
+    [0025] CALL           A=4 B=4 C=2 k=0 Bx=1032 sBx=-64503 Ax=264196 sJ=-16513019 raw=0x02040244
+    [0026] MOVE           A=1 B=4 C=0 k=0 Bx=8 sBx=-65527 Ax=2049 sJ=-16775166 raw=0x00040080
+    [0027] RETURN1        A=1 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1025 sJ=-16776190 raw=0x000200C8
+    [0028] RETURN0        A=4 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=516 sJ=-16776699 raw=0x00010247
+
+  function[3] source="" lines=163-176 params=3 vararg=0 stack=255 upvalues=0
+  constants (4):
+    K[0] = "internalTargetFadeInfoMap"
+    K[1] = "targetAlpha"
+    K[2] = "SetFadeAlpha"
+    K[3] = "SetMeshAlpha"
+  locals (3):
+    L[0] = "self" pc=0-26
+    L[1] = "actor" pc=0-26
+    L[2] = "alpha" pc=0-26
+  instructions (26):
+    [0001] GETFIELD       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018E ; R[3] = R[0][K[0] "internalTargetFadeInfoMap"]
+    [0002] GETTABLE       A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x0103018C
+    [0003] TEST           A=3 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=259 sJ=-16776956 raw=0x000081C2
+    [0004] JMP            A=0 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777216 sJ=1 raw=0x80000038
+    [0005] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7
+    [0006] GETFIELD       A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x0000018E ; R[3] = R[0][K[0] "internalTargetFadeInfoMap"]
+    [0007] GETTABLE       A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x0103018C
+    [0008] SETFIELD       A=3 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262659 sJ=-16514556 raw=0x02010192 ; R[3][K[1] "targetAlpha"] = R[2]
+    [0009] GETFIELD       A=3 B=1 C=2 k=0 Bx=1026 sBx=-64509 Ax=262659 sJ=-16514556 raw=0x0201018E ; R[3] = R[1][K[2] "SetFadeAlpha"]
+    [0010] TEST           A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x000001C2
+    [0011] JMP            A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x800002B8
+    [0012] SELF           A=3 B=1 C=2 k=1 Bx=1027 sBx=-64508 Ax=262915 sJ=-16514300 raw=0x02018194
+    [0013] LOADI          A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x80000281
+    [0014] SUB            A=5 B=5 C=2 k=0 Bx=1034 sBx=-64501 Ax=264709 sJ=-16512506 raw=0x020502A3
+    [0015] MMBIN          A=5 B=2 C=7 k=0 Bx=3588 sBx=-61947 Ax=918533 sJ=-15858682 raw=0x070202AE
+    [0016] CALL           A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x010301C4
+    [0017] JMP            A=7 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777223 sJ=8 raw=0x800003B8
+    [0018] GETFIELD       A=3 B=1 C=3 k=0 Bx=1538 sBx=-63997 Ax=393731 sJ=-16383484 raw=0x0301018E ; R[3] = R[1][K[3] "SetMeshAlpha"]
+    [0019] TEST           A=3 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=3 sJ=-16777212 raw=0x000001C2
+    [0020] JMP            A=4 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777220 sJ=5 raw=0x80000238
+    [0021] SELF           A=3 B=1 C=3 k=1 Bx=1539 sBx=-63996 Ax=393987 sJ=-16383228 raw=0x03018194
+    [0022] LOADI          A=5 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777221 sJ=6 raw=0x80000281
+    [0023] SUB            A=5 B=5 C=2 k=0 Bx=1034 sBx=-64501 Ax=264709 sJ=-16512506 raw=0x020502A3
+    [0024] MMBIN          A=5 B=2 C=7 k=0 Bx=3588 sBx=-61947 Ax=918533 sJ=-15858682 raw=0x070202AE
+    [0025] CALL           A=3 B=3 C=1 k=0 Bx=518 sBx=-65017 Ax=132611 sJ=-16644604 raw=0x010301C4
+    [0026] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7
+
+  function[4] source="" lines=180-185 params=2 vararg=0 stack=255 upvalues=0
+  constants (2):
+    K[0] = "fadeRuleMaxId"
+    K[1] = "fadeRules"
+  locals (3):
+    L[0] = "self" pc=0-9
+    L[1] = "fadeRuleFn" pc=0-9
+    L[2] = "id" pc=5-9
+  instructions (9):
+    [0001] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "fadeRuleMaxId"]
+    [0002] ADDI           A=2 B=2 C=128 k=0 Bx=65540 sBx=5 Ax=16778242 sJ=1027 raw=0x80020115
+    [0003] MMBINI         A=2 B=128 C=6 k=0 Bx=3328 sBx=-62207 Ax=851970 sJ=-15925245 raw=0x0680012F
+    [0004] SETFIELD       A=0 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262144 sJ=-16515071 raw=0x02000012 ; R[0][K[0] "fadeRuleMaxId"] = R[2]
+    [0005] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "fadeRuleMaxId"]
+    [0006] GETFIELD       A=3 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131075 sJ=-16646140 raw=0x0100018E ; R[3] = R[0][K[1] "fadeRules"]
+    [0007] SETTABLE       A=3 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132099 sJ=-16645116 raw=0x01020190
+    [0008] RETURN1        A=2 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1026 sJ=-16776189 raw=0x00020148
+    [0009] RETURN0        A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x000101C7
+
+  function[5] source="" lines=189-193 params=2 vararg=0 stack=255 upvalues=0
+  constants (2):
+    K[0] = "fadeRules"
+    K[1] = nil
+  locals (2):
+    L[0] = "self" pc=0-7
+    L[1] = "id" pc=0-7
+  instructions (7):
+    [0001] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "fadeRules"]
+    [0002] GETTABLE       A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x0102010C
+    [0003] TEST           A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000142
+    [0004] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0005] GETFIELD       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010E ; R[2] = R[0][K[0] "fadeRules"]
+    [0006] SETTABLE       A=2 B=1 C=1 k=1 Bx=515 sBx=-65020 Ax=131842 sJ=-16645373 raw=0x01018110
+    [0007] RETURN0        A=2 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=514 sJ=-16776701 raw=0x00010147
+
+  function[6] source="" lines=195-198 params=1 vararg=0 stack=255 upvalues=0
+  constants (2):
+    K[0] = "fadeRules"
+    K[1] = "internalTargetFadeInfoMap"
+  locals (1):
+    L[0] = "self" pc=0-7
+  instructions (7):
+    [0001] NEWTABLE       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000093
+    [0002] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0003] SETFIELD       A=0 B=0 C=1 k=0 Bx=512 sBx=-65023 Ax=131072 sJ=-16646143 raw=0x01000012 ; R[0][K[0] "fadeRules"] = R[1]
+    [0004] NEWTABLE       A=1 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=1 sJ=-16777214 raw=0x00000093
+    [0005] EXTRAARG       A=0 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=0 sJ=-16777215 raw=0x00000052
+    [0006] SETFIELD       A=0 B=1 C=1 k=0 Bx=514 sBx=-65021 Ax=131584 sJ=-16645631 raw=0x01010012 ; R[0][K[1] "internalTargetFadeInfoMap"] = R[1]
+    [0007] RETURN0        A=1 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=513 sJ=-16776702 raw=0x000100C7
+
+  function[7] source="" lines=201-213 params=2 vararg=0 stack=255 upvalues=1
+  constants (5):
+    K[0] = "UE4"
+    K[1] = "UObject"
+    K[2] = "IsValid"
+    K[3] = "ipairs"
+    K[4] = "actorsReachedTargetAlphaLastFrame"
+  upvalues (1):
+    U[0] = instack=0 idx=0 kind=9 name="_ENV"
+  locals (8):
+    L[0] = "self" pc=0-23
+    L[1] = "fadeObject" pc=0-23
+    L[2] = "(for state)" pc=12-20
+    L[3] = "(for state)" pc=12-20
+    L[4] = "(for state)" pc=12-20
+    L[5] = "(for state)" pc=12-20
+    L[6] = "i" pc=13-17
+    L[7] = "actor" pc=13-17
+  instructions (23):
+    [0001] GETTABUP       A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x0000010B ; R[2] = U[0][K[0] "UE4"]
+    [0002] GETFIELD       A=2 B=2 C=1 k=0 Bx=516 sBx=-65019 Ax=132098 sJ=-16645117 raw=0x0102010E ; R[2] = R[2][K[1] "UObject"]
+    [0003] GETFIELD       A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x0202010E ; R[2] = R[2][K[2] "IsValid"]
+    [0004] MOVE           A=3 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=515 sJ=-16776700 raw=0x00010180
+    [0005] CALL           A=2 B=2 C=2 k=0 Bx=1028 sBx=-64507 Ax=263170 sJ=-16514045 raw=0x02020144
+    [0006] TEST           A=2 B=0 C=0 k=1 Bx=1 sBx=-65534 Ax=258 sJ=-16776957 raw=0x00008142
+    [0007] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0008] LOADFALSE      A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000105
+    [0009] RETURN         A=2 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1282 sJ=-16775933 raw=0x00028146
+    [0010] GETTABUP       A=2 B=0 C=3 k=0 Bx=1536 sBx=-63999 Ax=393218 sJ=-16383997 raw=0x0300010B ; R[2] = U[0][K[3] "ipairs"]
+    [0011] GETFIELD       A=3 B=0 C=4 k=0 Bx=2048 sBx=-63487 Ax=524291 sJ=-16252924 raw=0x0400018E ; R[3] = R[0][K[4] "actorsReachedTargetAlphaLastFrame"]
+    [0012] CALL           A=2 B=2 C=5 k=0 Bx=2564 sBx=-62971 Ax=656386 sJ=-16120829 raw=0x05020144
+    [0013] TFORPREP       A=2 B=2 C=0 k=0 Bx=4 sBx=-65531 Ax=1026 sJ=-16776189 raw=0x0002014B
+    [0014] EQ             A=7 B=1 C=0 k=0 Bx=2 sBx=-65533 Ax=519 sJ=-16776696 raw=0x000103B9
+    [0015] JMP            A=1 B=0 C=128 k=0 Bx=65536 sBx=1 Ax=16777217 sJ=2 raw=0x800000B8
+    [0016] LOADTRUE       A=8 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=8 sJ=-16777207 raw=0x00000407
+    [0017] RETURN         A=8 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1288 sJ=-16775927 raw=0x00028446
+    [0018] TFORCALL       A=2 B=0 C=2 k=0 Bx=1024 sBx=-64511 Ax=262146 sJ=-16515069 raw=0x0200014C
+    [0019] TFORLOOP       A=2 B=3 C=0 k=0 Bx=6 sBx=-65529 Ax=1538 sJ=-16775677 raw=0x0003014D
+    [0020] CLOSE          A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000136
+    [0021] LOADFALSE      A=2 B=0 C=0 k=0 Bx=0 sBx=-65535 Ax=2 sJ=-16777213 raw=0x00000105
+    [0022] RETURN         A=2 B=2 C=0 k=1 Bx=5 sBx=-65530 Ax=1282 sJ=-16775933 raw=0x00028146
+    [0023] RETURN         A=2 B=1 C=0 k=1 Bx=3 sBx=-65532 Ax=770 sJ=-16776445 raw=0x00018146
