@@ -28,6 +28,14 @@ function UMG_RollNumber_C:OnTick(DeltaTime)
   end
 end
 
+function UMG_RollNumber_C:PlayRollNumberAnimForPVPRank(Form, To)
+  To = To or 0
+  if To <= 0 then
+    To = 10001
+  end
+  self:PlayRollNumberAnim(Form, To)
+end
+
 function UMG_RollNumber_C:PlayRollNumberAnimWithCallback(Form, To, Callback)
   self:PlayRollNumberAnim(Form, To)
   self.animFinishedCallback = Callback

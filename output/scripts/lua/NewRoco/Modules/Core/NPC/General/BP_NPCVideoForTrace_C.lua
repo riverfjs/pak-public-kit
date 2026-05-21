@@ -1,10 +1,13 @@
 local MagicReplayUtils = require("NewRoco.Modules.System.MagicReplay.MagicReplayUtils")
 local MagicReplayModuleEnum = require("NewRoco.Modules.System.MagicReplay.MagicReplayModuleEnum")
-local MagicReplayModuleEvent = require("NewRoco.Modules.System.MagicReplay.MagicReplayModuleEvent")
 local RocoSkillProxy = require("NewRoco.Utils.RocoSkillProxy")
+local MagicMessageUtils = require("NewRoco.Modules.System.MagicMessage.MagicMessageUtils")
+local SceneEvent = require("NewRoco.Modules.Core.Scene.Common.SceneEvent")
 require("UnLuaEx")
 local PetHUDComponent = require("NewRoco.Modules.Core.Scene.Component.HUD.PetHUDComponent")
 local Base = require("NewRoco.Modules.Core.NPC.ViewNPCBase")
+local VideoEnum = ProtoEnum.SceneMagicType.SMT_CREATE_MAGIC_VIDEO
+local path = "Blueprint'/Game/NewRoco/Modules/Core/NPC/General/BP_NPCCommonVideo.BP_NPCCommonVideo'"
 local BP_NPCVideoForTrace_C = Base:Extend("BP_NPCVideoForTrace_C")
 
 function BP_NPCVideoForTrace_C:Init()
@@ -13,14 +16,86 @@ function BP_NPCVideoForTrace_C:Init()
   self.range_error_conf = _G.DataConfigManager:GetGlobalConfig("mark_video_rec_range")
 end
 
+function BP_NPCVideoForTrace_C:SetSceneCharacter(sceneCharacter)
+  Base.SetSceneCharacter(self, sceneCharacter)
+  if not sceneCharacter then
+    return
+  end
+  local FeedInfo = sceneCharacter.serverData.MagicFeedInfo
+  if FeedInfo then
+    if FeedInfo.sub_type then
+      local config = _G.DataConfigManager:GetTable(DataConfigManager.ConfigTableId.MARK_MESSAGE_CHILD_CONF):GetAllDatas()
+      local wand_id
+      for _, value in pairs(config) do
+        if value.child_type == FeedInfo.sub_type then
+          wand_id = value.wand_id
+          break
+        end
+      end
+      if wand_id then
+        local wandConf = _G.DataConfigManager:GetFashionWandConf(wand_id, true)
+        if wandConf then
+          local magicId = wandConf.magic_list[VideoEnum]
+          local avatarSystem = UE4.USubsystemBlueprintLibrary.GetGameInstanceSubsystem(_G.UE4Helper.GetCurrentWorld(), UE4.UAvatarSubsystem)
+          local AvatarConfig = avatarSystem:GetAvatarConfig()
+          local RowKey = AvatarConfig:GetWandDataRowKeyByMagic(magicId, VideoEnum)
+          local wandData = UE4.FAvatarWandInfo_Video()
+          UE.UDataTableFunctionLibrary.GetTableDataRowFromName(AvatarConfig.AvatarWandDataMap:Find(VideoEnum), RowKey, wandData)
+          local magicConfig = wandData.VideoMagicResource
+          if magicConfig then
+            path = UE4.UNRCStatics.GetSoftObjPath(magicConfig.VideoItem)
+          end
+          sceneCharacter.viewObj.NRCChildActor:SetPath(path)
+        end
+      end
+    end
+  else
+    local wandData = MagicMessageUtils.GetAvatarWandConfig(ProtoEnum.MarkGameplay.MK_MAGIC_VIDEO, true)
+    if wandData then
+      path = UE4.UNRCStatics.GetSoftObjPath(wandData.VideoItem)
+    end
+    sceneCharacter.viewObj.NRCChildActor:SetPath(path)
+  end
+  _G.NRCEventCenter:RegisterEvent("BP_NPCVideoForTrace_C", self, SceneEvent.LoadMapStart, self.LoadMapStart)
+end
+
+function BP_NPCVideoForTrace_C:LoadMapStart()
+  self.sceneCharacter:OnPlayerTeleportStart()
+end
+
 function BP_NPCVideoForTrace_C:Recycle()
   self:DeactivateMagicReplayCheck()
   Base.Recycle(self)
+  _G.NRCEventCenter:UnRegisterEvent(self, SceneEvent.LoadMapStart, self.LoadMapStart)
+end
+
+function BP_NPCVideoForTrace_C:OnLeaveBattle()
+  Base.OnLeaveBattle(self)
+  local npc = self.sceneCharacter
+  if not npc then
+    return
+  end
+  local hudComp = npc:EnsureComponent(PetHUDComponent)
+  local Hud = hudComp._headHud
+  if not Hud then
+    return
+  end
+  Hud:ShowTopMessage(true, npc)
+end
+
+function BP_NPCVideoForTrace_C:OnVisible()
+  Base.OnVisible(self)
+  self.Child = self.NRCChildActor:GetChildActor()
 end
 
 function BP_NPCVideoForTrace_C:SetPosition(InitPosition, SelectPosition)
   self.InitialPosition = InitPosition
   self.SelectPosition = SelectPosition
+  if not self.Child then
+    self.Child = self.NRCChildActor:GetChildActor()
+  end
+  self.Child.InitialPosition = InitPosition
+  self.Child.SelectPosition = SelectPosition
 end
 
 function BP_NPCVideoForTrace_C:SetTopMessageVisible()
@@ -120,32 +195,77 @@ function BP_NPCVideoForTrace_C:IsRecTarget(npc_id)
   return false
 end
 
-function BP_NPCVideoForTrace_C:PlaySeqTargetEmergeEffect(targetView, isPlayer, isRidePet)
-  local path
-  if isPlayer then
-    path = "/Game/ArtRes/Effects/G6Skill/SceneEffect/MovieMagic/G6_Scene_MovieMagic_Charactor"
-  elseif isRidePet then
-    path = "/Game/ArtRes/Effects/G6Skill/SceneEffect/MovieMagic/G6_Scene_MovieMagic_Ride"
+function BP_NPCVideoForTrace_C:PlaySeqTargetEmergeEffect(targetView, isPlayer, isRidePet, isChangeSuit)
+  local FeedInfo = self.sceneCharacter.serverData.MagicFeedInfo
+  local magicConfig
+  if FeedInfo then
+    if FeedInfo.sub_type then
+      local config = _G.DataConfigManager:GetTable(DataConfigManager.ConfigTableId.MARK_MESSAGE_CHILD_CONF):GetAllDatas()
+      local wand_id
+      for _, value in pairs(config) do
+        if value.child_type == FeedInfo.sub_type then
+          wand_id = value.wand_id
+          break
+        end
+      end
+      if wand_id then
+        local wandConf = _G.DataConfigManager:GetFashionWandConf(wand_id, true)
+        if wandConf then
+          local magicId = wandConf.magic_list[VideoEnum]
+          local avatarSystem = UE4.USubsystemBlueprintLibrary.GetGameInstanceSubsystem(_G.UE4Helper.GetCurrentWorld(), UE4.UAvatarSubsystem)
+          local AvatarConfig = avatarSystem:GetAvatarConfig()
+          local RowKey = AvatarConfig:GetWandDataRowKeyByMagic(magicId, VideoEnum)
+          local wandData = UE4.FAvatarWandInfo_Video()
+          UE.UDataTableFunctionLibrary.GetTableDataRowFromName(AvatarConfig.AvatarWandDataMap:Find(VideoEnum), RowKey, wandData)
+          magicConfig = wandData.VideoMagicResource
+        end
+      end
+    end
   else
-    path = "/Game/ArtRes/Effects/G6Skill/SceneEffect/MovieMagic/G6_Scene_MovieMagic_Pet"
+    magicConfig = MagicMessageUtils.GetAvatarWandConfig(ProtoEnum.MarkGameplay.MK_MAGIC_VIDEO)
+  end
+  local SkillPath
+  if isPlayer then
+    if isChangeSuit then
+      SkillPath = "/Game/ArtRes/Effects/G6Skill/SceneEffect/MovieMagic/G6_Scene_MovieMagic_Suit"
+      if magicConfig then
+        SkillPath = UE4.UNRCStatics.GetSoftObjPath(magicConfig.SuitAppear)
+      end
+    else
+      SkillPath = "/Game/ArtRes/Effects/G6Skill/SceneEffect/MovieMagic/G6_Scene_MovieMagic_Charactor"
+      if magicConfig then
+        SkillPath = UE4.UNRCStatics.GetSoftObjPath(magicConfig.CharacterAppear)
+      end
+    end
+  elseif isRidePet then
+    SkillPath = "/Game/ArtRes/Effects/G6Skill/SceneEffect/MovieMagic/G6_Scene_MovieMagic_Ride"
+    if magicConfig then
+      SkillPath = UE4.UNRCStatics.GetSoftObjPath(magicConfig.RideAppear)
+    end
+  else
+    SkillPath = "/Game/ArtRes/Effects/G6Skill/SceneEffect/MovieMagic/G6_Scene_MovieMagic_Pet"
+    if magicConfig then
+      SkillPath = UE4.UNRCStatics.GetSoftObjPath(magicConfig.PetAppear)
+    end
   end
   if not self.RocoSkill then
     Log.Error("BP_NPCVideoForTrace_C:PlayReplayEffect self.RocoSkill is nil")
   end
   local skill
+  local ChildActor = self.NRCChildActor:GetChildActor()
   if isPlayer then
-    skill = RocoSkillProxy.Create(path, self.RocoSkill)
-    skill:SetCaster(self)
+    skill = RocoSkillProxy.Create(SkillPath, self.RocoSkill)
+    skill:SetCaster(ChildActor)
     skill:SetTargets({targetView})
     skill:SetForcePlayPassive(true)
   else
     if isRidePet then
-      skill = RocoSkillProxy.Create(path, self.RocoSkill)
+      skill = RocoSkillProxy.Create(SkillPath, self.RocoSkill)
     else
-      skill = RocoSkillProxy.Create(path, targetView.RocoSkill)
+      skill = RocoSkillProxy.Create(SkillPath, targetView.RocoSkill)
     end
     skill:SetCaster(targetView)
-    skill:SetTargets({self})
+    skill:SetTargets({ChildActor})
   end
   skill:SetPassive(true)
   skill:SetWithLoadAndPlay(true)

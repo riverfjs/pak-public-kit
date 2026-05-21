@@ -81,7 +81,9 @@ function UMG_Battle_BuffInfo_C:SetHeadIcon(BattlePet)
     local battle_common_pet_info = petInfo and petInfo.battle_common_pet_info
     local mutation = battle_common_pet_info and battle_common_pet_info.mutation_type
     local glassInfo = battle_common_pet_info and battle_common_pet_info.glass_info
-    self.Pet:SetIconPathAndMaterial(petConfId, mutation, glassInfo)
+    local battle_inside_pet_info = petInfo and petInfo.battle_inside_pet_info
+    local uiParam = self.Pet:PrepareUIParam(battle_inside_pet_info)
+    self.Pet:SetIconPathAndMaterial(petConfId, mutation, glassInfo, nil, uiParam)
   end
 end
 

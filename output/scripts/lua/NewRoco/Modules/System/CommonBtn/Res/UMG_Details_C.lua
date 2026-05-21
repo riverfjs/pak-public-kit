@@ -137,6 +137,22 @@ function UMG_Details_C:SetRedDot(value)
   end
 end
 
+function UMG_Details_C:SetIgnoreRedPointDataList(reason, extraKeyTable)
+  if self.RedDot then
+    self.RedDot:SetIgnoreRedPointDataList(reason, extraKeyTable)
+  else
+    self:LogError("cannt find reddot", self, self.RedDot)
+  end
+end
+
+function UMG_Details_C:ClearIgnoreRedPointDataList()
+  if self.RedDot then
+    self.RedDot:ClearIgnoreRedPointDataList()
+  else
+    self:LogError("cannt find reddot", self, self.RedDot)
+  end
+end
+
 function UMG_Details_C:ShowOrHidePCKey(visible)
   if self.Text_PCKey then
     self.Text_PCKey:SetKeyVisibility(visible)

@@ -15,6 +15,9 @@ function RocoSkillBlackboard:Set(Params)
   if Params.BallAdditionalPaths then
     self.BallAdditionalPaths = Params.BallAdditionalPaths
   end
+  if Params.BallAdditionalResGroup then
+    self.BallAdditionalResGroup = Params.BallAdditionalResGroup
+  end
   if Params.BallAddLinkActors then
     self.BallAddLinkActors = Params.BallAddLinkActors
   end
@@ -26,6 +29,9 @@ function RocoSkillBlackboard:Set(Params)
   end
   if Params.BallPath then
     self.BallPath = Params.BallPath
+  end
+  if Params.BallResGroup then
+    self.BallResGroup = Params.BallResGroup
   end
   if Params.ItemPath then
     self.ItemPath = Params.ItemPath
@@ -50,6 +56,7 @@ function RocoSkillBlackboard:Clear()
   self.Targets = nil
   self.Characters = nil
   self.BallPath = nil
+  self.BallResGroup = nil
   self.Settings = nil
   self.Power = 0
   self.ReduceHP = 0
@@ -57,6 +64,7 @@ function RocoSkillBlackboard:Clear()
   self.IsRestrained = false
   self.Additions = {}
   self.BallAdditionalPaths = {}
+  self.BallAdditionalResGroup = {}
   self.BallAddLinkActors = {}
   self.SelectLocations = {}
   self.CounterActor = nil

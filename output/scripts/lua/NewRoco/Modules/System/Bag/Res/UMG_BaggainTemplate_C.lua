@@ -41,7 +41,7 @@ function UMG_BaggainTemplate_C:OnSkipClick()
   _G.DataModelMgr.PlayerDataModel:SetIsTraceByBag(true)
   if self.uiData and self.uiData.acquire_struct and self.uiData.acquire_struct.text then
     if self.uiData.acquire_struct.text == "ActivityModuleCmd.OpenMainPanel" then
-      _G.NRCModuleManager:DoCmd(self.uiData.acquire_struct.text, self.uiData.acquire_struct.param2)
+      _G.NRCModuleManager:DoCmd(self.uiData.acquire_struct.text, self.uiData.acquire_struct.param2, self.uiData.acquire_struct.param3)
     elseif self.uiData.acquire_struct.text == "BigMapModuleCmd.OnTraceBossByEggItemId" then
       _G.NRCModuleManager:DoCmd(self.uiData.acquire_struct.text, LuaText.jump_to_error_tips, self.uiData.acquire_struct.param1[1])
     elseif self.uiData.acquire_struct.text == "ShopModuleCmd.OpenMainPanel" then
@@ -54,6 +54,14 @@ function UMG_BaggainTemplate_C:OnSkipClick()
       _G.NRCSDKManager:OpenWebView(self.uiData.acquire_struct.param3, nil, false, false, nil, true)
     elseif self.uiData.acquire_struct.text == "HandbookModuleCmd.OpenHandbookByRewardItemId" then
       _G.NRCModuleManager:DoCmd(self.uiData.acquire_struct.text, Enum.GoodsType.GT_BAGITEM, self.uiData.itemId)
+    elseif self.uiData.acquire_struct.text == "BigMapModuleCmd.SendZoneNpcTraceCollectibles" then
+      _G.NRCModuleManager:DoCmd(self.uiData.acquire_struct.text, self.uiData.acquire_struct.param1, self.uiData.itemId)
+    elseif self.uiData.acquire_struct.text == "HandbookModuleCmd.OpenHandbookAchievementRewardByRewardItemId" then
+      if self.uiData.acquire_struct.param1 and #self.uiData.acquire_struct.param1 > 0 then
+        _G.NRCModuleManager:DoCmd(self.uiData.acquire_struct.text, self.uiData.acquire_struct.param1[1], _G.Enum.GoodsType.GT_BAGITEM, self.uiData.itemId)
+      end
+    elseif self.uiData.acquire_struct.text == "BigMapModuleCmd.OnTraceForceShowNpc" then
+      _G.NRCModuleManager:DoCmd(self.uiData.acquire_struct.text, self.uiData.acquire_struct.param1[1])
     else
       _G.NRCModuleManager:DoCmd(self.uiData.acquire_struct.text, LuaText.jump_to_error_tips)
     end

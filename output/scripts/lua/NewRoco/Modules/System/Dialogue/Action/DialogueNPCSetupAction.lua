@@ -65,7 +65,7 @@ function DialogueNPCSetupAction:OnEnter()
         local HeadComp = Participant:GetHeadLookAtComponent()
         if HeadComp and Participant ~= Speaker then
           DialogueUtils.StopTurn(Participant)
-          if self:IsEntryDialogue() then
+          if DialogueUtils.IsEntryDialogue(self.fsm) then
             DialogueUtils.ClearLookAt(Participant)
           end
           HeadComp:SetAutoLookAtParam(UE4.ELookAtParamType.Target, Speaker.viewObj)
@@ -108,19 +108,6 @@ end
 
 function DialogueNPCSetupAction:IsValid(ID)
   return ID and 0 ~= ID
-end
-
-function DialogueNPCSetupAction:IsEntryDialogue()
-  local CurrentOption = self.fsm:GetProperty("CurrentOption")
-  local OptionConf = CurrentOption and CurrentOption.config
-  OptionConf = OptionConf or self.fsm:GetProperty("OptionConf")
-  if not OptionConf then
-    return false
-  end
-  if OptionConf.action.action_type ~= Enum.ActionType.ACT_DIALOG then
-    return false
-  end
-  return tonumber(OptionConf.action.action_param1) == self.DialogueConf.id
 end
 
 function DialogueNPCSetupAction:ConsumeActorPerform(Perform)

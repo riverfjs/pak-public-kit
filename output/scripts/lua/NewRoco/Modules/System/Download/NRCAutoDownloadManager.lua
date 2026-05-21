@@ -14,6 +14,8 @@ function NRCAutoDownloadManager:Ctor()
   self.bActiveObserver = false
   self.bEnableNetworkListener = true
   self:SetIfPrintToScreen(false)
+  self.AutoDownloadObserver = require("NewRoco.Modules.System.Download.AutoDownloadObserver")
+  self.AutoDownloadObserver:Init()
 end
 
 function NRCAutoDownloadManager:SetIfPrintToScreen(bFlag)
@@ -68,6 +70,11 @@ function NRCAutoDownloadManager:OnPufferNetworkStatusChanged(NewStatus)
   end
   if 0 ~= LastNetworkStatus and 0 == NewStatus then
   elseif 1 ~= LastNetworkStatus and 1 == NewStatus then
+    local NetworkType = UE.UNetworkStatics.GetNetworkState()
+    if 1 ~= NetworkType then
+      Log.Debug("[NRCAutoDownloadManager:OnPufferNetworkStatusChanged] network status is already not WWAN")
+      return
+    end
     self:PauseAllDownloadTasks()
   elseif 2 ~= LastNetworkStatus and 2 == NewStatus then
     self:ResumeAllDownloadTasks()
@@ -88,16 +95,26 @@ function NRCAutoDownloadManager:HasTask()
   return false
 end
 
+function NRCAutoDownloadManager:IsAnyTaskDownloading()
+  for _, Task in pairs(self.DownloadTaskIDMap) do
+    if Task and Task:IsDownloading() then
+      Log.Debug("[NRCAutoDownloadManager:IsAnyTaskDownloading] Task is downloading:", Task:GetTag())
+      return true
+    end
+  end
+  return false
+end
+
 function NRCAutoDownloadManager:StartDownloadBasePaks()
   if not self.bEnabled then
     Log.Debug("NRCAutoDownloadManager:StartDownloadBasePaks: bEnabled is false")
     return
   end
-  if not _G.PufferUpdateResTask:IsNeedDownloadBasePaks() then
+  if not _G.PufferUpdateResTask:IsNeedDownloadBasePaksWithPatch() then
     Log.Debug("[NRCAutoDownloadManager:StartDownloadBasePaks] no need to download base paks")
     return
   end
-  local NeedToDownloadBasePakList, SizeNeedToDownload, LargestSize = _G.PufferUpdateResTask:GetBasePakListNeedToDownload()
+  local NeedToDownloadBasePakList, SizeNeedToDownload, LargestSize = _G.PufferUpdateResTask:GetBasePakListWithPatchNeedToDownload()
   if NeedToDownloadBasePakList and #NeedToDownloadBasePakList > 0 then
     self:LaunchDownloadTask(PufferDownloadTag.Base, NeedToDownloadBasePakList)
   else
@@ -132,21 +149,16 @@ function NRCAutoDownloadManager:LaunchDownloadTask(Tag, PakList)
   end
 end
 
+function NRCAutoDownloadManager:SetMaxSpeedMode()
+  _G.PufferUpdateResTask:RestoreSettings()
+end
+
+function NRCAutoDownloadManager:IsSpeedLimitMode()
+  return _G.PufferUpdateResTask:IsSpeedLimitMode()
+end
+
 function NRCAutoDownloadManager:SetSpeedLimitMode()
-  local AutoDownloadConfig = require("NewRoco.Modules.System.Download.AutoDownloadConfig")
-  _G.PufferUpdateResTask:SetDLMaxTask(AutoDownloadConfig.MaxDownloadTaskCount)
-  _G.PufferUpdateResTask:SetImmDLMaxDownloadsPerTask(AutoDownloadConfig.MaxDownloadsPerTask)
-  local DeviceLevel = UE4.UNRCQualityLibrary.GetDeviceLevel()
-  local DownloadMaxSpeed
-  if DeviceLevel <= 2 then
-    DownloadMaxSpeed = AutoDownloadConfig.MaxDownloadSpeedLowLevel
-  elseif 3 == DeviceLevel then
-    DownloadMaxSpeed = AutoDownloadConfig.MaxDownloadSpeedMediumLevel
-  else
-    DownloadMaxSpeed = AutoDownloadConfig.MaxDownloadSpeedHighLevel
-  end
-  Log.Debug("[NRCAutoDownloadManager:SetSpeedLimitMode] set DownloadMaxSpeed:", DownloadMaxSpeed)
-  _G.PufferUpdateResTask:SetDownloadMaxSpeed(DownloadMaxSpeed)
+  _G.PufferUpdateResTask:SetSpeedLimitMode()
 end
 
 function NRCAutoDownloadManager:CreateTaskAndStartDownload(Tag, PakList)
@@ -168,10 +180,11 @@ function NRCAutoDownloadManager:OnPufferDownloadBatchReturn(BatchTaskId, FiledId
     Log.Error("[NRCAutoDownloadManager:OnPufferDownloadBatchReturn] Task is not exist, BatchTaskId:", BatchTaskId)
     return
   end
+  _G.NRCBackgroundDownloadMgr:SetIsUpdating(false)
   local TaskTag = Task:GetTag()
   if IsSuccess then
     Log.Debug("[NRCAutoDownloadManager:OnPufferDownloadBatchReturn] Download Success ", TaskTag)
-    if not TaskTag == PufferDownloadTag.Base then
+    if TaskTag ~= PufferDownloadTag.Base then
       _G.PufferUpdateResTask:MountPakList(Task:GetDownloadList())
     else
       _G.NRCEventCenter:DispatchEvent(UpdateUIModuleEvent.ReportDownloadEnd, LoginEnum.DownloadReportType.BaseDownloadEnd, BatchTaskId)
@@ -264,6 +277,7 @@ function NRCAutoDownloadManager:OnBackToLogin()
   end
   self:RemoveAllDownloadTasks()
   _G.PufferUpdateResTask:Uninit()
+  self.AutoDownloadObserver:Uninit()
 end
 
 function NRCAutoDownloadManager:RemoveAllDownloadTasks()

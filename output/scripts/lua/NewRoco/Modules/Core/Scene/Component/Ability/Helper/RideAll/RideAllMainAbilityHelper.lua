@@ -1,5 +1,6 @@
 local Base = require("NewRoco.Modules.Core.Scene.Component.Ability.AbilityHelper")
 local AbilityErrorCode = require("NewRoco.Modules.Core.Scene.Component.Ability.AbilityErrorCode")
+local RideAllMainAbility = require("NewRoco.Modules.Core.Scene.Component.Ability.RideAll.RideAllMainAbility")
 local RideAllMainAbilityHelper = Base:Extend("RideAllMainAbilityHelper")
 
 function RideAllMainAbilityHelper:CanCastAbility(caster)
@@ -10,6 +11,21 @@ function RideAllMainAbilityHelper:CanCastAbility(caster)
   local isAreaBan = self:IsTaskAreaBan(caster)
   if isAreaBan then
     return AbilityErrorCode.TASK_AREA_BAN
+  end
+  local MoveInfo = DataConfigManager:GetRideBasicMovement(SkillId)
+  if MoveInfo then
+    if MoveInfo.active_type == ProtoEnum.SceneRideAllActiveType.SRAA_DASH_WITHOUT_VITALITY then
+      local inCD = RideAllMainAbilityHelper.IsSkillInCooldown(caster, ProtoEnum.SceneRideAllActiveType.SRAA_DASH_WITHOUT_VITALITY)
+      if inCD then
+        return AbilityErrorCode.IN_COOLDOWN
+      end
+    end
+    if MoveInfo.active_type == ProtoEnum.SceneRideAllActiveType.SRAA_DASH_DASHFORWARD then
+      local inCD = RideAllMainAbilityHelper.IsSkillInCooldown(caster, ProtoEnum.SceneRideAllActiveType.SRAA_DASH_DASHFORWARD)
+      if inCD then
+        return AbilityErrorCode.IN_COOLDOWN
+      end
+    end
   end
   local MoveInfo = DataConfigManager:GetRideBasicMovement(SkillId)
   if MoveInfo then
@@ -53,6 +69,11 @@ function RideAllMainAbilityHelper:CanCastAbility(caster)
     elseif MoveInfo.active_type == Enum.SceneRideAllActiveType.SRAA_CLIMB_WATER_JUMP then
       local rideComponent = caster.viewObj.BP_RideComponent
       if rideComponent.RidePet.CharacterClimbWaterFallMovement and rideComponent.RidePet.CharacterClimbWaterFallMovement:IsClimbDashing() then
+        return AbilityErrorCode.ABILITY_IS_CASTING
+      end
+    elseif MoveInfo.active_type == Enum.SceneRideAllActiveType.SRAA_KEEP_BALANCE then
+      local rideComponent = caster.viewObj.BP_RideComponent
+      if rideComponent:IsInDoubleRide() then
         return AbilityErrorCode.ABILITY_IS_CASTING
       end
     end
@@ -150,7 +171,7 @@ function RideAllMainAbilityHelper:GetIcon(caster, isBlock)
   local OriginId = self:GetRideMainAbility(caster)
   local SkillId = OriginId
   local rideComponent = caster.viewObj.BP_RideComponent
-  if rideComponent.ScenePet == nil then
+  if rideComponent.ScenePet == nil or nil == rideComponent.ScenePet.config then
     return nil
   end
   if rideComponent.bIsLoading then
@@ -203,7 +224,11 @@ function RideAllMainAbilityHelper:GetIcon(caster, isBlock)
     elseif rideComponent.RidePet.InLeap then
       isBlock = true
     end
-  elseif (SkillConf.active_type == Enum.SceneRideAllActiveType.SRAA_JUMP or SkillConf.active_type == Enum.SceneRideAllActiveType.SRAA_SWIMJUMP) and not isBlock and rideComponent.RidePet and rideComponent.RidePet.CharacterMovement and not rideComponent.RidePet.CharacterMovement:CanJump() then
+  elseif SkillConf.active_type == Enum.SceneRideAllActiveType.SRAA_JUMP or SkillConf.active_type == Enum.SceneRideAllActiveType.SRAA_SWIMJUMP then
+    if not isBlock and rideComponent.RidePet and rideComponent.RidePet.CharacterMovement and not rideComponent.RidePet.CharacterMovement:CanJump() then
+      isBlock = true
+    end
+  elseif SkillConf.active_type == Enum.SceneRideAllActiveType.SRAA_KEEP_BALANCE and not isBlock and rideComponent:IsInDoubleRide() then
     isBlock = true
   end
   if isBlock then
@@ -280,6 +305,67 @@ function RideAllMainAbilityHelper:HandleStatus(caster, ...)
     customParams.ride_skill_param = rideSkillParam
     statusComponent:ApplyStatus(status, nil, 1, customParams)
   end
+end
+
+local CooldownState = {}
+
+function RideAllMainAbilityHelper.IsSkillInCooldown(caster, skillType)
+  if not caster then
+    return false
+  end
+  local playerID = caster:GetServerId()
+  if 0 == playerID then
+    return false
+  end
+  if not CooldownState[playerID] then
+    return false
+  end
+  local playerCooldown = CooldownState[playerID]
+  if not playerCooldown[skillType] then
+    return false
+  end
+  local cooldownEndTime = playerCooldown[skillType]
+  local currentTime = os.msTime()
+  return cooldownEndTime > currentTime
+end
+
+function RideAllMainAbilityHelper.GetSkillLeftCooldown(caster, skillType)
+  if not caster then
+    return 0
+  end
+  local playerID = caster:GetServerId()
+  if 0 == playerID then
+    return 0
+  end
+  if not CooldownState[playerID] then
+    return 0
+  end
+  local playerCooldown = CooldownState[playerID]
+  if not playerCooldown[skillType] then
+    return 0
+  end
+  local cooldownEndTime = playerCooldown[skillType]
+  local currentTime = os.msTime()
+  local leftTime = (cooldownEndTime - currentTime) / 1000
+  return math.max(0, leftTime)
+end
+
+function RideAllMainAbilityHelper.StartSkillCooldown(caster, skillType, cooldownTime)
+  if not caster then
+    return
+  end
+  local playerID = caster:GetServerId()
+  if 0 == playerID then
+    return
+  end
+  if not CooldownState[playerID] then
+    CooldownState[playerID] = {}
+  end
+  local playerCooldown = CooldownState[playerID]
+  local COOLDOWN_TIME_MS = cooldownTime * 1000
+  local currentTime = os.msTime()
+  playerCooldown[skillType] = currentTime + COOLDOWN_TIME_MS
+  Log.Error(string.format("\230\138\128\232\131\189 %s \229\188\128\229\167\139\229\134\183\229\141\180\239\188\140\229\134\183\229\141\180\230\151\182\233\151\180\239\188\154%d\231\167\146", tostring(skillType), cooldownTime))
 end
 
 return RideAllMainAbilityHelper

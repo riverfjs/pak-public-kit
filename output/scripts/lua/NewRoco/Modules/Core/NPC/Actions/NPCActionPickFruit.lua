@@ -15,6 +15,9 @@ end
 function NPCActionPickFruit:OnSubmit(rsp)
   Base.OnSubmit(self, rsp)
   if 0 == rsp.ret_info.ret_code then
+    if self:GetPlayer().isLocal then
+      self:SyncAction()
+    end
     self:RunSequence()
   end
 end

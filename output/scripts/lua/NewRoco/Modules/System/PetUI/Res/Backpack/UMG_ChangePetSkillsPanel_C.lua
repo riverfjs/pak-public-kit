@@ -2,6 +2,16 @@ local PetUIModuleEnum = require("NewRoco.Modules.System.PetUI.PetUIModuleEnum")
 local PetUIModuleEvent = reload("NewRoco.Modules.System.PetUI.PetUIModuleEvent")
 local UMG_ChangePetSkillsPanel_C = _G.NRCPanelBase:Extend("UMG_ChangePetSkillsPanel_C")
 
+function UMG_ChangePetSkillsPanel_C:SetHerbologyBadgeMode(bEnable, initialSkillId, lockedSkillId)
+  self.bHerbologyBadgeMode = bEnable
+  self.herbologyBadgeSelectedSkillId = initialSkillId
+  self.herbologyBadgeLockedSkillId = lockedSkillId
+end
+
+function UMG_ChangePetSkillsPanel_C:GetHerbologyBadgeSelectedSkillId()
+  return self.herbologyBadgeSelectedSkillId
+end
+
 function UMG_ChangePetSkillsPanel_C:OnEnable(petData)
   self.petMaxLevelLimit = (_G.DataConfigManager:GetPetGlobalConfig("pet_level_toplimit") or {}).num or 60
   if not self.petUIModule then
@@ -33,6 +43,9 @@ function UMG_ChangePetSkillsPanel_C:OnDisable()
   _G.NRCModuleManager:DoCmd(PetUIModuleCmd.SetAssumptionEquipSkill, nil)
   _G.NRCEventCenter:UnRegisterEvent(self, PetUIModuleEvent.EquipSkill, self.OnEquipSkill)
   _G.NRCEventCenter:UnRegisterEvent(self, PetUIModuleEvent.OnEquipAssumptionSkill, self.ShowPetSkill)
+  self.bHerbologyBadgeMode = false
+  self.herbologyBadgeSelectedSkillId = nil
+  self.herbologyBadgeLockedSkillId = nil
 end
 
 function UMG_ChangePetSkillsPanel_C:OnSkillItemSelected(item, rawIndex, userClick)
@@ -44,8 +57,16 @@ end
 function UMG_ChangePetSkillsPanel_C:RefreshUI(petData)
   if not self.petData or self.petData.gid ~= petData.gid then
     self:InitFilterAndSort()
-    local posToIdDic = _G.NRCModuleManager:DoCmd(PetUIModuleCmd.GetPetEquipSkillMap, petData.gid)
-    _G.NRCModuleManager:DoCmd(PetUIModuleCmd.SetAssumptionEquipSkill, petData.gid, posToIdDic)
+    if self.bHerbologyBadgeMode then
+      local posToIdDic = {}
+      if self.herbologyBadgeSelectedSkillId then
+        posToIdDic[1] = self.herbologyBadgeSelectedSkillId
+      end
+      _G.NRCModuleManager:DoCmd(PetUIModuleCmd.SetAssumptionEquipSkill, petData.gid, posToIdDic)
+    else
+      local posToIdDic = _G.NRCModuleManager:DoCmd(PetUIModuleCmd.GetPetEquipSkillMap, petData.gid)
+      _G.NRCModuleManager:DoCmd(PetUIModuleCmd.SetAssumptionEquipSkill, petData.gid, posToIdDic)
+    end
   end
   self.petData = petData
   if petData then
@@ -80,12 +101,16 @@ function UMG_ChangePetSkillsPanel_C:GetAllSkills(_petData)
           local _pos = self.cacheCurEquipSkillDic[skillData.id]
           _skillData.is_equipped = nil ~= _pos
           _skillData.pos = _pos
-          table.insert(skills, {
+          local itemData = {
             skillData = _skillData,
             mode = 1,
             petData = self.petData,
             delayPlayAnim = self.delayPlaySkillItemAnim
-          })
+          }
+          if self.bHerbologyBadgeMode and self.herbologyBadgeLockedSkillId then
+            itemData.herbologyBadgeLockedSkillId = self.herbologyBadgeLockedSkillId
+          end
+          table.insert(skills, itemData)
           skillIds[skillId] = true
         end
       end
@@ -114,7 +139,7 @@ end
 
 function UMG_ChangePetSkillsPanel_C:GetLockSkillList(base_conf_id)
   if self.showLockSkill then
-    local skillConf = _G.DataConfigManager:GetLevelSkillConf(base_conf_id)
+    local skillConf = _G.NRCModeManager:DoCmd(_G.PetUIModuleCmd.GetLevelSkillConfByPetBaseId, base_conf_id)
     if skillConf then
       local notUnLockSkillIds = {}
       for _, val in pairs(skillConf.machine_skill_group) do
@@ -286,6 +311,19 @@ function UMG_ChangePetSkillsPanel_C:OnEquipSkill(skillData, index)
     _G.NRCModuleManager:DoCmd(PetUIModuleCmd.OpenBagSKillTips, skillData.id, false, -1, nil, nil, nil, true)
   else
     _G.NRCModuleManager:DoCmd(PetUIModuleCmd.OpenBagSKillTips, skillData.id, false, -1, self.petData.base_conf_id, true, self.petData.gid, true)
+    return
+  end
+  if self.bHerbologyBadgeMode then
+    if self.herbologyBadgeSelectedSkillId == skillData.id then
+      self.herbologyBadgeSelectedSkillId = nil
+    else
+      self.herbologyBadgeSelectedSkillId = skillData.id
+    end
+    local posToIdDic = {}
+    if self.herbologyBadgeSelectedSkillId then
+      posToIdDic[1] = self.herbologyBadgeSelectedSkillId
+    end
+    _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.SetAssumptionEquipSkill, self.petData.gid, posToIdDic, nil)
     return
   end
   if self.petData.blood_id == Enum.PetBloodType.PBT_NIGHTMARE then
@@ -521,7 +559,7 @@ function UMG_ChangePetSkillsPanel_C:GetDefaultSortWeighting(skillConf)
   local skillSourceList = _G.NRCModeManager:DoCmd(_G.PetUIModuleCmd.GetSkillSource, skillConf.id, self.petBaseConf.id)
   if #skillSourceList > 0 then
     if skillSourceList[1] == Enum.PetNewSkillSrc.PNSS_PET_LEVEL_UP then
-      local levelSkillConf = _G.DataConfigManager:GetLevelSkillConf(self.petBaseConf.id)
+      local levelSkillConf = _G.NRCModeManager:DoCmd(_G.PetUIModuleCmd.GetLevelSkillConfByPetBaseId, self.petBaseConf.id)
       if levelSkillConf then
         if self.skillSortReverse then
           for i, v in ipairs(levelSkillConf.level) do

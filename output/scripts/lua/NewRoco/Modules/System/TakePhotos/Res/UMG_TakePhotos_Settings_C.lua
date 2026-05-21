@@ -115,21 +115,25 @@ function UMG_TakePhotos_Settings_C:OnCountDownOptionChanged()
 end
 
 function UMG_TakePhotos_Settings_C:OnBurstOptionChanged(New, Old)
-  _G.NRCAudioManager:PlaySound2DAuto(41401003, "UMG_TakePhotos_Settings_C:OnBurstOptionChanged")
   local Num = self.TakePhotoSettings:GetTakePhotoBurstNum()
   local Remaining = self.PhotoManager:GetRemainingLocalPhotoSlots()
-  if Num > Remaining then
+  if Num > Remaining and self.TakePhotoSettings.BurstGroup:GetSelectedIndex() > 1 then
     local Ctx = DialogContext()
     Ctx:SetTitle(LuaText.takephoto_burst_insufficient_tips_titile):SetContent(string.format(LuaText.takephoto_burst_insufficient_tips_text, Remaining)):SetMode(DialogContext.Mode.OK_CANCEL):SetButtonText(LuaText.OK, LuaText.CANCEL):SetCloseOnCancel(true):SetCallback(self, function(_, isOK)
       if isOK then
         self.DropDownList_1:RefreshList()
         self.DropDownList_1:ConditionUnExpand()
       else
-        self.TakePhotoSettings.BurstGroup:SetSelectOption(Old)
+        self.bDisableAudio = true
+        self.TakePhotoSettings.BurstGroup:Toggle(1)
+        self.bDisableAudio = false
       end
     end)
     _G.NRCModuleManager:DoCmd(TipsModuleCmd.Dialog_OpenDialog, Ctx)
   else
+    if not self.bDisableAudio then
+      _G.NRCAudioManager:PlaySound2DAuto(41401003, "UMG_TakePhotos_Settings_C:OnBurstOptionChanged")
+    end
     self.DropDownList_1:RefreshList()
     self.DropDownList_1:ConditionUnExpand()
   end

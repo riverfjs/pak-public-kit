@@ -12,9 +12,11 @@ function UMG_Activity_ShinyWeekend_C:BindUIElements()
   uiElements.timeRemaining = self.Text_TimeRemaining
   uiElements.promptText = self.Text_Describe
   if _activityInst:IsPreviewActivity() then
+    uiElements.desireActivityType = Enum.ActivityType.ATP_SHINY_WEEKEND_PREVIEW
     uiElements.openAnimName = "In"
     uiElements.changeAnimName = "In"
   else
+    uiElements.desireActivityType = Enum.ActivityType.ATP_SHINY_WEEKEND_START
     uiElements.openAnimName = "In_disappear"
     uiElements.changeAnimName = "In_show"
   end

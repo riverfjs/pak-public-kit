@@ -25,6 +25,7 @@ function MagicReplayReplayMainAction:OnEnter()
   self.timeout = MagicReplayUtils.GetRecordingMaxTime() + 5
   local replayFeedDetail = _G.NRCModeManager:DoCmd(_G.MagicReplayModuleCmd.GetReplayFeedDetail)
   local success = _G.NRCModeManager:DoCmd(_G.MagicReplayModuleCmd.StartReplay, replayFeedDetail.feed_video_info.file_name, replayFeedDetail.feed_info.create_pos, replayFeedDetail.feed_video_info.base_info_md5, replayFeedDetail.feed_video_info.file_md5)
+  _G.NRCModeManager:DoCmd(_G.MagicReplayModuleCmd.SetReplaySeqInfo)
   _G.NRCEventCenter:RegisterEvent("MagicReplayReplayMainAction", self, MagicReplayModuleEvent.StopReplayProcess, self.StopReplay)
   _G.NRCEventCenter:RegisterEvent("MagicReplayReplayMainAction", self, MagicReplayModuleEvent.OnMagicSeqReplayEnd, self.StopReplay)
   _G.NRCEventCenter:DispatchEvent(MagicReplayModuleEvent.OnStartReplayProcess)
@@ -36,6 +37,7 @@ function MagicReplayReplayMainAction:OnEnter()
 end
 
 function MagicReplayReplayMainAction:StopReplay()
+  MagicReplayUtils.ClearThrowBalls()
   self.fsm:Resume()
   self:Finish()
 end

@@ -13,12 +13,22 @@ function UMG_Teaching_Item_C:OnDestruct()
 end
 
 function UMG_Teaching_Item_C:OnBtnTracePressed()
+  if self.type == ModuleData.TeachType.Restraint then
+    NRCModuleManager:DoCmd(RedPointModuleCmd.EraseRedPoint, 436, {
+      self.confId
+    })
+  end
   if _G.DataModelMgr.PlayerDataModel:IsVisitState() then
     _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.online_task_unable_text)
     return
   end
   if _G.NRCModuleManager:DoCmd(MiniGameModuleCmd.IsPlaying) then
     _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.Error_Code_2331)
+    return
+  end
+  if _G.FunctionBanManager:GetConditionCounter(_G.Enum.PlayerConditionType.PCT_PROP_BLINDBOX) then
+    local banConf = _G.DataConfigManager:GetFunctionBanConf(_G.Enum.PlayerConditionType.PCT_PROP_BLINDBOX)
+    _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, banConf and banConf.ban_desc)
     return
   end
   local req = _G.ProtoMessage:newZoneTriggerTeachingBattleReq()

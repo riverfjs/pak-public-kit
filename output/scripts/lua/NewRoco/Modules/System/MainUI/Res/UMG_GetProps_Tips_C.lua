@@ -53,7 +53,11 @@ function UMG_GetProps_Tips_C:SetData(tip)
     Log.Debug(self.BackgroundImage:GetVisibility(), "UMG_GetProps_Tips_C:SetData")
     local Size = self.BackgroundImage.brushes:Length()
     local BrushIndex = math.clamp(Quality, 1, Size)
-    self:SetPropIcon(PropIcon, ItemConf)
+    if tip.type == Enum.GoodsType.GT_BAGITEM then
+      self:SetPropIcon(PropIcon, ItemConf)
+    else
+      self:SetPropIcon(PropIcon)
+    end
     self.Bg:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     self.BackgroundImage:ChangeImage(BrushIndex - 1)
     self.PropName:SetColorAndOpacity(UE4.UNRCStatics.HexToSlateColor(self.ColorList[BrushIndex]))

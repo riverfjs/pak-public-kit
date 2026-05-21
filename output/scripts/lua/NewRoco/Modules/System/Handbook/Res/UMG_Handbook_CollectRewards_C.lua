@@ -2,7 +2,7 @@ local HandbookModuleEvent = reload("NewRoco.Modules.System.Handbook.HandbookModu
 local NPCShopUIModuleEvent = reload("NewRoco.Modules.System.NPCShopUI.NPCShopUIModuleEvent")
 local UMG_Handbook_CollectRewards_C = _G.NRCPanelBase:Extend("UMG_Handbook_CollectRewards_C")
 
-function UMG_Handbook_CollectRewards_C:OnActive()
+function UMG_Handbook_CollectRewards_C:OnActive(selectItemNum)
   self:OnAddEventListener()
   self:AddPcInputBlock()
   self.module = _G.NRCModuleManager:GetModule("HandbookModule")
@@ -13,6 +13,7 @@ function UMG_Handbook_CollectRewards_C:OnActive()
   self.pageList = {}
   self.pageNum = 5
   self.jumpIndex = 0
+  self.selectItemNum = selectItemNum
   self.RewardsItemList = {
     self.CollectRewards_Item,
     self.CollectRewards_Item_1,
@@ -34,6 +35,7 @@ function UMG_Handbook_CollectRewards_C:OnActive()
   self.bgProxy = _G.NRCModuleManager:DoCmd(TUIModuleCmd.PushBlackBackgroundWidgets, {
     self.Bg_1
   })
+  self:DispatchEvent(HandbookModuleEvent.OnIsShowRegionalBtnMask, true)
 end
 
 function UMG_Handbook_CollectRewards_C:OnLogin()
@@ -43,18 +45,7 @@ function UMG_Handbook_CollectRewards_C:OnLogin()
 end
 
 function UMG_Handbook_CollectRewards_C:GetCurAreaHandbookRewardConfs()
-  local curAreaId = self.data.CurHandbookAreaId
-  local handbookRewardConfs = _G.DataConfigManager:GetTable(_G.DataConfigManager.ConfigTableId.PET_HANDBOOK_REWARD):GetAllDatas()
-  local List = {}
-  for key, conf in pairs(handbookRewardConfs) do
-    if conf.belong_area_handbook == curAreaId then
-      table.insert(List, conf)
-    end
-  end
-  table.sort(List, function(a, b)
-    return a.handbook_number < b.handbook_number
-  end)
-  return List
+  return self.module:GetCurAreaHandbookRewardConfs()
 end
 
 function UMG_Handbook_CollectRewards_C:ShowPanel()
@@ -73,10 +64,18 @@ end
 
 function UMG_Handbook_CollectRewards_C:ShowPageList()
   local dataList = self.rewardPageDataDic[self.curPageIndex]
+  local showTipsIdx
+  if self.selectItemNum then
+    showTipsIdx = self.pageNum - (self.curPageIndex * self.pageNum - self.selectItemNum)
+    self.selectItemNum = nil
+  end
   for i = 1, self.pageNum do
     if dataList and i <= #dataList then
       self.RewardsItemList[i]:SetVisibility(UE4.ESlateVisibility.Visible)
       self.RewardsItemList[i]:OnActive(dataList[i], dataList[i].Idx)
+      if showTipsIdx and showTipsIdx == i then
+        self.RewardsItemList[i]:ClickTips()
+      end
     else
       self.RewardsItemList[i]:SetVisibility(UE4.ESlateVisibility.Collapsed)
     end
@@ -115,7 +114,9 @@ function UMG_Handbook_CollectRewards_C:CreatPagesInfo()
       table.insert(self.rewardPageDataDic[i], rewardData)
     end
   end
-  if 0 ~= showPackageCount then
+  if self.selectItemNum then
+    self.jumpIndex = math.ceil(self.selectItemNum / self.pageNum)
+  elseif 0 ~= showPackageCount then
     self.jumpIndex = showPackageCount
   end
 end
@@ -213,7 +214,7 @@ end
 
 function UMG_Handbook_CollectRewards_C:OnClickItemIndex(index)
   for i = 1, #self.RewardsItemList do
-    if self.RewardsItemList[i].uiData.Idx ~= index then
+    if self.RewardsItemList[i].uiData and self.RewardsItemList[i].uiData.Idx ~= index then
       self.RewardsItemList[i]:CloseTips()
     end
   end
@@ -236,6 +237,7 @@ function UMG_Handbook_CollectRewards_C:OnDestruct()
   self:UnRegisterEvent(self, HandbookModuleEvent.OnUpdateRewardPanel)
   self:UnRegisterEvent(self, HandbookModuleEvent.OnCollectRewardsToPage)
   self:UnRegisterEvent(self, HandbookModuleEvent.OnCollectRewardsClickIndex)
+  self:DispatchEvent(HandbookModuleEvent.OnIsShowRegionalBtnMask, false)
   _G.NRCModuleManager:GetModule("NPCShopUIModule"):UnRegisterEvent(self, NPCShopUIModuleEvent.NPCSHOP_ITEM_REWARS_CLOSE, self.OnShopTipsClose)
 end
 

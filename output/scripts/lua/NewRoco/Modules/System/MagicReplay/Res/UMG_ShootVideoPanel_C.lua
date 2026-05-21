@@ -31,10 +31,10 @@ end
 function UMG_ShootVideoPanel_C:UnregisterEventListener()
   if self.ParentModule then
     self.ParentModule:UnRegisterEvent(self, MagicReplayModuleEvent.EnterRecordState)
-    _G.NRCEventCenter:UnRegisterEvent(self, MagicReplayModuleEvent.EnterPreviewState)
+    _G.NRCEventCenter:UnRegisterEvent(self, MagicReplayModuleEvent.EnterPreviewState, self.EnterPreviewState)
     self.ParentModule:UnRegisterEvent(self, MagicReplayModuleEvent.PlayCountDownNum)
     self.ParentModule:UnRegisterEvent(self, MagicReplayModuleEvent.StopCountDownNum)
-    self.ParentModule:UnRegisterEvent(self, MagicReplayModuleEvent.RefreshUI)
+    self.ParentModule:UnRegisterEvent(self, MagicReplayModuleEvent.RefreshRecordPanel)
   end
 end
 

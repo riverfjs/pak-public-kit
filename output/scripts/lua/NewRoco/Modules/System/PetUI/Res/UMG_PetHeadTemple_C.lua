@@ -5,6 +5,10 @@ local PetUIModuleEvent = require("NewRoco.Modules.System.PetUI.PetUIModuleEvent"
 local PetUtils = require("NewRoco.Utils.PetUtils")
 local PetMutationUtils = require("NewRoco.Utils.PetMutationUtils")
 local UMG_PetHeadTemple_C = Base:Extend("UMG_PetHeadTemple_C")
+local EnumPetInfoChangeReasonType = {None = 0, TraceBack = 1}
+local BG1 = "PaperSprite'/Game/NewRoco/Modules/System/PetUI/Raw/Atlas/PetUI/Frames/img_HeadDragableBg1_png.img_HeadDragableBg1_png'"
+local BG2 = "PaperSprite'/Game/NewRoco/Modules/System/PetUI/Raw/Atlas/PetUI/Frames/img_HeadDragableBg2_png.img_HeadDragableBg2_png'"
+local IMG_DRAG_HOVER = "PaperSprite'/Game/NewRoco/Modules/System/PetUI/PetUIStatic/Frames/img_Drag_png.img_Drag_png'"
 
 function UMG_PetHeadTemple_C:Initialize(Initializer)
   self.SelectTimes = 0
@@ -24,6 +28,10 @@ function UMG_PetHeadTemple_C:OnDestruct()
   if _G.DataModelMgr.PlayerDataModel:HasListener(self, PlayerDataEvent.UPDATE_PET_HP, self.OnPlayerPetHPChange) then
     _G.DataModelMgr.PlayerDataModel:RemoveEventListener(self, PlayerDataEvent.UPDATE_PET_HP, self.OnPlayerPetHPChange)
   end
+  if self.TraceBackDelayHandle then
+    _G.DelayManager:CancelDelay(self.TraceBackDelayHandle)
+    self.TraceBackDelayHandle = nil
+  end
   self.HeadIcon:ReleaseForce()
   self.petHp:Destruct()
 end
@@ -41,6 +49,7 @@ function UMG_PetHeadTemple_C:SetData(_petInfo, datalistInfo)
   end
   self.IsSetData = true
   self.uiData = _petInfo
+  self.parent = _petInfo.parent
   self:SwitchToActive()
   self.clickable = true
   self:SetBaseInfo()
@@ -54,6 +63,7 @@ function UMG_PetHeadTemple_C:SetData(_petInfo, datalistInfo)
         self.PetLevel:SetVisibility(UE4.ESlateVisibility.Visible)
         self.HeadIcon:SetVisibility(UE4.ESlateVisibility.Visible)
         self.imageNormal:SetVisibility(UE4.ESlateVisibility.Visible)
+        self.headIcon_Mask:SetPath(modelConf.icon)
       end
     end
     self:SetRenderOpacity(1)
@@ -99,7 +109,19 @@ function UMG_PetHeadTemple_C:UpdatePetName(_petData)
   self.SelectedName:SetText(self.uiData.petData.name)
 end
 
-function UMG_PetHeadTemple_C:UpdateNewData(_petData, _base_conf_id)
+function UMG_PetHeadTemple_C:UpdateNewData(_petData, _base_conf_id, PetInfoChangeReasonType)
+  if PetInfoChangeReasonType == EnumPetInfoChangeReasonType.TraceBack then
+    Log.Debug("UMG_PetHeadTemple_C:UpdateNewData TraceBack")
+    if not self:IsAnimationPlaying(self.TraceBack) then
+      self.TimeRewindFxPanel:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+      self.imageSelect_4:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+      self:PlayAnimation(self.TraceBack)
+    end
+  end
+  if self.TraceBackDelayHandle then
+    _G.DelayManager:CancelDelay(self.TraceBackDelayHandle)
+    self.TraceBackDelayHandle = nil
+  end
   self.uiData.petData = _petData
   self.uiData.level = _petData.level
   self.uiData.base_conf_id = _base_conf_id
@@ -109,10 +131,13 @@ function UMG_PetHeadTemple_C:UpdateNewData(_petData, _base_conf_id)
       local modelConf = _G.DataConfigManager:GetModelConf(petBaseConf.model_conf)
       if modelConf then
         self.PetLevel:SetText(self.uiData.level)
+        self.SelectedGrade:SetText(self.uiData.level)
+        self.UnSelectedGrade:SetText(self.uiData.level)
         self.HeadIcon:SetIconPathAndMaterial(_petData.base_conf_id, _petData.mutation_type, _petData.glass_info)
         self.UnSelectedName:SetText(self.uiData.petData.name)
         self.SelectedName:SetText(self.uiData.petData.name)
         self.HeadIcon:SetVisibility(UE4.ESlateVisibility.Visible)
+        self.headIcon_Mask:SetPath(modelConf.icon)
         self:ShowEvoTip()
         self:UpdateTxtColor()
       end
@@ -245,6 +270,7 @@ function UMG_PetHeadTemple_C:SetSelect(_flag, openSelect)
     end
   else
     self.SelectTimes = 0
+    self.imageSelect_4:SetVisibility(UE4.ESlateVisibility.Collapsed)
     if self.Expansion:GetVisibility() == UE4.ESlateVisibility.SelfHitTestInvisible then
       self.imageSelect:SetVisibility(UE4.ESlateVisibility.Collapsed)
     else
@@ -282,13 +308,19 @@ function UMG_PetHeadTemple_C:OnItemSelected(_bSelected)
       end
       local IsTeamPet = _G.DataModelMgr.PlayerDataModel:GetIsTeamPetByGid(self.uiData.petData.gid)
       if IsTeamPet then
-        _G.NRCModuleManager:DoCmd(MainUIModuleCmd.UI_SetThrowItem, _G.MainUIModuleEnum.MainUIChooseType.PET, self.uiData.petData)
+        if self.parent and self.parent.GetIsOpenWithOne and self.parent:GetIsOpenWithOne() then
+        else
+          _G.NRCModuleManager:DoCmd(MainUIModuleCmd.UI_SetThrowItem, _G.MainUIModuleEnum.MainUIChooseType.PET, self.uiData.petData)
+        end
         _G.NRCModuleManager:DoCmd(MainUIModuleCmd.UI_RefreshMainPetSelectedState, self.uiData.gid)
       end
       local NotChangePetModel = self.NotChangePetModel and true or false
       if not self.SkipSetData then
         if not self.bFirstOpen then
           self:SetSelect(_bSelected, self.NeedOpenDoubleSelectAnim)
+          _G.NRCModuleManager:GetModule("PetUIModule"):DispatchEvent(PetUIModuleEvent.ChangeChoosePet, self._index, self.uiData, true, NotChangePetModel)
+        elseif self.bRefreshSelect then
+          self:SetSelect(_bSelected)
           _G.NRCModuleManager:GetModule("PetUIModule"):DispatchEvent(PetUIModuleEvent.ChangeChoosePet, self._index, self.uiData, true, NotChangePetModel)
         elseif PetIndex ~= self._index or PetData and PetData.gid ~= self.uiData.gid then
           self:SetSelect(_bSelected)
@@ -379,12 +411,22 @@ function UMG_PetHeadTemple_C:ShowDetail(_IsFirstIn)
   end
 end
 
+function UMG_PetHeadTemple_C:SetIsRefreshSelect(InRefreshSelect)
+  self.bRefreshSelect = InRefreshSelect
+end
+
+function UMG_PetHeadTemple_C:GetIsRefreshSelect()
+  return self.bRefreshSelect
+end
+
 function UMG_PetHeadTemple_C:PlayAnimationIn()
   self:PlayAnimation(self.Open_jinglingye)
 end
 
 function UMG_PetHeadTemple_C:HideDetail()
-  self:StopAllAnimations()
+  if self:IsAnimationPlaying(self.OpenXqAni) then
+    self:StopAnimation(self.OpenXqAni)
+  end
   self:PlayAnimation(self.OpenXqAni)
   self.Unexpanded:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
   self.imageSelectTop:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
@@ -424,8 +466,153 @@ function UMG_PetHeadTemple_C:OnAnimationFinished(Animation)
     self.NotSelected:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
   elseif Animation == self.cancel then
     self.imageSelect:SetVisibility(UE4.ESlateVisibility.Hidden)
-  elseif Animation == self.Open_jinglingye and self.uiData and self.uiData.gid and self.uiData.gid > 0 then
-    self:SetClickable(true)
+  elseif Animation == self.Open_jinglingye then
+    if self.uiData and self.uiData.gid and self.uiData.gid > 0 then
+      self:SetClickable(true)
+    end
+  elseif Animation == self.Move_Out then
+    self.Selected_Select:SetPath(BG1)
+    self.Selected_Select:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.Selected_Normal:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.Selected_Empty:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.imageNormal_Selected:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  end
+end
+
+function UMG_PetHeadTemple_C:OnTouchStarted(_MyGeometry, _InTouchEvent)
+  Base.OnTouchStarted(self, _MyGeometry, _TouchEvent)
+  if self.parent and self.uiData and self.uiData.gid and 0 ~= self.uiData.gid then
+    self.parent:SetDragItemTemp(self)
+  end
+  return UE4.UWidgetBlueprintLibrary.Unhandled()
+end
+
+function UMG_PetHeadTemple_C:GetShortRect()
+  local isEmpty = not self.uiData or not self.uiData.gid or 0 == self.uiData.gid
+  local widget = isEmpty and self.imageNormal or self.HeadIcon
+  local geo = widget:GetCachedGeometry()
+  return {
+    pos = UE4.USlateBlueprintLibrary.LocalToAbsolute(geo, UE4.FVector2D(0, 0)),
+    size = UE4.USlateBlueprintLibrary.GetAbsoluteSize(geo)
+  }
+end
+
+function UMG_PetHeadTemple_C:GetLongRect()
+  local isEmpty = not self.uiData or not self.uiData.gid or 0 == self.uiData.gid
+  local widget = isEmpty and self.EmptyBg or self.isSelect and self.Bg_2 or self.Bg
+  local geo = widget:GetCachedGeometry()
+  return {
+    pos = UE4.USlateBlueprintLibrary.LocalToAbsolute(geo, UE4.FVector2D(0, 0)),
+    size = UE4.USlateBlueprintLibrary.GetAbsoluteSize(geo)
+  }
+end
+
+function UMG_PetHeadTemple_C:SetDragHover(bHover, bLong)
+  self.isDragHover = bHover
+  local isEmpty = not self.uiData or not self.uiData.gid or 0 == self.uiData.gid
+  
+  local function show(w)
+    w:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  end
+  
+  local function hide(w)
+    w:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  end
+  
+  if bLong then
+    self:StopAnimation(self.Move_In)
+    self:StopAnimation(self.Move_Out)
+    if bHover then
+      self:PlayAnimation(self.Move_In)
+      if self.isSelect then
+        self.Selected_Select:SetPath(BG2)
+        show(self.Selected_Select)
+        show(self.BgLong_Mask)
+        show(self.Change)
+      elseif not isEmpty then
+        show(self.Selected_Normal)
+        show(self.Bg_Mask)
+        show(self.Change)
+      else
+        show(self.Selected_Empty)
+        show(self.Put2)
+      end
+    else
+      self:PlayAnimation(self.Move_Out)
+      hide(self.BgLong_Mask)
+      hide(self.Bg_Mask)
+      hide(self.Change)
+      hide(self.Selected_Empty)
+      hide(self.Put2)
+    end
+  elseif bHover then
+    self:StopAnimation(self.Move_In)
+    self:StopAnimation(self.Move_Out)
+    self:PlayAnimation(self.Move_In)
+    show(self.imageNormal_Selected)
+    if not isEmpty then
+      show(self.HeadMask)
+      show(self.headIcon_Mask)
+      show(self.Change_1)
+    else
+      show(self.Put_2)
+    end
+  else
+    hide(self.HeadMask)
+    hide(self.headIcon_Mask)
+    hide(self.Change_1)
+    hide(self.Put_2)
+    self:StopAnimation(self.Move_In)
+    self:StopAnimation(self.Move_Out)
+    self:PlayAnimation(self.Move_Out)
+  end
+end
+
+function UMG_PetHeadTemple_C:SetPutVisibility(visibility, bLong)
+  local isEmpty = not self.uiData or not self.uiData.gid or 0 == self.uiData.gid
+  if not isEmpty then
+    return
+  end
+  local widget = bLong and self.Put or self.Put0
+  if widget then
+    widget:SetVisibility(visibility)
+  end
+end
+
+function UMG_PetHeadTemple_C:SetDragSelectState(bDrag)
+  if not self.isSelect then
+    return
+  end
+  if bDrag then
+    self.imageSelect:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.imageNormal_Selected_White:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  else
+    self.imageNormal_Selected_White:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.imageSelect:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  end
+end
+
+function UMG_PetHeadTemple_C:SetDragSelf(bDrag, bLong)
+  self.isDragSelf = bDrag
+  local SHOW = UE4.ESlateVisibility.SelfHitTestInvisible
+  local HIDE = UE4.ESlateVisibility.Collapsed
+  if bLong then
+    self.Selected_Select:SetPath(BG1)
+    if self.isSelect then
+      self.BgLong_Mask:SetVisibility(bDrag and SHOW or HIDE)
+      self.Selected_Select:SetVisibility(bDrag and SHOW or HIDE)
+      self:StopAnimation(self.Move_In)
+      self:StopAnimation(self.Move_Out)
+      self:PlayAnimation(self.Move_In)
+    else
+      self.Bg_Mask:SetVisibility(bDrag and SHOW or HIDE)
+    end
+  else
+    self.HeadMask:SetVisibility(bDrag and SHOW or HIDE)
+    self.headIcon_Mask:SetVisibility(bDrag and SHOW or HIDE)
+    if bDrag then
+      self.Change_1:SetVisibility(HIDE)
+    end
   end
 end
 

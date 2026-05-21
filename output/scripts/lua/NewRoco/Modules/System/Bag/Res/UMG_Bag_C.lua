@@ -12,6 +12,7 @@ local BattlePassModuleEvent = require("NewRoco.Modules.System.BattlePass.BattleP
 local FunctionBanUIController = require("NewRoco.Modules.System.FunctionBan.FunctionBanUIController")
 local ActivityUtils = require("NewRoco.Modules.System.Activity.ActivityUtils")
 local MagicReplayModuleEvent = require("NewRoco.Modules.System.MagicReplay.MagicReplayModuleEvent")
+local HomeEnum = require("NewRoco/Modules/System/Home/HomeEnum")
 local UMG_Bag_C = _G.NRCPanelBase:Extend("UMG_Bag_C")
 local FunctionEntranceMain = Enum.FunctionEntrance.FE_BAG
 local BagTabTypeFunctionEntrance = {
@@ -309,6 +310,7 @@ function UMG_Bag_C:OnActive(itemconf, bIsOpenByBag, TableIndex)
   self:SetCommonComboBoxInfo(self.ComboBox, DropDownListInfo, selectIndex, comboBoxText)
   self.ComboBox:ShowOrHideBtnLeft(false, true)
   self.module:TryGetBagInfo()
+  _G.NRCModuleManager:DoCmd(BagModuleCmd.OpenBagExpiredItemsConversion)
   if not bIsOpenByBag then
     return
   end
@@ -630,7 +632,18 @@ function UMG_Bag_C:OnScreenBtn()
     _G.NRCModeManager:DoCmd(_G.BagModuleCmd.OpenFilterPanel, bagInfoList, _G.DataConfigManager.ConfigTableId.SKILLMACHINE_FILTER_CONF, condition)
   end
   if type == Enum.ItemLableType.ILT_FURNITURE then
-    self.module:OpenPanel("UMG_FurnitureScreening")
+    local extraData
+    local filterMode = HomeEnum.FurnitureFilterMode.Bag
+    if self.data:InFurnitureDecomposeMode() then
+      extraData = self.data:GetFurnitureDisplayNumInTabDecompose()
+      filterMode = HomeEnum.FurnitureFilterMode.BagDecompose
+    else
+      extraData = self.data:GetFurnitureDisplayNumInTab()
+      filterMode = HomeEnum.FurnitureFilterMode.Bag
+    end
+    if _G.HomeModuleCmd then
+      _G.NRCModuleManager:DoCmd(_G.HomeModuleCmd.OpenFurnitureFilterPanel, nil, filterMode, nil, extraData)
+    end
   end
   self:ResetDescText()
 end
@@ -701,13 +714,19 @@ function UMG_Bag_C:OnInitScreenState()
     self.data.FilterClassifyCondition = {}
   end
   if #self.data.FilterPetCondition > 0 or #self.data.FilterDepartCondition > 0 or #self.data.FilterClassifyCondition > 0 then
-    if not self.bIsScreening then
-      self.bIsScreening = true
-      self.ComboBox.ScreeningBtn:ChangeIconSelectState(2)
-    end
-  elseif not self.data:GetIsFirstOpenPanel() and self.bIsScreening then
+    self.bIsScreening = true
+    self.ComboBox.ScreeningBtn:ChangeIconSelectState(2)
+  elseif not self.data:GetIsFirstOpenPanel() then
     self.bIsScreening = false
     self.ComboBox.ScreeningBtn:ChangeIconSelectState(1)
+  end
+  local ItemType = self.data:GetCurItemType()
+  if ItemType == Enum.ItemLableType.ILT_FURNITURE then
+    if self.data:HasFurnitureFilters() then
+      self.ComboBox.ScreeningBtn:ChangeIconSelectState(2)
+    else
+      self.ComboBox.ScreeningBtn:ChangeIconSelectState(1)
+    end
   end
 end
 
@@ -1291,9 +1310,13 @@ function UMG_Bag_C:SetItemInfo(itemID, ItemGid, bClickByUser)
       self.RightBtn:SetBtnText(LuaText.umg_petbag_7)
     else
       self.RightBtn:SetBtnText(LuaText.umg_bag_13)
+      local petBoxItemID = 390001
+      if itemID == petBoxItemID then
+        self.RightBtn:SetBtnText(LuaText.use_pet_box_button)
+      end
     end
     local itemDes = bagItemInfo.description
-    if bagItemInfo.lable_type == _G.Enum.ItemLableType.ILT_PET_EGG or bagItemInfo.lable_type == _G.Enum.ItemLableType.ILT_PET_FRUIT then
+    if bagItemInfo.lable_type == _G.Enum.ItemLableType.ILT_PET_EGG then
       if itemData.egg_data and 0 ~= itemData.egg_data.conf_id then
         local isHaveBook, name, desc = _G.NRCModeManager:DoCmd(_G.HandbookModuleCmd.OnCmdCheckItemInHandbook, bagItemInfo.id)
         if isHaveBook then
@@ -1308,9 +1331,12 @@ function UMG_Bag_C:SetItemInfo(itemID, ItemGid, bClickByUser)
       local itemSelectData = self.data:GetCurSelectedItemData()
       local eggData = itemSelectData.egg_data
       self:SetEggaInfo(eggData, itemSelectData.update_time)
-      if bagItemInfo.lable_type == _G.Enum.ItemLableType.ILT_PET_FRUIT then
-        self.EggItem:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    elseif bagItemInfo.lable_type == _G.Enum.ItemLableType.ILT_PET_FRUIT then
+      local isHaveBook, name, desc = _G.NRCModeManager:DoCmd(_G.HandbookModuleCmd.OnCmdCheckItemInHandbook, bagItemInfo.id)
+      if isHaveBook then
+        itemDes = desc
       end
+      self.EggItem:SetVisibility(UE4.ESlateVisibility.Collapsed)
     else
       self.Switcher:SetActiveWidgetIndex(0)
       self.EggItem:SetVisibility(UE4.ESlateVisibility.Collapsed)
@@ -1347,8 +1373,9 @@ function UMG_Bag_C:SetItemInfo(itemID, ItemGid, bClickByUser)
   end
   local itemName = bagItemInfo.name
   if bagItemInfo.type == _G.Enum.BagItemType.BI_PET_EGG or bagItemInfo.type == _G.Enum.BagItemType.BI_PET_FRUIT then
+    local isHaveBook = false
     if itemData.egg_data and 0 ~= itemData.egg_data.conf_id or bagItemInfo.type == _G.Enum.BagItemType.BI_PET_FRUIT then
-      local isHaveBook, haveName, des = _G.NRCModeManager:DoCmd(_G.HandbookModuleCmd.OnCmdCheckItemInHandbook, bagItemInfo.id)
+      isHaveBook, haveName, des = _G.NRCModeManager:DoCmd(_G.HandbookModuleCmd.OnCmdCheckItemInHandbook, bagItemInfo.id)
       if isHaveBook then
         itemName = haveName
       end
@@ -1873,6 +1900,7 @@ function UMG_Bag_C:SortItem1(itemType, sortType, bagItemConf)
     end
   end
   self:ChangeSortText(itemType)
+  self:OnInitScreenState()
 end
 
 function UMG_Bag_C:FindUseItemIndex(SelectItem, _sortList)
@@ -2004,7 +2032,7 @@ function UMG_Bag_C:OnBtnRightClicked()
               _G.NRCModuleManager:DoCmd(_G.BagModuleCmd.OpenOrCloseCharacterPanelToList, self.data.CharacterPanelEnum.TalentPopup, true)
             else
               _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.umg_bag_7)
-              goto lbl_1299
+              goto lbl_1294
               _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.umg_bag_7)
             end
           end
@@ -2070,8 +2098,6 @@ function UMG_Bag_C:OnBtnRightClicked()
             _G.NRCModuleManager:DoCmd(_G.BagModuleCmd.OpenEvolutionarySelectPanel, evolutionaryPetList)
           end
         end
-      elseif use_action == Enum.ItemBehavior.IB_OPEN_GP_CONTEST then
-        _G.NRCModuleManager:DoCmd(_G.BagModuleCmd.OpenGradePointPanel)
       elseif use_action == Enum.ItemBehavior.IB_READ then
         _G.NRCModuleManager:DoCmd(DialogueModuleCmd.OpenReadingMatter, BagItemConf.item_behavior[1].ratio[1])
       elseif use_action == Enum.ItemBehavior.IB_OPEN_GP_BAG then
@@ -2138,6 +2164,8 @@ function UMG_Bag_C:OnBtnRightClicked()
           elseif BP_Data.PlayerBattlePassInfo.battle_pass_brief_info.gift_grade == _G.ProtoEnum.BattlePassGiftGrade.BPGG_NORMAL then
             initData.ContentText = _G.DataConfigManager:GetLocalizationConf("bagitem_BP_upgrade_tips2").msg
             initData.Btn_RightHandler = self.BP_Unlock
+            initData.CountdownTime = 6
+            initData.Btn_GrayStateText = _G.DataConfigManager:GetLocalizationConf("YES").msg
           else
             local bpInfo = BP_Data:GetPlayerBattlePassInfo()
             if 0 == bpInfo.theme_id or bpInfo.theme_id == nil then
@@ -2203,7 +2231,7 @@ function UMG_Bag_C:OnBtnRightClicked()
         _G.NRCModuleManager:DoCmd(BagModuleCmd.UseBagItem, self.data:GetCurSelectedItemData().gid, self.data:GetCurSelectedItemData().id or 0, 1)
       end
     end
-    ::lbl_1299::
+    ::lbl_1294::
     _G.NRCAudioManager:PlaySound2DAuto(1072, "UMG_Bag_C:OnBtnRightClicked")
   else
     local LocalizationConf = _G.DataConfigManager:GetLocalizationConf("Noguide_use_stamp_item")
@@ -2269,6 +2297,11 @@ function UMG_Bag_C:OnBtnEggClicked()
     self.ClickEggTime = os.time()
   end
   local CurSelectedItem = self.data:GetCurSelectedItemData()
+  if CurSelectedItem and CurSelectedItem.id then
+    NRCModuleManager:DoCmd(RedPointModuleCmd.EraseRedPoint, 469, {
+      CurSelectedItem.id
+    })
+  end
   _G.NRCModuleManager:DoCmd(BagModuleCmd.OpenHatchTips)
   _G.NRCModuleManager:DoCmd(BagModuleCmd.UseBagItem, CurSelectedItem.gid, CurSelectedItem.id, 1)
   _G.NRCAudioManager:PlaySound2DAuto(1220002037, "UMG_Bag_C:OnBtnEggClicked")
@@ -2341,6 +2374,7 @@ end
 function UMG_Bag_C:LastSelecedIndex(index)
   Log.Debug("[Bag] step1 UMG_Bag_C:LastSelecedIndex", index)
   self.NeeItemSelectedAudio = false
+  _G.NRCModuleManager:DoCmd(BagModuleCmd.OpenBagExpiredItemsConversion)
   self.GridView1:ClearSelection()
   self:GetChooseItemTypeInfo(index - 1)
   self:PlayAnimation(self.change)

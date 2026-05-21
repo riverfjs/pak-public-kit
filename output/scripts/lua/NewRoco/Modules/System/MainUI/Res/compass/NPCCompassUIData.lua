@@ -19,6 +19,10 @@ function NPCCompassUIData:InitData(Info, worldMap, ViewField)
   self.NpcConfig = Info.NpcConfig
   self.petInfo = Info.petInfo
   self.IsOwlStarNpc = self.NpcConfig.min_map_disappear and self.NpcConfig.min_map_disappear > 0
+  self.IsCathPetNpc = Info.IsCathPetNpc
+  if self.IsCathPetNpc then
+    self:DisableDistanceLevel()
+  end
   self.NPC_level = Info.NPC_Level or 1
   self.glass_info = Info.glass_info
   self.mutation_type = Info.mutation_type

@@ -21,6 +21,10 @@ function UMG_Battle_Card_C:OnConstruct()
   self._isSelect = false
   self._canClick = true
   self.curOperateType = BattleEnum.Operation.ENUM_CHANGE
+  self.Bg:SetVisibility(UE4.ESlateVisibility.Visible)
+  self.Bg_1:SetVisibility(UE4.ESlateVisibility.Visible)
+  self.Bg_2:SetVisibility(UE4.ESlateVisibility.Visible)
+  self.Bg_3:SetVisibility(UE4.ESlateVisibility.Visible)
 end
 
 function UMG_Battle_Card_C:OnDestruct()
@@ -41,9 +45,25 @@ function UMG_Battle_Card_C:OnBattleEvent(eventName, ...)
   end
 end
 
+function UMG_Battle_Card_C:ResetSelect()
+  self._isSelect = false
+  self:PlayAnimation(self.Btn_Normal)
+end
+
+function UMG_Battle_Card_C:Select()
+  self._isSelect = true
+  if self:IsAnyAnimationPlaying(self.Btn_Normal) then
+    self:StopAnimation(self.Btn_Normal)
+  end
+  self:PlayAnimation(self.Btn_Click)
+end
+
 function UMG_Battle_Card_C:DisSelect()
   self._isSelect = false
   if self.SelectedImage:GetVisibility() == UE4.ESlateVisibility.Visible or self.SelectedImage:GetVisibility() == UE4.ESlateVisibility.SelfHitTestInvisible then
+    if self:IsAnyAnimationPlaying(self.Btn_Normal) then
+      self:StopAnimation(self.Btn_Normal)
+    end
     self:PlayAnimation(self.Btn_Notclick)
   end
 end
@@ -53,21 +73,18 @@ function UMG_Battle_Card_C:OnOperatePanelChanged(operateType)
   self.curOperateType = operateType
   if operateType == BattleEnum.Operation.ENUM_CHANGE then
   else
-    self:DisSelect()
   end
 end
 
 function UMG_Battle_Card_C:OnPetIconClicked(id)
   if not self.card or id ~= self.card.guid then
     UE4.UNRCAudioManager.Get():PlaySound2DAuto(1004, "UMG_Battle_Card_C:OnPetIconClicked")
-    self:DisSelect()
   end
 end
 
 function UMG_Battle_Card_C:OnPetClicked(pet)
   if self._isSelect and _G.BattleManager.battleRuntimeData.operateType == BattleEnum.Operation.ENUM_CHANGE then
     _G.BattleEventCenter:Dispatch(BattleEvent.BATTLE_CLICKED_CHANGEPET, self.card, pet)
-    self:DisSelect()
   end
 end
 
@@ -123,10 +140,11 @@ end
 function UMG_Battle_Card_C:DoClick()
   if not (self.curOperateType == BattleEnum.Operation.ENUM_CHANGE and not BattleUtils.IsWatchingBattle() and self.card and self._canClick) or self.card:IsModelInBattle() then
   elseif self.card:GetHp() > 0 then
-    self._isSelect = true
     self.UMG_BattleClickFX:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
-    self:PlayAnimation(self.Btn_Click)
-    _G.BattleEventCenter:Dispatch(BattleEvent.BATTLE_CLICKED_BAG_PET, self.card.guid)
+    local onPetClickCallback = self.onPetClickCallback
+    local card = self.card
+    local guid = card and card.guid
+    tcall(nil, onPetClickCallback, guid)
   else
     _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.PET_ALREADY_DEAD)
   end
@@ -136,11 +154,22 @@ function UMG_Battle_Card_C:BeginUsePlayerSkill()
   self.curOperateType = BattleEnum.Operation.ENUM_CHANGE
 end
 
+function UMG_Battle_Card_C:OnAnimationStarted(Animation)
+  local OnAnimationStartCallback = self.OnAnimationStartCallback
+  if OnAnimationStartCallback then
+    tcall(nil, OnAnimationStartCallback, Animation)
+  end
+end
+
 function UMG_Battle_Card_C:OnAnimationFinished(Animation)
   if self.Btn_Click == Animation then
     self.SelectedImage:SetVisibility(UE4.ESlateVisibility.Visible)
   elseif self.Btn_Notclick == Animation then
     self.SelectedImage:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  end
+  local OnAnimationFinishCallback = self.OnAnimationFinishCallback
+  if OnAnimationFinishCallback then
+    tcall(nil, OnAnimationFinishCallback, Animation)
   end
 end
 
@@ -202,7 +231,8 @@ function UMG_Battle_Card_C:_Refresh(CardEntity)
   if not CardEntity then
     self.Text_PCKey:SetKeyVisibility(false)
     self.emptyImage:SetVisibility(UE4.ESlateVisibility.Visible)
-    self.Bg:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.NRCSwitcher_BG:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.NRCSwitcher_1031:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.StatusTxt:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.HealthBar:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.Level:SetVisibility(UE4.ESlateVisibility.Collapsed)
@@ -218,10 +248,12 @@ function UMG_Battle_Card_C:_Refresh(CardEntity)
     self.NRCImage_91:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.NRCImage:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.BeastSkill:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self:SetIsWindEffect(false)
     return
   else
     self.emptyImage:SetVisibility(UE4.ESlateVisibility.Collapsed)
-    self.Bg:SetVisibility(UE4.ESlateVisibility.Visible)
+    self.NRCSwitcher_BG:SetVisibility(UE4.ESlateVisibility.Visible)
+    self.NRCSwitcher_1031:SetVisibility(UE4.ESlateVisibility.Visible)
     self.StatusTxt:SetVisibility(UE4.ESlateVisibility.Visible)
     self.HealthBar:SetVisibility(UE4.ESlateVisibility.Visible)
     self.Level:SetVisibility(UE4.ESlateVisibility.Visible)
@@ -305,12 +337,24 @@ function UMG_Battle_Card_C:_Refresh(CardEntity)
     self.EffectSwitcher:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
   if BattleUtils.IsPetCanCastFastWindSkill(CardEntity) then
-    if not self:IsAnimationPlaying(self.Buff_wind_loop) then
-      self:PlayAnimation(self.Buff_wind_loop, 0, 999, 0, 1, true)
-    end
-  elseif self:IsAnimationPlaying(self.Buff_wind_loop) then
-    self:StopAnimation(self.Buff_wind_loop)
+    self:SetIsWindEffect(true)
+  else
+    self:SetIsWindEffect(false)
   end
+  local switcherIndex = 0
+  local petInfo = CardEntity and CardEntity.petInfo
+  local insideInfo = petInfo and petInfo.battle_inside_pet_info
+  local sourcePetId = insideInfo and insideInfo.buff145_source_pet or 0
+  if 0 ~= sourcePetId then
+    switcherIndex = 1
+    if CardEntity:GetHp() <= 0 then
+      switcherIndex = 3
+    elseif CardEntity:GetEnergy() <= 0 then
+      switcherIndex = 2
+    end
+  end
+  self.NRCSwitcher_BG:SetActiveWidgetIndex(switcherIndex)
+  self.NRCSwitcher_1031:SetActiveWidgetIndex(switcherIndex)
 end
 
 function UMG_Battle_Card_C:SetColor(color)
@@ -323,30 +367,43 @@ function UMG_Battle_Card_C:IsSelect()
   return self._isSelect
 end
 
-function UMG_Battle_Card_C:DelayPlayOpenAnimation(_IsOpen, i)
+function UMG_Battle_Card_C:DelayPlayOpenAnimation(_IsOpen, i, changingBetweenSubPanels)
   local interval = _G.BattleManager.battleRuntimeData.widgetSpeed.MainWindowSubPanelItemOpenInterval or 0.04
-  self:DelaySeconds(i * interval, self.PlayOpenAnimation, self, _IsOpen)
+  self:DelaySeconds(i * interval, self.PlayOpenAnimation, self, _IsOpen, changingBetweenSubPanels)
 end
 
 function UMG_Battle_Card_C:CancelOpenAnimation()
   self:CancelDelayByFunc(self.PlayOpenAnimation)
 end
 
-function UMG_Battle_Card_C:PlayOpenAnimation(_IsOpen)
+function UMG_Battle_Card_C:PlayOpenAnimation(_IsOpen, changingBetweenSubPanels)
   if not self or not UE4.UObject.IsValid(self) then
     return
   end
+  if self:IsAnimationPlaying(self.Change_open) then
+    self:StopAnimation(self.Change_open)
+  end
+  if self:IsAnimationPlaying(self.TweenIn) then
+    self:StopAnimation(self.TweenIn)
+  end
+  if self:IsAnimationPlaying(self.Change_close) then
+    self:StopAnimation(self.Change_close)
+  end
+  if self:IsAnimationPlaying(self.TweenOut) then
+    self:StopAnimation(self.TweenOut)
+  end
+  self.CanvasPanel_0:SetRenderTransformPivot(UE.FVector2D(0.5, 0.5))
   if _IsOpen then
-    if self:IsAnimationPlaying(self.Change_open) then
-      self:StopAnimation(self.Change_open)
-    end
     local openAnimSpeedRate = _G.BattleManager.battleRuntimeData.widgetSpeed.MainWindowSubPanelItemOpenAnimSpeedRate or 1
-    self:PlayAnimation(self.Change_open, 0, 1, 0, openAnimSpeedRate)
-  else
-    if self:IsAnimationPlaying(self.Change_close) then
-      self:StopAnimation(self.Change_close)
+    if changingBetweenSubPanels then
+      self:PlayAnimation(self.Change_open, 0, 1, 0, openAnimSpeedRate)
+    else
+      self:PlayAnimation(self.TweenIn, 0, 1, 0, openAnimSpeedRate)
     end
+  elseif changingBetweenSubPanels then
     self:PlayAnimation(self.Change_close)
+  else
+    self:PlayAnimation(self.TweenOut)
   end
 end
 
@@ -356,6 +413,31 @@ end
 
 function UMG_Battle_Card_C:OnTipsClose()
   self.OpenTips = false
+end
+
+function UMG_Battle_Card_C:SetOnPetClickCallback(callback, callbackOwner)
+  self.onPetClickCallback = _G.MakeWeakFunctor(callbackOwner, callback)
+end
+
+function UMG_Battle_Card_C:SetIsWindEffect(isWindEffect)
+  if isWindEffect then
+    if not self:IsAnimationPlaying(self.Buff_wind_loop) then
+      self:PlayAnimation(self.Buff_wind_loop, 0, 999, 0, 1, false)
+    end
+  else
+    if self:IsAnimationPlaying(self.Buff_wind_loop) then
+      self:StopAnimation(self.Buff_wind_loop)
+    end
+    self.Buff_wind:SetVisibility(UE.ESlateVisibility.Collapsed)
+  end
+end
+
+function UMG_Battle_Card_C:SetOnAnimationStartCallback(callback, callbackOwner)
+  self.OnAnimationStartCallback = _G.MakeWeakFunctor(callbackOwner, callback)
+end
+
+function UMG_Battle_Card_C:SetOnAnimationFinishCallback(callback, callbackOwner)
+  self.OnAnimationFinishCallback = _G.MakeWeakFunctor(callbackOwner, callback)
 end
 
 return UMG_Battle_Card_C

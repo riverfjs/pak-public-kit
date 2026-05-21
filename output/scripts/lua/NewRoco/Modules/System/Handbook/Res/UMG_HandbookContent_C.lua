@@ -4,6 +4,7 @@ local HandbookModuleEvent = reload("NewRoco.Modules.System.Handbook.HandbookModu
 local HandbookModuleCmd = reload("NewRoco.Modules.System.Handbook.HandbookModuleCmd")
 local HandbookModuleEnum = require("NewRoco.Modules.System.Handbook.HandbookModuleEnum")
 local SceneUtils = require("NewRoco.Modules.Core.Scene.Common.SceneUtils")
+local PetPhotoListView = require("NewRoco.Modules.System.TakePhotos.Common.PetPhotos.PetPhotoListView")
 local UMG_HandbookContent_C = _G.NRCViewBase:Extend("UMG_HandbookContent_C")
 
 local function FormatFloat(_value)
@@ -20,10 +21,14 @@ function UMG_HandbookContent_C:OnConstruct()
   self.PetBaseConf = nil
   self.previewWorld:OnConstruct()
   self.HadNormalForm = false
+  self.CurPhotoTabIndex = 1
+  self.PetPhotoListView = PetPhotoListView(self.PhotoList, self.PhotoScrollBox_0)
+  self.PetPhotoListView.OnPhotosRemovedDelegate:Add(self, self.OnRefreshPhotoNum)
   self:OnAddEventListener()
 end
 
 function UMG_HandbookContent_C:OnActive(isPlayAnim)
+  self.PetPhotoListView:Active()
   self.module = _G.NRCModuleManager:GetModule("HandbookModule")
   self.data = self.module:GetData("HandbookModuleData")
   self.IsCanPlayAnima = isPlayAnim
@@ -47,6 +52,28 @@ function UMG_HandbookContent_C:OnActive(isPlayAnim)
 end
 
 function UMG_HandbookContent_C:OnDeactive()
+  self.PetPhotoListView:Deactivate()
+end
+
+function UMG_HandbookContent_C:ShowPetPhotos(HandbookId)
+  self.NRCSwitcher_2:SetActiveWidgetIndex(1)
+  self.PetPhotoListView:Show(HandbookId or self.curHandbookId)
+  self:OnRefreshPhotoNum()
+  _G.NRCModeManager:DoCmd(_G.HandbookModuleCmd.OnCmdCloseDazzlingPopUp)
+  self.Information:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  self:ShowDefaultMutationBtnStyle()
+end
+
+function UMG_HandbookContent_C:OnRefreshPhotoNum()
+  if not self.PetPhotoListView then
+    return
+  end
+  local ItemCount = self.PetPhotoListView:GetDisplayPhotoNum()
+  self.Quantity_1:SetText(string.format(LuaText.handbook_tab_text_3, ItemCount))
+end
+
+function UMG_HandbookContent_C:ShowPetContent()
+  self.NRCSwitcher_2:SetActiveWidgetIndex(0)
 end
 
 function UMG_HandbookContent_C:PlayBookOpen()
@@ -73,6 +100,7 @@ function UMG_HandbookContent_C:OnDestruct()
   self:UnRegisterEvent(self, HandbookModuleEvent.OnChangeAreaData)
   self:UnRegisterEvent(self, HandbookModuleEvent.OnChangCurBookPreviewWorld)
   self:UnRegisterEvent(self, HandbookModuleEvent.OnCloseDazzlingPopUp)
+  self:UnRegisterEvent(self, HandbookModuleEvent.OnChangeSelectPhotoSwitcher)
   _G.NRCEventCenter:UnRegisterEvent(self, HandbookModuleEvent.OnHandBookChanged, self.OnHandBookChanged)
   if self.RequestProjectionIcon then
     _G.NRCResourceManager:UnLoadRes(self.RequestProjectionIcon)
@@ -103,6 +131,7 @@ function UMG_HandbookContent_C:OnAddEventListener()
   self:RegisterEvent(self, HandbookModuleEvent.OnChangeAreaData, self.OnChangeArea)
   self:RegisterEvent(self, HandbookModuleEvent.OnChangCurBookPreviewWorld, self.OnChangePreviewWorld)
   self:RegisterEvent(self, HandbookModuleEvent.OnCloseDazzlingPopUp, self.OnCloseDazzlingPopUp)
+  self:RegisterEvent(self, HandbookModuleEvent.OnChangeSelectPhotoSwitcher, self.OnChangeSelectPhotoSwitcher)
   _G.NRCEventCenter:RegisterEvent("UMG_HandbookContent_C", self, HandbookModuleEvent.OnHandBookChanged, self.OnHandBookChanged)
 end
 
@@ -137,6 +166,12 @@ function UMG_HandbookContent_C:ShowPetBasicInfo(_handBookInfo, _playAim, _delay)
   local BookInfo = _handBookInfo
   self.BookInfo = BookInfo
   self.curHandbookId = _handBookInfo.HandbookId
+  if self.BookInfo and self.BookInfo.State == _G.ProtoEnum.PetHandbookStatus.PHS_COLLECTED and self.CurPhotoTabIndex then
+    self:OnChangeSelectPhotoSwitcher(self.CurPhotoTabIndex)
+  else
+    self.CurPhotoTabIndex = 1
+    self:ShowPetContent()
+  end
   self.Information:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
   _G.NRCModeManager:DoCmd(_G.HandbookModuleCmd.OnCmdCloseDazzlingPopUp)
   if self.data == nil then
@@ -146,10 +181,6 @@ function UMG_HandbookContent_C:ShowPetBasicInfo(_handBookInfo, _playAim, _delay)
   self.curRecordIndex = self.data:GetSubSelectIndex()
   self.curRecord = nil
   self.state = _G.ProtoEnum.PetHandbookStatus.PHS_NOT_FOUND
-  self.QuestionMark_4:SetVisibility(UE4.ESlateVisibility.Visible)
-  if self.curHandbookId then
-    self.QuestionMark_4:SetText(string.format("%03d", self.curHandbookId))
-  end
   if nil ~= BookInfo.Collection then
     self.curRecord = BookInfo.Collection.record[self.curRecordIndex]
     self.state = self.curRecord.status
@@ -186,6 +217,13 @@ function UMG_HandbookContent_C:ShowPetBasicInfo(_handBookInfo, _playAim, _delay)
     self.CoCreationActivityText:SetText(conf.design_base)
   else
     self.CoCreationActivityText:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  end
+  if self.curRecord and self.curRecord.pet_base_id then
+    if self.HadNormalForm == true then
+      _G.NRCModeManager:DoCmd(HandbookModuleCmd.SetSelectedItemIcon, self.curRecord.pet_base_id, self.state, _G.Enum.MutationDiffType.MDT_NONE)
+    elseif self.MutationBtnToggleDic[0].isShow == true then
+      _G.NRCModeManager:DoCmd(HandbookModuleCmd.SetSelectedItemIcon, self.curRecord.pet_base_id, self.state, _G.Enum.MutationDiffType.MDT_SHINING)
+    end
   end
 end
 
@@ -328,7 +366,7 @@ function UMG_HandbookContent_C:ShowPetType(_bookInfo)
   end
   if unit_type and #unit_type > 0 then
     self.Attr:InitGridView(unit_type)
-    self.Attr:SetVisibility(UE4.ESlateVisibility.Visible)
+    self.Attr:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
   else
     self.Attr:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
@@ -448,11 +486,6 @@ function UMG_HandbookContent_C:OnClickBtn_Left()
   end
   self:DispatchEvent(HandbookModuleEvent.OnChangSelectItemData, BookInfo.HandbookId, self.curRecordIndex)
   self:ShowPetBasicInfo(BookInfo, false)
-  if self.HadNormalForm == true then
-    _G.NRCModeManager:DoCmd(HandbookModuleCmd.SetSelectedItemIcon, self.curRecord.pet_base_id, self.state, _G.Enum.MutationDiffType.MDT_NONE)
-  elseif true == self.MutationBtnToggleDic[0].isShow then
-    _G.NRCModeManager:DoCmd(HandbookModuleCmd.SetSelectedItemIcon, self.curRecord.pet_base_id, self.state, _G.Enum.MutationDiffType.MDT_SHINING)
-  end
 end
 
 function UMG_HandbookContent_C:OnShowPetBaseByRecordIndex()
@@ -491,11 +524,6 @@ function UMG_HandbookContent_C:OnClickBtn_Right()
   end
   self:DispatchEvent(HandbookModuleEvent.OnChangSelectItemData, BookInfo.HandbookId, self.curRecordIndex)
   self:ShowPetBasicInfo(BookInfo, false)
-  if self.HadNormalForm == true then
-    _G.NRCModeManager:DoCmd(HandbookModuleCmd.SetSelectedItemIcon, self.curRecord.pet_base_id, self.state, _G.Enum.MutationDiffType.MDT_NONE)
-  elseif true == self.MutationBtnToggleDic[0].isShow then
-    _G.NRCModeManager:DoCmd(HandbookModuleCmd.SetSelectedItemIcon, self.curRecord.pet_base_id, self.state, _G.Enum.MutationDiffType.MDT_SHINING)
-  end
 end
 
 function UMG_HandbookContent_C:OnButtonResetClicked()
@@ -1227,6 +1255,16 @@ function UMG_HandbookContent_C:HidePreviewWorld(delayShowTime)
 end
 
 function UMG_HandbookContent_C:ShowPreviewWorld()
+end
+
+function UMG_HandbookContent_C:OnChangeSelectPhotoSwitcher(index)
+  self.CurPhotoTabIndex = index
+  self:PlayAnimation(self.Change_2)
+  if 1 == index then
+    self:ShowPetContent()
+  else
+    self:ShowPetPhotos()
+  end
 end
 
 return UMG_HandbookContent_C

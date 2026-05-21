@@ -57,6 +57,9 @@ function UMG_Pet_BloodPulse_C:OnActive(_petData, openType)
   if openType == TipEnum.OpenPetTipsType.FakePetData then
     self.NRCSwitcher_1:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
+  if _G.NRCModuleManager:DoCmd(PetUIModuleCmd.GetPetPortableBagReleaseLifeMode) then
+    self.NRCSwitcher_1:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  end
   self:LoadAnimation(0)
   local touchReasonType = _G.NRCModuleManager:DoCmd(MultiTouchModuleCmd.GetPanelSelectBtnReason, "EggIncubatePanel").PETBLOOD
   _G.NRCModuleManager:DoCmd(MultiTouchModuleCmd.UnlockIsSelectBtn, "PetUIModule", "EggIncubatePanel", touchReasonType)
@@ -87,7 +90,7 @@ function UMG_Pet_BloodPulse_C:SetPaneInfo()
       self.SizeBox_75:SetVisibility(UE4.ESlateVisibility.Collapsed)
     end
   end
-  local LevelSkillConf = _G.DataConfigManager:GetLevelSkillConf(self.petData.base_conf_id)
+  local LevelSkillConf = _G.NRCModeManager:DoCmd(_G.PetUIModuleCmd.GetLevelSkillConfByPetBaseId, self.petData.base_conf_id)
   local PetbaseConf = _G.DataConfigManager:GetPetbaseConf(self.petData.base_conf_id)
   local modelConf = _G.DataConfigManager:GetModelConf(PetbaseConf.model_conf)
   if PetBloodConf and PetBloodConf.blood_tips == Enum.PetBloodTipsType.PBTT_BOSS then
@@ -134,7 +137,7 @@ function UMG_Pet_BloodPulse_C:SetPaneInfo()
           self.SkillPower_Value:SetText("-")
         end
         self.NumericalValue_1:SetText(skillConf.energy_cost[1])
-        if LevelSkillConf.legendary_skill_condition and LevelSkillConf.legendary_skill_condition > 0 then
+        if PetBloodConf.blood == Enum.PetBloodType.PBT_LEGENDARY and LevelSkillConf.legendary_skill_condition and LevelSkillConf.legendary_skill_condition > 0 then
           if self.petData.base_conf_id ~= LevelSkillConf.legendary_skill_condition then
             local unLockBaseCfg = _G.DataConfigManager:GetPetbaseConf(LevelSkillConf.legendary_skill_condition)
             self.NRCText_34:SetText(string.format(LuaText.legendary_tips_1, unLockBaseCfg.name))

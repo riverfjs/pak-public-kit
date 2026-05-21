@@ -20,8 +20,15 @@ function UMG_FurnitureList_C:OnItemUpdate(_data, datalist, index)
   self.itemData = _data
   local head = self._parent:GetFirstIndex()
   local viewIndex = 0
-  self.Title:SetText(string.format("x%d", _data.BagItem and _data.BagItem.num or 0))
+  local CostNum = _data.ExchangeConf and _data.ExchangeConf.cost_item[1].cost_goods_num
+  self.Title:SetText(string.format("%d", CostNum))
   self.Icon:SetPath(_data.FurnitureItemConf.icon)
+  if not self.IconInitialized then
+    self.IconInitialized = true
+    local id = _data.ExchangeConf and _data.ExchangeConf.cost_item[1].cost_goods_id[1]
+    local conf = _G.DataConfigManager:GetVisualItemConf(id, true)
+    self.Item:SetPath(conf and conf.iconPath)
+  end
   if self.DelayId then
     DelayManager:CancelDelayById(self.DelayId)
     self.DelayId = nil

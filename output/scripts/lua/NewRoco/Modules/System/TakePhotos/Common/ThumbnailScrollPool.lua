@@ -11,6 +11,9 @@ function ThumbnailScrollPool:InitThumbnailSlots()
 end
 
 function ThumbnailScrollPool:ReleaseThumbnailSlots()
+  if not self.ThumbnailSlots then
+    return
+  end
   for HashKey, Slots in pairs(self.ThumbnailSlots) do
     for i, Slot in pairs(Slots) do
       if Slot.ThumbnailTexture then

@@ -39,7 +39,7 @@ function DialogueTimelineNPCSetLocationEvent:OnEnter()
   if DialogueUtils.SkipDialogue then
     return
   end
-  local Actor = self:GetActor(self.OwnerActorID)
+  local Actor = self:GetActor(self.OwnerActorID, self.NPCContentID)
   if nil == Actor then
     return
   end

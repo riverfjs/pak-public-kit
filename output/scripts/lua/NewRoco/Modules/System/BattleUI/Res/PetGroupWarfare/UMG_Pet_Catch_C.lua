@@ -134,6 +134,7 @@ function UMG_Pet_Catch_C:SetPanelInfo()
   for _, reward in ipairs(self.rewards) do
     if reward.type == ProtoEnum.GoodsType.GT_PET then
       self:SetPetInfo(reward)
+      break
     end
   end
 end

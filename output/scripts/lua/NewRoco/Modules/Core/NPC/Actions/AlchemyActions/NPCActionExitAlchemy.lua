@@ -7,16 +7,29 @@ function NPCActionExitAlchemy:Ctor(Owner, Config, Info)
   Base.Ctor(self, Owner, Config, Info)
 end
 
+local HandInHandSkill = "/Game/ArtRes/Effects/G6Skill/Alchemy/ExitAlchemy.ExitAlchemy"
+local SingleSkill = "/Game/ArtRes/Effects/G6Skill/Alchemy/ExitAlchemySingle.ExitAlchemySingle"
+
 function NPCActionExitAlchemy:ExecuteWithModel()
   local IronPan = self:GetOwnerNPCView()
   _G.NRCModuleManager:DoCmd(_G.AlchemyModuleCmd.RegisterIronPan, IronPan)
-  local localPlayer = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
-  local playerView = localPlayer and localPlayer.viewObj
+  local player = self:GetPlayer()
+  local playerView = player and player.viewObj
   local skillComp = playerView and playerView.RocoSkill
-  local skillProxy = RocoSkillProxy.Create("/Game/ArtRes/Effects/G6Skill/Alchemy/ExitAlchemy.ExitAlchemy", skillComp, _G.PriorityEnum.Active_Player_Action)
-  skillProxy:RegisterEventCallback("Recover", self, self.RecoverPlayerPos)
-  skillProxy:RegisterEventCallback("BlackScreen", self, self.BlackScreen)
-  _G.NRCModuleManager:DoCmd(_G.AlchemyModuleCmd.PlayPerformById, 113, self, self.EndAction, skillProxy)
+  local statusComponent = player and player.statusComponent
+  local isHandInHand = statusComponent and statusComponent:HasAnyStatus(_G.ProtoEnum.WorldPlayerStatusType.WPST_HAND_IN_HAND, _G.ProtoEnum.WorldPlayerStatusType.WPST_HAND_IN_HAND_2P) or false
+  local skillProxy, performId
+  if isHandInHand then
+    skillProxy = RocoSkillProxy.Create(HandInHandSkill, skillComp, _G.PriorityEnum.Active_Player_Action)
+    skillProxy:RegisterEventCallback("Recover", self, self.RecoverPlayerPos)
+    skillProxy:RegisterEventCallback("BlackScreen", self, self.BlackScreen)
+    performId = 113
+  else
+    skillProxy = RocoSkillProxy.Create(SingleSkill, skillComp, _G.PriorityEnum.Active_Player_Action)
+    performId = 115
+    player:ForgetPlayerPos()
+  end
+  _G.NRCModuleManager:DoCmd(_G.AlchemyModuleCmd.PlayPerformById, performId, self, self.EndAction, skillProxy)
 end
 
 function NPCActionExitAlchemy:RecoverPlayerPos()

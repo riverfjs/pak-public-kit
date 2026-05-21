@@ -10,10 +10,12 @@ end
 function UMG_TeachingManual_DotItem_C:OnItemUpdate(_data, datalist, index)
   self.data = _data
   self.index = index
+  self:StopAllAnimations()
   self.Bright:SetVisibility(UE4.ESlateVisibility.Collapsed)
 end
 
 function UMG_TeachingManual_DotItem_C:SelectInfo(_bSelected)
+  self:StopAllAnimations()
   if _bSelected then
     self.Bright:SetVisibility(UE4.ESlateVisibility.Visible)
     self:PlayAnimation(self.Select)

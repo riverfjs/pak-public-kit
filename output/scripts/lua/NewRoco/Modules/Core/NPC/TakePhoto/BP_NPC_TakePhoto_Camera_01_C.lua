@@ -2,6 +2,7 @@ local Base = require("NewRoco.Modules.Core.NPC.ViewNPCBase")
 local MagicCreationUtils = require("NewRoco/Modules/System/MagicCreation/MagicCreationUtils")
 local TakePhotosModuleEvent = require("NewRoco/Modules/System/TakePhotos/TakePhotosModuleEvent")
 local FriendModuleEvent = reload("NewRoco.Modules.System.Friend.FriendModuleEvent")
+local TakePhotosUtils = require("NewRoco.Modules.System.TakePhotos.TakePhotosUtils")
 local BP_NPC_TakePhoto_Camera_01_C = Base:Extend("BP_NPC_TakePhoto_Camera_01_C")
 
 function BP_NPC_TakePhoto_Camera_01_C:LuaBeginPlay()
@@ -117,6 +118,7 @@ function BP_NPC_TakePhoto_Camera_01_C:OnVisible()
   if Module then
     Module:RegisterEvent(self, TakePhotosModuleEvent.OnPhotosTaken, self.OnPhotoTaken)
     Module:RegisterEvent(self, TakePhotosModuleEvent.OnSyncPhotoToken, self.OnSyncPhotoToken)
+    Module:RegisterEvent(self, TakePhotosModuleEvent.OnSyncCameraTextureChanged, self.OnSyncCameraTextureChanged)
   end
   _G.NRCEventCenter:RegisterEvent("BP_NPC_TakePhoto_Camera_01_C", self, FriendModuleEvent.OnVisitorChanged, self.OnVisitorChanged)
 end
@@ -127,6 +129,7 @@ function BP_NPC_TakePhoto_Camera_01_C:OnInVisible()
   if Module then
     Module:UnRegisterEvent(self, TakePhotosModuleEvent.OnPhotosTaken)
     Module:UnRegisterEvent(self, TakePhotosModuleEvent.OnSyncPhotoToken, self.OnSyncPhotoToken)
+    Module:UnRegisterEvent(self, TakePhotosModuleEvent.OnSyncCameraTextureChanged, self.OnSyncCameraTextureChanged)
   end
   _G.NRCEventCenter:UnRegisterEvent(self, FriendModuleEvent.OnVisitorChanged, self.OnVisitorChanged)
 end
@@ -166,6 +169,14 @@ function BP_NPC_TakePhoto_Camera_01_C:ReceiveBeginPlay()
   if not self.RocoSkill then
     local Identity = UE4.FTransform()
     self.RocoSkill = self:AddComponentByClass(UE4.URocoSkillComponent, false, Identity, false)
+  end
+end
+
+function BP_NPC_TakePhoto_Camera_01_C:ReceiveEndPlay(Reason)
+  Base.ReceiveEndPlay(self, Reason)
+  if self.ReplaceRecycler then
+    self.ReplaceRecycler()
+    self.ReplaceRecycler = nil
   end
 end
 
@@ -295,6 +306,32 @@ function BP_NPC_TakePhoto_Camera_01_C:ReceiveActorEndOverlap(OverlapActor)
     self.OverlapsPlayers[OverlapActor] = nil
     if UE.UObject.IsValid(OverlapActor) then
       OverlapActor:SetHiddenMask(false, UE.EPlayerForceHiddenType.TakePhoto)
+    end
+  end
+end
+
+function BP_NPC_TakePhoto_Camera_01_C:OnResourceLoadFinish()
+  Base.OnResourceLoadFinish(self)
+  Log.Debug("BP_NPC_TakePhoto_Camera_01_C:OnResourceLoadFinish", self.SkeletalMesh)
+  self.bCameraMeshLoadFinish = true
+  self:ConditionChangeTexture()
+end
+
+function BP_NPC_TakePhoto_Camera_01_C:OnSyncCameraTextureChanged(ActorId)
+  if ActorId == self._AvatarId then
+    self:ConditionChangeTexture()
+  end
+end
+
+function BP_NPC_TakePhoto_Camera_01_C:ConditionChangeTexture()
+  if self.bCameraMeshLoadFinish then
+    local Actor = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GetPlayerByServerID, self._AvatarId)
+    if Actor then
+      Log.Debug("BP_NPC_TakePhoto_Camera_01_C:ConditionChangeTexture")
+      if self.ReplaceRecycler then
+        self.ReplaceRecycler()
+      end
+      self.ReplaceRecycler = TakePhotosUtils.ReplaceCameraTexture(self.SkeletalMesh, Actor)
     end
   end
 end

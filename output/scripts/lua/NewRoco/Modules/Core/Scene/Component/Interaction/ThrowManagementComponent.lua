@@ -39,7 +39,6 @@ function ThrowManagementComponent:OnLoadMapStart(SameScene)
   end
   if table.isNotEmpty(self.LocalCachingSessions) then
     table.clear(self.LocalCachingSessions)
-    _G.NRCModeManager:DoCmd(_G.TipsModuleCmd.Tips_TogglePropTips, true)
   end
 end
 
@@ -156,7 +155,6 @@ function ThrowManagementComponent:StartCatch(Session)
   self.CachingSessions[Session.SeqID] = Session
   if Session.is_local then
     self.LocalCachingSessions[Session.SeqID] = Session
-    _G.NRCModeManager:DoCmd(_G.TipsModuleCmd.Tips_TogglePropTips, false)
   end
   if self:IsCatching() then
     NRCEventCenter:DispatchEvent(NPCModuleEvent.CatchStart)
@@ -171,8 +169,7 @@ function ThrowManagementComponent:EndCatch(Session)
   self.CachingSessions[Session.SeqID] = nil
   if Session.is_local then
     self.LocalCachingSessions[Session.SeqID] = nil
-    if table.isEmpty(self.LocalCachingSessions) then
-      _G.NRCModeManager:DoCmd(_G.TipsModuleCmd.Tips_TogglePropTips, true)
+    if Session.bCatchSuccess then
     end
   end
   if not self:IsCatching() then
@@ -186,6 +183,17 @@ end
 function ThrowManagementComponent:IsCatching()
   local Key, Value = next(self.CachingSessions)
   return nil ~= Key and nil ~= Value
+end
+
+function ThrowManagementComponent:IsCatchSession(Session)
+  local SeqId = Session and Session.SeqID
+  if not SeqId then
+    return false
+  end
+  if self.CachingSessions[SeqId] then
+    return true
+  end
+  return false
 end
 
 return ThrowManagementComponent

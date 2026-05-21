@@ -4,7 +4,7 @@ local UMG_StarChainAward_C = _G.NRCPanelBase:Extend("UMG_StarChainAward_C")
 
 function UMG_StarChainAward_C:OnConstruct()
   UE4Helper.SetDesiredShowCursor(true, "UMG_StarChainAward_C")
-  self:SetChildViews(self.MoneyBtn2, self.MoneyBtn2_1, self.PopUp4)
+  self:SetChildViews(self.PopUp4)
 end
 
 function UMG_StarChainAward_C:OnActive()

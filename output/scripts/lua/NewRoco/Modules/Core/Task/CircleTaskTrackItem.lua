@@ -4,11 +4,11 @@ local Base = TaskTrackItem
 local CircleTaskTrackItem = Base:Extend("CircleTaskTrackItem")
 
 function CircleTaskTrackItem:Ctor(config, info, go, TaskObject, Index)
-  Base.Ctor(self, config, info, go, TaskObject, Index)
   self.Range = go.data2[1] or 3000
   self.RangeSquared = self.Range * self.Range
   self.HintText = go.show_text or LuaText.task_arrived
   self.HasArrived = false
+  Base.Ctor(self, config, info, go, TaskObject, Index)
 end
 
 function CircleTaskTrackItem:FindNPC()
@@ -23,12 +23,14 @@ function CircleTaskTrackItem:FindNPC()
   local PlayerPos = Player:GetActorLocationFrameCache()
   local DistanceToTarget = UE.FVector.DistSquared2D(PlayerPos, self.Position)
   if type(self.RangeSquared) ~= "number" then
-    self.RangeSquared = 9000000
+    Log.Error("CircleTaskTrackItem RangeSquared is not number")
+    return
   end
   if type(DistanceToTarget) ~= "number" then
-    DistanceToTarget = math.huge
+    Log.Error("CircleTaskTrackItem DistanceToTarget is not number")
+    return
   end
-  local Arrived = DistanceToTarget < self.RangeSquared
+  local Arrived = DistanceToTarget < self.RangeSquared and self.TargetInSameScene
   if Arrived and self.HasArrived then
     self.Valid = false
   elseif Arrived and not self.HasArrived then

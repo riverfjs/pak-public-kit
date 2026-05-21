@@ -51,6 +51,7 @@ function UMG_RecoverTimeUpPanel_C:OnAddEventListener()
   self:AddButtonListener(self.ReturnBtn.btnClose, self.OnClose)
   self:AddButtonListener(self.UMG_CoinButton.btnLevelUp, self.OnLevelUp)
   _G.NRCEventCenter:RegisterEvent("UMG_RecoverTimeUpPanel_C", self, DialogueModuleEvent.DialogueEnded, self.OnClose)
+  _G.NRCEventCenter:RegisterEvent("UMG_RecoverTimeUpPanel_C", self, _G.NRCGlobalEvent.ON_DISCONNECT, self.OnClose)
 end
 
 function UMG_RecoverTimeUpPanel_C:OnPcClose()
@@ -61,6 +62,7 @@ end
 
 function UMG_RecoverTimeUpPanel_C:OnRemoveEventListener()
   _G.NRCEventCenter:UnRegisterEvent(self, DialogueModuleEvent.DialogueEnded, self.OnClose)
+  _G.NRCEventCenter:UnRegisterEvent(self, _G.NRCGlobalEvent.ON_DISCONNECT, self.OnClose)
 end
 
 function UMG_RecoverTimeUpPanel_C:UpdatePanel()

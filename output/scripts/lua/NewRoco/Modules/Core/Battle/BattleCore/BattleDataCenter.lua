@@ -392,7 +392,7 @@ function BattleDataCenter:WriteDamageInfo(performInfo)
       if petSyncInfo.hp_result then
         hp_result = petSyncInfo.hp_result
       end
-      if petSyncInfo.attr_change and petSyncInfo.attr_type == _G.ProtoEnum.AttributeType.AT_NIGHTMARE_SHIELD then
+      if petSyncInfo.attr_change and (petSyncInfo.attr_type == _G.ProtoEnum.AttributeType.AT_NIGHTMARE_SHIELD or petSyncInfo.attr_type == _G.ProtoEnum.AttributeType.AI_BOX_SHIELD) then
         shield_change = petSyncInfo.attr_change
         shield_result = petSyncInfo.attr_result
       end
@@ -591,7 +591,17 @@ function BattleDataCenter:WriteDataUpdate(data_update)
     end
   end
   if data_update.pet then
-    BattleDataCenter.WriteDataUpdate_Pet(data_update.pet)
+    local petInfo = data_update and data_update.pet
+    local updateSucceed = BattleDataCenter.WriteDataUpdate_Pet(petInfo)
+    if not updateSucceed then
+      local uin = data_update and data_update.uin
+      local battlePlayer = _G.BattleManager.battlePawnManager:GetPlayerByGuid(uin)
+      local deck = battlePlayer and battlePlayer.deck
+      if deck then
+        local petInfoList = {petInfo}
+        deck:IncrementalRefreshByServer(petInfoList)
+      end
+    end
   end
   if data_update.pet_skill and data_update.pet_skill.skills then
     local battlePetCard = _G.BattleManager.battlePawnManager:GetCardByGuid(data_update.pet_skill.pet_id)
@@ -696,6 +706,10 @@ function BattleDataCenter:WritePetSyncInfo(pet_sync_info, type)
           end
           if data.energy_result then
             battleCard:SetEnergy(data.energy_result)
+          end
+          local maxEnergy = data and data.max_energy
+          if maxEnergy and battleCard then
+            battleCard:SetMaxEnergy(maxEnergy)
           end
           if data.cheers_tag then
             battleCard.petInfo.battle_inside_pet_info.cheers_tag = data.cheers_tag

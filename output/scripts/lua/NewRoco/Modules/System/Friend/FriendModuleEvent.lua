@@ -71,4 +71,5 @@ FriendModuleEvent.OnWeGameFriendInfoRefresh = "FriendModuleEvent.OnWeGameFriendI
 FriendModuleEvent.QuickChatOpen = "FriendModuleEvent.QuickChatOpen"
 FriendModuleEvent.QuickChatClose = "FriendModuleEvent.QuickChatClose"
 FriendModuleEvent.OnQQArkClientInviteInfoRsp = "FriendModuleEvent.OnQQArkClientInviteInfoRsp"
+FriendModuleEvent.OnRecommendFilterConfirmed = "FriendModuleEvent.OnRecommendFilterConfirmed"
 return FriendModuleEvent

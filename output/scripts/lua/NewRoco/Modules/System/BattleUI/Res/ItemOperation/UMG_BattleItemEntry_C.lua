@@ -170,6 +170,7 @@ function UMG_BattleItemEntry_C:OnAnimationFinished(Animation)
     if self.hasChangeItem then
       self:PlayAnimation(self.Magic_change)
       self.delayID = DelayManager:DelaySeconds(0.15, function()
+        self.hasSetNewIcon = true
         self.Icon:SetPath(self.NewIconPath)
       end)
     end
@@ -431,7 +432,9 @@ function UMG_BattleItemEntry_C:ChangeItem(OriginItemID, newItemID)
   local itemBagCfg = _G.DataConfigManager:GetBagItemConf(OriginItemID)
   local MagicConf = _G.DataConfigManager:GetPlayerMagicConf(itemBagCfg.player_skill_id)
   local SkillConf = _G.DataConfigManager:GetSkillConf(MagicConf.skill_id)
-  self.Icon:SetPath(NRCUtils:FormatConfIconPath(SkillConf.icon, _G.UIIconPath.SkillIconPath))
+  if not self.hasSetNewIcon then
+    self.Icon:SetPath(NRCUtils:FormatConfIconPath(SkillConf.icon, _G.UIIconPath.SkillIconPath))
+  end
   self.hasChangeItem = true
   itemBagCfg = _G.DataConfigManager:GetBagItemConf(newItemID)
   MagicConf = _G.DataConfigManager:GetPlayerMagicConf(itemBagCfg.player_skill_id)

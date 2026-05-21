@@ -47,7 +47,7 @@ end
 
 function BattleSpectatorOutsidePetInfo:OnDestroyed()
   if self.pet then
-    self.pet:SetHidden(true, NPCModuleEnum.NpcReasonFlags.BattleOutside)
+    self.pet:SetVisibleForBattleOutsideReason(false)
     _G.NRCModeManager:DoCmd(_G.NPCModuleCmd.RemoveNPC, self.pet:GetServerId())
   end
   self:TryClearExceptPet()
@@ -147,7 +147,7 @@ function BattleSpectatorOutsidePetInfo:OnPetLoaded(pet)
     petHudComponent.bShouldShow = false
   end
   pet:LockAIForReason(true, false, _G.AIDefines.LockReason.BattleSpectator)
-  pet:SetHidden(true, NPCModuleEnum.NpcReasonFlags.BattleOutside)
+  pet:SetVisibleForBattleOutsideReason(false)
   local viewObj = pet.viewObj
   if viewObj and UE4.UObject.IsValid(viewObj) then
     local movementComp = viewObj.CharacterMovement
@@ -243,7 +243,7 @@ function BattleSpectatorOutsidePetInfo:ReadyForPreform(bSelfInBattle, surfaceIsW
   end
   if self.pet then
     if not bSelfInBattle then
-      self.pet:SetHidden(false, NPCModuleEnum.NpcReasonFlags.BattleOutside)
+      self.pet:SetVisibleForBattleOutsideReason(true)
     end
     self.pet:ApplyCollision("BattleSpectatorPet")
     self.finalPosition = self.pet:GetActorLocation()
@@ -287,7 +287,7 @@ function BattleSpectatorOutsidePetInfo:OnLeaveBattle(player)
     return
   end
   self:SetOwner(player)
-  self.pet:SetHidden(false, NPCModuleEnum.NpcReasonFlags.BattleOutside)
+  self.pet:SetVisibleForBattleOutsideReason(true)
   local viewObj = self.pet.viewObj
   if viewObj then
     local bVisible = 0 == viewObj.hiddenFlag
@@ -301,7 +301,7 @@ function BattleSpectatorOutsidePetInfo:OnPlayerVisibleChange(bVisible)
     return
   end
   local viewObj = self.pet.viewObj
-  if not self.pet:IsHidden(NPCModuleEnum.NpcReasonFlags.BattleOutside) then
+  if self.pet:IsVisibleForBattleOutsideReason() then
     self.pet.visibility = bVisible
     if viewObj then
       viewObj:SetActorHiddenInGame(not bVisible)

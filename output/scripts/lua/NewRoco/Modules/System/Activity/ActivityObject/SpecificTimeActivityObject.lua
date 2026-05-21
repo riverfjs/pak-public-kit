@@ -6,7 +6,7 @@ local ActivityModuleEvent = require("NewRoco.Modules.System.Activity.ActivityMod
 
 function SpecificTimeActivityObject:OnConstruct(_conf)
   local activityId = self:GetActivityId()
-  self.activityDropConf = _G.DataConfigManager:GetActivityDropConf(activityId)
+  Log.Error("SpecificTimeActivityObject:OnConstruct*------------", activityId)
   self:AddActivityExpiredCallback("SpecificTimeActivityOver", nil, function()
     _G.NRCEventCenter:DispatchEvent(ActivityModuleEvent.OnSpecificTimeActivityOver, activityId)
   end)
@@ -26,26 +26,31 @@ function SpecificTimeActivityObject:OnSvrUpdateActivityData(_cmdId, _updateData,
     local _activityData = _updateData
     self.activityDropData = _activityData and _activityData.drop_data
     self:SendEvent(ActivityModuleEvent.RefreshActivityDropData, self:GetActivityId(), self.activityDropData)
-    local curIsReachLimit = self:IsReachLimit()
-    if not lastIsReachLimit and curIsReachLimit then
-      _G.NRCEventCenter:DispatchEvent(ActivityModuleEvent.OnSpecificTimeActivityDropUpperLimit, self:GetActivityId())
-    end
-    local curReachLimitMap = self:GetAllMethodReachLimit()
-    for i, v in pairs(curReachLimitMap) do
-      if not lastReachLimitMap[i] and v then
-        _G.NRCEventCenter:DispatchEvent(ActivityModuleEvent.OnSpecificTimeActivityDropUpperLimit, self:GetActivityId(), i)
+    if not _initUpdate then
+      local curIsReachLimit = self:IsReachLimit()
+      if not lastIsReachLimit and curIsReachLimit then
+        _G.NRCEventCenter:DispatchEvent(ActivityModuleEvent.OnSpecificTimeActivityDropUpperLimit, self:GetActivityId())
+      end
+      local curReachLimitMap = self:GetAllMethodReachLimit()
+      for i, v in pairs(curReachLimitMap) do
+        if not lastReachLimitMap[i] and v then
+          _G.NRCEventCenter:DispatchEvent(ActivityModuleEvent.OnSpecificTimeActivityDropUpperLimit, self:GetActivityId(), i)
+        end
       end
     end
-    local bigMapModule = NRCModuleManager:GetModule("BigMapModule")
-    bigMapModule:SetDropMethodInfo()
   end
 end
 
 function SpecificTimeActivityObject:GetAllMethodReachLimit()
   local lastIsReachLimitMap = {}
-  if self.activityDropConf and self.activityDropConf.drop_id then
-    for i, methodId in pairs(self.activityDropConf.drop_id) do
-      lastIsReachLimitMap[methodId] = self:SingleMethodIsReachLimit(methodId)
+  local allDropConf = self:GetAllActivityDropConf()
+  for idx, dropConf in ipairs(allDropConf) do
+    if dropConf and dropConf.drop_id then
+      for i, methodId in pairs(dropConf.drop_id) do
+        if methodId and nil == lastIsReachLimitMap[methodId] then
+          lastIsReachLimitMap[methodId] = self:SingleMethodIsReachLimit(methodId)
+        end
+      end
     end
   end
   return lastIsReachLimitMap
@@ -53,22 +58,31 @@ end
 
 function SpecificTimeActivityObject:IsReachLimit()
   local activityDropData = self.activityDropData
-  local dropConf = self.activityDropConf
-  local dailyAlreadyGet = 0
-  local totalAlreadyGet = 0
-  if activityDropData and activityDropData.method_drop_list then
-    for i, v in pairs(activityDropData.method_drop_list) do
-      if v.drop_item_list then
-        for j, k in pairs(v.drop_item_list) do
-          if k.item_id == dropConf.goods_id then
-            dailyAlreadyGet = dailyAlreadyGet + k.item_num_today
-            totalAlreadyGet = totalAlreadyGet + k.item_num_total
+  local allDropConf = self:GetAllActivityDropConf()
+  if not allDropConf or 0 == #allDropConf then
+    return true
+  end
+  for idx, dropConf in ipairs(allDropConf) do
+    local dailyAlreadyGet = 0
+    local totalAlreadyGet = 0
+    if activityDropData and activityDropData.method_drop_list then
+      for i, v in pairs(activityDropData.method_drop_list) do
+        if v.drop_item_list then
+          for j, k in pairs(v.drop_item_list) do
+            if k.item_id == dropConf.goods_id then
+              dailyAlreadyGet = dailyAlreadyGet + k.item_num_today
+              totalAlreadyGet = totalAlreadyGet + k.item_num_total
+            end
           end
         end
       end
     end
+    local bReach = dailyAlreadyGet >= dropConf.day_got_limit or totalAlreadyGet >= dropConf.total_got_limit
+    if not bReach then
+      return false
+    end
   end
-  return dailyAlreadyGet >= dropConf.day_got_limit or totalAlreadyGet >= dropConf.total_got_limit
+  return true
 end
 
 function SpecificTimeActivityObject:SingleMethodIsReachLimit(methodId)
@@ -120,7 +134,8 @@ function SpecificTimeActivityObject:SingleMethodIsReachLimit(methodId)
 end
 
 function SpecificTimeActivityObject:GetActivityDropConf()
-  return self.activityDropConf
+  local allDropConf = self:GetAllActivityDropConf()
+  return allDropConf[1]
 end
 
 function SpecificTimeActivityObject:GetActivityDropData()
@@ -128,14 +143,15 @@ function SpecificTimeActivityObject:GetActivityDropData()
 end
 
 function SpecificTimeActivityObject:GetTrackTypeAndParams()
-  if self.activityDropConf then
-    return self.activityDropConf.track_type_param, self.activityDropConf.track_type_param
+  local allDropConf = self:GetAllActivityDropConf()
+  if allDropConf and allDropConf[1] then
+    return allDropConf[1].track_type, allDropConf[1].track_type_param
   end
 end
 
 function SpecificTimeActivityObject:GetAlreadyGetNum()
   local activityDropData = self.activityDropData
-  local dropConf = self.activityDropConf
+  local dropConf = self:GetActivityDropConf()
   local dailyAlreadyGet = 0
   local totalAlreadyGet = 0
   if activityDropData and activityDropData.method_drop_list then
@@ -154,31 +170,68 @@ function SpecificTimeActivityObject:GetAlreadyGetNum()
 end
 
 function SpecificTimeActivityObject:CanShowDropReward(type)
-  local dropConf = self.activityDropConf
-  if dropConf and dropConf.drop_id and #dropConf.drop_id > 0 then
-    for i, v in ipairs(dropConf.drop_id) do
-      local dropMetConf = _G.DataConfigManager:GetActivityDropMethodConf(v, true)
-      if dropMetConf then
-        if dropMetConf.drop_show_area and dropMetConf.drop_show_area ~= type then
-          return false
+  local allDropConf = self:GetAllActivityDropConf()
+  for idx, dropConf in ipairs(allDropConf) do
+    if dropConf and dropConf.drop_id and #dropConf.drop_id > 0 then
+      for i, v in ipairs(dropConf.drop_id) do
+        local dropMetConf = _G.DataConfigManager:GetActivityDropMethodConf(v, true)
+        if dropMetConf then
+          if dropMetConf.drop_show_area and dropMetConf.drop_show_area ~= type then
+            return false
+          end
+          local curTime = ActivityUtils.GetSvrTimestamp()
+          local starTime = ActivityUtils.ToTimestamp(dropMetConf.begin_time)
+          local endTime = ActivityUtils.ToTimestamp(dropMetConf.end_time)
+          if not (0 == starTime or curTime >= starTime) or 0 ~= endTime and not (curTime < endTime) then
+            return false
+          end
+          if self:SingleMethodIsReachLimit(v) then
+            return false
+          end
+          if self:IsReachLimit() then
+            return false
+          end
+          return true, v
         end
-        local curTime = ActivityUtils.GetSvrTimestamp()
-        local starTime = ActivityUtils.ToTimestamp(dropMetConf.begin_time)
-        local endTime = ActivityUtils.ToTimestamp(dropMetConf.end_time)
-        if not (0 == starTime or curTime >= starTime) or 0 ~= endTime and not (curTime < endTime) then
-          return false
-        end
-        if self:SingleMethodIsReachLimit(v) then
-          return false
-        end
-        if self:IsReachLimit() then
-          return false
-        end
-        return true, v
       end
     end
   end
   return false
+end
+
+function SpecificTimeActivityObject:GetAllActivityDropConf()
+  if self.allActivityDropConf then
+    return self.allActivityDropConf
+  end
+  local partIds = self:GetPartIds()
+  self.allActivityDropConf = table.new(#partIds)
+  for idx, partId in ipairs(partIds) do
+    local activityDropConf = _G.DataConfigManager:GetActivityDropConf(partId, true)
+    table.insert(self.allActivityDropConf, activityDropConf)
+  end
+  return self.allActivityDropConf
+end
+
+function SpecificTimeActivityObject:GetAlreadyGetNumByTypeAndId(itemType, itemId)
+  if not itemType or not itemId then
+    return
+  end
+  local activityDropData = self.activityDropData
+  local dailyAlreadyGet = 0
+  local totalAlreadyGet = 0
+  if activityDropData and activityDropData.method_drop_list then
+    for i, v in pairs(activityDropData.method_drop_list) do
+      if v.drop_item_list then
+        for j, k in pairs(v.drop_item_list) do
+          if k.item_type == itemType and k.item_id == itemId then
+            dailyAlreadyGet = dailyAlreadyGet + k.item_num_today
+            totalAlreadyGet = totalAlreadyGet + k.item_num_total
+          end
+        end
+      end
+    end
+  end
+  return dailyAlreadyGet, totalAlreadyGet
 end
 
 return SpecificTimeActivityObject

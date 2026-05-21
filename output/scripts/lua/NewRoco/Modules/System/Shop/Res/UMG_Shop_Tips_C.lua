@@ -56,6 +56,7 @@ function UMG_Shop_Tips_C:SetCommonPopUpInfo()
   CommonPopUpData.Btn_RightHandler = self.OnOK
   CommonPopUpData.Btn_LeftText = LuaText.mall_goods_tips_2
   CommonPopUpData.Btn_RightText = LuaText.mall_goods_tips_1
+  CommonPopUpData.TitleText = LuaText.recall_bp_buy_window
   self.OnPcCloseHandler = CommonPopUpData.ClosePanelHandler
   self.PopUp3:SetPanelInfo(CommonPopUpData)
 end
@@ -409,7 +410,8 @@ function UMG_Shop_Tips_C:UpdateTips()
     local limitWorldLevel = tonumber(self.data.originalGoodsConf.buy_cond_param)
     Log.Info("UMG_Shop_Tips_C:UpdateTips, type", goodsConf.buy_cond_type)
     if goodsConf.buy_cond_type == Enum.BuyLimited.BL_WORLD_LEVEL then
-      self.Desc:SetText(string.format(LuaText.buy_cond_world_level, limitWorldLevel))
+      local WorldLevelConf = _G.DataConfigManager:GetWorldLevelConf(limitWorldLevel + 1)
+      self.Desc:SetText(string.format(LuaText.buy_cond_world_level, WorldLevelConf and WorldLevelConf.title))
     elseif goodsConf.buy_cond_type == Enum.BuyLimited.BL_PLAYER_LEVEL then
       self.Desc:SetText(string.format(LuaText.buy_cond_player_level, limitWorldLevel))
     elseif goodsConf.buy_cond_type == Enum.BuyLimited.BL_PLAYER_BP_LEVEL then
@@ -418,12 +420,12 @@ function UMG_Shop_Tips_C:UpdateTips()
       local goodsNameList = self:GetUnsoldGoodsNameList(goodsConf, self.data.shopId, self.data.shopItemId)
       if #goodsNameList > 0 then
         local goodsNames = table.concat(goodsNameList, "\227\128\129")
-        self.Desc:SetText(string.format(LuaText.buy_cond_soldout_0, goodsNames))
+        self.Desc:SetText(string.format(LuaText.buy_cond_soldout_1, goodsNames))
       else
         Log.Info("UMG_Shop_Tips_C:UpdateTips, no unsold goods")
       end
-      if goodsConf.buy_cond_type == Enum.BuyLimited.BL_SOLDOUT and 1 == goodsConf.buy_cond_param1 then
-        self.Desc:SetText(LuaText.buy_cond_soldout_1)
+      if goodsConf.buy_cond_type == Enum.BuyLimited.BL_SOLDOUT and 0 == goodsConf.buy_cond_param then
+        self.Desc:SetText(LuaText.buy_cond_soldout_0)
       else
         Log.Info("UMG_Shop_Tips_C:UpdateTips, condtype not soldout ")
       end
@@ -449,6 +451,7 @@ end
 function UMG_Shop_Tips_C:OnAddEventListener()
   self:RegisterEvent(self, ShopModuleEvent.OpenGetRewardPanel, self.BuyItemOk)
   self:RegisterEvent(self, ShopModuleEvent.updateTipsTimeCountDown, self.updateTimeCountDown)
+  self:AddButtonListener(self.NRCButton_66, self.OnItemIconButtonClicked)
   _G.DataModelMgr.PlayerDataModel:AddEventListener(self, ENUM_PLAYER_DATA_EVENT.UPDATE_DATA, self.OnPlayerDataUpdate)
 end
 
@@ -459,7 +462,16 @@ function UMG_Shop_Tips_C:OnPlayerDataUpdate()
 end
 
 function UMG_Shop_Tips_C:updateTimeCountDown(svr_time)
-  local next_refresh_time = self.data.next_refresh_time
+  local _disable_time = self.data.disable_time or 0
+  local _next_refresh_time = self.data.next_refresh_time or 0
+  local next_refresh_time = 0
+  if 0 == _disable_time then
+    next_refresh_time = _next_refresh_time
+  elseif 0 == _next_refresh_time then
+    next_refresh_time = _disable_time
+  else
+    next_refresh_time = _disable_time < _next_refresh_time and _disable_time or _next_refresh_time
+  end
   if nil ~= next_refresh_time then
     self.deltaTime = next_refresh_time - svr_time
     if self.deltaTime then
@@ -471,6 +483,9 @@ function UMG_Shop_Tips_C:updateTimeCountDown(svr_time)
         if days > 0 then
           self.TimerTest:SetText(days .. LuaText.umg_shop_tips_2 .. hours .. LuaText.umg_shop_tips_4)
         else
+          if 0 == hours and 0 == minutes then
+            minutes = 1
+          end
           self.TimerTest:SetText(hours .. LuaText.umg_shop_tips_4 .. minutes .. LuaText.umg_shop_tips_5)
         end
       else
@@ -663,6 +678,14 @@ end
 
 function UMG_Shop_Tips_C:OnAnimationFinished(anim)
   if anim == self:GetAnimByIndex(2) then
+    if self.pendingPackageId then
+      local packageId = self.pendingPackageId
+      self.pendingPackageId = nil
+      _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.OpenFashionMallPopupByPackageId, packageId, function()
+        self:OnFashionMallPopupClosed()
+      end)
+      return
+    end
     if self.IsBuy then
       local GoodsConf = _G.DataConfigManager:GetNormalShopConf(self.data.shopItemId)
       if GoodsConf.Type == Enum.GoodsType.GT_REWARD then
@@ -795,6 +818,36 @@ function UMG_Shop_Tips_C:GetReturnItemName(goodsType, goodsId)
     return conf and conf.item_name or ""
   end
   return ""
+end
+
+function UMG_Shop_Tips_C:OnItemIconButtonClicked()
+  if not self.data then
+    return
+  end
+  local GoodsConf = _G.DataConfigManager:GetNormalShopConf(self.data.shopItemId)
+  if not GoodsConf then
+    return
+  end
+  local packageId
+  if GoodsConf.Type == Enum.GoodsType.GT_FASHION_PACKAGE then
+    packageId = GoodsConf.item_id
+  else
+    packageId = _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.GetPackageIdByGoodsId, self.data.shopItemId)
+  end
+  if packageId then
+    self.pendingPackageId = packageId
+    self:LoadAnimation(2)
+    if self.PopUp3 and self.PopUp3.GetAnimByIndex and self.PopUp3:GetAnimByIndex(2) then
+      self.PopUp3:LoadAnimation(2)
+    end
+  end
+end
+
+function UMG_Shop_Tips_C:OnFashionMallPopupClosed()
+  self:LoadAnimation(0)
+  if self.PopUp3 and self.PopUp3.GetAnimByIndex and self.PopUp3:GetAnimByIndex(0) then
+    self.PopUp3:LoadAnimation(0)
+  end
 end
 
 return UMG_Shop_Tips_C

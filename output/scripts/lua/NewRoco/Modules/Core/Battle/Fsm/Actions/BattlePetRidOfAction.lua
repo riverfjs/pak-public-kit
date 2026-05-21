@@ -52,7 +52,7 @@ function BattlePetRidOfAction:PlayBuffTrigger()
   local buffShowEndTime = self.BattleManager.battleRuntimeData:GetParallelShowTime()
   local waitTime = buffShowEndTime - os.time()
   if waitTime > 0 then
-    _G.DelayManager:DelaySeconds(waitTime, self.OnPlay, self)
+    self.waitShowEnd = _G.DelayManager:DelaySeconds(waitTime, self.OnPlay, self)
     return
   end
   self.hasComplete = false
@@ -110,11 +110,19 @@ function BattlePetRidOfAction:ShowTargetsBuffBar()
 end
 
 function BattlePetRidOfAction:OnPlay()
+  if self.waitShowEnd then
+    _G.DelayManager:CancelDelayById(self.waitShowEnd)
+    self.waitShowEnd = nil
+  end
   self.Caster:SwimSetLockIdle(false)
   local rocoSkillComponent
   rocoSkillComponent, self.SkillObject = BattleSkillManager:PrepareSkill(self.Caster, self.skillComponent, self.CastSkillParam)
   if rocoSkillComponent and self.SkillObject then
-    rocoSkillComponent:PlaySkill(self.SkillObject)
+    local result = rocoSkillComponent:PlaySkill(self.SkillObject)
+    if result ~= UE4.ESkillStartResult.Success then
+      Log.Warning("BattlePetRidOfAction:OnPlay", "PlaySkill failed", self.buffTrigger.buff_id, result)
+      self:SkillComplete()
+    end
   end
 end
 

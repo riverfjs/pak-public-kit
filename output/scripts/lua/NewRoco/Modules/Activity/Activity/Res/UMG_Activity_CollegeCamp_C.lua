@@ -39,6 +39,7 @@ function UMG_Activity_CollegeCamp_C:OnActive(data)
       item:SetVisibility(UE4.ESlateVisibility.Collapsed)
     end
   end
+  _G.NRCAudioManager:PlaySound2DAuto(40007007, "UMG_Activity_CollegeCamp_C:OnActive")
 end
 
 function UMG_Activity_CollegeCamp_C:SetDesc(desc)

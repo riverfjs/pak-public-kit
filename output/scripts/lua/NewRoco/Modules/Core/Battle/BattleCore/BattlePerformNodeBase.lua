@@ -48,6 +48,7 @@ function BattlePerformNodeBase:TryBuildHandler()
       [ProtoEnum.BattlePerformType.BPT_SKILL_AURA] = self.PerformAura,
       [ProtoEnum.BattlePerformType.BPT_WEATHER_CHANGE] = self.PerformWeather,
       [ProtoEnum.BattlePerformType.BPT_CHANGE_MODEL] = self.PerformChangeModel,
+      [ProtoEnum.BattlePerformType.BPT_BOX_SHIELD_BREAK] = self.PerformBoxShieldBreak,
       [ProtoEnum.BattlePerformType.BPT_AI] = self.PerformNPCAI,
       [ProtoEnum.BattlePerformType.BPT_CHEERS_SWITCH] = self.PerformCheersSwitch,
       [ProtoEnum.BattlePerformType.BPT_PET_ESCAPE] = self.PerformCheersEscape,
@@ -64,7 +65,8 @@ function BattlePerformNodeBase:TryBuildHandler()
       [ProtoEnum.BattlePerformType.BPT_RUNAWAY_INFO] = self.PerformPlayerRunaway,
       [ProtoEnum.BattlePerformType.BPT_PREPARE_TO_BATTLE] = self.PerformPrepareToBattle,
       [ProtoEnum.BattlePerformType.BPT_BAG_TO_PREPARE] = self.PerformBagToPrepare,
-      [ProtoEnum.BattlePerformType.BPT_FEATURE_RESONANCE] = self.PerformResonance
+      [ProtoEnum.BattlePerformType.BPT_FEATURE_RESONANCE] = self.PerformResonance,
+      [ProtoEnum.BattlePerformType.BPT_VC_FINISH_PERFORM] = self.PerformFinishPerform
     }
   end
   if not BattlePerformNodeBase.performFastHandler then
@@ -126,7 +128,8 @@ function BattlePerformNodeBase:TryBuildHandler()
       [ProtoEnum.BattlePerformType.BPT_RUNAWAY_INFO] = "BPT_RUNAWAY_INFO",
       [ProtoEnum.BattlePerformType.BPT_SKILL_POS_CHANGE] = "BPT_SKILL_POS_CHANGE",
       [ProtoEnum.BattlePerformType.BPT_PREPARE_TO_BATTLE] = "BPT_PREPARE_TO_BATTLE",
-      [ProtoEnum.BattlePerformType.BPT_BAG_TO_PREPARE] = "BPT_BAG_TO_PREPARE"
+      [ProtoEnum.BattlePerformType.BPT_BAG_TO_PREPARE] = "BPT_BAG_TO_PREPARE",
+      [ProtoEnum.BattlePerformType.BPT_VC_FINISH_PERFORM] = "BPT_VC_FINISH_PERFORM"
     }
   end
   if not BattlePerformNodeBase.castmomentToWord then
@@ -349,6 +352,8 @@ function BattlePerformNodeBase:GetPerformData()
     return self:GetInfo().catch_pet_info
   elseif self.performNodeType == ProtoEnum.BattlePerformType.BPT_CHANGE_MODEL then
     return self:GetInfo().change_model
+  elseif self.performNodeType == ProtoEnum.BattlePerformType.BPT_BOX_SHIELD_BREAK then
+    return self:GetInfo().box_shield_break
   elseif self.performNodeType == ProtoEnum.BattlePerformType.BPT_AI then
     return self:GetInfo().ai_perform
   elseif self.performNodeType == ProtoEnum.BattlePerformType.BPT_CHEERS_SWITCH then
@@ -434,7 +439,11 @@ end
 
 function BattlePerformNodeBase:InitPlayer(performInfo)
   if self.performNodeType == ProtoEnum.BattlePerformType.BPT_SKILL_CAST then
-    self.player = self.playerPool:GetAttackPlayer()
+    if self:GetInfo().skill_cast.perform_flag == ProtoEnum.PET_SKILL_PERFORM_FLAG.PET_SKILL_PERFORM_FLAG_RESONANCE then
+      self.player = self.playerPool:GetResonancePlayer()
+    else
+      self.player = self.playerPool:GetAttackPlayer()
+    end
   elseif self.performNodeType == ProtoEnum.BattlePerformType.BPT_BUFF_TRIGGER then
     self.player = self.playerPool:GetBuffPlayer()
   elseif self.performNodeType == ProtoEnum.BattlePerformType.BPT_BUFF_CHANGE then
@@ -472,6 +481,8 @@ function BattlePerformNodeBase:InitPlayer(performInfo)
     self.player = self.playerPool:GetEvolutionPlayer()
   elseif self.performNodeType == ProtoEnum.BattlePerformType.BPT_CHANGE_MODEL then
     self.player = self.playerPool:GetChangeModelPlayer()
+  elseif self.performNodeType == ProtoEnum.BattlePerformType.BPT_BOX_SHIELD_BREAK then
+    self.player = self.playerPool:GetSurpriseBoxShieldBreakPlayer()
   elseif self.performNodeType == ProtoEnum.BattlePerformType.BPT_CHEERS_SWITCH then
     self.player = self.playerPool:GetCheersSwitchPlayer()
   elseif self.performNodeType == ProtoEnum.BattlePerformType.BPT_PET_ESCAPE then
@@ -500,6 +511,8 @@ function BattlePerformNodeBase:InitPlayer(performInfo)
     self.player = self.playerPool:GetBagToPreparePlayer()
   elseif self.performNodeType == ProtoEnum.BattlePerformType.BPT_FEATURE_RESONANCE then
     self.player = self.playerPool:GetParallelPlayer()
+  elseif self.performNodeType == ProtoEnum.BattlePerformType.BPT_VC_FINISH_PERFORM then
+    self.player = self.playerPool:GetFinishPerformPlayer()
   end
 end
 
@@ -535,6 +548,19 @@ end
 
 function BattlePerformNodeBase:PerformResonance(performInfo)
   self.player:Play(self)
+end
+
+function BattlePerformNodeBase:PerformFinishPerform(performInfo)
+  self.player:Play(self)
+end
+
+function BattlePerformNodeBase:PerformBoxShieldBreak(performInfo)
+  local box_shield_break = performInfo.box_shield_break
+  if box_shield_break then
+    self.player:Play(self)
+  else
+    self:PerformComplete()
+  end
 end
 
 function BattlePerformNodeBase:PerformComboSkill(performInfo)

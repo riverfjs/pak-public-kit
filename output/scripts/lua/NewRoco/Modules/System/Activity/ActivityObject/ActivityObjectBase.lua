@@ -34,6 +34,7 @@ function ActivityObjectBase:Ctor(_conf, ...)
   self.svrDataInitFlag = false
   self.unlockAdvance = false
   self.loginAccelerateDays = 0
+  self.bPopupPlayed = nil
   self.callbacksOnExpired = {}
   if _conf and _conf.recommend_task_id and #_conf.recommend_task_id > 0 then
     self.recommendTaskQueryHandler = TaskQueryHandler(_conf.recommend_task_id)
@@ -124,6 +125,10 @@ function ActivityObjectBase:GetLoginAccelerateDays()
   return self.loginAccelerateDays
 end
 
+function ActivityObjectBase:GetPopupPlayed()
+  return self.bPopupPlayed
+end
+
 function ActivityObjectBase:GetActivityIcon()
   return self.activityConf.icon_select, self.activityConf.icon
 end
@@ -193,6 +198,10 @@ function ActivityObjectBase:GetActivityTypeParam()
   return self.activityConf.type_param
 end
 
+function ActivityObjectBase:GetActivityBelongSystem()
+  return self.activityConf.belong_system
+end
+
 function ActivityObjectBase:GetActivityCompositedKey()
   local compositedKey = self.activityConf.tab_id
   if 0 ~= compositedKey then
@@ -201,7 +210,7 @@ function ActivityObjectBase:GetActivityCompositedKey()
 end
 
 function ActivityObjectBase:GetActivityTimeLeft()
-  local endTimestamp = self:GetActivityEndTime()
+  local endTimestamp = self:GetActivityEndTime() or 0
   if 0 == endTimestamp then
     return math.maxinteger
   end
@@ -553,7 +562,13 @@ function ActivityObjectBase:DetachView()
 end
 
 function ActivityObjectBase:EraseNewActivityRedPoint()
-  _G.NRCModuleManager:DoCmd(_G.RedPointModuleCmd.EraseRedPoint, ActivityEnum.RedPointKey.NewActivity, tostring(self:GetActivityId()), true)
+  local newRedKey
+  if self:GetActivityBelongSystem() == _G.Enum.BelongSystem.BS_RECALL_ACTIVITY then
+    newRedKey = 488
+  else
+    newRedKey = ActivityEnum.RedPointKey.NewActivity
+  end
+  _G.NRCModuleManager:DoCmd(_G.RedPointModuleCmd.EraseRedPoint, newRedKey, tostring(self:GetActivityId()), true)
 end
 
 function ActivityObjectBase:GetActivityShowStatus()
@@ -606,6 +621,13 @@ function ActivityObjectBase:GetActivityShowStatus()
 end
 
 function ActivityObjectBase:SetSvrStatus(_status)
+  if _status == ActivityEnum.ActivitySvrStatus.Available then
+    local myActivityId = self:GetActivityId()
+    if self.activityConf.popup_path then
+      _G.NRCModeManager:DoCmd(_G.ActivityModuleCmd.TryShowActivityCommonOpenTips, myActivityId)
+      self.bTryShowTipsAfterDataUpdate = true
+    end
+  end
   if self.svrStatus == ActivityEnum.ActivitySvrStatus.Available and _status == ActivityEnum.ActivitySvrStatus.UnAvailable then
     self:SetActivityStatus(ActivityEnum.ActivityStatus.Expired)
     for _, _leftTimeAttr in pairs(self.leftTimeAttrGroup) do
@@ -676,6 +698,9 @@ function ActivityObjectBase:SvrUpdateActivityData(_cmdId, _updateData)
     local _activityData = _updateData
     self.unlockAdvance = _activityData and _activityData.activity_unlock_advance or false
     self.loginAccelerateDays = _activityData and _activityData.login_accelerate_days or 0
+    self.bPopupPlayed = _activityData and _activityData.popup_played or false
+  elseif _cmdId == _G.ProtoCMD.ZoneSvrCmd.ZONE_ACTIVITY_POPUP_PLAYED_RSP then
+    self.bPopupPlayed = true
   end
   if self.svrDataInitFlag then
     self:OnSvrUpdateActivityData(_cmdId, _updateData, false)
@@ -687,6 +712,11 @@ function ActivityObjectBase:SvrUpdateActivityData(_cmdId, _updateData)
   if callback and _cmdId == _G.ProtoCMD.ZoneSvrCmd.ZONE_GET_PLAYER_ACTIVITY_DATA_RSP then
     callback()
     self.callbackOnRspPlayerActivityData = nil
+  end
+  if self.svrStatus == ActivityEnum.ActivitySvrStatus.Available and self.bTryShowTipsAfterDataUpdate and self.activityConf and self.activityConf.popup_path then
+    self.bTryShowTipsAfterDataUpdate = nil
+    local myActivityId = self:GetActivityId()
+    _G.NRCModeManager:DoCmd(_G.ActivityModuleCmd.TryShowActivityCommonOpenTips, myActivityId)
   end
 end
 
@@ -734,7 +764,7 @@ function ActivityObjectBase:IsActivityExpired(_serverTime)
   if self:IsActivityClose() then
     return true
   end
-  local endTimestamp = self:GetActivityEndTime()
+  local endTimestamp = self:GetActivityEndTime() or 0
   if 0 == endTimestamp then
     return false
   end

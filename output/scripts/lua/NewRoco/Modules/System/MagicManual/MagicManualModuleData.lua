@@ -67,6 +67,7 @@ function MagicManualModuleData:Ctor()
   self.TeachingTabInfo = {}
   self.CompletedTaskMap = {}
   self.SeasonChapterData = {}
+  self.SeasonProbAdd = {}
 end
 
 function MagicManualModuleData:SetInitPetConfInfo(Region_id, chapter_id, rewarded)
@@ -116,41 +117,43 @@ end
 function MagicManualModuleData:GetShowRegion()
   local RegionList = {}
   local CurSelect = 0
-  for i, v in pairs(self.AllTaskRegionList) do
-    if v.RegionId == self.CurRegionId then
-      CurSelect = i
-    end
-    local state = 0
-    local ChapterList = v.ChapterList
-    for _, Chapter in pairs(ChapterList) do
-      state = 2
-      local ChapterState = 0
-      if #Chapter.taskList > 0 then
-        ChapterState = 2
-        for _, task in pairs(Chapter.taskList) do
-          local taskConf = _G.DataConfigManager:GetTaskConf(task.id)
-          if taskConf.task_class == Enum.TaskClassType.TCT_ADVENTURE_CORE and task.state < ProtoEnum.EMTaskState.EM_TASK_STATE_DONE then
-            ChapterState = 0
-            break
-          elseif taskConf.task_class ~= Enum.TaskClassType.TCT_ADVENTURE_CORE and task.state < ProtoEnum.EMTaskState.EM_TASK_STATE_DONE then
-            ChapterState = 1
+  if self.AllTaskRegionList then
+    for i, v in pairs(self.AllTaskRegionList) do
+      if v.RegionId == self.CurRegionId then
+        CurSelect = i
+      end
+      local state = 0
+      local ChapterList = v.ChapterList
+      for _, Chapter in pairs(ChapterList) do
+        state = 2
+        local ChapterState = 0
+        if #Chapter.taskList > 0 then
+          ChapterState = 2
+          for _, task in pairs(Chapter.taskList) do
+            local taskConf = _G.DataConfigManager:GetTaskConf(task.id)
+            if taskConf.task_class == Enum.TaskClassType.TCT_ADVENTURE_CORE and task.state < ProtoEnum.EMTaskState.EM_TASK_STATE_DONE then
+              ChapterState = 0
+              break
+            elseif taskConf.task_class ~= Enum.TaskClassType.TCT_ADVENTURE_CORE and task.state < ProtoEnum.EMTaskState.EM_TASK_STATE_DONE then
+              ChapterState = 1
+            end
           end
         end
+        if 0 == ChapterState then
+          state = 0
+          break
+        elseif 1 == ChapterState then
+          state = 1
+          break
+        end
       end
-      if 0 == ChapterState then
-        state = 0
-        break
-      elseif 1 == ChapterState then
-        state = 1
-        break
-      end
+      table.insert(RegionList, {
+        ComType = CommonBtnEnum.ComboBoxType.MagicManual,
+        RegionId = v.RegionId,
+        name = v.name,
+        state = state
+      })
     end
-    table.insert(RegionList, {
-      ComType = CommonBtnEnum.ComboBoxType.MagicManual,
-      RegionId = v.RegionId,
-      name = v.name,
-      state = state
-    })
   end
   return RegionList, CurSelect
 end
@@ -830,14 +833,19 @@ function MagicManualModuleData:SetNextChapterInfo()
   elseif self.CurRegionId and _G.DataModelMgr.PlayerDataModel:GetPlayerInfo().common_info.pet_select_region_id then
     local Region_id_list = _G.DataModelMgr.PlayerDataModel:GetPlayerInfo().common_info.pet_select_region_id
     local NextRegionId = Region_id_list[#Region_id_list]
+    Log.Debug("MagicManualModuleData:SetNextChapterInfo", NextRegionId)
     if NextRegionId then
-      local NextRegionConf = _G.DataConfigManager:GetRegionConf(NextRegionId)
-      NextChapterId = NextRegionConf.region_start_chapter
-      local NextParagraphConf = _G.DataConfigManager:GetAdventureConf(NextChapterId)
-      self.NextChapterId.ChapterIdName = self:TranslateCurChapterName(NextParagraphConf.chapter_num)
-      self.NextChapterId.ChapterName = NextParagraphConf.chapter_name
-      self.NextChapterId.ChapterRibbon = NextParagraphConf.chapter_new_anim_comp
-      self.NextChapterId.id = NextChapterId
+      if NextRegionId ~= self.CurRegionId then
+        local NextRegionConf = _G.DataConfigManager:GetRegionConf(NextRegionId)
+        NextChapterId = NextRegionConf.region_start_chapter
+        local NextParagraphConf = _G.DataConfigManager:GetAdventureConf(NextChapterId)
+        self.NextChapterId.ChapterIdName = self:TranslateCurChapterName(NextParagraphConf.chapter_num)
+        self.NextChapterId.ChapterName = NextParagraphConf.chapter_name
+        self.NextChapterId.ChapterRibbon = NextParagraphConf.chapter_new_anim_comp
+        self.NextChapterId.id = NextChapterId
+      else
+        return nil
+      end
     end
   else
     return nil
@@ -1118,6 +1126,9 @@ function MagicManualModuleData:GetAllSeasonBadgeConf()
 end
 
 function MagicManualModuleData:OnUpdataTaskStateInfo(tasklist)
+  if not tasklist or 0 == #tasklist then
+    return
+  end
   local currChapterData = self:GetCurrentChapterData()
   if currChapterData and currChapterData.taskList then
     local badgeInfo = self:GetSeasonBadgeInfo()
@@ -1130,7 +1141,7 @@ function MagicManualModuleData:OnUpdataTaskStateInfo(tasklist)
         end
       end
       local taskConf = _G.DataConfigManager:GetTaskConf(v.id)
-      if taskConf and (taskConf.task_class == Enum.TaskClassType.TCT_SADV_NORMAL or taskConf.task_class == Enum.TaskClassType.TCT_SADV_CHALLENGE) then
+      if taskConf and v.state >= ProtoEnum.EMTaskState.EM_TASK_STATE_DONE and (taskConf.task_class == Enum.TaskClassType.TCT_SADV_NORMAL or taskConf.task_class == Enum.TaskClassType.TCT_SADV_CHALLENGE) then
         currChapterData.chapterState.normal_progress = taskConf.task_class == Enum.TaskClassType.TCT_SADV_NORMAL and currChapterData.chapterState.normal_progress + 1 or currChapterData.chapterState.normal_progress
         currChapterData.chapterState.challenge_progress = taskConf.task_class == Enum.TaskClassType.TCT_SADV_CHALLENGE and currChapterData.chapterState.challenge_progress + 1 or currChapterData.chapterState.challenge_progress
         if badgeInfo and badgeInfo.badgeInfo then
@@ -1169,6 +1180,14 @@ end
 function MagicManualModuleData:OnUpdataBadgeInfo(badgeInfo)
   local badgeConf = self:GetSeasonBadgeConfByLevel(badgeInfo.badge_lvl)
   self.SeasonChapterData.badgeInfo = {badgeInfo = badgeInfo, badgeConfData = badgeConf}
+end
+
+function MagicManualModuleData:OnUpdateSeasonManualProbAddition(additionInfo)
+  self.SeasonProbAdd = additionInfo
+end
+
+function MagicManualModuleData:GetSeasonProbAdd()
+  return self.SeasonProbAdd
 end
 
 return MagicManualModuleData

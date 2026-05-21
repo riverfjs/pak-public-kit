@@ -70,6 +70,8 @@ function HomeModuleHead:OnConstruct()
   self:BindCmd(_G.HomeModuleCmd.OnCmdZoneSceneHomeTeamEnterHomeReq, "OnCmdZoneSceneHomeTeamEnterHomeReq")
   self:BindCmd(_G.HomeModuleCmd.OnCmdZoneSceneHomeTeamLeaveHomeReq, "OnCmdZoneSceneHomeTeamLeaveHomeReq")
   self:BindCmd(_G.HomeModuleCmd.OnZoneSceneHomeTeamQueryReq, "OnZoneSceneHomeTeamQueryReq")
+  self:BindCmd(_G.HomeModuleCmd.OpenFurnitureFilterPanel, "OnCmdOpenFurnitureFilterPanel")
+  self:BindCmd(_G.HomeModuleCmd.CloseFurnitureFilterPanel, "OnCmdCloseFurnitureFilterPanel")
 end
 
 return HomeModuleHead

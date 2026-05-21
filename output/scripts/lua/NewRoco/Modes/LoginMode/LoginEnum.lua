@@ -32,6 +32,7 @@ LoginEnum.StateNames = {
   DeviceWarningState = "DeviceWarningState",
   CheckUpdateState = "CheckUpdateState",
   ResVerifyState = "ResVerifyState",
+  CheckPreDownloadState = "CheckPreDownloadState",
   CheckPatchUpdateState = "CheckPatchUpdateState",
   CheckPreDownloadBasePaksState = "CheckPreDownloadBasePaksState",
   PreDownloadBasePaksState = "PreDownloadBasePaksState",
@@ -208,6 +209,9 @@ LoginEnum.DownloadReportType = {
   CloudGameDownloadBtn = 12,
   EarlyWithBaseDownloadBegin = 13,
   EarlyWithBaseDownloadEnd = 14,
-  EarlyWithBaseDownloadFail = 15
+  EarlyWithBaseDownloadFail = 15,
+  PreDownloadBegin = 16,
+  PreDownloadEnd = 17,
+  PreDownloadFail = 18
 }
 return LoginEnum

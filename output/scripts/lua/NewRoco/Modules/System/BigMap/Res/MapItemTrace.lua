@@ -18,6 +18,17 @@ function MapItemTrace:Ctor(parentView, layerList, iconTemplateList)
   self.travelShowType = {
     BigMapModuleEnum.TraceType.Travel
   }
+  self.zOrderList = nil
+end
+
+function MapItemTrace:GetTraceZOrder(traceType)
+  if self.zOrderList == nil then
+    self.zOrderList = {}
+  end
+  local zOrder = self.zOrderList[traceType] or 0
+  zOrder = zOrder + 1
+  self.zOrderList[traceType] = zOrder
+  return zOrder
 end
 
 function MapItemTrace:Create(itemData)
@@ -49,20 +60,21 @@ function MapItemTrace:Refresh(itemData)
     if #self.iconList[traceType] > 0 then
       itemWidget = self.iconList[traceType][1]
     else
-      itemWidget = MapItemBase.CreateTraceWidget(self, traceInfo)
+      itemWidget = MapItemBase.CreateTraceWidget(self, traceInfo, self:GetTraceZOrder(traceType))
       table.insert(self.iconList[traceType], itemWidget)
     end
     if itemWidget then
       itemWidget:SetData({
         imagePosX = posX,
         imagePosY = posY,
-        heroDir = traceInfo.dir
+        heroDir = traceInfo.dir,
+        sceneResId = traceInfo.sceneResId
       })
     end
   elseif traceType == BigMapModuleEnum.TraceType.NPC then
     local entryId = traceInfo.npcInfo.entry_id
     if self.iconList[traceType][entryId] == nil then
-      itemWidget = MapItemBase.CreateTraceWidget(self, traceInfo)
+      itemWidget = MapItemBase.CreateTraceWidget(self, traceInfo, self:GetTraceZOrder(traceType))
       self.iconList[traceType][entryId] = itemWidget
     else
       itemWidget = self.iconList[traceType][entryId]
@@ -78,7 +90,7 @@ function MapItemTrace:Refresh(itemData)
   elseif traceType == BigMapModuleEnum.TraceType.Marker then
     local markId = traceInfo.markInfo.mark_id
     if self.iconList[traceType][markId] == nil then
-      itemWidget = MapItemBase.CreateTraceWidget(self, traceInfo)
+      itemWidget = MapItemBase.CreateTraceWidget(self, traceInfo, self:GetTraceZOrder(traceType))
       self.iconList[traceType][markId] = itemWidget
     else
       itemWidget = self.iconList[traceType][markId]
@@ -98,7 +110,7 @@ function MapItemTrace:Refresh(itemData)
       self.iconList[traceType][taskId] = {}
     end
     if self.iconList[traceType][taskId][goIndex] == nil then
-      itemWidget = MapItemBase.CreateTraceWidget(self, traceInfo)
+      itemWidget = MapItemBase.CreateTraceWidget(self, traceInfo, self:GetTraceZOrder(traceType))
       self.iconList[traceType][taskId][goIndex] = itemWidget
     else
       itemWidget = self.iconList[traceType][taskId][goIndex]
@@ -123,7 +135,7 @@ function MapItemTrace:Refresh(itemData)
   elseif traceType == BigMapModuleEnum.TraceType.Visitor then
     local visitorIndex = traceInfo.visitorInfo.visitorIndex
     if self.iconList[traceType][visitorIndex] == nil then
-      itemWidget = MapItemBase.CreateTraceWidget(self, traceInfo)
+      itemWidget = MapItemBase.CreateTraceWidget(self, traceInfo, self:GetTraceZOrder(traceType))
       self.iconList[traceType][visitorIndex] = itemWidget
     else
       itemWidget = self.iconList[traceType][visitorIndex]
@@ -138,7 +150,7 @@ function MapItemTrace:Refresh(itemData)
   elseif traceType == BigMapModuleEnum.TraceType.AutoTrace then
     local logicId = traceInfo.npcInfo.logic_id
     if self.iconList[traceType][logicId] == nil then
-      itemWidget = MapItemBase.CreateTraceWidget(self, traceInfo)
+      itemWidget = MapItemBase.CreateTraceWidget(self, traceInfo, self:GetTraceZOrder(traceType))
       self.iconList[traceType][logicId] = itemWidget
     else
       itemWidget = self.iconList[traceType][logicId]
@@ -151,10 +163,10 @@ function MapItemTrace:Refresh(itemData)
         npcCfg = traceInfo.npcInfo
       })
     end
-  elseif traceType == BigMapModuleEnum.TraceType.TempTrace then
+  elseif traceType == BigMapModuleEnum.TraceType.TempTrace or traceType == BigMapModuleEnum.TraceType.ForceTrace then
     local logicId = traceInfo.npcInfo.logic_id
     if self.iconList[traceType][logicId] == nil then
-      itemWidget = MapItemBase.CreateTraceWidget(self, traceInfo)
+      itemWidget = MapItemBase.CreateTraceWidget(self, traceInfo, self:GetTraceZOrder(traceType))
       self.iconList[traceType][logicId] = itemWidget
     else
       itemWidget = self.iconList[traceType][logicId]
@@ -170,7 +182,7 @@ function MapItemTrace:Refresh(itemData)
   elseif traceType == BigMapModuleEnum.TraceType.Travel then
     local campId = traceInfo.travelInfo.camp_content_id
     if self.iconList[traceType][campId] == nil then
-      itemWidget = MapItemBase.CreateTraceWidget(self, traceInfo)
+      itemWidget = MapItemBase.CreateTraceWidget(self, traceInfo, self:GetTraceZOrder(traceType))
       self.iconList[traceType][campId] = itemWidget
     else
       itemWidget = self.iconList[traceType][campId]
@@ -205,6 +217,9 @@ function MapItemTrace:Destroy(traceType)
       table.removeKey(self.iconList[traceType], k)
     end
     table.removeKey(self.iconList, traceType)
+    if self.zOrderList then
+      table.removeKey(self.zOrderList, traceType)
+    end
   end
 end
 

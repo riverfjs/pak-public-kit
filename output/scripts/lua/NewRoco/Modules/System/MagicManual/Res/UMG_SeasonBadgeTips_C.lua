@@ -19,6 +19,7 @@ function UMG_SeasonBadgeTips_C:SetInfo()
   local currBadgeInfo = self.data:GetSeasonBadgeInfo()
   if currBadgeInfo and currBadgeInfo.badgeConfData then
     self.ProbabilityText:SetText(LuaText.magic_manual_season_badge_subtitle)
+    self.Icon:SetPath(currBadgeInfo.badgeConfData.badge_icon)
   end
   local badgeList = self.data:GetAllSeasonBadgeConf()
   self.List:InitList(badgeList)

@@ -2,6 +2,8 @@ local GlobalConfig = {
   DisableBattle = false,
   DisableTouchBattle = false,
   DisableBackwardAIFilter = false,
+  DisableScreenMessages = false,
+  DisableMovementTick = false,
   EnableTurn = true,
   DebugLuaBTree = false,
   DisablePetDamage = false,
@@ -87,6 +89,7 @@ local GlobalConfig = {
   DebugTurnAccMode = false,
   OpenMainPanelFromDebugBtn = 0,
   DrawDebugLookAt = false,
+  DrawDebugResonance = false,
   UseLookAtScale = false,
   DisableNPCFixCoordinate = true,
   AutoEnableLuaDebug = false,
@@ -104,7 +107,8 @@ local GlobalConfig = {
   ShowCompassSensing = false,
   DrawRideCollision = false,
   UseNewPetFree = false,
-  EnableHudPool = false,
+  EnableHudPool = true,
+  EnableSubHudPool = false,
   DisableAllPlayerHud = 0,
   ForceSuitRelax = false,
   EnableVitalityLog = false,
@@ -165,6 +169,7 @@ local GlobalConfig = {
       showName = "Status\228\191\161\230\129\175",
       show = true
     }
-  }
+  },
+  DebugSuitPerform = false
 }
 return GlobalConfig

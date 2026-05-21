@@ -6,6 +6,9 @@ local MainUIModuleEnum = require("NewRoco/Modules/System/MainUI/MainUIModuleEnum
 local PhotoServer = require("NewRoco/Modules/System/TakePhotos/Helper/PhotoServer")
 local TakePhotoControl = require("NewRoco/Modules/System/TakePhotos/Controller/TakePhotoControl")
 local PhotoFileDefine = require("NewRoco.Modules.System.TakePhotos.Helper.PhotoFileDefine")
+local PhotoActivityManager = require("NewRoco.Modules.System.TakePhotos.Helper.PhotoActivityManager")
+local PhotoCacheDefine = require("NewRoco.Modules.System.TakePhotos.Common.PhotoCacheDefine")
+local TipObject = require("NewRoco.Modules.System.TipsModule.Utils.TipObject")
 
 function TakePhotosModule:OnConstruct()
   _G.TakePhotosModuleCmd = reload("NewRoco.Modules.System.TakePhotos.TakePhotosModuleCmd")
@@ -18,7 +21,6 @@ function TakePhotosModule:OnConstruct()
   self:RegPanel("UMG_PhotoFrame", "UMG_PhotoFrame", Enum.UILayerType.UI_LAYER_TOP)
   self:RegPanel("UMG_PhotoFrame_Open", "UMG_PhotoFrame_Open", Enum.UILayerType.UI_LAYER_TOP)
   self:RegPanel("UMG_DeletePrompt", "UMG_DeletePrompt", Enum.UILayerType.UI_LAYER_POPUP)
-  self:RegPanel("UMG_TakePhotos_Share", "UMG_TakePhotos_Share", Enum.UILayerType.UI_LAYER_POPUP)
   self:RegPanel("UMG_PhotoCropping", "UMG_PhotoCropping", Enum.UILayerType.UI_LAYER_POPUP, nil, nil, true, 2, true)
   if _G.RocoEnv.IS_EDITOR then
     local path = "/Game/NewRoco/Modules/System/TakePhotos/Editor/UMG_TakePhotosRiderEditor"
@@ -30,6 +32,7 @@ function TakePhotosModule:OnConstruct()
   self.bMakingPhoto = false
   self.PhotoServer = PhotoServer(self)
   self.Controller = TakePhotoControl(self)
+  self.PhotoActivityManager = PhotoActivityManager(self)
   self.data:InitSaveData()
 end
 
@@ -49,7 +52,6 @@ function TakePhotosModule:RegPanel(name, path, layer, openAnimName, closeAnimNam
 end
 
 function TakePhotosModule:OnActive()
-  self.PhotoServer:ConditionReleaseCachedCardPhotos()
   self:RegisterEvent(self, TakePhotosModuleEvent.OnExitTakePhotos, self.OnExitTakePhotos)
   self:RegisterEvent(self, TakePhotosModuleEvent.OnEnterTakePhotos, self.OnEnterTakePhotos)
   self:RegisterEvent(self, TakePhotosModuleEvent.OnRemotePhotoFullEstablished, self.OnRemotePhotoFullEstablished)
@@ -58,9 +60,11 @@ function TakePhotosModule:OnActive()
   _G.NRCEventCenter:RegisterEvent("TakePhotosModule", self, _G.NRCPanelEvent.OpenPanel, self.OnOpenPanel)
   _G.NRCEventCenter:RegisterEvent("TakePhotosModule", self, _G.NRCPanelEvent.ClosePanel, self.OnClosePanel)
   _G.NRCEventCenter:RegisterEvent("TakePhotosModule", self, _G.SceneEvent.OnEnterSceneFinishNtyAck, self.OnEnterSceneFinishNtyAck)
+  _G.NRCEventCenter:RegisterEvent("TakePhotosModule", self, _G.SceneEvent.OnEnterSceneFinishNtyAckEnd, self.OnEnterSceneFinishNtyAckEnd)
   if not _G.ZoneServer:IsUpstreamLocked() then
     self:OnEnterSceneFinishNtyAck()
   end
+  PhotoCacheDefine:UpdateFileCaches()
 end
 
 function TakePhotosModule:OnRelogin()
@@ -71,14 +75,13 @@ function TakePhotosModule:OnDeactive()
   self:UnRegisterEvent(self, TakePhotosModuleEvent.OnEnterTakePhotos)
   self:UnRegisterEvent(self, TakePhotosModuleEvent.OnRemotePhotoFullEstablished)
   _G.NRCEventCenter:UnRegisterEvent(self, _G.SceneEvent.OnEnterSceneFinishNtyAck, self.OnEnterSceneFinishNtyAck)
+  _G.NRCEventCenter:UnRegisterEvent(self, _G.SceneEvent.OnEnterSceneFinishNtyAckEnd, self.OnEnterSceneFinishNtyAckEnd)
   _G.NRCEventCenter:UnRegisterEvent(self, _G.NRCPanelEvent.OpenPanel, self.OnOpenPanel)
   _G.NRCEventCenter:UnRegisterEvent(self, _G.NRCPanelEvent.ClosePanel, self.OnClosePanel)
   self.Controller:OnDestroy()
 end
 
 function TakePhotosModule:OnEnterSceneFinishNtyAck()
-  self.PhotoServer:OnEnterSceneFinish()
-  self.ModeMgr.TakePhotosModeTripod:OnEnterSceneFinish()
   self.Controller:OnEnterSceneFinish()
   self:ExitTakePhotos()
   local player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
@@ -87,6 +90,11 @@ function TakePhotosModule:OnEnterSceneFinishNtyAck()
     player.statusComponent:ClearStatus(ProtoEnum.WorldPlayerStatusType.WPST_TAKE_PHOTO_SELF)
     player.statusComponent:ClearStatus(ProtoEnum.WorldPlayerStatusType.WPST_TAKE_PHOTO_TRIPOD)
   end
+end
+
+function TakePhotosModule:OnEnterSceneFinishNtyAckEnd()
+  self.PhotoServer:OnEnterSceneFinish()
+  self.ModeMgr.TakePhotosModeTripod:OnEnterSceneFinish()
 end
 
 function TakePhotosModule:OnDestruct()
@@ -291,14 +299,15 @@ function TakePhotosModule:SharePhoto(Way)
   self:DispatchEvent(TakePhotosModuleEvent.OnReqSharePhoto, Way)
 end
 
-function TakePhotosModule:OpenPhotosHistoryPanel(bFromOther)
+function TakePhotosModule:OpenPhotosHistoryPanel(bFromOther, bFromActivity)
   if not self.data:IsSaveGameDataReady() then
     return
   end
   self.bInRemoteHistory = bFromOther
-  if bFromOther then
+  if bFromOther or bFromActivity then
     self:ClosePanel("PhotoHistoryUI")
   end
+  self.PhotoActivityManager:ToggleAlbumSubmitStatus(bFromActivity)
   self:OpenPanel("PhotoHistoryUI", not self.bInRemoteHistory)
 end
 
@@ -306,8 +315,29 @@ function TakePhotosModule:OpenPhotosRemoteHistoryPanel()
   self:OpenPhotosHistoryPanel(true)
 end
 
+function TakePhotosModule:OpenPhotosActivityAlbumPanel()
+  if not self.Controller.PhotoManager:AnyPhotoCanReportActivity() then
+    _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.pic_game_submit_no_photo, nil, nil, 2)
+    return
+  end
+  if self.PhotoActivityManager:InSubmitCoolDown(true) then
+    return
+  end
+  if not self.PhotoActivityManager:CanRequestContestSubmit() then
+    Log.Error(" Invalid activity photo stage ")
+    return
+  end
+  self:OpenPhotosHistoryPanel(false, true)
+end
+
 function TakePhotosModule:PopupCustomPhotoFileView(CustomFilePath, DoUpload, ExtraInfo)
   local PhotoData = self.Controller.PhotoManager:AddPhotoByCustomUpload(CustomFilePath, DoUpload)
+  self.PhotoActivityManager:ToggleAlbumSubmitStatus(false)
+  self:PopupPhotoFileView(PhotoData, ExtraInfo)
+end
+
+function TakePhotosModule:PopupTakingPhotoFileView(PhotoData, ExtraInfo)
+  self.PhotoActivityManager:ToggleAlbumSubmitStatus(false)
   self:PopupPhotoFileView(PhotoData, ExtraInfo)
 end
 
@@ -353,17 +383,28 @@ function TakePhotosModule:DisplayDeletePrompt(Data)
   self:OpenPanel("UMG_DeletePrompt", Data)
 end
 
-function TakePhotosModule:OpenSharePhotoPanel(PhotoData)
-  if not PhotoData then
-    Log.Error("cannot found invalid photo data")
+function TakePhotosModule:OpenSharePhotoPanel(PhotoPath, bWaterMaskEnabled, CustomData, Md5)
+  if not PhotoPath then
+    Log.Error("Invalid PhotoPath")
     return
   end
+  if not UE.UNRCStatics.FileExists(PhotoPath) then
+    Log.Error("Invalid PhotoPath", PhotoPath)
+    return
+  end
+  local photoData = {
+    PhotoPath = PhotoPath,
+    bWaterMaskEnabled = bWaterMaskEnabled,
+    CustomData = CustomData,
+    Md5 = Md5
+  }
+  Log.Debug("TakePhotosModule:OpenSharePhotoPanel", PhotoPath, Md5, bWaterMaskEnabled, CustomData)
   local shareBaseId = _G.Enum.ShareButtonType.SBT_PHOTO
   local sharePartId = _G.NRCModuleManager:DoCmd(ShareUIModuleCmd.GetSharePartIdByShareBaseId, shareBaseId)
   local shareData = {
     shareBaseId = shareBaseId,
     sharePartId = sharePartId,
-    photoData = PhotoData
+    photoData = photoData
   }
   _G.NRCModuleManager:DoCmd(ShareUIModuleCmd.OpenShareUIPanel, shareData)
 end
@@ -408,13 +449,7 @@ function TakePhotosModule:OpenPhotoCroppingPanel(Texture, ConfirmCallback, bUplo
   self:OpenPanel("UMG_PhotoCropping", Texture, ConfirmCallback, bUploadToCard, ClipPhoto)
 end
 
-function TakePhotosModule:DownloadCard(Url, bUsingCache, Callback)
-  if bUsingCache then
-    local LocalPhotoFilePath = self.PhotoServer:GetLocalCachedPhotoFileByUrl(Url)
-    if LocalPhotoFilePath then
-      Callback(true, LocalPhotoFilePath)
-    end
-  end
+function TakePhotosModule:DownloadCard(Url, Callback)
   self.PhotoServer:ReqDownloadCard(Url, Callback)
 end
 
@@ -509,7 +544,6 @@ function TakePhotosModule:QuickShotCut()
     if not PhotoData then
       RtRef = nil
       UnLua.Unref(RT)
-      Log.Error("UMG_LobbyMain_C:Photo NoPhotoData")
       return
     end
     PhotoData:AttachSection({})
@@ -517,12 +551,122 @@ function TakePhotosModule:QuickShotCut()
       RtRef = nil
       UnLua.Unref(RT)
     end)
+    local PhotoInfo = self:CheckPhotoInfoImmediately()
+    PhotoData:SetPhotoInfo(PhotoInfo)
     self:OpenPanel("PopupPhotoMomentUI", function()
-      self:PopupPhotoFileView(PhotoData)
+      self:PopupTakingPhotoFileView(PhotoData)
     end)
     self:ReportTLog(1, true)
   end)
   return true
+end
+
+function TakePhotosModule:CheckPhotoInfoImmediately()
+  local PhotoInfo = _G.ProtoMessage:newPlayerPhotoAlbumInfo()
+  local localPlayer = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
+  local radius = localPlayer:GetRadius()
+  local halfH = localPlayer:GetHalfHeight()
+  local playerExtent = UE.FVector(radius, radius, halfH)
+  local world = UE4Helper.GetCurrentWorld()
+  local worldOriginal = UE.FVector(world:GetWorldOriginX(), world:GetWorldOriginY(), world:GetWorldOriginZ())
+  local IdentifyPos = localPlayer:GetActorLocation()
+  local CameraLocation, CameraRotation, ViewInfo, IdentifyCameraFOV = self:GetIdentifyLookViewInfo()
+  local bInView = false
+  if self.ModeMgr:Is1PMode() then
+    bInView = false
+  else
+    bInView = UE.UNRCStatics.IsBoxInCustomFrustumVolume and UE.UNRCStatics.IsBoxInCustomFrustumVolume(IdentifyPos - worldOriginal, playerExtent, ViewInfo)
+    local TargetHitResult, bTargetHit = UE.UKismetSystemLibrary.Abs_LineTraceSingle(world, CameraLocation, IdentifyPos, UE.ETraceTypeQuery.Visibility, false, {
+      localPlayer.viewObj
+    }, UE4.EDrawDebugTrace.None, nil, true, UE4.FLinearColor.Red, UE4.FLinearColor.Green, 0.1)
+    if bTargetHit then
+      bInView = false
+      Log.Debug("[TakePhoto] Player Collision", TargetHitResult.Actor and TargetHitResult.Actor:GetName())
+    end
+  end
+  PhotoInfo.include_myself = bInView
+  PhotoInfo.pet_base_id_list = {}
+  do
+    local IdentifyDistance = TakePhotosEnum.TPGlobalNum("takephoto_check_distance_max")
+    local CameraViewBoxExtent = UE.FVector(0, 0, 0)
+    local CameraFOV = UE.FVector2D(0, 0)
+    if UE.UNRCStatics.GetFrustumBoundingExtent(ViewInfo, 0, IdentifyDistance, CameraViewBoxExtent, CameraFOV) then
+      local CameraForward = UE.UKismetMathLibrary.GetForwardVector(CameraRotation)
+      local CameraViewBoxCenter = CameraLocation + CameraForward * IdentifyDistance - worldOriginal
+      local BoxOverlapCache = self.BoxOverlapCache or UE.TArray(UE.AActor)
+      BoxOverlapCache:Clear()
+      UE.UNRCStatics.BoxOverlapMultiByObjectType(world, CameraRotation:ToQuat(), BoxOverlapCache, CameraViewBoxCenter, CameraViewBoxExtent, UE.EObjectTypeQuery.Pawn)
+      UE.UNRCStatics.BoxOverlapMultiByObjectType(world, CameraRotation:ToQuat(), BoxOverlapCache, CameraViewBoxCenter, CameraViewBoxExtent, UE.EObjectTypeQuery.Character)
+      self.BoxOverlapCache = BoxOverlapCache
+      local Overlaps = {}
+      local OverrideConfigs = {}
+      local OverlapSet = {}
+      for i, Overlap in tpairs(BoxOverlapCache) do
+        if not OverlapSet[Overlap] and not Overlap.bHidden and Overlap:WasRecentlyRendered(0.2) then
+          local SceneCharacter = Overlap.sceneCharacter
+          if SceneCharacter and SceneCharacter.IsPet and SceneCharacter:IsPet() then
+            table.insert(Overlaps, Overlap)
+            OverlapSet[Overlap] = true
+          elseif Overlap.Rider then
+            local HitScenePlayerPet = Overlap.Rider.BP_RideComponent.ScenePet
+            if HitScenePlayerPet then
+              OverrideConfigs[Overlap] = HitScenePlayerPet.config
+              table.insert(Overlaps, Overlap)
+              OverlapSet[Overlap] = true
+            end
+          end
+        end
+      end
+      
+      local function SortCandidateOverlap(A, B)
+        local VA = A:Abs_K2_GetActorLocation() - CameraLocation
+        local VB = B:Abs_K2_GetActorLocation() - CameraLocation
+        local DisA = VA:Size()
+        local DisB = VB:Size()
+        local WeightA = VA:Dot(CameraForward) / DisA
+        local WeightB = VB:Dot(CameraForward) / DisB
+        return WeightA > WeightB
+      end
+      
+      table.sort(Overlaps, SortCandidateOverlap)
+      local ActorToIgnores
+      local DesiredMaxiNum = TakePhotosEnum.TPGlobalNum("takephoto_identify_pet_max", 1)
+      for i, Overlap in ipairs(Overlaps) do
+        local SceneCharacter = Overlap.sceneCharacter
+        local PetBaseConf = OverrideConfigs[Overlap] or SceneCharacter and SceneCharacter:GetConfPetData()
+        if PetBaseConf then
+          ActorToIgnores = nil
+          if self.ModeMgr:Is1PMode() or self.ModeMgr:IsSelfieMode() then
+            ActorToIgnores = {
+              localPlayer.viewObj
+            }
+          end
+          bInView = UE.UNRCStatics.IsPointInCustomFrustumVolume(Overlap:K2_GetActorLocation(), ViewInfo)
+          if bInView then
+            if not ActorToIgnores then
+              ActorToIgnores = {Overlap}
+            else
+              table.insert(ActorToIgnores, Overlap)
+            end
+            local TargetHitResult, bTargetHit = UE.UKismetSystemLibrary.Abs_LineTraceSingle(world, CameraLocation, Overlap:Abs_K2_GetActorLocation(), UE.ETraceTypeQuery.Visibility, false, ActorToIgnores, UE4.EDrawDebugTrace.None, nil, true, UE4.FLinearColor.Red, UE4.FLinearColor.Green, 0.1)
+            if not bTargetHit then
+              table.insert(PhotoInfo.pet_base_id_list, PetBaseConf.id)
+              if _G.RocoEnv.IS_EDITOR then
+                Log.Debug("[TakePhoto] Capture pet base id", PetBaseConf.id, Overlap:GetFullName())
+              else
+                Log.Debug("[TakePhoto] Capture pet base id", PetBaseConf.id, Overlap:GetName())
+              end
+              if DesiredMaxiNum <= #PhotoInfo.pet_base_id_list then
+                break
+              end
+            end
+          end
+        end
+      end
+      BoxOverlapCache:Clear()
+    end
+  end
+  return PhotoInfo
 end
 
 function TakePhotosModule:OnCmdGetCurPhotoMode()
@@ -576,8 +720,57 @@ function TakePhotosModule:GetSelfiePlayerLookAtOffset()
   return self.SelfiePlayerLookAtOffset
 end
 
+function TakePhotosModule:GetPhotoActivityManager()
+  return self.PhotoActivityManager
+end
+
 function TakePhotosModule:OnCmdCheckPhotoFileViewUI()
   return self:HasPanel("PhotoFileViewUI")
+end
+
+function TakePhotosModule:ReqChangeCameraTexture(SkinId)
+  local ContentId = self.RefreshContentId
+  local OpType = _G.ProtoEnum.ControllableNpcOpType.CNOT_SET_SKIN
+  
+  local function OnTakePhotoFlash(Req, Rsp)
+    Log.Debug("[TakePhoto] rsp set camera skin", Rsp and Rsp.ret_info and Rsp.ret_info.ret_code)
+  end
+  
+  NRCModuleManager:DoCmd(NPCModuleCmd.ReqControlNpc, ContentId, OpType, nil, OnTakePhotoFlash, nil, SkinId)
+end
+
+function TakePhotosModule:OnSyncCameraTextureChanged(ChangeInfo)
+  local ActorId = ChangeInfo.actor_id
+  local SkinId = ChangeInfo.camera_skin_id
+  Log.Debug("OnSyncCameraTextureChanged", ActorId, SkinId, table.concat(ChangeInfo.unlock_skin_ids or {}, ";"))
+  local Player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GetPlayerByServerID, ActorId)
+  if not Player then
+    Log.Error("Cannot found invalid player", ActorId, SkinId)
+  elseif SkinId then
+    if not Player.serverData.camera_info then
+      Player.serverData.camera_info = {
+        skin_id = SkinId,
+        unlock_skin_ids = {SkinId}
+      }
+    else
+      Log.Debug("OnSyncCameraTextureChanged", ActorId, "From", Player.serverData.camera_info.skin_id, "to", SkinId)
+      Player.serverData.camera_info.skin_id = SkinId
+      Player.serverData.camera_info.unlock_skin_ids = ChangeInfo.unlock_skin_ids
+    end
+  end
+  self:DispatchEvent(TakePhotosModuleEvent.OnSyncCameraTextureChanged, ActorId)
+  if 0 ~= (ChangeInfo.bag_item_id or 0) then
+    local reward = {
+      first_get = true,
+      id = ChangeInfo.bag_item_id,
+      num = 1,
+      type = ProtoEnum.GoodsType.GT_BAGITEM
+    }
+    local tip = TipObject.FromGoodsItem(reward)
+    if tip then
+      _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.AddTip, tip)
+    end
+  end
 end
 
 return TakePhotosModule

@@ -67,6 +67,9 @@ function UMG_HorizontalTabBtn_C:OnTouchEnded(MyGeometry, InTouchEvent)
 end
 
 function UMG_HorizontalTabBtn_C:SetupRedDot(hasDot)
+  if not self.clickable and hasDot then
+    return
+  end
   self.bHasRedDot = hasDot
   if hasDot then
     self.RedDot:SetupKey(406)
@@ -83,7 +86,7 @@ function UMG_HorizontalTabBtn_C:SetupSpecialRedDot(bSetUp)
   end
   if bSetUp then
     local bClaimable = _G.NRCModuleManager:DoCmd(AppearanceModuleCmd.CheckPetGlassTintIsClaimableByType, self.uiData.LabelType)
-    if self.uiData.LabelType == _G.Enum.FashionLabelType.FLT_DRESSES or self.uiData.LabelType == _G.Enum.FashionLabelType.FLT_TOPS or _G.Enum.FashionLabelType.FLT_HATS then
+    if self.uiData.LabelType == _G.Enum.FashionLabelType.FLT_DRESSES or self.uiData.LabelType == _G.Enum.FashionLabelType.FLT_TOPS or self.uiData.LabelType == _G.Enum.FashionLabelType.FLT_HATS then
       local glassItemList = _G.NRCModuleManager:DoCmd(AppearanceModuleCmd.GetGlassItemListByType, self.uiData.LabelType)
       if bClaimable then
         self.RedDot_1:SetupKey(460, nil, glassItemList)
@@ -126,6 +129,9 @@ function UMG_HorizontalTabBtn_C:OnDeactive()
 end
 
 function UMG_HorizontalTabBtn_C:SetDressPrompt(bShouldShow)
+  if not self.clickable and bShouldShow then
+    return
+  end
   self.bShowDressPrompt = bShouldShow
   if bShouldShow and self.uiData.bFashion and not self.RedDot:IsRed() and not self.RedDot_1:IsRed() then
     self.UpgradePrompt:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
@@ -148,16 +154,10 @@ function UMG_HorizontalTabBtn_C:HandleDressPrompt(bFashion, labelType, parent)
 end
 
 function UMG_HorizontalTabBtn_C:_CheckIsOwnedItem(itemId, bFashion, labelType, parent)
-  if not bFashion then
+  if not (bFashion and itemId) or 0 == itemId then
     return false
   end
-  local showItemList = parent.data:GetClosetShowItemList(bFashion, labelType)
-  for k, v in ipairs(showItemList) do
-    if itemId == v then
-      return true
-    end
-  end
-  return false
+  return parent.module:OnCmdCheckHasOwned(_G.Enum.GoodsType.GT_FASHION, itemId)
 end
 
 return UMG_HorizontalTabBtn_C

@@ -17,17 +17,11 @@ function MagicAbilityBaseHelper:InitFromConf(inItemId, inMagicId, inAbilityId)
 end
 
 function MagicAbilityBaseHelper:CanCastAbility(caster)
-  if HomeIndoorSandbox and HomeIndoorSandbox.Module:HasMagicBanned(self.magic_type) then
-    return AbilityErrorCode.HOME_FORBID
-  end
-  if _G.FarmModuleCmd then
-    local Module = _G.NRCModuleManager:GetModule("FarmModule")
-    if Module and Module:HasMagicBanned(self.magic_type) then
-      return AbilityErrorCode.HOME_FORBID
-    end
-  end
   if _G.NRCModuleManager:DoCmd(_G.SceneModuleCmd.IsMagicBanned, self.magic_type) then
     return AbilityErrorCode.DUNGEON_BAN
+  end
+  if self.bBannedByArea then
+    return AbilityErrorCode.AREA_BAN
   end
   if caster.viewObj == nil then
     return AbilityErrorCode.HIGHER_PRIORITY_ABILITY_IS_CASTING

@@ -29,6 +29,9 @@ function InstantBattleTurnPlayerAction:OnEnter()
   if IsSelfPerform then
     _G.BattleManager.EscapeContext:Close()
   end
+  if self.TurnPlayer then
+    self.TurnPlayer:OnActionAquireFromPool()
+  end
   if PerformCmd then
     self.TurnPlayer:RunFlows(PerformCmd, SettleInfo, self, self.Finish, IsSelfPerform, npcDelay)
   else
@@ -46,6 +49,9 @@ end
 function InstantBattleTurnPlayerAction:OnFinish()
   self:DestroyProperty("camActor_0002")
   self:DestroyProperty("camActor_0002_SA")
+  if self.TurnPlayer then
+    self.TurnPlayer:OnActionReleaseToPool()
+  end
   local IsSelfPerform = self:GetProperty("IsSelfPerform")
   if IsSelfPerform then
     _G.BattleManager.vBattleField.battleCameraManager:CalcPos()

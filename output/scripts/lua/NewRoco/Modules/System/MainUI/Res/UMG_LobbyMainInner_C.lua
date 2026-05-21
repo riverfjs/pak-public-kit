@@ -12,6 +12,9 @@ local ResQueue = require("NewRoco.Utils.ResQueue")
 local UILayerEvent = require("Core.NRCPanelLayer.UILayerEvent")
 local WishCrystalModuleEvent = require("NewRoco.Modules.System.WishCrystal.WishCrystalModuleEvent")
 local ActivityUtils = require("NewRoco.Modules.System.Activity.ActivityUtils")
+local ActivityEnum = require("NewRoco.Modules.System.Activity.ActivityEnum")
+local PreDownloadEvent = require("NewRoco.Modules.System.Download.PreDownload.PreDownloadEvent")
+local ActivityModuleEvent = require("NewRoco/Modules/System/Activity/ActivityModuleEvent")
 local UMG_LobbyMainInner_C = _G.NRCPanelBase:Extend("UMG_LobbyMainInner_C")
 
 function UMG_LobbyMainInner_C:OnActive(OpenType)
@@ -19,6 +22,9 @@ function UMG_LobbyMainInner_C:OnActive(OpenType)
   if _G.GlobalConfig.DebugOpenUI then
     NRCModeManager:GetCurMode():DisablePanelByLayer(Enum.UILayerType.UI_LAYER_MAIN)
   end
+  _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.OnClosePanelLobbyMain)
+  NRCModeManager:GetCurMode():DisablePanelByLayer(Enum.UILayerType.UI_LAYER_MAIN)
+  _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.AddToDisableLobbyMainPopUpList, "LobbyMainInner")
   if self.CloseBtn1 and self.CloseBtn1.btnClose and self.CloseBtn1.btnClose.OnClicked and self.headButton and self.headButton.OnClicked then
   else
     self:EarlyCrash()
@@ -49,7 +55,9 @@ function UMG_LobbyMainInner_C:OnActive(OpenType)
     self.HaloPanelLoader:LoadPanel(true, _G.PriorityEnum.Active_LobbyMainInner)
     self.HaloPanelLoader:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
     self.UMG_LobbyMainInnerParticleLoader:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
-    player.viewObj:SetActorHiddenInGame(self.OpenType == MainUIModuleEnum.CompassOpenType.COMPASS_2D_NO_PLAYER)
+    if self.OpenType ~= MainUIModuleEnum.CompassOpenType.COMPASS_2D_IGNORE_PLAYER then
+      player.viewObj:SetActorHiddenInGame(self.OpenType == MainUIModuleEnum.CompassOpenType.COMPASS_2D_NO_PLAYER)
+    end
   end
   if self.StartSkill then
     self.StartSkill:Destroy()
@@ -60,6 +68,7 @@ function UMG_LobbyMainInner_C:OnActive(OpenType)
     self.EndSkill = nil
   end
   self.PostProcessSkill = nil
+  self.preDownLoadActivityInst = nil
   player:SendEvent(PlayerModuleEvent.ON_LUOPAN_STATE_CHANGED, true)
   _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.AddCondition, Enum.PlayerConditionType.PCT_UI, "LobbyMainInner")
   self.SubPanelType = MainUIModuleEnum.SubPanelOpenType.NoneUI
@@ -224,8 +233,74 @@ function UMG_LobbyMainInner_C:InitAllUI()
   self:InitLeftIcon()
   self:InitBottomIcon()
   self:InitWishCyrstalUI()
+  self:InitDownloadBtn()
   self.TitlePanel:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
   self:PlayAnimation(self.Open)
+end
+
+function UMG_LobbyMainInner_C:InitDownloadBtn()
+  if RocoEnv.PLATFORM_WINDOWS and not RocoEnv.IS_EDITOR then
+    self.Download:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    return
+  end
+  local isBan = _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.CheckUIFunctionBan, _G.Enum.FunctionEntrance.FE_PRE_DOWNLOAD)
+  if isBan then
+    return
+  end
+  self.RedDot:SetupKey(499)
+  self.DownloadedBtn.RedDot:SetupKey(491)
+  self:AddButtonListener(self.DownloadBtn, self.OnDownloadBtnClicked)
+  self:AddButtonListener(self.DownloadedBtn.btnLevelUp, self.OnDownloadBtnClicked)
+  self:AddButtonListener(self.DownloadingBtn, self.OnDownloadBtnClicked)
+  local preDownLoadActivities = _G.NRCModuleManager:DoCmd(_G.ActivityModuleCmd.GetActivityInstByType, _G.Enum.ActivityType.ATP_PRE_DOWNLOAD, true)
+  if preDownLoadActivities and #preDownLoadActivities > 0 and 1 == table.len(preDownLoadActivities) then
+    local activityInst = preDownLoadActivities[1]
+    self.preDownLoadActivityInst = activityInst
+    if activityInst.status == ActivityEnum.ActivityStatus.Complete then
+      self.Download:SetVisibility(UE4.ESlateVisibility.Visible)
+      self.Download:SetActiveWidgetIndex(2)
+    elseif activityInst.status == ActivityEnum.ActivityStatus.Available or activityInst.status == ActivityEnum.ActivityStatus.Active then
+      self.Download:SetVisibility(UE4.ESlateVisibility.Visible)
+      local bResourceDataReady = _G.NRCPreDownloadManager:IsPreDownloadResEnabled()
+      local activityData = activityInst.preDownloadData
+      if activityData then
+        Log.Dump(activityData, 3, "UMG_LobbyMainInner_C:InitDownloadBtn activityData")
+        if not bResourceDataReady then
+          Log.Debug("UMG_LobbyMainInner_C:InitDownloadBtn bResourceDataReady false")
+          local downloadTips = _G.DataConfigManager:GetActivityGlobalConfig("pre_download_start_book_tips") and _G.DataConfigManager:GetActivityGlobalConfig("pre_download_start_book_tips").str or ""
+          if activityData.book_download then
+            downloadTips = _G.DataConfigManager:GetActivityGlobalConfig("pre_download_booked") and _G.DataConfigManager:GetActivityGlobalConfig("pre_download_booked").str or ""
+          end
+          self.Download:SetActiveWidgetIndex(0)
+          self.DownloadText:SetText(downloadTips)
+        elseif bResourceDataReady and not _G.NRCPreDownloadManager:IfNeedToDownload() then
+          self.Download:SetActiveWidgetIndex(2)
+        elseif _G.NRCPreDownloadManager:IsDownloading() then
+          self.Download:SetActiveWidgetIndex(1)
+          local isDownloading = _G.NRCPreDownloadManager:IsDownloading()
+          local networkStatus = UE.UNetworkStatics:GetNetworkState()
+          if isDownloading and 2 == networkStatus then
+            self:PlayAnimation(self.Down_Loop, 0, 9999)
+          end
+        else
+          self.Download:SetActiveWidgetIndex(0)
+          local downloadTips = _G.DataConfigManager:GetActivityGlobalConfig("pre_download_start_download_tips") and _G.DataConfigManager:GetActivityGlobalConfig("pre_download_start_download_tips").str or ""
+          self.DownloadText:SetText(downloadTips)
+        end
+      end
+    elseif activityInst.status == ActivityEnum.ActivityStatus.WaitingActive then
+      self.Download:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    end
+  end
+end
+
+function UMG_LobbyMainInner_C:OnDownloadBtnClicked()
+  if self.preDownLoadActivityInst then
+    UE4.UNRCAudioManager.Get():PlaySound2DAuto(41401001, "UMG_LobbyMainInner_C:OnDownloadBtnClicked")
+    _G.NRCModuleManager:DoCmd(_G.ActivityModuleCmd.OnCmdOpenPreDownload, self.preDownLoadActivityInst)
+    _G.NRCEventCenter:DispatchEvent(MainUIModuleEvent.OnMainUISubPanelOpen, MainUIModuleEnum.SubPanelOpenType.PreDownload)
+    _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.SendTLog, MainUIModuleEnum.SubPanelOpenType.PreDownload)
+  end
 end
 
 function UMG_LobbyMainInner_C:OnStartLoaded(Queue, Success)
@@ -325,7 +400,7 @@ function UMG_LobbyMainInner_C:OnDeactive()
       localPlayer.viewObj.Mesh:SetRenderCustomDepth(false)
       localPlayer.viewObj.Mesh:SetCustomDepthStencilValue(0)
     end
-    if not self.isNormal then
+    if not self.isNormal and self.OpenType ~= MainUIModuleEnum.CompassOpenType.COMPASS_2D_IGNORE_PLAYER then
       localPlayer.viewObj:SetActorHiddenInGame(false)
     end
   end
@@ -357,6 +432,7 @@ function UMG_LobbyMainInner_C:OnDeactive()
     _G.NRCAudioManager:ReleaseSession(self.WishLoopAudioID, true, "UMG_LobbyMainInner_C:UpdateWishCrystalInfo", false, 0.2)
     self.WishLoopAudioID = nil
   end
+  self.preDownLoadActivityInst = nil
 end
 
 function UMG_LobbyMainInner_C:OnAddEventListener()
@@ -377,6 +453,11 @@ function UMG_LobbyMainInner_C:OnAddEventListener()
   _G.NRCEventCenter:RegisterEvent("UMG_LobbyMainInner_C", self, MainUIModuleEvent.OnMainUIVisibileBottomIconList, self.OnFuncVisibileBottomIconListClick)
   _G.NRCEventCenter:RegisterEvent("UMG_LobbyMainInner_C", self, MainUIModuleEvent.OnLobbyMainInnerIconLoaded, self.OnLobbyMainInnerIconLoaded)
   _G.NRCEventCenter:RegisterEvent("UMG_LobbyMainInner_C", self, MainUIModuleEvent.ChangeMoreServiceClickState, self.UpdateButtonMoreListFocus)
+  _G.NRCEventCenter:RegisterEvent("UMG_LobbyMainInner_C", self, PreDownloadEvent.PreDownloadStart, self.OnPreDownloadStart)
+  _G.NRCEventCenter:RegisterEvent("UMG_LobbyMainInner_C", self, PreDownloadEvent.PreDownloadPaused, self.OnPreDownloadPaused)
+  _G.NRCEventCenter:RegisterEvent("UMG_LobbyMainInner_C", self, PreDownloadEvent.PreDownloadBatchReturn, self.OnPreDownloadFinished)
+  _G.NRCEventCenter:RegisterEvent("UMG_LobbyMainInner_C", self, PreDownloadEvent.PreDownloadBooked, self.OnPreDownloadBooked)
+  _G.NRCModuleManager:GetModule("ActivityModule"):RegisterEvent(self, ActivityModuleEvent.PreDownloadActivityDataUpdate, self.OnPredownloadActivityDataUpdate)
 end
 
 function UMG_LobbyMainInner_C:OnRemoveEventListener()
@@ -393,6 +474,53 @@ function UMG_LobbyMainInner_C:OnRemoveEventListener()
   _G.NRCEventCenter:UnRegisterEvent(self, MainUIModuleEvent.OnLobbyMainInnerIconLoaded, self.OnLobbyMainInnerIconLoaded)
   _G.NRCEventCenter:UnRegisterEvent(self, MainUIModuleEvent.OnMainUIVisibileBottomIconList, self.OnFuncVisibileBottomIconListClick)
   _G.NRCEventCenter:UnRegisterEvent(self, MainUIModuleEvent.ChangeMoreServiceClickState, self.UpdateButtonMoreListFocus)
+  _G.NRCEventCenter:UnRegisterEvent(self, PreDownloadEvent.PreDownloadStart, self.OnPreDownloadStart)
+  _G.NRCEventCenter:UnRegisterEvent(self, PreDownloadEvent.PreDownloadPaused, self.OnPreDownloadPaused)
+  _G.NRCEventCenter:UnRegisterEvent(self, PreDownloadEvent.PreDownloadBatchReturn, self.OnPreDownloadFinished)
+  _G.NRCModuleManager:GetModule("ActivityModule"):UnRegisterEvent(self, ActivityModuleEvent.PreDownloadActivityDataUpdate)
+end
+
+function UMG_LobbyMainInner_C:OnPreDownloadStart()
+  if RocoEnv.PLATFORM_WINDOWS and not RocoEnv.IS_EDITOR then
+    return
+  end
+  self:StopAnimation(self.Down_Normal)
+  self:PlayAnimation(self.Down_Loop, 0, 9999)
+end
+
+function UMG_LobbyMainInner_C:OnPreDownloadPaused()
+  if RocoEnv.PLATFORM_WINDOWS and not RocoEnv.IS_EDITOR then
+    return
+  end
+  self:StopAnimation(self.Down_Loop)
+  self:PlayAnimation(self.Down_Normal)
+end
+
+function UMG_LobbyMainInner_C:OnPreDownloadFinished(bSuccess)
+  if RocoEnv.PLATFORM_WINDOWS and not RocoEnv.IS_EDITOR then
+    return
+  end
+  if bSuccess then
+    self.Download:SetActiveWidgetIndex(2)
+  end
+end
+
+function UMG_LobbyMainInner_C:OnPreDownloadBooked()
+  if RocoEnv.PLATFORM_WINDOWS and not RocoEnv.IS_EDITOR then
+    return
+  end
+  local downloadTips = _G.DataConfigManager:GetActivityGlobalConfig("pre_download_booked") and _G.DataConfigManager:GetActivityGlobalConfig("pre_download_booked").str or ""
+  self.Download:SetActiveWidgetIndex(0)
+  self.DownloadText:SetText(downloadTips)
+end
+
+function UMG_LobbyMainInner_C:OnPredownloadActivityDataUpdate(updateData)
+  if RocoEnv.PLATFORM_WINDOWS and not RocoEnv.IS_EDITOR then
+    return
+  end
+  if updateData and updateData.rewarded and not _G.NRCPreDownloadManager:IfNeedToDownload() then
+    self.Download:SetActiveWidgetIndex(2)
+  end
 end
 
 function UMG_LobbyMainInner_C:OnEnterSceneFinishNtyAck()
@@ -846,8 +974,15 @@ function UMG_LobbyMainInner_C:OnSubUIOpened(SubPanelType)
 end
 
 function UMG_LobbyMainInner_C:OnSubUIClosed(IsLevelMain, bHadOpenSubPanelSuccess)
-  UE4Helper.SetEnableWorldRendering(true)
+  UE4Helper.SetEnableWorldRendering(nil)
   if not IsLevelMain and _G.NRCModuleManager:DoCmd(_G.LevelUpUIModuleCmd.HasLevelMainPanel) then
+    local player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
+    if player.viewObj then
+      player.viewObj:SetActorHiddenInGame(false)
+    end
+    if UE4.UObject.IsValid(self.Halo) then
+      self.Halo:SetActorHiddenInGame(false)
+    end
     return
   end
   self:UpdateUIData()
@@ -1042,7 +1177,7 @@ function UMG_LobbyMainInner_C:OpenSubPanel()
       _G.NRCModuleManager:DoCmd(_G.ShopModuleCmd.OpenMainPanel)
     elseif self.FunctionUIType == _G.ProtoEnum.LobbyMainInnerUIType.LMIUT_ACTIVITY then
       _G.NRCProfilerLog:NRCClickBtn(true, "ActivityMainPanel")
-      _G.NRCModuleManager:DoCmd(_G.ActivityModuleCmd.OpenMainPanel)
+      _G.NRCModuleManager:DoCmd(_G.ActivityModuleCmd.OpenMainPanel, nil, nil, ActivityEnum.MainPanelOpenSource.LobbyMainInner)
     elseif self.FunctionUIType == _G.ProtoEnum.LobbyMainInnerUIType.LMIUT_BATTLEPASS then
       _G.NRCProfilerLog:NRCClickBtn(true, "BattlePassAwardMain")
       _G.NRCModuleManager:DoCmd(_G.BattlePassModuleCmd.IsLobbyMainInnerOpenPass)
@@ -1089,6 +1224,8 @@ function UMG_LobbyMainInner_C:PreLoadSubPanel()
       _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.PreLoadPetMain)
     elseif self.SubPanelType == MainUIModuleEnum.SubPanelOpenType.BagUI then
       _G.NRCModuleManager:DoCmd(_G.BagModuleCmd.PreLoadBagMainPanel)
+    elseif self.SubPanelType == MainUIModuleEnum.SubPanelOpenType.PreDownload then
+      _G.NRCModuleManager:DoCmd(_G.ActivityModuleCmd.PreLoadDownloadActivityPanel)
     end
   elseif self.FunctionUIType ~= _G.ProtoEnum.LobbyMainInnerUIType.LMIUT_NoneType then
     if self.FunctionUIType == _G.ProtoEnum.LobbyMainInnerUIType.LMIUT_FRIEND then
@@ -1149,7 +1286,9 @@ function UMG_LobbyMainInner_C:ForceCloseCompass()
   self:SetUnClickable()
   local player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
   if player and player.viewObj then
-    player.viewObj:SetActorHiddenInGame(false)
+    if self.OpenType ~= MainUIModuleEnum.CompassOpenType.COMPASS_2D_IGNORE_PLAYER then
+      player.viewObj:SetActorHiddenInGame(false)
+    end
     local ctrl = player:GetUEController()
     ctrl:SetUICameraState(_G.MainUIModuleEnum.MainUICameraState.Normal)
     if self.isNormal then
@@ -1285,6 +1424,7 @@ end
 
 function UMG_LobbyMainInner_C:CompassStarFinish(Event, Skill)
   Log.Debug("UMG_LobbyMainInner_C:CompassStarFinish")
+  _G.NRCEventCenter:DispatchEvent(_G.GuidanceModuleEvent.OnPanelAllReady, self.panelData)
   if self.Died then
     Log.Error("\228\184\187\231\149\140\233\157\162\229\183\178\231\187\143\229\142\187\228\184\150\228\186\134\239\188\140\228\184\141\229\186\148\232\175\165\230\138\128\232\131\189\229\129\156\230\173\162\229\164\177\232\180\165")
     return
@@ -1548,7 +1688,9 @@ function UMG_LobbyMainInner_C:DoCloseThings()
   if _G.BattleManager.isInBattle then
     _G.BattleManager.NeedOpenMain = true
   end
-  _G.NRCModuleManager:DoCmd(MainUIModuleCmd.OpenPanelLobbyMain)
+  _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.RemoveFromDisableLobbyMainPopUpList, "LobbyMainInner")
+  NRCModeManager:GetCurMode():RevertPanelEnableStateByLayer(Enum.UILayerType.UI_LAYER_MAIN)
+  _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.OnOpenPanelLobbyMain)
 end
 
 function UMG_LobbyMainInner_C:OnAnimationFinished(anim)
@@ -1604,7 +1746,7 @@ function UMG_LobbyMainInner_C:OnPCKeyCloseCompass(action_type)
 end
 
 function UMG_LobbyMainInner_C:IsWaitingForSubPanelPrepared()
-  if self.SubPanelType ~= MainUIModuleEnum.SubPanelOpenType.NoneUI then
+  if self.SubPanelType ~= MainUIModuleEnum.SubPanelOpenType.NoneUI or self.SubPanelType == MainUIModuleEnum.SubPanelOpenType.PreDownload then
     self:HidePlayerAndUI()
   end
   self:CancelDelay()
@@ -1829,19 +1971,7 @@ function UMG_LobbyMainInner_C:UpdateWishCrystalInfo(InStarlightInfo)
       end
     end
   else
-    local count = InStarlightInfo.unexchange_wishing_star_num or 0
-    if count > 0 and count <= 99 then
-      self.ItemRedPoint.NumText:SetText(tostring(count))
-    elseif count > 99 then
-      self.ItemRedPoint.NumText:SetText("99+")
-    end
-    if count > 0 then
-      self.ItemRedPoint.NumText:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-      self.ItemRedPoint.RedPointImage:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-      self.ItemRedPoint.RedPointNode:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-      self.ItemRedPoint:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-      self.AwardBtn:SetVisibility(UE4.ESlateVisibility.Visible)
-    end
+    self:ShowWishCrystalRedPoint(true)
   end
 end
 

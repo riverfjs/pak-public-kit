@@ -215,6 +215,10 @@ function UMG_Ability_Slot_Throw_C:BindAbility(abilityHelper)
 end
 
 function UMG_Ability_Slot_Throw_C:RefreshView()
+  if NRCEnv:IsLocalMode() then
+    self:SetVisibility(UE4.ESlateVisibility.Visible)
+    return
+  end
   if -1 == self.ThrowItemType then
     if self.FoundationPCKey then
       self.FoundationPCKey:SetKeyVisibility(false)
@@ -323,6 +327,9 @@ end
 function UMG_Ability_Slot_Throw_C:OnSlotPressed(bind)
   local limit = self:CheckTouchLimit()
   if limit then
+    return
+  end
+  if self:GetVisibility() == UE4.ESlateVisibility.Collapsed then
     return
   end
   self:LockTouchLimit()
@@ -464,25 +471,15 @@ function UMG_Ability_Slot_Throw_C:OnCastMagic()
   local bIsBlock, abilityErrorCode = self:IsBlock()
   if bIsBlock then
     if abilityErrorCode == AbilityErrorCode.DUNGEON_BAN then
-      if self.abilityID == AbilityID.MAGIC_MESSAGE then
-        local temp = _G.DataConfigManager:GetLocalizationConf("magic_message_area_fobbiden").msg
-        self:ShowTips(temp)
-      else
-        self:ShowTips(LuaText.TryCastMagic_WrongScene)
-      end
+      self:ShowTips(LuaText.TryCastMagic_WrongScene)
+    elseif abilityErrorCode == AbilityErrorCode.AREA_BAN then
+      self:ShowTips(LuaText.TryCastMagic_WrongScene)
     elseif abilityErrorCode == AbilityErrorCode.HOME_FORBID then
-      if self.abilityID == AbilityID.MAGIC_MESSAGE then
-        local temp = _G.DataConfigManager:GetLocalizationConf("magic_message_area_fobbiden").msg
-        self:ShowTips(temp)
-      else
-        self:ShowTips(LuaText.TryCastMagic_WrongScene)
-      end
-    elseif abilityErrorCode == AbilityErrorCode.FUNC_BAN or abilityErrorCode == AbilityErrorCode.GAME_BAN then
-      if self.abilityID == AbilityID.MAGIC_VIDEO or self.abilityID == AbilityID.MAGIC_MESSAGE then
-        self:ShowTips(LuaText.Error_Code_18320)
-      else
-        self:ShowTips(LuaText.TryCastMagic_Create_LitteGame)
-      end
+      self:ShowTips(LuaText.TryCastMagic_WrongScene)
+    elseif abilityErrorCode == AbilityErrorCode.FUNC_BAN then
+      self:ShowTips(LuaText.TryCastMagic_Create_LitteGame)
+    elseif abilityErrorCode == AbilityErrorCode.GAME_BAN then
+      self:ShowTips(LuaText.Error_Code_18320)
     elseif abilityErrorCode == AbilityErrorCode.BAG_ITEM_NOT_ENOUGH then
       if self.abilityID == AbilityID.MAGIC_VIDEO then
         self:ShowTips(LuaText.mark_video_lack_of_item)
@@ -573,6 +570,9 @@ end
 
 function UMG_Ability_Slot_Throw_C:OnSlotLongPressed()
   if self._loopCheckEnter or self:IsBlock() then
+    return
+  end
+  if self:GetVisibility() == UE4.ESlateVisibility.Collapsed then
     return
   end
   if self._abilityHelper and self._abilityHelper.config.id == AbilityID.RECYCLE_THROW then

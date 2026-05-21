@@ -41,6 +41,7 @@ function UMG_RecoverUpPanel_C:OnAddEventListener()
   self:AddButtonListener(self.CloseBtn.btnClose, self.OnClose)
   self:AddButtonListener(self.UpgradeButton.btnLevelUp, self.OnLevelUp)
   _G.NRCEventCenter:RegisterEvent("UMG_RecoverUpPanel_C", self, DialogueModuleEvent.DialogueEnded, self.OnClose)
+  _G.NRCEventCenter:RegisterEvent("UMG_RecoverUpPanel_C", self, _G.NRCGlobalEvent.ON_DISCONNECT, self.OnClose)
   _G.NRCEventCenter:RegisterEvent("UMG_RecoverUpPanel_C", self, BagModuleEvent.BagItemAdd, self.OnBagChange)
   _G.NRCEventCenter:RegisterEvent("UMG_RecoverUpPanel_C", self, BagModuleEvent.BagItemUpdate, self.OnBagChange)
 end
@@ -49,6 +50,7 @@ function UMG_RecoverUpPanel_C:OnRemoveEventListener()
   _G.NRCEventCenter:UnRegisterEvent(self, BagModuleEvent.BagItemAdd, self.OnBagChange)
   _G.NRCEventCenter:UnRegisterEvent(self, BagModuleEvent.BagItemUpdate, self.OnBagChange)
   _G.NRCEventCenter:UnRegisterEvent(self, DialogueModuleEvent.DialogueEnded, self.OnClose)
+  _G.NRCEventCenter:UnRegisterEvent(self, _G.NRCGlobalEvent.ON_DISCONNECT, self.OnClose)
 end
 
 function UMG_RecoverUpPanel_C:OnBagChange()

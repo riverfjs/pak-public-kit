@@ -1,122 +1,88 @@
+local RogueModuleEnum = require("NewRoco/Modules/System/BattleRogue/RogueModuleEnum")
+local RogueModuleEvent = require("NewRoco/Modules/System/BattleRogue/BattleRogueModuleEvent")
 local BattleRogueModuleData = _G.NRCData:Extend("BattleRogueModuleData")
 
 function BattleRogueModuleData:Ctor()
   NRCData.Ctor(self)
-  self.CurLevelID = -1
-  self.CurNodeIndex = -1
-  self.LevelInfo = {}
-  self.CurEventIndex = -1
-  self.UIEventDatas = {}
-  self.CurEventInfos = nil
-  self.CombineEventIndexes = {}
-  self.CombineEventBitSet = {}
-  self.CombineConfBitSet = {}
-  self.CombineTypeMaxNum = {}
-  self.EventResult = nil
-  self.RogueCoinNum = nil
-  self.RefreshNeedCoinNum = nil
-  self.RefreshBaseCost = 0
-  self.UIBuffDatas = {}
-  self.CurBuffDatas = {}
-  self.SelectCombineCardList = {}
-  self.IsOpenSettlementTips = false
-  self.SelectBuffList = {}
-  self.CanChooseBuffNum = nil
-  self.bFinishedChallenge = nil
-  self.PetInfo = {}
+  self.TrialID = -1
+  self.CurChapterID = -1
+  self.CurNodeIndex = 1
+  self.RemainingCoin = 0
+  self.EventList = {}
+  self.TrialPetInfo = ProtoMessage:newGrassTrialPet()
+  self.CacheTrialData = nil
+  self.bInit = false
+  self.CacheNodeData = nil
 end
 
-function BattleRogueModuleData:GetUIEventDatas()
-  return self.UIEventDatas
-end
-
-function BattleRogueModuleData:GetLevelInfo()
-  return self.LevelInfo
-end
-
-function BattleRogueModuleData:GetCurrentUINodeInfo()
-  return self.LevelInfo.Nodes[self.CurNodeIndex]
-end
-
-function BattleRogueModuleData:GetRefreshNeedCoinNum()
-  return self.RefreshNeedCoinNum
-end
-
-function BattleRogueModuleData:GetCombineEventIndexes()
-  return self.CombineEventIndexes
-end
-
-function BattleRogueModuleData:SetSelectCombineCardList(_SelectCombineCardList)
-  self.SelectCombineCardList = _SelectCombineCardList or {}
-end
-
-function BattleRogueModuleData:GetSelectCombineCardList()
-  return self.SelectCombineCardList
-end
-
-function BattleRogueModuleData:GetRogueCoinNum()
-  return self.RogueCoinNum
-end
-
-function BattleRogueModuleData:AddOrRemoveCombineCard(Add, Index)
-  if Add then
-    table.insert(self.SelectCombineCardList, Index)
-  else
-    for i = #self.SelectCombineCardList, 1, -1 do
-      if Index == self.SelectCombineCardList[i] then
-        table.remove(self.SelectCombineCardList, i)
+function BattleRogueModuleData:TryInitEventInfo()
+  if self.bInit or -1 == self.CurChapterID then
+    return
+  end
+  local ChapterConf = _G.DataConfigManager:GetGrassTrialChapterConf(self.CurChapterID)
+  for _, ChapterNode in ipairs(ChapterConf.node_struct) do
+    if 0 == ChapterNode.node then
+    elseif 0 == #ChapterNode.node_event then
+      table.insert(self.EventList, RogueModuleEnum.EventState.Future)
+    else
+      local AnyEventID = ChapterNode.node_event[1]
+      if AnyEventID then
+        local EventType = _G.DataConfigManager:GetGrassTrialEventConf(AnyEventID).type
+        if EventType == Enum.EventType.ET_BOSS_FIGHT then
+          table.insert(self.EventList, RogueModuleEnum.EventState.Boss)
+        else
+          table.insert(self.EventList, RogueModuleEnum.EventState.Future)
+        end
       end
     end
   end
-  Log.Dump(self.SelectCombineCardList, 6, "BattleRogueModuleData:AddOrRemoveCombineCard")
+  self.bInit = true
 end
 
-function BattleRogueModuleData:SetIsOpenSettlementTips(_IsOpenSettlementTips)
-  self.IsOpenSettlementTips = _IsOpenSettlementTips
-end
-
-function BattleRogueModuleData:GetIsOpenSettlementTips()
-  return self.IsOpenSettlementTips
-end
-
-function BattleRogueModuleData:GetUIBuffDatas()
-  return self.UIBuffDatas
-end
-
-function BattleRogueModuleData:GetCurBuffDatas()
-  return self.CurBuffDatas
-end
-
-function BattleRogueModuleData:SetSelectBuffList(_SelectBuffList)
-  self.SelectBuffList = _SelectBuffList or {}
-end
-
-function BattleRogueModuleData:AddOrRemoveBuffList(Add, _SelectBuffIndex)
-  if Add then
-    table.insert(self.SelectBuffList, _SelectBuffIndex)
-  else
-    for i = #self.SelectBuffList, 1, -1 do
-      if _SelectBuffIndex == self.SelectBuffList[i] then
-        table.remove(self.SelectBuffList, i)
-      end
-    end
+function BattleRogueModuleData:UpdateChallengeInfo(NewChallengeInfo)
+  if not NewChallengeInfo or not next(NewChallengeInfo) then
+    return
   end
+  self.CurNodeIndex = NewChallengeInfo.current_node_index or self.CurNodeIndex
+  self.CurChapterID = NewChallengeInfo.current_chapter_id or self.CurChapterID
+  self:TryInitEventInfo()
+  for Index = 1, self.CurNodeIndex do
+    self.EventList[Index] = RogueModuleEnum.EventState.Done
+  end
+  self.EventList[self.CurNodeIndex] = RogueModuleEnum.EventState.InProcess
+  self.TrialPetInfo = NewChallengeInfo.trial_pet_data or self.TrialPetInfo
+  self.TrialID = NewChallengeInfo.trial_conf_id or self.TrialID
+  self.RemainingCoin = NewChallengeInfo.remaining_coin
+  self:DispatchEvent(RogueModuleEvent.TrialDataChange, RogueModuleEnum.ChallengeInfoFlag.All)
 end
 
-function BattleRogueModuleData:GetSelectBuffList()
-  return self.SelectBuffList
+function BattleRogueModuleData:UpdatePetInfo(NewPetInfo)
+  self.TrialPetInfo = NewPetInfo or self.TrialPetInfo
+  self:DispatchEvent(RogueModuleEvent.TrialDataChange, RogueModuleEnum.ChallengeInfoFlag.PetInfo)
 end
 
-function BattleRogueModuleData:SetPetInfo(_PetInfo)
-  self.PetInfo = _PetInfo
+function BattleRogueModuleData:UpdateCoinNum(NewNum)
+  self.RemainingCoin = NewNum or self.RemainingCoin
+  self:DispatchEvent(RogueModuleEvent.TrialDataChange, RogueModuleEnum.ChallengeInfoFlag.Chapter)
 end
 
-function BattleRogueModuleData:GetPetInfo()
-  return self.PetInfo
+function BattleRogueModuleData:GetSkills()
+  return self.TrialPetInfo.skills
 end
 
-function BattleRogueModuleData:GetCanChooseBuffNum()
-  return self.CanChooseBuffNum
+function BattleRogueModuleData:GetSkillNum()
+  return #self.TrialPetInfo.skills
+end
+
+function BattleRogueModuleData:GetCacheTrialData()
+  if not self.CacheTrialData then
+    self:LogError("CacheTrialData is miss")
+  end
+  return self.CacheTrialData
+end
+
+function BattleRogueModuleData:ClearCacheTrialData()
+  self.CacheTrialData = nil
 end
 
 return BattleRogueModuleData

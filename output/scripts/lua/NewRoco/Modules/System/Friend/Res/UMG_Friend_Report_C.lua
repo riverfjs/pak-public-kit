@@ -9,319 +9,6 @@ function UMG_Friend_Report_C:OnConstruct()
   self.SelectCount = 0
   self.Lock = false
   self.ReportContentList = {}
-  self.ReportContentList[ProtoEnum.SafetyBusinessInfo.ReportScense.RPTSS_CONVERSATION_SPEAKING_SCENE] = {
-    {
-      IsCheck = false,
-      Text = LuaText.umg_friend_report_1,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_INSULT_AND_ABUSE,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
-    },
-    {
-      IsCheck = false,
-      Text = LuaText.umg_friend_report_2,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_TRAFFIC_ADVERTISING,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
-    },
-    {
-      IsCheck = false,
-      Text = LuaText.umg_friend_report_3,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_PORNOGRAPHIC_AND_VULGAR,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
-    },
-    {
-      IsCheck = false,
-      Text = LuaText.umg_friend_report_4,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_CONTENT_INVOLVES_POLITICS,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
-    },
-    {
-      IsCheck = false,
-      Text = LuaText.umg_friend_report_5,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_HARASSMENT,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
-    },
-    {
-      IsCheck = false,
-      Text = LuaText.umg_friend_report_6,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_VIOLENCE_AND_BLOODSHED,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
-    },
-    {
-      IsCheck = false,
-      Text = LuaText.umg_friend_report_7,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_NICKNAME_VIOLATION,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_PERSONAL_INFORMATION
-    },
-    {
-      IsCheck = false,
-      Text = LuaText.umg_friend_report_8,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_FRAUDULENT_INFORMATION,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
-    },
-    {
-      IsCheck = false,
-      Text = LuaText.umg_friend_report_9,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_CHAT_OTHER,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
-    }
-  }
-  self.ReportContentList[ProtoEnum.SafetyBusinessInfo.ReportScense.RPTSS_PERSONAL_INFORMATION_SCENE] = {
-    {
-      IsCheck = false,
-      Text = LuaText.umg_friend_report_7,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_NICKNAME_VIOLATION,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_PERSONAL_INFORMATION
-    },
-    {
-      IsCheck = false,
-      Text = LuaText.umg_friend_report_11,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_SIGNATURE_VIOLATION,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_PERSONAL_INFORMATION
-    },
-    {
-      IsCheck = false,
-      Text = LuaText.umg_friend_report_9,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_PERSONAL_INFO_OTHERS,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_PERSONAL_INFORMATION
-    },
-    {
-      IsCheck = false,
-      Text = LuaText.umg_friend_report_25,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_PLAYER_BUSINESS_CARD,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_PERSONAL_INFORMATION
-    }
-  }
-  self.ReportContentList[ProtoEnum.SafetyBusinessInfo.ReportScense.RPTSS_GAME_MATCH_SCENE] = {
-    {
-      IsCheck = false,
-      Text = LuaText.umg_friend_report_21,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_MODIFICATION_VALUE_CHEAT,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_USE_CHEATING_TOOLS
-    },
-    {
-      IsCheck = false,
-      Text = LuaText.umg_friend_report_22,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_EXPLOITING_BUG,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_MALICIOUS_GAMING_BEHAVIOR
-    },
-    {
-      IsCheck = false,
-      Text = LuaText.umg_friend_report_24,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_NEGATIVE_MATCH,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_MALICIOUS_GAMING_BEHAVIOR
-    },
-    {
-      IsCheck = false,
-      Text = LuaText.umg_friend_report_23,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_AFK_RUNNING_AWAY,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_MALICIOUS_GAMING_BEHAVIOR
-    },
-    {
-      IsCheck = false,
-      Text = LuaText.umg_friend_report_7,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_NICKNAME_VIOLATION,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_PERSONAL_INFORMATION
-    },
-    {
-      IsCheck = false,
-      Text = LuaText.umg_friend_report_9,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_GAME_SCENSE_OTHERS,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_USE_CHEATING_TOOLS
-    }
-  }
-  self.ReportContentList[ProtoEnum.SafetyBusinessInfo.ReportScense.RPTSS_DYNAMIC_POSTS_SCENE] = {
-    {
-      IsCheck = false,
-      Text = LuaText.umg_friend_report_1,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_INSULT_AND_ABUSE,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
-    },
-    {
-      IsCheck = false,
-      Text = LuaText.umg_friend_report_2,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_TRAFFIC_ADVERTISING,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
-    },
-    {
-      IsCheck = false,
-      Text = LuaText.umg_friend_report_3,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_PORNOGRAPHIC_AND_VULGAR,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
-    },
-    {
-      IsCheck = false,
-      Text = LuaText.umg_friend_report_4,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_CONTENT_INVOLVES_POLITICS,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
-    },
-    {
-      IsCheck = false,
-      Text = LuaText.umg_friend_report_5,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_HARASSMENT,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
-    },
-    {
-      IsCheck = false,
-      Text = LuaText.umg_friend_report_6,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_VIOLENCE_AND_BLOODSHED,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
-    },
-    {
-      IsCheck = false,
-      Text = LuaText.umg_friend_report_8,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_FRAUDULENT_INFORMATION,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
-    },
-    {
-      IsCheck = false,
-      Text = LuaText.umg_friend_report_7,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_NICKNAME_VIOLATION,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_PERSONAL_INFORMATION
-    },
-    {
-      IsCheck = false,
-      Text = LuaText.umg_friend_report_9,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_CHAT_OTHER,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
-    }
-  }
-  self.ReportContentList[ProtoEnum.SafetyBusinessInfo.ReportScense.RPTSS_COMMENT_AND_MESSAGE_SCENE] = {
-    {
-      IsCheck = false,
-      Text = LuaText.umg_friend_report_1,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_INSULT_AND_ABUSE,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
-    },
-    {
-      IsCheck = false,
-      Text = LuaText.umg_friend_report_2,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_TRAFFIC_ADVERTISING,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
-    },
-    {
-      IsCheck = false,
-      Text = LuaText.umg_friend_report_3,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_PORNOGRAPHIC_AND_VULGAR,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
-    },
-    {
-      IsCheck = false,
-      Text = LuaText.umg_friend_report_4,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_CONTENT_INVOLVES_POLITICS,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
-    },
-    {
-      IsCheck = false,
-      Text = LuaText.umg_friend_report_5,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_HARASSMENT,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
-    },
-    {
-      IsCheck = false,
-      Text = LuaText.umg_friend_report_6,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_VIOLENCE_AND_BLOODSHED,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
-    },
-    {
-      IsCheck = false,
-      Text = LuaText.umg_friend_report_8,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_FRAUDULENT_INFORMATION,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
-    },
-    {
-      IsCheck = false,
-      Text = LuaText.umg_friend_report_7,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_NICKNAME_VIOLATION,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_PERSONAL_INFORMATION
-    },
-    {
-      IsCheck = false,
-      Text = LuaText.umg_friend_report_9,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_CHAT_OTHER,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
-    }
-  }
-  self.ReportContentList[ProtoEnum.SafetyBusinessInfo.ReportScense.RPTSS_ORGANIZATION_INFORMATION_SCENE] = {
-    {
-      IsCheck = false,
-      Text = LuaText.umg_homestead_report_2,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_ROOM_NAME_INVALID_701,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_ORGANIZATION_INFORMATION
-    },
-    {
-      IsCheck = false,
-      Text = LuaText.umg_homestead_report_3,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_PORNOGRAPHIC_AND_VULGAR_703,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_ORGANIZATION_INFORMATION
-    },
-    {
-      IsCheck = false,
-      Text = LuaText.umg_homestead_report_4,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_CONTENT_INVOLVES_POLITICS_704,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_ORGANIZATION_INFORMATION
-    },
-    {
-      IsCheck = false,
-      Text = LuaText.umg_homestead_report_5,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_INSULT_AND_ABUSE_705,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_ORGANIZATION_INFORMATION
-    },
-    {
-      IsCheck = false,
-      Text = LuaText.umg_homestead_report_6,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_FRAUDULENT_INFORMATION_706,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_ORGANIZATION_INFORMATION
-    },
-    {
-      IsCheck = false,
-      Text = LuaText.umg_homestead_report_7,
-      Parent = self,
-      ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_OTHER_799,
-      ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_ORGANIZATION_INFORMATION
-    }
-  }
   self.NewInput = nil
   self.OldInput = nil
   self:OnAddEventListener()
@@ -356,15 +43,415 @@ end
 
 function UMG_Friend_Report_C:SetPanelInfo()
   local data = self.data
-  local checkList = {}
-  if data.business_data.report_scene == ProtoEnum.SafetyBusinessInfo.ReportScense.RPTSS_PERSONAL_INFORMATION_SCENE and not data.business_data.is_form_card then
-    for i = 1, 3 do
-      table.insert(checkList, self.ReportContentList[data.business_data.report_scene][i])
+  local reportScene = data.business_data.report_scene
+  if reportScene == ProtoEnum.SafetyBusinessInfo.ReportScense.RPTSS_CONVERSATION_SPEAKING_SCENE then
+    self.ReportContentList = {
+      {
+        IsCheck = false,
+        Text = LuaText.umg_friend_report_1,
+        Parent = self,
+        ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_INSULT_AND_ABUSE,
+        ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
+      },
+      {
+        IsCheck = false,
+        Text = LuaText.umg_friend_report_2,
+        Parent = self,
+        ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_TRAFFIC_ADVERTISING,
+        ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
+      },
+      {
+        IsCheck = false,
+        Text = LuaText.umg_friend_report_3,
+        Parent = self,
+        ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_PORNOGRAPHIC_AND_VULGAR,
+        ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
+      },
+      {
+        IsCheck = false,
+        Text = LuaText.umg_friend_report_4,
+        Parent = self,
+        ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_CONTENT_INVOLVES_POLITICS,
+        ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
+      },
+      {
+        IsCheck = false,
+        Text = LuaText.umg_friend_report_5,
+        Parent = self,
+        ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_HARASSMENT,
+        ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
+      },
+      {
+        IsCheck = false,
+        Text = LuaText.umg_friend_report_6,
+        Parent = self,
+        ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_VIOLENCE_AND_BLOODSHED,
+        ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
+      },
+      {
+        IsCheck = false,
+        Text = LuaText.umg_friend_report_7,
+        Parent = self,
+        ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_NICKNAME_VIOLATION,
+        ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_PERSONAL_INFORMATION
+      },
+      {
+        IsCheck = false,
+        Text = LuaText.umg_friend_report_8,
+        Parent = self,
+        ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_FRAUDULENT_INFORMATION,
+        ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
+      },
+      {
+        IsCheck = false,
+        Text = LuaText.umg_friend_report_9,
+        Parent = self,
+        ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_CHAT_OTHER,
+        ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
+      }
+    }
+  elseif reportScene == ProtoEnum.SafetyBusinessInfo.ReportScense.RPTSS_PERSONAL_INFORMATION_SCENE then
+    if data.business_data.is_form_card then
+      self.ReportContentList = {
+        {
+          IsCheck = false,
+          Text = LuaText.umg_friend_report_7,
+          Parent = self,
+          ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_NICKNAME_VIOLATION,
+          ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_PERSONAL_INFORMATION
+        },
+        {
+          IsCheck = false,
+          Text = LuaText.umg_friend_report_11,
+          Parent = self,
+          ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_SIGNATURE_VIOLATION,
+          ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_PERSONAL_INFORMATION
+        },
+        {
+          IsCheck = false,
+          Text = LuaText.umg_friend_report_9,
+          Parent = self,
+          ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_PERSONAL_INFO_OTHERS,
+          ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_PERSONAL_INFORMATION
+        },
+        {
+          IsCheck = false,
+          Text = LuaText.umg_friend_report_25,
+          Parent = self,
+          ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_PLAYER_BUSINESS_CARD,
+          ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_PERSONAL_INFORMATION
+        },
+        {
+          IsCheck = false,
+          Text = LuaText.umg_report_1,
+          Parent = self,
+          ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_NON_GAMING_PHOTOS,
+          ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_ORGANIZATION_INFORMATION
+        }
+      }
+    else
+      self.ReportContentList = {
+        {
+          IsCheck = false,
+          Text = LuaText.umg_friend_report_7,
+          Parent = self,
+          ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_NICKNAME_VIOLATION,
+          ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_PERSONAL_INFORMATION
+        },
+        {
+          IsCheck = false,
+          Text = LuaText.umg_friend_report_11,
+          Parent = self,
+          ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_SIGNATURE_VIOLATION,
+          ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_PERSONAL_INFORMATION
+        },
+        {
+          IsCheck = false,
+          Text = LuaText.umg_friend_report_9,
+          Parent = self,
+          ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_PERSONAL_INFO_OTHERS,
+          ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_PERSONAL_INFORMATION
+        }
+      }
     end
-  else
-    checkList = self.ReportContentList[data.business_data.report_scene]
+  elseif reportScene == ProtoEnum.SafetyBusinessInfo.ReportScense.RPTSS_GAME_MATCH_SCENE then
+    self.ReportContentList = {
+      {
+        IsCheck = false,
+        Text = LuaText.umg_friend_report_21,
+        Parent = self,
+        ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_MODIFICATION_VALUE_CHEAT,
+        ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_USE_CHEATING_TOOLS
+      },
+      {
+        IsCheck = false,
+        Text = LuaText.umg_friend_report_22,
+        Parent = self,
+        ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_EXPLOITING_BUG,
+        ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_MALICIOUS_GAMING_BEHAVIOR
+      },
+      {
+        IsCheck = false,
+        Text = LuaText.umg_friend_report_24,
+        Parent = self,
+        ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_NEGATIVE_MATCH,
+        ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_MALICIOUS_GAMING_BEHAVIOR
+      },
+      {
+        IsCheck = false,
+        Text = LuaText.umg_friend_report_23,
+        Parent = self,
+        ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_AFK_RUNNING_AWAY,
+        ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_MALICIOUS_GAMING_BEHAVIOR
+      },
+      {
+        IsCheck = false,
+        Text = LuaText.umg_friend_report_7,
+        Parent = self,
+        ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_NICKNAME_VIOLATION,
+        ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_PERSONAL_INFORMATION
+      },
+      {
+        IsCheck = false,
+        Text = LuaText.umg_friend_report_9,
+        Parent = self,
+        ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_GAME_SCENSE_OTHERS,
+        ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_USE_CHEATING_TOOLS
+      }
+    }
+  elseif reportScene == ProtoEnum.SafetyBusinessInfo.ReportScense.RPTSS_DYNAMIC_POSTS_SCENE then
+    self.ReportContentList = {
+      {
+        IsCheck = false,
+        Text = LuaText.umg_friend_report_1,
+        Parent = self,
+        ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_INSULT_AND_ABUSE,
+        ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
+      },
+      {
+        IsCheck = false,
+        Text = LuaText.umg_friend_report_2,
+        Parent = self,
+        ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_TRAFFIC_ADVERTISING,
+        ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
+      },
+      {
+        IsCheck = false,
+        Text = LuaText.umg_friend_report_3,
+        Parent = self,
+        ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_PORNOGRAPHIC_AND_VULGAR,
+        ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
+      },
+      {
+        IsCheck = false,
+        Text = LuaText.umg_friend_report_4,
+        Parent = self,
+        ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_CONTENT_INVOLVES_POLITICS,
+        ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
+      },
+      {
+        IsCheck = false,
+        Text = LuaText.umg_friend_report_5,
+        Parent = self,
+        ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_HARASSMENT,
+        ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
+      },
+      {
+        IsCheck = false,
+        Text = LuaText.umg_friend_report_6,
+        Parent = self,
+        ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_VIOLENCE_AND_BLOODSHED,
+        ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
+      },
+      {
+        IsCheck = false,
+        Text = LuaText.umg_friend_report_8,
+        Parent = self,
+        ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_FRAUDULENT_INFORMATION,
+        ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
+      },
+      {
+        IsCheck = false,
+        Text = LuaText.umg_friend_report_7,
+        Parent = self,
+        ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_NICKNAME_VIOLATION,
+        ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_PERSONAL_INFORMATION
+      },
+      {
+        IsCheck = false,
+        Text = LuaText.umg_friend_report_9,
+        Parent = self,
+        ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_CHAT_OTHER,
+        ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
+      }
+    }
+  elseif reportScene == ProtoEnum.SafetyBusinessInfo.ReportScense.RPTSS_COMMENT_AND_MESSAGE_SCENE then
+    self.ReportContentList = {
+      {
+        IsCheck = false,
+        Text = LuaText.umg_friend_report_1,
+        Parent = self,
+        ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_INSULT_AND_ABUSE,
+        ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
+      },
+      {
+        IsCheck = false,
+        Text = LuaText.umg_friend_report_2,
+        Parent = self,
+        ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_TRAFFIC_ADVERTISING,
+        ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
+      },
+      {
+        IsCheck = false,
+        Text = LuaText.umg_friend_report_3,
+        Parent = self,
+        ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_PORNOGRAPHIC_AND_VULGAR,
+        ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
+      },
+      {
+        IsCheck = false,
+        Text = LuaText.umg_friend_report_4,
+        Parent = self,
+        ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_CONTENT_INVOLVES_POLITICS,
+        ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
+      },
+      {
+        IsCheck = false,
+        Text = LuaText.umg_friend_report_5,
+        Parent = self,
+        ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_HARASSMENT,
+        ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
+      },
+      {
+        IsCheck = false,
+        Text = LuaText.umg_friend_report_6,
+        Parent = self,
+        ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_VIOLENCE_AND_BLOODSHED,
+        ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
+      },
+      {
+        IsCheck = false,
+        Text = LuaText.umg_friend_report_8,
+        Parent = self,
+        ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_FRAUDULENT_INFORMATION,
+        ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
+      },
+      {
+        IsCheck = false,
+        Text = LuaText.umg_friend_report_7,
+        Parent = self,
+        ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_NICKNAME_VIOLATION,
+        ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_PERSONAL_INFORMATION
+      },
+      {
+        IsCheck = false,
+        Text = LuaText.umg_friend_report_9,
+        Parent = self,
+        ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_CHAT_OTHER,
+        ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_VIOLATING_CONTENT
+      }
+    }
+  elseif reportScene == ProtoEnum.SafetyBusinessInfo.ReportScense.RPTSS_ORGANIZATION_INFORMATION_SCENE then
+    if 2 == data.business_data.report_entrance then
+      self.ReportContentList = {
+        {
+          IsCheck = false,
+          Text = LuaText.umg_homestead_report_5,
+          Parent = self,
+          ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_INSULT_AND_ABUSE_705,
+          ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_ORGANIZATION_INFORMATION
+        },
+        {
+          IsCheck = false,
+          Text = LuaText.umg_friend_report_7,
+          Parent = self,
+          ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_NICKNAME_VIOLATION,
+          ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_PERSONAL_INFORMATION
+        },
+        {
+          IsCheck = false,
+          Text = LuaText.umg_homestead_report_4,
+          Parent = self,
+          ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_CONTENT_INVOLVES_POLITICS_704,
+          ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_ORGANIZATION_INFORMATION
+        },
+        {
+          IsCheck = false,
+          Text = LuaText.umg_homestead_report_6,
+          Parent = self,
+          ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_FRAUDULENT_INFORMATION_706,
+          ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_ORGANIZATION_INFORMATION
+        },
+        {
+          IsCheck = false,
+          Text = LuaText.umg_homestead_report_3,
+          Parent = self,
+          ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_PORNOGRAPHIC_AND_VULGAR_703,
+          ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_ORGANIZATION_INFORMATION
+        },
+        {
+          IsCheck = false,
+          Text = LuaText.umg_homestead_report_7,
+          Parent = self,
+          ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_OTHER_799,
+          ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_ORGANIZATION_INFORMATION
+        },
+        {
+          IsCheck = false,
+          Text = LuaText.umg_report_1,
+          Parent = self,
+          ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_NON_GAMING_PHOTOS,
+          ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_ORGANIZATION_INFORMATION
+        }
+      }
+    else
+      self.ReportContentList = {
+        {
+          IsCheck = false,
+          Text = LuaText.umg_homestead_report_2,
+          Parent = self,
+          ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_ROOM_NAME_INVALID_701,
+          ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_ORGANIZATION_INFORMATION
+        },
+        {
+          IsCheck = false,
+          Text = LuaText.umg_homestead_report_3,
+          Parent = self,
+          ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_PORNOGRAPHIC_AND_VULGAR_703,
+          ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_ORGANIZATION_INFORMATION
+        },
+        {
+          IsCheck = false,
+          Text = LuaText.umg_homestead_report_4,
+          Parent = self,
+          ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_CONTENT_INVOLVES_POLITICS_704,
+          ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_ORGANIZATION_INFORMATION
+        },
+        {
+          IsCheck = false,
+          Text = LuaText.umg_homestead_report_5,
+          Parent = self,
+          ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_INSULT_AND_ABUSE_705,
+          ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_ORGANIZATION_INFORMATION
+        },
+        {
+          IsCheck = false,
+          Text = LuaText.umg_homestead_report_6,
+          Parent = self,
+          ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_FRAUDULENT_INFORMATION_706,
+          ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_ORGANIZATION_INFORMATION
+        },
+        {
+          IsCheck = false,
+          Text = LuaText.umg_homestead_report_7,
+          Parent = self,
+          ReportType = _G.ProtoEnum.SafetyBusinessInfo.ReportReason.RPTRS_OTHER_799,
+          ReportCategory = ProtoEnum.SafetyBusinessInfo.ReportCategory.RPTCAT_ORGANIZATION_INFORMATION
+        }
+      }
+    end
   end
-  self.NRCGridView_128:InitGridView(checkList)
+  self.NRCGridView_128:InitGridView(self.ReportContentList)
 end
 
 function UMG_Friend_Report_C:SetCommonPopUpInfo()
@@ -389,13 +476,13 @@ function UMG_Friend_Report_C:OnInitReportItem(Index, Item)
 end
 
 function UMG_Friend_Report_C:SetReportContentListInfo(_IsCheck, Index)
-  if self.ReportContentList[self.data.business_data.report_scene][Index] then
+  if self.ReportContentList[Index] then
     if _IsCheck then
       self.SelectCount = self.SelectCount + 1
     else
       self.SelectCount = self.SelectCount - 1
     end
-    self.ReportContentList[self.data.business_data.report_scene][Index].IsCheck = _IsCheck
+    self.ReportContentList[Index].IsCheck = _IsCheck
   end
   if self:IsSelect() then
     self:SetPopUpBtn(true, false)
@@ -415,7 +502,7 @@ function UMG_Friend_Report_C:OnSelectItem(Index)
 end
 
 function UMG_Friend_Report_C:IsSelect()
-  for i, List in ipairs(self.ReportContentList[self.data.business_data.report_scene]) do
+  for i, List in ipairs(self.ReportContentList) do
     if List.IsCheck then
       return true
     end
@@ -467,7 +554,7 @@ function UMG_Friend_Report_C:OnConfirm()
   _G.NRCAudioManager:PlaySound2DAuto(41401019, "UMG_Friend_Report_C:OnConfirm")
   local ReportType = {}
   local ReportCategory
-  for i, List in ipairs(self.ReportContentList[self.data.business_data.report_scene]) do
+  for i, List in ipairs(self.ReportContentList) do
     if List.IsCheck then
       table.insert(ReportType, List.ReportType)
       ReportCategory = List.ReportCategory
@@ -484,22 +571,22 @@ function UMG_Friend_Report_C:OnConfirm()
   business_data.report_category = ReportCategory
   business_data.reported_profile_url = "default"
   local reportScene = self.data.business_data.report_scene
-  if 1 == reportScene then
+  if reportScene == ProtoEnum.SafetyBusinessInfo.ReportScense.RPTSS_CONVERSATION_SPEAKING_SCENE then
     business_data.report_content = self.data.business_data.report_content
-  elseif 2 == reportScene then
+  elseif reportScene == ProtoEnum.SafetyBusinessInfo.ReportScense.RPTSS_PERSONAL_INFORMATION_SCENE then
     business_data.report_content = self.data.business_data.signature
     if self.data.business_data.reported_card_url and self.data.business_data.reported_card_name then
       business_data.pic_url_array = {}
       business_data.callback = self.data.business_data.reported_card_name
       table.insert(business_data.pic_url_array, self.data.business_data.reported_card_url)
     end
-  elseif 3 == reportScene then
+  elseif reportScene == ProtoEnum.SafetyBusinessInfo.ReportScense.RPTSS_GAME_MATCH_SCENE then
     business_data.report_battle_id = tostring(self.data.business_data.report_battle_id)
     business_data.report_battle_time = self.data.business_data.report_battle_time
-  elseif 4 == reportScene or 5 == reportScene then
+  elseif reportScene == ProtoEnum.SafetyBusinessInfo.ReportScense.RPTSS_DYNAMIC_POSTS_SCENE or reportScene == ProtoEnum.SafetyBusinessInfo.ReportScense.RPTSS_COMMENT_AND_MESSAGE_SCENE then
     business_data.report_content = self.data.business_data.report_content
     business_data.callback = self.data.business_data.callback
-  elseif reportScene == ProtoEnum.SafetyBusinessInfo.ReportScense.RPTSS_ORGANIZATION_INFORMATION_SCENE then
+  elseif reportScene == ProtoEnum.SafetyBusinessInfo.ReportScense.RPTSS_ORGANIZATION_INFORMATION_SCENE and 2 ~= business_data.report_entrance then
     business_data.report_content = self.data.business_data.homeName
     business_data.callback = "{\"homeid\":" .. "\"" .. self.data.business_data.masterId .. "\"" .. "}"
   end
@@ -510,7 +597,12 @@ function UMG_Friend_Report_C:OnConfirm()
     _G.NRCModeManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, Text)
     return
   end
-  if reportScene == ProtoEnum.SafetyBusinessInfo.ReportScense.RPTSS_ORGANIZATION_INFORMATION_SCENE then
+  if reportScene == ProtoEnum.SafetyBusinessInfo.ReportScense.RPTSS_ORGANIZATION_INFORMATION_SCENE and 2 ~= business_data.report_entrance then
+    local playerInfo = _G.DataModelMgr.PlayerDataModel:GetPlayerInfo().brief_info
+    if playerInfo.uin == business_data.masterId then
+      Log.Error("UMG_Friend_Report_C:OnConfirm==\228\184\141\232\131\189\232\135\170\229\183\177\228\184\190\230\138\165\232\135\170\229\183\177\239\188\129\239\188\129\239\188\129")
+      return
+    end
     self:IsLock(true)
     self.UploadScreenShotUrlBegin = false
     self.UploadHomeReportSuccessBegin = false

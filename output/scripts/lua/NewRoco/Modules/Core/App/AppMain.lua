@@ -12,6 +12,7 @@ this.isEnterBackground = false
 this.isPIEEnded = false
 this.enableScreenSaver = true
 this.isAuditVersion = false
+this.userDefineStr = ""
 this.AppleASA = nil
 this.desireReleaseCursorCapture = false
 UEPrintLog("------------AppMain-------------")
@@ -54,9 +55,11 @@ function AppMain.OnStart()
   UE4.UNRCStatics.SetEnableRocoPreInputProcessor(true)
   UE4.UNRCTUIStatics.SetEnableCustomUIAsyncLoader(true)
   UE4.UNRCTUIStatics.SetEnableCustomTUIUtils(true)
+  UE4.UNRCTUIStatics.SetLongPressGesture(false)
   if RocoEnv.PLATFORM == "PLATFORM_WINDOWS" and not this.hasInitHardwareCursors then
     this.hasInitHardwareCursors = UE4.UNRCTUIStatics.ReplaceWithHardwareCursors(_G.UE4Helper.GetCurrentWorld())
   end
+  UE.UKismetSystemLibrary.ExecuteConsoleCommand(nil, "n.NRCAvatarWaitForStreamInWhenLoadSuit 0")
 end
 
 function AppMain.BackToLogin(forceCleanupLua)
@@ -114,6 +117,20 @@ function AppMain:GetResRevision()
 end
 
 function AppMain:GetDolphinChannel()
+  local OverrideChannel = this.launchParams.dolphin_channel
+  if not string.IsNilOrEmpty(OverrideChannel) then
+    Log.Debug("[AppMain:GetDolphinChannel] OverrideChannel:", OverrideChannel)
+    return OverrideChannel
+  end
+  return this.DolphinChannel
+end
+
+function AppMain:GetPreDownloadDolphinChannel()
+  local OverrideChannel = this.launchParams.predownload_dolphin_channel
+  if not string.IsNilOrEmpty(OverrideChannel) then
+    Log.Debug("[AppMain:GetPreDownloadDolphinChannel] OverrideChannel:", OverrideChannel)
+    return OverrideChannel
+  end
   return this.DolphinChannel
 end
 
@@ -130,11 +147,21 @@ function AppMain:GetFormalPipeline()
 end
 
 function AppMain:HasDebug()
-  return true
+  return not this.FormalPipeline
 end
 
 function AppMain:GetProjectBranch()
   return this.ProjectBranch
+end
+
+function AppMain:IsReleaseFormalEnv()
+  local bRelease = true
+  if not this.launchParams then
+    Log.Error("AppMain.launchParams is nil")
+  elseif this.launchParams.dolphin_url_key and this.launchParams.dolphin_url_key == "TestPre" then
+    bRelease = false
+  end
+  return bRelease
 end
 
 function AppMain:GetDeviceId()
@@ -146,6 +173,48 @@ function AppMain:GetDeviceId()
     end
   end
   return this.DeviceId
+end
+
+function AppMain.ReportDeviceCode(callback)
+  local deviceCode = AppMain:GetDeviceId()
+  if not deviceCode or "" == deviceCode then
+    Log.Warning("[ReportDeviceCode] Device code is empty or nil.")
+    if callback then
+      callback(false, "device code is empty")
+    end
+    return
+  end
+  local url = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=9ac9d51e-d1bf-4be7-9068-c88903c47bd5"
+  local appVersion = AppMain:GetAppVersion() or "unknown"
+  local dataContent = string.format("version: %s, deviceId: %s", appVersion, deviceCode)
+  local HttpService = UE4.UMoreFunPlatformKits.CreateSimpleHttpService()
+  local HttpServiceRef = UnLua.Ref(HttpService)
+  AppMain.ReportDeviceCodeServiceRef = HttpServiceRef
+  HttpService:ResetHeaders()
+  HttpService:SetUrl(url)
+  HttpService:SetVerb("POST")
+  HttpService:SetHeader("Content-Type", "application/json")
+  local jsonContent = JsonUtils.EncodeTable({
+    msgtype = "text",
+    text = {content = dataContent}
+  })
+  HttpService:SetContentAsString(jsonContent)
+  HttpService:Request({
+    HttpService,
+    function(Service, Status)
+      local success = Status == UE4.EHttpServiceStatus.RspSuccess
+      local response = Service:GetRspContent()
+      if success then
+        Log.DebugFormat("[ReportDeviceCode] \228\184\138\230\138\165\230\136\144\229\138\159: %s", response)
+      else
+        Log.WarningFormat("[ReportDeviceCode] \228\184\138\230\138\165\229\164\177\232\180\165, Status: %d", Status)
+      end
+      if callback then
+        callback(success, response or "")
+      end
+      AppMain.ReportDeviceCodeServiceRef = nil
+    end
+  })
 end
 
 function AppMain:GetPlatId()
@@ -180,8 +249,11 @@ end
 function AppMain:GetOAID()
   if not this.OAID then
     local TDMInfo = UE.UTDMStatics.PullDeviceInfo()
-    if RocoEnv.PLATFORM_ANDROID or RocoEnv.PLATFORM_OPENHARMONY then
+    if RocoEnv.PLATFORM_ANDROID then
       this.OAID = TDMInfo.OAID
+    end
+    if RocoEnv.PLATFORM_OPENHARMONY then
+      this.OAID = UE.UNRCDeviceInfoHelper.GetOAID()
     end
   end
   return this.OAID
@@ -200,10 +272,6 @@ end
 
 function AppMain:HasLaunchParams()
   return table.len(this.launchParams) > 0
-end
-
-function AppMain:ShouldPopErrorWin()
-  return not _G.RocoEnv.IS_SHIPPING or not self:GetFormalPipeline() and self:HasLaunchParams()
 end
 
 function AppMain:SetIfDownloadBasePaksWithoutLogin(value)
@@ -280,8 +348,17 @@ function AppMain:SetAuditVersion(InIsAuditVersion)
   this.isAuditVersion = InIsAuditVersion
 end
 
+function AppMain:SetUserDefineStr(InUserDefineStr)
+  Log.Debug("AppMain.SetUserDefineStr(InUserDefineStr)  :  ", InUserDefineStr)
+  this.userDefineStr = InUserDefineStr
+end
+
 function AppMain:IsAuditVersion()
   return this.isAuditVersion
+end
+
+function AppMain:GetUserDefineStr()
+  return this.userDefineStr
 end
 
 function AppMain.OnWindowActivationChanged(Activate)

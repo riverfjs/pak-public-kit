@@ -109,4 +109,11 @@ end
 function UMG_PhotoFrame_C:OnAddEventListener()
 end
 
+function UMG_PhotoFrame_C:OnDestruct()
+  _G.DelayManager:DelayFrames(3, function()
+    _G.NRCModuleManager:GetModule("MainUIModule"):GetPanel("LobbyMain").VisibleContents:SetVisibility(UE.ESlateVisibility.Collapsed)
+    _G.NRCModuleManager:GetModule("MainUIModule"):GetPanel("LobbyMain").VisibleContents:SetVisibility(UE.ESlateVisibility.SelfHitTestInvisible)
+  end)
+end
+
 return UMG_PhotoFrame_C

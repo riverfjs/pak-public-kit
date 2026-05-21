@@ -4,13 +4,13 @@ function UMG_Activity_Base_C:BindUIElements()
   self:LogError("Inherited class must implement BindUIElements function!")
 end
 
-function UMG_Activity_Base_C:ReBindUIElements(onlyChangeAnimation)
+function UMG_Activity_Base_C:ReBindUIElements(onlyChangeAnimation, replacePlayingAnimation)
   local oldElements = self.uiElements
   self.uiElements = self:BindUIElements()
-  self:OnBindUIElementsChanged(oldElements, onlyChangeAnimation)
+  self:OnBindUIElementsChanged(oldElements, onlyChangeAnimation, replacePlayingAnimation)
 end
 
-function UMG_Activity_Base_C:OnBindUIElementsChanged(oldElements, onlyChangeAnimation)
+function UMG_Activity_Base_C:OnBindUIElementsChanged(oldElements, onlyChangeAnimation, replacePlayingAnimation)
   local _uiElements = self.uiElements
   local oldLoopAnimName = oldElements and oldElements.loopAnimName
   local newLoopAnimName = _uiElements and _uiElements.loopAnimName
@@ -79,17 +79,36 @@ function UMG_Activity_Base_C:OnBindUIElementsChanged(oldElements, onlyChangeAnim
     if string.IsNilOrEmpty(_uiElements.loopAnimName) or not self[_uiElements.loopAnimName] then
       _uiElements.loopAnimName = _activityInst:GetLoopAnimationName()
     end
+    if string.IsNilOrEmpty(_uiElements.openAnimName) then
+      _uiElements.openAnimName = "Open"
+    end
+    if string.IsNilOrEmpty(_uiElements.closeAnimName) then
+      _uiElements.closeAnimName = "Close"
+    end
+    if string.IsNilOrEmpty(_uiElements.changeAnimName) then
+      _uiElements.changeAnimName = "Change"
+    end
+    if replacePlayingAnimation and oldElements then
+      if oldElements.openAnimName ~= _uiElements.openAnimName and self:CheckIsAnimationPlaying(oldElements.openAnimName) then
+        self:StopAnimationByName(oldElements.openAnimName)
+        self:PlayAnimationByName(_uiElements.openAnimName)
+      end
+      if oldElements.changeAnimName ~= _uiElements.changeAnimName and self:CheckIsAnimationPlaying(oldElements.changeAnimName) then
+        self:StopAnimationByName(oldElements.changeAnimName)
+        self:PlayAnimationByName(_uiElements.changeAnimName)
+      end
+    end
   end
 end
 
 function UMG_Activity_Base_C:OnOpenView()
   local _uiElements = self.uiElements
-  self:PlayAnimationByName(_uiElements and _uiElements.openAnimName or "Open")
+  self:PlayAnimationByName(_uiElements and _uiElements.openAnimName)
 end
 
 function UMG_Activity_Base_C:OnCloseView()
   local _uiElements = self.uiElements
-  self:PlayAnimationByName(_uiElements and _uiElements.closeAnimName or "Close")
+  self:PlayAnimationByName(_uiElements and _uiElements.closeAnimName)
 end
 
 function UMG_Activity_Base_C:OnConstruct()
@@ -108,9 +127,19 @@ end
 
 function UMG_Activity_Base_C:OnEnable(firstLoad)
   self.isShowing = true
+  _G.NRCAudioManager:PlaySound2DAuto(40010023, "UMG_Activity_Base_C:OnEnable")
   if not firstLoad then
     local _uiElements = self.uiElements
-    self:PlayAnimationByName(_uiElements and _uiElements.changeAnimName or "Change")
+    if _uiElements then
+      local canPlayChangeAnim = true
+      if self:CheckIsAnimationPlaying(_uiElements.openAnimName) and _uiElements.openAnimName ~= _uiElements.changeAnimName then
+        canPlayChangeAnim = false
+      end
+      if canPlayChangeAnim then
+        self:StopAnimationByName(_uiElements.changeAnimName)
+        self:PlayAnimationByName(_uiElements.changeAnimName)
+      end
+    end
   end
   if self.activityInst then
     local bgm = self.activityInst:GetActivityBgm()
@@ -161,6 +190,16 @@ function UMG_Activity_Base_C:StopAnimationByName(animName)
       self:StopAnimation(anim)
     end
   end
+end
+
+function UMG_Activity_Base_C:CheckIsAnimationPlaying(animName)
+  if not string.IsNilOrEmpty(animName) then
+    local anim = self[animName]
+    if anim then
+      return self:IsAnimationPlaying(anim)
+    end
+  end
+  return false
 end
 
 function UMG_Activity_Base_C:GetCloseBtnImagePath()

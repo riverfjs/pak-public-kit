@@ -3,6 +3,14 @@ local TakePhotosModuleData = _G.NRCData:Extend("TakePhotosModuleData")
 local SaveName = "TakePhotosSaveGame"
 local SaveGameClassPath = "/Game/NewRoco/Modules/System/TakePhotos/Res/BP_TakePhotosSaveGame.BP_TakePhotosSaveGame_C"
 
+local function bytes_to_string(bytes)
+  local parts = {}
+  for i = 1, bytes:Num() do
+    parts[i] = string.char(bytes:Get(i))
+  end
+  return table.concat(parts)
+end
+
 function TakePhotosModuleData:Ctor()
   NRCData.Ctor(self)
   self.TheRT = nil
@@ -13,7 +21,26 @@ function TakePhotosModuleData:Ctor()
   self.ThePhotoBigTexture = nil
   self.ThePhotoBigTextureRef = nil
   self.CurPhotoMode = 0
+  self.KEY = UE.UClass.Load("'/Game/NewRoco/Modules/System/TakePhotos/Res/BP_Key.BP_Key_C'")
+  if self.KEY then
+    self.KEY_REF = UnLua.Ref(self.KEY)
+  end
   self:InitPetHandBookIndices()
+end
+
+function TakePhotosModuleData:GetPKey()
+  if self.KEY and UE.UObject.IsValid(self.KEY) and self.KEY.GetDefaultObject then
+    local CDO = self.KEY:GetDefaultObject()
+    if CDO and CDO.PKey then
+      local pkey = CDO.PKey
+      local parts = {}
+      for i = 1, pkey:Num() do
+        parts[i] = string.char(pkey:Get(i))
+      end
+      return table.concat(parts)
+    end
+  end
+  Log.Error("Invalid PKey")
 end
 
 function TakePhotosModuleData:InitSaveData()
@@ -74,24 +101,184 @@ function TakePhotosModuleData:OnDeleteNotifyConfirm(bNeedDisableNotify)
   end
 end
 
-function TakePhotosModuleData:GetLocalPhotoStats(PhotoFilePath)
-  if not self:GetSaveData() then
-    return
+local DEFAULT_ENCRYPTION_KEY = "cG(.^TNRC9hY,DkX1KX2w)p(^Yo>}n}3"
+
+local function ConvertStringToUint8Array(str)
+  if not str or "" == str then
+    return {}
   end
-  local Uin = _G.DataModelMgr.PlayerDataModel:GetPlayerUin()
-  local Map = self:GetSaveData().local_photo_files
-  local Val = Map:Find(PhotoFilePath .. Uin)
-  return Val
+  local bytes = {}
+  for i = 1, string.len(str) do
+    local b = string.byte(str, i)
+    bytes[i] = b
+  end
+  return bytes
 end
 
-function TakePhotosModuleData:RecordLocalPhotoStats(PhotoFilePath, Md5)
+local function ConvertUint8ArrayToString(bytes)
+  local chars = {}
+  for i = 1, bytes:Num() do
+    local c = bytes:Get(i)
+    chars[i] = string.char(c)
+  end
+  return table.concat(chars)
+end
+
+local UnixEpochTicks = 621355968000000000
+
+local function GetLocalFileTime(PhotoFilePath)
+  local Ticks = UEGetFileDateTime(PhotoFilePath) or 0
+  if 0 == Ticks then
+    return 0
+  end
+  return (Ticks - UnixEpochTicks) // 10000000
+end
+
+local TIME_OFFSET
+
+local function GetTimeOffset()
+  if not TIME_OFFSET then
+    local File = UE.UBlueprintPathsLibrary.Combine({
+      UE.UBlueprintPathsLibrary.ProjectSavedDir(),
+      "a"
+    })
+    UE.UNRCStatics.SaveByteArrayToFile({
+      math.random()
+    }, File)
+    TIME_OFFSET = GetLocalFileTime(File) - _G.ZoneServer:GetServerTime() // 1000
+    UE.UNRCStatics.DeleteToFile(File)
+  end
+  return TIME_OFFSET
+end
+
+local function GetPhotoTimeName(PhotoPath)
+  local Names = string.Split(PhotoPath, "/")
+  local Name = Names[#Names]
+  local EndIdx = string.find(Name, "%.") or #Name + 1
+  local Len = 13
+  local J = EndIdx - 1
+  local I = J - Len + 1
+  local T = math.tointeger(string.sub(Name, I, J) or "") or 0
+  local Timestamp = T // 1000
+  return Timestamp
+end
+
+function TakePhotosModuleData:GetLocalPhotoStats(PhotoFilePath)
+  if not self:GetSaveData() then
+    return nil, nil
+  end
+  local Uin = _G.DataModelMgr.PlayerDataModel:GetPlayerUin()
+  local Key = PhotoFilePath .. Uin
+  local Map = self:GetSaveData().local_photo_files
+  local Val = Map:Find(Key)
+  local InfoMap = self:GetSaveData().file_info_map
+  local FileInfo = InfoMap and InfoMap:Find(Key)
+  if FileInfo then
+    local EncryptInfoCode = self:GetSaveData().encrypt_info_code
+    local bValid = true
+    if EncryptInfoCode then
+      local CodeStruct = EncryptInfoCode:Find(Key)
+      local DecryptInfo = UE.UCloudGameUtils.DecryptData(CodeStruct.Code, self:GetPKey())
+      if DecryptInfo ~= FileInfo then
+        bValid = false
+        Log.Error("Invalid FileInfo", Key, FileInfo, "Expected:", DecryptInfo)
+      end
+      Log.Debug("DecryptInfo", DecryptInfo, "By", Key, FileInfo)
+    end
+    local Elems = string.split(FileInfo, ";")
+    local PhotoInfo = _G.ProtoMessage:newPlayerPhotoAlbumInfo()
+    PhotoInfo.pet_base_id_list = {}
+    if bValid then
+      PhotoInfo.include_myself = "1" == Elems[1]
+      if Elems[2] then
+        local PetBaseIds = string.split(Elems[2], ",")
+        for i, PetBaseId in ipairs(PetBaseIds) do
+          PetBaseId = math.tointeger(PetBaseId)
+          if PetBaseId then
+            table.insert(PhotoInfo.pet_base_id_list, PetBaseId)
+          end
+        end
+      end
+    else
+      PhotoInfo.include_myself = false
+    end
+    FileInfo = PhotoInfo
+  end
+  if string.EndsWith(PhotoFilePath, "x") then
+    Val = ""
+  else
+    local EncryptMd5File = PhotoFilePath .. "x"
+    if string.EndsWith(Val, "_1") then
+      Val = ""
+    elseif string.EndsWith(Val, "_2") then
+      local PKey = self:GetPKey()
+      local EncryptMd5 = PKey and UE4.UCloudGameUtils.LoadDecryptedData(EncryptMd5File, PKey) or ""
+      if string.EndsWith(EncryptMd5, "_2") then
+        Log.Debug("[PhotoData] DecryptMd5 2:", PhotoFilePath, EncryptMd5, Val)
+        if EncryptMd5 == Val then
+          Val = string.sub(EncryptMd5, 1, string.len(EncryptMd5) - 2)
+        else
+          Val = ""
+        end
+      else
+        Val = ""
+      end
+    else
+      Log.Error("[PhotoData] Invalid Photo", PhotoFilePath, Val)
+      Val = ""
+    end
+  end
+  Log.Debug("[PhotoData] DecryptMd5:", PhotoFilePath, Val)
+  return Val, FileInfo
+end
+
+function TakePhotosModuleData:RecoverPhoto()
+end
+
+function TakePhotosModuleData:RecordLocalPhotoStats(PhotoFilePath, Md5, PhotoInfo)
   if not self:GetSaveData() then
     return
   end
   local Uin = _G.DataModelMgr.PlayerDataModel:GetPlayerUin()
+  local Key = PhotoFilePath .. Uin
+  local EncryptMd5 = Md5
+  local PKey = self:GetPKey()
+  if PKey then
+    EncryptMd5 = Md5 .. "_2"
+    local EncryptMd5File = PhotoFilePath .. "x"
+    if not UE.UCloudGameUtils.SaveEncryptedData(EncryptMd5, EncryptMd5File, PKey) then
+      Log.Error("Invalid EncryptData", EncryptMd5File)
+      return
+    end
+  else
+    EncryptMd5 = Md5 .. "_1"
+    local EncryptMd5File = PhotoFilePath .. "x"
+    if not UE.UCloudGameUtils.SaveEncryptedData(EncryptMd5, EncryptMd5File, DEFAULT_ENCRYPTION_KEY) then
+      Log.Error("Invalid EncryptData", EncryptMd5File)
+      return
+    end
+  end
   local Map = self:GetSaveData().local_photo_files
-  Map:Add(PhotoFilePath .. Uin, Md5)
+  Map:Add(Key, EncryptMd5)
   self:GetSaveData().local_photo_files = Map
+  if PhotoInfo then
+    local PhotoInfoString = string.format("%s;%s", PhotoInfo.include_myself and 1 or 0, table.concat(PhotoInfo.pet_base_id_list, ","))
+    local Info = self:GetSaveData().file_info_map
+    if Info then
+      Info:Add(Key, PhotoInfoString)
+      self:GetSaveData().file_info_map = Info
+    end
+    local EncryptInfoCode = self:GetSaveData().encrypt_info_code
+    if EncryptInfoCode then
+      local Template = self:GetSaveData().code_template
+      Template.Code = UE.UCloudGameUtils.EncryptData(PhotoInfoString, PKey)
+      EncryptInfoCode:Add(Key, Template)
+      Template.Code = UE.TArray(0)
+      self:GetSaveData().encrypt_info_code = EncryptInfoCode
+    end
+  else
+    Log.Error(" Cannot found photo info", PhotoFilePath)
+  end
   self:AsyncSaveGameData()
 end
 
@@ -100,9 +287,18 @@ function TakePhotosModuleData:RemoveLocalPhotoStats(PhotoFilePath)
     return
   end
   local Uin = _G.DataModelMgr.PlayerDataModel:GetPlayerUin()
+  local Key = PhotoFilePath .. Uin
   local Map = self:GetSaveData().local_photo_files
-  Map:Remove(PhotoFilePath .. Uin)
+  Map:Remove(Key)
   self:GetSaveData().local_photo_files = Map
+  local Info = self:GetSaveData().file_info_map
+  Info:Remove(Key)
+  self:GetSaveData().file_info_map = Info
+  local EncryptInfoCode = self:GetSaveData().encrypt_info_code
+  if EncryptInfoCode then
+    EncryptInfoCode:Remove(Key)
+    self:GetSaveData().encrypt_info_code = EncryptInfoCode
+  end
   self:AsyncSaveGameData()
 end
 

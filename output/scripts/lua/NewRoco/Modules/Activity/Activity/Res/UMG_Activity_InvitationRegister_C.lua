@@ -23,22 +23,20 @@ end
 
 function UMG_Activity_InvitationRegister_C:InitPanel(part_data)
   if part_data then
-    local base_ids = self.activityInst:GetPartIds()
     local initData = {}
     local reward_icon
-    for _, base_id in ipairs(base_ids) do
+    for _, task_data in ipairs(part_data) do
+      local inviteRegisterConf = _G.DataConfigManager:GetActivityInviteRegisterConf(task_data.activity_part_id)
       local data = {}
-      local inviteRegisterConf = _G.DataConfigManager:GetActivityInviteRegisterConf(base_id)
       local task_name = inviteRegisterConf.part_name
       local reward = inviteRegisterConf.reward_group[1]
       local reward_num = reward.goods_count
       if nil == reward_icon then
         reward_icon, _ = ActivityUtils.GetItemIconAndQuality(reward.goods_type, reward.goods_id)
       end
-      local activityInfo = part_data[#initData + 1]
-      data.reward_state = activityInfo.state
-      if activityInfo.param and activityInfo.param.param1 then
-        data.get_num = activityInfo.param.param1 * reward_num
+      data.reward_state = task_data.state
+      if task_data.param and task_data.param.param1 then
+        data.get_num = task_data.param.param1 * reward_num
       else
         data.get_num = 0
       end
@@ -47,14 +45,18 @@ function UMG_Activity_InvitationRegister_C:InitPanel(part_data)
       data.reward_icon = reward_icon
       data.activity_id = self.activityInst:GetActivityId()
       data.max_reward_num = inviteRegisterConf.max_reward_count * reward_num
-      data.base_id = base_id
+      data.base_id = task_data.activity_part_id
       data.share_part_conf_id = inviteRegisterConf.share_part_conf_id
       table.insert(initData, data)
     end
+    local inviteList = self.activityInst:GetInviteData().invitee_list
+    local inviteNum = inviteList and #inviteList or 0
+    self.InvitedNum:SetText(string.format(_G.LuaText.invite_friend_time_tips, inviteNum))
     self.Icon:SetPath(reward_icon)
     self.List:InitList(initData)
     self.List:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
   else
+    self.InvitedNum:SetText(string.format(_G.LuaText.invite_friend_time_tips, 0))
     self.List:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
 end

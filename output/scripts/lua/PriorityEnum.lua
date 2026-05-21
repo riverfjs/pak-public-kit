@@ -29,6 +29,7 @@ local PriorityEnum = {
   Active_Player_Throw_Res_Important = 255,
   Active_Player_Throw_BP = 202,
   Active_Player_Throw_Npc = 230,
+  Active_Player_CatchRelated = 230,
   Active_Player_Action = 220,
   Active_Player_CastSkill = 220,
   Passive_3P_Action = 100,

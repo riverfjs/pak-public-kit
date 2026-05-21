@@ -8,6 +8,10 @@ function ThrowAbilityHelper:CanCastAbility(caster, pet)
   if buffComp:HasBuff("ThrowBuff") or buffComp:HasBuff("MagicBuff") then
     return AbilityErrorCode.ABILITY_IS_CASTING
   end
+  local RideAllBuff = buffComp:GetBuff("RideAll_Main_Buff")
+  if RideAllBuff and RideAllBuff.CanThrowBall and not RideAllBuff:CanThrowBall() then
+    return AbilityErrorCode.HIGHER_PRIORITY_ABILITY_IS_CASTING
+  end
   if caster.viewObj == nil then
     return AbilityErrorCode.HIGHER_PRIORITY_ABILITY_IS_CASTING
   end

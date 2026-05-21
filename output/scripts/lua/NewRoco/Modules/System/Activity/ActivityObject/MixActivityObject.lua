@@ -57,10 +57,6 @@ end
 function ThisWeekClassScheduleItemObject:IsCanJump()
   local taskGoConf = self:GetTaskGoConf()
   if taskGoConf and taskGoConf.option_id and 0 ~= taskGoConf.option_id then
-    local magicManualModule = _G.NRCModuleManager:GetModule("MagicManualModule")
-    if magicManualModule and magicManualModule:HasPanel("MagicManualMainPanel") then
-      return false
-    end
     return true
   end
   return false

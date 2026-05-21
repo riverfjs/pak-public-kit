@@ -51,25 +51,44 @@ function UMG_LockMagic_C:OnTick(InDeltaTime)
     endPos = WorldLocation + CamDir * self.LineTraceDist
   end
   local TraceChannel = _G.UE4.ECollisionChannel.ECC_GameTraceChannel1
-  local OutHit, Res = UE4.UKismetSystemLibrary.Abs_LineTraceSingle(self.player.viewObj, WorldLocation, endPos, TraceChannel, false, nil, 0, nil, true)
-  self.curTickTime = self.curTickTime + InDeltaTime
-  if self.curTickTime > 0.7 then
-    self.curTickTime = 0.0
-    if OutHit.Actor ~= nil and OutHit.Actor ~= self.lastActor then
-      self.curActor = OutHit.Actor
-      if nil ~= self.curActor and self.curActor.sceneCharacter and self:CanInteract(self.curActor.sceneCharacter) then
-        if self:IsAnimationPlaying(self.open) then
-          self:OnEnterLockingState(false)
-        else
-          self:OnEnterLockingState(true)
+  local OutHit
+  if self:CheckIsDreamStaff() then
+    local OutHitList, _ = UE4.UKismetSystemLibrary.Abs_LineTraceMulti(self.player.viewObj, WorldLocation, endPos, TraceChannel, false, nil, 0, nil, true)
+    if OutHitList then
+      for i = 1, OutHitList:Length() do
+        local hitResult = OutHitList:Get(i)
+        local hitActor = hitResult.Actor
+        if hitActor and hitActor.className ~= "BP_NPCItemStar_C" then
+          OutHit = hitResult
+          break
         end
-        self.isLockingState = true
-      elseif self.lastActor and self.lastActor.sceneCharacter and self.lastActor.sceneCharacter.config and self.isLockingState then
-        self:OnEnterLockingState(false)
-        self.isLockingState = false
       end
     end
-    self.lastActor = OutHit.Actor
+  else
+    OutHit, _ = UE4.UKismetSystemLibrary.Abs_LineTraceSingle(self.player.viewObj, WorldLocation, endPos, TraceChannel, false, nil, 0, nil, true)
+  end
+  self.curTickTime = self.curTickTime + InDeltaTime
+  if self.curTickTime > 0.5 then
+    self.curTickTime = 0.0
+    if self:CheckIsDreamStaff() then
+      self:ExecuteDreamStaff(OutHit)
+    elseif OutHit then
+      if OutHit.Actor ~= nil and OutHit.Actor ~= self.lastActor then
+        self.curActor = OutHit.Actor
+        if nil ~= self.curActor and self.curActor.sceneCharacter and self:CanInteract(self.curActor.sceneCharacter) then
+          if self:IsAnimationPlaying(self.open) then
+            self:OnEnterLockingState(false)
+          else
+            self:OnEnterLockingState(true)
+          end
+          self.isLockingState = true
+        elseif self.lastActor and self.lastActor.sceneCharacter and self.lastActor.sceneCharacter.config and self.isLockingState then
+          self:OnEnterLockingState(false)
+          self.isLockingState = false
+        end
+      end
+      self.lastActor = OutHit.Actor
+    end
   end
 end
 
@@ -99,7 +118,8 @@ function UMG_LockMagic_C:CanInteract(actor)
         if magicInteractConf and 1 == magicInteractConf.action_struct[1].magic_id and chargeLv >= magicInteractConf.action_struct[1].magic_charge_level then
           local isFighting = false
           if actor.GetAimDisplay then
-            local aimType = self.curActor.sceneCharacter:GetAimDisplay()
+            local sceneCharacter = self:GetSceneCharacter(self.curActor)
+            local aimType = sceneCharacter:GetAimDisplay()
             if aimType and aimType[1] == _G.Enum.NPC_AIM_DISPLAY.NAD_WILD_PET then
               isFighting = actor:IsLogicStatus(ProtoEnum.SpaceActorLogicStatus.SALS_FIGHTING)
             end
@@ -111,6 +131,12 @@ function UMG_LockMagic_C:CanInteract(actor)
           end
         end
       end
+    end
+  elseif self:CheckIsDreamStaff() then
+    if actor.AbnormalStatusComponent then
+      canInteract = true
+    else
+      canInteract = false
     end
   else
     canInteract = false
@@ -144,6 +170,7 @@ end
 
 function UMG_LockMagic_C:OnShow()
   self.isShowing = true
+  self.magicActor = false
   self:ResetInfo()
   local panelInst = self.LockUmgLoader:GetPanel()
   if panelInst then
@@ -167,10 +194,10 @@ function UMG_LockMagic_C:ResetInfo()
   self.isLockingState = false
 end
 
-function UMG_LockMagic_C:OnEnterLockingState(bool)
+function UMG_LockMagic_C:OnEnterLockingState(bool, data)
   local panelInst = self.LockUmgLoader:GetPanel()
   if panelInst then
-    panelInst:OnEnterLockingState(bool)
+    panelInst:OnEnterLockingState(bool, data)
   end
 end
 
@@ -178,6 +205,98 @@ function UMG_LockMagic_C:ClearActorCache()
   local panelInst = self.LockUmgLoader:GetPanel()
   if panelInst then
     panelInst:ClearActorCache()
+  end
+end
+
+function UMG_LockMagic_C:CheckIsDreamStaff()
+  self.player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
+  if self.player then
+    local WandConf = self.player:GetCurWandConf()
+    if WandConf and WandConf.magic_list then
+      local magicId = WandConf.magic_list[1]
+      if magicId then
+        local StarMagicConf = _G.DataConfigManager:GetStarMagicConf(magicId, true)
+        if StarMagicConf and StarMagicConf.effect_struct and StarMagicConf.effect_struct[2] then
+          return StarMagicConf.effect_struct[2].effect == Enum.MagicEffect.ME_HYPNOTIZE
+        end
+      end
+    end
+  end
+  return false
+end
+
+function UMG_LockMagic_C:ResetDreamStaff()
+  if self:CheckIsDreamStaff() then
+    local panelInst = self.LockUmgLoader:GetPanel()
+    if panelInst then
+      panelInst:ResetState()
+    end
+  end
+end
+
+function UMG_LockMagic_C:UpdateDreamStaffLock(data)
+  if self:CheckIsDreamStaff() then
+    local panelInst = self.LockUmgLoader:GetPanel()
+    if panelInst then
+      panelInst:UpdateLockState(data)
+    end
+  end
+end
+
+function UMG_LockMagic_C:GetSceneCharacter(curActor)
+  local sceneCharacter
+  if curActor then
+    if curActor.sceneCharacter then
+      sceneCharacter = curActor.sceneCharacter
+    elseif curActor.Rider and curActor.Rider.sceneCharacter then
+      sceneCharacter = curActor.Rider.sceneCharacter
+    end
+  end
+  return sceneCharacter
+end
+
+function UMG_LockMagic_C:ExecuteDreamStaff(OutHit)
+  if OutHit then
+    if OutHit.Actor ~= nil and OutHit.Actor ~= self.lastActor then
+      self.curActor = OutHit.Actor
+      local data = {}
+      local AbnormalStatusComponent
+      local sceneCharacter = self:GetSceneCharacter(self.curActor)
+      if sceneCharacter and sceneCharacter.AbnormalStatusComponent then
+        AbnormalStatusComponent = sceneCharacter.AbnormalStatusComponent
+      end
+      data.AbnormalStatusComponent = AbnormalStatusComponent
+      if sceneCharacter and self:CanInteract(sceneCharacter) then
+        if self:IsAnimationPlaying(self.open) then
+          self:OnEnterLockingState(false, data)
+        else
+          self:OnEnterLockingState(true, data)
+        end
+        self.isLockingState = true
+      else
+        local lastSceneCharacter = self:GetSceneCharacter(self.lastActor)
+        if lastSceneCharacter and self.isLockingState then
+          self:OnEnterLockingState(false, data)
+          self.isLockingState = false
+        else
+          self:ResetDreamStaff()
+        end
+      end
+    elseif OutHit.Actor == self.lastActor then
+      local sceneCharacter = self:GetSceneCharacter(OutHit.Actor)
+      local data = {}
+      local AbnormalStatusComponent
+      if sceneCharacter and sceneCharacter.AbnormalStatusComponent then
+        AbnormalStatusComponent = sceneCharacter.AbnormalStatusComponent
+      end
+      data.AbnormalStatusComponent = AbnormalStatusComponent
+      self:UpdateDreamStaffLock(data)
+    else
+      self:ResetDreamStaff()
+    end
+    self.lastActor = OutHit.Actor
+  else
+    self:ResetDreamStaff()
   end
 end
 

@@ -51,6 +51,7 @@ MagicManualModuleCmd.CacheChapterBeginUIDataToFile = "MagicManualModuleCmd.Cache
 MagicManualModuleCmd.OnOpenSeasonManualPanel = "MagicManualModuleCmd.OnOpenSeasonManualPanel"
 MagicManualModuleCmd.OnOpenSeasonBadgePanel = "MagicManualModuleCmd.OnOpenSeasonBadgePanel"
 MagicManualModuleCmd.OnGMOpenSeasonManualChapter = "MagicManualModuleCmd.OnCmdOpenSeasonManualChapter"
+MagicManualModuleCmd.OnGetSeasonManualProbAdd = "MagicManualModuleCmd.OnGetSeasonManualProbAdd"
 MagicManualModuleCmd.GetRecallRelatedTaskStateReq = "MagicManualModuleCmd.GetRecallRelatedTaskStateReq"
 MagicManualModuleCmd.OpenRecallPanel = "MagicManualModuleCmd.OpenRecallPanel"
 MagicManualModuleCmd.TutorJumpToPanel = "MagicManualModuleCmd.TutorJumpToPanel"

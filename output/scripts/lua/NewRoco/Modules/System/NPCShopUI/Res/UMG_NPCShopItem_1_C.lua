@@ -285,29 +285,59 @@ function UMG_NPCShopItem_1_C:UpdateInfo()
     return
   end
   self.itemUseCount:SetText(self.uiData.selectedNum)
+  if self.uiData.AlreadyHasItem then
+    self.Text_MaiWan:SetText(LuaText.tailor_owned_btn)
+  else
+    self.Text_MaiWan:SetText(LuaText.goods_soldout)
+  end
   local isLimit = 0
   local limitLevel = 0
   isLimit = goodsConf.buy_cond_type or 0
   limitLevel = goodsConf.buy_cond_param or 0
   if isLimit == _G.Enum.BuyLimited.BL_PLAYER_LEVEL then
-    local limit = math.floor(tonumber(limitLevel))
-    if limit > DataModelMgr.PlayerDataModel:GetPlayerLevel() then
-      self:setChangeNum(false)
-      self:isSoldOut(false)
+    if self.uiData.can_buy then
+      local limit = math.floor(tonumber(limitLevel))
+      if limit > DataModelMgr.PlayerDataModel:GetPlayerLevel() then
+        self:setChangeNum(false)
+        self:isSoldOut(false)
+      elseif self.uiData.limitNum > 0 and self.uiData.limitNum <= self.uiData.boughtNum then
+        self:setChangeNum(false)
+        self:isSoldOut(true)
+      else
+        self:setChangeNum(true)
+        self:isSoldOut(false)
+      end
     elseif self.uiData.limitNum > 0 and self.uiData.limitNum <= self.uiData.boughtNum then
       self:setChangeNum(false)
       self:isSoldOut(true)
     else
-      self:setChangeNum(true)
-      self:isSoldOut(false)
+      if self.uiData.AlreadyHasItem then
+        self.NRCSwitcher_0:SetActiveWidgetIndex(1)
+      else
+        self.NRCSwitcher_0:SetActiveWidgetIndex(2)
+      end
+      self:setChangeNum(false)
+      self.isUnlock = false
+      self.NRCSwitcher_0:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+      self.Text_MaiWan:SetVisibility(UE4.ESlateVisibility.Visible)
+      self.Image_zhegai:SetVisibility(UE4.ESlateVisibility.Visible)
     end
-  elseif isLimit == _G.Enum.BuyLimited.BL_SOLDOUT and not self.uiData.can_buy and 3 == self.uiData.limitBuyType then
-    self:setChangeNum(false)
-    self.isUnlock = false
-    self.NRCSwitcher_0:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-    self.NRCSwitcher_0:SetActiveWidgetIndex(2)
-    self.Text_MaiWan:SetVisibility(UE4.ESlateVisibility.Visible)
-    self.Image_zhegai:SetVisibility(UE4.ESlateVisibility.Visible)
+  elseif not self.uiData.can_buy then
+    if self.uiData.limitNum > 0 and self.uiData.limitNum <= self.uiData.boughtNum then
+      self:setChangeNum(false)
+      self:isSoldOut(true)
+    else
+      if self.uiData.AlreadyHasItem then
+        self.NRCSwitcher_0:SetActiveWidgetIndex(1)
+      else
+        self.NRCSwitcher_0:SetActiveWidgetIndex(2)
+      end
+      self:setChangeNum(false)
+      self.isUnlock = false
+      self.NRCSwitcher_0:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+      self.Text_MaiWan:SetVisibility(UE4.ESlateVisibility.Visible)
+      self.Image_zhegai:SetVisibility(UE4.ESlateVisibility.Visible)
+    end
   elseif self.uiData.limitNum > 0 and self.uiData.limitNum <= self.uiData.boughtNum then
     self:setChangeNum(false)
     self:isSoldOut(true)
@@ -315,7 +345,7 @@ function UMG_NPCShopItem_1_C:UpdateInfo()
     self:setChangeNum(true)
     self:isSoldOut(false)
   end
-  local refreshType = goodsConf.reset_type
+  local refreshType = shopConf.shop_type ~= Enum.ShopType.ST_RANDOM_SHOP and goodsConf.reset_type or -1
   local leftBuyNum = self.uiData.limitNum - self.uiData.boughtNum
   if self.uiData.limitNum > 0 then
     self.Purchaselimit:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
@@ -572,13 +602,17 @@ function UMG_NPCShopItem_1_C:OnItemSelected(_bSelected)
     self:PlayAnimation(self.change1)
     self.isSelected = true
     self:OnBtnState(true)
-    if not self.uiData.can_buy and 3 == self.uiData.limitBuyType then
-      self.Image_zhegai:SetVisibility(UE4.ESlateVisibility.selfHitTestInvisible)
-      self.ItemBG_SelectedMI_1:SetVisibility(UE4.ESlateVisibility.selfHitTestInvisible)
-      NRCModuleManager:GetModule("NPCShopUIModule"):DispatchEvent(NPCShopUIModuleEvent.SoldOutBtnState, false, self.isUnlock, self.uiData.SoldOut_goodsNameList)
-      return
-    end
     if not self.SoldOut then
+      if not self.uiData.can_buy then
+        self.Image_zhegai:SetVisibility(UE4.ESlateVisibility.selfHitTestInvisible)
+        self.ItemBG_SelectedMI_1:SetVisibility(UE4.ESlateVisibility.selfHitTestInvisible)
+        NRCModuleManager:GetModule("NPCShopUIModule"):DispatchEvent(NPCShopUIModuleEvent.SoldOutBtnState, false, self.isUnlock, self.uiData.SoldOut_goodsNameList, {
+          limitType = self.uiData.limitType,
+          limitBuyParam = self.uiData.limitBuyParam,
+          buy_cond_param = self.uiData.buy_cond_param
+        }, self.uiData.AlreadyHasItem)
+        return
+      end
       self.Image_zhegai:SetVisibility(UE4.ESlateVisibility.Collapsed)
       self.ItemBG_SelectedMI_1:SetVisibility(UE4.ESlateVisibility.Collapsed)
       NRCModuleManager:GetModule("NPCShopUIModule"):DispatchEvent(NPCShopUIModuleEvent.SoldOutBtnState, false, self.isUnlock)

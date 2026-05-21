@@ -117,20 +117,23 @@ function UMG_Cooking_Equip_C:RefreshUI(rsp)
         if not _G.DataConfigManager:GetHomePetFeedConf(item.id) then
         else
           local confNeedTime = _G.DataConfigManager:GetHomePetFeedConf(item.id).need_time
-          table.insert(foodItemInfo, {
-            Id = item.id,
-            num = item.num,
-            updateTime = item.update_time,
-            caller = self,
-            callback = self.OnFoodSelected,
-            bEquipping = item.bag_item_flags ~= nil and 0 ~= item.bag_item_flags & ProtoEnum.BagItemFlag.HOMEPET_FOOD_EQUIPPED,
-            needTime = confNeedTime,
-            itemType = _G.Enum.BagItemType.BI_HOME_PET_FEED
-          })
-          if not self.uiData then
-            self.uiData = {}
+          if item.num <= 0 then
+          else
+            table.insert(foodItemInfo, {
+              Id = item.id,
+              num = item.num,
+              updateTime = item.update_time,
+              caller = self,
+              callback = self.OnFoodSelected,
+              bEquipping = item.bag_item_flags ~= nil and 0 ~= item.bag_item_flags & ProtoEnum.BagItemFlag.HOMEPET_FOOD_EQUIPPED,
+              needTime = confNeedTime,
+              itemType = _G.Enum.BagItemType.BI_HOME_PET_FEED
+            })
+            if not self.uiData then
+              self.uiData = {}
+            end
+            self.uiData[item.id] = item.num
           end
-          self.uiData[item.id] = item.num
         end
       end
     end
@@ -296,6 +299,13 @@ end
 function UMG_Cooking_Equip_C:OnDeactive()
   _G.NRCEventCenter:UnRegisterEvent(self, BagModuleEvent.RefreshTypeItemInfo, self.RefreshUI)
   _G.NRCEventCenter:UnRegisterEvent(self, _G.NRCGlobalEvent.ON_RECONNECT_FINISH, self.OnReconnectFinish)
+  if self.module then
+    self.module:UnRegisterEvent(self, HomeModuleEvent.OnEquipFoodChange)
+  end
+  if self.cdTimer then
+    _G.TimerManager:RemoveTimer(self.cdTimer)
+    self.cdTimer = nil
+  end
 end
 
 return UMG_Cooking_Equip_C

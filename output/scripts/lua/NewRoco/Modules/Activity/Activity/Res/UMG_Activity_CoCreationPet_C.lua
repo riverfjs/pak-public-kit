@@ -34,10 +34,13 @@ function UMG_Activity_CoCreationPet_C:OnConstruct()
   self.Attr:InitGridView(typeData)
   self.DrawImagle:SetPath(_activityInst:GetPetImagePath())
   local curWorldLv = _G.DataModelMgr.PlayerDataModel:GetPlayerWorldLevel()
-  if curWorldLv < self.activityInst:GetWorldLevelRequired() then
+  local requireLevel = self.activityInst:GetWorldLevelRequired()
+  if curWorldLv < requireLevel then
     self.BtnSearchPet:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.Btn_EventReview:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.NotUnlocked:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    local targetStr = _G.DataConfigManager:GetWorldLevelConf(requireLevel + 1).title
+    self.Text_hint:SetText(string.format(_G.LuaText.activity_wolrd_level_low, targetStr))
   else
     if not _activityInst.bStart then
       self.BtnSearchPet:SetVisibility(UE4.ESlateVisibility.Collapsed)

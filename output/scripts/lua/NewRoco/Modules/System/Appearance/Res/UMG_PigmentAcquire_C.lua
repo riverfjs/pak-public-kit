@@ -1,9 +1,10 @@
 local UMG_PigmentAcquire_C = _G.NRCPanelBase:Extend("UMG_PigmentAcquire_C")
 
-function UMG_PigmentAcquire_C:OnActive(data, bHiddenBtn, tabIndex, subTabIndex)
+function UMG_PigmentAcquire_C:OnActive(data, bHiddenBtn, tabIndex, subTabIndex, petData)
   self.data = data
   self.tabIndex = tabIndex
   self.subTabIndex = subTabIndex
+  self.petData = petData
   self.currentPage = 1
   self.glassTintNum = 0
   self.itemPerPage = 10
@@ -38,7 +39,11 @@ function UMG_PigmentAcquire_C:UpdatePanel()
     local startIndex = (self.currentPage - 1) * self.itemPerPage + 1
     local endIndex = math.min(startIndex + self.itemPerPage - 1, self.glassTintNum)
     for i = startIndex, endIndex do
-      table.insert(currentPageItems, self.data[i])
+      local tintData = {
+        data = self.data[i],
+        petData = self.petData
+      }
+      table.insert(currentPageItems, tintData)
     end
   end
   self.NRCScrollView_0:InitGridView(currentPageItems)

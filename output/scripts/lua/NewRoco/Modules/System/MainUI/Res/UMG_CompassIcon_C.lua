@@ -82,6 +82,9 @@ function UMG_CompassIcon_C:OnConstruct()
   self.Btn_MagicManua:SetRedDot(2)
   self.Btn_Pet:SetRedDot(3)
   self.Btn_HandBook:SetRedDot(4)
+  self.Btn_Activity:ClearIgnoreRedPointDataList()
+  self.Btn_Activity:SetIgnoreRedPointDataList(Enum.RedPointReason.RPR_ACTIVITY_TAB_NOTIFY, {300006})
+  self.Btn_Activity:SetIgnoreRedPointDataList(Enum.RedPointReason.RPR_ACTIVITY_TAB_REWARD, {300006})
   self.Btn_Activity:SetRedDot(217)
   self.Btn_Pass:SetRedDot(149)
   self.Btn_FurnitureAtlas_1:SetRedDot(101)
@@ -277,6 +280,7 @@ function UMG_CompassIcon_C:OnAddEventListener()
   _G.NRCEventCenter:RegisterEvent("UMG_CompassIcon_C", self, RelationTreeEvent.OpenTeamPanel, self.OpenTeamPanel)
   _G.NRCEventCenter:RegisterEvent("UMG_CompassIcon_C", self, FriendModuleEvent.QuickChatOpen, self.OnQuickChatOpen)
   _G.NRCEventCenter:RegisterEvent("UMG_CompassIcon_C", self, FriendModuleEvent.QuickChatClose, self.OnQuickChatClose)
+  NRCModuleManager:GetModule("TakePhotosModule"):RegisterEvent(self, TakePhotosModuleEvent.OnEnterTakePhotos, self.OnEnterTakePhotos)
   NRCModuleManager:GetModule("TakePhotosModule"):RegisterEvent(self, TakePhotosModuleEvent.OnExitTakePhotos, self.OnExitTakePhotos)
 end
 
@@ -308,6 +312,7 @@ function UMG_CompassIcon_C:OnRemoveEventListener()
   _G.NRCEventCenter:UnRegisterEvent(self, RelationTreeEvent.OpenTeamPanel, self.OpenTeamPanel)
   _G.NRCEventCenter:UnRegisterEvent(self, FriendModuleEvent.QuickChatOpen, self.OnQuickChatOpen)
   _G.NRCEventCenter:UnRegisterEvent(self, FriendModuleEvent.QuickChatClose, self.OnQuickChatClose)
+  NRCModuleManager:GetModule("TakePhotosModule"):UnRegisterEvent(self, TakePhotosModuleEvent.OnEnterTakePhotos, self.OnEnterTakePhotos)
   NRCModuleManager:GetModule("TakePhotosModule"):UnRegisterEvent(self, TakePhotosModuleEvent.OnExitTakePhotos, self.OnExitTakePhotos)
 end
 
@@ -390,6 +395,10 @@ function UMG_CompassIcon_C:OnOpenCompassUI()
   if self:IsInMiniGamePerform() then
     return
   end
+  if _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.CheckUIFunctionHide, _G.Enum.FunctionEntrance.FE_COMPASS) then
+    Log.Debug("Open Compass Failed, Compass Hide!")
+    return
+  end
   if 4 ~= self.sense_level then
     self.ableToShow = false
     if _G.NRCModuleManager:DoCmd(MainUIModuleCmd.CheckCloseSimpleUseList) then
@@ -460,64 +469,6 @@ function UMG_CompassIcon_C:OnWorldPlayerStatusChange()
 end
 
 function UMG_CompassIcon_C:OnNetPlayerSpawn(_player)
-  if self.HomePlayerList and #self.HomePlayerList < 2 then
-    for i = 1, #self.HomePlayerList do
-      if self.HomePlayerList[i].uin == _player.serverData.base.logic_id then
-        return
-      end
-    end
-    local uin1 = 0
-    local uin2 = 0
-    local player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
-    local bInRide = player.statusComponent:HasStatus(ProtoEnum.WorldPlayerStatusType.WPST_RIDEALL)
-    local bInDoubleRide = bInRide and player.viewObj.BP_RideComponent:IsInDoubleRide()
-    local IsInVisitHAND = false
-    if player.statusComponent:HasStatus(ProtoEnum.WorldPlayerStatusType.WPST_HAND_IN_HAND) or player.statusComponent:HasStatus(ProtoEnum.WorldPlayerStatusType.WPST_HAND_IN_HAND_2P) then
-      IsInVisitHAND = true
-      if player.statusComponent:HasStatus(ProtoEnum.WorldPlayerStatusType.WPST_HAND_IN_HAND) then
-        local HandInHandParam = player.statusComponent:GetCustomParams(ProtoEnum.WorldPlayerStatusType.WPST_HAND_IN_HAND)
-        if HandInHandParam then
-          uin2 = HandInHandParam.player_interact_param.player_uin2
-          uin1 = HandInHandParam.player_interact_param.player_uin1
-        end
-      end
-      if player.statusComponent:HasStatus(ProtoEnum.WorldPlayerStatusType.WPST_HAND_IN_HAND_2P) then
-        local HandInHandParam = player.statusComponent:GetCustomParams(ProtoEnum.WorldPlayerStatusType.WPST_HAND_IN_HAND_2P)
-        if HandInHandParam then
-          uin2 = HandInHandParam.player_interact_param.player_uin2
-          uin1 = HandInHandParam.player_interact_param.player_uin1
-        end
-      end
-    elseif bInDoubleRide then
-      local customParams = player.statusComponent:GetCustomParams(ProtoEnum.WorldPlayerStatusType.WPST_RIDEALL)
-      local uin_1p = customParams.ride_param.double_ride_1p_id
-      local uin_2p = customParams.ride_param.double_ride_2p_id
-      local player2P = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GetPlayerByServerID, uin_2p)
-      uin2 = player2P.serverData.base.logic_id
-      local player1P = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GetPlayerByServerID, uin_1p)
-      uin1 = player1P.serverData.base.logic_id
-    end
-    if _player and (_player.serverData.base.logic_id == uin1 or _player.serverData.base.logic_id == uin2) then
-      local playerId = _player:GetServerId()
-      local isMaster = _G.NRCModuleManager:DoCmd(_G.HomeModuleCmd.IsHomeMasterByPlayerId, playerId)
-      local PlayerItem = {}
-      PlayerItem.uin = _player.serverData.base.logic_id
-      PlayerItem.name = _player.serverData.base.name
-      PlayerItem.level = _player.serverData.base.lv
-      PlayerItem.card_info = {}
-      PlayerItem.card_info.card_icon_selected = _player.serverData.card_info.card_icon_selected
-      PlayerItem.isMaster = isMaster
-      PlayerItem.IsHomeItem = true
-      PlayerItem.network = 1
-      if uin1 == _player.serverData.base.logic_id then
-        table.insert(self.HomePlayerList, 1, PlayerItem)
-      elseif uin2 == _player.serverData.base.logic_id then
-        table.insert(self.HomePlayerList, PlayerItem)
-      end
-      local text = string.format("%d/2", #self.HomePlayerList)
-      self.PeopleCounting:SetText("")
-    end
-  end
 end
 
 function UMG_CompassIcon_C:SetVisitBtnInHomeState(InHomeState)
@@ -528,17 +479,28 @@ function UMG_CompassIcon_C:SetVisitBtnInHomeState(InHomeState)
   self.VisitListBtn.Slot:SetPosition(newPos)
 end
 
+function UMG_CompassIcon_C:OnEnterTakePhotos()
+  self.bEnterTakePhotos = true
+  self.ParticleSystemWidget2_85:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self:StopAnimation(self.StarlightAlert__Animation)
+  self:StopAnimation(self.StarlightBonus_Animation)
+end
+
 function UMG_CompassIcon_C:OnExitTakePhotos()
+  self.bEnterTakePhotos = false
   self:SetVisitBtn()
+  self:CheckNeedtoShowStarInfoChange()
 end
 
 function UMG_CompassIcon_C:SetVisitBtn()
   self:SetMagicManualIcon()
-  if _G.DataModelMgr.PlayerDataModel:IsVisitState() then
+  Log.Debug("UMG_CompassIcon_C:SetVisitBtn", _G.DataModelMgr.PlayerDataModel:IsVisitState(), self.bEnterTakePhotos)
+  if _G.DataModelMgr.PlayerDataModel:IsVisitState() and not self.bEnterTakePhotos then
     local visitorList = _G.NRCModuleManager:DoCmd(_G.FriendModuleCmd.GetOnlineVisitorList)
     if visitorList and #visitorList < 1 and _G.DataModelMgr.PlayerDataModel.visitList then
       visitorList = _G.DataModelMgr.PlayerDataModel.visitList
     end
+    Log.Debug("UMG_CompassIcon_C:SetVisitBtnVisible", visitorList and #visitorList > 0)
     if visitorList and #visitorList > 0 then
       self.VisitListBtn:SetVisibility(UE4.ESlateVisibility.Visible)
       local text = string.format("%d/4", #visitorList)
@@ -549,14 +511,16 @@ function UMG_CompassIcon_C:SetVisitBtn()
       self.VisitListBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
       _G.NRCModuleManager:DoCmd(_G.FriendModuleCmd.CloseFriendPanelTeam)
     end
-  elseif HomeIndoorSandbox:InHomeIndoor() or _G.FarmModuleCmd and _G.NRCModeManager:DoCmd(_G.FarmModuleCmd.OnCmdGetIsInFarm) then
-    Log.Debug("\229\174\182\229\155\173\228\184\142\228\186\146\232\174\191\228\186\146\230\150\165\239\188\140\232\191\153\233\135\140\228\184\141\229\129\154\228\187\187\228\189\149\229\146\140\228\186\146\232\174\191\231\155\184\229\133\179\231\154\132\229\164\132\231\144\134")
   else
+    Log.Debug("UMG_CompassIcon_C:SetCollapsedVisitBtn")
     self.HomePlayerList = nil
     self:SetVisitBtnWidgetIndex(0)
     self.VisitBtnIndex = nil
     self.VisitListBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
-    _G.NRCModuleManager:DoCmd(_G.FriendModuleCmd.CloseFriendPanelTeam)
+    if self.bEnterTakePhotos then
+    else
+      _G.NRCModuleManager:DoCmd(_G.FriendModuleCmd.CloseFriendPanelTeam)
+    end
   end
   self:SetVisitBtnIcon()
 end
@@ -828,7 +792,6 @@ function UMG_CompassIcon_C:OnPlayerDataChange()
 end
 
 function UMG_CompassIcon_C:UpdateUIBan()
-  self.isInSpecialDungeon = DataModelMgr.PlayerDataModel:GetDungeonID() == 120205
   local banCompass = _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.CheckUIFunctionBan, _G.Enum.FunctionEntrance.FE_COMPASS)
   local hideCompass = _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.CheckUIFunctionHide, _G.Enum.FunctionEntrance.FE_COMPASS)
   if _G.DataModelMgr.PlayerDataModel:CompassShouldAppear() and not hideCompass and not banCompass then
@@ -849,6 +812,7 @@ function UMG_CompassIcon_C:UpdateMiniMapUIBan()
 end
 
 function UMG_CompassIcon_C:OpenLobbyMainCompass()
+  self.isInSpecialDungeon = DataModelMgr.PlayerDataModel:GetDungeonID() == 120205
   if self.isInSpecialDungeon and self.sense_level < 1 then
     local str = _G.DataConfigManager:GetGlobalConfigByKeyType("dark_river_soul_compass_ban", _G.DataConfigManager.ConfigTableId.GLOBAL_CONFIG).str
     _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, str)
@@ -911,6 +875,7 @@ function UMG_CompassIcon_C:OpenLobbyMainCompass()
     bInClimbStart = playerMoveComp:IsInClimbStart()
   end
   local bIsSitDown = player:IsLogicStatus(_G.Enum.SpaceActorLogicStatus.SALS_SIT_DOWN)
+  local bIsBlindBox = player:IsLogicStatus(_G.Enum.SpaceActorLogicStatus.SALS_PLAYER_IN_BLINDBOX)
   local bSkillPlaying = not bIsSitDown and bCheckSkillAndAnim and player.viewObj.RocoSkill:IsPlayingSkill()
   local bCamCheckFail = not PCM:PreMainUiCameraCheck()
   local bAnyAnimPlaying = bCheckSkillAndAnim and player:GetAnimComponent():IsAnyAnimPlaying()
@@ -938,6 +903,8 @@ function UMG_CompassIcon_C:OpenLobbyMainCompass()
     local OpenType
     if bIsSitDown then
       OpenType = MainUIModuleEnum.CompassOpenType.COMPASS_2D_WITH_PLAYER
+    elseif bIsBlindBox then
+      OpenType = MainUIModuleEnum.CompassOpenType.COMPASS_2D_IGNORE_PLAYER
     elseif bCamCheckFail or bInTransform or bInCustomCameraVolume or bInHoldHandsGuest or bInRide or bAnyAnimPlaying then
       OpenType = MainUIModuleEnum.CompassOpenType.COMPASS_2D_NO_PLAYER
     else
@@ -947,7 +914,6 @@ function UMG_CompassIcon_C:OpenLobbyMainCompass()
     _G.NRCEventCenter:DispatchEvent(_G.MainUIModuleEvent.OnLobbyMainInnerOpened)
     _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.AddCondition, Enum.PlayerConditionType.PCT_UI, "LobbyMainInner")
     _G.NRCAudioManager:SetLobbyMainInnerOpen(true)
-    _G.NRCModuleManager:DoCmd(MainUIModuleCmd.ClosePanelLobbyMain)
     _G.NRCModuleManager:DoCmd(MainUIModuleCmd.OpenPanelLobbyMainInner, OpenType)
     return true
   end
@@ -1471,7 +1437,6 @@ function UMG_CompassIcon_C:OnEnterHomeMap()
   end
   self:DispatchEvent(MainUIModuleEvent.RefreshTaskDungeon)
   self.bInHomeInitialized = true
-  self:SetVisitBtnInHomeState(true)
   self:NotifyHomeMinIconChange()
 end
 
@@ -1537,8 +1502,6 @@ function UMG_CompassIcon_C:OnExitHomeMap()
   self:DispatchEvent(MainUIModuleEvent.RefreshTaskDungeon)
   self.HomePlayerList = nil
   self.bInHomeInitialized = false
-  self:SetVisitBtnInHomeState(false)
-  self.VisitListBtn:SetVisibility(UE.ESlateVisibility.Collapsed)
   self:NotifyHomeMinIconChange()
 end
 
@@ -1546,7 +1509,6 @@ function UMG_CompassIcon_C:OnEnterFarmMap()
   if self.bInFarmInitialized then
     return
   end
-  self:SetVisitBtnInHomeState(true)
   self:DispatchEvent(MainUIModuleEvent.RefreshTaskDungeon)
   self.bInFarmInitialized = true
   self:NotifyHomeMinIconChange()
@@ -1557,7 +1519,6 @@ function UMG_CompassIcon_C:OnExitFarmMap()
     return
   end
   self:DispatchEvent(MainUIModuleEvent.RefreshTaskDungeon)
-  self:SetVisitBtnInHomeState(false)
   self.bInFarmInitialized = false
   self:NotifyHomeMinIconChange()
 end
@@ -1759,7 +1720,7 @@ function UMG_CompassIcon_C:CheckNeedtoShowStarInfoChange(bNotNeedAdd)
   if self:IsAnimationPlaying(self.StarlightBonus_Animation) or self:IsAnimationPlaying(self.StarlightAlert__Animation) then
     return
   end
-  if not self.isEnable or not self.isLeaveLoading then
+  if not (self.isEnable and self.isLeaveLoading) or self.bEnterTakePhotos then
     return
   end
   local data = _G.NRCModuleManager:GetModule("WishCrystalModule").data
@@ -1872,6 +1833,7 @@ function UMG_CompassIcon_C:PlayStarlightChangeAnim(InStarlightInfo, IncrementSta
     end
   end
   self.DescriptionStarlight_1:SetText(string.format("+%d", IncrementStarlight))
+  self.ParticleSystemWidget2_85:SetVisibility(UE4.ESlateVisibility.Visible)
   self:PlayAnimation(self.StarlightBonus_Animation)
 end
 

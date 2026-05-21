@@ -5,6 +5,7 @@ local BattleConst = require("NewRoco.Modules.Core.Battle.Common.BattleConst")
 local Base = BattleActionBase
 local BattleShowPetByAppearance = Base:Extend("BattleShowPetByAppearance")
 FsmUtils.MergeMembers(Base, BattleShowPetByAppearance, {})
+local SkillComponentSourceType = {Player = 1, Pet = 2}
 
 function BattleShowPetByAppearance:Ctor(name, properties)
   Base.Ctor(self, name, properties)
@@ -247,10 +248,10 @@ function BattleShowPetByAppearance:OnEnter()
     if needExtraSkill then
       needShowCurrentPet = false
     end
-    local context = BattleShowPetByAppearance.CreateSkillContext(v.player, v, skillResPath, false, needShowCurrentPet)
+    local context = BattleShowPetByAppearance.CreateSkillContext(v.player, v, skillResPath, false, needShowCurrentPet, SkillComponentSourceType.Player)
     table.insert(showPetContextList, context)
     if needExtraSkill then
-      local extraContext = BattleShowPetByAppearance.CreateSkillContext(v.player, v, BattleConst.PveEnter.OneEnemyPetAppearanceCallout, true, true)
+      local extraContext = BattleShowPetByAppearance.CreateSkillContext(v.player, v, BattleConst.PveEnter.OneEnemyPetAppearanceCallout, true, true, SkillComponentSourceType.Pet)
       table.insert(showPetContextList, extraContext)
     end
   end
@@ -259,11 +260,12 @@ function BattleShowPetByAppearance:OnEnter()
   self:TryPlayNextSkill(asyncContext)
 end
 
-function BattleShowPetByAppearance.CreateSkillContext(battlePlayer, targetPet, skillResPath, needCameraChange, needShowCurrentPet)
+function BattleShowPetByAppearance.CreateSkillContext(battlePlayer, targetPet, skillResPath, needCameraChange, needShowCurrentPet, skillComponentSourceType)
   local context = {}
   context.battlePlayer = battlePlayer
   context.targetPet = targetPet
   context.skillResPath = skillResPath
+  context.skillComponentSourceType = skillComponentSourceType or SkillComponentSourceType.Pet
   context.loadedResCount = 0
   context.skillLoaded = false
   context.skillLoading = false
@@ -334,7 +336,6 @@ function BattleShowPetByAppearance:OnBattleEvent(event, ...)
         })
         skill:SetCharacters(BattleManager.battlePawnManager:GetAllPawnActorForSkill())
         BattleUtils.SetParticleKeyForSkillObj(pet.model, skillObject, pet.card.medalBlackBoard)
-        Log.Warning("FRocoFxResourceConfig::InitConfResFxAsset  BattleShowPetByAppearance:OnBattleEvent= SetParticleKey  ", pet.card.medalBlackBoard, " (", skillObject:GetDisplayName(), ")")
       end
     end
   end
@@ -384,7 +385,25 @@ function BattleShowPetByAppearance:PlayShowPetSkill(mainContext, skillContext, e
     self:OnSkillPlayFinished(mainContext, skillContext)
     return
   end
-  local skillObject = targetPet.model.RocoSkill:AddSkillObjFromClassAndReturn(skillClass)
+  local skillComponent
+  local sourceType = skillContext and skillContext.skillComponentSourceType or SkillComponentSourceType.Pet
+  if sourceType == SkillComponentSourceType.Pet then
+    local targetPetModel = targetPet and targetPet.model
+    skillComponent = targetPetModel and targetPetModel.RocoSkill
+  elseif sourceType == SkillComponentSourceType.Player then
+    local playerModel = battlePlayer and battlePlayer.model
+    skillComponent = playerModel and playerModel.RocoSkill
+  end
+  if not UE.UObject.IsValid(skillComponent) then
+    self:OnSkillPlayFinished(mainContext, skillContext)
+    return
+  end
+  local prevActiveSkillObject = skillComponent:GetActiveSkill()
+  if UE.UObject.IsValid(prevActiveSkillObject) then
+    Log.Warning("[BattleShowPetByAppearance] \229\173\152\229\156\168\230\173\163\229\156\168\230\146\173\230\148\190\231\154\132\228\184\187\229\138\168\230\138\128\232\131\189\239\188\140\230\173\163\229\156\168\229\176\157\232\175\149\230\137\147\230\150\173")
+    skillComponent:CancelSkill(prevActiveSkillObject, UE4.ESkillActionResult.SkillActionResultInterrupted)
+  end
+  local skillObject = skillComponent:AddSkillObjFromClassAndReturn(skillClass)
   if not skillObject then
     self:OnSkillPlayFinished(mainContext, skillContext)
     return
@@ -435,7 +454,16 @@ function BattleShowPetByAppearance:PlayShowPetSkill(mainContext, skillContext, e
   skillObject:RegisterEventCallback("End", self, function()
     self:OnSkillPlayFinished(mainContext, skillContext)
   end)
-  targetPet.model.RocoSkill:LoadAndPlaySkill(skillObject)
+  if BattleUtils.IsDeepWater() then
+    skillObject.BattleFieldLimitType = UE.EBattleFieldLimitType.Water
+  else
+    skillObject.BattleFieldLimitType = UE.EBattleFieldLimitType.Ground
+  end
+  local skillStartResult = skillComponent:LoadAndPlaySkill(skillObject)
+  if skillStartResult ~= UE.ESkillStartResult.Success then
+    Log.Error("[BattleShowPetByAppearance] LoadAndPlaySkill result is not success", skillStartResult)
+    self:OnSkillPlayFinished(mainContext, skillContext)
+  end
 end
 
 function BattleShowPetByAppearance:AdjustCamera(Event, skill)
@@ -561,6 +589,7 @@ end
 function BattleShowPetByAppearance:OnCloseBattleEntryHud()
   NRCModuleManager:DoCmd(BattleUIModuleCmd.ClosePvpEntryHud)
   NRCModuleManager:DoCmd(BattleUIModuleCmd.ClosePVP_PreparePanel)
+  NRCModuleManager:DoCmd(BattleUIModuleCmd.ForceCloseLoading)
 end
 
 function BattleShowPetByAppearance:OnFinish()

@@ -6,6 +6,7 @@ local HiddenComponent = require("NewRoco.Modules.Core.Scene.Component.Hidden.Hid
 local SceneUtils = require("NewRoco.Modules.Core.Scene.Common.SceneUtils")
 local NPCModuleEvent = require("NewRoco.Modules.Core.NPC.NPCModuleEvent")
 local PlayerDataEvent = require("Data.Global.PlayerDataEvent")
+local UIUtils = require("NewRoco.Utils.UIUtils")
 local SceneAIManager = Class("SceneAIManager")
 
 function SceneAIManager:Ctor()
@@ -26,9 +27,11 @@ function SceneAIManager:Ctor()
   self.HabitatRelationMap = {}
   self.Message_SceneCommand = _G.ProtoMessage:newZoneSceneClientAiCommandReq()
   self.Message_AiReport = _G.ProtoMessage:newZoneSceneAiReportReq()
+  self.module = nil
 end
 
-function SceneAIManager:Init()
+function SceneAIManager:Init(module)
+  self.module = module
   _G.NRCEventCenter:RegisterEvent("SceneAIManager", self, TaskModuleEvent.BattleOver, self.ApplyAfterBattleBehavior)
   _G.NRCEventCenter:RegisterEvent("SceneAIManager", self, MainUIModuleEvent.UI_SetThrowItem, self.OnPlayerThrowItemChanged)
   _G.NRCEventCenter:RegisterEvent("SceneAIManager", self, MainUIModuleEvent.UI_SetThrowNull, self.OnPlayerThrowItemChanged)
@@ -36,6 +39,7 @@ function SceneAIManager:Init()
   _G.DataModelMgr.PlayerDataModel:AddEventListener(self, PlayerDataEvent.VISIT_OWNER_CHANGED, self.OnPlayerDataUpdate)
   Log.Debug("SceneAIManager:Init LoadInfos Begin")
   Log.Debug("SceneAIManager:Init LoadInfos End")
+  UE4.UNRCStatics.EnableDotTick(true)
   self.RegisterBlackboardKeyBundle()
 end
 
@@ -53,6 +57,7 @@ function SceneAIManager:UnInit()
     _G.DelayManager:CancelDelayById(self.d_SwitchBatch)
     self.d_SwitchBatch = nil
   end
+  self.module = nil
 end
 
 function SceneAIManager.RegisterBlackboardKeyBundle()
@@ -569,7 +574,7 @@ function SceneAIManager:QueryExtraBattleMember(origin, battle_type)
   if origin.config.genre == BOSS_GENRE then
     return Dummy
   end
-  if origin:IsLogicStatus(Enum.SpaceActorLogicStatus.SALS_NIGHTMARE_ELITE) then
+  if UIUtils.CheckIsHighValuePet(origin) then
     return Dummy
   end
   local isVisiting = self.LastIsVisitState and self.LastIsVisitOwner
@@ -615,7 +620,7 @@ function SceneAIManager:QueryExtraBattleMember(origin, battle_type)
         local AiComp = npc.AIComponent
         if not AiComp then
         elseif npc:IsLogicStatus(ProtoEnum.SpaceActorLogicStatus.SALS_FIGHTING) then
-        elseif npc:IsLogicStatus(ProtoEnum.SpaceActorLogicStatus.SALS_NIGHTMARE_ELITE) then
+        elseif UIUtils.CheckIsHighValuePet(npc) then
         else
           local dist = position:Dist2D(Actor:Abs_K2_GetActorLocation())
           local serverAIFreeState = AiComp.isServerAI
@@ -661,11 +666,11 @@ function SceneAIManager:QueryExtraBattleMember(origin, battle_type)
           if #members < 3 and self.MatchPetEvoHelper(origin_pet_evo, cur_pet_evo) then
             table.insert(members, npc)
             Log.DebugFormat("[1v1v1] \230\187\161\232\182\179\230\157\161\228\187\1821X\228\190\167 \231\155\184\229\144\140\232\191\155\229\140\150\233\147\190 npc_id:%d, dist=%d", npc.config.id or 0, math.floor(npc_meta.dist) or 0)
-            goto lbl_482
+            goto lbl_478
           elseif #members_side2x < 3 and self.MatchPetEvoHelper(against_pet_evo, cur_pet_evo) then
             table.insert(members_side2x, npc)
             Log.DebugFormat("[1v1v1] \230\187\161\232\182\179\230\157\161\228\187\1822X\228\190\167 \231\155\184\229\144\140\232\191\155\229\140\150\233\147\190 npc_id:%d, dist=%d", npc.config.id or 0, math.floor(npc_meta.dist) or 0)
-            goto lbl_482
+            goto lbl_478
           end
         end
       elseif #members < 6 then
@@ -688,7 +693,7 @@ function SceneAIManager:QueryExtraBattleMember(origin, battle_type)
         end
         if result then
           table.insert(members, npc)
-          goto lbl_482
+          goto lbl_478
         else
           Log.DebugFormat("[1vn] \228\189\160\230\178\161\230\156\137\232\181\132\230\160\188\229\149\138\239\188\140\230\178\161\230\156\137\232\181\132\230\160\188 npc_id:%d, dist=%d", npc.config.id or 0, math.floor(npc_meta.dist) or 0)
         end
@@ -697,7 +702,7 @@ function SceneAIManager:QueryExtraBattleMember(origin, battle_type)
     if dist < PveNpcAroundRange and (npc.config.is_pve_npc_around or 0) > 0 and #members_onlooker < 8 then
       table.insert(members_onlooker, npc)
     end
-    ::lbl_482::
+    ::lbl_478::
   end
   if Other1V1V1Member then
     Log.DebugFormat("[1v1v1] \230\144\156\231\180\162\231\187\147\230\157\159, \229\140\133\230\139\172\232\135\170\232\186\171\229\156\168\229\134\133\229\133\177\232\174\161%d\228\184\170NPC\230\139\137\229\133\1651X\228\190\167\230\136\152\230\150\151, %d\228\184\170Npc\230\139\137\229\133\1652X\228\190\167\230\136\152\230\150\151", #members, #members_side2x)
@@ -840,14 +845,24 @@ function SceneAIManager:CollectPendingSwitchAIComp(actor_list)
     for _, actor_id in ipairs(actor_list) do
       local npc = npcDict[actor_id]
       if npc and npc.AIComponent and not npc.AIComponent.isServerAI then
-        table.insert(self.WeakAIComp, npc.AIComponent)
+        local important = npc.config.genre == _G.Enum.ClientNpcType.CNT_PETBOSS
+        if important then
+          table.insert(self.WeakAIComp, 1, npc.AIComponent)
+        else
+          table.insert(self.WeakAIComp, npc.AIComponent)
+        end
       end
     end
   else
     local npcIter = _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.GetAllNPCInIter)
     for _, v in pairs(npcIter) do
       if v.AIComponent and not v.AIComponent.isServerAI then
-        table.insert(self.WeakAIComp, v.AIComponent)
+        local important = v.config.genre == _G.Enum.ClientNpcType.CNT_PETBOSS
+        if important then
+          table.insert(self.WeakAIComp, 1, v.AIComponent)
+        else
+          table.insert(self.WeakAIComp, v.AIComponent)
+        end
       end
     end
   end
@@ -1175,6 +1190,101 @@ function SceneAIManager:UpdateRestraintBlackboard(habitatId, FirstNeighborData, 
     end
   end
   UE.UUnitAIHelper.SetBatchBlackboardValueInt(nil, _G.AIDefines.DotsBatchFilterType.COLLECTION, habitatId, _G.AIDefines.DotsBlackboardKeyBundle.RestraintNeighbors, {firstType, secondType})
+end
+
+function SceneAIManager:LLMPETSCheckAvailable(npc)
+  local AIComp = npc and npc.AIComponent
+  if AIComp then
+    return AIComp:IsAILoaded() and not AIComp:IsLocked()
+  end
+  return false
+end
+
+function SceneAIManager:LLMPETSQueryPets(action)
+  Log.PrintScreenMsg("[SceneAI:LLM] BeginQuery")
+  if not action or not action.pet_gid then
+    return
+  end
+  local npcDic = self.module._npcDic
+  local localPlayer = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
+  if not localPlayer then
+    return
+  end
+  local thrownPets = self.module:GetPetByPlayer(localPlayer.serverData.base.actor_id or 0)
+  if not thrownPets or 0 == #thrownPets then
+    return
+  end
+  local req = ProtoMessage:newZoneLlmPetsAvailablePetsReq()
+  for _, actor_id in ipairs(thrownPets) do
+    local npc = npcDic[actor_id]
+    if npc and self:LLMPETSCheckAvailable(npc) then
+      local serverData = npc.serverData
+      local pet_info = serverData and serverData.pet_info
+      if pet_info and table.contains(action.pet_gid, pet_info.gid) then
+        Log.PrintScreenMsg("[SceneAI:LLM] %s \229\135\134\229\164\135\229\165\189\232\167\166\229\143\145LLM\229\147\141\229\186\148\228\186\134", npc.config.name)
+        local newInfo = ProtoMessage:newLLM_PETS_FollowPetInfo()
+        newInfo.npc_actor_id = npc:GetServerId()
+        npc:GetServerPosition(newInfo.pos)
+        table.insert(req.pets, newInfo)
+      end
+    end
+  end
+  if 0 == #req.pets then
+    Log.PrintScreenMsg("[SceneAI:LLM]\230\137\190\228\184\141\229\136\176\229\143\175\228\187\165\232\167\166\229\143\145LLM\229\147\141\229\186\148\231\154\132\231\178\190\231\129\181")
+    return
+  end
+  ZoneServer:Send(_G.ProtoCMD.ZoneSvrCmd.ZONE_LLM_PETS_AVAILABLE_PETS_REQ, req, false, false, true)
+end
+
+function SceneAIManager:LLMPETSBehaviorNotify(action)
+  if not action or not action.behaviors then
+    return
+  end
+  local npcDic = self.module._npcDic
+  for _, behavior in ipairs(action.behaviors) do
+    local actor_id = behavior.npc_actor_id or 0
+    local npc = npcDic[actor_id]
+    local AIComp = npc and npc.AIComponent
+    if AIComp and behavior.behavior_group_infos then
+      local sequal_bahavior_group_id = {}
+      local text_message, text_emoji
+      for _, behavior_info in ipairs(behavior.behavior_group_infos) do
+        local behavior_id = behavior_info.llm_pet_behavior_id
+        local behavior_conf = behavior_id and DataConfigManager:GetLlmPetBehaviorConf(behavior_id)
+        if nil == text_message and not string.IsNilOrEmpty(behavior_info.world_text) then
+          text_message = behavior_info.world_text
+        end
+        if nil == text_emoji and not string.IsNilOrEmpty(behavior_info.emoji_text) then
+          text_emoji = behavior_info.emoji_text
+        end
+        if behavior_conf and behavior_conf.ai_behavior_group_id then
+          table.insert(sequal_bahavior_group_id, behavior_conf.ai_behavior_group_id)
+        else
+          Log.PrintScreenMsg("[SceneAI:LLM] \229\188\130\229\184\184\239\188\140\230\137\190\228\184\141\229\136\176\232\161\140\228\184\186\231\187\132 %s -> %d", npc.config.name, behavior_id)
+        end
+      end
+      if #sequal_bahavior_group_id > 0 then
+        local Controller = AIComp:GetControllerSafe()
+        if Controller then
+          if text_message then
+            Controller:SetDotsCommonString("Global_LlmPetMessage", text_message)
+          end
+          if text_emoji then
+            Controller:SetDotsCommonString("Global_LlmPetEmoji", text_emoji)
+          end
+          Controller:AppendNextOverrideCommonString("Global_LlmPetBehaviorId", action.request_id)
+        end
+        AIComp:OverrideBehaviorWithSequal(sequal_bahavior_group_id, Enum.BehaviorOverridePriority.BOP_C, 1)
+        Log.DebugFunc(function()
+          return string.format("[SceneAI:LLM] \230\136\144\229\138\159\229\164\141\229\134\153: %s -> %s | t=%s | e=%s", npc.config.name, table.concat(sequal_bahavior_group_id, ","), text_message, text_emoji)
+        end)
+      end
+    end
+  end
+end
+
+function SceneAIManager:LLMPETSDebug(action)
+  self.LlmDebugData = action
 end
 
 return SceneAIManager

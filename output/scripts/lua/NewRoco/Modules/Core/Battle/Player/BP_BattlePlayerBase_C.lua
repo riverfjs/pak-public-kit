@@ -260,7 +260,7 @@ end
 function BP_BattlePlayerBase_C:OnLoadResource()
   Base.OnLoadResource(self)
   if self.Mesh then
-    self.Mesh:SetForcedLOD(1)
+    self.Mesh:SetForcedLOD(BattleEnum.BattleLodModel.Lod0)
   end
 end
 

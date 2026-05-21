@@ -57,8 +57,11 @@ function MagicActionTransferNpcAndSubmitItem:CheckTransferValid()
     self.testNpc = MagicCreationUtils.CreateLocalNpc(refreshContentConf.npc_id, SceneUtils.ClientPos2ServerPos(transform.Translation))
     self.testNpc:SetHidden(true, NPCModuleEnum.NpcReasonFlags.MagicCreationPerform)
     self.testNpc:AddEventListener(self, NPCModuleEvent.VIEW_LOADED, self.OnTestNpcLoaded)
+    self.testNpc.WandId = self.OwnerNpc.WandId
     _G.NRCModuleManager:DoCmd(_G.MagicCreationModuleCmd.ApplySuitEffect, self.testNpc)
   else
+    self.testNpc.WandId = self.OwnerNpc.WandId
+    _G.NRCModuleManager:DoCmd(_G.MagicCreationModuleCmd.ApplySuitEffect, self.testNpc)
     self:CheckCanTransfer()
   end
 end
@@ -169,6 +172,18 @@ function MagicActionTransferNpcAndSubmitItem:MakeSurePlayerNotStuck()
   local origin, extent = MagicCreationUtils.GetActorBounds(self.testNpc.viewObj)
   local radius = math.max(extent.X, extent.Y)
   local halfHeight = extent.Z
+  local transform = UE4.FTransform()
+  transform.Translation = origin
+  local blockActor = _G.UE4Helper.GetCurrentWorld():SpawnActor(UE4.ATriggerCapsule, transform, UE4.ESpawnActorCollisionHandlingMethod.AlwaysSpawn)
+  if UE4.UObject.IsValid(blockActor) then
+    local capsuleComp = blockActor.CollisionComponent
+    if UE4.UObject.IsValid(capsuleComp) then
+      capsuleComp:SetCapsuleRadius(radius)
+      capsuleComp:SetCapsuleHalfHeight(halfHeight)
+      capsuleComp:SetCollisionProfileName("NPCStatic")
+    end
+    self.testNpc.tempBlockActor = blockActor
+  end
   local componentFilter = {
     UE.USkeletalMeshComponent,
     UE.UShapeComponent
@@ -200,7 +215,7 @@ function MagicActionTransferNpcAndSubmitItem:MakeSurePlayerNotStuck()
       direction = direction / direction:Size()
       local distance = radius * 1.05 + playerRadius * 1.05 + 5.0
       playerPosition = npcLocation + direction * distance
-      local landInfo = MagicCreationUtils.GetLandInfo(SceneUtils.ConvertAbsoluteToRelative(playerPosition))
+      local landInfo = MagicCreationUtils.GetSurfaceInfo(SceneUtils.ConvertAbsoluteToRelative(playerPosition))
       if landInfo then
         playerPosition.Z = _G.UE4Helper.GetCurrentWorld():GetWorldOriginZ() + landInfo.position.Z
       end

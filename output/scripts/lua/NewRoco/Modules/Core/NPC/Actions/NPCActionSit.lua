@@ -90,25 +90,25 @@ function NPCActionSit:UpdateInfo(Info, Reconnect, InteractingAvatarID)
           SeatInfo.interact_avatar_id = Player.serverData.base.actor_id
         end
         table.insert(SeatArray, SeatInfo)
-        NPCLuaUtils.SaveSeatNPCServerData(Player, Owner, SitInfo, SeatArray)
-        local SpecialG6 = Conf["special_pos_" .. SeatIdx]
-        self.ImmediatelySit = SpecialG6 or Conf["flash_sit_" .. SeatIdx]
-        if Conf["flash_sit_specialeffect_" .. SeatIdx] then
-          SceneUtils.PlayerFlashSkillForSceneSeat(Player, OwnerView, SpecialG6, function()
-            SceneUtils.PlayerSitToSceneSeat(Owner, SeatSlot, Player, self.ImmediatelySit, SpecialG6)
-          end)
-        else
-          SceneUtils.PlayerSitToSceneSeat(Owner, SeatSlot, Player, self.ImmediatelySit, SpecialG6)
-        end
+        Player.playerToyComponent:SaveSeatNPCServerData(Player, Owner, SitInfo, SeatArray)
+        self.ImmediatelySit = Conf["special_start_" .. SeatIdx]
+        self:StartSit(SeatSlot, Conf.scene_sit_blur_type)
         self.LastInputTime = _G.ZoneServer:GetServerTime()
         self.OwnerNpc.InteractionComponent:TryDisableInteraction()
         local PlayerModule = NRCModuleManager:GetModule("PlayerModule")
         if PlayerModule then
           PlayerModule:RegisterEvent(self, PlayerModuleEvent.ON_INPUT_MOVE_NOTIFY, self.OnPlayerInputMove)
         end
-        _G.NRCEventCenter:RegisterEvent("NPCActionSit", self, SceneEvent.OnEnterSceneFinishNtyAck, self.OnDisConnect)
+        _G.NRCEventCenter:RegisterEvent("NPCActionSit", self, SceneEvent.OnEnterSceneFinishNtyAckEnd, self.OnDisConnect)
       end
     end
+  end
+end
+
+function NPCActionSit:StartSit(SeatSlot, FadeType)
+  local Player = self:GetPlayer()
+  if Player and Player.playerToyComponent then
+    Player.playerToyComponent:PlayerSitToSceneSeat(self:GetOwnerNPC(), SeatSlot, self.ImmediatelySit, nil, FadeType)
   end
 end
 
@@ -156,22 +156,20 @@ function NPCActionSit:OnZoneSceneOpSeatRsp(Response)
         SeatInfo.interact_avatar_id = 0
       end
       table.insert(SeatArray, SeatInfo)
-      NPCLuaUtils.SaveSeatNPCServerData(Player, self:GetOwnerNPC(), SitInfo, SeatArray)
+      Player.playerToyComponent:SaveSeatNPCServerData(Player, self:GetOwnerNPC(), SitInfo, SeatArray)
       local Conf = _G.DataConfigManager:GetRoleplayPropConf(self.OwnerNpc.config.id)
       if not Conf then
         return
       end
       local SeatIdx = SeatInfo.seat_idx + 1
-      if Conf["flash_stand_specialeffect_" .. SeatIdx] then
-        SceneUtils.PlayerFlashSkillForSceneSeat(Player, self:GetOwnerNPCView(), nil, function()
-          SceneUtils.PlayerInterruptSceneSeat(Player)
-          SceneUtils.PlayerFlashToPoint(Player, self.before_sit_point)
+      local SpecialG6 = Conf["special_end_" .. SeatIdx]
+      if SpecialG6 then
+        Player.playerToyComponent:PlayerFlashSkillForSceneSeat(self:GetOwnerNPCView(), SpecialG6, function()
+          Player.playerToyComponent:PlayerInterruptSceneSeat()
+          Player.playerToyComponent:PlayerFlashToPoint(self.before_sit_point)
         end)
-      elseif Conf["flash_stand_" .. SeatIdx] then
-        SceneUtils.PlayerInterruptSceneSeat(Player)
-        SceneUtils.PlayerFlashToPoint(Player, self.before_sit_point)
       else
-        SceneUtils.PlayerLeaveSceneSeat(Player)
+        Player.playerToyComponent:PlayerLeaveSceneSeat()
       end
       local PlayerModule = NRCModuleManager:GetModule("PlayerModule")
       if PlayerModule then
@@ -200,14 +198,14 @@ function NPCActionSit:OnDisConnect()
     SeatInfo.interact_avatar_id = 0
   end
   table.insert(SeatArray, SeatInfo)
-  NPCLuaUtils.SaveSeatNPCServerData(Player, self:GetOwnerNPC(), SitInfo, SeatArray)
-  SceneUtils.PlayerInterruptSceneSeat(Player, self:GetOwnerNPCView())
+  Player.playerToyComponent:SaveSeatNPCServerData(Player, self:GetOwnerNPC(), SitInfo, SeatArray)
+  Player.playerToyComponent:PlayerInterruptSceneSeat(self:GetOwnerNPCView())
   self:Finish(false)
 end
 
 function NPCActionSit:Finish(success, data, param)
   self.OwnerNpc.InteractionComponent:TryEnableInteraction()
-  _G.NRCEventCenter:UnRegisterEvent(self, SceneEvent.OnEnterSceneFinishNtyAck, self.OnDisConnect)
+  _G.NRCEventCenter:UnRegisterEvent(self, SceneEvent.OnEnterSceneFinishNtyAckEnd, self.OnDisConnect)
   self.OwnerNpc:RemoveEventListener(self, NPCModuleEvent.On_NPC_LEAVE, self.OnDisConnect)
   Base.Finish(self, success, data, param)
 end

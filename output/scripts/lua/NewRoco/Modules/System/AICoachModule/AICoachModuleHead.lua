@@ -1,0 +1,26 @@
+local AICoachModuleHead = NRCModuleHeadBase:Extend("AICoachModuleHead")
+
+function AICoachModuleHead:OnConstruct()
+  _G.AICoachModuleCmd = reload("NewRoco.Modules.System.AICoachModule.AICoachModuleCmd")
+  self:BindCmd(_G.AICoachModuleCmd.OnOpenAICoachBySceneType, "OnOpenAICoachBySceneType")
+  self:BindCmd(_G.AICoachModuleCmd.OnOpenAICoachBySceneTypeWithoutSession, "OnOpenAICoachBySceneTypeWithoutSession")
+  self:BindCmd(_G.AICoachModuleCmd.GetCurrAICoachScene, "GetCurrAICoachScene")
+  self:BindCmd(_G.AICoachModuleCmd.OnCloseAICoachByScene, "OnCloseAICoachByScene")
+  self:BindCmd(_G.AICoachModuleCmd.SendAICoachQuestion, "OnSendAICoachQuestion")
+  self:BindCmd(_G.AICoachModuleCmd.DebugTestJsonStr, "DebugTestJsonStr")
+  self:BindCmd(_G.AICoachModuleCmd.GetIsVoicePlaying, "IsVoicePlaying")
+  self:BindCmd(_G.AICoachModuleCmd.GetIsCurrAICoachOpen, "GetIsCurrAICoachOpen")
+  self:BindCmd(_G.AICoachModuleCmd.GetIsPlayerInWhiteList, "GetIsPlayerInWhiteList")
+  self:BindCmd(_G.AICoachModuleCmd.OnSetAICoachState, "OnSetAICoachState")
+  self:BindCmd(_G.AICoachModuleCmd.OnOpenRecodeVoice, "OnOpenRecodeVoice")
+  self:BindCmd(_G.AICoachModuleCmd.OnRequestPlayerInWhiteList, "OnRequestPlayerInWhiteList")
+  self:BindCmd(_G.AICoachModuleCmd.GetSysAICoachSceneIsOpen, "GetSysAICoachSceneIsOpen")
+  self:BindCmd(_G.AICoachModuleCmd.OnReportRecommendTeam, "OnRecommendTeamReportLog")
+  self:BindCmd(_G.AICoachModuleCmd.OnReportEvent, "OnPointReportLog")
+  self:BindCmd(_G.AICoachModuleCmd.OnReportRecommendTeamUseFeedback, "OnUseAICoachTeamReq")
+  self:BindCmd(_G.AICoachModuleCmd.SetAICoachTeamDiffJson, "SetAICoachTeamDiffJson")
+  self:BindCmd(_G.AICoachModuleCmd.GetAICoachReplyText, "GetAICoachReplyText")
+  self:BindCmd(_G.AICoachModuleCmd.GetAICoachReplyVoiceStream, "GetAICoachReplyVoiceStream")
+end
+
+return AICoachModuleHead

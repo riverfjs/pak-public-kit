@@ -103,6 +103,9 @@ function UMG_Login_New_C:OnForceEnableSelection()
   Log.Error("Try force enable selection")
   self.SelectServer:SetVisibility(UE4.ESlateVisibility.Visible)
   self.SelectGroup:SetVisibility(UE4.ESlateVisibility.Visible)
+  if self.SelectCulture then
+    self.SelectCulture:SetVisibility(UE4.ESlateVisibility.Visible)
+  end
 end
 
 function UMG_Login_New_C:ShowUserNameAndServer(TurnOn)
@@ -110,6 +113,9 @@ function UMG_Login_New_C:ShowUserNameAndServer(TurnOn)
     if LoginUtils.Debug or self.data:GetCondition(LoginEnum.Conditions.EnableServerChoose) then
       self.SelectServer:SetVisibility(UE4.ESlateVisibility.Visible)
       self.SelectGroup:SetVisibility(UE4.ESlateVisibility.Visible)
+      if self.SelectCulture then
+        self.SelectCulture:SetVisibility(UE4.ESlateVisibility.Visible)
+      end
       self.UsernameDisplay:SetVisibility(UE4.ESlateVisibility.Visible)
       self.InputTextName:SetVisibility(UE4.ESlateVisibility.Visible)
       self.TriggerInput:SetVisibility(UE4.ESlateVisibility.Visible)
@@ -118,6 +124,9 @@ function UMG_Login_New_C:ShowUserNameAndServer(TurnOn)
   elseif not LoginUtils.Debug and not self.data:GetCondition(LoginEnum.Conditions.EnableServerChoose) and 0 == table.len(AppMain.launchParams) then
     self.SelectServer:SetVisibility(UE4.ESlateVisibility.Hidden)
     self.SelectGroup:SetVisibility(UE4.ESlateVisibility.Hidden)
+    if self.SelectCulture then
+      self.SelectCulture:SetVisibility(UE4.ESlateVisibility.Hidden)
+    end
     self.UsernameDisplay:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.InputTextName:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self:RemoveButtonListener(self.TriggerInput)
@@ -135,6 +144,7 @@ end
 function UMG_Login_New_C:RegisterEvents()
   self:RegisterEvent(self, LoginModuleEvent.ItemClick, self.OnServerItemClick)
   self:RegisterEvent(self, LoginModuleEvent.EnterGame, self.EnterGame)
+  self:RegisterEvent(self, LoginModuleEvent.CultureClick, self.OnCultureItemClick)
   NRCEventCenter:RegisterEvent("UMG_Login_New_C", self, LoginModuleEvent.HideLoginPanels, self.HideLoginPanels)
   NRCEventCenter:RegisterEvent("UMG_Login_New_C", self, LoginModuleEvent.EnableSelection, self.EnableSelection)
   NRCEventCenter:RegisterEvent("UMG_Login_New_C", self, LoginModuleEvent.WhiteListBlocked, self.OnWhiteListBlocked)
@@ -159,6 +169,7 @@ end
 function UMG_Login_New_C:UnRegisterEvents()
   self:UnRegisterEvent(self, LoginModuleEvent.ItemClick, self.OnServerItemClick)
   self:UnRegisterEvent(self, LoginModuleEvent.EnterGame, self.EnterGame)
+  self:UnRegisterEvent(self, LoginModuleEvent.CultureClick, self.OnCultureItemClick)
   NRCEventCenter:UnRegisterEvent(self, LoginModuleEvent.HideLoginPanels, self.HideLoginPanels)
   NRCEventCenter:UnRegisterEvent(self, LoginModuleEvent.EnableSelection, self.EnableSelection)
   NRCEventCenter:UnRegisterEvent(self, LoginModuleEvent.DisableSelection, self.DisableSelection)
@@ -185,10 +196,10 @@ function UMG_Login_New_C:OnBtnDownloadClick()
   Log.Debug("[UMG_Login_New_C:OnBtnDownloadClick]")
   self:SetIfShowResDownloadBtnRedDot(false)
   _G.NRCModuleManager:DoCmd(LoginModuleCmd.SetSelectTabIndex, 0)
-  local bNeedToDownload = _G.PufferUpdateResTask:IsNeedDownloadBasePaks()
+  local bNeedToDownload = _G.PufferUpdateResTask:IsNeedDownloadBasePaksWithPatch()
   if bNeedToDownload then
     local Context = DialogContext()
-    local NeedToDownloadBasePakList, SizeNeedToDownload, LargestSize = _G.PufferUpdateResTask:GetBasePakListNeedToDownload()
+    local NeedToDownloadBasePakList, SizeNeedToDownload, LargestSize = _G.PufferUpdateResTask:GetBasePakListWithPatchNeedToDownload()
     local GB = string.format("%.2f", SizeNeedToDownload / 1024 / 1024 / 1024)
     local Content
     if _G.NRCBackgroundDownloadMgr:IsEnableBackgroundDownload() then
@@ -294,12 +305,39 @@ function UMG_Login_New_C:OnActive()
   self:OnServerSelected(self.data.selectedServer)
   self:InitView()
   self:PlayAnimation(self.LogoOut, 0, 1, UE4.EUMGSequencePlayMode.Reverse, 1.0, false)
+  local version = _G.DataConfigManager:GetWaterMarkLocalizationConf("permanent_watermark_lowerleft")
+  if version and version.msg then
+    self.Text:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    self.Text:SetText(version.msg)
+  else
+    self.Text:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  end
   if self.SelectCulture then
     self.SelectCulture:SetVisibility(UE4.ESlateVisibility.Hidden)
   end
   if UE4.UNRCStatics.IsAutoTesting() then
     self:Log("AutoTesting... auto login")
     self:AutoLogin()
+  end
+  self:ShowDeepLogNoticeIfOpen()
+end
+
+function UMG_Login_New_C:ShowDeepLogNoticeIfOpen()
+  if self.bHasShownDeepLogNotice then
+    return
+  end
+  local Tag = GameSetting:GetUploadLogTag()
+  if "High" == Tag then
+    self.bHasShownDeepLogNotice = true
+    local Context = DialogContext()
+    Context:SetTitle(LuaText.umg_login_new_2):SetContent(LuaText.deep_log_description):SetMode(DialogContext.Mode.OK_CANCEL):SetButtonText(LuaText.deep_log_close, LuaText.deep_log_open):SetCallback(self, function(this, bOK)
+      if bOK then
+        GameSetting:SetLogLevel(0)
+        GameSetting:SyncUploadLogTag("Low")
+        GameSetting:Save()
+      end
+    end)
+    NRCModuleManager:DoCmd(TipsModuleCmd.Dialog_OpenDialog, Context)
   end
 end
 
@@ -467,6 +505,7 @@ function UMG_Login_New_C:OnGroupSelected(item)
   ClearItemSelected(self.CandidateListScroll_Group, _G.GameSetting.GroupIndex)
   self:PlayAnimation(self.Login2_In, 0, 1, UE4.EUMGSequencePlayMode.Forward, 1.0, false)
   local GroupName = item.key
+  Log.Debug("[UMG_Login_New_C:OnGroupSelected] GroupName: ", GroupName)
   self.Display_Group:SetText(GroupName)
   local ServerList = self.data:GetServerList(GroupName)
   _G.GameSetting.ServerIndex = 1
@@ -507,7 +546,6 @@ function UMG_Login_New_C:OpenGroupList()
 end
 
 function UMG_Login_New_C:CloseGroupList()
-  self:PlayAnimation(self.SelectServerOut, 0, 1, UE4.EUMGSequencePlayMode.Forward, 1.0, false)
   self:PlayAnimation(self.ArrowDownToUp_Group, 0, 1, UE4.EUMGSequencePlayMode.Reverse, 1.0, false)
   self.SelectButton_Group:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
   self:ToggleGroupList(false)
@@ -576,7 +614,9 @@ function UMG_Login_New_C:CloseCultureList()
   self.SelectButton_1:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
   self:ToggleCultureList(false)
   self.SelectButton_1:SetVisibility(UE4.ESlateVisibility.Visible)
-  self.ButtonCloseSelect_1:SetVisibility(UE4.ESlateVisibility.Hidden)
+  if self.ButtonCloseSelect_1 then
+    self.ButtonCloseSelect_1:SetVisibility(UE4.ESlateVisibility.Hidden)
+  end
 end
 
 function UMG_Login_New_C:OpenCultureList()
@@ -659,6 +699,22 @@ function UMG_Login_New_C:SetupServerList()
   Log.DumpSingleLine(CurrentServer, 3, "CurrentServer")
 end
 
+function UMG_Login_New_C:SetupCultureList()
+  self.ButtonCloseSelect_1:SetVisibility(UE4.ESlateVisibility.Hidden)
+  local localizedCultures = UE4.UKismetInternationalizationLibrary.GetLocalizedCultures()
+  local dataList = {}
+  for i = 1, localizedCultures:Num() do
+    local k = localizedCultures:Get(i)
+    local data = {culture = k, index = i}
+    table.insert(dataList, data)
+  end
+  self.CandidateListScroll_1:InitList(dataList)
+  self:ToggleCultureList(false)
+  local curCulture = UE4.UNRCStatics.GetCurrentCulture()
+  local displayName = UE4.UKismetInternationalizationLibrary.GetCultureDisplayName(curCulture, false)
+  self.Display_1:SetText(displayName)
+end
+
 local function GetItemIndexByKey(itemList, key)
   for i, v in ipairs(itemList) do
     if v.key == key then
@@ -699,7 +755,8 @@ function UMG_Login_New_C:OnServerItemClick(itemData)
 end
 
 function UMG_Login_New_C:OnCultureItemClick(itemData)
-  self:Log("OnCultureClick:", itemData.culture, itemData.index)
+  local culture = UE4.UNRCStatics.GetCurrentCulture()
+  self:Log("OnCultureClick:", itemData.culture, itemData.index, " current culture ", culture)
   local items = self.CandidateListScroll_1:GetItems()
   local num = self.CandidateListScroll_1:GetItemCount()
   for i = 1, num do
@@ -712,13 +769,20 @@ function UMG_Login_New_C:OnCultureItemClick(itemData)
   self.Display_1:SetText(displayName)
   local newCulture = itemData.culture
   _G.NRCModuleManager:DoCmd(LoginModuleCmd.ShowPanel, LoginEnum.PanelNames.NRCLoginPanel, false, {}, function()
-    UE4.UKismetInternationalizationLibrary.SetCurrentLanguage(newCulture, true)
+    UE4.UNRCStatics.ChangeCurrentCulture(newCulture)
+    Log.Info("CurrentCulture after switch ", UE4.UNRCStatics.GetCurrentCulture())
     _G.NRCModuleManager:DoCmd(LoginModuleCmd.ShowPanel, LoginEnum.PanelNames.NRCLoginPanel, true, {}, function()
       NRCModuleManager:DoCmd(LoginModuleCmd.ShowCanvas, LoginEnum.CanvasNames.NRCLoginPanel, true, LoginModuleEvent.UIAnimationDone)
       NRCModuleManager:DoCmd(LoginModuleCmd.ShowCanvas, LoginEnum.CanvasNames.NRCEnterPanel, true, LoginModuleEvent.UIAnimationDone)
       NRCModuleManager:DoCmd(LoginModuleCmd.ShowCanvas, LoginEnum.CanvasNames.AccountPanel, true, LoginModuleEvent.UIAnimationDone)
       NRCModuleManager:DoCmd(LoginModuleCmd.ShowCanvas, LoginEnum.CanvasNames.RepairToolsPanel, true, LoginModuleEvent.UIAnimationDone)
       _G.DataConfigManager:ChangeLanguage(string.gsub(newCulture, "-", "_"))
+      local curCulture = UE4.UNRCStatics.GetCurrentCulture()
+      if "zh-Hans-CN" == curCulture then
+        _G.NRCAudioManager:ChangeLanguage("Chinese")
+      elseif "en" == curCulture then
+        _G.NRCAudioManager:ChangeLanguage("English")
+      end
     end)
   end)
 end

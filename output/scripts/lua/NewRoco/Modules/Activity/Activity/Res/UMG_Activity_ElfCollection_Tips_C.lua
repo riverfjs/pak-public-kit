@@ -23,7 +23,7 @@ function UMG_Activity_ElfCollection_Tips_C:ShowInfo()
     if petBaseConf.name then
       self.TitleText:SetText(petBaseConf.name)
     end
-    if petBaseConf.form then
+    if petBaseConf.form and petBaseConf.form ~= "" then
       self.UsualAppearance:SetVisibility(UE4.ESlateVisibility.Visible)
       self.Type:SetText(petBaseConf.form)
     else

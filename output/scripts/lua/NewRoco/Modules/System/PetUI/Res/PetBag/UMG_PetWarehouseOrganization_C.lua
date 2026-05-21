@@ -15,7 +15,7 @@ end
 function UMG_PetWarehouseOrganization_C:OnAddEventListener()
   self:AddButtonListener(self.backBtn.btnClose, self.OnClickCloseBtn)
   self:AddButtonListener(self.SortingBtn.btnLevelUp, self.OnClickSortingBtn)
-  self:AddButtonListener(self.SortedOut.btnLevelUp, self.OnClickSortedOutBtn)
+  self:AddButtonListener(self.Btn_Organize.btnLevelUp, self.OnClickSortedOutBtn)
   self:AddButtonListener(self.ResetBtn.btnLevelUp, self.OnClickResetBtn)
   self:AddButtonListener(self.BtnClick, self.OnClickBtnClickBtn)
   self:RegisterEvent(self, PetUIModuleEvent.OnChageSelectPetBagBoxItem, self.OnChageSelectPetBagBoxItem)
@@ -44,8 +44,20 @@ end
 function UMG_PetWarehouseOrganization_C:OnActive()
   self.offsetPerSec = _G.DataConfigManager:GetGlobalConfigByKeyType("warehouse_auto_move_ratio", _G.DataConfigManager.ConfigTableId.GLOBAL_CONFIG).num
   self.Btn:SetVisibility(UE4.ESlateVisibility.Collapsed)
-  self:Disable()
-  self.bNeedToInit = true
+  self.OrganizeBox:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  self.SortedOut:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  local bFromBag = _G.NRCModuleManager:DoCmd(PetUIModuleCmd.GetPetBoxPanelOpenState)
+  _G.NRCModuleManager:DoCmd(PetUIModuleCmd.SetPetBoxPanelOpenState, false)
+  if bFromBag then
+    self.bNeedToInit = true
+    self.bFromBag = true
+    self.module:SetNewPetBagBoxPanelOpenState(true)
+    self.module:OnSavePetBagChildrenPanelState("Box", true)
+    self:OnEnable()
+  else
+    self:Disable()
+    self.bNeedToInit = true
+  end
 end
 
 function UMG_PetWarehouseOrganization_C:OnEnable()
@@ -123,7 +135,14 @@ function UMG_PetWarehouseOrganization_C:SetBoxList(targetBoxID, bForceNoCreate, 
   if bForceNoCreate and oldSelectIdx == selectIdx and bNeedToDispatchEvent then
     self:DispatchEvent(PetUIModuleEvent.OnClickSelectPetBagBoxItem, list[selectIdx + 1].boxInfo, selectIdx + 1)
   end
-  if targetBoxID and bForceNoCreate or not targetBoxID and bForceNoCreate then
+  if self.bFromBag then
+    self.bFromBag = false
+    self:DelayFrames(10, function()
+      local maxOffset = self.ItemList:GetScrollOffsetOfEnd()
+      self.ItemList:NRCSetScrollOffset(maxOffset)
+      self.bLockOffsetUpdate = false
+    end)
+  elseif targetBoxID and bForceNoCreate or not targetBoxID and bForceNoCreate then
     self.ItemList:SetRenderOpacity(0)
     self:DelayFrames(10, function()
       self.ItemList:NRCSetScrollOffset(offset)
@@ -175,6 +194,7 @@ end
 
 function UMG_PetWarehouseOrganization_C:OnClickCloseBtn()
   if self.EnterEditState then
+    self.bLockExchange = true
     self:UpdateScrollOffset()
     local needToSave = self:CheckNeedToSaveNewList()
     if needToSave and self.EditBoxList then
@@ -188,7 +208,9 @@ function UMG_PetWarehouseOrganization_C:OnClickCloseBtn()
       self.ItemList:SetRenderOpacity(0)
     end
     self.BtnClick:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.bLockExchange = false
   else
+    _G.NRCEventCenter:DispatchEvent(PetUIModuleEvent.SetPanelCanScroll, true)
     self:ClosePanel()
   end
 end
@@ -199,7 +221,7 @@ function UMG_PetWarehouseOrganization_C:OnClickSortingBtn()
   self.newSelectBoxID = nil
   self.EditBoxList = self:GetOriBoxList()
   self.SortingBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
-  self.SortedOut:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self.OrganizeBox:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.ResetBtn:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
   self.curScrollOffset = self.ItemList:GetScrollOffset()
   self.ItemList:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
@@ -230,15 +252,8 @@ end
 
 function UMG_PetWarehouseOrganization_C:OnClickSortedOutBtn()
   _G.NRCAudioManager:PlaySound2DAuto(40002003, "UMG_PetWarehouseOrganization_C:OnClickSortedOutBtn")
-  local popUpData = _G.NRCCommonPopUpData()
-  popUpData.Call = self
-  popUpData.Btn_RightText = LuaText.umg_bag_11
-  popUpData.Btn_LeftText = LuaText.CANCEL
-  popUpData.TitleText = LuaText.general_title
-  popUpData.ContentText = self:GetTipsDesc()
-  popUpData.Btn_RightHandler = self.OnTidyPetBox
-  popUpData.bUseContentTextLeft = true
-  _G.NRCModuleManager:DoCmd(_G.CommonPopUpModuleCmd.OpenRemindPanel, popUpData)
+  local curBoxIndex = self.ItemList:GetSelectedIndex()
+  _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.OpenBoxOrganizationFethod, curBoxIndex)
 end
 
 function UMG_PetWarehouseOrganization_C:OnClickResetBtn()
@@ -262,16 +277,11 @@ function UMG_PetWarehouseOrganization_C:OnResetPetList()
   self:UpdateEditBoxList()
 end
 
-function UMG_PetWarehouseOrganization_C:OnTidyPetBox()
-  local curBoxIndex = self.ItemList:GetSelectedIndex()
-  _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.OnCmdZonePetBoxTidyReq, curBoxIndex)
-end
-
 function UMG_PetWarehouseOrganization_C:LeaveEditState()
   self.EnterEditState = false
   self.EditBoxList = nil
   self.SortingBtn:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-  self.SortedOut:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  self.OrganizeBox:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
   self.ResetBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.ItemList:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
   self.ItemList:SetRenderOpacity(1)
@@ -286,15 +296,15 @@ function UMG_PetWarehouseOrganization_C:LeaveEditState()
   end
 end
 
-function UMG_PetWarehouseOrganization_C:OnPetBoxMarkChange(box_id, mark_type, box_name)
+function UMG_PetWarehouseOrganization_C:OnPetBoxMarkChange(box_id, mark_type, box_name, lock)
   if box_id and mark_type then
     local item = self.ItemList:GetItemByIndex(box_id - 1)
     if item then
-      item:UpdateMarkIconAndName(mark_type, box_name)
+      item:UpdateMarkIconAndName(mark_type, box_name, lock)
     end
     local item1 = self.ItemList2:GetItemByIndex(box_id - 1)
     if item1 then
-      item1:UpdateMarkIconAndName(mark_type, box_name)
+      item1:UpdateMarkIconAndName(mark_type, box_name, lock)
     end
   end
 end
@@ -705,7 +715,7 @@ function UMG_PetWarehouseOrganization_C:ChooseExchangeBox()
 end
 
 function UMG_PetWarehouseOrganization_C:GetItemByDragItemPos()
-  if not self.DragItemInstance or not self.ScrollView then
+  if not (self.DragItemInstance and self.ScrollView) or self.bLockExchange then
     return
   end
   local screenPos = UE4.USlateBlueprintLibrary.LocalToAbsolute(self.DragItemInstance:GetCachedGeometry(), UE4.FVector2D(0, 0))

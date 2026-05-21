@@ -33,9 +33,10 @@ function BattlePetDiePlayer:Reset()
 end
 
 function BattlePetDiePlayer:GetDeadSkillClass(player)
-  if BattleUtils.IsDeathExist(self.target.card) then
+  local deathExist = BattleUtils.IsDeathExist(self.target.card)
+  if deathExist then
     local value = self.target.card:GetMonsterConfigIsNightmareValue()
-    if value and 2 == value then
+    if value and 2 == value and 1 == deathExist then
       return BattleSkillManager:GetLoadedClass(BattleConst.NightmarePetDeadWithStun)
     end
     if BattleUtils.IsSkipRecycleBall() then
@@ -54,7 +55,7 @@ function BattlePetDiePlayer:GetDeadSkillClass(player)
     return BattleSkillManager:GetLoadedClass(BattleConst.PetDeadFinalBattle)
   elseif BattleUtils.IsB1FinalBattleP1() and player.teamEnm == BattleEnum.Team.ENUM_ENEMY then
     return BattleSkillManager:GetLoadedClass(BattleConst.B1P1EnemyDeadG6)
-  elseif BattleUtils.IsSpecialNoPc() and player.teamEnm == BattleEnum.Team.ENUM_TEAM then
+  elseif player:IsSpecialNoPcSelfDead() then
     return BattleSkillManager:GetLoadedClass(BattleConst.PetDeadNoPc)
   elseif player and player.model then
     local skillID = ""
@@ -156,6 +157,7 @@ function BattlePetDiePlayer:Play(performNode)
   if BattleUtils.IsFinalBattleP2() and self.team.teamEnm == BattleEnum.Team.ENUM_ENEMY then
     _G.BattleManager.stateFsm:SendEvent(BattleEvent.FinalBattleOver)
     _G.BattleManager.battlePawnManager:IsShowPetBuffs(false)
+    self.target:SetPopupVisibility(false)
     au.Launch(self:PerformFinalBattleEnemyDie(), function(ok, errorOrMessage)
       if not ok then
         Log.Error(errorOrMessage)
@@ -244,7 +246,10 @@ function BattlePetDiePlayer:Play(performNode)
     end
     local skillObj = self:PrepareSkillObj(self.target.model, true, targets)
     if skillObj then
-      BattleSkillManager:PlaySkill(skillObj, true)
+      local result = BattleSkillManager:PlaySkill(skillObj, true)
+      if result ~= UE4.ESkillStartResult.Success then
+        self:OnDieSkillFinish()
+      end
     else
       self:OnDieSkillFinish()
       return nil
@@ -284,7 +289,7 @@ function BattlePetDiePlayer:PrepareSkillObj(casterModel, isPassive, targets)
     Log.ErrorFormat("Dead Skill Class not found")
     return nil
   end
-  if BattleSkillManager:GetLoadedClass(BattleConst.PetDeadWithStun, true) == skillClass or BattleSkillManager:GetLoadedClass(BattleConst.PetDeadWithStunNoBall, true) == skillClass or BattleSkillManager:GetLoadedClass(BattleConst.NightmarePetDeadWithStun, true) then
+  if BattleSkillManager:GetLoadedClass(BattleConst.PetDeadWithStun, true) == skillClass or BattleSkillManager:GetLoadedClass(BattleConst.PetDeadWithStunNoBall, true) == skillClass or BattleSkillManager:GetLoadedClass(BattleConst.NightmarePetDeadWithStun, true) == skillClass then
     self.RemainDeadPet = true
     self.target.card.petState:SetDiePerformType(BattleEnum.DiePerformType.WithStun)
   end

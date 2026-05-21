@@ -202,6 +202,10 @@ function MiniGameModule:OnEnterBattle()
   if self.Stage == MiniGameStage.Init or self.bNightmare then
     return
   end
+  local MiniGameConfig = DataConfigManager:GetMinigameConf(self.ConfigId, true)
+  if MiniGameConfig and self.MiniGameConfig.effect_type == Enum.MiniGameType.MINIGAME_BOSS_BATTLE then
+    return
+  end
   self:Reset()
 end
 
@@ -247,6 +251,10 @@ function MiniGameModule:Reset()
     return
   end
   self.InResetting = true
+  if self.RecoveryDelayHandle then
+    _G.DelayManager:CancelDelayById(self.RecoveryDelayHandle)
+    self.RecoveryDelayHandle = nil
+  end
   if self.bIsInCoroutine then
     self.bHaltCoroutine = true
   end
@@ -275,6 +283,13 @@ function MiniGameModule:Reset()
   _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.Dialog_CloseDialog)
   self.Stage = MiniGameStage.Init
   self.InResetting = false
+  local BigBen = self.BigBen
+  if BigBen then
+    local BigBenView = BigBen.viewObj
+    if BigBenView and BigBenView.RedDarkGreenLight then
+      BigBenView:RedDarkGreenLight()
+    end
+  end
   if self.MainPanelOpenedCoroutineCallback then
     self.MainPanelOpenedCoroutineCallback()
     self.MainPanelOpenedCoroutineCallback = nil
@@ -470,7 +485,7 @@ function MiniGameModule:OnMinigameNotify(Action, Tag, BaseData)
     self._RecoveryCacheTime = 0
     _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.HIDE_OTHER_PLAYER, true, UE4.EPlayerForceHiddenType.MiniGame)
     _G.NRCEventCenter:DispatchEvent(_G.MainUIModuleEvent.SetOnlineTeammateTagVisible, false)
-    _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.OpenOrCloseMainUIDownTips, false)
+    _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.OpenOrCloseMainUIDownTips, false, "MiniGameClose")
     if self:CheckShouldHalt() then
       if self.DelayHandle then
         _G.DelayManager:CancelDelayById(self.DelayHandle)
@@ -631,7 +646,7 @@ function MiniGameModule:OnMinigameNotify(Action, Tag, BaseData)
         end
         self.bIsInCoroutine = false
         self:Initialization()
-        _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.OpenOrCloseMainUIDownTips, true)
+        _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.OpenOrCloseMainUIDownTips, true, "MiniGameClose")
         self.OpenCamera = false
         _G.NRCAudioManager:SetStateByName("MiniGame_Phase", "MiniGame_Phase2", "MiniGame")
       end)()
@@ -644,7 +659,11 @@ function MiniGameModule:OnMinigameNotify(Action, Tag, BaseData)
     if self:HasPanel("MiniGameModuleLeavePanel") then
       self:ClosePanel("MiniGameModuleLeavePanel")
     end
-    NRCModeManager:GetCurMode():RevertPanelEnableStateByLayer(Enum.UILayerType.UI_LAYER_MAIN)
+    _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.CloseCompass)
+    local HasDialogue = _G.NRCModuleManager:DoCmd(_G.DialogueModuleCmd.CheckHasDialogue)
+    if not HasDialogue then
+      NRCModeManager:GetCurMode():RevertPanelEnableStateByLayer(Enum.UILayerType.UI_LAYER_MAIN)
+    end
     self:EnablePlayerControl()
     local Player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
     Player:GetUEController():ReleaseRocoCamera(0)
@@ -733,6 +752,10 @@ function MiniGameModule:OnMinigameNotify(Action, Tag, BaseData)
     self.bHasRewardCreated = false
     local needRecovery = Action.status == ProtoEnum.MinigameStatus.MS_RECOVERY or not self:IsPlaying()
     if needRecovery then
+      if self.RecoveryDelayHandle then
+        _G.DelayManager:CancelDelayById(self.RecoveryDelayHandle)
+        self.RecoveryDelayHandle = nil
+      end
       _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.HIDE_OTHER_PLAYER, true, UE4.EPlayerForceHiddenType.MiniGame)
       _G.NRCEventCenter:DispatchEvent(_G.MainUIModuleEvent.SetOnlineTeammateTagVisible, false)
       _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.AddCondition, Enum.PlayerConditionType.PCT_MINI_GAME)
@@ -799,10 +822,12 @@ function MiniGameModule:OnMinigameNotify(Action, Tag, BaseData)
         else
           _G.NRCAudioManager:BatchSetState("MiniGame;MiniGame;MiniGame_Type;MiniGame_Common")
         end
+        _G.NRCAudioManager:SetStateByName("MiniGame_Phase", "MiniGame_Phase2", "MiniGame")
         Log.Debug("==amonsu==MiniGameModule==MS_RECOVERY==CreateWall", MiniGameConfig.block_id, self.bNightmare)
         _G.NRCModuleManager:DoCmd(_G.AirWallModuleCmd.CreateWall, MiniGameConfig.block_id, self.bNightmare)
       end
-      DelayManager:DelaySeconds(3, function()
+      self.RecoveryDelayHandle = _G.DelayManager:DelaySeconds(3, function()
+        self.RecoveryDelayHandle = nil
         NRCEventCenter:DispatchEvent(MiniGameModuleEvent.OnTaskClick, -1)
       end)
       self.Stage = MiniGameStage.Running
@@ -865,9 +890,6 @@ function MiniGameModule:OnGameFinished()
         self:BlendToBigWorldCamera(MiniGameCameraConfig.camera_back_time / 1000 or 0)
         Player:GetUEController():ReleaseRocoCamera(0)
         a.wait(au.DelaySeconds(MiniGameCameraConfig.camera_back_time / 1000 or 0))
-      end
-      if MiniGameConfig.victory_is_back then
-        self:TeleportPlayerToStart(MiniGameConfig, false)
       end
       if MiniGameCameraConfig and MiniGameCameraConfig.focus_end_in_black then
         self:FadeOutBlack(1)

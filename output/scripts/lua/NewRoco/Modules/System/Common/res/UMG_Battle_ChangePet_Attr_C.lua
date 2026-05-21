@@ -3,6 +3,7 @@ local BattleEnum = require("NewRoco.Modules.Core.Battle.Common.BattleEnum")
 local BattleUtils = require("NewRoco.Modules.Core.Battle.Common.BattleUtils")
 local BattleModuleCmd = require("NewRoco.Modules.Core.Battle.BattleModuleCmd")
 local PetUtils = require("NewRoco.Utils.PetUtils")
+local BattleConst = require("NewRoco.Modules.Core.Battle.Common.BattleConst")
 local UMG_Battle_ChangePet_Attr_C = Base:Extend("UMG_Battle_ChangePet_Attr_C")
 
 function UMG_Battle_ChangePet_Attr_C:OnConstruct()
@@ -61,9 +62,21 @@ function UMG_Battle_ChangePet_Attr_C:UpdateInfoAsNormalSkill(data)
   local dam_para = skillConf and skillConf.dam_para or {}
   local energy_cost = skillConf and skillConf.energy_cost or {}
   self.SkillIcon:SetPath(NRCUtils:FormatConfIconPath(skillIcon, _G.UIIconPath.SkillIconPath))
-  if skillData.perform_flag == _G.ProtoEnum.PET_SKILL_PERFORM_FLAG.PET_SKILL_PERFORM_FLAG_FANTASTIC then
-    self.Select_NM_3:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  local fantasticBackgroundPath = ""
+  local performFlag = skillData and skillData.perform_flag
+  local petId = data and data.petGuid
+  local skillId = skillData and skillData.skill_id
+  local seasonId = skillData and skillData.season_id
+  if performFlag == _G.ProtoEnum.PET_SKILL_PERFORM_FLAG.PET_SKILL_PERFORM_FLAG_FANTASTIC then
+    local paths = BattleUtils.GetFantasticBackgroundPathWithSkillAndSeason(skillId, seasonId)
+    fantasticBackgroundPath = paths and paths.squareNm3 or fantasticBackgroundPath
   end
+  local selectNm3Visibility = UE4.ESlateVisibility.Collapsed
+  if not string.IsNilOrEmpty(fantasticBackgroundPath) then
+    selectNm3Visibility = UE4.ESlateVisibility.SelfHitTestInvisible
+  end
+  self.Select_NM_3:SetPath(fantasticBackgroundPath)
+  self.Select_NM_3:SetVisibility(selectNm3Visibility)
   self.TxtSkillName:SetText(skillName)
   if self._parent.parentPanel.isDisableDesc then
     self.Desc:SetText(UE4.UNRCStatics.ExtractDescIdKeywords(skillDesc))
@@ -173,7 +186,7 @@ function UMG_Battle_ChangePet_Attr_C:OnItemSelected(_bSelected)
 end
 
 function UMG_Battle_ChangePet_Attr_C:OnCloseHyperLink()
-  if self._parent.parentPanel then
+  if self._parent.parentPanel and self._parent.parentPanel.OnCloseHyperLink then
     self._parent.parentPanel:OnCloseHyperLink()
   end
 end

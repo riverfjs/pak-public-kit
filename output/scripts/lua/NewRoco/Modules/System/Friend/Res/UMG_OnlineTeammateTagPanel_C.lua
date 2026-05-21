@@ -53,8 +53,10 @@ function UMG_OnlineTeammateTagPanel_C:UpdateOrCreateTeammateItem(visitorInfo, in
     end
   else
     local item = self.teammateItems[visitorInfo.uin]
-    item:SetTeammateNumber(index)
-    item:SetTeammateInfo(visitorInfo)
+    if item and UE4.UObject.IsValid(item) then
+      item:SetTeammateNumber(index)
+      item:SetTeammateInfo(visitorInfo)
+    end
   end
 end
 

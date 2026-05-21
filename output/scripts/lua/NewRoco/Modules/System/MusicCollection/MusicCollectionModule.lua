@@ -9,7 +9,7 @@ local MusicCollectionModule = NRCModuleBase:Extend("MusicCollectionModule")
 function MusicCollectionModule:OnConstruct()
   _G.MusicCollectionModuleCmd = reload("NewRoco.Modules.System.MusicCollection.MusicCollectionModuleCmd")
   self.data = self:SetData("MusicCollectionModuleData", "NewRoco.Modules.System.MusicCollection.MusicCollectionModuleData")
-  self:RegPanel("MusicCollectTips", "UMG_CollectTips", Enum.UILayerType.UI_LAYER_POPUP, nil, true, true)
+  self:RegPanel("MusicCollectTips", "UMG_CollectTips", Enum.UILayerType.UI_LAYER_POPUP, nil, true, true):SetEnableTouchMask(false)
   self:RegPanel("MusicSetting", "UMG_MusicSetting", Enum.UILayerType.UI_LAYER_POPUP)
   self:RegPanel("MusicCollectionPanel", "UMG_MusicCollectionPanel", Enum.UILayerType.UI_LAYER_FULLSCREEN, nil, nil, nil, "Out")
   self.getMusicCollectUnlockTipsController = TipsDisplayController(TipEnum.TipObjectType.MusicCollectUnlockTips, self, self.OnPlayTips)
@@ -59,6 +59,9 @@ function MusicCollectionModule:OnReconnected()
     self.IsWaitChangeRsp = false
   end
   _G.DataModelMgr.PlayerDataModel:ClearPanelMusicList()
+  if self:HasPanel("MusicCollectionPanel") then
+    self:ClosePanel("MusicCollectionPanel")
+  end
 end
 
 function MusicCollectionModule:OnCmdMusicUPanelPause()
@@ -91,26 +94,34 @@ function MusicCollectionModule:CmdSetMusicToPanel(MusicId, ApplyId)
 end
 
 function MusicCollectionModule:SendZoneUnsetMusicReq(music_id)
+  if not music_id or music_id <= 0 then
+    Log.Error("MusicCollectionModule:SendZoneUnsetMusicReq music_id is nil")
+    return
+  end
   local req = _G.ProtoMessage:newZoneUnsetMusicReq()
   req.music_id = music_id
   _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_UNSET_MUSIC_REQ, req, self, self.OnZoneApplyMusicRsp)
 end
 
 function MusicCollectionModule:SendZoneApplyMusicReq(MusicApplyInfo)
+  if not (MusicApplyInfo and MusicApplyInfo.music_id) or 0 == MusicApplyInfo.music_id then
+    Log.Error("MusicCollectionModule:SendZoneApplyMusicReq music_id is nil")
+    return
+  end
   local req = _G.ProtoMessage:newZoneApplyMusicReq()
   req.apply_info = MusicApplyInfo
   _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_APPLY_MUSIC_REQ, req, self, self.OnZoneApplyMusicRsp)
 end
 
 function MusicCollectionModule:OnZoneApplyMusicRsp(rsp)
+  if self.IsWaitChangeRsp then
+    self.IsWaitChangeRsp = false
+  end
   if 0 == rsp.ret_info.ret_code then
     self:RefreshMusicData()
   else
     local key = string.format("Error_Code_%d", rsp.ret_info.ret_code)
     _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText[key])
-  end
-  if self.IsWaitChangeRsp then
-    self.IsWaitChangeRsp = false
   end
 end
 
@@ -305,6 +316,7 @@ function MusicCollectionModule:RegPanel(name, path, layer, customDisableRenderin
   Data.disableLoadBlock = disableLoadBlock
   Data.closeAnimName = closeAnimName
   self:RegisterPanel(Data)
+  return Data
 end
 
 return MusicCollectionModule

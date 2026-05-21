@@ -156,6 +156,7 @@ local function InitManager()
   _G.LuaText = require("LuaText")
   _G.LuaText:Init()
   _G.DataModelMgr:Init()
+  _G.NRCPreDownloadManager = _G.CreateSingleton("NRCPreDownloadManager", "NewRoco.Modules.System.Download.PreDownload.NRCPreDownloadManager")
   _G.BattleProfiler = _G.CreateSingleton("BattleProfiler", "NewRoco.Modules.Core.Battle.BattleCore.Utils.BattleProfiler")
   _G.LoadingProfiler = _G.CreateSingleton("LoadingProfiler", "NewRoco.Utils.LoadingProfiler")
   _G.BattleActionBase = require("NewRoco.Modules.Core.Battle.Fsm.Actions.Base.BattleActionBase")
@@ -186,6 +187,8 @@ local function InitManager()
   _G.BattleManager:Init()
   _G.BattleLevelHelper = require("NewRoco.Modules.Core.Battle.Common.BattleLevelHelper")()
   _G.BattleLevelHelper:Init()
+  _G.BattleLog = require("NewRoco.Modules.Core.Battle.Common.BattleLog")()
+  _G.BattleLog:Init()
   _G.NRCPanelBlocker = _G.CreateSingleton("NRCPanelBlocker", "Core.NRCModule.Optimize.NRCPanelBlocker")
   _G.BattleAIManager = _G.CreateSingleton("BattleAIManager", "NewRoco.Modules.Core.Battle.AI.BattleAIManager")
   _G.FunctionBanManager = _G.CreateSingleton("FunctionBanManager", "Common.FunctionBanManager")
@@ -198,6 +201,10 @@ local function InitManager()
   _G.NRCBigWorldPreloader = Preloader()
   if RocoEnv.IS_EDITOR and UE4.UMockUtils.IsMockEnabled() then
     _G.MockManager = _G.CreateSingleton("MockManager", "Mock.MockManager")
+  end
+  local AreaQueryManager = UE4.UAreaQueryManager.Get(_G.UE4Helper.GetCurrentWorld())
+  if AreaQueryManager then
+    AreaQueryManager:InitializeAreaData()
   end
 end
 
@@ -302,7 +309,6 @@ function NRCMain()
   _G.NRCEventCenter = _G.CreateSingleton("NRCEventCenter", "Common.NRCEventCenter")
   _G.NRCViewBase = require("Core.NRCModule.NRCViewBase")
   _G.NRCPanelBase = require("Core.NRCModule.NRCPanelBase")
-  _G.NRCDraggablePanel = require("Core.NRCModule.NRCDraggablePanel")
   _G.NRCBattleView = require("NewRoco.Modules.System.BattleUI.Res.NRCBattleView")
   _G.NRCModuleBase = require("Core.NRCModule.NRCModuleBase")
   _G.NRCModuleHeadBase = require("Core.NRCModule.NRCModuleHeadBase")
@@ -329,6 +335,7 @@ function NRCMain()
   _G.LocalText = require("NewRoco.Utils.LocalText")
   _G.NRCPanelOpenReqData = require("Core.NRCPanel.NRCPanelOpenReqData")
   _G.NRCPanelEnum = require("Core.NRCPanel.NRCPanelEnum")
+  _G.NRCPanelOpenOptions = require("Core.NRCPanel.NRCPanelOpenOptions")
   _G.NRCCommonItemIconData = require("NewRoco.Modules.System.Common.NRCCommonItemIconData")
   _G.NRCCommonAddSubtractData = require("NewRoco.Modules.System.Common.NRCCommonAddSubtractData")
   _G.NRCCommonPopUpData = require("NewRoco.Modules.System.CommonPopUp.Res.NRCCommonPopUpData")
@@ -336,6 +343,8 @@ function NRCMain()
   _G.NRCPanelResLoadData = require("Core.NRCPanel.NRCPanelResLoadData")
   _G.MultiTouchModuleCmd = require("NewRoco.Modules.Core.MultiTouch.MultiTouchModuleCmd")
   _G.MediaUtils = require("Common.MediaUtils")
+  _G.CommonUtils = require("NewRoco.Utils.CommonUtils")
+  _G.MemoryUtils = require("NewRoco.Utils.MemoryUtils")
   
   function _G.MakeAutoIndex()
     local index = 0
@@ -399,6 +408,13 @@ function NRCMain()
     UE4.UNRCStatics.SetNRCTypePrintName(PrintNames)
   end
   InitGC()
+  if RocoEnv.PLATFORM == "PLATFORM_WINDOWS" then
+    local deviceLevel = UE4.UNRCQualityLibrary.GetDeviceLevel()
+    Log.Debug("DeviceLevel: " .. deviceLevel .. "")
+    if deviceLevel < 4 then
+      UE4.UKismetSystemLibrary.ExecuteConsoleCommand(nil, "n.SwitchAvatarGCThreshold 10")
+    end
+  end
   return 0
 end
 

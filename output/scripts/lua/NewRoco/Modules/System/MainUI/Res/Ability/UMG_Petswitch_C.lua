@@ -41,9 +41,7 @@ function UMG_Petswitch_C:SetIcon(itemType, itemInfo)
       self.BallIcon:SetVisibility(UE4.ESlateVisibility.Collapsed)
       self.UMG_ColorfulHeadIcon:SetVisibility(UE4.ESlateVisibility.Visible)
     end
-    if curSelectedPetGid ~= itemInfo.gid then
-      _G.NRCModuleManager:DoCmd(MainUIModuleCmd.OnCmdSendChangeSelectedThrowItemReq, itemType, itemInfo)
-    end
+    _G.NRCModuleManager:DoCmd(MainUIModuleCmd.OnCmdSendChangeSelectedThrowItemReq, itemType, itemInfo)
   elseif itemType == _G.MainUIModuleEnum.MainUIChooseType.MAGIC then
     local itemConf = _G.DataConfigManager:GetBagItemConf(itemInfo.id)
     self.BallIcon:SetPath(itemConf.TUIbutton_icon)

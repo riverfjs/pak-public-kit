@@ -13,6 +13,10 @@ function BattleAutoCommand:AddListener()
 end
 
 function BattleAutoCommand:ExecuteCommand()
+  if self.waitDelay then
+    _G.DelayManager:CancelDelayById(self.waitDelay)
+  end
+  self.waitDelay = nil
   if self.IsExecuted or self.IsExecuting then
     return
   end
@@ -25,7 +29,7 @@ function BattleAutoCommand:WaitToRepeat()
   if self.RepeatLimitNumber < 0 then
     self:Break()
   else
-    _G.DelayManager:DelaySeconds(self.RepeatInterval, self.ExecuteCommand, self)
+    self.waitDelay = _G.DelayManager:DelaySeconds(self.RepeatInterval, self.ExecuteCommand, self)
   end
 end
 

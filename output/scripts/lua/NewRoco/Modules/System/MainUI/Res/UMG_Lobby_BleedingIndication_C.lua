@@ -24,6 +24,7 @@ function UMG_Lobby_BleedingIndication_C:ReBindPlayer()
   if self.localPlayer then
     self.localPlayer:AddEventListener(self, PlayerModuleEvent.ON_ROLE_HP_CHANGE, self.HPChange)
     self.hp = self.localPlayer.serverData.attrs.hp + self.localPlayer.serverData.attrs.hp_temporary or 0
+    self.half = self.localPlayer.serverData.attrs.half_injure or 0
   end
 end
 
@@ -31,17 +32,31 @@ function UMG_Lobby_BleedingIndication_C:OnAddEventListener()
 end
 
 function UMG_Lobby_BleedingIndication_C:HPChange(count, tempHP)
+  local tempHalf = self.localPlayer.serverData.attrs.half_injure or 0
+  Log.Debug("UMG_Lobby_BleedingIndication:HPChange  IN", self.hp, count, tempHP, self.half, tempHalf)
   if count < self.hp then
+    Log.Debug("UMG_Lobby_BleedingIndication:HPChange  full")
     self:PlayReduce()
+  elseif self.hp == count and self.half ~= tempHalf and 1 == tempHalf then
+    Log.Debug("UMG_Lobby_BleedingIndication:HPChange  half")
+    self:PlayToHalf()
   end
+  self.half = tempHalf
   self.hp = count
+end
+
+function UMG_Lobby_BleedingIndication_C:PlayToHalf()
+  self._show = true
+  self:UpdateSlotPosition()
+  self:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  self:PlayAnimation(self.Heart_Broken_Half)
 end
 
 function UMG_Lobby_BleedingIndication_C:PlayReduce()
   self._show = true
   self:UpdateSlotPosition()
   self:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-  self:PlayAnimation(self.Heart_Broken)
+  self:PlayAnimation(self.Heart_Broken_All)
 end
 
 function UMG_Lobby_BleedingIndication_C:OnAnimationFinished(anim)

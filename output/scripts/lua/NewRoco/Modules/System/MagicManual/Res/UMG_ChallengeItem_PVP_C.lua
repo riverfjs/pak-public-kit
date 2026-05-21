@@ -35,6 +35,8 @@ function UMG_ChallengeItem_PVP_C:RefreshPvpRankInfo()
     return
   end
   local curWeekWinCount, requireWinCount = _G.NRCModuleManager:DoCmd(_G.PVPRankedMatchModuleCmd.CmdGetCurWeekWinCount)
+  curWeekWinCount = curWeekWinCount or 0
+  requireWinCount = requireWinCount or 0
   self.Text_Session:SetText(string.format("%d/%d", curWeekWinCount, requireWinCount))
   self.CanvasPanel_0:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
   local seasonStep = _G.NRCModuleManager:DoCmd(PVPRankedMatchModuleCmd.CmdGetCurSeasonStep)
@@ -54,7 +56,7 @@ function UMG_ChallengeItem_PVP_C:RefreshPvpRankInfo()
   local pvpRankConf = PVPRankedMatchModuleUtils.GetSelfPVPRankConf()
   local RankOrder = _G.DataModelMgr.PlayerDataModel:GetVItemCount(_G.Enum.VisualItem.VI_PVP_RANK_ORDER)
   if pvpRankConf then
-    self.ClassIcon:SetRankInfo(pvpRankConf, RankOrder)
+    self.ClassIcon:SetRankInfo(pvpRankConf, RankOrder, curSeasonId)
   end
   self.NRCImage_1:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self:RefreshBaseInfo()
@@ -75,29 +77,29 @@ end
 function UMG_ChallengeItem_PVP_C:RefreshBaseInfo()
   local itemData = self.uiData
   self.SystemType:SetPath(itemData.icon)
-  local awardList = {}
-  if type(itemData.award) == "number" then
-    table.insert(awardList, itemData.award)
-  elseif type(itemData.award) == "table" then
-    awardList = itemData.award
-  end
+  local awardList = itemData and itemData.award_list or {}
   local rewardsTable = {}
   local bShowFirstVictory = not _G.NRCModeManager:DoCmd(_G.PVPRankedMatchModuleCmd.OnCmdIsAlreadyWonToday)
-  if itemData.daily_first_win_award then
-    for i = 1, #itemData.daily_first_win_award do
-      local itemId = itemData.daily_first_win_award[i]
+  local daily_first_win_award_list = itemData and itemData.daily_first_win_award_list or {}
+  if daily_first_win_award_list then
+    for i = 1, #daily_first_win_award_list do
+      local awardConf = daily_first_win_award_list[i]
+      local itemId = awardConf and awardConf.daily_first_win_award
       if itemId and itemId > 0 then
         local rewards = _G.NRCCommonItemIconData()
-        rewards.itemType = _G.Enum.GoodsType.GT_BAGITEM
+        local type = awardConf and awardConf.Type
+        rewards.itemType = type
         rewards.itemId = itemId
         rewards.bShowFirstVictory = bShowFirstVictory
         table.insert(rewardsTable, rewards)
       end
     end
   end
-  for _, id in pairs(awardList) do
+  for _, confAwardItem in pairs(awardList) do
+    local id = confAwardItem and confAwardItem.award
+    local type = confAwardItem and confAwardItem.Type
     local rewards = _G.NRCCommonItemIconData()
-    rewards.itemType = _G.Enum.GoodsType.GT_BAGITEM
+    rewards.itemType = type
     rewards.itemId = id
     table.insert(rewardsTable, rewards)
   end

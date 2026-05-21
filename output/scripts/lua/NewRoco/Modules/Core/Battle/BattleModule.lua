@@ -28,6 +28,9 @@ function BattleModule:OnGetBattleFieldCenterPos()
 end
 
 function BattleModule:OnGetBattleFieldRadius()
+  if BattleManager.vBattleField then
+    return BattleManager.vBattleField:GetBattleFieldRange()
+  end
   return BattleConst.Define.BattleFieldRange
 end
 
@@ -224,45 +227,48 @@ function BattleModule:OnCmdCollectSkillEnhanceInfoForChangePetAttr(skillId, petG
     buff93SkillEnhanceInfo = nil
   end
   for i, battlePetCard in ipairs(inFieldCards) do
-    local battlePetInfo = battlePetCard and battlePetCard.petInfo
-    local battlePetInsideInfo = battlePetInfo and battlePetInfo.battle_inside_pet_info
-    local battlePetBuffInfoList = battlePetInsideInfo and battlePetInsideInfo.buffs
-    local hasBuff64EnhanceInfoAdd = false
-    if battlePetBuffInfoList then
-      for j, buffInfo in ipairs(battlePetBuffInfoList) do
-        local buffId = buffInfo and buffInfo.buff_id
-        local buffStack = buffInfo and buffInfo.stack
-        local buffConfig = _G.DataConfigManager:GetBuffConf(buffId, true)
-        local buffBaseId = buffConfig and buffConfig.buff_base_ids and buffConfig.buff_base_ids[1]
-        local buffBaseConf = buffConfig and _G.DataConfigManager:GetBuffbaseConf(buffConfig.buff_base_ids[1])
-        local buffBaseOrder = buffBaseConf and buffBaseConf.buffbase_order
-        local buffbase_param = buffBaseConf and buffBaseConf.buffbase_param
-        if buffBaseOrder == Enum.BuffType.BFT_STRENGTHEN_THE_SKILL then
-          local param1 = buffbase_param and buffbase_param[1] and buffbase_param[1].params
-          local param2 = buffbase_param and buffbase_param[2] and buffbase_param[2].params
-          local param8 = buffbase_param and buffbase_param[8] and buffbase_param[8].params
-          local param1Value = param1 and param1[1]
-          local skillIdList = {}
-          if 7 == param1Value then
-            skillIdList = param2 or {}
-          end
-          local tipsId = param8 and param8[1]
-          if table.contains(skillIdList, skillId) and tipsId then
-            local skillEnhanceInfo = ProtoMessage:newSkillEnhanceInfo()
-            skillEnhanceInfo.buff_id = buffId
-            skillEnhanceInfo.buffbase_id = buffBaseId
-            skillEnhanceInfo.stack = buffStack
-            skillEnhanceInfo.tip_id = tipsId
-            table.insert(skillEnhanceInfos, skillEnhanceInfo)
-            hasBuff64EnhanceInfoAdd = true
+    if battlePetCard:IsEnemy() then
+    else
+      local battlePetInfo = battlePetCard and battlePetCard.petInfo
+      local battlePetInsideInfo = battlePetInfo and battlePetInfo.battle_inside_pet_info
+      local battlePetBuffInfoList = battlePetInsideInfo and battlePetInsideInfo.buffs
+      local hasBuff64EnhanceInfoAdd = false
+      if battlePetBuffInfoList then
+        for j, buffInfo in ipairs(battlePetBuffInfoList) do
+          local buffId = buffInfo and buffInfo.buff_id
+          local buffStack = buffInfo and buffInfo.stack
+          local buffConfig = _G.DataConfigManager:GetBuffConf(buffId, true)
+          local buffBaseId = buffConfig and buffConfig.buff_base_ids and buffConfig.buff_base_ids[1]
+          local buffBaseConf = buffConfig and _G.DataConfigManager:GetBuffbaseConf(buffConfig.buff_base_ids[1])
+          local buffBaseOrder = buffBaseConf and buffBaseConf.buffbase_order
+          local buffbase_param = buffBaseConf and buffBaseConf.buffbase_param
+          if buffBaseOrder == Enum.BuffType.BFT_STRENGTHEN_THE_SKILL then
+            local param1 = buffbase_param and buffbase_param[1] and buffbase_param[1].params
+            local param2 = buffbase_param and buffbase_param[2] and buffbase_param[2].params
+            local param8 = buffbase_param and buffbase_param[8] and buffbase_param[8].params
+            local param1Value = param1 and param1[1]
+            local skillIdList = {}
+            if 7 == param1Value then
+              skillIdList = param2 or {}
+            end
+            local tipsId = param8 and param8[1]
+            if table.contains(skillIdList, skillId) and tipsId then
+              local skillEnhanceInfo = ProtoMessage:newSkillEnhanceInfo()
+              skillEnhanceInfo.buff_id = buffId
+              skillEnhanceInfo.buffbase_id = buffBaseId
+              skillEnhanceInfo.stack = buffStack
+              skillEnhanceInfo.tip_id = tipsId
+              table.insert(skillEnhanceInfos, skillEnhanceInfo)
+              hasBuff64EnhanceInfoAdd = true
+            end
           end
         end
+      else
+        Log.Error("BattleModule battlePetBuffInfoList is nil")
       end
-    else
-      Log.Error("BattleModule battlePetBuffInfoList is nil")
-    end
-    if hasBuff64EnhanceInfoAdd then
-      break
+      if hasBuff64EnhanceInfoAdd then
+        break
+      end
     end
   end
   return skillEnhanceInfos

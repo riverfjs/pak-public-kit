@@ -293,14 +293,14 @@ end
 function UpdateBaseTask:CompareVersion(One, Two)
   local O1, O2, O3, O4 = self:SplitVersion(One)
   local T1, T2, T3, T4 = self:SplitVersion(Two)
-  if O1 > T1 then
-    return true
+  if O1 ~= T1 then
+    return O1 > T1
   end
-  if O2 > T2 then
-    return true
+  if O2 ~= T2 then
+    return O2 > T2
   end
-  if O3 > T3 then
-    return true
+  if O3 ~= T3 then
+    return O3 > T3
   end
   return O4 >= T4
 end

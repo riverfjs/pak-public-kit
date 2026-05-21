@@ -63,6 +63,14 @@ function UMG_Ability_Slot_OnPet_C:OnUnInit()
   _G.NRCEventCenter:UnRegisterEvent(self, RelationTreeEvent.RELATION_TREE_OPENING_PANEL_TAG, self.RefreshUI)
 end
 
+function UMG_Ability_Slot_OnPet_C:OnDestruct()
+  if self.delayID then
+    _G.DelayManager:CancelDelayById(self.delayID)
+    self.delayID = nil
+  end
+  Base.OnDestruct(self)
+end
+
 function UMG_Ability_Slot_OnPet_C:RideSkillAim(inAim)
   self.rideSkillAim = inAim
   self:RefreshUI()
@@ -99,11 +107,13 @@ function UMG_Ability_Slot_OnPet_C:UnBindAbility()
 end
 
 function UMG_Ability_Slot_OnPet_C:BindCurrentRide()
-  local pet = self.localPlayer.viewObj.BP_RideComponent.ScenePet
-  if pet and pet:GetStatus() == ProtoEnum.WorldPlayerPetStatusType.WPPST_IN_RIDE then
-    self:BindAbility(AbilityID.RIDE_ALL, pet)
-    self._focusTempPet = pet
-    self._isBlock = true
+  if self.localPlayer and self.localPlayer.viewObj and self.localPlayer.viewObj.BP_RideComponent then
+    local pet = self.localPlayer.viewObj.BP_RideComponent.ScenePet
+    if pet and pet:GetStatus() == ProtoEnum.WorldPlayerPetStatusType.WPPST_IN_RIDE then
+      self:BindAbility(AbilityID.RIDE_ALL, pet)
+      self._focusTempPet = pet
+      self._isBlock = true
+    end
   end
 end
 
@@ -122,10 +132,18 @@ function UMG_Ability_Slot_OnPet_C:OnSlotReleased(bind)
 end
 
 function UMG_Ability_Slot_OnPet_C:OnPlayerStatusChanged(status, value, opCode)
-  if not self.isShortCut and status == ProtoEnum.WorldPlayerStatusType.WPST_RIDEALL and self._focusPet == nil and not self._abilityHelper then
-    local selectedGid = _G.NRCModuleManager:DoCmd(MainUIModuleCmd.GetSelectedPetGid)
-    if selectedGid <= 0 then
-      self:BindCurrentRide()
+  if not self.isShortCut and status == ProtoEnum.WorldPlayerStatusType.WPST_RIDEALL then
+    if self._focusPet == nil and not self._abilityHelper and not self.localPlayer.statusComponent:HasStatus(ProtoEnum.WorldPlayerStatusType.WPST_TRANSFORM) then
+      local selectedGid = _G.NRCModuleManager:DoCmd(MainUIModuleCmd.GetSelectedPetGid)
+      if selectedGid <= 0 then
+        self:BindCurrentRide()
+      end
+    end
+    if self._focusPet then
+      local selectedGid = _G.NRCModuleManager:DoCmd(MainUIModuleCmd.GetSelectedPetGid)
+      if selectedGid <= 0 and not self.localPlayer.statusComponent:HasStatus(ProtoEnum.WorldPlayerStatusType.WPST_RIDEALL) then
+        self:UnbindAbility()
+      end
     end
   end
   if not self._abilityHelper then
@@ -170,6 +188,9 @@ function UMG_Ability_Slot_OnPet_C:OnCast(isPress)
         NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.umg_ability_slot_onpet_1)
       end
     end
+    if self.localPlayer and self.localPlayer.ShowTaskAreaRideAllBanTips and isPress then
+      self.localPlayer:ShowTaskAreaRideAllBanTips()
+    end
     return
   end
   if isBlock then
@@ -201,6 +222,8 @@ function UMG_Ability_Slot_OnPet_C:OnCast(isPress)
       local gid = self._focusPet.gid
       self._abilityHelper:HandleStatus(self.localPlayer, self._focusPet)
     end
+  elseif errorCode == AbilityErrorCode.TASK_AREA_BAN and self.localPlayer and self.localPlayer.ShowTaskAreaRideAllBanTips and isPress then
+    self.localPlayer:ShowTaskAreaRideAllBanTips()
   end
   return errorCode
 end
@@ -289,7 +312,7 @@ end
 function UMG_Ability_Slot_OnPet_C:OnTick(InDeltaTime)
   local UpdateTime = 0.5
   if self.isShortCut then
-    if self._isVisible and self._isAbilityBlock then
+    if self._isVisible and (self._isAbilityBlock or self._uiBlock or 0 ~= self._tickTime) then
       UpdateTime = 0.2
     else
       return

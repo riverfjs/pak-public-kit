@@ -8,7 +8,7 @@ function DialogueTimelineStopLookAtEvent:Ctor(name, properties)
 end
 
 function DialogueTimelineStopLookAtEvent:OnEnter()
-  local Actor = self:GetActor(self.OwnerActorID)
+  local Actor = self:GetActor(self.OwnerActorID, self.NPCContentID)
   DialogueUtils.StopLookAt(Actor)
 end
 

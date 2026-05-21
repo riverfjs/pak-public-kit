@@ -16,4 +16,18 @@ end
 function UMG_PVPShare_C:OnAddEventListener()
 end
 
+function UMG_PVPShare_C:ShowPlayerInfoPanel(isShow)
+  if isShow then
+    self.PhotoSub.CanvasPanel_7:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  else
+    self.PhotoSub.CanvasPanel_7:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  end
+end
+
+function UMG_PVPShare_C:HideSelectBoxByShare()
+  if self.PhotoSub.Popup_Downward and self.PhotoSub.Popup_Downward:GetVisibility() == UE4.ESlateVisibility.SelfHitTestInvisible then
+    self.PhotoSub.Popup_Downward:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  end
+end
+
 return UMG_PVPShare_C

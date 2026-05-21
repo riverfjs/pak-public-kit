@@ -10,9 +10,168 @@ local au = require("Common.Coroutine.async_util")
 local OnlineState = require("Core.Service.NetManager.OnlineState")
 local BattlePerformEvent = require("NewRoco.Modules.Core.Battle.BattleCore.BattlePerformEvent")
 local ProtoEnum = require("Data.PB.ProtoEnum")
+local PVEModuleCmd = require("NewRoco.Modules.System.PVE.PVEModuleCmd")
+local WidgetStateManager = require("Common.UI.WidgetStateManager")
+local FsmEnum = require("NewRoco.Modules.Core.Fsm.FsmEnum")
+local BattleConst = require("NewRoco.Modules.Core.Battle.Common.BattleConst")
+local PetMutationUtils = require("NewRoco.Utils.PetMutationUtils")
 local UMG_BattleMainWindow_C = _G.NRCPanelBase:Extend("UMG_BattleMainWindow_C")
+local WidgetShowType = {
+  Hide = 0,
+  Entering = 1,
+  Show = 2,
+  Exiting = 3
+}
+local chatButtonCanShowStateNameList = {
+  BattleEnum.StateNames.RoundSelect,
+  BattleEnum.StateNames.SwapSelect,
+  BattleEnum.StateNames.SelectRidPet,
+  BattleEnum.StateNames.EvolutionSelect,
+  BattleEnum.StateNames.SwapPlay,
+  BattleEnum.StateNames.RoundPlay,
+  BattleEnum.StateNames.WaitingOther,
+  BattleEnum.StateNames.TeamBattleCatch,
+  BattleEnum.StateNames.TeamBeastBattleCatch,
+  BattleEnum.StateNames.SeamlessOver,
+  BattleEnum.StateNames.PVPOver,
+  BattleEnum.StateNames.PVPRankOver,
+  BattleEnum.StateNames.TerritoryTrialOver,
+  BattleEnum.StateNames.WeeklyChallengeOver,
+  BattleEnum.StateNames.TrainBattleOver,
+  BattleEnum.StateNames.TeamBloodBattleOver,
+  BattleEnum.StateNames.TeamBeastBattleOver
+}
+local recordButtonCanShowStateNameList = {
+  BattleEnum.StateNames.RoundSelect,
+  BattleEnum.StateNames.SwapSelect,
+  BattleEnum.StateNames.SelectRidPet,
+  BattleEnum.StateNames.EvolutionSelect,
+  BattleEnum.StateNames.SwapPlay,
+  BattleEnum.StateNames.RoundPlay,
+  BattleEnum.StateNames.TeamBattleCatch,
+  BattleEnum.StateNames.TeamBeastBattleCatch,
+  BattleEnum.StateNames.SeamlessOver,
+  BattleEnum.StateNames.PVPOver,
+  BattleEnum.StateNames.PVPRankOver,
+  BattleEnum.StateNames.TerritoryTrialOver,
+  BattleEnum.StateNames.WeeklyChallengeOver,
+  BattleEnum.StateNames.TrainBattleOver,
+  BattleEnum.StateNames.TeamBloodBattleOver,
+  BattleEnum.StateNames.TeamBeastBattleOver
+}
+local imcBattleName = BattleConst.ImcBattleName
+local inputActionInfoListWhenIsShow = {
+  {
+    name = "IA_BattleSelectItemStart_1",
+    method = "SelectBattleItemStart1"
+  },
+  {
+    name = "IA_BattleSelectItemStart_2",
+    method = "SelectBattleItemStart2"
+  },
+  {
+    name = "IA_BattleSelectItemStart_3",
+    method = "SelectBattleItemStart3"
+  },
+  {
+    name = "IA_BattleSelectItemStart_4",
+    method = "SelectBattleItemStart4"
+  },
+  {
+    name = "IA_BattleSelectItemStart_5",
+    method = "SelectBattleItemStart5"
+  },
+  {
+    name = "IA_BattleSelectItemStart_6",
+    method = "SelectBattleItemStart6"
+  },
+  {
+    name = "IA_BattleSelectItemEnd_1",
+    method = "SelectBattleItemEnd1"
+  },
+  {
+    name = "IA_BattleSelectItemEnd_2",
+    method = "SelectBattleItemEnd2"
+  },
+  {
+    name = "IA_BattleSelectItemEnd_3",
+    method = "SelectBattleItemEnd3"
+  },
+  {
+    name = "IA_BattleSelectItemEnd_4",
+    method = "SelectBattleItemEnd4"
+  },
+  {
+    name = "IA_BattleSelectItemEnd_5",
+    method = "SelectBattleItemEnd5"
+  },
+  {
+    name = "IA_BattleSelectItemEnd_6",
+    method = "SelectBattleItemEnd6"
+  },
+  {
+    name = "IA_BattleSure",
+    method = "OpenBattleSelectSure"
+  },
+  {
+    name = "IA_BattleLeftSelect",
+    method = "SelectPrePet"
+  },
+  {
+    name = "IA_BattleRightSelect",
+    method = "SelectNextPet"
+  }
+}
+local battleRecordInputActionInfo = {
+  name = "IA_BattleRecord",
+  method = "OpenBattleRecord"
+}
+local battleChatInputActionInfo = {
+  name = "IA_BattleChat",
+  method = "OpenBattleChat"
+}
 
 function UMG_BattleMainWindow_C:OnConstruct()
+  self.stateManager = WidgetStateManager()
+  local initOption = {}
+  initOption.owner = self
+  initOption.UpdateDerivedState = self.UpdateDerivedState
+  initOption.DeriveStateFromProps = self.DeriveStateFromProps
+  initOption.RenderWidget = self.RenderWidget
+  initOption.OnWidgetDidUpdate = self.OnWidgetDidUpdate
+  local initState = {}
+  initState.isShow = false
+  initState.isInfoShow = false
+  initState.infoShowType = WidgetShowType.Hide
+  initState.isChatButtonShow = false
+  initState.chatButtonShowType = WidgetShowType.Hide
+  initState.isChatButtonShowDisplay = false
+  initState.isRecordButtonShow = false
+  initState.recordButtonShowType = WidgetShowType.Hide
+  initState.isRecordButtonShowDisplay = false
+  local petHpInfoList = {}
+  for i = 1, 3 do
+    local petHpInfo = {}
+    petHpInfo.index = i
+    petHpInfo.teamEnum = BattleEnum.Team.ENUM_TEAM
+    table.insert(petHpInfoList, petHpInfo)
+  end
+  for i = 1, 2 do
+    local petHpInfo = {}
+    petHpInfo.index = i
+    petHpInfo.teamEnum = BattleEnum.Team.ENUM_ENEMY
+    table.insert(petHpInfoList, petHpInfo)
+  end
+  initState.petHpInfoList = petHpInfoList
+  local petHpInfoListDisplay = {}
+  for i, petHpInfo in ipairs(petHpInfoList) do
+    table.insert(petHpInfoListDisplay, petHpInfo)
+  end
+  initState.petHpInfoListDisplay = petHpInfoListDisplay
+  initState.hpBarsAndCardDecksConstructed = false
+  initState.renderOpacity = 1
+  initOption.initState = initState
+  self.stateManager:Init(initOption)
   self.UmgLoaders = {
     [BattleEnum.Operation.ENUM_CATCH] = self.BallOperationLoader,
     [BattleEnum.Operation.ENUM_ITEM] = self.ItemOperationLoader,
@@ -41,6 +200,8 @@ function UMG_BattleMainWindow_C:OnConstruct()
   self.LeaderEnergies = {}
   self.LeaderCardDeck = {}
   self.is_show_resonance = false
+  self.first_open_battle_rule = false
+  self.isCanCatch = false
   self.TerritoryTrialEnemyInformationProps = {}
   if BattleUtils.IsTerritoryTrialBattle() then
     self.isTerritoryTrialEnemyInformationNeedLoad = true
@@ -102,7 +263,6 @@ function UMG_BattleMainWindow_C:OnConstruct()
   self.imcPriority = -1
   self:BindInputAction()
   self:ShowWeatherUI()
-  self:SetBattleChatState(false)
   BattleUtils.FixClickByVolatileOnPC(self.UMG_Battle_Operate)
 end
 
@@ -112,9 +272,7 @@ function UMG_BattleMainWindow_C:SetBattleChatState(isShow)
     isShow = false
   end
   if isShow then
-    self.Btn_Chat:SetVisibility(UE4.ESlateVisibility.Visible)
   else
-    self.Btn_Chat:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
 end
 
@@ -154,6 +312,10 @@ end
 function UMG_BattleMainWindow_C:OnDestruct()
   if _G.GlobalConfig.DebugOpenUI then
     _G.NRCModuleManager:DoCmd(MainUIModuleCmd.OpenPanelLobbyMain)
+  end
+  local stateManager = self.stateManager
+  if stateManager then
+    stateManager:DeInit()
   end
   self:ReleaseDamageNumbers()
   table.clear(self.UmgLoaders)
@@ -219,8 +381,9 @@ function UMG_BattleMainWindow_C:OnActive()
   self.isShowing = false
   self.isBattleInputMappingContextAdded = false
   self.isRecordButtonInputAdded = false
+  self:UpdateStateWithBattleType()
+  self:UpdateStateWithFunctionBan()
   self:HideAll()
-  self:SetShowForRecordingAndChatBtn(false)
   self:TryInitData()
   if self.battleManager.isDefaultShowVisible then
     self:InitProcessVisible()
@@ -229,6 +392,13 @@ function UMG_BattleMainWindow_C:OnActive()
   if RocoEnv.PLATFORM == "PLATFORM_WINDOWS" then
     UE4.UNRCTUIStatics.ReleaseCursorCapture(0)
   end
+end
+
+function UMG_BattleMainWindow_C:SetPanelRenderOpacityState(renderOpacity)
+  renderOpacity = renderOpacity or 1
+  local _, nextState = self:GetCurrAndNextState()
+  nextState.renderOpacity = renderOpacity
+  self:SetState(nextState)
 end
 
 function UMG_BattleMainWindow_C:SetPanelRenderOpacity()
@@ -272,9 +442,7 @@ function UMG_BattleMainWindow_C:RefreshRecordButtonShowState()
   if self.isRecordButtonShow ~= self.isRecordButtonShowDisplay then
     self.isRecordButtonShowDisplay = self.isRecordButtonShow
     if self.isRecordButtonShowDisplay then
-      self.Btn_Record:SetVisibility(UE4.ESlateVisibility.Visible)
     else
-      self.Btn_Record:SetVisibility(UE4.ESlateVisibility.Collapsed)
     end
   end
 end
@@ -318,11 +486,7 @@ end
 
 function UMG_BattleMainWindow_C:UiAddInputMappingContext()
   self:recordInputActionTrigger()
-  local battleTutorialContext = self:GetInputMappingContext("IMC_BattleTutorial")
-  if battleTutorialContext and battleTutorialContext:IsMappingContextEnable() then
-    return
-  end
-  local mappingContext = self:GetInputMappingContext("IMC_Battle")
+  local mappingContext = self:GetInputMappingContext(imcBattleName)
   if mappingContext then
     mappingContext:EnableInputMappingContext(self.imcPriority)
   end
@@ -331,7 +495,7 @@ end
 
 function UMG_BattleMainWindow_C:UiRemoveInputMappingContext()
   self:recordInputActionTrigger()
-  local mappingContext = self:GetInputMappingContext("IMC_Battle")
+  local mappingContext = self:GetInputMappingContext(imcBattleName)
   if mappingContext then
     mappingContext:DisableInputMappingContext()
   end
@@ -339,82 +503,71 @@ function UMG_BattleMainWindow_C:UiRemoveInputMappingContext()
 end
 
 function UMG_BattleMainWindow_C:BindInputAction()
-  local mappingContext = self:AddInputMappingContext("IMC_Battle", self.imcPriority)
+  local mappingContext = self:AddInputMappingContext(imcBattleName, self.imcPriority)
   if mappingContext then
-    local actions = {
-      {
-        name = "IA_BattleSelectItemStart_1",
-        method = "SelectBattleItemStart1"
-      },
-      {
-        name = "IA_BattleSelectItemStart_2",
-        method = "SelectBattleItemStart2"
-      },
-      {
-        name = "IA_BattleSelectItemStart_3",
-        method = "SelectBattleItemStart3"
-      },
-      {
-        name = "IA_BattleSelectItemStart_4",
-        method = "SelectBattleItemStart4"
-      },
-      {
-        name = "IA_BattleSelectItemStart_5",
-        method = "SelectBattleItemStart5"
-      },
-      {
-        name = "IA_BattleSelectItemStart_6",
-        method = "SelectBattleItemStart6"
-      },
-      {
-        name = "IA_BattleSelectItemEnd_1",
-        method = "SelectBattleItemEnd1"
-      },
-      {
-        name = "IA_BattleSelectItemEnd_2",
-        method = "SelectBattleItemEnd2"
-      },
-      {
-        name = "IA_BattleSelectItemEnd_3",
-        method = "SelectBattleItemEnd3"
-      },
-      {
-        name = "IA_BattleSelectItemEnd_4",
-        method = "SelectBattleItemEnd4"
-      },
-      {
-        name = "IA_BattleSelectItemEnd_5",
-        method = "SelectBattleItemEnd5"
-      },
-      {
-        name = "IA_BattleSelectItemEnd_6",
-        method = "SelectBattleItemEnd6"
-      },
-      {
-        name = "IA_BattleRecord",
-        method = "OpenBattleRecord"
-      },
-      {
-        name = "IA_BattleSure",
-        method = "OpenBattleSelectSure"
-      },
-      {
-        name = "IA_BattleLeftSelect",
-        method = "SelectPrePet"
-      },
-      {
-        name = "IA_BattleRightSelect",
-        method = "SelectNextPet"
-      },
-      {
-        name = "IA_BattleChat",
-        method = "OpenBattleChat"
-      }
-    }
+  end
+end
+
+function UMG_BattleMainWindow_C:BindInputActionWhenIsShow()
+  local mappingContext = self:GetInputMappingContext(imcBattleName)
+  if mappingContext then
+    local actions = inputActionInfoListWhenIsShow or {}
     for _, action in ipairs(actions) do
-      mappingContext:BindAction(action.name, self, action.method, UE.ETriggerEvent.Triggered)
+      local name = action and action.name
+      local method = action and action.method
+      mappingContext:BindAction(name, self, method, UE.ETriggerEvent.Triggered)
     end
     self.UMG_Battle_Operate:BindInputAction()
+  end
+end
+
+function UMG_BattleMainWindow_C:UnBindInputActionWhenIsHide()
+  local mappingContext = self:GetInputMappingContext(imcBattleName)
+  if mappingContext then
+    local actions = inputActionInfoListWhenIsShow or {}
+    for _, action in ipairs(actions) do
+      local name = action and action.name
+      mappingContext:UnBindAction(name)
+    end
+    self.UMG_Battle_Operate:UnBindInputAction()
+  end
+end
+
+function UMG_BattleMainWindow_C:BindBattleRecordInputAction()
+  local mappingContext = self:GetInputMappingContext(imcBattleName)
+  if mappingContext then
+    local action = battleRecordInputActionInfo
+    local name = action and action.name
+    local method = action and action.method
+    mappingContext:BindAction(name, self, method, UE.ETriggerEvent.Triggered)
+  end
+end
+
+function UMG_BattleMainWindow_C:UnBindBattleRecordInputAction()
+  local mappingContext = self:GetInputMappingContext(imcBattleName)
+  if mappingContext then
+    local action = battleRecordInputActionInfo
+    local name = action and action.name
+    mappingContext:UnBindAction(name)
+  end
+end
+
+function UMG_BattleMainWindow_C:BindBattleChatInputAction()
+  local mappingContext = self:GetInputMappingContext(imcBattleName)
+  if mappingContext then
+    local action = battleChatInputActionInfo
+    local name = action and action.name
+    local method = action and action.method
+    mappingContext:BindAction(name, self, method, UE.ETriggerEvent.Triggered)
+  end
+end
+
+function UMG_BattleMainWindow_C:UnBindBattleChatInputAction()
+  local mappingContext = self:GetInputMappingContext(imcBattleName)
+  if mappingContext then
+    local action = battleChatInputActionInfo
+    local name = action and action.name
+    mappingContext:UnBindAction(name)
   end
 end
 
@@ -546,10 +699,22 @@ function UMG_BattleMainWindow_C:OnAddEventListener()
   self.Btn_GiveUp.OnPressed:Add(self, self.OnGiveUpPressed)
   self.Btn_GiveUp.OnReleased:Add(self, self.OnGiveUpReleased)
   self.TerritoryTrialEnemyInformationLoader.OnLoadPanelCallbackDelegate:Add(self, self.OnTerritoryTrialUILoaded)
-  _G.BattleEventCenter:Bind(self, BattleEvent.BATTLE_PET_CATCH_SUCCESS, BattleEvent.BATTLE_PET_DIE, BattleEvent.PLAYER_SPAWNED, BattleEvent.CHANGE_OPERATE_TYPE, BattleEvent.PET_SPAWNED, BattleEvent.PET_DISTROYED, BattleEvent.ON_CLICK_ESCAPE, BattleEvent.MULTI_PLAYER_TIP_CHANGE, BattleEvent.UPDATE_DATA, BattleEvent.PLAYER_LEAVE_GAME, BattleEvent.START_PVP_ROUND_TIME, BattleEvent.END_PVP_ROUND_TIME, BattleEvent.Show_RecordingBtn, BattleEvent.ARRIVE_TARGETED_SHOW_ENEMY_HP, BattleEvent.CHEER_SWITCH, BattleEvent.CHEER_ESCAPE, BattleEvent.SHOW_NO_MOVE_HP, BattleEvent.UI_SET_BATTLE_POS, BattleEvent.BATTLE_BEGIN_USE_PLAYERSKILL, BattleEvent.BATTLE_CANCEL_USE_PLAYERSKILL, BattleEvent.START_BATTLE_PERFORM, BattleEvent.BATTLE_PLAYERSKILL_ISHIDE_HP, BattleEvent.ON_CLICK_STEPAWAY, BattleEvent.ON_CLICK_GIVEUP, BattleEvent.INPUT_ACTION_TRIGGER, BattleEvent.ROUND_START, BattleEvent.SimulateClickBag, BattleEvent.PlayUIAnimation, BattleEvent.ReconnetBattle_RoundStrart, BattleEvent.REFRESH_BUFF, BattleEvent.ShowResonanceTip, BattlePerformEvent.AiPerformStart, BattlePerformEvent.AiPerformOver)
+  _G.BattleEventCenter:Bind(self, BattleEvent.BATTLE_PET_CATCH_SUCCESS, BattleEvent.BATTLE_PET_DIE, BattleEvent.PLAYER_SPAWNED, BattleEvent.CHANGE_OPERATE_TYPE, BattleEvent.PET_SPAWNED, BattleEvent.PET_DISTROYED, BattleEvent.ON_CLICK_ESCAPE, BattleEvent.MULTI_PLAYER_TIP_CHANGE, BattleEvent.UPDATE_DATA, BattleEvent.PLAYER_LEAVE_GAME, BattleEvent.START_PVP_ROUND_TIME, BattleEvent.END_PVP_ROUND_TIME, BattleEvent.Show_RecordingBtn, BattleEvent.ARRIVE_TARGETED_SHOW_ENEMY_HP, BattleEvent.CHEER_SWITCH, BattleEvent.CHEER_ESCAPE, BattleEvent.SHOW_NO_MOVE_HP, BattleEvent.UI_SET_BATTLE_POS, BattleEvent.BATTLE_BEGIN_USE_PLAYERSKILL, BattleEvent.BATTLE_CANCEL_USE_PLAYERSKILL, BattleEvent.START_BATTLE_PERFORM, BattleEvent.BATTLE_PLAYERSKILL_ISHIDE_HP, BattleEvent.BATTLE_PLAYERSKILL_PERFORMING_UPDATE, BattleEvent.ON_CLICK_STEPAWAY, BattleEvent.ON_CLICK_GIVEUP, BattleEvent.INPUT_ACTION_TRIGGER, BattleEvent.ROUND_START, BattleEvent.SimulateClickBag, BattleEvent.PlayUIAnimation, BattleEvent.ReconnetBattle_RoundStrart, BattleEvent.REFRESH_BUFF, BattleEvent.ShowResonanceTip, BattleEvent.NightmareShieldBreak, BattleEvent.BoxShieldBreak, BattlePerformEvent.AiPerformStart, BattlePerformEvent.AiPerformOver)
+  local battleManager = _G.BattleManager
+  local battleStateFsm = battleManager and battleManager.stateFsm
+  if battleStateFsm then
+    battleStateFsm:RegisterEvent(FsmEnum.Events.EnterState, self, self.HandleBattleFsmStateChanged)
+    battleStateFsm:RegisterEvent(FsmEnum.Events.ExitAction, self, self.HandleBattleFsmActionExit)
+  end
 end
 
 function UMG_BattleMainWindow_C:OnRemoveEventListener()
+  local battleManager = _G.BattleManager
+  local battleStateFsm = battleManager and battleManager.stateFsm
+  if battleStateFsm then
+    battleStateFsm:RemoveEvent(FsmEnum.Events.EnterState, self, self.HandleBattleFsmStateChanged)
+    battleStateFsm:RemoveEvent(FsmEnum.Events.ExitAction, self, self.HandleBattleFsmActionExit)
+  end
   self:RemoveButtonListener(self.Btn_characteristic, self.OnBtnCharacteristic)
   self:RemoveButtonListener(self.Btn_GiveUp, self.OnBtnGiveUp)
   self.Btn_GiveUp.OnPressed:Remove(self, self.OnGiveUpPressed)
@@ -580,7 +745,7 @@ function UMG_BattleMainWindow_C:OnBattleEvent(eventName, ...)
     self:RefreshCardDeck(...)
     return true
   elseif eventName == BattleEvent.ON_CLICK_ESCAPE then
-    self:OnDialogCallback(...)
+    self:OnDialogCallback((...), BattleEnum.RunAwayType.ClickEscape)
     return true
   elseif eventName == BattleEvent.MULTI_PLAYER_TIP_CHANGE then
     local context = (...)
@@ -602,7 +767,6 @@ function UMG_BattleMainWindow_C:OnBattleEvent(eventName, ...)
     return true
   elseif eventName == BattleEvent.Show_RecordingBtn then
     self.triggerInputActionName = nil
-    self:SetShowForRecordingAndChatBtn(true)
     return true
   elseif eventName == BattleEvent.ARRIVE_TARGETED_SHOW_ENEMY_HP then
     self:ArriveTargetedShowPetInfo()
@@ -631,19 +795,31 @@ function UMG_BattleMainWindow_C:OnBattleEvent(eventName, ...)
   elseif eventName == BattleEvent.BATTLE_PLAYERSKILL_ISHIDE_HP then
     self:IsHideHp(...)
     return true
+  elseif eventName == BattleEvent.BATTLE_PLAYERSKILL_PERFORMING_UPDATE then
+    local isPlayerSkillPerforming = (...)
+    local _, nextState = self:GetCurrAndNextState()
+    nextState.isPlayerSkillPerforming = isPlayerSkillPerforming
+    self:SetState(nextState)
+    return true
   elseif eventName == BattleEvent.ON_CLICK_STEPAWAY then
     self:OnStepAwayDialogCallback(...)
     return true
   elseif eventName == BattleEvent.ON_CLICK_GIVEUP then
-    self:OnDialogCallback(...)
+    self:OnDialogCallback((...), BattleEnum.RunAwayType.ClickEscape)
     return true
   elseif eventName == BattleEvent.INPUT_ACTION_TRIGGER then
     self:recordInputActionTrigger(...)
     return true
   elseif eventName == BattleEvent.ROUND_START then
+    self:CheckTerritoryTrialBattleHp()
     self:RefreshFinalBattleUI()
     self:RefreshCardDeck(...)
+    self:UpdateCanCatchState()
     self:StopHpWarning()
+    self:TryShowEnemyPetsDifferentColors()
+    local _, nextState = self:GetCurrAndNextState()
+    nextState.isPlayerSkillPerforming = false
+    self:SetState(nextState)
     return true
   elseif eventName == BattleEvent.SimulateClickBag then
     self:ChangeOperateMode(BattleEnum.Operation.ENUM_ITEM)
@@ -673,12 +849,17 @@ function UMG_BattleMainWindow_C:OnBattleEvent(eventName, ...)
     self:HandleAiPerformOver(aiPerform)
     return true
   elseif eventName == BattleEvent.ShowResonanceTip then
-    local is_resonance = (...)
-    self:ShowResonanceTip(is_resonance)
+    self:ShowResonanceTip()
+  elseif eventName == BattleEvent.NightmareShieldBreak then
+    local battlePet = (...)
+    self:OnPetShieldBreak(battlePet)
+  elseif eventName == BattleEvent.BoxShieldBreak then
+    local battlePet = (...)
+    self:OnPetShieldBreak(battlePet)
   end
 end
 
-function UMG_BattleMainWindow_C:ShowResonanceTip(is_resonance_skill)
+function UMG_BattleMainWindow_C:ShowResonanceTip()
   if self.is_show_resonance then
     return
   end
@@ -691,23 +872,49 @@ function UMG_BattleMainWindow_C:ShowResonanceTip(is_resonance_skill)
     return
   end
   if UE4.ESlateVisibility.Collapsed == self.ResonancePlane:GetVisibility() then
-    local is_show = false
-    if is_resonance_skill then
-      is_show = true
-    elseif BattleUtils.IsResonance() then
-      is_show = true
-    end
-    if is_show then
-      self.is_show_resonance = true
-      self.ResonancePlane:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-      self:PlayAnimation(self.Resonance_In)
-      _G.NRCAudioManager:PlaySound2DAuto(1152, "UMG_BattleMainWindow_C:ShowResonanceTip")
-    end
+    self.is_show_resonance = true
+    self.ResonancePlane:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    self:PlayAnimation(self.Resonance_In)
+    _G.NRCAudioManager:PlaySound2DAuto(1152, "UMG_BattleMainWindow_C:ShowResonanceTip")
   end
 end
 
 function UMG_BattleMainWindow_C:HideResonanceTip()
   self.ResonancePlane:SetVisibility(UE4.ESlateVisibility.Collapsed)
+end
+
+function UMG_BattleMainWindow_C:OnPetShieldBreak(battlePet)
+  self:UpdateCanCatchState()
+  local battleCard = battlePet and battlePet.card
+  local petInfo = battleCard and battleCard.petInfo
+  local commonPetInfo = petInfo and petInfo.battle_common_pet_info
+  local mutationType = commonPetInfo and commonPetInfo.mutation_type
+  if PetMutationUtils.GetMutationValue(mutationType, _G.Enum.MutationDiffType.MDT_SHINING) then
+    _G.NRCModeManager:DoCmd(_G.BattleUIModuleCmd.OpenBattlePopUpDiscoveringDifferentlyColoredPetTips, 2.5)
+  end
+  self:TryShowPetDifferentColors(battlePet)
+end
+
+function UMG_BattleMainWindow_C:TryShowEnemyPetsDifferentColors()
+  local state = self:GetState()
+  local enemyPetMap = state and state.enemyPetPosMap or {}
+  for i, enemyPet in pairs(enemyPetMap) do
+    self:TryShowPetDifferentColors(enemyPet)
+  end
+end
+
+function UMG_BattleMainWindow_C:TryShowPetDifferentColors(battlePet)
+  local battleCard = battlePet and battlePet.card
+  local petInfo = battleCard and battleCard.petInfo
+  local commonPetInfo = petInfo and petInfo.battle_common_pet_info
+  local mutationType = commonPetInfo and commonPetInfo.mutation_type
+  local isShining = PetMutationUtils.GetMutationValue(mutationType, _G.Enum.MutationDiffType.MDT_SHINING)
+  local battlePetComponents = battlePet and battlePet.battlePetComponents
+  local isCanCatch = self.isCanCatch or false
+  local showShining = isCanCatch and isShining
+  if battlePetComponents then
+    battlePetComponents:SetIsDifferentColorsPet(showShining)
+  end
 end
 
 function UMG_BattleMainWindow_C:ShowBattleSkillPickPanel(_IsShow)
@@ -725,6 +932,9 @@ end
 
 function UMG_BattleMainWindow_C:IsHideHp(IsShow)
   Log.Debug(IsShow, self:IsAnimationPlaying(self.closeInfo), self:IsAnimationPlaying(self.openInfo), "UMG_BattleMainWindow_C:IsHideHp")
+  local _, nextState = self:GetCurrAndNextState()
+  nextState.isInfoShow = IsShow or false
+  self:SetState(nextState)
   if IsShow then
     if not self:IsAnimationPlaying(self.openInfo) then
       self:ShowHPBars()
@@ -733,7 +943,6 @@ function UMG_BattleMainWindow_C:IsHideHp(IsShow)
   elseif not self:IsAnimationPlaying(self.closeInfo) then
     self:HideHPBars()
   end
-  self:SetShowForRecordingAndChatBtn(IsShow)
 end
 
 function UMG_BattleMainWindow_C:ChangeHpTypeByBattleType()
@@ -889,8 +1098,10 @@ function UMG_BattleMainWindow_C:OnBtnChatClicked()
   _G.NRCModuleManager:DoCmd(_G.FriendModuleCmd.OpenChatMainPanel, 0, nil, nil, bOpenByQuickChat, bOpenInBattle)
 end
 
-function UMG_BattleMainWindow_C:SetShowForRecordingAndChatBtn(isShow)
-  local isChatButtonShow = isShow
+function UMG_BattleMainWindow_C:SetShowForRecordingAndChatBtn(isShow, isChatButtonShow)
+  if nil == isChatButtonShow then
+    isChatButtonShow = isShow
+  end
   if BattleUtils.IsB1FinalBattleP3() or BattleUtils.IsB1FinalBattleP2() then
     isShow = false
     isChatButtonShow = false
@@ -960,6 +1171,7 @@ function UMG_BattleMainWindow_C:UpdateData(pet, isUpdateChange)
   self.pet = pet
   self.UMG_Battle_Operate:SetGuid(pet.card.guid, pet)
   self:OnBuffRefresh()
+  self:UpdateStateWithBattleType()
 end
 
 function UMG_BattleMainWindow_C:PlayerLeaveGame(player, forceHideHP)
@@ -1016,6 +1228,31 @@ function UMG_BattleMainWindow_C:InactivePetUI(pet)
 end
 
 function UMG_BattleMainWindow_C:HidePetUI(pet, isDelayHideHp)
+  local petGuid = pet and pet.guid
+  local currState, nextState = self:GetCurrAndNextState()
+  local currPetHpInfoList = currState and currState.petHpInfoList or {}
+  local nextPetHpInfoList = {}
+  table.copy(currPetHpInfoList, nextPetHpInfoList)
+  local hasAnyChange = false
+  for i, petHpInfo in ipairs(currPetHpInfoList) do
+    local petHpInfoPetGuid = petHpInfo and petHpInfo.petGid
+    if petHpInfoPetGuid == petGuid then
+      local nextPetHpInfo = {}
+      table.copy(petHpInfo, nextPetHpInfo)
+      nextPetHpInfo.petGid = nil
+      nextPetHpInfo.battlePet = nil
+      nextPetHpInfo.updateFlag = {}
+      nextPetHpInfoList[i] = nextPetHpInfo
+      hasAnyChange = true
+    end
+  end
+  if hasAnyChange then
+    nextState.petHpInfoList = nextPetHpInfoList
+    self:SetState(nextState)
+  end
+end
+
+function UMG_BattleMainWindow_C:HidePetInfoUI(pet)
   if pet then
     local hpList = {}
     local energyList, cardDeckList
@@ -1081,9 +1318,15 @@ function UMG_BattleMainWindow_C:ChangeOperateMode(enum)
 end
 
 function UMG_BattleMainWindow_C:HideAll(option)
+  do
+    local _, nextState = self:GetCurrAndNextState()
+    nextState.isShow = false
+    self:SetState(nextState)
+  end
   local excludeDeck = option and option.excludeDeck
   local excludeSkillTransmissionItems = option and option.excludeSkillTransmissionItems
   local excludeRecordButton = option and option.excludeRecordButton
+  local excludeChatButton = option and option.excludeChatButton
   local excludeChatBubbles = option and option.excludeChatBubbles
   local excludeTerritoryTrialUi = option and option.excludeTerritoryTrialUi
   if nil == excludeSkillTransmissionItems then
@@ -1144,7 +1387,6 @@ function UMG_BattleMainWindow_C:HideAll(option)
   self._opBeforeHide = self._curOperateType
   self:ChangePanelByOperateType(BattleEnum.Operation.ENUM_NONE, withAnim, callback)
   self:TryCloseSubPanelTips()
-  self:UiRemoveInputMappingContext()
   if not excludeChatBubbles then
     self:HideChatBubbles()
   end
@@ -1156,11 +1398,20 @@ function UMG_BattleMainWindow_C:HideAll(option)
   if prevIsRecordButtonShow and excludeRecordButton then
     nextIsRecordButtonShow = true
   end
-  self:SetShowForRecordingAndChatBtn(nextIsRecordButtonShow)
+  local prevIsChatButtonShow = self.isChatButtonShow
+  local nextIsChatButtonShow = false
+  if prevIsChatButtonShow and excludeChatButton then
+    nextIsChatButtonShow = true
+  end
   self.module:OnCmdHideWarningPrompt()
 end
 
 function UMG_BattleMainWindow_C:ShowAll()
+  do
+    local _, nextState = self:GetCurrAndNextState()
+    nextState.isShow = true
+    self:SetState(nextState)
+  end
   NRCModeManager:GetCurMode():DisablePanelByLayer(_G.Enum.UILayerType.UI_LAYER_MAIN)
   self:SetAllInputMappingContextActive(true)
   if BattleUtils.IsWorldLeaderFight() then
@@ -1191,10 +1442,8 @@ function UMG_BattleMainWindow_C:ShowAll()
   self:CheckB1FinalBattleP1UI()
   self:CheckB1FinalBattleP2UI()
   self:CheckB1FinalBattleP3UI()
-  self:UiAddInputMappingContext()
   self:ShowTerritoryTrialUI()
   self:ShowChatBubbles()
-  self:SetShowForRecordingAndChatBtn(true)
 end
 
 function UMG_BattleMainWindow_C:GetBattleRuleIds()
@@ -1238,10 +1487,7 @@ function UMG_BattleMainWindow_C:OnBtnCharacteristic()
   if _G.BattleUtils.IsNpcChallenge() or _G.BattleUtils.IsLeaderChallenge() then
     BattleBossChallengeUtils.ShowUmgMechanismClick()
   else
-    local battleRules = self:GetBattleRuleIds()
-    if #battleRules > 0 then
-      _G.NRCModuleManager:DoCmd(BattleUIModuleCmd.OpenWarningPrompt, battleRules)
-    end
+    self:OpenBattleRuleTip()
   end
 end
 
@@ -1249,7 +1495,31 @@ function UMG_BattleMainWindow_C:ShowBattleRuleTip()
   local battleRules = self:GetBattleRuleIds()
   if #battleRules > 0 or _G.BattleUtils.IsNpcChallenge() or _G.BattleUtils.IsLeaderChallenge() then
     self.Btn_characteristic:SetVisibility(UE4.ESlateVisibility.Visible)
+    if not self.first_open_battle_rule then
+      self.first_open_battle_rule = true
+      self:OpenBattleRuleTip(true)
+      self.open_battle_rule_id = _G.DelayManager:DelaySeconds(2, self.CloseBattleRuleTip, self)
+    end
   end
+end
+
+function UMG_BattleMainWindow_C:OpenBattleRuleTip(auto_close)
+  local battleRules = self:GetBattleRuleIds()
+  if #battleRules > 0 then
+    if BattleUtils.IsNpcChallenge() or BattleUtils.IsLeaderChallenge() then
+      _G.NRCModuleManager:DoCmd(BattleUIModuleCmd.OpenWarningPrompt, battleRules)
+    else
+      _G.NRCModuleManager:DoCmd(PVEModuleCmd.OpenPveWarningPrompt, battleRules, auto_close)
+    end
+  end
+end
+
+function UMG_BattleMainWindow_C:CloseBattleRuleTip()
+  if self.open_battle_rule_id then
+    _G.DelayManager:CancelDelayById(self.open_battle_rule_id)
+    _G.NRCModuleManager:DoCmd(_G.BattleUIModuleCmd.CloseWarningPrompt)
+  end
+  self.open_battle_rule_id = nil
 end
 
 function UMG_BattleMainWindow_C:HideBattleRuleTip()
@@ -1314,6 +1584,9 @@ function UMG_BattleMainWindow_C:PCKeySetting()
 end
 
 function UMG_BattleMainWindow_C:HideHPBars()
+  local _, nextState = self:GetCurrAndNextState()
+  nextState.isInfoShow = false
+  self:SetState(nextState)
   if self.isShowingHP then
     self.isShowingHP = false
     self:StopAnimation(self.openInfo)
@@ -1375,6 +1648,9 @@ function UMG_BattleMainWindow_C:ForceHideHP()
 end
 
 function UMG_BattleMainWindow_C:ShowHPBars()
+  local _, nextState = self:GetCurrAndNextState()
+  nextState.isInfoShow = true
+  self:SetState(nextState)
   if self.isShowingHP then
     return
   end
@@ -1572,8 +1848,8 @@ function UMG_BattleMainWindow_C:ChangeBattleOperate(flag)
   end
 end
 
-function UMG_BattleMainWindow_C:OnDialogCallback(result)
-  if result and _G.BattleNetManager:SendEscapeReqWithHandle(self, self.GetEscapeRsp) then
+function UMG_BattleMainWindow_C:OnDialogCallback(result, runAwayType)
+  if result and _G.BattleNetManager:SendEscapeReqWithHandle(self, self.GetEscapeRsp, runAwayType) then
     self.waitEscapeReq = true
     return
   end
@@ -1655,6 +1931,19 @@ function UMG_BattleMainWindow_C:EffectPlayUIAnimation(animId, card, warnRound)
   end
 end
 
+function UMG_BattleMainWindow_C:CheckTerritoryTrialBattleHp()
+  if BattleUtils.IsTerritoryTrialBattle() then
+    local currState, nextState = self:GetCurrAndNextState()
+    local currPetHpInfoList = currState and currState.petHpInfoList or {}
+    for i, petHpInfo in ipairs(currPetHpInfoList) do
+      local petHpInfoPet = petHpInfo and petHpInfo.battlePet
+      if petHpInfoPet and petHpInfoPet.teamEnm == BattleEnum.Team.ENUM_ENEMY and petHpInfoPet.card and not petHpInfoPet.card:IsExistAtField() then
+        self:HidePetUI(petHpInfoPet)
+      end
+    end
+  end
+end
+
 function UMG_BattleMainWindow_C:RefreshCardDeck(pet)
   if not pet then
     return
@@ -1705,6 +1994,9 @@ function UMG_BattleMainWindow_C:RefreshCardDeck(pet)
   if pet.teamEnm == BattleEnum.Team.ENUM_ENEMY and self.EnemyCardDecks then
     for i, v in ipairs(self.EnemyCardDecks) do
       if v.player == pet.player then
+        if v.player then
+          v.player:RefreshDeadPetNum()
+        end
         v:UpdateData()
         summon = v:GetRealSummonNumber()
       end
@@ -1715,6 +2007,22 @@ function UMG_BattleMainWindow_C:RefreshCardDeck(pet)
   else
     self:InactivePetUI(pet)
   end
+end
+
+function UMG_BattleMainWindow_C:UpdateCanCatchState()
+  local isTeam = BattleUtils.IsTeam()
+  local isCatchBattleMode = BattleUtils.IsCatchBattleMode()
+  local isBadgeChallenge = false
+  local battleManager = _G.BattleManager
+  local isTeamBossToCatch = battleManager and battleManager.IsTeamBossToCatch or false
+  local isCanCatch = false
+  if isCatchBattleMode or isTeam and isTeamBossToCatch then
+    isCanCatch = true
+  end
+  if isBadgeChallenge then
+    isCanCatch = false
+  end
+  self.isCanCatch = isCanCatch
 end
 
 function UMG_BattleMainWindow_C:SetCardDeck(player)
@@ -1841,6 +2149,40 @@ function UMG_BattleMainWindow_C:ShowPetHP(pet)
   end
   local team = pet.teamEnm
   local index = pet.card.posInField
+  local petGuid = pet and pet.guid
+  if team == BattleEnum.Team.ENUM_TEAM then
+  else
+    local capacity = math.min(_G.BattleManager.battleRuntimeData.enemyPetNumber, #self.EnemyHPList)
+    index = capacity - (index - 1)
+  end
+  local currState, nextState = self:GetCurrAndNextState()
+  local currPetHpInfoList = currState and currState.petHpInfoList or {}
+  local nextPetHpInfoList = {}
+  table.copy(currPetHpInfoList, nextPetHpInfoList)
+  local hasAnyChange = false
+  for i, petHpInfo in ipairs(currPetHpInfoList) do
+    local petHpInfoTeamEnum = petHpInfo and petHpInfo.teamEnum
+    local petHpInfoIndex = petHpInfo and petHpInfo.index
+    if petHpInfoTeamEnum == team and petHpInfoIndex == index then
+      local nextPetHpInfo = {}
+      table.copy(petHpInfo, nextPetHpInfo)
+      nextPetHpInfo.petGid = petGuid
+      nextPetHpInfo.battlePet = pet
+      nextPetHpInfo.updateFlag = {}
+      nextPetHpInfoList[i] = nextPetHpInfo
+      hasAnyChange = true
+    end
+  end
+  if hasAnyChange then
+    nextState.petHpInfoList = nextPetHpInfoList
+    self:SetState(nextState)
+  end
+end
+
+function UMG_BattleMainWindow_C:ShowPetHpInfo(petHpInfo)
+  local team = petHpInfo and petHpInfo.teamEnum
+  local index = petHpInfo and petHpInfo.index
+  local pet = petHpInfo and petHpInfo.battlePet
   local hpList, hpAnimList, cardDeckList, energyViewList, energyAnimList, cardDeckAnimList, showAnimList, hideAnimList
   self:CheckFinalBattleUI()
   if team == BattleEnum.Team.ENUM_TEAM then
@@ -1852,8 +2194,6 @@ function UMG_BattleMainWindow_C:ShowPetHP(pet)
       self.finalBattlePet = pet
       return
     end
-    local capacity = math.min(_G.BattleManager.battleRuntimeData.enemyPetNumber, #self.EnemyHPList)
-    index = capacity - (index - 1)
     if BattleUtils.IsWorldLeaderFight() then
       hpList = self.LeaderHpList
       cardDeckList = self.LeaderCardDeck
@@ -1896,8 +2236,8 @@ function UMG_BattleMainWindow_C:ShowPetHP(pet)
     cardDeckList[index]:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     if hpAnimList and showAnimList and hideAnimList and hpList[index].battlePet and hpList[index].battlePet ~= pet then
       hpList[index]:PlayerLeave()
-      self:PlayAnimation(showAnimList[index])
       self:PlayAnimation(hideAnimList[index])
+      self:PlayAnimation(showAnimList[index])
       self:OnSetHpAnimInfo(index, hpAnimList, energyAnimList, cardDeckAnimList, pet, true, true)
     else
       self:SetHpInfo(index, pet)
@@ -2019,7 +2359,10 @@ function UMG_BattleMainWindow_C:OnOperatePanelChangedClick(operateType, isChecke
     State = true
   else
     State = false
-    _G.BattleEventCenter:Dispatch(BattleEvent.Clear_SkillList)
+    if BattleUtils.IsWatchingBattle() then
+    else
+      _G.BattleEventCenter:Dispatch(BattleEvent.Clear_SkillList)
+    end
   end
   self:ShowBattleSkillPickPanel(State)
   local prevOpType = self._curOperateType
@@ -2033,7 +2376,11 @@ end
 function UMG_BattleMainWindow_C:ChangeByOperateType(operateType)
   if self.IsPlayerSkillSuccess and operateType == BattleEnum.Operation.ENUM_ITEM then
     if _G.BattleManager.vBattleField.battleCameraManager then
-      _G.BattleManager.vBattleField.battleCameraManager:ChangeByOperateType(BattleEnum.Operation.ENUM_PLAYERSKILL)
+      if BattleUtils.IsFinalBattleP1() and BattleUtils.CheckMyPlayerItemRemainCount(104009) then
+        _G.BattleManager.vBattleField.battleCameraManager:ChangeByOperateType(operateType)
+      else
+        _G.BattleManager.vBattleField.battleCameraManager:ChangeByOperateType(BattleEnum.Operation.ENUM_PLAYERSKILL)
+      end
     end
   elseif _G.BattleManager.vBattleField.battleCameraManager then
     _G.BattleManager.vBattleField.battleCameraManager:ChangeByOperateType(operateType)
@@ -2056,6 +2403,12 @@ function UMG_BattleMainWindow_C:OnTick(DeltaTime)
     local CatchPanel = self:GetSubPanel(BattleEnum.Operation.ENUM_CATCH)
     if CatchPanel then
       CatchPanel:OnTick(DeltaTime)
+    end
+  end
+  if self._curOperateType == BattleEnum.Operation.ENUM_CHANGE then
+    local changePanel = self:GetSubPanel(BattleEnum.Operation.ENUM_CHANGE)
+    if changePanel then
+      changePanel:OnTick(DeltaTime)
     end
   end
 end
@@ -2171,10 +2524,28 @@ function UMG_BattleMainWindow_C:ChangePanelByOperateType(operateType, withAnim, 
   end
 end
 
+function UMG_BattleMainWindow_C:OnAnimationStarted(Animation)
+  if Animation == self.openInfo then
+    local _, nextState = self:GetCurrAndNextState()
+    nextState.isOpenInfoAnimPlaying = true
+    self:SetState(nextState)
+  elseif Animation == self.closeInfo then
+    local _, nextState = self:GetCurrAndNextState()
+    nextState.isCloseInfoAnimPlaying = true
+    self:SetState(nextState)
+  end
+end
+
 function UMG_BattleMainWindow_C:OnAnimationFinished(Animation)
   if Animation == self.closeInfo then
+    local _, nextState = self:GetCurrAndNextState()
+    nextState.isCloseInfoAnimPlaying = false
+    self:SetState(nextState)
     self:ForceHideHP()
-    self:SetShowForRecordingAndChatBtn(false)
+  elseif Animation == self.openInfo then
+    local _, nextState = self:GetCurrAndNextState()
+    nextState.isOpenInfoAnimPlaying = false
+    self:SetState(nextState)
   elseif Animation == self.Change_right_1 then
     if not BattleUtils.IsWorldLeaderFight() then
       self:OnSetHpAnimInfo(1, self.EnemyHPList, self.EnemyEnergies, self.EnemyCardDecks, nil, true, false)
@@ -2451,6 +2822,9 @@ end
 
 function UMG_BattleMainWindow_C:OnHpBarsAndCardDecksConstructed(ok)
   self.ConstructHealthBarContext = nil
+  local _, nextState = self:GetCurrAndNextState()
+  nextState.hpBarsAndCardDecksConstructed = true
+  self:SetState(nextState)
   if ok then
     self:TryInitData()
   end
@@ -2484,7 +2858,6 @@ function UMG_BattleMainWindow_C:CheckB1FinalBattleP3UI()
   if not BattleUtils.IsB1FinalBattleP3() then
     return
   end
-  self:SetShowForRecordingAndChatBtn(false)
 end
 
 function UMG_BattleMainWindow_C:CheckB1FinalBattleP2UI()
@@ -2503,7 +2876,6 @@ function UMG_BattleMainWindow_C:CheckB1FinalBattleP2UI()
     EnemyCardDeck:SetVisibility(UE4.ESlateVisibility.Collapsed)
     EnemyCardDeck:SetRenderOpacity(0)
   end
-  self:SetShowForRecordingAndChatBtn(false)
 end
 
 function UMG_BattleMainWindow_C:OpenFinalBattleWishPowerPanel()
@@ -2577,6 +2949,441 @@ function UMG_BattleMainWindow_C:UpdateTerritoryTrialUI(nextProps)
   end
 end
 
+function UMG_BattleMainWindow_C.UpdateDerivedState(prevProps, currProps, prevState, currState, derivedState)
+  local prevInfoShowType = prevState and prevState.infoShowType
+  local currInfoShowType = currState and currState.infoShowType
+  local prevIsInfoShow = prevState and prevState.isInfoShow or false
+  local currIsInfoShow = currState and currState.isInfoShow or false
+  local prevChatButtonShowType = prevState and prevState.chatButtonShowType
+  local currChatButtonShowType = currState and currState.chatButtonShowType
+  local prevRecordButtonShowType = prevState and prevState.recordButtonShowType
+  local currRecordButtonShowType = currState and currState.recordButtonShowType
+  local prevBattleFsmActiveStateName = prevState and prevState.battleFsmActiveStateName
+  local currBattleFsmActiveStateName = currState and currState.battleFsmActiveStateName
+  local prevIsAiPerformCam = prevState and prevState.isAiPerformCam
+  local currIsAiPerformCam = currState and currState.isAiPerformCam
+  local prevIsTeamBattle = prevState and prevState.isTeamBattle
+  local currIsTeamBattle = currState and currState.isTeamBattle
+  local prevIsB1FinalBattleP2 = prevState and prevState.isB1FinalBattleP2
+  local currIsB1FinalBattleP2 = currState and currState.isB1FinalBattleP2
+  local prevIsB1FinalBattleP3 = prevState and prevState.isB1FinalBattleP3
+  local currIsB1FinalBattleP3 = currState and currState.isB1FinalBattleP3
+  local prevIsFunctionBanChatButton = prevState and prevState.isFunctionBanChatButton
+  local currIsFunctionBanChatButton = currState and currState.isFunctionBanChatButton
+  local prevRenderOpacity = prevState and prevState.renderOpacity
+  local currRenderOpacity = currState and currState.renderOpacity
+  local prevPetHpInfoList = prevState and prevState.petHpInfoList
+  local currPetHpInfoList = currState and currState.petHpInfoList
+  if prevChatButtonShowType ~= currChatButtonShowType then
+    UMG_BattleMainWindow_C.DeriveChatButtonShowDisplay(currChatButtonShowType, derivedState)
+  end
+  if prevRecordButtonShowType ~= currRecordButtonShowType then
+    UMG_BattleMainWindow_C.DeriveRecordButtonShowDisplay(currRecordButtonShowType, derivedState)
+  end
+  local battleFsmActiveStateNameChangedAndNotStandbyState = prevBattleFsmActiveStateName ~= currBattleFsmActiveStateName and currBattleFsmActiveStateName ~= BattleEnum.StateNames.Standby
+  if battleFsmActiveStateNameChangedAndNotStandbyState or prevIsInfoShow ~= currIsInfoShow or prevIsAiPerformCam ~= currIsAiPerformCam or prevIsB1FinalBattleP2 ~= currIsB1FinalBattleP2 or prevIsB1FinalBattleP3 ~= currIsB1FinalBattleP3 or prevIsFunctionBanChatButton ~= currIsFunctionBanChatButton or prevRenderOpacity ~= currRenderOpacity then
+    UMG_BattleMainWindow_C.DeriveChatButtonShow(currBattleFsmActiveStateName, currIsInfoShow, currIsAiPerformCam, currIsB1FinalBattleP2, currIsB1FinalBattleP3, prevIsFunctionBanChatButton, currRenderOpacity, derivedState)
+  end
+  if battleFsmActiveStateNameChangedAndNotStandbyState or prevIsInfoShow ~= currIsInfoShow or prevIsAiPerformCam ~= currIsAiPerformCam or prevIsTeamBattle ~= currIsTeamBattle or prevIsB1FinalBattleP2 ~= currIsB1FinalBattleP2 or prevIsB1FinalBattleP3 ~= currIsB1FinalBattleP3 or prevRenderOpacity ~= currRenderOpacity then
+    UMG_BattleMainWindow_C.DeriveRecordButtonShow(currBattleFsmActiveStateName, currIsInfoShow, currIsAiPerformCam, currIsTeamBattle, currIsB1FinalBattleP2, currIsB1FinalBattleP3, currRenderOpacity, derivedState)
+  end
+  if prevPetHpInfoList ~= currPetHpInfoList then
+    UMG_BattleMainWindow_C.DeriveEnemyPetPosMap(currPetHpInfoList, derivedState)
+  end
+end
+
+function UMG_BattleMainWindow_C.DeriveStateFromProps(prevState, nextProps)
+  return prevState
+end
+
+function UMG_BattleMainWindow_C.DeriveChatButtonShowDisplay(recordButtonShowType, derivedState)
+  local isShowDisplay = false
+  if recordButtonShowType and recordButtonShowType ~= WidgetShowType.Hide then
+    isShowDisplay = true
+  end
+  derivedState.isChatButtonShowDisplay = isShowDisplay
+end
+
+function UMG_BattleMainWindow_C.DeriveRecordButtonShowDisplay(chatButtonShowType, derivedState)
+  local isShowDisplay = false
+  if chatButtonShowType and chatButtonShowType ~= WidgetShowType.Hide then
+    isShowDisplay = true
+  end
+  derivedState.isRecordButtonShowDisplay = isShowDisplay
+end
+
+function UMG_BattleMainWindow_C.DeriveChatButtonShow(battleFsmActiveStateName, isInfoShow, isAiPerformCam, isB1FinalBattleP2, isB1FinalBattleP3, isFunctionBanChatButton, mainWindowRenderOpacity, derivedState)
+  isAiPerformCam = isAiPerformCam or false
+  isB1FinalBattleP2 = isB1FinalBattleP2 or false
+  isB1FinalBattleP3 = isB1FinalBattleP3 or false
+  isFunctionBanChatButton = isFunctionBanChatButton or false
+  mainWindowRenderOpacity = mainWindowRenderOpacity or 1
+  local localChatButtonCanShowStateNameList = chatButtonCanShowStateNameList or {}
+  local containName = table.contains(localChatButtonCanShowStateNameList, battleFsmActiveStateName)
+  local isChatButtonShow = false
+  if containName and isInfoShow and not isAiPerformCam and not isB1FinalBattleP2 and not isB1FinalBattleP3 and not isFunctionBanChatButton and mainWindowRenderOpacity > 0 then
+    isChatButtonShow = true
+  end
+  derivedState.isChatButtonShow = isChatButtonShow
+end
+
+function UMG_BattleMainWindow_C.DeriveRecordButtonShow(battleFsmActiveStateName, isInfoShow, isAiPerformCam, isTeamBattle, isB1FinalBattleP2, isB1FinalBattleP3, mainWindowRenderOpacity, derivedState)
+  isAiPerformCam = isAiPerformCam or false
+  isTeamBattle = isTeamBattle or false
+  isB1FinalBattleP2 = isB1FinalBattleP2 or false
+  isB1FinalBattleP3 = isB1FinalBattleP3 or false
+  mainWindowRenderOpacity = mainWindowRenderOpacity or 1
+  local localRecordButtonCanShowStateNameList = recordButtonCanShowStateNameList or {}
+  local containName = table.contains(localRecordButtonCanShowStateNameList, battleFsmActiveStateName)
+  local isRecordButtonShow = false
+  if containName and isInfoShow and not isAiPerformCam and not isTeamBattle and not isB1FinalBattleP2 and not isB1FinalBattleP3 and mainWindowRenderOpacity > 0 then
+    isRecordButtonShow = true
+  end
+  derivedState.isRecordButtonShow = isRecordButtonShow
+end
+
+function UMG_BattleMainWindow_C.DeriveEnemyPetPosMap(petHpInfoList, derivedState)
+  local enemyPetPosMap = {}
+  petHpInfoList = petHpInfoList or {}
+  for i, petHpInfo in ipairs(petHpInfoList) do
+    local teamEnum = petHpInfo and petHpInfo.teamEnum
+    local index = petHpInfo and petHpInfo.index
+    local battlePet = petHpInfo and petHpInfo.battlePet
+    if teamEnum == BattleEnum.Team.ENUM_ENEMY and index then
+      enemyPetPosMap[index] = battlePet
+    end
+  end
+  derivedState.enemyPetPosMap = enemyPetPosMap
+end
+
+function UMG_BattleMainWindow_C:RenderWidget(prevProps, currProps, prevState, currState)
+  local prevIsChatButtonShowDisplay = prevState and prevState.isChatButtonShowDisplay
+  local currIsChatButtonShowDisplay = currState and currState.isChatButtonShowDisplay
+  local prevIsRecordButtonShowDisplay = prevState and prevState.isRecordButtonShowDisplay
+  local currIsRecordButtonShowDisplay = currState and currState.isRecordButtonShowDisplay
+  local prevRenderOpacity = prevState and prevState.renderOpacity
+  local currRenderOpacity = currState and currState.renderOpacity
+  if prevIsChatButtonShowDisplay ~= currIsChatButtonShowDisplay then
+    self:RenderChatButtonVisibility(currIsChatButtonShowDisplay)
+  end
+  if prevIsRecordButtonShowDisplay ~= currIsRecordButtonShowDisplay then
+    self:RenderRecordButtonVisibility(currIsRecordButtonShowDisplay)
+  end
+  if prevRenderOpacity ~= currRenderOpacity then
+    self:RenderMainWindowRenderOpacity(currRenderOpacity)
+  end
+end
+
+function UMG_BattleMainWindow_C:RenderChatButtonVisibility(isChatButtonShowDisplay)
+  local chatButtonVisibility = UE.ESlateVisibility.Collapsed
+  if isChatButtonShowDisplay then
+    chatButtonVisibility = UE.ESlateVisibility.Visible
+  end
+  self.Btn_Chat:SetVisibility(chatButtonVisibility)
+end
+
+function UMG_BattleMainWindow_C:RenderRecordButtonVisibility(isRecordButtonShowDisplay)
+  local recordButtonVisibility = UE.ESlateVisibility.Collapsed
+  if isRecordButtonShowDisplay then
+    recordButtonVisibility = UE.ESlateVisibility.Visible
+  end
+  self.Btn_Record:SetVisibility(recordButtonVisibility)
+end
+
+function UMG_BattleMainWindow_C:RenderMainWindowRenderOpacity(renderOpacity)
+  renderOpacity = renderOpacity or 1
+  self:SetRenderOpacity(renderOpacity)
+end
+
+function UMG_BattleMainWindow_C:OnWidgetDidUpdate(prevProps, currProps, prevState, currState)
+  local prevIsShow = prevState and prevState.isShow or false
+  local currIsShow = currState and currState.isShow or false
+  local prevIsOpenInfoAnimPlaying = prevState and prevState.isOpenInfoAnimPlaying or false
+  local currIsOpenInfoAnimPlaying = currState and currState.isOpenInfoAnimPlaying or false
+  local prevIsCloseInfoAnimPlaying = prevState and prevState.isCloseInfoAnimPlaying or false
+  local currIsCloseInfoAnimPlaying = currState and currState.isCloseInfoAnimPlaying or false
+  local prevIsInfoShow = prevState and prevState.isInfoShow
+  local currIsInfoShow = currState and currState.isInfoShow
+  local prevInfoShowType = prevState and prevState.infoShowType
+  local currInfoShowType = currState and currState.infoShowType
+  local prevIsChatButtonShow = prevState and prevState.isChatButtonShow or false
+  local currIsChatButtonShow = currState and currState.isChatButtonShow or false
+  local prevChatButtonShowType = prevState and prevState.chatButtonShowType
+  local currChatButtonShowType = currState and currState.chatButtonShowType
+  local prevIsRecordButtonShow = prevState and prevState.isRecordButtonShow or false
+  local currIsRecordButtonShow = currState and currState.isRecordButtonShow or false
+  local prevRecordButtonShowType = prevState and prevState.recordButtonShowType
+  local currRecordButtonShowType = currState and currState.recordButtonShowType
+  local prevPetHpInfoList = prevState and prevState.petHpInfoList or {}
+  local currPetHpInfoList = currState and currState.petHpInfoList or {}
+  local prevHpBarsAndCardDecksConstructed = prevState and prevState.hpBarsAndCardDecksConstructed or false
+  local currHpBarsAndCardDecksConstructed = currState and currState.hpBarsAndCardDecksConstructed or false
+  local prevIsPlayerSkillPerforming = prevState and prevState.isPlayerSkillPerforming or false
+  local currIsPlayerSkillPerforming = currState and currState.isPlayerSkillPerforming or false
+  if prevIsInfoShow ~= currIsInfoShow or prevIsOpenInfoAnimPlaying ~= currIsOpenInfoAnimPlaying or prevIsCloseInfoAnimPlaying ~= currIsCloseInfoAnimPlaying or prevInfoShowType ~= currInfoShowType then
+    self:UpdateInfoShowType(currIsInfoShow, currInfoShowType, currIsOpenInfoAnimPlaying, currIsCloseInfoAnimPlaying)
+  end
+  if prevIsChatButtonShow ~= currIsChatButtonShow or prevIsOpenInfoAnimPlaying ~= currIsOpenInfoAnimPlaying or prevIsCloseInfoAnimPlaying ~= currIsCloseInfoAnimPlaying or prevChatButtonShowType ~= currChatButtonShowType then
+    self:UpdateChatButtonShowType(currIsChatButtonShow, currChatButtonShowType, currIsOpenInfoAnimPlaying, currIsCloseInfoAnimPlaying)
+  end
+  if prevIsRecordButtonShow ~= currIsRecordButtonShow or prevIsOpenInfoAnimPlaying ~= currIsOpenInfoAnimPlaying or prevIsCloseInfoAnimPlaying ~= currIsCloseInfoAnimPlaying or prevRecordButtonShowType ~= currRecordButtonShowType then
+    self:UpdateRecordButtonShowType(currIsRecordButtonShow, currRecordButtonShowType, currIsOpenInfoAnimPlaying, currIsCloseInfoAnimPlaying)
+  end
+  if prevIsShow ~= currIsShow then
+    self:recordInputActionTrigger()
+    if currIsShow then
+      self:BindInputActionWhenIsShow()
+    else
+      self:UnBindInputActionWhenIsHide()
+    end
+  end
+  if prevIsRecordButtonShow ~= currIsRecordButtonShow then
+    if currIsRecordButtonShow then
+      self:BindBattleRecordInputAction()
+    else
+      self:UnBindBattleRecordInputAction()
+    end
+  end
+  if prevIsChatButtonShow ~= currIsChatButtonShow then
+    if currIsChatButtonShow then
+      self:BindBattleChatInputAction()
+    else
+      self:UnBindBattleChatInputAction()
+    end
+  end
+  if prevPetHpInfoList ~= currPetHpInfoList or prevIsOpenInfoAnimPlaying ~= currIsOpenInfoAnimPlaying or prevIsCloseInfoAnimPlaying ~= currIsCloseInfoAnimPlaying or prevHpBarsAndCardDecksConstructed ~= currHpBarsAndCardDecksConstructed or prevIsPlayerSkillPerforming ~= currIsPlayerSkillPerforming or prevIsInfoShow ~= currIsInfoShow then
+    local isInfoShow = currIsInfoShow or false
+    if not currIsOpenInfoAnimPlaying and not currIsCloseInfoAnimPlaying and currHpBarsAndCardDecksConstructed and (not currIsPlayerSkillPerforming or not currIsInfoShow) then
+      self:UpdatePetHpInfoDisplayState(currPetHpInfoList)
+    end
+  end
+end
+
+function UMG_BattleMainWindow_C:UpdateInfoShowType(isInfoShow, infoShowType, isOpenInfoAnimPlaying, isCloseInfoAnimPlaying)
+  local nextInfoShowType = infoShowType
+  if infoShowType == WidgetShowType.Hide then
+    if isInfoShow then
+      if isOpenInfoAnimPlaying then
+        nextInfoShowType = WidgetShowType.Entering
+      else
+        nextInfoShowType = WidgetShowType.Show
+      end
+    end
+  elseif infoShowType == WidgetShowType.Entering then
+    if not isOpenInfoAnimPlaying then
+      nextInfoShowType = WidgetShowType.Show
+    end
+  elseif infoShowType == WidgetShowType.Show then
+    if not isInfoShow then
+      if isCloseInfoAnimPlaying then
+        nextInfoShowType = WidgetShowType.Exiting
+      else
+        nextInfoShowType = WidgetShowType.Hide
+      end
+    end
+  elseif infoShowType == WidgetShowType.Exiting and not isCloseInfoAnimPlaying then
+    nextInfoShowType = WidgetShowType.Hide
+  end
+  if infoShowType ~= nextInfoShowType then
+    local _, nextState = self:GetCurrAndNextState()
+    nextState.infoShowType = nextInfoShowType
+    self:SetState(nextState)
+  end
+end
+
+function UMG_BattleMainWindow_C:UpdateChatButtonShowType(isChatButtonShow, chatButtonShowType, isOpenInfoAnimPlaying, isCloseInfoAnimPlaying)
+  local nextChatButtonShowType = chatButtonShowType
+  if chatButtonShowType == WidgetShowType.Hide then
+    if isChatButtonShow then
+      if isOpenInfoAnimPlaying then
+        nextChatButtonShowType = WidgetShowType.Entering
+      else
+        nextChatButtonShowType = WidgetShowType.Show
+      end
+    end
+  elseif chatButtonShowType == WidgetShowType.Entering then
+    if not isOpenInfoAnimPlaying then
+      nextChatButtonShowType = WidgetShowType.Show
+    end
+  elseif chatButtonShowType == WidgetShowType.Show then
+    if not isChatButtonShow then
+      if isCloseInfoAnimPlaying then
+        nextChatButtonShowType = WidgetShowType.Exiting
+      else
+        nextChatButtonShowType = WidgetShowType.Hide
+      end
+    end
+  elseif chatButtonShowType == WidgetShowType.Exiting and not isCloseInfoAnimPlaying then
+    nextChatButtonShowType = WidgetShowType.Hide
+  end
+  if chatButtonShowType ~= nextChatButtonShowType then
+    local _, nextState = self:GetCurrAndNextState()
+    nextState.chatButtonShowType = nextChatButtonShowType
+    self:SetState(nextState)
+  end
+end
+
+function UMG_BattleMainWindow_C:UpdateRecordButtonShowType(isRecordButtonShow, recordButtonShowType, isOpenInfoAnimPlaying, isCloseInfoAnimPlaying)
+  local nextRecordButtonShowType = recordButtonShowType
+  if recordButtonShowType == WidgetShowType.Hide then
+    if isRecordButtonShow then
+      if isOpenInfoAnimPlaying then
+        nextRecordButtonShowType = WidgetShowType.Entering
+      else
+        nextRecordButtonShowType = WidgetShowType.Show
+      end
+    end
+  elseif recordButtonShowType == WidgetShowType.Entering then
+    if not isOpenInfoAnimPlaying then
+      nextRecordButtonShowType = WidgetShowType.Show
+    end
+  elseif recordButtonShowType == WidgetShowType.Show then
+    if not isRecordButtonShow then
+      if isCloseInfoAnimPlaying then
+        nextRecordButtonShowType = WidgetShowType.Exiting
+      else
+        nextRecordButtonShowType = WidgetShowType.Hide
+      end
+    end
+  elseif recordButtonShowType == WidgetShowType.Exiting and not isCloseInfoAnimPlaying then
+    nextRecordButtonShowType = WidgetShowType.Hide
+  end
+  if recordButtonShowType ~= nextRecordButtonShowType then
+    local _, nextState = self:GetCurrAndNextState()
+    nextState.recordButtonShowType = nextRecordButtonShowType
+    self:SetState(nextState)
+  end
+end
+
+function UMG_BattleMainWindow_C:UpdateStateWithBattleType()
+  local _, nextState = self:GetCurrAndNextState()
+  nextState.isB1FinalBattleP1 = BattleUtils.IsB1FinalBattleP1()
+  nextState.isB1FinalBattleP2 = BattleUtils.IsB1FinalBattleP2()
+  nextState.isB1FinalBattleP3 = BattleUtils.IsB1FinalBattleP3()
+  nextState.isTeamBattle = BattleUtils.IsTeam()
+  self:SetState(nextState)
+end
+
+function UMG_BattleMainWindow_C:UpdateStateWithFunctionBan()
+  local _, nextState = self:GetCurrAndNextState()
+  local isBanChat, _ = _G.NRCModuleManager:DoCmd(FunctionBanModuleCmd.CheckUIFunctionHide, Enum.FunctionEntrance.FE_BATTLE_CHAT)
+  isBanChat = isBanChat or false
+  nextState.isFunctionBanChatButton = isBanChat
+  self:SetState(nextState)
+end
+
+function UMG_BattleMainWindow_C:HandleBattleFsmStateChanged()
+  local battleManager = _G.BattleManager
+  local battleStateFsm = battleManager and battleManager.stateFsm
+  local activeStateName
+  if battleStateFsm then
+    activeStateName = battleStateFsm:GetActiveStateName()
+  end
+  local _, nextState = self:GetCurrAndNextState()
+  nextState.battleFsmActiveStateName = activeStateName
+  self:SetState(nextState)
+end
+
+function UMG_BattleMainWindow_C:HandleBattleFsmActionExit(battleFsm, fsmAction)
+  local fsmStateName = fsmAction and fsmAction:GetName()
+  local battleSwitchConfigActionNames = BattleConst and BattleConst.BattleSwitchConfigActionNames or {}
+  if table.contains(battleSwitchConfigActionNames, fsmStateName) then
+    self:UpdateStateWithBattleType()
+  end
+end
+
+function UMG_BattleMainWindow_C:UpdatePetHpInfoDisplayState(petHpInfoList)
+  local currState, nextState = self:GetCurrAndNextState()
+  local currPetHpInfoListDisplay = currState and currState.petHpInfoListDisplay or {}
+  local nextPetHpInfoListDisplay = {}
+  table.copy(currPetHpInfoListDisplay, nextPetHpInfoListDisplay)
+  local needShowHpPetGidList = {}
+  local needHideHpPetGidList = {}
+  for i, petHpInfo in ipairs(petHpInfoList) do
+    local currPetDisplay = currPetHpInfoListDisplay[i]
+    local currPetGuid = currPetDisplay and currPetDisplay.petGid
+    local currBattlePet = currPetDisplay and currPetDisplay.battlePet
+    local currUpdateFlag = currPetDisplay and currPetDisplay.updateFlag
+    local nextPetGuid = petHpInfo and petHpInfo.petGid
+    local nextBattlePet = petHpInfo and petHpInfo.battlePet
+    local nextUpdateFlag = petHpInfo and petHpInfo.updateFlag
+    if currUpdateFlag ~= nextUpdateFlag then
+      local nextPetDisplay = {}
+      table.copy(currPetDisplay, nextPetDisplay)
+      nextPetDisplay.petGid = nextPetGuid
+      nextPetDisplay.battlePet = nextBattlePet
+      nextPetDisplay.updateFlag = nextUpdateFlag
+      nextPetHpInfoListDisplay[i] = nextPetDisplay
+      if currPetGuid and nil == nextPetGuid then
+        table.insert(needHideHpPetGidList, currPetGuid)
+      elseif nextPetGuid then
+        table.insert(needShowHpPetGidList, nextPetGuid)
+      end
+    end
+  end
+  local needShowHpPetGidCount = #needShowHpPetGidList
+  local needHideHpPetGidCount = #needHideHpPetGidList
+  if needShowHpPetGidCount > 0 or needHideHpPetGidCount > 0 then
+    nextState.petHpInfoListDisplay = nextPetHpInfoListDisplay
+    self:SetState(nextState)
+    local prevPetGidToPetHpInfo = {}
+    for i, petHpInfo in ipairs(currPetHpInfoListDisplay) do
+      local petGid = petHpInfo and petHpInfo.petGid
+      if petGid then
+        prevPetGidToPetHpInfo[petGid] = petHpInfo
+      end
+    end
+    local petGidToPetHpInfo = {}
+    for i, petHpInfo in ipairs(nextPetHpInfoListDisplay) do
+      local petGid = petHpInfo and petHpInfo.petGid
+      if petGid then
+        petGidToPetHpInfo[petGid] = petHpInfo
+      end
+    end
+    for i, petGid in ipairs(needShowHpPetGidList) do
+      local petHpInfo = petGid and petGidToPetHpInfo and petGidToPetHpInfo[petGid]
+      self:ShowPetHpInfo(petHpInfo)
+    end
+    for i, petGid in ipairs(needHideHpPetGidList) do
+      local petHpInfo = petGid and prevPetGidToPetHpInfo and prevPetGidToPetHpInfo[petGid]
+      local pet = petHpInfo and petHpInfo.battlePet
+      self:HidePetInfoUI(pet)
+    end
+  end
+end
+
+function UMG_BattleMainWindow_C:GetProps()
+  local stateManager = self.stateManager
+  return stateManager and stateManager:GetProps() or {}
+end
+
+function UMG_BattleMainWindow_C:SetProps(nextProps)
+  local stateManager = self.stateManager
+  if stateManager then
+    stateManager:SetProps(nextProps)
+  end
+end
+
+function UMG_BattleMainWindow_C:GetState()
+  local stateManager = self.stateManager
+  return stateManager and stateManager:GetState() or {}
+end
+
+function UMG_BattleMainWindow_C:SetState(nextState)
+  local stateManager = self.stateManager
+  if stateManager then
+    stateManager:SetState(nextState)
+  end
+end
+
+function UMG_BattleMainWindow_C:GetCurrAndNextState()
+  local stateManager = self.stateManager
+  if stateManager then
+    return stateManager:GetCurrAndNextState()
+  end
+  return {}, {}
+end
+
 function UMG_BattleMainWindow_C:OnBuffRefresh()
   local showPlayerSkillTutorialHighLight = BuffUtils.IsPetHasPlayerSkillBuff(self.pet)
   _G.BattleEventCenter:Dispatch(BattleEvent.UI_UPDATE_PLAYERSKILL_TUTORIAL, showPlayerSkillTutorialHighLight)
@@ -2594,7 +3401,9 @@ function UMG_BattleMainWindow_C:HandleAiPerformStart(aiPerform)
     return
   end
   if aiPerform.type == ProtoEnum.AIPerformType.AI_PERFORM_CAM then
-    self:SetShowForRecordingAndChatBtn(false)
+    local _, nextState = self:GetCurrAndNextState()
+    nextState.isAiPerformCam = true
+    self:SetState(nextState)
   end
 end
 
@@ -2603,7 +3412,9 @@ function UMG_BattleMainWindow_C:HandleAiPerformOver(aiPerform)
     return
   end
   if aiPerform.type == ProtoEnum.AIPerformType.AI_PERFORM_CAM then
-    self:SetShowForRecordingAndChatBtn(true)
+    local _, nextState = self:GetCurrAndNextState()
+    nextState.isAiPerformCam = false
+    self:SetState(nextState)
   end
 end
 
@@ -2688,6 +3499,13 @@ end
 function UMG_BattleMainWindow_C:OnBattleSettlement()
 end
 
+function UMG_BattleMainWindow_C:TrySelectChangePet(Index)
+  local CatchPanel = self:GetSubPanel(BattleEnum.Operation.ENUM_CHANGE)
+  if CatchPanel then
+    CatchPanel:SelectChangePet(Index)
+  end
+end
+
 function UMG_BattleMainWindow_C:TrySelectCatchBall(Index)
   local CatchPanel = self:GetSubPanel(BattleEnum.Operation.ENUM_CATCH)
   if CatchPanel then
@@ -2714,6 +3532,10 @@ function UMG_BattleMainWindow_C:TrySelectSkillRun(Index, IsPressed)
   if Panel then
     Panel:SelectItem(Index, IsPressed)
   end
+end
+
+function UMG_BattleMainWindow_C:IsShowing()
+  return self.isShowing
 end
 
 return UMG_BattleMainWindow_C

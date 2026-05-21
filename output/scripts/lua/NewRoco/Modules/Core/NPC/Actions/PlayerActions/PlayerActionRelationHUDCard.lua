@@ -1,9 +1,5 @@
-local PlayerActionRelationHUDCard = Class("PlayerActionRelationHUDCard")
-
-function PlayerActionRelationHUDCard:Ctor(Owner, Config)
-  self.Owner = Owner
-  self.Config = Config
-end
+local Base = require("NewRoco.Modules.Core.NPC.Actions.PlayerActions.PlayerActionBase")
+local PlayerActionRelationHUDCard = Base:Extend("PlayerActionRelationHUDCard")
 
 function PlayerActionRelationHUDCard:Execute()
   if not self.Owner then

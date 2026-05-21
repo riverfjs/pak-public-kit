@@ -42,6 +42,23 @@ function UMG_FriendTeam_ImportIineup_C:OnAnimationFinished(anim)
 end
 
 function UMG_FriendTeam_ImportIineup_C:CheckHasBossItem()
+  local IsBossBloodMagic = false
+  local magicId = self.PetTeam.mirror_magic_id
+  if magicId and magicId > 0 then
+    local BagItemConf = _G.DataConfigManager:GetBagItemConf(magicId)
+    if BagItemConf and BagItemConf.player_skill_id and BagItemConf.player_skill_id > 0 then
+      local playerMagicConf = _G.DataConfigManager:GetPlayerMagicConf(BagItemConf.player_skill_id)
+      if playerMagicConf and playerMagicConf.skill_id and playerMagicConf.skill_id > 0 then
+        local skillConf = _G.DataConfigManager:GetSkillConf(playerMagicConf.skill_id)
+        if skillConf and skillConf.target_blood_limit and skillConf.target_blood_limit and 1 == #skillConf.target_blood_limit and skillConf.target_blood_limit[1] == Enum.PetBloodType.PBT_BOSS then
+          IsBossBloodMagic = true
+        end
+      end
+    end
+  end
+  if not IsBossBloodMagic then
+    return true, ""
+  end
   local PetName = {}
   for i, petInfo in ipairs(self.Mirror_pet_infos) do
     local PetData = self.data:GetPetDataByFriendUinAndPetGid(self.MirrorFromUin, petInfo.pet_gid)
@@ -50,7 +67,19 @@ function UMG_FriendTeam_ImportIineup_C:CheckHasBossItem()
       local BagItem = _G.NRCModeManager:DoCmd(BagModuleCmd.GetBagItemByID, PetBaseConf.bosspetbase_rule_param[1])
       if BagItem and BagItem.type == Enum.BagItemType.BI_BOSS_EVO and BagItem.num and BagItem.num > 0 then
       else
-        table.insert(PetName, PetBaseConf and PetBaseConf.name)
+        local mirror_boss_evo_items = self.PetTeam and self.PetTeam.mirror_boss_evo_items
+        local IsHasMirrorItem = false
+        if mirror_boss_evo_items then
+          for _, v in ipairs(mirror_boss_evo_items) do
+            if v == PetBaseConf.bosspetbase_rule_param[1] then
+              IsHasMirrorItem = true
+              break
+            end
+          end
+        end
+        if not IsHasMirrorItem then
+          table.insert(PetName, PetBaseConf and PetBaseConf.name)
+        end
       end
     end
   end
@@ -61,9 +90,10 @@ function UMG_FriendTeam_ImportIineup_C:CheckHasBossItem()
   end
 end
 
-function UMG_FriendTeam_ImportIineup_C:OnActive(TeamType, MirrorTeamIndex, MirrorFromUin, pet_infos)
+function UMG_FriendTeam_ImportIineup_C:OnActive(TeamType, MirrorTeamIndex, MirrorFromUin, PetTeam)
   _G.NRCAudioManager:PlaySound2DAuto(41400009, "UMG_MagicBook_C:ClosePanel")
-  self.Mirror_pet_infos = pet_infos
+  self.PetTeam = PetTeam
+  self.Mirror_pet_infos = PetTeam and PetTeam.pet_infos
   self.MirrorFromUin = MirrorFromUin
   self.MirrorTeamIndex = MirrorTeamIndex
   self.TeamType = TeamType

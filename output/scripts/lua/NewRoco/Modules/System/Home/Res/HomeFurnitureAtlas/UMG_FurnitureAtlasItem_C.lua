@@ -3,6 +3,7 @@ local UMG_FurnitureAtlasItem_C = Base:Extend("UMG_FurnitureList_C")
 
 function UMG_FurnitureAtlasItem_C:OnConstruct()
   self.bSelected = false
+  self.bNeedNormal = true
 end
 
 function UMG_FurnitureAtlasItem_C:OnDestruct()
@@ -12,7 +13,12 @@ function UMG_FurnitureAtlasItem_C:OnItemUpdate(_data, datalist, index)
   self.itemData = _data
   self.parent = _data.parent
   self.index = index
-  local furniture_id = _G.DataConfigManager:GetFurnitureHandbookConf(self.itemData.id).furniture_id
+  local furnitureHandbookConf = _G.DataConfigManager:GetFurnitureHandbookConf(self.itemData.id)
+  if not furnitureHandbookConf then
+    Log.ErrorFormat("\228\184\186\228\187\128\228\185\136\230\178\161\230\156\137FurnitureHandbookConf%d\231\154\132\233\133\141\231\189\174", self.itemData.id)
+    return
+  end
+  local furniture_id = furnitureHandbookConf.furniture_id
   local furnitureItemConf = _G.DataConfigManager:GetFurnitureItemConf(furniture_id)
   if furnitureItemConf then
     self.Icon:SetPath(furnitureItemConf.icon)
@@ -27,11 +33,9 @@ function UMG_FurnitureAtlasItem_C:OnItemUpdate(_data, datalist, index)
     self.Lock:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.LockIcon:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
-  if _data.parent.selectedIndex == index then
-    self:PlayAnimation(self.change_loop)
-    self.bSelected = true
-  else
+  if self.bNeedNormal then
     self:PlayAnimation(self.normal)
+    self.bNeedNormal = false
     self.bSelected = false
   end
   self.RedDot:SetupKey(344, _data.id)
@@ -43,18 +47,29 @@ function UMG_FurnitureAtlasItem_C:OnItemUpdate(_data, datalist, index)
   self.Selected:SetPath(ColorBgPath)
 end
 
-function UMG_FurnitureAtlasItem_C:OnItemSelected(_bSelected)
-  if _bSelected then
+function UMG_FurnitureAtlasItem_C:OnDespawn()
+  if self._parent and self._parent._selectedItemIndex == self.index then
+    self.bNeedNormal = true
+  end
+end
+
+function UMG_FurnitureAtlasItem_C:OnItemSelected(_bSelected, bScrolled)
+  if _bSelected and not bScrolled then
     UE4.UNRCAudioManager.Get():PlaySound2DAuto(41401006, "UMG_FurnitureAtlasItem_C:OnItemSelected")
   end
-  if _bSelected == self.bSelected then
-    return
-  end
+  local previousSelected = self.bSelected
   self.bSelected = _bSelected
   if _bSelected then
-    self:StopAnimation(self.normal)
-    self:PlayAnimation(self.change)
-    self:InvokeParentFunc("OnItemSelected")
+    if bScrolled then
+      self:StopAnimation(self.normal)
+      self:PlayAnimation(self.change, self.change:GetEndTime() - 0.05)
+    else
+      self:StopAnimation(self.normal)
+      self:PlayAnimation(self.change)
+      if previousSelected ~= self.bSelected then
+        self:InvokeParentFunc("OnItemSelected")
+      end
+    end
   else
     self:StopAnimation(self.change)
     self:PlayAnimation(self.normal)

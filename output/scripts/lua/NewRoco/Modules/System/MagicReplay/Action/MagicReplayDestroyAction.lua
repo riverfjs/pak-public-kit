@@ -22,6 +22,10 @@ FsmUtils.MergeMembers(Base, MagicReplayDestroyAction, {
   {
     name = "bIsReconnect",
     type = "var"
+  },
+  {
+    name = "ReplayNpcId",
+    type = "var"
   }
 })
 
@@ -51,6 +55,7 @@ function MagicReplayDestroyAction:ResetUI()
   _G.NRCModeManager:DoCmd(_G.MagicReplayModuleCmd.CloseReplayPanel)
   _G.NRCModeManager:DoCmd(_G.MagicReplayModuleCmd.CloseToolExitButtonPopup)
   _G.NRCModeManager:DoCmd(_G.MagicReplayModuleCmd.CloseToolRestartButtonPopup)
+  _G.NRCModeManager:DoCmd(_G.ShareUIModuleCmd.CloseShareUIPanel, false)
 end
 
 function MagicReplayDestroyAction:ResetNpc()
@@ -58,17 +63,29 @@ function MagicReplayDestroyAction:ResetNpc()
   if recordInitInfo then
     local npc = _G.NRCModeManager:DoCmd(_G.MagicMessageModuleCmd.GetVideoByFakeId, recordInitInfo.npc_id)
     if npc and npc.viewObj then
-      npc.viewObj:CloseAirWall()
+      local childActor = npc.viewObj.NRCChildActor
+      if childActor then
+        local Actor = childActor:GetChildActor()
+        if Actor and Actor.CloseAirWall then
+          Actor:CloseAirWall()
+        end
+      end
     end
   end
   local RecordNPC = _G.NRCModeManager:DoCmd(_G.MagicReplayModuleCmd.GetRecordNPC)
   if RecordNPC and RecordNPC.viewObj and RecordNPC.viewObj.DeactivateMagicReplayCheck then
     RecordNPC.viewObj:DeactivateMagicReplayCheck()
   end
-  local ReplayNPC = _G.NRCModeManager:DoCmd(_G.MagicReplayModuleCmd.GetReplayNPC)
-  if ReplayNPC and ReplayNPC.viewObj and ReplayNPC.viewObj.DeactivateMagicReplayCheck then
-    ReplayNPC.viewObj:DeactivateMagicReplayCheck()
+  if self.ReplayNpcId and 0 ~= self.ReplayNpcId then
+    local npc = _G.NRCModeManager:DoCmd(_G.NPCModuleCmd.GetNpcByServerID, self.ReplayNpcId)
+    if npc and npc.viewObj and npc.viewObj.DeactivateMagicReplayCheck then
+      npc.viewObj:DeactivateMagicReplayCheck()
+    end
   end
+end
+
+function MagicReplayDestroyAction:ResetBalls()
+  MagicReplayUtils.ClearThrowBalls()
 end
 
 function MagicReplayDestroyAction:CheckDestroyCommon()
@@ -103,11 +120,13 @@ function MagicReplayDestroyAction:OnEnter()
   self:InjectProperties()
   _G.NRCAudioManager:SetStateByName("MagicReplay", "Close", "MagicReplayDestroyAction:OnEnter")
   self.ParentModule = self:GetProperty("ParentModule")
+  self.ReplayNpcId = self:GetProperty("ReplayNpcId")
   self:ResetMagicSequenceMgr()
   self:ResetLocalPlayer()
   self:ResetPlayerCondition()
   self:ResetUI()
   self:ResetNpc()
+  self:ResetBalls()
   self:ResetCamera()
   self:ResetTips()
   _G.NRCEventCenter:DispatchEvent(NRCGlobalEvent.CLOSE_WHITE_SCREEN)

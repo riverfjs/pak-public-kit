@@ -1,3 +1,4 @@
+local MusicCollectionUtils = require("NewRoco.Modules.System.MusicCollection.MusicCollectionUtils")
 local SceneEvent = require("NewRoco.Modules.Core.Scene.Common.SceneEvent")
 local UMG_Pass_Select_C = _G.NRCPanelBase:Extend("UMG_Pass_Select_C")
 
@@ -26,6 +27,7 @@ function UMG_Pass_Select_C:OnActive()
   ArrowRData.modeIndex = 4
   self.Btn_ArrowR:SetBtnInfo(ArrowRData)
   self:ShowSwitchArrow(false)
+  self:InitSpineWidget()
   self.SwitchToMoon = false
   self.SwitchToStart = false
   self.bShowMoonLight = false
@@ -66,12 +68,17 @@ function UMG_Pass_Select_C:OnActive()
   self.bShowingStarConfirmTips = nil
 end
 
+function UMG_Pass_Select_C:InitSpineWidget()
+  self.module:InitSpineWidgetForPanel(self, "BattlePassSelectPanel", "UMG_Pass_Select")
+end
+
 function UMG_Pass_Select_C:UpdatePanel()
   if self.BattlePassConf then
     local theme_ids = self.BattlePassConf.theme_id
     self:UpdateStarlight(theme_ids[2])
     self:UpdateMoonshine(theme_ids[1])
-    _G.NRCModuleManager:DoCmd(_G.BattlePassModuleCmd.ChangeThemeColor, "UMG_Pass_Select", self)
+    _G.NRCModuleManager:DoCmd(_G.BattlePassModuleCmd.ChangeThemeColor, "UMG_Pass_Select", self, theme_ids[1])
+    _G.NRCModuleManager:DoCmd(_G.BattlePassModuleCmd.ChangeThemeColor, "UMG_Pass_Select", self, theme_ids[2])
   end
 end
 
@@ -166,7 +173,9 @@ function UMG_Pass_Select_C:ShowTypeIcons(petBaseConf, selectType)
       if typeDic then
         table.insert(commonAttrData, 1, {
           Name = typeDic.short_name,
-          Path = typeDic.type_icon
+          Path = typeDic.type_icon,
+          ShowTips = true,
+          Type = petType
         })
       end
     end
@@ -214,7 +223,12 @@ end
 
 function UMG_Pass_Select_C:SetCommonTitle()
   self.titleConf = _G.DataConfigManager:GetTitleConf(self:GetPanelName())
-  self.Title1:Set_MainTitle(self.titleConf.title)
+  local battleThemConf = _G.DataConfigManager:GetBattlePassThemeConf(self.BattlePassConf and self.BattlePassConf.theme_id and self.BattlePassConf.theme_id[1])
+  if nil == battleThemConf then
+    Log.Error("UMG_Pass_Select_C:SetCommonTitle battleThemConf is nil")
+    return
+  end
+  self.Title1:Set_MainTitle(battleThemConf.theme_name)
   self.Title1:SetBg(self.titleConf.head_icon)
   self.Title1:SetSubtitle(self.titleConf.subtitle[1].subtitle)
 end
@@ -230,6 +244,8 @@ function UMG_Pass_Select_C:OnAddEventListener()
   self:AddButtonListener(self.Pet_Moonshine, self.ShowMoonCanvas)
   self:AddButtonListener(self.UMG_btnClose.btnClose, self.OnClosePanel)
   self:AddButtonListener(self.Particulars.btnLevelUp, self.OnOpenTips)
+  self:AddButtonListener(self.StarlightDepartment, self.OnStarlightDepartmentClick)
+  self:AddButtonListener(self.MoonshineDepartment, self.OnMoonshineDepartmentClick)
   _G.NRCEventCenter:RegisterEvent("UMG_Pass_Select_C", self, SceneEvent.OnRelogin, self.OnReLoginUpdate)
 end
 
@@ -398,8 +414,7 @@ function UMG_Pass_Select_C:OnDestruct()
   if self.isSelectPass == false then
     _G.DataModelMgr.PlayerDataModel:RemovePanelMusic(Enum.MusicApplyType.MAT_UI, Enum.InterfaceType.IT_BP, self.module.ActivityPassBgmState)
     if self.module.ActivityPassBgmState then
-      _G.NRCAudioManager:SetStateByName("UI_Type", "ShanYaoDaSai")
-      _G.NRCAudioManager:SetStateByName("UI_Music", "UI_Music")
+      MusicCollectionUtils.GetBgmStateGroupByApplyType(Enum.MusicApplyType.MAT_UI, Enum.InterfaceType.IT_BP)
     end
   end
   _G.NRCEventCenter:UnRegisterEvent(self, "UMG_Pass_Select_C", self, SceneEvent.OnRelogin, self.OnReLoginUpdate)
@@ -418,6 +433,26 @@ function UMG_Pass_Select_C:SwitchTheme()
   else
     self.SwitchToStart = true
     self:OutMoonCanvas()
+  end
+end
+
+function UMG_Pass_Select_C:OnStarlightDepartmentClick()
+  if self.startPetId then
+    local uiData = {}
+    local petData = {}
+    petData.base_conf_id = self.startPetId
+    uiData.petData = petData
+    _G.NRCModeManager:DoCmd(_G.TipsModuleCmd.Tips_OpenPetTips, uiData, _G.Enum.GoodsType.GT_PET)
+  end
+end
+
+function UMG_Pass_Select_C:OnMoonshineDepartmentClick()
+  if self.moonPetId then
+    local uiData = {}
+    local petData = {}
+    petData.base_conf_id = self.moonPetId
+    uiData.petData = petData
+    _G.NRCModeManager:DoCmd(_G.TipsModuleCmd.Tips_OpenPetTips, uiData, _G.Enum.GoodsType.GT_PET)
   end
 end
 

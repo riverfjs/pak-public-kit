@@ -16,7 +16,6 @@ VBattleField.panelCameraController = nil
 VBattleField.SharedMPC = nil
 VBattleField.LevelsLoaded = nil
 VBattleField.battleCraneCamera = nil
-VBattleField.battleCharacterMaskCamera = nil
 
 function VBattleField:Init(battleInitInfo)
   self.delaySafeCaller = DelaySafeCaller()
@@ -31,10 +30,12 @@ function VBattleField:Init(battleInitInfo)
   self.ReplacePetPos = {}
   self.WaterPlatformDict = {}
   self.WaterPlatformSwim = {}
+  self._cachedLightingScenarioStreamingLevels = {}
   self.SceneObjects = {}
   self.skyPlatform = nil
   self.skyPlatformRef = nil
   self.WaterShakeGapTime = 60
+  self.WaterPlatformRadius = 0
   self.WaterShakeSpendTime = 2
   self.battleFieldActor = self.battleFieldConf.BattleFieldActor
   self.battleFieldActor:SetActorHiddenInGame(false)
@@ -480,11 +481,6 @@ function VBattleField:LeaveBattle()
     self.BattleDepthCam:UpdateClearHiddenActor()
     self.BattleDepthCam = nil
   end
-  local battleCharacterMaskCamera = self.battleCharacterMaskCamera
-  if UE.UObject.IsValid(battleCharacterMaskCamera) then
-    battleCharacterMaskCamera:K2_DestroyActor()
-  end
-  self.battleCharacterMaskCamera = nil
   self.delaySafeCaller:Dispose()
 end
 
@@ -585,6 +581,10 @@ function VBattleField:IsSameType(ProtoType, EngineType)
     return EngineType == UE4.EBattleType.B1FinalBattleP2
   elseif ProtoType == ProtoEnum.BattleType.BT_FINAL_BATTLE_B1_STATE3 then
     return EngineType == UE4.EBattleType.B1FinalBattleP3
+  elseif ProtoType == ProtoEnum.BattleType.BT_1VN then
+    return EngineType == UE4.EBattleType.OneVsAll
+  elseif ProtoType == ProtoEnum.BattleType.BT_TERRITORY_TRIAL then
+    return EngineType == UE4.EBattleType.TerritoryTrial
   else
     return EngineType == UE4.EBattleType.Normal
   end
@@ -764,6 +764,9 @@ function VBattleField:AddInitPos(actor)
 end
 
 function VBattleField:ResetAttachPoint()
+  if not self.AttachPointInitPos then
+    return
+  end
   for actor, pos in pairs(self.AttachPointInitPos) do
     if UE4.UObject.IsValid(actor) then
       actor:K2_GetRootComponent():K2_SetRelativeLocation(pos, false, nil, false)
@@ -921,6 +924,10 @@ function VBattleField:PawnWaterPlatformOver(waterPlatform, teamEnum, index)
     self.WaterPlatformDict[teamEnum] = {}
   end
   self.WaterPlatformDict[teamEnum][index] = waterPlatform
+  if self.WaterPlatformRadius <= 0 and waterPlatform.LotusLeafMain and waterPlatform.LotusLeafMain.StaticMesh then
+    local halfSize = waterPlatform.LotusLeafMain.StaticMesh:GetBounds().BoxExtent
+    self.WaterPlatformRadius = math.max(halfSize.X, halfSize.Y) * 0.9
+  end
   if self.WaterPlatformSwim[teamEnum] and self.WaterPlatformSwim[teamEnum][index] ~= nil then
     self:SetWaterPlatformVisible(teamEnum, index, self.WaterPlatformSwim[teamEnum][index])
     local Pets = BattlePawnManager:GetInFieldAllPet(teamEnum)
@@ -1277,6 +1284,46 @@ function VBattleField:GetBattleFieldRange()
   multiplier = multiplier or 1
   local finalRange = baseRange * multiplier
   return finalRange
+end
+
+function VBattleField:UnloadLightingScenarioLevel()
+  local world = UE4Helper.GetCurrentWorld()
+  if not world then
+    return
+  end
+  if not self._cachedLightingScenarioStreamingLevels then
+    return
+  end
+  local CurSceneID = SceneUtils.GetSceneID() or 0
+  local CurSceneResID = SceneUtils.GetSceneResId()
+  if 103 ~= CurSceneID or 50002 ~= CurSceneResID then
+    return
+  end
+  local streamingLevels = world.StreamingLevels:ToTable()
+  for _, streamingLevel in ipairs(streamingLevels) do
+    if streamingLevel then
+      local level = streamingLevel:GetLoadedLevel()
+      if level and level.bIsLightingScenario then
+        table.insert(self._cachedLightingScenarioStreamingLevels, streamingLevel)
+        streamingLevel:SetShouldBeLoaded(false)
+        streamingLevel:SetShouldBeVisible(false)
+      end
+    end
+  end
+end
+
+function VBattleField:ReloadLightingScenarioLevel()
+  if not self._cachedLightingScenarioStreamingLevels or 0 == #self._cachedLightingScenarioStreamingLevels then
+    return
+  end
+  for _, streamingLevel in ipairs(self._cachedLightingScenarioStreamingLevels) do
+    if streamingLevel then
+      local packageName = streamingLevel:GetWorldAssetPackageFName()
+      streamingLevel:SetShouldBeLoaded(true)
+      streamingLevel:SetShouldBeVisible(true)
+    end
+  end
+  self._cachedLightingScenarioStreamingLevels = {}
 end
 
 return VBattleField

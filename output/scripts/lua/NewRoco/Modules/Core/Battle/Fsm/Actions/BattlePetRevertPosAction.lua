@@ -16,6 +16,10 @@ function BattlePetRevertPosAction:OnEnter()
     self:Finish()
     return
   end
+  if self:CheckIsInCatchCamera() then
+    self:Finish()
+    return
+  end
   self.JumpingPetsNum = 0
   local AllPets = self.PawnManager:GetAllPets()
   for _, pet in pairs(AllPets) do
@@ -52,6 +56,17 @@ function BattlePetRevertPosAction:OnEnter()
   if 0 == self.JumpingPetsNum then
     self:Finish()
   end
+end
+
+function BattlePetRevertPosAction:CheckIsInCatchCamera()
+  local IsFromInstantBattleFsm = self.fsm:GetProperty("IsFromInstantBattleFsm")
+  if IsFromInstantBattleFsm and _G.BattleManager.vBattleField and _G.BattleManager.vBattleField.battleCraneCamera then
+    local curCameraTg = _G.BattleManager.vBattleField.battleCraneCamera.confData:GetCurCameraTag()
+    if curCameraTg and curCameraTg == UE4.EBattleCameraTags.PlayerCatch then
+      return true
+    end
+  end
+  return false
 end
 
 function BattlePetRevertPosAction:CheckBattleNoOver()

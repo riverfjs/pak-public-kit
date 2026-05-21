@@ -45,10 +45,12 @@ function FriendModuleData:Ctor()
   self.FriendBatchDeleteUinList = {}
   self.recommendRefreshCount = 0
   self.lastMsTimeRecommendRefresh = 0
+  self.recommendFilterSources = {}
   self.friendTypeToLastAutoRefreshTimeDic = {}
   self.friendTypeToRefreshIntervalSecDic = {}
   self.friendTypeToLastChangeTabRefreshTimeDic = {}
   self.friendRoleExtInfoDic = {}
+  self.friendRecommendSourceToConfDic = {}
   self.ApplyVisitNotifyList = {}
   self.VisitName = ""
   self.VisitUin = -1
@@ -89,6 +91,7 @@ function FriendModuleData:Ctor()
   self.PetTypeFilterList = {}
   self.curEditPetTypeIdList = {}
   self.PlayerCardAppearanceInfo = {}
+  self.studentCardForbidEdit = false
   self.MultiPlayerChannelType = _G.ProtoEnum.SpecialChatSessionUin.SCSU_MULTI_TEAM
   self.ChatMultiPlayerChannelInfo = {
     basic_info = {
@@ -108,6 +111,7 @@ function FriendModuleData:Ctor()
   table.insert(self.ChatSessionList, self.ChatMultiPlayerChannelInfo)
   self.ChatMessageList = {}
   self.LocalChatMessageList = {}
+  self.ChatAllMsgFetchedMap = {}
   self.ChatFirstRoleUin = 0
   self.EmojiEscToIdMap = nil
   self:BuildEmojiEscToIdMap()
@@ -125,6 +129,7 @@ function FriendModuleData:Ctor()
   self:initializeCardIcon()
   self:initializeCardLabel()
   self:initializeCardPose()
+  self:_BuildFriendRecommendSourceConfCache()
   self.settings = nil
   _G.ZoneServer:AddProtocolListener(self, _G.ProtoCMD.ZoneSvrCmd.ZONE_FRIEND_GET_FRIEND_LIST_RSP, self.OnGetFriendRoleList)
   _G.ZoneServer:AddProtocolListener(self, _G.ProtoCMD.ZoneSvrCmd.ZONE_FRIEND_GET_BLACK_LIST_RSP, self.OnGetBlackList)
@@ -525,6 +530,7 @@ function FriendModuleData:RemoveFriendListByUin(_Uin, change_friend_role)
   end
   if realRemove then
     _G.DataModelMgr.PlayerDataModel:AddOrRemoveBriefFriend(false, _Uin)
+    self:ClearFriendNewRemarkByUin(_Uin)
     for i = #self.friendRoleList, 1, -1 do
       if _Uin == self.friendRoleList[i].uin then
         self.RemoveFriendIndex = i
@@ -750,6 +756,10 @@ end
 
 function FriendModuleData:GetFriendNewRemarkByUin(_Uin)
   return self.friendRemarkData[_Uin]
+end
+
+function FriendModuleData:ClearFriendNewRemarkByUin(_Uin)
+  self.friendRemarkData[_Uin] = nil
 end
 
 function FriendModuleData:SetAddOrRemoveFriendIndex(_Uin, Type)
@@ -1051,6 +1061,7 @@ function FriendModuleData:CreateFriendRoleInfoFromServer(serverFriendRoleInfo)
   if nil == s.visit_info then
   end
   friendRoleInfo.visit_info = s.visit_info or nil
+  friendRoleInfo.tags = s.tags
   return friendRoleInfo
 end
 
@@ -1274,6 +1285,76 @@ function FriendModuleData:IsRecommendRefreshInCDing()
   else
     return false
   end
+end
+
+function FriendModuleData:SetRecommendFilterSources(sources)
+  self.recommendFilterSources = sources or {}
+end
+
+function FriendModuleData:GetRecommendFilterSources()
+  return self.recommendFilterSources or {}
+end
+
+function FriendModuleData:HasRecommendFilter()
+  return self.recommendFilterSources and #self.recommendFilterSources > 0
+end
+
+function FriendModuleData:ClearRecommendFilter()
+  self.recommendFilterSources = {}
+end
+
+function FriendModuleData:GetRecommendFilterSourceBitFlag()
+  local result = 0
+  for _, source in ipairs(self.recommendFilterSources) do
+    result = result | 1 << source
+  end
+  return result
+end
+
+function FriendModuleData:GetAllFriendRecommendConfSorted()
+  local confTable = _G.DataConfigManager:GetTable(_G.DataConfigManager.ConfigTableId.FRIEND_RECOMMEND_CONF)
+  if not confTable then
+    return {}
+  end
+  local allDatas = confTable:GetAllDatas()
+  if not allDatas then
+    return {}
+  end
+  local sortedList = {}
+  for _, conf in pairs(allDatas) do
+    sortedList[#sortedList + 1] = conf
+  end
+  table.sort(sortedList, function(a, b)
+    return (a.list_sort or 0) < (b.list_sort or 0)
+  end)
+  return sortedList
+end
+
+function FriendModuleData:_BuildFriendRecommendSourceConfCache()
+  self.friendRecommendSourceToConfDic = {}
+  local confTable = _G.DataConfigManager:GetTable(_G.DataConfigManager.ConfigTableId.FRIEND_RECOMMEND_CONF)
+  if not confTable then
+    return
+  end
+  local allDatas = confTable:GetAllDatas()
+  if not allDatas then
+    return
+  end
+  for _, conf in pairs(allDatas) do
+    if conf.friend_recommend_source then
+      self.friendRecommendSourceToConfDic[conf.friend_recommend_source] = conf
+    end
+  end
+end
+
+function FriendModuleData:GetFriendRecommendConfBySource(source)
+  if not source then
+    return nil
+  end
+  if not self.friendRecommendSourceToConfDic then
+    return nil
+  end
+  return self.friendRecommendSourceToConfDic[source]
 end
 
 function FriendModuleData:GetFriendTopMaxNum()
@@ -1573,6 +1654,7 @@ end
 function FriendModuleData:BuildEmojiEscToIdMap()
   local emoji_bag_info = _G.DataModelMgr.PlayerDataModel:GetEmojiBagInfo()
   self.EmojiEscToIdMap = {}
+  self.CanSeeEmojiEscToIdMap = {}
   if emoji_bag_info then
     for i, v in ipairs(emoji_bag_info) do
       local conf = _G.DataConfigManager:GetChatEmojiConf(v.emoji_id)
@@ -1580,6 +1662,12 @@ function FriendModuleData:BuildEmojiEscToIdMap()
         self.EmojiEscToIdMap[conf.emoji_esc] = conf
       end
     end
+  end
+  local EmoTable = _G.DataConfigManager:GetTable(_G.DataConfigManager.ConfigTableId.CHAT_EMOJI_CONF)
+  local EmoData = EmoTable:GetAllDatas()
+  self.CanSeeEmojiEscToIdMap = {}
+  for _, conf in pairs(EmoData) do
+    self.CanSeeEmojiEscToIdMap[conf.emoji_esc] = conf
   end
 end
 
@@ -1828,6 +1916,9 @@ function FriendModuleData:SetChatMultiPlayerMessageList(sessionInfo, messageList
 end
 
 function FriendModuleData:RemoveSessionInfo(uin)
+  if uin then
+    self.ChatAllMsgFetchedMap[uin] = nil
+  end
   local removeKey = 0
   for k, v in ipairs(self.ChatSessionList) do
     if v.basic_info.uin == uin then
@@ -1856,6 +1947,7 @@ end
 function FriendModuleData:ClearChatCache()
   self.ChatSessionList = nil
   self.ChatMessageList = nil
+  self.ChatAllMsgFetchedMap = {}
   if self.ChatSessionList == nil then
     self.ChatSessionList = {}
     table.insert(self.ChatSessionList, self.ChatMultiPlayerChannelInfo)
@@ -2417,13 +2509,14 @@ function FriendModuleData:GetOldSelectTab()
   return self.OldSelectTab
 end
 
-function FriendModuleData:SetModifyCardInfo(_CardFriendInfo, _CardAdminFriendType, _CardSource, _CardSelectTab, bToggleToPhotoCropping, _studentCardForbidAddFriend)
+function FriendModuleData:SetModifyCardInfo(_CardFriendInfo, _CardAdminFriendType, _CardSource, _CardSelectTab, bToggleToPhotoCropping, _studentCardForbidAddFriend, _studentCardForbidEdit)
   self.CardFriendInfo = _CardFriendInfo
   self.CardAdminFriendType = _CardAdminFriendType
   self.CardSource = _CardSource
   self.CardSelectTab = _CardSelectTab
   self.bToggleToPhotoCropping = bToggleToPhotoCropping
   self.studentCardForbidAddFriend = _studentCardForbidAddFriend
+  self.studentCardForbidEdit = _studentCardForbidEdit
 end
 
 function FriendModuleData:SetCroppingPhotoData(PhotoData)
@@ -2436,6 +2529,10 @@ end
 
 function FriendModuleData:IsStudentCardForbidAddFriend()
   return self.studentCardForbidAddFriend or false
+end
+
+function FriendModuleData:IsStudentCardForbidEdit()
+  return self.studentCardForbidEdit or false
 end
 
 function FriendModuleData:IsToggleToPhotoCropping()

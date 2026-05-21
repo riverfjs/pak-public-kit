@@ -8,7 +8,11 @@ function LuaActionTeleport:OnStart(AIController, ...)
   local owner = AIController
   local target = self.Target:GetValue(owner)
   if math.abs(target.X) > 1.0E9 or math.abs(target.Y) > 1.0E9 then
-    Log.PrintScreenMsg("[AI] %s \229\141\179\229\176\134\228\188\160\233\128\129\229\136\176\229\188\130\229\184\184\231\130\185(x=%.1f,y=%.1f,z=%.1f)", owner.Npc.config.name, target.X, target.Y, target.Z)
+    if RocoEnv.IS_EDITOR then
+      Log.PrintScreenMsg("[AI] %s \229\141\179\229\176\134\228\188\160\233\128\129\229\136\176\229\188\130\229\184\184\231\130\185(x=%.1f,y=%.1f,z=%.1f)", owner.Npc.config.name, target.X, target.Y, target.Z)
+    else
+      Log.DebugFormat("[AI] %s \229\141\179\229\176\134\228\188\160\233\128\129\229\136\176\229\188\130\229\184\184\231\130\185(x=%.1f,y=%.1f,z=%.1f)", owner.Npc.config.name, target.X, target.Y, target.Z)
+    end
     return self:Finish(false)
   end
   local halfHeight = owner.Npc:GetScaledHalfHeight()

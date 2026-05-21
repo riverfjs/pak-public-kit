@@ -5,6 +5,7 @@ local DisplayTaskObject = require("NewRoco.Modules.Core.Task.DisplayTaskObject")
 local TipObject = require("NewRoco.Modules.System.TipsModule.Utils.TipObject")
 local TipsModuleEvent = reload("NewRoco.Modules.System.TipsModule.TipsModuleEvent")
 local TaskModuleEvent = reload("NewRoco.Modules.Core.Task.TaskModuleEvent")
+local TaskUtils = require("NewRoco.Modules.Core.Task.TaskUtils")
 local UMG_Task_Track_C = _G.NRCViewBase:Extend("UMG_Task_Track_C")
 local state_value = {
   [ProtoEnum.EMTaskState.EM_TASK_STATE_WAIT] = 1
@@ -28,6 +29,9 @@ setmetatable(class_value, {
     return 4
   end
 })
+local BanSceneList = {
+  [10021] = true
+}
 
 local function cmp(a, b)
   local AState = a.Info.state
@@ -336,7 +340,7 @@ function UMG_Task_Track_C:GetDisplayTasks()
     if task.Info.is_track and not FirstTask then
       FirstTask = task
     end
-    if task:IsNewTask() and task.ShouldShow then
+    if task:IsNewTask() and task.ShouldShow and not self:CheckBanScene() then
       table.insert(PendingTrack, task)
     end
   end
@@ -349,6 +353,18 @@ function UMG_Task_Track_C:GetDisplayTasks()
     FirstTask = FirstTask or self.NoTrackingFakeTask
   end
   return FirstTask, PendingTrack
+end
+
+function UMG_Task_Track_C:CheckBanScene()
+  local SceneModule = TaskUtils:getSceneModule()
+  if not SceneModule then
+    return false
+  end
+  local CurrentMapID = SceneModule.mapResId
+  if BanSceneList[CurrentMapID] then
+    return true
+  end
+  return false
 end
 
 function UMG_Task_Track_C:PushTaskItem(CmdID, Coordinator)

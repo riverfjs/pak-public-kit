@@ -2,6 +2,7 @@ local TipsModuleEvent = require("NewRoco.Modules.System.TipsModule.TipsModuleEve
 local MainUIModuleEvent = require("NewRoco.Modules.System.MainUI.MainUIModuleEvent")
 local CommonBtnEnum = require("NewRoco.Modules.System.CommonBtn.CommonBtnEnum")
 local UMG_Dialog_C = _G.NRCPanelBase:Extend("UMG_Dialog_C")
+local CLICK_INTERVAL = 1
 
 function UMG_Dialog_C:OnActive(...)
   NRCPanelBase.OnActive(self, ...)
@@ -28,6 +29,7 @@ end
 
 function UMG_Dialog_C:OnConstruct()
   _G.NRCEventCenter:RegisterEvent("DialogContext", self, _G.NRCGlobalEvent.OnNetworkStatusTurnToWifi, self.OnNetworkStatusTurnToWifi)
+  self.LastClickTime = {}
 end
 
 function UMG_Dialog_C:OnDestruct()
@@ -99,9 +101,11 @@ end
 function UMG_Dialog_C:OnNetworkStatusTurnToWifi()
   if self.context and self.context:GetAutoCloseOnWifiBtnHandlerType() ~= DialogContext.EAutoCloseOnWifiBtnHandlerType.None then
     if self.context:GetAutoCloseOnWifiBtnHandlerType() == DialogContext.EAutoCloseOnWifiBtnHandlerType.OK then
+      Log.Debug("[UMG_Dialog_C:OnNetworkStatusTurnToWifi] auto click OK button")
       self:OnClickOkButton(true)
     elseif self.context:GetAutoCloseOnWifiBtnHandlerType() == DialogContext.EAutoCloseOnWifiBtnHandlerType.CANCEL then
       self:OnClickCancelButton(CommonBtnEnum.DialogCancelType.BtnClickType, nil, true)
+      Log.Debug("[UMG_Dialog_C:OnNetworkStatusTurnToWifi] auto click CANCEL button")
     end
   end
 end
@@ -142,14 +146,23 @@ function UMG_Dialog_C:OnAddEventListener()
 end
 
 function UMG_Dialog_C:OnBtnGlobalClose()
+  if not self:CheckAndRecordClick("BtnGlobalClose") then
+    return
+  end
   self:OnClickCancelButton(CommonBtnEnum.DialogCancelType.NullClickType)
 end
 
 function UMG_Dialog_C:OnCloseBtnClick()
+  if not self:CheckAndRecordClick("CloseBtn") then
+    return
+  end
   self:OnClickCancelButton(CommonBtnEnum.DialogCancelType.CloseClickType)
 end
 
 function UMG_Dialog_C:GlobalCloseClick()
+  if not self:CheckAndRecordClick("GlobalClose") then
+    return
+  end
   local CancelType = CommonBtnEnum.DialogCancelType.NullClickType
   self:OnClickCancelButton(CancelType, self.context:GetIsNoEffect())
 end
@@ -196,7 +209,9 @@ function UMG_Dialog_C:SetContext(context)
     self.context:AddEventListener(self, TipsModuleEvent.Tips_CloseDialogue, self.OnClickCancelButton)
   end
   self:SetContent(context.title, context.content, context.contentTextJustify)
-  self:SetContent2(context.content2)
+  if self.Spacer and self.ContentText_2 then
+    self:SetContent2(context.content2)
+  end
   self:RegisterCallback(context.listener, context.listenHandler)
   self:RegisterCallbackOk(context.listenerOk, context.listenHandlerOk)
   self:RegisterCallbackRichText(context.RichTextListener, context.RichTextListenerHandler)
@@ -401,6 +416,9 @@ function UMG_Dialog_C:RegisterCallbackRichText(listener, listenHandler)
 end
 
 function UMG_Dialog_C:OnClickOkButton(bNoSound)
+  if not self:CheckAndRecordClick("BtnOk") then
+    return
+  end
   if self:IsAnimationPlaying(self:GetAnimByIndex(2)) then
     return
   end
@@ -438,6 +456,9 @@ function UMG_Dialog_C:OnClickOkButton(bNoSound)
 end
 
 function UMG_Dialog_C:OnClickCancelButton(_CancelType, IsNoEffect, bNoSound)
+  if not self:CheckAndRecordClick("BtnCancel") then
+    return
+  end
   self.isCountdown = false
   if not bNoSound then
     UE4.UNRCAudioManager.Get():PlaySound2DAuto(41401002, "UMG_Dialog_C:OnClickCancelButton")
@@ -540,6 +561,15 @@ end
 
 function UMG_Dialog_C:OnTick(DeltaTime)
   self:SetCountdownButtonText(DeltaTime)
+end
+
+function UMG_Dialog_C:CheckAndRecordClick(btnName)
+  local currentTime = _G.UpdateManager.Timestamp
+  if self.LastClickTime[btnName] and currentTime - self.LastClickTime[btnName] < CLICK_INTERVAL then
+    return false
+  end
+  self.LastClickTime[btnName] = currentTime
+  return true
 end
 
 return UMG_Dialog_C

@@ -57,7 +57,7 @@ function DialogueTimelineLiquidTransformAnimAction:OnEnter()
     self:Finish()
     return
   end
-  local Actor = self:GetActor(self.OwnerActorID)
+  local Actor = self:GetActor(self.OwnerActorID, self.NPCContentID)
   if not Actor then
     self:Finish()
     return
@@ -112,7 +112,7 @@ function DialogueTimelineLiquidTransformAnimAction:OnFinish()
   if not self.StopAnimAtEnd then
     return
   end
-  local Actor = self:GetActor(self.OwnerActorID)
+  local Actor = self:GetActor(self.OwnerActorID, self.NPCContentID)
   if not Actor then
     return
   end

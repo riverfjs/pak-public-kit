@@ -35,7 +35,7 @@ BattleConst.ForceWaterBattle = false
 BattleConst.MoveToLegalLocationWhenBlock = true
 BattleConst.PlayerFollowPet = true
 BattleConst.AntiStuckMode = false
-BattleConst.DonntHideTree = true
+BattleConst.DonntHideTree = false
 BattleConst.debugCloseHideScene = false
 BattleConst.bUseBattleFieldMulity = true
 BattleConst.BattleFadeSpeed = 10
@@ -64,6 +64,7 @@ BattleConst.EnterAnimName = {
 BattleConst.BattleDepthCam = "/Game/NewRoco/Modules/Core/Battle/BattleDepthCam/BP_BattleDepthCam.BP_BattleDepthCam_C"
 BattleConst.BattleCharacterMaskCamera = "/Game/NewRoco/Modules/Core/Battle/Camera/BP_BattleCharacterMaskCamera.BP_BattleCharacterMaskCamera_C"
 BattleConst.CounterSkillPreFx = "/Game/ArtRes/Effects/G6Skill/Jineng/G6_Nor_YDJ001.G6_Nor_YDJ001_C"
+BattleConst.CounterSkillPreNpc = "/Game/ArtRes/Effects/G6Skill/NPC/G6_NPC_World_YingDui.G6_NPC_World_YingDui_C"
 BattleConst.BPBall = "/Game/NewRoco/Modules/Core/NPC/PetBall/BP_NPCItemPetBall_A001.BP_NPCItemPetBall_A001_C"
 BattleConst.BallPaths = {
   Default = "Blueprint'/Game/NewRoco/Modules/Core/NPC/PetBall/BP_NPCItemFairyBall_001.BP_NPCItemFairyBall_001_C'",
@@ -134,6 +135,7 @@ BattleConst.Show = {
   BattlePlayStageDelayTime = 0.5,
   CounterRestartLastSkillDelayFrame = 50,
   CounterSkillTimeDilation = 0.05,
+  InterruptSkillTimeDilation = 0.01,
   ZeroTimeDilation = 1.0E-5,
   HitTimeDilation = 0.12,
   HitTimeDilationTime = 0.72,
@@ -316,11 +318,11 @@ BattleConst.PetTransparentNames = {
 }
 BattleConst.ZhaoHuan = "/Game/ArtRes/Effects/G6Skill/zhaohuan/1_DR_ZhaoHuan.1_DR_ZhaoHuan_C"
 BattleConst.NpcAssistZhaoHuan = "/Game/ArtRes/Effects/G6Skill/zhaohuan/2V2_ZhaoHuan_NPC_06101.2V2_ZhaoHuan_NPC_06101_C"
-BattleConst.EnemyZhaoHuan = "/Game/ArtRes/Effects/G6Skill/PVP/NPC_Fight_Start_3"
 BattleConst.HuanChong = "/Game/ArtRes/Effects/G6Skill/zhaohuan/1_DR_HuanChong"
 BattleConst.TeamNpcHuanChong = "/Game/ArtRes/Effects/G6Skill/ShenShou/G6_ShenShou_NPC_CallOut"
 BattleConst.NoBallHuanChong = "/Game/ArtRes/Effects/G6Skill/zhaohuan/G6_Effect"
 BattleConst.NPCHuanChong = "/Game/ArtRes/Effects/G6Skill/PVE/PVE_Fight_HuanCong_ZhuZhan.PVE_Fight_HuanCong_ZhuZhan_C"
+BattleConst.EnemyZhaoHuan = "/Game/ArtRes/Effects/G6Skill/PVP/NPC_Fight_Start_3"
 BattleConst.EnemyHuanChong = "/Game/ArtRes/Effects/G6Skill/PVE/PVE_Fight_HuanCong_Enemy"
 BattleConst.FinalBattleHuanChong = "/Game/ArtRes/Effects/G6Skill/Jineng/A1/G6_A1_Battle_CW_Relay"
 BattleConst.FinalBattleP2Debut = "/Game/ArtRes/Effects/G6Skill/Jineng/A1/G6_A1_Debut"
@@ -871,6 +873,11 @@ BattleConst.CheerPetPerformConfig = {
   }
 }
 BattleConst.BattlePlayerPetLock = "/Game/ArtRes/Effects/G6Skill/DaojuUse/DaoJu_ZhuJueMoFa_DaoJu_CW.DaoJu_ZhuJueMoFa_DaoJu_CW_C"
+BattleConst.SurpriseBoxShieldBreak = {
+  MutationsSkillPath = "/Game/ArtRes/Effects/G6Skill/S2/G6_JXHZ_Prize.G6_JXHZ_Prize_C",
+  SeasonPetSkillPath = "/Game/ArtRes/Effects/G6Skill/S2/G6_JXHZ_CallOut.G6_JXHZ_CallOut_C",
+  NormalPetSkillPath = "/Game/ArtRes/Effects/G6Skill/S2/G6_JXHZ_CallOut_Com.G6_JXHZ_CallOut_Com_C"
+}
 BattleConst.BloodType2AttrType = {
   5,
   0,
@@ -910,9 +917,43 @@ BattleConst.RandomPetDeckCardIcon = "PaperSprite'/Game/NewRoco/Modules/System/Ba
 BattleConst.NormalDeadPetDeckCardIcon = "PaperSprite'/Game/NewRoco/Modules/System/BattleUI/Raw/Atlas/Combat/Frames/img_qiu4_png.img_qiu4_png'"
 BattleConst.RandomDeadPetDeckCardIcon = "PaperSprite'/Game/NewRoco/Modules/System/BattleUI/Raw/Atlas/Combat/Frames/img_qiu_wenhao1_png.img_qiu_wenhao1_png'"
 BattleConst.TrialPetTypeIcon = "PaperSprite'/Game/NewRoco/Modules/System/Common/CommonStatic/Frames/img_shiyong_png.img_shiyong_png'"
+BattleConst.FantasticBackgroundPathDefaultSquare = "PaperSprite'/Game/NewRoco/Modules/System/Common/CommonStatic/Frames/img_qiyijinngkuang_png.img_qiyijinngkuang_png'"
+BattleConst.FantasticBackgroundPathDefaultStrip = "PaperSprite'/Game/NewRoco/Modules/System/Common/CommonStatic/Frames/img_tanchukuang_png.img_tanchukuang_png'"
 BattleConst.Human_Male = 1010001
 BattleConst.Human_Female = 1010002
 BattleConst.RandomPetModelConfId = 20067
+BattleConst.FantasticBackgroundPathsS1 = {
+  squareNm3 = "PaperSprite'/Game/NewRoco/Modules/System/Common/CommonStatic/Frames/img_qiyijinngkuang_png.img_qiyijinngkuang_png'",
+  stripNm3 = "Texture2D'/Game/NewRoco/Modules/System/BattleUI/Raw/Texture/img_qiyijinngkuang.img_qiyijinngkuang'",
+  cloudNm3 = "Material'/Game/ArtRes/UI/Effects/Materials/MI_UI_LSC_02.MI_UI_LSC_02'",
+  cloudNm5 = "Material'/Game/ArtRes/UI/Effects/Materials/MI_UI_LSC_01.MI_UI_LSC_01'",
+  cloudNor4 = "Texture2D'/Game/ArtRes/UI/Effects/Textures/T_UI_LSC_08.T_UI_LSC_08'",
+  cloudNor4Mask = "Texture2D'/Game/ArtRes/UI/Effects/Textures/T_UI_LSC_10.T_UI_LSC_10'",
+  cloudNor4MaskUTiling = 0.8,
+  cloudNor4MaskVTiling = 0.5,
+  cloudNor4MaskUSpeed = -0.01,
+  cloudNor4MaskVSpeed = 0.01,
+  cloudNor5 = "Texture2D'/Game/ArtRes/UI/Effects/Textures/T_UI_LSC_07.T_UI_LSC_07'",
+  dataAssetPath = "PrimaryDataAsset'/Game/NewRoco/Modules/System/PVPQualifier/Res/SeasonSkill/PDA_SeasonSkillUiConfiguration_S1.PDA_SeasonSkillUiConfiguration_S1'"
+}
+BattleConst.FantasticBackgroundPathsS2 = {
+  squareNm3 = "Material'/Game/ArtRes/UI/Effects/Materials/MI_UI_ZAY_010.MI_UI_ZAY_010'",
+  stripNm3 = "Material'/Game/ArtRes/UI/Effects/Materials/MI_UI_ZAY_011.MI_UI_ZAY_011'",
+  cloudNm3 = "Material'/Game/ArtRes/UI/Effects/Materials/MI_UI_ZAY_007.MI_UI_ZAY_007'",
+  cloudNm5 = "Material'/Game/ArtRes/UI/Effects/Materials/MI_UI_ZAY_006.MI_UI_ZAY_006'",
+  cloudNor4 = "Texture2D'/Game/ArtRes/UI/Effects/Textures/T_UI_ZAY_007.T_UI_ZAY_007'",
+  cloudNor4Mask = "Texture2D'/Game/ArtRes/UI/Effects/Textures/T_UI_ZAY_009.T_UI_ZAY_009'",
+  cloudNor4MaskUTiling = 1.85,
+  cloudNor4MaskVTiling = 1.0,
+  cloudNor4MaskUSpeed = -0.035,
+  cloudNor4MaskVSpeed = 0.035,
+  cloudNor5 = "Texture2D'/Game/ArtRes/UI/Effects/Textures/T_UI_ZAY_006.T_UI_ZAY_006'",
+  dataAssetPath = "PrimaryDataAsset'/Game/NewRoco/Modules/System/PVPQualifier/Res/SeasonSkill/PDA_SeasonSkillUiConfiguration_S2.PDA_SeasonSkillUiConfiguration_S2'"
+}
+BattleConst.FantasticBackgroundPathsDefaults = {
+  [1] = BattleConst.FantasticBackgroundPathsS1,
+  [2] = BattleConst.FantasticBackgroundPathsS2
+}
 BattleConst.EffectAnimation = {
   EnergyRecovery = 1001,
   ChangeToCute = 1002,
@@ -1084,7 +1125,6 @@ BattleConst.TerritoryTrial.PetPosToClientStandPos = {
 BattleConst.TerritoryTrial.WinOver = "/Game/ArtRes/Effects/G6Skill/SceneEffect/G6_Dare_Win.G6_Dare_Win_C"
 BattleConst.TerritoryTrial.CommonBagToPrepare = "/Game/ArtRes/Effects/G6Skill/SceneEffect/LingDi/G6_LingDi_CW.G6_LingDi_CW_C"
 BattleConst.TerritoryTrial.BossPrepareToBattle = "/Game/ArtRes/Effects/G6Skill/SceneEffect/LingDi/G6_LingDi_Boss.G6_LingDi_Boss_C"
-BattleConst.ResonanceSkillPath = "/Game/ArtRes/Effects/G6Skill/SceneEffect/G6_TeXingGongMing"
 BattleConst.BallOperationScrollToAnotherPageThreshold = 60
 BattleConst.PvpQualifierOpenRankCheckValueToBattleType = {
   [true] = ProtoEnum.BattleType.BT_PVP_RANK,
@@ -1092,6 +1132,7 @@ BattleConst.PvpQualifierOpenRankCheckValueToBattleType = {
 }
 BattleConst.PvpScoreCoinType = _G.Enum.VisualItem.VI_COIN
 BattleConst.PvpScoreItemType = _G.Enum.VisualItem.VI_PVP_SCORE_1
+BattleConst.PvpDefaultShopId = 2006
 BattleConst.NoAnimStatus = {
   ProtoEnum.WorldPlayerStatusType.WPST_SWIMMING,
   ProtoEnum.WorldPlayerStatusType.WPST_FALLING,
@@ -1107,4 +1148,11 @@ BattleConst.NoAnimStatus = {
 }
 BattleConst.NightMareShieldHeadIconMatPath = "MaterialInstanceConstant'/Game/ArtRes/UI/TUI/Materials/MI_UI_BlackMagic.MI_UI_BlackMagic'"
 BattleConst.NightMareHeadIconMatPath = "MaterialInstanceConstant'/Game/ArtRes/UI/TUI/Materials/MI_UI_InnerLine.MI_UI_InnerLine'"
+BattleConst.PvpShowResultUiSkillActorBlackboardKeyList = {"AxeN", "AxeF"}
+BattleConst.ImcBattleName = "IMC_Battle"
+BattleConst.BattleSwitchConfigActionNames = {
+  "BattleB1P1SwitchToP2Action",
+  "BattleB1P2SwitchToP3Action"
+}
+BattleConst.BattleVictoryUiMaskStencilValue = 7
 return BattleConst

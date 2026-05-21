@@ -28,6 +28,7 @@ function BattlePawnManager:Init(VBattleField)
   self.battleOnLookerDataListDisplay = {}
   self.battleOnLookerDisplayIsRefreshing = false
   self.PendingKillBattlePets = {}
+  self.ReplaceAllBattlePets = {}
   self.seralizeId = 0
   self.loadingArgs = {}
   self.requestDict = {}
@@ -60,6 +61,12 @@ function BattlePawnManager:ClearPawnObj(bIsSendLeave)
   end
   _G.BattleManager.battleRuntimeData.battleOnLookerInfo.onLookersSpawnExecuted = false
   self:ClearPendingKillModels()
+  if self.ReplaceAllBattlePets then
+    for _, battlePet in ipairs(self.ReplaceAllBattlePets) do
+      battlePet:Destroy()
+    end
+  end
+  self.ReplaceAllBattlePets = {}
   self.AllPlayerTeam = {}
   self.AllEnemyTeam = {}
   self.battleNpcList = {}
@@ -121,6 +128,12 @@ function BattlePawnManager:ClearPawnObjDelay()
       _G.BattleManager.battleRuntimeData.battleOnLookerInfo.onLookersSpawnExecuted = false
     end
     self:ClearPendingKillModels()
+    if self.ReplaceAllBattlePets then
+      for _, battlePet in ipairs(self.ReplaceAllBattlePets) do
+        battlePet:Destroy()
+      end
+    end
+    self.ReplaceAllBattlePets = {}
     self.AllPlayerTeam = {}
     self.AllEnemyTeam = {}
     self.battleNpcList = {}
@@ -181,6 +194,14 @@ function BattlePawnManager:SetBattleInitInfo(battleInitInfo, PrepareTable)
     local Team = BattleTeam(BattleEnum.Team.ENUM_TEAM, self.battleConfig)
     Team:InitWithData()
     local player = self:PawnBattlePlayer(BattleEnum.Team.ENUM_TEAM, Team, v, playerPos)
+    if v.base and battleInitInfo.others then
+      for i = 1, #battleInitInfo.others do
+        local other = battleInitInfo.others[i]
+        if other.role_uin == v.base.role_uin then
+          player.deck:AdditionalInitByOthers(other.pets)
+        end
+      end
+    end
     if player.isNeedLoad then
       tInsert(PrepareTable, player)
     end
@@ -454,12 +475,12 @@ function BattlePawnManager:PawnBattlePlayerOver(resClass, playerPos, player, res
     local skeletalMeshComponent = bp_battlePlayer_C:GetComponentByClass(UE.USkeletalMeshComponent)
     if skeletalMeshComponent then
       skeletalMeshComponent.bEabledAuxiliaryAnimGraphThread = false
-      skeletalMeshComponent:SetForcedLOD(1)
+      skeletalMeshComponent:SetForcedLOD(BattleEnum.BattleLodModel.Lod0)
       if skeletalMeshComponent.SkeletalMesh then
         UE4.UNRCStatics.ForceUpdateStreamingAssets(skeletalMeshComponent.SkeletalMesh, 30)
       end
     end
-    bp_battlePlayer_C.Mesh:SetForcedLOD(1)
+    bp_battlePlayer_C.Mesh:SetForcedLOD(BattleEnum.BattleLodModel.Lod0)
     bp_battlePlayer_C:ForceHidden()
     bp_battlePlayer_C:SetLoadPriority(PriorityEnum.Passive_Battle_Players)
     bp_battlePlayer_C:ForceVisible()
@@ -583,6 +604,9 @@ function BattlePawnManager:PawnPet(teamEnm, Team, card, player, isInited, ForceP
     pet.dead = true
   end
   pet:Spawn(card.guid, card, params)
+  if Team.pets[pos] then
+    table.insert(self.ReplaceAllBattlePets, Team.pets[pos])
+  end
   Team.pets[pos] = pet
   Log.DebugFormat("Pawn Pet @ Index %d", pos)
   pet.CardIndex = card.CardIndex
@@ -876,7 +900,12 @@ function BattlePawnManager:RefreshBattleOnLookerDisplay(dataListToAdd, dataListT
     local task = a.sync(SpawnBattleNpcListTask)
     battleOnLookerInfo.spawnBattleOnLookerAsyncContext = au.Launch(task(self, self.battleNpcList, dataListToAdd), callback)
   else
-    _G.DelayManager:DelayFrames(1, callback, true)
+    self:TryCancelRefreshBattleOnLookCallbackDelayId()
+    local refreshBattleOnLookCallbackDelayId = _G.DelayManager:DelayFrames(1, function()
+      self.refreshBattleOnLookCallbackDelayId = nil
+      tcall(nil, callback, true)
+    end)
+    self.refreshBattleOnLookCallbackDelayId = refreshBattleOnLookCallbackDelayId
   end
 end
 
@@ -923,9 +952,15 @@ function BattlePawnManager:InitOutSceneComplete(model)
         card.resourceScale = BattleUtils.GetBloodTeamPetScale(card.petInfo.battle_common_pet_info.height + math.abs(relativeLocation.z))
       end
       Log.Debug("BattlePawnManager:InitOutSceneComplete", pet.card.name, math.abs(relativeLocation.z))
-      Mesh:SetForcedLOD(1)
+      Mesh:SetForcedLOD(BattleEnum.BattleLodModel.Lod0)
+      if Mesh.CullDistanceForAdditionalMaterial then
+        Mesh.CullDistanceForAdditionalMaterial.Default = 9999999
+      end
       Mesh.bUseAttachParentBound = false
       Mesh.bNRCUseFixedSkelBounds = false
+      if Mesh.SkeletalMesh then
+        UE4.UNRCStatics.ForceUpdateStreamingAssets(Mesh.SkeletalMesh, 30)
+      end
     end
     if model:IsA(UE.ARocoCharacter) then
       if card.petState:GetNightmare() then
@@ -1433,7 +1468,7 @@ end
 
 function BattlePawnManager:GetBattleNpcById(battleNpcId)
   local battleNpc
-  for _, currentBattleNpc in ipairs(self.battleNpcList) do
+  for _, currentBattleNpc in ipairs(self.battleNpcList or {}) do
     if currentBattleNpc.battlePawnId == battleNpcId then
       battleNpc = currentBattleNpc
     end
@@ -1843,12 +1878,14 @@ end
 
 function BattlePawnManager:Clear()
   Log.Debug("Clearing Battle Pawns")
+  self:TryCancelRefreshBattleOnLookCallbackDelayId()
   self:ClearPawnObj()
   self.VBattleField = nil
 end
 
 function BattlePawnManager:ClearDelay()
   Log.Debug("Clearing Battle Pawns")
+  self:TryCancelRefreshBattleOnLookCallbackDelayId()
   self:ClearPawnSkill()
   self:ClearPawnObjDelay()
   self.VBattleField = nil
@@ -2093,6 +2130,13 @@ function BattlePawnManager:ClearBattleNpcSpawnContext()
     battleOnLookerInfo.spawnBattleOnLookerAsyncContext = nil
   end
   self.battleOnLookerDisplayIsRefreshing = false
+end
+
+function BattlePawnManager:TryCancelRefreshBattleOnLookCallbackDelayId()
+  local refreshBattleOnLookCallbackDelayId = self.refreshBattleOnLookCallbackDelayId
+  if refreshBattleOnLookCallbackDelayId then
+    _G.DelayManager:CancelDelayById(refreshBattleOnLookCallbackDelayId)
+  end
 end
 
 return BattlePawnManager

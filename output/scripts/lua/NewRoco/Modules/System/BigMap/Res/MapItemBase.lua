@@ -44,7 +44,8 @@ function MapItemBase:WidgetAddToViewPort(iconWidget, iconData, renderScale)
   end
 end
 
-function MapItemBase:CreateTraceWidget(traceData)
+function MapItemBase:CreateTraceWidget(traceData, zOrder)
+  zOrder = zOrder or 1
   local iconTemplate, iconLayer
   iconTemplate = self.iconTemplateList[traceData.traceType]
   iconLayer = self.layerList[4]
@@ -69,7 +70,7 @@ function MapItemBase:CreateTraceWidget(traceData)
     iconSlot:SetAnchors(UE4.FAnchors(0.5))
     iconSlot:SetAlignment(UE4.FVector2D(0.5, 0.5))
     iconSlot:SetAutoSize(true)
-    iconSlot:SetZOrder(traceData.traceType)
+    iconSlot:SetZOrder(traceData.traceType * 10 + zOrder)
   end
   return iconWidget
 end
@@ -156,12 +157,12 @@ function MapItemBase:OnTravelInfoUpdated(travelInfo)
 end
 
 function MapItemBase:SetIconPos(type, key, pos, extraKey)
-  if type == BigMapModuleEnum.CreatorPriority.NpcIcons or type == BigMapModuleEnum.CreatorPriority.MarkerIcons or type == BigMapModuleEnum.CreatorPriority.VisitorIcons then
+  if type == BigMapModuleEnum.CreatorPriority.MarkerIcons or type == BigMapModuleEnum.CreatorPriority.VisitorIcons then
     local iconWidget = self:Get(key)
     if iconWidget and UE4.UObject.IsValid(iconWidget) and iconWidget.Slot then
       iconWidget.Slot:SetPosition(pos)
     end
-  elseif type == BigMapModuleEnum.CreatorPriority.TaskIcons then
+  elseif type == BigMapModuleEnum.CreatorPriority.TaskIcons or type == BigMapModuleEnum.CreatorPriority.NpcIcons then
     local iconWidget = self:Get(key, extraKey)
     if iconWidget and UE4.UObject.IsValid(iconWidget) and iconWidget.Slot then
       iconWidget.Slot:SetPosition(pos)
@@ -169,9 +170,9 @@ function MapItemBase:SetIconPos(type, key, pos, extraKey)
   end
 end
 
-function MapItemBase:SetUpOrDown(type, bUp, key)
+function MapItemBase:SetUpOrDown(type, bUp, key, extraKey)
   if type == BigMapModuleEnum.CreatorPriority.NpcIcons or type == BigMapModuleEnum.CreatorPriority.MarkerIcons then
-    local iconWidget = self:Get(key)
+    local iconWidget = self:Get(key, extraKey)
     if iconWidget and UE4.UObject.IsValid(iconWidget) then
       if iconWidget.Up then
         if bUp == BigMapModuleEnum.IconDirection.Up then
@@ -191,17 +192,8 @@ function MapItemBase:SetUpOrDown(type, bUp, key)
   end
 end
 
-function MapItemBase:SetItemVisibility(bShow, type, key)
-  if type ~= BigMapModuleEnum.CreatorPriority.TaskIcons then
-    local itemWidget = self:Get(key)
-    if itemWidget and UE4.UObject.IsValid(itemWidget) then
-      if bShow then
-        itemWidget:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-      else
-        itemWidget:SetVisibility(UE4.ESlateVisibility.Collapsed)
-      end
-    end
-  else
+function MapItemBase:SetItemVisibility(bShow, type, key, extraKey)
+  if type == BigMapModuleEnum.CreatorPriority.TaskIcons then
     local itemWidgets = self:Get(key)
     if itemWidgets and #itemWidgets > 0 then
       for k, itemWidget in ipairs(itemWidgets) do
@@ -210,6 +202,24 @@ function MapItemBase:SetItemVisibility(bShow, type, key)
         else
           itemWidget:SetVisibility(UE4.ESlateVisibility.Collapsed)
         end
+      end
+    end
+  elseif type == BigMapModuleEnum.CreatorPriority.NpcIcons then
+    local itemWidget = self:Get(key, extraKey)
+    if itemWidget and UE4.UObject.IsValid(itemWidget) then
+      if bShow then
+        itemWidget:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+      else
+        itemWidget:SetVisibility(UE4.ESlateVisibility.Collapsed)
+      end
+    end
+  else
+    local itemWidget = self:Get(key)
+    if itemWidget and UE4.UObject.IsValid(itemWidget) then
+      if bShow then
+        itemWidget:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+      else
+        itemWidget:SetVisibility(UE4.ESlateVisibility.Collapsed)
       end
     end
   end

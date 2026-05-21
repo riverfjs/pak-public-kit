@@ -1,10 +1,21 @@
 local UMG_BuildSuccess_C = _G.NRCPanelBase:Extend("UMG_BuildSuccess_C")
 
 function UMG_BuildSuccess_C:OnConstruct()
+  self.QualityBgPathTable = {
+    "PaperSprite'/Game/NewRoco/Modules/System/Home/Raw/HomeFurnitureAtlas/Frames/img_QualityBg1_png.img_QualityBg1_png'",
+    "PaperSprite'/Game/NewRoco/Modules/System/Home/Raw/HomeFurnitureAtlas/Frames/img_QualityBg2_png.img_QualityBg2_png'",
+    "PaperSprite'/Game/NewRoco/Modules/System/Home/Raw/HomeFurnitureAtlas/Frames/img_QualityBg3_png.img_QualityBg3_png'",
+    "PaperSprite'/Game/NewRoco/Modules/System/Home/Raw/HomeFurnitureAtlas/Frames/img_QualityBg4_png.img_QualityBg4_png'",
+    "PaperSprite'/Game/NewRoco/Modules/System/Home/Raw/HomeFurnitureAtlas/Frames/img_QualityBg5_png.img_QualityBg5_png'"
+  }
   self:OnAddEventListener()
 end
 
 function UMG_BuildSuccess_C:OnActive(FurnitureConf)
+  local ItemConf = _G.DataConfigManager:GetBagItemConf(FurnitureConf.id, true)
+  if ItemConf then
+    self.EmptyState:SetPath(self.QualityBgPathTable[ItemConf.item_quality])
+  end
   self.NRCText_51:SetText(FurnitureConf.name)
   _G.NRCAudioManager:PlaySound2DAuto(1220002061, "UMG_BuildSuccess_C:OnActive")
 end

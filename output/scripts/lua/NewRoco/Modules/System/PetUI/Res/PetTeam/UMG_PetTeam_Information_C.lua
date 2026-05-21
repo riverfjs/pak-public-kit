@@ -66,9 +66,24 @@ function UMG_PetTeam_Information_C:SetPetTopTagInfo(petInfo, petBaseConf)
 end
 
 function UMG_PetTeam_Information_C:SetTypes(Types)
-  local attr2 = Types[2]
-  local attr3 = Types[3]
-  local petTypes = {attr2, attr3}
+  Types = Types or {}
+  local attrList = {}
+  for i, type in ipairs(Types) do
+    if type and type > 0 then
+      table.insert(attrList, type)
+    end
+  end
+  local attr1 = attrList and attrList[1] or 0
+  local attr2 = attrList and attrList[2] or 0
+  local attr3 = attrList and attrList[3] or 0
+  local petTypes = {}
+  if attr1 > 0 then
+    if attr2 > 0 then
+      petTypes = {attr1, attr2}
+    else
+      petTypes = {0, attr1}
+    end
+  end
   if petTypes then
     for i = 1, 2 do
       local petType = petTypes[i]

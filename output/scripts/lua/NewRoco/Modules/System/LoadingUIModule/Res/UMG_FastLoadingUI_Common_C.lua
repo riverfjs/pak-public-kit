@@ -1,12 +1,12 @@
-local Base = require("NewRoco/Modules/System/LoadingUIModule/Res/UMG_FastLoadingUI_Base_C")
+local Base = require("NewRoco.Modules.System.LoadingUIModule.Res.UMG_FastLoadingUI_Base_C")
 local LoadingUIModuleEvent = require("NewRoco.Modules.System.LoadingUIModule.LoadingUIModuleEvent")
 local SceneEvent = require("NewRoco.Modules.Core.Scene.Common.SceneEvent")
 local SceneUtils = require("NewRoco.Modules.Core.Scene.Common.SceneUtils")
 local ScenePlayerInputManager = require("NewRoco.Modules.Core.Scene.ScenePlayerInputManager")
 local UMG_FastLoadingUI_Common_C = Base:Extend("UMG_FastLoadingUI_Common_C")
 
-function UMG_FastLoadingUI_Common_C:OnConstruct()
-  Base.OnConstruct(self)
+function UMG_FastLoadingUI_Common_C:Ctor()
+  Base.Ctor(self)
   if self.JinduProgressBar then
     self.JinduProgressBar:SetPercent(0)
   end
@@ -29,7 +29,6 @@ end
 
 function UMG_FastLoadingUI_Common_C:OnEnable()
   Base.OnEnable(self)
-  self.FxPlayed = false
   local bIsMale = _G.DataModelMgr.PlayerDataModel:IsMale()
   if bIsMale then
     self.nanzhu_all:SetRenderOpacity(1)
@@ -62,12 +61,13 @@ function UMG_FastLoadingUI_Common_C:OnViewTick(deltaTime)
     if not self.FxPlayed and 100 == curProcess then
       self:Log("Start Playing Animation Loading")
       self.FxPlayed = true
-      self:PlayAnimation(self.Loading)
+      self:PlayAnimation(self.Loading, 0, 1, UE4.EUMGSequencePlayMode.Forward, 1, false)
       self:DelaySeconds(0.233, function(this)
         this:ResetNiagaraInNewWorld()
       end, self)
     elseif curProcess < 50 and self.FxPlayed then
       self.FxPlayed = false
+      self.FxFinished = false
       self:PlayAnimation(self.Loading, 0, 1, UE4.EUMGSequencePlayMode.Reverse, 100, false)
     end
   end
@@ -118,9 +118,11 @@ function UMG_FastLoadingUI_Common_C:OnAnimationFinished(anima)
       UE4Helper.SetEnableWorldRendering(false, false, "UMG_FastLoading_C")
     end
   elseif anima == self.Loading then
+    self.FxFinished = true
     _G.NRCEventCenter:DispatchEvent(LoadingUIModuleEvent.LOADING_UI_PRECLOSED)
   elseif anima == self.Out then
     self.IsSetTipsData = false
+    self:PlayAnimation(self.Loading, 0, 1, UE4.EUMGSequencePlayMode.Reverse, 1000, false)
   end
 end
 

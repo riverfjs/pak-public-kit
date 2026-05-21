@@ -34,9 +34,11 @@ function UMG_ImageFlowPanel_C:OnActive(InParam)
   self:PlayAnimation(self.UI_In)
   _G.NRCModeManager:DoCmd(TaskModuleCmd.UpdateImageFlowState, true)
   self:UpdateData()
+  self:BindInputAction()
 end
 
 function UMG_ImageFlowPanel_C:OnDeactive()
+  self:UnBindInputAction()
   _G.NRCModeManager:DoCmd(TaskModuleCmd.UpdateImageFlowState, false)
   _G.NRCEventCenter:DispatchEvent(TaskModuleEvent.OnImageFlowEnd)
   self.CurStoryBgm = "Task_Music;None"
@@ -143,10 +145,40 @@ function UMG_ImageFlowPanel_C:UpdateData()
   end
 end
 
+function UMG_ImageFlowPanel_C:BindInputAction()
+  local MappingContext = self:AddInputMappingContext("IMC_ImageFlow")
+  if MappingContext then
+    MappingContext:BindAction("IA_CloseImageFlow", self, "OnPcClose")
+    MappingContext:BindAction("IA_NextImage", self, "OnPcNext")
+  end
+end
+
+function UMG_ImageFlowPanel_C:UnBindInputAction()
+  local MappingContext = self:GetInputMappingContext("IMC_ImageFlow")
+  if MappingContext then
+    MappingContext:UnBindAction("IA_CloseImageFlow")
+    MappingContext:UnBindAction("IA_NextImage")
+  end
+  local Imc = UE.UNRCEnhancedInputHelper.GetInputMappingContext("IMC_ImageFlow")
+  _G.NRCModuleManager:DoCmd(_G.EnhancedInputModuleCmd.EnhancedInputHelperRemoveInputMappingContext, Imc)
+end
+
 function UMG_ImageFlowPanel_C:SendCloseEvent(bIsSuccess)
   self.bIsSuccess = bIsSuccess
   self:StopAllAnimations()
   self:PlayAnimation(self.UI_Out)
+end
+
+function UMG_ImageFlowPanel_C:OnPcClose()
+  Log.Debug("UMG_ImageFlowPanel_C:OnPcClose")
+  self:SendCloseEvent(true)
+end
+
+function UMG_ImageFlowPanel_C:OnPcNext()
+  Log.Debug("UMG_ImageFlowPanel_C:OnPcNext")
+  if self.BtnNext:GetVisibility() == UE4.ESlateVisibility.Visible then
+    self:OnBtnNextClicked()
+  end
 end
 
 function UMG_ImageFlowPanel_C:ClearTimerHandle()

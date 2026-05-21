@@ -10,8 +10,8 @@ function BattlePerformGroup:Ctor(group_id)
   self.WillTriggerNodes = {}
   self.CurTriggerNode = nil
   self.IsFinalize = false
-  self.DelayTrigger = false
   self.d_TriggerNext = nil
+  self.IsProcessCounter = false
   self.StartRecordExecIdx = false
   self.RecordMinExecIdx = -1
   self.IsBlockByServerExecute = false
@@ -27,8 +27,8 @@ function BattlePerformGroup:Reset()
   self.IsCompleteCallBack = false
   self.WillTriggerNodes = {}
   self.CurTriggerNode = nil
+  self.IsProcessCounter = false
   self.IsBlockByServerExecute = false
-  self.DelayTrigger = false
   self.d_TriggerNext = _G.DelayManager:CancelDelayByIdEx(self.d_TriggerNext)
   self.StartRecordExecIdx = false
   self.RecordMinExecIdx = -1
@@ -157,14 +157,13 @@ function BattlePerformGroup:TriggerNext()
     return
   end
   if self.OwnerCluster and not self.OwnerCluster.performPlayer:CanTriggerNext() then
-    if not self.DelayTrigger then
-      self.DelayTrigger = true
-      _G.DelayManager:CancelDelayByIdEx(self.d_TriggerNext)
-      self.d_TriggerNext = DelayManager:DelayFrames(1, self.TriggerNext, self)
-    end
+    _G.DelayManager:CancelDelayByIdEx(self.d_TriggerNext)
+    self.d_TriggerNext = DelayManager:DelayFrames(1, function()
+      self.d_TriggerNext = nil
+      self:TriggerNext()
+    end)
     return
   end
-  self.DelayTrigger = false
   if not self.CurTriggerNode and not self.IsFinalize then
     if #self.WillTriggerNodes > 0 then
       if self.OwnerCluster:CheckCanPlayNode(self.WillTriggerNodes[1]) then
@@ -237,7 +236,7 @@ function BattlePerformGroup:NodeCompleteCallBack(overNode)
 end
 
 function BattlePerformGroup:CheckGroupStuck()
-  if not self.HeadNode.isPerforming and not self.CurTriggerNode and not self.IsBlockByServerExecute and not self.DelayTrigger then
+  if not self.HeadNode.isPerforming and not self.CurTriggerNode and not self.IsBlockByServerExecute and not self.d_TriggerNext then
     self:ForcePlayNext()
   end
 end

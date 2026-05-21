@@ -83,8 +83,17 @@ function UMG_IconTempBasic_C:SetMapLayerIconVisible(iconType)
     end
   elseif iconType == BigMapModuleEnum.CreatorPriority.TaskIcons then
     if self.uiData then
-      local taskId = self.uiData.taskId
-      if not taskId or taskId > 0 then
+      local layerId = self.uiData.layerId
+      if layerId and layerId > 0 then
+        self.mapLayerId = layerId
+        local layerConf = DataConfigManager:GetLayeredWorldMapConf(layerId)
+        if 0 ~= layerConf.area_func_id then
+          self.EntranceCave:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+        else
+          self.EntranceCave:SetVisibility(UE4.ESlateVisibility.Collapsed)
+        end
+      else
+        self.EntranceCave:SetVisibility(UE4.ESlateVisibility.Collapsed)
       end
     end
   elseif iconType == BigMapModuleEnum.CreatorPriority.MarkerIcons and self.uiData then

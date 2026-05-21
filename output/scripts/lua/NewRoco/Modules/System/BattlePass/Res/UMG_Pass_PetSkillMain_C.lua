@@ -110,7 +110,7 @@ end
 function UMG_Pass_PetSkillMain_C:InitShowSkills()
   local skillIds = {}
   local addSkillIds = {}
-  local skillConf = _G.DataConfigManager:GetLevelSkillConf(self.petBaseId)
+  local skillConf = _G.NRCModeManager:DoCmd(_G.PetUIModuleCmd.GetLevelSkillConfByPetBaseId, self.petBaseId)
   if nil == skillConf or nil == skillConf.legendary_skill then
     return {}
   end
@@ -518,7 +518,7 @@ function UMG_Pass_PetSkillMain_C:GetDefaultSortWeighting(skillConf)
   local skillSourceList = _G.NRCModeManager:DoCmd(_G.PetUIModuleCmd.GetSkillSource, skillConf.id, self.petBaseConf.id)
   if #skillSourceList > 0 then
     if skillSourceList[1] == Enum.PetNewSkillSrc.PNSS_PET_LEVEL_UP then
-      local levelSkillConf = _G.DataConfigManager:GetLevelSkillConf(self.petBaseConf.id)
+      local levelSkillConf = _G.NRCModeManager:DoCmd(_G.PetUIModuleCmd.GetLevelSkillConfByPetBaseId, self.petBaseConf.id)
       if levelSkillConf then
         if self.skillSortReverse then
           for i, v in ipairs(levelSkillConf.level) do

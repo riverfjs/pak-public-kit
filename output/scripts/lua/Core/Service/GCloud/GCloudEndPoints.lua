@@ -53,10 +53,6 @@ end
 
 function GCloudEndPoints:GetDolphinChannel()
   local AppMain = _G.App
-  local OverrideChannel = AppMain.launchParams.dolphin_channel
-  if OverrideChannel then
-    return OverrideChannel
-  end
   return AppMain:GetDolphinChannel()
 end
 

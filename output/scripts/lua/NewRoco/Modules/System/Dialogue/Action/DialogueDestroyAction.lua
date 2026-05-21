@@ -231,18 +231,27 @@ function DialogueDestroyAction:OnEnter()
   self:InjectProperties()
   _G.NRCAudioManager:SetStateByName("Dialogue", "Close", "DialogueDestroyAction:OnEnter")
   self.ParentModule = self:GetProperty("ParentModule")
+  self.fsm:SetProperty("LastConfID", 0)
+  self.fsm:SetProperty("CurrentDialogue", nil)
   local PlayerPosSyncBlocker = self.fsm:GetProperty("PlayerPosSyncBlocker")
   if PlayerPosSyncBlocker then
     local player = DialogueUtils.GetHero()
     if player then
       local player_view = DialogueUtils.ExtraActorView(player)
       if player_view then
-        player_view:K2_SetActorTransform(PlayerPosSyncBlocker, false, nil, true)
+        if player:IsInTogetherMove() then
+          player:SetActorLocation(PlayerPosSyncBlocker.Translation)
+          player:SetActorRotation(PlayerPosSyncBlocker.Rotation:ToRotator())
+        end
         if player.movementComponent and player.movementComponent.SetSyncMove then
           player.movementComponent:SetSyncMove(true)
         end
       end
     end
+  end
+  local player = DialogueUtils.GetHero()
+  if player and player:IsInTogetherMove() then
+    DialogueUtils.SetAudioGender(DialogueUtils.GetPlayer())
   end
   _G.NRCModuleManager:DoCmd(CameraModuleCmd.StopCameraSkillPlaying)
   if self:CheckDestroyInBattle() then

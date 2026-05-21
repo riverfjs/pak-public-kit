@@ -37,6 +37,7 @@ function UMG_Tips1_C:OnActive(data, openType)
   end
   self:LoadAnimation(0)
   self:OnAddEventListener()
+  self:UpdateLeaveForBtnVisibility()
   self:PetFriendInterfaceDisplay()
 end
 
@@ -276,6 +277,12 @@ function UMG_Tips1_C:PetFriendInterfaceDisplay()
   local friendInfo = _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.GetFriendInfoToPetMain)
   if friendInfo and friendInfo.type and friendInfo.type ~= _G.ProtoEnum.PlayerRelationshipType.PRT_SELF then
     self.NRCSwitcher_1:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  end
+end
+
+function UMG_Tips1_C:UpdateLeaveForBtnVisibility()
+  if _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.GetPetPortableBagReleaseLifeMode) then
+    self.SizeBox_75:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
 end
 

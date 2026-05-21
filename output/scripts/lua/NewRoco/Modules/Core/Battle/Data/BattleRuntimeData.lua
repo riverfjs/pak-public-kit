@@ -70,6 +70,17 @@ function BattleRuntimeData:Ctor()
   self.widgetSpeed.RandomChangeSkillAnimSpeedRate = 1
   self.legendary_battle = nil
   self.legendary_battle_ticket_id = nil
+  self.hpLevelInfo = {}
+  local blood_pr_low = _G.DataConfigManager:GetBattleGlobalConfig("blood_pr_low")
+  self.hpLevelInfo.BloodRedPercent = blood_pr_low.numList and blood_pr_low.numList[2] / 10000 or 0.2
+  local blood_pr_middle = _G.DataConfigManager:GetBattleGlobalConfig("blood_pr_middle")
+  self.hpLevelInfo.BloodYellowPercent = blood_pr_middle.numList and blood_pr_middle.numList[2] / 10000 or 0.5
+  self.isObserver = false
+  self:InitMainWindowSubPanelItemOpenInterval()
+  self:InitFantasticBackgroundPaths()
+end
+
+function BattleRuntimeData:InitMainWindowSubPanelItemOpenInterval()
   do
     local intervalTimeConf = _G.DataConfigManager:GetBattleGlobalConfig("battle_interval_time")
     local numList = intervalTimeConf and intervalTimeConf.numList or {}
@@ -94,12 +105,19 @@ function BattleRuntimeData:Ctor()
     local multiplier = BattleUtils.CalculateDividerByNumListFirstAndSecondItem(numList)
     self.widgetSpeed.RandomChangeSkillAnimSpeedRate = self.widgetSpeed.RandomChangeSkillAnimSpeedRate * multiplier
   end
-  self.hpLevelInfo = {}
-  local blood_pr_low = _G.DataConfigManager:GetBattleGlobalConfig("blood_pr_low")
-  self.hpLevelInfo.BloodRedPercent = blood_pr_low.numList and blood_pr_low.numList[2] / 10000 or 0.2
-  local blood_pr_middle = _G.DataConfigManager:GetBattleGlobalConfig("blood_pr_middle")
-  self.hpLevelInfo.BloodYellowPercent = blood_pr_middle.numList and blood_pr_middle.numList[2] / 10000 or 0.5
-  self.isObserver = false
+end
+
+function BattleRuntimeData:InitFantasticBackgroundPaths()
+  local fantasticBackgroundPathsDefault = {}
+  local FantasticBackgroundPathsDefaults = BattleConst and BattleConst.FantasticBackgroundPathsDefaults
+  local FantasticBackgroundPathsDefaultFirst = FantasticBackgroundPathsDefaults and FantasticBackgroundPathsDefaults[1]
+  table.copy(FantasticBackgroundPathsDefaultFirst, fantasticBackgroundPathsDefault)
+  local fantasticUi1Conf = _G.DataConfigManager:GetBattleGlobalConfig("fantastic_ui1", true)
+  local fantasticUi1ConfStr = fantasticUi1Conf and fantasticUi1Conf.str
+  local dataAssetPath = fantasticBackgroundPathsDefault and fantasticBackgroundPathsDefault.dataAssetPath
+  dataAssetPath = fantasticUi1ConfStr or dataAssetPath
+  fantasticBackgroundPathsDefault.dataAssetPath = dataAssetPath
+  self.fantasticBackgroundPathsDefault = fantasticBackgroundPathsDefault
 end
 
 function BattleRuntimeData:SetBattleInitInfo(notify, isForbidResetData)
@@ -1068,6 +1086,25 @@ end
 
 function BattleRuntimeData:GetResonancePerform()
   return self.resonance_perform_count
+end
+
+function BattleRuntimeData:SetRestartInfo(finishNotify)
+  local settleInfo = finishNotify and finishNotify.settle_info
+  local interactNpcId = settleInfo and settleInfo.interact_npc_id
+  local interactNpcOption = settleInfo and settleInfo.npc_option_id
+  local restartBattleInfo = {}
+  restartBattleInfo.npcId = interactNpcId
+  restartBattleInfo.optionId = interactNpcOption
+  self.restartBattleInfo = restartBattleInfo
+end
+
+function BattleRuntimeData:GetRestartInfo()
+  local restartBattleInfo = self.restartBattleInfo
+  return restartBattleInfo
+end
+
+function BattleRuntimeData:ClearRestartInfo()
+  self.restartBattleInfo = nil
 end
 
 return BattleRuntimeData

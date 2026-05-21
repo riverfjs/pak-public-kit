@@ -159,7 +159,6 @@ end
 function MagicSequenceMgr:ResetReplay()
   if self.curMagicSeqForReplay then
     self.lastReplayTime = os.msTime()
-    Log.Debug("[MagicSequence][Mgr] ResetReplay!")
     if self.curMagicSeqForReplay:IsPlaying() then
       self.curMagicSeqForReplay:EndPlay()
     end
@@ -168,6 +167,11 @@ function MagicSequenceMgr:ResetReplay()
     end
     self.curMagicSeqForReplay = nil
   end
+end
+
+function MagicSequenceMgr:ClearSeqInfo()
+  self.curMagicSeqForReplay = nil
+  self.curMagicSeqForRecord = nil
 end
 
 function MagicSequenceMgr:OnRecordStart()
@@ -205,6 +209,7 @@ function MagicSequenceMgr:OnReconnect()
   Log.Debug("[MagicSequence][Mgr] OnReconnect")
   self:StopReplay()
   self:StopPreview()
+  self:ClearSeqInfo()
 end
 
 function MagicSequenceMgr:HasFreeDiskSpace()
@@ -274,10 +279,14 @@ function MagicSequenceMgr:ReqDownloadMagicSeq(feedVideoInfo, caller, callback)
   end
   local downloadUrl = feedVideoInfo.file_url
   local fileName = feedVideoInfo.file_name
+  if self:IsDebugReplay() then
+    fileName = self.debugReplayFileName
+    Log.Error("[MagicSequence][Mgr] [Debug] ReqDownloadMagicSeq", fileName)
+  end
   local fullFileName = MagicSequence.ConvertToFullFilName(fileName)
   if UE4.UBlueprintPathsLibrary.FileExists(fullFileName) then
     local localFileMD5 = UE.UNRCStatics.HashFileMD5(fullFileName)
-    if localFileMD5 == feedVideoInfo.file_md5 then
+    if localFileMD5 == feedVideoInfo.file_md5 or self:IsDebugReplay() then
       Log.Debug("[MagicSequence][Mgr] ReqDownloadMagicSeq, file already exits, ", fullFileName)
       _G.tcall(caller, callback, fileName, true)
       return
@@ -348,13 +357,17 @@ function MagicSequenceMgr:StartReplay(fileName, createPos, baseInfoMd5, fileMd5)
     Log.Error("[MagicSequence][Mgr] StartReplay failed, replay CD not over", curTime - self.lastReplayTime, CD_FOR_REPLAY)
     return false
   end
+  if self:IsDebugReplay() then
+    fileName = self.debugReplayFileName
+    Log.Error("[MagicSequence][Mgr] [Debug] StartReplay", fileName)
+  end
   local fullFileName = MagicSequence.ConvertToFullFilName(fileName)
   if not UE4.UBlueprintPathsLibrary.FileExists(fullFileName) then
     Log.Error("[MagicSequence][Mgr] StartReplay failed, fullFileName not exits, ", fullFileName)
     return false
   end
   local localFileMD5 = UE.UNRCStatics.HashFileMD5(fullFileName)
-  if localFileMD5 ~= fileMd5 then
+  if localFileMD5 ~= fileMd5 and not self:IsDebugReplay() then
     Log.Error("[MagicSequence][Mgr] StartReplay failed, file md5 not match", fileMd5, localFileMD5)
     self.curMagicSeqForReplay = nil
     return false
@@ -366,7 +379,7 @@ function MagicSequenceMgr:StartReplay(fileName, createPos, baseInfoMd5, fileMd5)
     self.curMagicSeqForReplay = nil
     return false
   end
-  if self.curMagicSeqForReplay.baseInfoMD5 ~= baseInfoMd5 then
+  if self.curMagicSeqForReplay.baseInfoMD5 ~= baseInfoMd5 and not self:IsDebugReplay() then
     Log.Error("[MagicSequence][Mgr] StartReplay failed, baseInfo md5 not match", baseInfoMd5, self.curMagicSeqForReplay.baseInfoMD5)
     self.curMagicSeqForReplay = nil
     return false
@@ -397,6 +410,18 @@ function MagicSequenceMgr:StopPreview()
   if self.curMagicSeqForRecord and self.curMagicSeqForRecord.bPreview then
     self.curMagicSeqForRecord:EndPlay()
   end
+end
+
+function MagicSequenceMgr:GMSwitchDebugReplay(isDebugReplay, fileName)
+  if RocoEnv.IS_SHIPPING then
+    return
+  end
+  self.isDebugReplay = isDebugReplay
+  self.debugReplayFileName = fileName
+end
+
+function MagicSequenceMgr:IsDebugReplay()
+  return self.isDebugReplay and self.debugReplayFileName and self.debugReplayFileName ~= ""
 end
 
 return MagicSequenceMgr

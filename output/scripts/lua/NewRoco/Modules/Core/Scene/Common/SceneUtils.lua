@@ -930,12 +930,22 @@ function SceneUtils.GetCatchRate(Session, NPC)
     if not bTriggerBackwardBattle then
       npcAIState = npcAIState + _G.ProtoEnum.ThrowTargetNpcAIStatus.DETECTED_AVATAR
     end
-    if NPC.AIComponent:IsResistCapture() or NPC.HiddenComponent and NPC.HiddenComponent:IsResistCapture() then
+    if NPC.AIComponent:IsResistCapture() or NPC.HiddenComponent and NPC.HiddenComponent:IsResistCapture(BallID) then
       npcAIState = npcAIState + _G.ProtoEnum.ThrowTargetNpcAIStatus.RESIST_CATCH
     end
   end
   local Dizzy = false
-  if not player.AuraComponent or NPC.serverData then
+  if NPC.AIComponent then
+    local sneakBuffConf = _G.DataConfigManager:GetGlobalConfig("sneak_correction_bigworld")
+    if sneakBuffConf and sneakBuffConf.str then
+      local sneakBuffStrList = string.Split(sneakBuffConf.str, ";")
+      for _, param in ipairs(sneakBuffStrList) do
+        if NPC.AIComponent:HasBattleState(Enum.BattleAIStatus[param]) then
+          Dizzy = true
+          break
+        end
+      end
+    end
   end
   local bMatchBallState = false
   local hasTrue = false
@@ -1242,15 +1252,15 @@ end
 function SceneUtils.TriggerBackwardBattle(npc, forward, type, ScenePet)
   local condition = SceneUtils.GetBackwardBattleCondition(npc, type, ScenePet)
   if condition == SceneUtils.BackwardBattleConditionResult.AlwaysCant then
-    return false
+    return false, true
   elseif condition == SceneUtils.BackwardBattleConditionResult.AlwaysCan then
-    return true
+    return true, true
   elseif condition == SceneUtils.BackwardBattleConditionResult.ByAngle then
-    return CheckBackwardBattleByAngle(npc, forward, type)
+    return CheckBackwardBattleByAngle(npc, forward, type), true
   elseif condition == SceneUtils.BackwardBattleConditionResult.ByAngleAndControlFlag then
-    return CheckBackwardBattleByAIControlFlag(npc) and CheckBackwardBattleByAngle(npc, forward, type)
+    return CheckBackwardBattleByAIControlFlag(npc) and CheckBackwardBattleByAngle(npc, forward, type), false
   end
-  return false
+  return false, false
 end
 
 function SceneUtils.TriggerBackwardCatch(npc, forward)
@@ -1434,105 +1444,6 @@ function SceneUtils.NormNPCLightingChannels(actor)
   end
 end
 
-function SceneUtils.PlayerSitToSceneSeat(SeatNpc, SeatSlot, Player, Immediately, SpecialG6)
-  local NpcView = SeatNpc:GetViewObject()
-  if not NpcView then
-    Log.Error("SceneUtils.PlayerSitToSceneSeat: NpcView is invalid!")
-    return
-  end
-  local StaticMesh = NpcView:GetComponentByClass(UE4.UStaticMeshComponent)
-  if StaticMesh then
-    local Transform = StaticMesh:Abs_GetSocketTransform(SeatSlot)
-    local LocalTransform = StaticMesh:Abs_GetSocketTransform(SeatSlot, UE4.ERelativeTransformSpace.RTS_Component)
-    if Transform then
-      local Position = Transform.Translation
-      local Direction = Transform.Rotation:GetForwardVector()
-      local FloorHeight = LocalTransform.Translation.Z * Transform.Scale3D.Z
-      if Immediately and FloorHeight > 60 then
-        FloorHeight = 45
-      end
-      if Player and Player.playerHomeInteractionComponent then
-        if SpecialG6 then
-          Player.SeatSkill = RocoSkillProxy.Create(SpecialG6, Player.viewObj.RocoSkill, PriorityEnum.Active_Player_Action)
-          Player.SeatSkill:SetCaster(Player.viewObj)
-          Player.SeatSkill:PlaySkill(nil, function()
-            if Player and Player.playerHomeInteractionComponent then
-              Player.playerHomeInteractionComponent:StartSit(Position, Direction, FloorHeight, Immediately)
-            end
-          end)
-        else
-          Player.playerHomeInteractionComponent:StartSit(Position, Direction, FloorHeight, Immediately)
-        end
-      end
-    end
-  end
-end
-
-function SceneUtils.PlayerLeaveSceneSeat(Player)
-  if Player and Player.playerHomeInteractionComponent then
-    Player.playerHomeInteractionComponent:EndSit()
-    if Player.SeatSkill then
-      Player.SeatSkill:CancelSkill()
-      Player.SeatSkill:Destroy()
-      Player.SeatSkill = nil
-      Player:StopAllMontage()
-    end
-  end
-end
-
-function SceneUtils.PlayerInterruptSceneSeat(Player, SeatView)
-  if SeatView then
-    SeatView:SetCollisionEnable(false)
-  end
-  if Player and Player.playerHomeInteractionComponent then
-    Player.playerHomeInteractionComponent:InterruptSit()
-    if Player.SeatSkill then
-      Player.SeatSkill:CancelSkill()
-      Player.SeatSkill:Destroy()
-      Player.SeatSkill = nil
-      Player:StopAllMontage()
-    end
-  end
-end
-
-function SceneUtils.PlayerFlashToPoint(Player, Point)
-  if not Player then
-    return
-  end
-  if not Point then
-    return
-  end
-  local transform = SceneUtils.ConvertPointToTransform(Point)
-  if not transform then
-    return
-  end
-  Player:SetActorLocation(transform.Translation)
-  Player:SetActorRotation(transform.Rotation:ToRotator())
-  if Player.ForceSendMoveReq then
-    Player:ForceSendMoveReq()
-  end
-end
-
-function SceneUtils.PlayerFlashSkillForSceneSeat(Player, NPCView, SpecialG6, CallBack)
-  local SkillPath = "/Game/ArtRes/Effects/G6Skill/SceneEffect/Place/G6_Place_Chair_CharacterFliker.G6_Place_Chair_CharacterFliker"
-  local Skill = RocoSkillProxy.Create(SkillPath, Player.viewObj.RocoSkill, PriorityEnum.Active_Player_Action)
-  Skill:SetCaster(Player.viewObj)
-  Skill:SetPassive(true)
-  if NPCView then
-    Skill:SetTargets({NPCView})
-  end
-  Skill:RegisterEventCallback("StartSit", Player, function(event, skill)
-    if Player.SeatSkill then
-      Player.SeatSkill:CancelSkill()
-      Player.SeatSkill:Destroy()
-      Player.SeatSkill = nil
-      Player:StopAllMontage()
-    end
-    CallBack()
-  end)
-  Skill:PlaySkill()
-end
-
 local AutoHoming = false
 local AutoHomingTargetID = 0
 
@@ -1619,6 +1530,71 @@ function SceneUtils.ParseStrRGB(str)
   end
   Log.DebugFormat("string %s do not contains 3/4 numbers", str)
   return
+end
+
+local HALF_HEIGHT = 85
+
+function SceneUtils.ClientPos2PlayerPos(clientPos, inPlayerPos)
+  if not clientPos then
+    Log.Error("SceneUtils:ClientPos2PlayerPos clientPos is nil")
+    return nil
+  end
+  if not inPlayerPos then
+    inPlayerPos = UE.FVector(clientPos.X, clientPos.Y, clientPos.Z + HALF_HEIGHT)
+  else
+    inPlayerPos.X = clientPos.X
+    inPlayerPos.Y = clientPos.Y
+    inPlayerPos.Z = clientPos.Z + HALF_HEIGHT
+  end
+  return inPlayerPos
+end
+
+function SceneUtils.PlayerPos2ClientPos(playerPos, inClientPos)
+  if not playerPos then
+    Log.Error("SceneUtils:PlayerPos2ClientPos playerPos is nil")
+    return nil
+  end
+  if not inClientPos then
+    inClientPos = UE.FVector(playerPos.X, playerPos.Y, playerPos.Z - HALF_HEIGHT)
+  else
+    inClientPos.X = playerPos.X
+    inClientPos.Y = playerPos.Y
+    inClientPos.Z = playerPos.Z - HALF_HEIGHT
+  end
+  return inClientPos
+end
+
+function SceneUtils.ServerPos2PlayerPos(serverPos, factor, inPlayerPos)
+  local clientPos = SceneUtils.ServerPos2ClientPos(serverPos, factor, inPlayerPos)
+  return SceneUtils.ClientPos2PlayerPos(clientPos, inPlayerPos)
+end
+
+function SceneUtils.PlayerPos2ServerPos(playerPos, factor, InServePos)
+  local clientPos = SceneUtils.PlayerPos2ClientPos(playerPos)
+  return SceneUtils.ClientPos2ServerPos(clientPos, factor, InServePos)
+end
+
+function SceneUtils.CalculateFlyBackPlayRate(Actor1, Actor2, SkillDuration, Config)
+  if not UE4.UObject.IsValid(Actor1) or not UE4.UObject.IsValid(Actor2) then
+    return 1.0
+  end
+  local Location1 = Actor1:K2_GetActorLocation()
+  local Location2 = Actor2:K2_GetActorLocation()
+  if not Location1 or not Location2 then
+    return 1.0
+  end
+  local Distance = (Location1 - Location2):Size()
+  SkillDuration = SkillDuration or 1.5
+  local Speed = Config and Config.Speed or 200.0
+  local MaxFlyTime = Config and Config.MaxFlyTime or 1.5
+  local MinFlyTime = Config and Config.MinFlyTime or 0.3
+  local MaxPlayRate = Config and Config.MaxPlayRate or 5.0
+  local MinPlayRate = Config and Config.MinPlayRate or 1.0
+  local FlyTime = Distance / Speed
+  FlyTime = math.clamp(FlyTime, MinFlyTime, MaxFlyTime)
+  local PlayRate = SkillDuration / FlyTime
+  PlayRate = math.clamp(PlayRate, MinPlayRate, MaxPlayRate)
+  return PlayRate
 end
 
 return SceneUtils

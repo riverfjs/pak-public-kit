@@ -124,7 +124,12 @@ function MovementComponent:OnRidePetChangeMoveType()
   self:SendMoveReq(true, false)
 end
 
-function MovementComponent:OnBanMove(newState, functionType)
+function MovementComponent:OnBanMove(newState, functionType, id)
+  if newState then
+    local conf = _G.DataConfigManager:GetFunctionBanConf(id, true)
+    local banDesc = conf and conf.ban_desc or "unknown"
+    Log.Debug("[OnBanMove] ", id, banDesc)
+  end
   self._isBanned = newState
 end
 
@@ -262,7 +267,7 @@ function MovementComponent:DoSendMoveReq(bStopMoveReq, bIgnorePlatformActor, pla
     self._moveReq.scene_cfg_id = SceneModule:GetCurrentMapId()
   end
   self._moveReq.ride_move = bRiding
-  SceneUtils.ClientPos2ServerPos(location, nil, self._moveReq.to_pos)
+  SceneUtils.PlayerPos2ServerPos(location, nil, self._moveReq.to_pos)
   local rotation = updatedComponent:K2_GetComponentRotation()
   SceneUtils.ClientRotator2ServerPos(rotation, nil, self._moveReq.to_rot)
   if moveMode ~= UE4.EMovementMode.MOVE_Custom or self._moveReq.custom_mode ~= UE4.ERocoCustomMovementMode.MOVE_Climbing then
@@ -313,7 +318,7 @@ function MovementComponent:DoSendMoveReq(bStopMoveReq, bIgnorePlatformActor, pla
     if not self._moveReq.mate_point then
       self._moveReq.mate_point = self._matePoint
     end
-    self._moveReq.mate_point.pos = SceneUtils.ClientPos2ServerPos(matePos, nil, self._moveReq.mate_point.pos)
+    self._moveReq.mate_point.pos = SceneUtils.PlayerPos2ServerPos(matePos, nil, self._moveReq.mate_point.pos)
     self._moveReq.mate_point.dir = SceneUtils.ClientRotator2ServerPos(mateRot, nil, self._moveReq.mate_point.dir)
     self._moveReq.mate_move_mode = mateMoveMode
   else
@@ -371,7 +376,7 @@ function MovementComponent:SendMoveReq(bForceSend, bStopMoveReq)
       lazyElapsedTime = curServerTime - lastCacheServerTime
     end
     if lazyElapsedTime > 3 * reqMoveInterval then
-      table.insert(self._cachePos, SceneUtils.ClientPos2ServerPos(location, nil, GetPositionNode()))
+      table.insert(self._cachePos, SceneUtils.PlayerPos2ServerPos(location, nil, GetPositionNode()))
       table.insert(self._cachePosTime, curServerTime)
     end
     if elapsedTime < self.lazySyncTime then

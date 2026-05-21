@@ -22,6 +22,9 @@ function ShareUIModuleHead:OnConstruct()
   self:BindCmd(_G.ShareUIModuleCmd.OpenShareCardDebugPanel, "OnCmdOpenShareCardDebugPanel")
   self:BindCmd(_G.ShareUIModuleCmd.CheckRewardStateEntrance, "OnCmdCheckRewardStateEntrance")
   self:BindCmd(_G.ShareUIModuleCmd.CheckShareChannelIsOpen, "OnCmdCheckShareChannelIsOpen")
+  self:BindCmd(_G.ShareUIModuleCmd.SetIsSharingPetVideo, "OnCmdSetIsSharingPetVideo")
+  self:BindCmd(_G.ShareUIModuleCmd.SetIsSharingMagicVideo, "OnCmdSetIsSharingMagicVideo")
+  self:BindCmd(_G.ShareUIModuleCmd.PlayPetVideoShareInAnim, "OnCmdPlayPetVideoShareInAnim")
 end
 
 return ShareUIModuleHead

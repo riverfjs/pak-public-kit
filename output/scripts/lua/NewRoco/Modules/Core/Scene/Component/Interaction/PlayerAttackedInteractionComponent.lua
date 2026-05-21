@@ -1,6 +1,7 @@
 local Base = require("NewRoco.Modules.Core.Scene.Component.ActorComponent")
 local PlayerModuleEvent = require("NewRoco.Modules.Core.PlayerModule.PlayerModuleEvent")
 local SceneUtils = require("NewRoco.Modules.Core.Scene.Common.SceneUtils")
+local MainUIModuleEnum = require("NewRoco.Modules.System.MainUI.MainUIModuleEnum")
 local PlayerAttackedInteractionComponent = Base:Extend("PlayerAttackedInteractionComponent")
 
 function PlayerAttackedInteractionComponent:Ctor()
@@ -15,6 +16,7 @@ function PlayerAttackedInteractionComponent:Ctor()
   self._afterExposedTime = 0
   self._exposedCd = 0
   self._perceivedFrom = {}
+  self.updatePerceiveState = false
   self._CompassState = 0
   self.nextCanLaunchTimeStamp = 0
 end
@@ -23,7 +25,9 @@ PlayerAttackedInteractionComponent.STATE = {
   Normal = 0,
   EXPOESD = 1,
   OUTEXPOSED = 2,
-  HIDDEN = 3
+  HIDDEN = 3,
+  HIDDEN_EXPOSED = 4,
+  HIDDEN_ATTACKED = 5
 }
 
 function PlayerAttackedInteractionComponent:Attach(owner)
@@ -85,14 +89,31 @@ function PlayerAttackedInteractionComponent:Update(deltaTime)
       newStat = self.STATE.HIDDEN
     end
   end
+  if self.owner.statusComponent:HasStatus(ProtoEnum.WorldPlayerStatusType.WPST_CROUCHING) then
+    if self.updatePerceiveState == true then
+      newStat = self.STATE.HIDDEN_EXPOSED
+    end
+    if self.owner.statusComponent:HasStatus(ProtoEnum.WorldPlayerStatusType.WPST_EXPOSED) then
+      newStat = self.STATE.HIDDEN_ATTACKED
+    end
+  end
   if self._CompassState ~= newStat then
     self._CompassState = newStat
     if self._CompassState == self.STATE.Normal then
       NRCModuleManager:DoCmd(MainUIModuleCmd.CompassChangeToNormal)
+      NRCModuleManager:DoCmd(MainUIModuleCmd.SetMiniMapOrCompassState, MainUIModuleEnum.MinimapOrCompassState.Normal)
     elseif self._CompassState == self.STATE.HIDDEN then
-      NRCModuleManager:DoCmd(MainUIModuleCmd.CompassChangeToHidde)
+      NRCModuleManager:DoCmd(MainUIModuleCmd.CompassChangeToHidde, MainUIModuleEnum.MinimapOrCompassState.Hidden)
+      NRCModuleManager:DoCmd(MainUIModuleCmd.SetMiniMapOrCompassState, MainUIModuleEnum.MinimapOrCompassState.Hidden)
+    elseif self._CompassState == self.STATE.HIDDEN_EXPOSED then
+      NRCModuleManager:DoCmd(MainUIModuleCmd.CompassChangeToHidde, MainUIModuleEnum.MinimapOrCompassState.Hidden_Exposed)
+      NRCModuleManager:DoCmd(MainUIModuleCmd.SetMiniMapOrCompassState, MainUIModuleEnum.MinimapOrCompassState.Hidden_Exposed)
+    elseif self._CompassState == self.STATE.HIDDEN_ATTACKED then
+      NRCModuleManager:DoCmd(MainUIModuleCmd.CompassChangeToHidde, MainUIModuleEnum.MinimapOrCompassState.Hidden_Attacked)
+      NRCModuleManager:DoCmd(MainUIModuleCmd.SetMiniMapOrCompassState, MainUIModuleEnum.MinimapOrCompassState.Hidden_Attacked)
     else
       NRCModuleManager:DoCmd(MainUIModuleCmd.CompassChangeToLeakage)
+      NRCModuleManager:DoCmd(MainUIModuleCmd.SetMiniMapOrCompassState, MainUIModuleEnum.MinimapOrCompassState.Normal)
     end
   end
 end
@@ -148,6 +169,9 @@ function PlayerAttackedInteractionComponent:OnAttacked(Damage, Direction, isHeav
     else
       AttackPerformType = ProtoEnum.PlayerAttackPerformType.PAPT_Light
     end
+  end
+  if statusComponent:HasStatus(ProtoEnum.WorldPlayerStatusType.WPST_CROUCHING) then
+    statusComponent:RemoveStatus(ProtoEnum.WorldPlayerStatusType.WPST_CROUCHING)
   end
   if NRCEnv:IsLocalMode() then
     self:PerformAttacked(AttackPerformType, Direction)
@@ -212,9 +236,12 @@ function PlayerAttackedInteractionComponent:PerformAttacked(AttackPerformType, D
     statusComponent:RemoveStatus(ProtoEnum.WorldPlayerStatusType.WPST_CLIMB, Enum.WPST_OpCode.WPST_OPCODE_REMOVE)
     _G.NRCModuleManager:GetModule("MainUIModule"):DispatchEvent(MainUIModuleEvent.ClearThrowCacheData)
   else
-    Direction.Z = 0
-    Direction:Normalize()
-    self.owner.viewObj.BP_ALSComponent:GetAttacked(Direction)
+    local statusComponent = self.owner.statusComponent
+    if not statusComponent:HasStatus(ProtoEnum.WorldPlayerStatusType.WPST_AIMTHROWING) and not statusComponent:HasStatus(ProtoEnum.WorldPlayerStatusType.WPST_MAGIC) then
+      Direction.Z = 0
+      Direction:Normalize()
+      self.owner.viewObj.BP_ALSComponent:GetAttacked(Direction)
+    end
   end
   if NRCEnv:IsLocalMode() then
     return
@@ -335,10 +362,12 @@ function PlayerAttackedInteractionComponent:OnPerceivedStateChanged(id, bState)
 end
 
 function PlayerAttackedInteractionComponent:UpdatePerceiveState()
-  if #self._perceivedFrom > 0 and self.owner.statusComponent:HasStatus(Enum.WorldPlayerStatusType.WPST_CROUCHING) then
-    self.MAIN_HUD_PERCEIVE_STATE = true
-  else
-    self.MAIN_HUD_PERCEIVE_STATE = false
+  if self.owner and self.owner.statusComponent then
+    if #self._perceivedFrom > 0 then
+      self.updatePerceiveState = true
+    else
+      self.updatePerceiveState = false
+    end
   end
 end
 

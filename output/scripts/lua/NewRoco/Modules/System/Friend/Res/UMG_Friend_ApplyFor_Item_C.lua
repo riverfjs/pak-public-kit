@@ -9,6 +9,10 @@ function UMG_Friend_ApplyFor_Item_C:OnDestruct()
     _G.DelayManager:CancelDelayById(self._deleteFriendTimerId)
     self._deleteFriendTimerId = nil
   end
+  if self.DelayId then
+    _G.DelayManager:CancelDelayById(self.DelayId)
+    self.DelayId = nil
+  end
 end
 
 function UMG_Friend_ApplyFor_Item_C:OnItemUpdate(_data, datalist, index)
@@ -80,7 +84,7 @@ function UMG_Friend_ApplyFor_Item_C:OnOnAddBlackListCallback(_ok)
     _G.NRCAudioManager:PlaySound2DAuto(1002, "UMG_Plane_ExchangeVisits_C:OnActive")
     _G.NRCModuleManager:DoCmd(FriendModuleCmd.AddOrRemoveBlackList, self.data.uin, _G.ProtoEnum.ZoneFriendAddOrRemoveBlackListReq.TYPE.REMOVE)
   else
-    _G.DelayManager:DelaySeconds(0.17, function()
+    self.DelayId = _G.DelayManager:DelaySeconds(0.17, function()
       _G.NRCModuleManager:DoCmd(FriendModuleCmd.OnEnableOrDisableBlackListOnPopUpOpen, true)
     end)
     self:SetLock()

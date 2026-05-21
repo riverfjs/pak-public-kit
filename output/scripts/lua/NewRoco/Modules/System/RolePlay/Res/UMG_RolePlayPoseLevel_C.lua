@@ -57,9 +57,12 @@ function UMG_RolePlayPoseLevel_C:Show(Items)
 end
 
 function UMG_RolePlayPoseLevel_C:Hide()
+  if self:IsAnimationPlaying(self.Out) then
+    return
+  end
   for i = 1, self.ChooseGridView:GetItemCount() do
     local ItemView = self.ChooseGridView:GetItemByIndex(i - 1)
-    ItemView:PlayAnimation(ItemView.Selected_out)
+    ItemView:PlayOutAnimation()
   end
   self.ChooseGridView:ClearSelection()
   self.bPendingAnimation = true

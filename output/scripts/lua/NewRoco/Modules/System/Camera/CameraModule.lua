@@ -158,10 +158,6 @@ function CameraModule:_EnsuredGetController()
 end
 
 function CameraModule:_EnsuredGetSpringArm()
-  local CameraActor = self.CameraHolder:GetCurrentCamera()
-  if CameraActor then
-    return nil
-  end
   if self.SpringArm and UE.UObject.IsValid(self.SpringArm) then
     return self.SpringArm
   else
@@ -190,14 +186,26 @@ function CameraModule:_EnsuredGetCameraComponent()
   end
 end
 
-function CameraModule:_EnsuredRequestRocoCamera()
+function CameraModule:_EnsuredRequestRocoCamera(CameraRequestConfig)
   local Controller = self:_EnsuredGetController()
   if not Controller then
     return
   end
+  local BlendTime = CameraRequestConfig and CameraRequestConfig.BlendTime or 0.0
+  if BlendTime > 0 then
+    local main_camera = self.CameraHolder and self.CameraHolder:GetMainCamera()
+    if main_camera and Controller.PlayerCameraManager then
+      main_camera:K2_SetActorTransform(UE4.FTransform(Controller.PlayerCameraManager:GetCameraRotation():ToQuat(), Controller.PlayerCameraManager:GetCameraLocation()), false, nil, false)
+    end
+    if main_camera and not Controller:IsCurrentViewTarget(main_camera) then
+      Controller:SetViewTargetWithBlend(main_camera, 0.0, UE4.EViewTargetBlendFunction.VTBlend_Linear, 0.0)
+    end
+  end
   local CameraActor = Controller and Controller.CameraActor
   if not Controller:IsCurrentViewTarget(CameraActor) then
-    Controller:RequestRocoCamera()
+    local BlendType = CameraRequestConfig and CameraRequestConfig.BlendType and self:ConvertCameraBlendType(CameraRequestConfig.BlendType)
+    local BlendExp = CameraRequestConfig and CameraRequestConfig.BlendExp
+    Controller:RequestRocoCamera(BlendTime, BlendType, BlendExp)
   end
 end
 
@@ -584,7 +592,7 @@ function CameraModule:SetCloseUpCamera()
   local Constants = self:_GenerateConstantTable(self.CameraRequestConfig)
   local CameraInitLocation = self:_EnsuredGetController().PlayerCameraManager:GetCameraLocation()
   CameraInitLocation = SceneUtils.ConvertRelativeToAbsolute(CameraInitLocation)
-  self:_EnsuredRequestRocoCamera()
+  self:_EnsuredRequestRocoCamera(self.CameraRequestConfig)
   local DefaultZoffset = 0
   local bIsMainTargetAtLeft = CameraUtils.IsMainTargetAtLeft(CameraInitLocation, self.CameraRequestConfig.MainTarget:GetActorLocation(), self.CameraRequestConfig.SubTarget:GetActorLocation())
   if self.CameraRequestConfig.PlayerTarget == self.CameraRequestConfig.MainTarget then
@@ -623,7 +631,7 @@ function CameraModule:SetDoubleUpCamera()
   local SpringArmLengthMultiplier = 1
   local PitchOffset = -5
   local CameraInitLocation = self:_EnsuredGetController().PlayerCameraManager:GetCameraLocation()
-  self:_EnsuredRequestRocoCamera()
+  self:_EnsuredRequestRocoCamera(self.CameraRequestConfig)
   CameraInitLocation = SceneUtils.ConvertRelativeToAbsolute(CameraInitLocation)
   local bIsMainTargetAtLeft = CameraUtils.IsMainTargetAtLeft(CameraInitLocation, self.CameraRequestConfig.MainTarget:GetActorLocation(), self.CameraRequestConfig.SubTarget:GetActorLocation())
   local SpringArmDirection
@@ -666,7 +674,7 @@ function CameraModule:SetOverShoulderCamera()
     inputComponent:SetCameraControlEnable(self.CameraRequestConfig.CameraUser or self, false)
   end
   local CameraInitLocation = self:_EnsuredGetController().PlayerCameraManager:GetCameraLocation()
-  self:_EnsuredRequestRocoCamera()
+  self:_EnsuredRequestRocoCamera(self.CameraRequestConfig)
   self:DecideMainSubFromParam(true)
   local CameraComponent = self:_EnsuredGetCameraComponent()
   if DialogueConst.FOV then
@@ -857,7 +865,14 @@ function CameraModule:SetFreeCamera()
   local Param4Parts = string.split(self.CameraRequestConfig.Param4 or "", ";")
   local FOV = self.CameraRequestConfig.FOV or tonumber(Param4Parts[1]) or 90
   local TargetActorID = self.CameraRequestConfig.TargetActorID or self.CameraRequestConfig.Param2
-  local ActorTrans, _, TargetActor = DialogueUtils.GrabActorTransform(TargetActorID, self.CameraRequestConfig.fsm, self.CameraRequestConfig.NpcTarget)
+  local ActorTrans, _, TargetActor = DialogueUtils.GrabActorTransform(TargetActorID, self.CameraRequestConfig.fsm)
+  if not ActorTrans then
+    TargetActor = self.CameraRequestConfig.NpcTarget
+    ActorView = DialogueUtils.ExtraActorView(TargetActor)
+    if ActorView then
+      ActorTrans = ActorView:GetTransform()
+    end
+  end
   if TargetActor and TargetActor.DialogueTimelineTransformCache then
     ActorTrans = TargetActor.DialogueTimelineTransformCache
   end
@@ -974,7 +989,8 @@ function CameraModule:CameraMoveRounded(DeltaTime)
   end
   local CameraComponent = self:_EnsuredGetCameraComponent()
   local SpringArm = self:_EnsuredGetSpringArm()
-  if not CameraComponent or not SpringArm then
+  local HasValidCameraHolder = self.CameraHolder and self.CameraHolder:GetCurrentCamera()
+  if not (CameraComponent and SpringArm) or HasValidCameraHolder then
     Log.Error("\230\178\161\230\156\137SpringArm\231\154\132\233\149\156\229\164\180\229\166\130NIC_4(\232\135\170\231\148\177\233\149\156\229\164\180)\230\151\160\230\179\149\228\189\191\231\148\168NpcInteractCameraMoveType.CAMERA_MOVE_ROUNDED")
     self:OnCameraMotionDone()
     return

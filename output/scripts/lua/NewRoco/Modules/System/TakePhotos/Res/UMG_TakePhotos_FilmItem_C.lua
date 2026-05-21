@@ -20,6 +20,9 @@ function UMG_TakePhotos_FilmItem_C:OnTextureReady(Data)
 end
 
 function UMG_TakePhotos_FilmItem_C:RefreshTexture(Texture)
+  self:ToggleDownloadProgressMask(false)
+  self.Photograph:SetVisibility(UE.ESlateVisibility.Visible)
+  self.NRCImage_Loading:SetVisibility(UE.ESlateVisibility.Collapsed)
   local DesiredWidth, DesiredHeight = self._data:GetDesiredThumbnailSize()
   local ThumbnailWidth = Texture:Blueprint_GetSizeX()
   local ThumbnailHeight = Texture:Blueprint_GetSizeY()
@@ -42,7 +45,10 @@ function UMG_TakePhotos_FilmItem_C:OnItemUpdate(_data, datalist, index)
     if Texture then
       self:RefreshTexture(Texture)
     else
-      self.Switcher:SetActiveWidgetIndex(1)
+      self.Switcher:SetActiveWidgetIndex(0)
+      self:ToggleDownloadProgressMask(true)
+      self.Photograph:SetVisibility(UE.ESlateVisibility.Collapsed)
+      self.NRCImage_Loading:SetVisibility(UE.ESlateVisibility.SelfHitTestInvisible)
       _data.PhotoData:AddTextureReadyDelegate(self, self.OnTextureReady)
     end
     if _data.bRemoveMode then
@@ -66,6 +72,25 @@ function UMG_TakePhotos_FilmItem_C:OnItemUpdate(_data, datalist, index)
   else
     self.Time:SetVisibility(UE.ESlateVisibility.Collapsed)
   end
+  self:OnRefreshActivityReportedFlag()
+  self:RefreshUploadProgressMask()
+end
+
+function UMG_TakePhotos_FilmItem_C:OnRefreshActivityReportedFlag()
+  if self._data and self._data.bHasBeenActivityReported then
+    self.MarkerPanel:SetVisibility(UE.ESlateVisibility.SelfHitTestInvisible)
+  else
+    self.MarkerPanel:SetVisibility(UE.ESlateVisibility.Collapsed)
+  end
+  if self._data.InAlbumSubmitStatus then
+    if self._data.bActivityRequiredPhoto then
+      self.BgMask:SetVisibility(UE.ESlateVisibility.Collapsed)
+    else
+      self.BgMask:SetVisibility(UE.ESlateVisibility.SelfHitTestInvisible)
+    end
+  else
+    self.BgMask:SetVisibility(UE.ESlateVisibility.Collapsed)
+  end
 end
 
 function UMG_TakePhotos_FilmItem_C:OnItemSelected(_bSelected)
@@ -81,6 +106,66 @@ function UMG_TakePhotos_FilmItem_C:OnItemSelected(_bSelected)
 end
 
 function UMG_TakePhotos_FilmItem_C:OnDeactive()
+end
+
+function UMG_TakePhotos_FilmItem_C:RefreshUploadProgressMask()
+  if self._data and self._data.bRemoteData then
+    self:ToggleUploadProgressMask(false)
+    self.Cloud:SetVisibility(UE.ESlateVisibility.Collapsed)
+  else
+    if not (self._data and self._data.PhotoData) or self._data.PhotoData:IsUploadFinish() then
+      self:ToggleUploadProgressMask(false)
+    else
+      self:ToggleUploadProgressMask(true)
+    end
+    if self._data and self._data.PhotoData and self._data.PhotoData:IsUploadFinish() then
+      if self._data.bLocalFileInRemote then
+        self.Cloud:SetVisibility(UE.ESlateVisibility.SelfHitTestInvisible)
+      else
+        self.Cloud:SetVisibility(UE.ESlateVisibility.Collapsed)
+      end
+    else
+      self.Cloud:SetVisibility(UE.ESlateVisibility.Collapsed)
+    end
+  end
+end
+
+function UMG_TakePhotos_FilmItem_C:RefreshByUploadRefresh()
+  self:RefreshUploadProgressMask()
+end
+
+function UMG_TakePhotos_FilmItem_C:ToggleDownloadProgressMask(bEnabled)
+  if bEnabled == self.bEnabledDownloadMask then
+    return
+  end
+  self.bEnabledDownloadMask = bEnabled
+  local LoadUpload = self.UMG_LoadDownload
+  if not LoadUpload then
+    return
+  end
+  LoadUpload:SetVisibility(bEnabled and UE.ESlateVisibility.Visible or UE.ESlateVisibility.Collapsed)
+  if bEnabled then
+    LoadUpload:SetCardDownloading()
+  else
+    LoadUpload:StopAllAnimations()
+  end
+end
+
+function UMG_TakePhotos_FilmItem_C:ToggleUploadProgressMask(bEnabled)
+  if bEnabled == self.bEnabledUploadMask then
+    return
+  end
+  self.bEnabledUploadMask = bEnabled
+  local LoadUpload = self.UMG_LoadUpload1
+  if not LoadUpload then
+    return
+  end
+  LoadUpload:SetVisibility(bEnabled and UE.ESlateVisibility.Visible or UE.ESlateVisibility.Collapsed)
+  if bEnabled then
+    LoadUpload:SetCardUploading()
+  else
+    LoadUpload:StopAllAnimations()
+  end
 end
 
 return UMG_TakePhotos_FilmItem_C

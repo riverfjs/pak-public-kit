@@ -30,7 +30,7 @@ function UMG_Hud_Main_C:SetConfData(_conf)
     self.OwnerNameText:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     self.TipText:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     self.OwnerNameText:SetText(_conf.ownerName)
-    self.TipText:SetText("\230\139\165\230\156\137\232\128\133")
+    self.TipText:SetText(LuaText.Highvaluepet_Owner_Rule_Owner)
   else
     self.OwnerNameText:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.TipText:SetVisibility(UE4.ESlateVisibility.Collapsed)

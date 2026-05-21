@@ -161,6 +161,15 @@ function NRCSDKManager:SetUserValue(Key, Value)
   end
 end
 
+function NRCSDKManager:MarkLevelLoad(sceneName, restoreTagAndExclude)
+  restoreTagAndExclude = restoreTagAndExclude or false
+  UE4.UGPMStatics.MarkLevelLoad(sceneName, restoreTagAndExclude)
+  self:StartCustomStutter(restoreTagAndExclude)
+  if _G.GameSetting then
+    self:SetUploadLogTag(_G.GameSetting:GetUploadLogTag(), true)
+  end
+end
+
 function NRCSDKManager:PerfBeginMark(tag)
   UE4.UGPMStatics.BeginExtTag(tag)
 end
@@ -269,6 +278,18 @@ function NRCSDKManager:SetQualityToApm()
   return qualityValue
 end
 
+function NRCSDKManager:SetUploadLogTag(logTag, newLevelStart)
+  local isOpen = "High" == logTag
+  if isOpen then
+    self:PerfBeginMark("LogUpload")
+  else
+    self:PerfEndMark("LogUpload")
+  end
+  if isOpen or newLevelStart then
+    UE4.UGPMStatics.PostValueI_OneValue("CustomPerfData", "OpenLogUpload", isOpen and 1 or 0)
+  end
+end
+
 function NRCSDKManager:SetEnterDialogue()
   self:PerfBeginMark("dialogue")
   self:PerfBeginExclude("dialogue")
@@ -328,8 +349,7 @@ function NRCSDKManager:OnLoadMapStartHandler(sameSceneRes, bReconnecting, mapId,
     end
   end
   self.markLevelName = sceneName and sceneName or mapId and tostring(mapId) or "unknow"
-  UE4.UGPMStatics.MarkLevelLoad(self.markLevelName, false)
-  self:StartCustomStutter(false)
+  self:MarkLevelLoad(self.markLevelName, false)
   if self.markInLoading then
     self:PerfBeginMark("loading")
     self:PerfBeginExclude("loading")
@@ -344,13 +364,12 @@ function NRCSDKManager:OnTimerDoMarkLevelFin()
     return
   end
   self:PostStutter()
-  UE4.UGPMStatics.MarkLevelLoad(self.markLevelName, true)
-  self:StartCustomStutter(true)
+  self:MarkLevelLoad(self.markLevelName, true)
 end
 
 function NRCSDKManager:OnOpenPanel(panelData)
   if panelData and panelData.panelLayer == _G.Enum.UILayerType.UI_LAYER_FULLSCREEN then
-    self:PerfBeginMark("OpenUI")
+    self:PerfBeginMark(panelData.panelName)
   end
 end
 
@@ -368,7 +387,7 @@ end
 
 function NRCSDKManager:OnClosePanel(panelData)
   if panelData and panelData.panelLayer == _G.Enum.UILayerType.UI_LAYER_FULLSCREEN then
-    self:PerfEndMark("OpenUI")
+    self:PerfEndMark(panelData.panelName)
   end
 end
 
@@ -398,18 +417,19 @@ function NRCSDKManager:OnEnterScene()
   end
 end
 
+function NRCSDKManager:OnDelayOpenActivityPage(activityParam)
+  self.activityDelayId = nil
+  if table.isNotEmpty(activityParam) then
+    UE4.UWebViewStatics.OpenURL(activityParam.urlParam, activityParam.pageDirectionParam, activityParam.pageFullScreenParam, true)
+  else
+    Log.Error("[NRCSDKManager:OnLoadingUIClosed] self.ActivityPageParams is invalid")
+  end
+end
+
 function NRCSDKManager:OpenActivityPage()
   if RocoEnv.PLATFORM_ANDROID or RocoEnv.PLATFORM_IOS or RocoEnv.PLATFORM_OPENHARMONY then
     if self.bNeedOpenActivityPage then
-      _G.DelayManager:DelayFrames(10, function(activityParam)
-        if table.isNotEmpty(activityParam) then
-          UE4.UWebViewStatics.OpenURL(activityParam.urlParam, activityParam.pageDirectionParam, activityParam.pageFullScreenParam, true)
-        elseif activityParam then
-          Log.Dump(activityParam, 3, "self.ActivityPageParams")
-        else
-          Log.Error("[NRCSDKManager:OnLoadingUIClosed] self.ActivityPageParams is nil")
-        end
-      end, self.ActivityPageParams)
+      self.activityDelayId = _G.DelayManager:DelayFrames(10, self.OnDelayOpenActivityPage, self, self.ActivityPageParams)
       self.ActivityPageParams = nil
       self.bNeedOpenActivityPage = nil
       _G.NRCEventCenter:UnRegisterEvent(self, SceneEvent.OnEnterSceneFinishNtyAckEnd, self.OnEnterScene)
@@ -894,10 +914,13 @@ function NRCSDKManager:ShowCreditScoreNotEnoughDialog(CreditScoreNotEnoughType)
 end
 
 function NRCSDKManager:OpenPrivacyHelper()
+  local baseUrl = _G.DataConfigManager:GetGlobalConfigStrByKeyType("privacy_helper_url", _G.DataConfigManager.ConfigTableId.GLOBAL_CONFIG, "")
   if RocoEnv.PLATFORM == "PLATFORM_OPENHARMONY" then
-    self:ShowGRobotH5(NRCSDKManagerEnum.GRobot.SOURCE_PRIVACY, NRCSDKManagerEnum.ScreenType.Landscape)
+    self:ShowGRobotH5(NRCSDKManagerEnum.GRobot.SOURCE_PRIVACY, baseUrl, NRCSDKManagerEnum.ScreenType.Landscape)
+  elseif RocoEnv.PLATFORM == "PLATFORM_WINDOWS" then
+    self:ShowGRobotH5(NRCSDKManagerEnum.GRobot.SOURCE_PRIVACY, baseUrl, NRCSDKManagerEnum.ScreenType.Default)
   else
-    self:ShowGRobotH5(NRCSDKManagerEnum.GRobot.SOURCE_PRIVACY, NRCSDKManagerEnum.ScreenType.Default)
+    self:ShowGRobotH5(NRCSDKManagerEnum.GRobot.SOURCE_PRIVACY, baseUrl, NRCSDKManagerEnum.ScreenType.Landscape)
   end
 end
 
@@ -921,7 +944,6 @@ function NRCSDKManager:UpdateTGPAInfo(uin)
   end
   if RocoEnv.PLATFORM_IOS and 44 ~= string.len(xid) or RocoEnv.PLATFORM_ANDROID and 64 ~= string.len(xid) or RocoEnv.PLATFORM_OPENHARMONY and 58 ~= string.len(xid) then
     Log.Error("invalid xid length " .. xid)
-    return
   end
   Log.Debug("UpdateTGPAInfo with xid: " .. xid)
   local playerInfoMap = UE.TMap("", "")
@@ -1011,7 +1033,9 @@ function NRCSDKManager:OpenGameletSDK()
   userData:Add("sAccessToken", nil ~= playerInfoData.accessToken and playerInfoData.accessToken or "")
   userData:Add("sGameVer", nil ~= _G.AppMain:GetAppVersion() and _G.AppMain:GetAppVersion() or "")
   userData:Add("sServiceType", "rocom")
+  Log.Debug("[NRCSDKManager:OnPlayerLogin] before Open Gamelet")
   UE.UGamelet.Get():Open(RocoEnv.IS_SHIPPING and UE.EGameletEnvironment.Gamelet_Product or UE.EGameletEnvironment.Gamelet_Test, userData)
+  Log.Debug("[NRCSDKManager:OnPlayerLogin] before After Gamelet")
 end
 
 function NRCSDKManager:OnBackToLogin()
@@ -1121,7 +1145,6 @@ function NRCSDKManager:InviteWeGameFriend(targetOpenId)
     local avatarUrl = extraAccountInfo.avatarUrl
     local nickName = _G.DataModelMgr.PlayerDataModel:GetPlayerName()
     if self.bind and UE4.UObject.IsValid(self.bind.WeGameManager) then
-      Log.Warning(string.format("NRCSDKManager:InviteWeGameFriend with openid:%s, and nickName:%s, avatarUrl:%s, targetOpenId:%s", userAccountInfo.openid, nickName, avatarUrl, targetOpenId))
       return self.bind.WeGameManager:InviteWeGameFriend(userAccountInfo.openid, nickName, avatarUrl, targetOpenId)
     end
   else
@@ -1195,6 +1218,9 @@ function NRCSDKManager:ParseDeepLinkParam(launchQuery)
     return
   end
   if string.StartsWith(gameData, "JUMPOPEx") then
+    if RocoEnv.PLATFORM_OPENHARMONY or RocoEnv.PLATFORM_WINDOWS then
+      return
+    end
     local jumpParam = string.Split(gameData, "_")
     if #jumpParam < 3 then
       Log.Debug("invalid gameData:", gameData)
@@ -1238,7 +1264,8 @@ function NRCSDKManager:ParseDeepLinkParam(launchQuery)
       else
         url = url .. "?"
       end
-      url = url .. "openid=" .. gopenId .. "&area=" .. (_G.AppMain:GetFormalPipeline() and 137 or 60) .. "&platid=0&partition=0&roleid=" .. uin
+      local plat_id = RocoEnv.PLATFORM_IOS and 0 or 1
+      url = url .. "openid=" .. gopenId .. "&area=" .. (_G.AppMain:GetFormalPipeline() and 137 or 60) .. "&platid=" .. plat_id .. "&partition=0&roleid=" .. uin
       self.bNeedOpenActivityPage = true
       self.ActivityPageParams = {
         urlParam = url,
@@ -1293,9 +1320,17 @@ function NRCSDKManager:UpdateBgDownloadProgress(ProgressStr)
   end
 end
 
-function NRCSDKManager:ShowGRobotH5(xy_source, screen_type)
-  local baseUrl = _G.DataConfigManager:GetGlobalConfigStrByKeyType("privacy_helper_url", _G.DataConfigManager.ConfigTableId.GLOBAL_CONFIG, "")
-  Log.Info("NRCSDKManager:ShowGRobotH5", xy_source, screen_type, baseUrl)
+function NRCSDKManager:ShowGRobotH5(xy_source, base_url, screen_type)
+  local baseUrl = base_url
+  if xy_source == NRCSDKManagerEnum.GRobot.SOURCE_PC or xy_source == NRCSDKManagerEnum.GRobot.SOURCE_GAMES then
+    baseUrl = base_url .. string.format(NRCSDKManagerEnum.GRobot.GAMES_H5_URL_PATH, NRCSDKManagerEnum.GRobot.GAME_ID)
+  end
+  Log.Info("NRCSDKManager:ShowGRobotH5 ", base_url, xy_source, screen_type)
+  local userAccountInfo = _G.NRCModuleManager:DoCmd(_G.OnlineModuleCmd.GetUserAccountInfo)
+  if not userAccountInfo then
+    Log.Error("NRCSDKManager:ShowGRobot no valid userAccountInfo")
+    return
+  end
   local platId
   if xy_source == NRCSDKManagerEnum.GRobot.SOURCE_PRIVACY then
     if RocoEnv.PLATFORM_ANDROID then
@@ -1307,15 +1342,14 @@ function NRCSDKManager:ShowGRobotH5(xy_source, screen_type)
     elseif RocoEnv.PLATFORM_OPENHARMONY then
       platId = NRCSDKManagerEnum.GRobot.PRIVACY_PLAT_ID_HARMONY_NEXT
     end
-  elseif xy_source == NRCSDKManagerEnum.GRobot.SOURCE_GAMES then
-    if RocoEnv.PLATFORM_ANDROID then
-      platId = NRCSDKManagerEnum.GRobot.GAMES_PLAT_ID_MSDK_V5_ANDROID
-    elseif RocoEnv.PLATFORM_IOS then
-      platId = NRCSDKManagerEnum.GRobot.GAMES_PLAT_ID_MSDK_V5_IOS
-    elseif RocoEnv.PLATFORM_WINDOWS then
-      platId = NRCSDKManagerEnum.GRobot.GAMES_PLAT_ID_MSDK_V5_WINDOWS
-    elseif RocoEnv.PLATFORM_OPENHARMONY then
-      platId = NRCSDKManagerEnum.GRobot.GAMES_PLAT_ID_MSDK_V5_HARMONY_NEXT
+  elseif xy_source == NRCSDKManagerEnum.GRobot.SOURCE_GAMES or xy_source == NRCSDKManagerEnum.GRobot.SOURCE_PC then
+    local channelName = userAccountInfo.loginChannel
+    if channelName == LoginEnum.ChannelNames.QQ then
+      platId = NRCSDKManagerEnum.GRobot.GAMES_H5_PLAT_ID_QQ
+    elseif channelName == LoginEnum.ChannelNames.WeChat then
+      platId = NRCSDKManagerEnum.GRobot.GAMES_H5_PLAT_ID_WX
+    else
+      platId = NRCSDKManagerEnum.GRobot.GAMES_H5_PLAT_ID_VISITOR
     end
   else
     Log.Error("NRCSDKManager:ShowGRobot no valid xy_source ", xy_source)
@@ -1323,11 +1357,6 @@ function NRCSDKManager:ShowGRobotH5(xy_source, screen_type)
   end
   if nil == platId then
     Log.Error("NRCSDKManager:ShowGRobot no valid platId")
-    return
-  end
-  local userAccountInfo = _G.NRCModuleManager:DoCmd(_G.OnlineModuleCmd.GetUserAccountInfo)
-  if not userAccountInfo then
-    Log.Error("NRCSDKManager:ShowGRobot no valid userAccountInfo")
     return
   end
   local systemId
@@ -1338,13 +1367,15 @@ function NRCSDKManager:ShowGRobotH5(xy_source, screen_type)
     elseif channelName == LoginEnum.ChannelNames.WeChat then
       systemId = NRCSDKManagerEnum.GRobot.PRIVACY_SYSTEM_ID_WX
     end
-  elseif xy_source == NRCSDKManagerEnum.GRobot.SOURCE_GAMES then
-    if channelName == LoginEnum.ChannelNames.QQ then
-      systemId = NRCSDKManagerEnum.GRobot.GAMES_SYSTEM_ID_MSDK_V5_QQ
-    elseif channelName == LoginEnum.ChannelNames.WeChat then
-      systemId = NRCSDKManagerEnum.GRobot.GAMES_SYSTEM_ID_MSDK_V5_WX
-    else
-      systemId = NRCSDKManagerEnum.GRobot.GAMES_SYSTEM_ID_MSDK_V5_VISITOR
+  elseif xy_source == NRCSDKManagerEnum.GRobot.SOURCE_GAMES or xy_source == NRCSDKManagerEnum.GRobot.SOURCE_PC then
+    if RocoEnv.PLATFORM_ANDROID then
+      systemId = NRCSDKManagerEnum.GRobot.GAMES_H5_SYSTEM_ID_ANDROID
+    elseif RocoEnv.PLATFORM_IOS then
+      systemId = NRCSDKManagerEnum.GRobot.GAMES_H5_SYSTEM_ID_IOS
+    elseif RocoEnv.PLATFORM_WINDOWS then
+      systemId = NRCSDKManagerEnum.GRobot.GAMES_H5_SYSTEM_ID_WINDOWS
+    elseif RocoEnv.PLATFORM_OPENHARMONY then
+      systemId = NRCSDKManagerEnum.GRobot.GAMES_H5_SYSTEM_ID_HARMONY_NEXT
     end
   end
   if nil == systemId then
@@ -1379,10 +1410,13 @@ function NRCSDKManager:ShowGRobotH5(xy_source, screen_type)
     [7] = {appid = appId},
     [8] = {area_id = 0},
     [9] = {partition_id = "0"},
-    [10] = {region_id = 1},
-    [11] = {fullscreen = 0},
-    [12] = {msdkEnv = msdkEnv}
+    [10] = {msdkenv = msdkEnv}
   }
+  if xy_source == NRCSDKManagerEnum.GRobot.SOURCE_GAMES or xy_source == NRCSDKManagerEnum.GRobot.SOURCE_PC then
+    table.insert(paramTable, {
+      open_id = tostring(userAccountInfo.openid)
+    })
+  end
   if RocoEnv.PLATFORM_WINDOWS then
     table.insert(paramTable, {
       msdktype = NRCSDKManagerEnum.GRobot.PC_MSDK_TYPE
@@ -1409,73 +1443,23 @@ function NRCSDKManager:ShowGRobotH5(xy_source, screen_type)
 end
 
 function NRCSDKManager:ShowGRobot()
-  local userAccountInfo = _G.NRCModuleManager:DoCmd(_G.OnlineModuleCmd.GetUserAccountInfo)
-  if not userAccountInfo then
-    Log.Error("NRCSDKManager:ShowGRobot no valid userAccountInfo")
+  Log.Info("NRCSDKManager:ShowGRobot use H5 version")
+  local baseUrl
+  if RocoEnv.IS_SHIPPING then
+    baseUrl = _G.DataConfigManager:GetGlobalConfigStrByKeyType("zhiji_wbe", _G.DataConfigManager.ConfigTableId.GLOBAL_CONFIG, "")
+  else
+    baseUrl = _G.DataConfigManager:GetGlobalConfigStrByKeyType("zhiji_wbe_test", _G.DataConfigManager.ConfigTableId.GLOBAL_CONFIG, "")
+  end
+  Log.Info("baseUrl = " .. baseUrl)
+  if not baseUrl then
+    Log.Error("NRCSDKManager:ShowGRobot no valid baseUrl")
     return
   end
-  local platId = 3
-  if RocoEnv.PLATFORM_ANDROID then
-    platId = 1
-  elseif RocoEnv.PLATFORM_IOS then
-    platId = 0
-  elseif RocoEnv.PLATFORM_WINDOWS then
-    platId = 2
-  elseif RocoEnv.PLATFORM_OPENHARMONY then
-    platId = 12
-  end
-  local systemId = 3
-  local channelName = userAccountInfo.loginChannel
-  if channelName == LoginEnum.ChannelNames.QQ then
-    systemId = 1
-  elseif channelName == LoginEnum.ChannelNames.WeChat then
-    systemId = 2
+  if RocoEnv.PLATFORM_WINDOWS then
+    self:ShowGRobotH5(NRCSDKManagerEnum.GRobot.SOURCE_PC, baseUrl, NRCSDKManagerEnum.ScreenType.Default)
   else
-    systemId = 3
+    self:ShowGRobotH5(NRCSDKManagerEnum.GRobot.SOURCE_GAMES, baseUrl, NRCSDKManagerEnum.ScreenType.Landscape)
   end
-  local appId = ""
-  if channelName == LoginEnum.ChannelNames.QQ then
-    appId = "1110613799"
-  elseif channelName == LoginEnum.ChannelNames.WeChat then
-    appId = "wxdca9f9a612d43085"
-  end
-  local msdkEnv = 0
-  if RocoEnv.IS_SHIPPING then
-    msdkEnv = NRCSDKManagerEnum.GRobot.MSDK_ENV_PUB
-  else
-    msdkEnv = NRCSDKManagerEnum.GRobot.MSDK_ENV_DEV
-  end
-  local paramTable = {
-    itopGameId = "27819",
-    itopSigKey = "a8a2a8a6cd8163cf28cd1501baa743e1",
-    itopOpenId = tostring(userAccountInfo.openid),
-    itopToken = tostring(userAccountInfo.accessToken),
-    itopChannelId = tonumber(userAccountInfo.loginChannelType),
-    gameId = "21226",
-    appId = appId,
-    systemId = systemId,
-    platId = platId,
-    areaId = 0,
-    partitionId = "0",
-    roleId = tostring(userAccountInfo.openid),
-    gameCode = "rocom",
-    headerUrlStr = "",
-    msdkEnv = msdkEnv
-  }
-  _G.NRCModuleManager:DoCmd(_G.HeadIconModuleCmd.TryGetExternalSavedHeadIconFilePath, nil, function(openId, headIconPath)
-    paramTable.headerUrlStr = string.format("file://%s", headIconPath)
-    local paramStr = rapidjson.encode(paramTable)
-    Log.Info("NRCSDKManager:ShowGRobot paramStr: %s", paramStr)
-    if paramStr then
-      UE.UGRobotStatics.ShowGRobot(paramStr)
-    end
-  end, function(openId)
-    local paramStr = rapidjson.encode(paramTable)
-    Log.Info("NRCSDKManager:ShowGRobot paramStr: %s", paramStr)
-    if paramStr then
-      UE.UGRobotStatics.ShowGRobot(paramStr)
-    end
-  end)
 end
 
 function NRCSDKManager:CloseGRobot()

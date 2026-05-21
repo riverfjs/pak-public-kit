@@ -22,6 +22,10 @@ function UMG_PetBagFormation_C:OnConstruct()
   self.preparedForChange = false
   self.ItemMode = EnumItemMode.None
   self.Change:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  self.Module = NRCModuleManager:GetModule("PetUIModule")
+  if self.Module then
+    self.Module:RegisterEvent(self, PetUIModuleEvent.PET_TRACEBACK_SUCCESS_REWARD_POPUP_CLOSE, self.OnPetTraceBackSuccessAndRewardPopupClose)
+  end
   NRCEventCenter:RegisterEvent("UMG_PetBagFormation_C", self, PetUIModuleEvent.PetBagUIItemUpdateUI, self.UpdatePetLevel)
   NRCEventCenter:RegisterEvent("UMG_PetBagFormation_C", self, PetUIModuleEvent.OnNewPetBagReleaseLifeModeChanged, self.OnNewPetBagReleaseLifeModeChanged)
   self.OnGuidanceLongPress = Delegate()
@@ -29,6 +33,9 @@ function UMG_PetBagFormation_C:OnConstruct()
 end
 
 function UMG_PetBagFormation_C:OnDestruct()
+  if self.Module then
+    self.Module:UnRegisterEvent(self, PetUIModuleEvent.PET_TRACEBACK_SUCCESS_REWARD_POPUP_CLOSE, self.OnPetTraceBackSuccessAndRewardPopupClose)
+  end
   NRCEventCenter:UnRegisterEvent(self, PetUIModuleEvent.PetBagUIItemUpdateUI, self.UpdatePetLevel)
   NRCEventCenter:UnRegisterEvent(self, PetUIModuleEvent.OnNewPetBagReleaseLifeModeChanged, self.OnNewPetBagReleaseLifeModeChanged)
 end
@@ -45,6 +52,7 @@ end
 function UMG_PetBagFormation_C:AsDragItemInitInfo(_data)
   self.Move:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
   self:OnItemUpdate(_data, nil, 1)
+  self.bDragItem = true
   self.NrcRedPoint:SetupKey(0)
 end
 
@@ -163,7 +171,6 @@ function UMG_PetBagFormation_C:SetData(_petInfo, datalistInfo)
   self:ResetItemUI()
   self:SetSelectable()
   self:UpdateCollect()
-  self:SetRightCornerMark()
   self:UpdateUIInReleaseLifeMode()
   self.TagIcon:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.NumText:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
@@ -177,6 +184,7 @@ function UMG_PetBagFormation_C:SetData(_petInfo, datalistInfo)
     return
   end
   self:ShowPetIcon(self.uiData.base_conf_id, self.uiData.gid)
+  self:SetRightCornerMark()
 end
 
 function UMG_PetBagFormation_C:ResetItemUI()
@@ -265,7 +273,9 @@ function UMG_PetBagFormation_C:OnItemSelected(isSelected, IsScrollSelect)
     if self.uiData and self.parent and self.parent:IsSelectedPet(self.uiData.gid) then
       self.Selected:SetPath("PaperSprite'/Game/NewRoco/Modules/System/PetUI/Raw/PetBag/Frames/img_xuanzhong1_png.img_xuanzhong1_png'")
     end
-    self.Selected:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    if self.Selected then
+      self.Selected:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    end
     self:StopAllAnimations()
     self:PlayAnimation(self.Move_Selected_Out)
   end
@@ -287,9 +297,12 @@ function UMG_PetBagFormation_C:HandlePetItemSelected()
   local CurShowTeamIndex = _G.NRCModeManager:DoCmd(PetUIModuleCmd.GetCurShowTeamIndexInPortableBag)
   local petIndex = self.RealIndex - (CurShowTeamIndex - 1) * BASE_INDEX
   if self.uiData and self.uiData.petData then
-    _G.NRCModeManager:DoCmd(MainUIModuleCmd.SetSelectPetIndex, petIndex, self.uiData.petData)
-    _G.NRCModuleManager:DoCmd(MainUIModuleCmd.UI_SetThrowItem, _G.MainUIModuleEnum.MainUIChooseType.PET, self.uiData.petData)
-    _G.NRCModuleManager:DoCmd(MainUIModuleCmd.UI_RefreshMainPetSelectedState, self.uiData.gid)
+    local isMainTeamIndex, TeamIdx = _G.DataModelMgr.PlayerDataModel:GetIsBigWorldMainTeamIndexByGid(self.uiData.gid)
+    if isMainTeamIndex then
+      _G.NRCModeManager:DoCmd(MainUIModuleCmd.SetSelectPetIndex, petIndex, self.uiData.petData)
+      _G.NRCModuleManager:DoCmd(MainUIModuleCmd.UI_SetThrowItem, _G.MainUIModuleEnum.MainUIChooseType.PET, self.uiData.petData)
+      _G.NRCModuleManager:DoCmd(MainUIModuleCmd.UI_RefreshMainPetSelectedState, self.uiData.gid)
+    end
     self.IsPrepareChange = false
     if nil ~= self.parent and petIndex then
       self.parent:OnPetItemClick(petIndex, true, self.uiData.petData, self)
@@ -301,6 +314,14 @@ function UMG_PetBagFormation_C:HandlePetItemSelected()
       self.parent:OnPetItemClick(petIndex, true, nil, self)
     end
   end
+end
+
+function UMG_PetBagFormation_C:OnTouchEnded(MyGeometry, InTouchEvent)
+  if self.clickable then
+    _G.NRCAudioManager:PlaySound2DAuto(40002006, "UMG_PetBagFormation_C:OnTouchEnded")
+  end
+  Base.OnTouchEnded(self, MyGeometry, InTouchEvent)
+  return UE4.UWidgetBlueprintLibrary.Unhandled()
 end
 
 function UMG_PetBagFormation_C:SetSelectItemData()
@@ -654,6 +675,13 @@ function UMG_PetBagFormation_C:SetRightCornerMark(bInit)
     self.State:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     self.InFormation_1:SetPath(iconPath)
   end
+  local IsInActivity = _G.NRCModuleManager:DoCmd(_G.ActivityModuleCmd.IsPetInCurTripInfo, self.uiData.petData.gid)
+  if IsInActivity then
+    self.State:SetActiveWidgetIndex(2)
+    local iconPath = "PaperSprite'/Game/NewRoco/Modules/System/PetUI/PetUIStatic/Frames/img_youyuan_png.img_youyuan_png'"
+    self.State:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    self.InFormation_1:SetPath(iconPath)
+  end
   if self:GetSelfIsInFreeList() then
     self.State:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
@@ -673,6 +701,30 @@ end
 
 function UMG_PetBagFormation_C:OnNewPetBagReleaseLifeModeChanged(isReleaseLifeMode)
   self:UpdateUIInReleaseLifeMode()
+end
+
+function UMG_PetBagFormation_C:OnPetTraceBackSuccessAndRewardPopupClose(changes, gid)
+  if self.uiData == nil then
+    return
+  end
+  if nil == gid then
+    return
+  end
+  if gid ~= self.uiData.gid then
+    return
+  end
+  if self.bDragItem then
+    return
+  end
+  local NewPetData = _G.DataModelMgr.PlayerDataModel:GetPetDataByGid(gid)
+  self:UpdatePetData(NewPetData)
+  if self.Module then
+    self.Module:DispatchEvent(PetUIModuleEvent.OnUpdatePetImage3dData, NewPetData)
+  end
+  if not self:IsAnimationPlaying(self.TraceBack) then
+    self.TimeRewindFxPanel:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    self:PlayAnimation(self.TraceBack)
+  end
 end
 
 function UMG_PetBagFormation_C:UpdatePetLevel(petGID)

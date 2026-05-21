@@ -235,12 +235,8 @@ function UMG_PetBaseInfo_C:OnSelectPetChange(_petData)
 end
 
 function UMG_PetBaseInfo_C:RefreshEvoState()
-  if self.CulCanEvo then
-    self.IsUpgrade = true
-    self.data.EvoTargetCfgId = self.data.CulEvoId
-  else
-    self.IsUpgrade = false
-  end
+  self.IsUpgrade = false
+  self.data.EvoTargetCfgId = nil
   local playerRedPointInfo = _G.DataModelMgr.PlayerDataModel:GetRedPointInfo()
   for k, v in ipairs(playerRedPointInfo) do
     if (v.reason_type == _G.Enum.RedPointReason.RPR_PET_EVOLVE_TEAM or v.reason_type == _G.Enum.RedPointReason.RPR_PET_EVOLVE_BACKPACK) and v.point_data and #v.point_data > 0 then
@@ -927,12 +923,12 @@ end
 
 function UMG_PetBaseInfo_C:OnBtnRechristen_1Click()
   UE4.UNRCAudioManager.Get():PlaySound2DAuto(1002, "UMG_PetBaseInfo_C:OnBtnBtnRechristenClick")
-  _G.NRCModeManager:DoCmd(_G.PetUIModuleCmd.PetUIOpenPetTips)
+  _G.NRCModeManager:DoCmd(_G.PetUIModuleCmd.PetUIOpenPetTips, self.uiData and self.uiData.petData)
 end
 
 function UMG_PetBaseInfo_C:OnNRCButton_112Click()
   UE4.UNRCAudioManager.Get():PlaySound2DAuto(1002, "UMG_PetBaseInfo_C:OnBtnBtnRechristenClick")
-  _G.NRCModeManager:DoCmd(_G.PetUIModuleCmd.PetUIOpendblockerTips, self.openPetTipsType)
+  _G.NRCModeManager:DoCmd(_G.PetUIModuleCmd.PetUIOpendblockerTips, self.openPetTipsType, self.uiData and self.uiData.petData)
 end
 
 function UMG_PetBaseInfo_C:OnTalentBtnClick()
@@ -1086,46 +1082,30 @@ function UMG_PetBaseInfo_C:GetEvolutionPetBaseId(petBaseID)
   local petBaseConf = _G.DataConfigManager:GetPetbaseConf(petBaseID)
   local petEvolutionList = petBaseConf.evolution_pet_id
   local petEquipSkillList = self:GetPetEquipSkills(self.uiData.petData)
-  local data1OK = false
-  local data2OK = false
-  if petEvolutionList then
-    for i = 1, #petEvolutionList do
-      local evolutionPetConf = _G.DataConfigManager:GetPetbaseConf(petEvolutionList[i])
-      local type1 = evolutionPetConf.evolution_need_type1
-      local type2 = evolutionPetConf.evolution_need_type2
-      if type1 then
-        if 0 == type1 then
-          data1OK = true
-        elseif 1 == type1 then
-          for i, skillData in ipairs(petEquipSkillList) do
-            local skillCfg = _G.DataConfigManager:GetSkillConf(skillData.id)
-            if skillCfg.skill_dam_type == evolutionPetConf.evolution_need_data1 then
-              data1OK = true
-            end
+  local TargetEvoPetBaseId
+  local playerRedPointInfo = _G.DataModelMgr.PlayerDataModel:GetRedPointInfo()
+  for k, v in ipairs(playerRedPointInfo) do
+    if (v.reason_type == _G.Enum.RedPointReason.RPR_PET_EVOLVE_TEAM or v.reason_type == _G.Enum.RedPointReason.RPR_PET_EVOLVE_BACKPACK) and v.point_data and #v.point_data > 0 then
+      for key, val in ipairs(v.point_data) do
+        local dataList = string.Split(val, ".")
+        if self.uiData and self.uiData.petData and self.uiData.petData.gid == tonumber(dataList[1]) then
+          TargetEvoPetBaseId = dataList[2]
+          if "string" == type(TargetEvoPetBaseId) then
+            TargetEvoPetBaseId = tonumber(TargetEvoPetBaseId)
           end
+          break
         end
-      else
-        data1OK = true
-      end
-      if type2 then
-        if 0 == type2 then
-          data2OK = true
-        elseif 1 == type2 then
-          for i, skillData in ipairs(petEquipSkillList) do
-            if skillData.type == evolutionPetConf.evolution_need_data2 then
-              data2OK = true
-            end
-          end
-        end
-      else
-        data2OK = true
-      end
-      if data1OK and data2OK then
-        return petEvolutionList[i], i
-      else
       end
     end
   end
+  if TargetEvoPetBaseId and petEvolutionList then
+    for i = 1, #petEvolutionList do
+      if petEvolutionList[i] and TargetEvoPetBaseId == petEvolutionList[i] then
+        return TargetEvoPetBaseId, i
+      end
+    end
+  end
+  return nil
 end
 
 function UMG_PetBaseInfo_C:CheckPetEvoCondition(conditionEnum)

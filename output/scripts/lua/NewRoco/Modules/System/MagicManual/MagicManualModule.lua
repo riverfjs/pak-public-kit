@@ -12,13 +12,13 @@ local SceneEvent = require("NewRoco.Modules.Core.Scene.Common.SceneEvent")
 function MagicManualModule:OnConstruct()
   _G.MagicManualModuleCmd = reload("NewRoco.Modules.System.MagicManual.MagicManualModuleCmd")
   self.data = self:SetData("MagicManualModuleData", "NewRoco.Modules.System.MagicManual.MagicManualModuleData")
-  self:RegPanel("MagicManualMainPanel", "UMG_MagicManual_Main", _G.Enum.UILayerType.UI_LAYER_FULLSCREEN, true)
+  self:RegPanel("MagicManualMainPanel", "UMG_MagicManual_Main", _G.Enum.UILayerType.UI_LAYER_FULLSCREEN, nil, "Out")
   self:RegPanel("MagicManualItemRewards", "UMG_MagicMaunal_Section", _G.Enum.UILayerType.UI_LAYER_POPUP)
   self:RegPanel("MagicManualDescTips", "UMG_MagicManualDescTips", _G.Enum.UILayerType.UI_LAYER_POPUP)
   self:RegPanel("PlayDetails", "UMG_PlayDetails", _G.Enum.UILayerType.UI_LAYER_POPUP)
   self:RegPanel("SeasonBadge", "UMG_SeasonBadgeTips", _G.Enum.UILayerType.UI_LAYER_POPUP)
   self:RegPanel("ChapterBegin", "UMG_ChapterBegins", _G.Enum.UILayerType.UI_LAYER_POPUP)
-  self:RegPanel("SeasonChapterBegin", "UMG_SeasonAssignment", _G.Enum.UILayerType.UI_LAYER_POPUP)
+  self:RegPanel("SeasonChapterBegin", "UMG_SeasonAssignment_WidgetLoader", _G.Enum.UILayerType.UI_LAYER_POPUP)
   self:RegPanel("TeachingPopUp", "UMG_TeachingPopUp", _G.Enum.UILayerType.UI_LAYER_POPUP)
   self:RegPanel("RecallPanel", "UMG_MagicManual_Recalling", _G.Enum.UILayerType.UI_LAYER_POPUP)
   self.DeltaTime = 0
@@ -57,6 +57,7 @@ end
 
 function MagicManualModule:OnActive()
   _G.ZoneServer:AddProtocolListener(self, _G.ProtoCMD.ZoneSvrCmd.ZONE_SCENE_SPEC_FLOWER_SEED_INFO_NTY, self.OnZoneSceneSpecFlowerSeedInfoNty)
+  _G.ZoneServer:AddProtocolListener(self, _G.ProtoCMD.ZoneSvrCmd.ZONE_PLAYER_SEASON_ADV_BADGE_EFFECT_NOTIFY, self.OnZoneSeasonManualProbAddNotify)
   if not _G.ZoneServer:IsUpstreamLocked() then
     self:ZoneSceneQueryAllFlowerSeedReq()
   end
@@ -69,7 +70,18 @@ function MagicManualModule:OnActive()
   NRCEventCenter:RegisterEvent("MagicManualModule", self, SceneEvent.OnEnterSceneFinishNtyAck, self.OnEnterSceneFinish)
   _G.NRCEventCenter:RegisterEvent("MagicManualModule", self, SceneEvent.LoadMapStart, self.OnLoadMapStart)
   NRCEventCenter:RegisterEvent("UMG_MagicManual_C", self, RedPointModuleEvent.RedPointChange, self.OnUpdateRedPointData)
+  NRCEventCenter:RegisterEvent("UMG_MagicManual_C", self, _G.TaskModuleEvent.TaskChangeNotify, self.TaskChangeNotify)
   self:SendZoneOpenMagicBookSheetReq()
+  self:OnReqSeasonManualData()
+end
+
+function MagicManualModule:OnGetSeasonManualProbAdd()
+  return self.data:GetSeasonProbAdd()
+end
+
+function MagicManualModule:OnZoneSeasonManualProbAddNotify(ntf)
+  Log.Dump(ntf, 5, "MagicManualModule:OnZoneSeasonManualProbAddNotify")
+  self.data:OnUpdateSeasonManualProbAddition(ntf)
 end
 
 function MagicManualModule:OnEnterSceneFinish(notify, isReconnecting, isEnteringCell)
@@ -113,7 +125,13 @@ end
 
 function MagicManualModule:OnDeactive()
   NRCEventCenter:UnRegisterEvent(self, RedPointModuleEvent.RedPointChange, self.OnUpdateRedPointData)
+  NRCEventCenter:UnRegisterEvent(self, _G.TaskModuleEvent.TaskChangeNotify, self.TaskChangeNotify)
   _G.NRCEventCenter:UnRegisterEvent(self, SceneEvent.LoadMapFinish, self.OnLoadMapStart)
+  _G.ZoneServer:RemoveProtocolListener(self, _G.ProtoCMD.ZoneSvrCmd.ZONE_PLAYER_SEASON_ADV_BADGE_EFFECT_NOTIFY, self.OnZoneSeasonManualProbAddNotify)
+  if self.closePanelTimerID then
+    _G.DelayManager:CancelDelay(self.closePanelTimerID)
+    self.closePanelTimerID = nil
+  end
 end
 
 function MagicManualModule:OnUpdateRedPointData(notify)
@@ -369,6 +387,7 @@ function MagicManualModule:OnOpenMagicManualByIndex(tabType)
     _G.NRCModuleManager:DoCmd(TipsModuleCmd.Tips_CloseItemTips)
     _G.NRCModuleManager:DoCmd(CommonPopUpModuleCmd.CloseNPCShopItemRewardsPanel)
     if Panel:IsVisible() then
+      self.SubTableIndex = -1
       self.ChildTableIndex = ChildTableIndex
       Panel:SelectTabByTabIndex(index)
       if self:HasPanel("MagicManualItemRewards") then
@@ -376,6 +395,7 @@ function MagicManualModule:OnOpenMagicManualByIndex(tabType)
         self:DispatchEvent(MagicManualModuleEvent.UpdateMagicManualNextChapterPanel)
         self.data:SetNextChapterInfo()
       end
+      self:OpenPanel("MagicManualMainPanel", _G.NRCPanelOpenOptions.New():SetOpenStrategy(_G.NRCPanelEnum.NRCPanelOpenStrategy.BringToFront))
       return
     end
   end
@@ -469,6 +489,7 @@ function MagicManualModule:HandleOpenMagicBookSheetRsp(Rsp)
       self:UnlockIsSelectBtn()
       self:TryCloseWorldMap()
       self:DispatchEvent(MagicManualModuleEvent.UpdateMagicManualChapterInfo, TaskPanelInfo)
+      self:OpenPanel("MagicManualMainPanel", _G.NRCPanelOpenOptions.New():SetOpenStrategy(_G.NRCPanelEnum.NRCPanelOpenStrategy.BringToFront))
     else
       self.data.DailyRemainTime = Rsp.remain_time
       self.data.DailySpecialRewardItem = Rsp.special_reward_item
@@ -591,7 +612,11 @@ function MagicManualModule:OnZoneQueryInvestTaskRspByOpenPanel(rsp)
     local TaskPanelInfo = self.data:GetMagicManualTaskPanelInfo()
     local panelDynamicData = NRCPanelDynamicData()
     panelDynamicData:SetCloseCallback(self, self.MagicManualMainPanelCloseCallBack)
-    self:OpenPanel("MagicManualMainPanel", TaskPanelInfo, panelDynamicData)
+    if self:HasPanel("MagicManualMainPanel") then
+      self:OpenPanel("MagicManualMainPanel", _G.NRCPanelOpenOptions.New():SetOpenStrategy(_G.NRCPanelEnum.NRCPanelOpenStrategy.BringToFront))
+    else
+      self:OpenPanel("MagicManualMainPanel", TaskPanelInfo, panelDynamicData)
+    end
   else
     self:UnlockIsSelectBtn()
     self:TryCloseWorldMap()
@@ -1088,6 +1113,8 @@ function MagicManualModule:OnZoneQueryAllFlowerSeedRsp(rsp)
         table.sort(LegendList, LegendListSort)
       end
       self.data.LegendList = LegendList
+    else
+      self.data.LegendList = {}
     end
     self.data.LegendRemainTime = rsp.legendary_npcs.remain_time
     self.data.LegendChallengeNum = rsp.legendary_npcs.available_challenge_num_via_star
@@ -1236,6 +1263,7 @@ function MagicManualModule:GetFlowerData()
 end
 
 function MagicManualModule:OpenMagicManualByTeachBattleId(BattleId)
+  self.OpenTeachBattleId = BattleId
   if self.data.TeachingTabInfo then
     local type_advantage = self.data.TeachingTabInfo.type_advantage
     if type_advantage and #type_advantage > 0 then
@@ -1589,8 +1617,9 @@ function MagicManualModule:OnCmdOpenChapterBeginPanel(uiData, cache)
   end
 end
 
-function MagicManualModule:OnCmdOpenSeasonManual(chapterID)
+function MagicManualModule:OnCmdOpenSeasonManual(chapterID, notBringToFront)
   self.OpenSeasonPanelMark = true
+  self.SeasonPanelNeedBringToFront = not notBringToFront
   self:OnReqSeasonManualData(chapterID)
 end
 
@@ -1616,9 +1645,8 @@ function MagicManualModule:IsSameSeasonChapter(chapterID)
 end
 
 function MagicManualModule:OnReqSeasonManualData(chapterID)
-  local isOpen = _G.NRCModuleManager:DoCmd(_G.SeasonIntegrationModuleCmd.GetSeasonInfo) and true or false
   local Flags = _G.DataModelMgr.PlayerDataModel:IsAssignStoryFlags(Enum.PlayerStoryFlagEnum.PSF_FUNC_UNLOCK_SADV)
-  if not Flags or not isOpen then
+  if not Flags then
     return
   end
   local req = _G.ProtoMessage:newZoneOpenSeasonAdventureReq()
@@ -1633,6 +1661,9 @@ function MagicManualModule:OnSeasonManualDataRsp(rsp)
       self.TableIndex = self.data.TaskSortType.Task_Adventure
       self.ManaulChildIndex = self.data.ManualTaskType.SeasonManual
       if self:HasPanel("MagicManualMainPanel") then
+        if self.SeasonPanelNeedBringToFront then
+          self:OpenPanel("MagicManualMainPanel", _G.NRCPanelOpenOptions.New():SetOpenStrategy(_G.NRCPanelEnum.NRCPanelOpenStrategy.BringToFront))
+        end
       else
         self:OpenPanel("MagicManualMainPanel", rsp.chapter_id)
       end
@@ -1720,6 +1751,14 @@ function MagicManualModule:GetTaskStateInfoRsp(rsp)
   end
 end
 
+function MagicManualModule:TaskChangeNotify(task_list)
+  if not task_list or 0 == #task_list then
+    return
+  end
+  self.data:OnUpdataTaskStateInfo(task_list)
+  self:DispatchEvent("MagicManualModuleEvent.UpdateSeasonManualTask")
+end
+
 function MagicManualModule:OnCmdOpenSeasonManualChapter(chapterID, badgeLevel)
   local req = _G.ProtoMessage:newZoneGmSeasonAdventureSettingReq()
   req.uin = _G.DataModelMgr.PlayerDataModel:GetPlayerUin()
@@ -1756,7 +1795,14 @@ function MagicManualModule:TutorJumpToPanel(cmd, ...)
   end
   
   if "TaskModuleCmd.TraceOpenPetPanel" == cmd then
-    _G.DelayManager:DelaySeconds(0.1, closePanel)
+    if self.closePanelTimerID then
+      _G.DelayManager:CancelDelay(self.closePanelTimerID)
+      self.closePanelTimerID = nil
+    end
+    self.closePanelTimerID = _G.DelayManager:DelaySeconds(0.1, function()
+      closePanel()
+      self.closePanelTimerID = nil
+    end)
   else
     closePanel()
   end
@@ -1854,6 +1900,15 @@ function MagicManualModule:IsLimitSatisfy(limits)
     end
   end
   return false
+end
+
+function MagicManualModule:OnDebugOpenSeasonAssignment(chapterId)
+  local uiData = {}
+  uiData.chapterNumber = self.data:TranslateCurChapterName(2)
+  uiData.chapterName = "SeasonChapterBegin"
+  uiData.panelName = "SeasonChapterBegin"
+  uiData.id = 10201
+  self:OpenPanel(uiData.panelName, uiData)
 end
 
 return MagicManualModule

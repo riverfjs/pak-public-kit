@@ -93,24 +93,22 @@ function DataConfigManagerNew:InitTableInfo()
         self.BinDataManager:RegisterBinData(binName, binPath, binConf, ScriptDir)
       end
     end
-    if _G.RocoEnv.USE_LOCALIZATION then
-      local curCulture = UE4.UKismetInternationalizationLibrary.GetCurrentCulture()
-      Log.Info("DataConfigManagerNew.InitTableInfo ", curCulture)
-      if nil == curCulture or "" == curCulture then
-        curCulture = "dev_CN"
-      end
-      self:ChangeLanguage(string.gsub(curCulture, "-", "_"))
-    else
-      self:ChangeLanguage("dev_CN")
+    self:ChangeLanguage("dev_CN")
+    if RocoEnv.IS_EDITOR then
+      self:PreLoadBinData()
     end
-    local bFreezePreLoad = false
-    if not bFreezePreLoad then
-      local filterTables = {"LOC_FILE"}
-      for _, _conf in pairs(self.__configTableInfo) do
-        local binName = _conf and _conf.name
-        if binName and not table.contains(filterTables, binName) then
-          self.BinDataManager:LoadBinData(binName, true)
-        end
+  end
+end
+
+function DataConfigManagerNew:PreLoadBinData()
+  Log.Debug("[DataConfigManagerNew.PreLoadBinData]")
+  local bFreezePreLoad = false
+  if not bFreezePreLoad then
+    local filterTables = {"LOC_FILE"}
+    for _, _conf in pairs(self.__configTableInfo) do
+      local binName = _conf and _conf.name
+      if binName and not table.contains(filterTables, binName) then
+        self.BinDataManager:LoadBinData(binName, true)
       end
     end
   end
@@ -149,8 +147,13 @@ function DataConfigManagerNew:GetTable(_tableId)
           end
         end,
         GetData = function(binTable, keyValue)
-          if IS_EDITOR and binTable.editor_override and binTable.editor_override[keyValue] then
-            return binTable.editor_override[keyValue]
+          if IS_EDITOR then
+            if binTable.editor_discard and binTable.editor_discard[keyValue] then
+              return nil
+            end
+            if binTable.editor_override and binTable.editor_override[keyValue] then
+              return binTable.editor_override[keyValue]
+            end
           end
           if binTable.hasIndex then
             return binTable:GetDataByKey(keyValue)
@@ -223,6 +226,34 @@ function DataConfigManagerNew:GetTable(_tableId)
             binTable.editor_override = {}
           end
           binTable.editor_override[key] = value
+        end,
+        InsertData = function(binTable, key, value)
+          if not IS_EDITOR then
+            Log.Error("InsertData\229\143\170\232\131\189\229\156\168Editor\231\142\175\229\162\131\228\184\139\228\189\191\231\148\168\239\188\129\239\188\129")
+            return false
+          end
+          if binTable:GetData(key) then
+            return false
+          end
+          if binTable.editor_discard then
+            binTable.editor_discard[key] = nil
+          end
+          binTable:SaveData(key, value)
+          return true
+        end,
+        DeleteData = function(binTable, key)
+          if not IS_EDITOR then
+            Log.Error("DeleteData\229\143\170\232\131\189\229\156\168Editor\231\142\175\229\162\131\228\184\139\228\189\191\231\148\168\239\188\129\239\188\129")
+            return false
+          end
+          if not binTable:GetData(key) then
+            return false
+          end
+          if not binTable.editor_discard then
+            binTable.editor_discard = {}
+          end
+          binTable.editor_discard[key] = true
+          return true
         end
       }
       setmetatable(binDataTable, BinDataTable_MT)
@@ -249,6 +280,7 @@ function DataConfigManagerNew:ValidAllData()
 end
 
 function DataConfigManagerNew:ChangeLanguage(language)
+  UE4.FBinDataUtils.ClearConfigCache()
   local ScriptDir = UE4.UNRCStatics.ProjectScriptDir()
   local BinLocalizePath = string.format("Data/Bin/BinLocalize/%s", language)
   if self.BinDataManager then

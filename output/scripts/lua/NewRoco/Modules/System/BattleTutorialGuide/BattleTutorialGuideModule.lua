@@ -4,6 +4,7 @@ local BattleTutorialGuideConfig = require("NewRoco.Modules.System.BattleTutorial
 local BattleTutorialGuideModuleEvent = require("NewRoco.Modules.System.BattleTutorialGuide.BattleTutorialGuideModuleEvent")
 local BattleTutorialGuideModuleUtils = require("NewRoco.Modules.System.BattleTutorialGuide.BattleTutorialGuideModuleUtils")
 local BattleEnum = require("NewRoco.Modules.Core.Battle.Common.BattleEnum")
+local PlayerModuleEvent = require("NewRoco.Modules.Core.PlayerModule.PlayerModuleEvent")
 local GuideState = {
   Normal = 0,
   DoStep = 1,
@@ -164,6 +165,8 @@ function BattleTutorialGuideModule:ClearCurStep()
   self:SetIsForBidSkillClick(nil)
   self:ClearClickedHandler(Step)
   self:ClearForceTermination()
+  self:ClearActiveIaWatch()
+  self.CurStepInfo = nil
   self:OnCmdCloseBattleGuideMain()
 end
 
@@ -201,6 +204,7 @@ function BattleTutorialGuideModule:DoStep(Step)
       self:TrySetIsForBidSkillClick(Step)
       self:AddClickCallCallBack(widget, Step)
       self:ForceTermination(Step)
+      self:AddActiveIaWatch(styleConfig)
     else
       self.CurState = GuideState.DoStep
     end
@@ -280,6 +284,117 @@ function BattleTutorialGuideModule:ForceTermination(Step)
   end)
 end
 
+function BattleTutorialGuideModule:ClearActiveIaWatch()
+  self.IaWatchConfigs = nil
+  self.watchedIaNames = nil
+end
+
+function BattleTutorialGuideModule:AddActiveIaWatch(styleConfig)
+  if styleConfig.active_ia_watch and #styleConfig.active_ia_watch > 0 then
+    self.IaWatchConfigs = {}
+    self.watchedIaNames = {}
+    for _, id in pairs(styleConfig.active_ia_watch) do
+      local iaConfig = _G.DataConfigManager:GetGuideIaConf(id, true)
+      if iaConfig then
+        local ia = {
+          id = id,
+          iaName = iaConfig.ia_name,
+          cmd = iaConfig.ia_command
+        }
+        table.insert(self.IaWatchConfigs, ia)
+        table.insert(self.watchedIaNames, iaConfig.ia_name)
+      end
+    end
+  end
+end
+
+function BattleTutorialGuideModule:OnInputKeyNotify(actionName, key, inputEvent)
+  if inputEvent ~= UE4.EInputEvent.IE_Released then
+    return
+  end
+  self:TryMatchIAInput(actionName, key.KeyName, inputEvent)
+end
+
+function BattleTutorialGuideModule:TryMatchIAInput(actionName, keyName, inputEvent)
+  self:TryMatchButtonAndIA(keyName)
+end
+
+function BattleTutorialGuideModule:TryMatchActiveIA(keyName)
+  local Step = self.CurStepInfo
+  if not Step or not self.IaWatchConfigs then
+    return
+  end
+  local styleConfig = Step.CtrlConf
+  if not styleConfig or not styleConfig.strong_guide then
+    return
+  end
+  for _, iaConfig in ipairs(self.IaWatchConfigs) do
+    if not iaConfig then
+    else
+      local iaName = iaConfig.iaName
+      if self:JudgeIAMatch(iaName, keyName) then
+        self:OnIAInputMatched(iaConfig)
+        break
+      end
+    end
+  end
+end
+
+function BattleTutorialGuideModule:OnIAInputMatched(iaConfig)
+  if not iaConfig then
+    return
+  end
+  if iaConfig.cmd then
+    _G.NRCModuleManager:DoCmd(iaConfig.cmd)
+    self:TryNextStep()
+  end
+end
+
+function BattleTutorialGuideModule:TryMatchButtonAndIA(keyName)
+  if "Touch1" == keyName then
+    return
+  end
+  if not self.CurState or self.CurState == GuideState.Normal then
+    return
+  end
+  if not self.watchedIaNames then
+    return
+  end
+  if not self.CurStepInfo then
+    return
+  end
+  for _, iaName in pairs(self.watchedIaNames) do
+    if self:JudgeIAMatch(iaName, keyName) then
+      self:AutoClickAndNextStep(self.CurStepInfo)
+      break
+    end
+  end
+end
+
+function BattleTutorialGuideModule:JudgeIAMatch(iaName, keyName)
+  if not iaName then
+    return false
+  end
+  local keyUIName = _G.NRCModuleManager:DoCmd(_G.SystemSettingModuleCmd.GetKeyUIName, keyName)
+  
+  local function checkKeyMatch(name)
+    if "" ~= keyUIName then
+      return keyUIName == name
+    end
+    return keyName == name
+  end
+  
+  local keyText, _ = _G.NRCModuleManager:DoCmd(_G.SystemSettingModuleCmd.GetMappingKeyUIName, iaName)
+  if keyText and "" ~= keyText then
+    if checkKeyMatch(keyText) then
+      return true
+    end
+  elseif checkKeyMatch(iaName) then
+    return true
+  end
+  return false
+end
+
 function BattleTutorialGuideModule:AutoClickAndNextStep(Step)
   self:ClearForceTermination()
   local id = Step.battle_guidance_location
@@ -342,14 +457,14 @@ function BattleTutorialGuideModule:AutoClickAndNextStep(Step)
       BattleMain:TrySelectItem(1, true)
       BattleMain:TrySelectItem(1, false)
     end
-    ClickState = GuideClickState.Click
+    ClickState = GuideClickState.None
   elseif id == Enum.BattleGuidanceLocation.BGL_BAG_2 then
     local BattleMain = _G.BattleUtils.GetMainWindow()
     if BattleMain then
       BattleMain:TrySelectItem(2, true)
       BattleMain:TrySelectItem(2, false)
     end
-    ClickState = GuideClickState.Click
+    ClickState = GuideClickState.None
   elseif id == Enum.BattleGuidanceLocation.BGL_OUR_PET_ICON then
     local targetButton = self.guideCfg:TryGetGuideWidgetWithFocusId(Step.CtrlConf.type_id)
     if targetButton and UE4.UObject.IsValid(targetButton) and targetButton:IsA(UE.UButton) then
@@ -382,6 +497,12 @@ function BattleTutorialGuideModule:AutoClickAndNextStep(Step)
   elseif id == Enum.BattleGuidanceLocation.BGL_PET then
     _G.BattleManager:ChangeOperateMode(BattleEnum.Operation.ENUM_CHANGE)
     ClickState = GuideClickState.None
+  elseif id == Enum.BattleGuidanceLocation.BGL_PET_1 then
+    local BattleMain = _G.BattleUtils.GetMainWindow()
+    if BattleMain then
+      BattleMain:TrySelectChangePet(1)
+    end
+    ClickState = GuideClickState.None
   else
     local targetButton = self.guideCfg:TryGetGuideWidgetWithFocusId(Step.CtrlConf.type_id)
     if targetButton and UE4.UObject.IsValid(targetButton) and targetButton:IsA(UE.UButton) then
@@ -410,6 +531,10 @@ function BattleTutorialGuideModule:AddEventListener()
   _G.NRCEventCenter:RegisterEvent("BattleTutorialGuideModule", self, BattleTutorialGuideModuleEvent.EnterBattleTutorialGuideEvent, self.EnterGuide)
   _G.NRCEventCenter:RegisterEvent("BattleTutorialGuideModule", self, _G.NRCGlobalEvent.ON_RECONNECT_FINISH, self.OnReconnect)
   _G.BattleEventCenter:Bind(self, BattleEvent.ROUND_START)
+  local playerModule = _G.NRCModuleManager:GetModule("PlayerModule")
+  if playerModule then
+    playerModule:RegisterEvent(self, PlayerModuleEvent.ON_INPUT_KEY, self.OnInputKeyNotify)
+  end
 end
 
 function BattleTutorialGuideModule:RemoveEventListener()

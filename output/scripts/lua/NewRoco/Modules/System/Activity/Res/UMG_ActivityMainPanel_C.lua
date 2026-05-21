@@ -3,6 +3,7 @@ local ActivityUtils = require("NewRoco.Modules.System.Activity.ActivityUtils")
 local MainUIModuleEvent = require("NewRoco.Modules.System.MainUI.MainUIModuleEvent")
 local ActivityProfilerLog = require("NewRoco.Modules.System.Activity.ActivityProfilerLog")
 local FunctionBanUIController = require("NewRoco.Modules.System.FunctionBan.FunctionBanUIController")
+local JsonUtils = require("Common.JsonUtils")
 local UMG_ActivityMainPanel_C = _G.NRCPanelBase:Extend("UMG_ActivityMainPanel_C")
 local ActivityEnum = require("NewRoco.Modules.System.Activity.ActivityEnum")
 local CompositedActivityObject = require("NewRoco.Modules.System.Activity.ActivityObject.CompositedActivityObject")
@@ -17,6 +18,7 @@ function UMG_ActivityMainPanel_C:OnConstruct()
   end
   self.displayActivities = {}
   self.displayActivitiesClassified = {}
+  self.returnActivitiesList = {}
   self.activityViews = _G.MakeWeakTable()
   self.loadingActivityViews = _G.MakeWeakTable()
   self.activityViewOpenOrder = {}
@@ -30,11 +32,14 @@ function UMG_ActivityMainPanel_C:OnConstruct()
   self:AddButtonListener(self.CloseBtn.btnClose, self.OnBtnClosePanel)
   self:AddButtonListener(self.LianXiButton.btnLevelUp, self.OnClicked)
   self:AddButtonListener(self.blockBtn, self.OnBlockBtnClick)
+  self:AddButtonListener(self.BtnBackflow.btnLevelUp, self.OpenReturnActivities)
+  self:AddButtonListener(self.CloseBtn_1.btnClose, self.CloseRecallGuide)
   self:RegisterEvent(self, ActivityModuleEvent.FilterActivityMainTab, self.OnFilterActivityMainTab)
   self:RegisterEvent(self, ActivityModuleEvent.LoadActivityView, self.OnLoadActivityView)
   self:RegisterEvent(self, ActivityModuleEvent.DisplayingActivitiesChange, self.OnDisplayingActivitiesChange)
   self:RegisterEvent(self, ActivityModuleEvent.ShowActivityMainPanelCloseBtn, self.OnShowActivityMainPanelCloseBtn)
   self:RegisterEvent(self, ActivityModuleEvent.ActivitySvrBlockedStateChange, self.OnActivitySvrBlockedStateChange)
+  self:RegisterEvent(self, ActivityModuleEvent.OnRecallActivityFinish, self.OnRecallActivityFinish)
   self:BindInputAction()
   self:SetCommonTitle()
   if self.InvalidationBox_86 then
@@ -51,10 +56,13 @@ end
 function UMG_ActivityMainPanel_C:OnDestruct()
   _G.DataModelMgr.PlayerDataModel:RemovePanelMusic(Enum.MusicApplyType.MAT_UI, Enum.InterfaceType.IT_ACTIVITY)
   self:RemoveButtonListener(self.LianXiButton.btnLevelUp)
+  self:RemoveButtonListener(self.BtnBackflow.btnLevelUp)
+  self:RemoveButtonListener(self.CloseBtn_1.btnClose)
   self:UnRegisterEvent(self, ActivityModuleEvent.FilterActivityMainTab)
   self:UnRegisterEvent(self, ActivityModuleEvent.LoadActivityView)
   self:UnRegisterEvent(self, ActivityModuleEvent.DisplayingActivitiesChange)
   self:UnRegisterEvent(self, ActivityModuleEvent.ShowActivityMainPanelCloseBtn)
+  self:UnRegisterEvent(self, ActivityModuleEvent.OnRecallActivityFinish)
   for _activityInst, _activityView in pairs(self.activityViews) do
     if _activityInst then
       _activityInst:DetachView()
@@ -65,7 +73,7 @@ function UMG_ActivityMainPanel_C:OnDestruct()
   end
 end
 
-function UMG_ActivityMainPanel_C:OnActive(_activityType, _activityId)
+function UMG_ActivityMainPanel_C:OnActive(_activityType, _activityId, _openSource)
   if _activityType then
     self.OpenType = _activityType
   end
@@ -76,6 +84,7 @@ function UMG_ActivityMainPanel_C:OnActive(_activityType, _activityId)
     self:LoadPanelByUITest(_activityType)
     return
   end
+  self.openSource = _openSource
   local displayActivities = _G.NRCModuleManager:DoCmd(_G.ActivityModuleCmd.GetDisplayActivities, true)
   self:LocateActivityByTypeOrId(true, displayActivities, _activityType, _activityId)
   local touchReasonType = _G.NRCModuleManager:DoCmd(MultiTouchModuleCmd.GetPanelSelectBtnReason, "LobbyMain").ACTIVITY
@@ -98,6 +107,10 @@ function UMG_ActivityMainPanel_C:OnDisable()
       _activityView:OnDisable()
     end
   end
+end
+
+function UMG_ActivityMainPanel_C:OnBringToFront(_activityType, _activityId)
+  self:LocateActivityByTypeOrId(false, self.displayActivities, _activityType, _activityId)
 end
 
 function UMG_ActivityMainPanel_C:LocateActivityByTypeOrId(_refreshDisplay, _displayActivities, _activityType, _activityId)
@@ -150,13 +163,9 @@ function UMG_ActivityMainPanel_C:LocateActivityByTypeOrId(_refreshDisplay, _disp
         end
       end
     end
-  else
+  elseif _activityType or _activityId then
     _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, _G.LuaText.activity_unopen_track_tips)
   end
-end
-
-function UMG_ActivityMainPanel_C:OnSelectedActivityByOpenCmd(_activityType, _activityId)
-  self:LocateActivityByTypeOrId(false, self.displayActivities, _activityType, _activityId)
 end
 
 function UMG_ActivityMainPanel_C:BindInputAction()
@@ -182,31 +191,57 @@ function UMG_ActivityMainPanel_C:RefreshDisplayActivities(displayActivities)
     validCompositedKeys[_compositedKey] = false
   end
   local activityTabData = {}
+  local returnActivityData = {}
   local mainTabIds = {}
   for _, _activityInst in ipairs(displayActivities) do
     local mainTabId = _activityInst:GetActivityMainTabId()
-    local cacheActivities = activityTabData[mainTabId]
-    if not cacheActivities then
-      cacheActivities = {}
-      activityTabData[mainTabId] = cacheActivities
-      table.insert(mainTabIds, mainTabId)
-    end
-    local compositedKey = _activityInst:GetActivityCompositedKey()
-    if compositedKey then
-      validCompositedKeys[compositedKey] = true
-      local compositedInst = self.compositedActivities[compositedKey]
-      if compositedInst then
-        compositedInst:AddActivity(_activityInst)
-      else
-        compositedInst = CompositedActivityObject({_activityInst})
-        self.compositedActivities[compositedKey] = compositedInst
-        table.insert(cacheActivities, compositedInst)
-      end
+    if _activityInst:GetActivityBelongSystem() == _G.Enum.BelongSystem.BS_RECALL_ACTIVITY and not _activityInst.activityConf.if_hide then
+      table.insert(returnActivityData, _activityInst)
     else
-      table.insert(cacheActivities, _activityInst)
+      local cacheActivities = activityTabData[mainTabId]
+      if not cacheActivities then
+        cacheActivities = {}
+        activityTabData[mainTabId] = cacheActivities
+        table.insert(mainTabIds, mainTabId)
+      end
+      local compositedKey = _activityInst:GetActivityCompositedKey()
+      if compositedKey then
+        validCompositedKeys[compositedKey] = true
+        local compositedInst = self.compositedActivities[compositedKey]
+        if compositedInst then
+          compositedInst:AddActivity(_activityInst)
+        else
+          compositedInst = CompositedActivityObject({_activityInst})
+          self.compositedActivities[compositedKey] = compositedInst
+          table.insert(cacheActivities, compositedInst)
+        end
+      else
+        table.insert(cacheActivities, _activityInst)
+      end
+    end
+  end
+  if 0 == #returnActivityData then
+    self.BtnBackflow:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  else
+    self.BtnBackflow:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    self.BtnBackflow:SetRedDot(489)
+    table.sort(returnActivityData, function(a, b)
+      return a:GetActivityId() < b:GetActivityId()
+    end)
+    if self.openSource ~= ActivityEnum.MainPanelOpenSource.RecallActivity then
+      local recordTable = JsonUtils.LoadSaved("RecallPanelOpenRecord", {})
+      if not next(recordTable) then
+        self.CanvasPanel_Aperture:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+        self.CanvasInstruction:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+        _G.NRCAudioManager:PlaySound2DAuto(40009005, "UMG_ActivityMainPanel_C:RefreshDisplayActivities")
+        self:PlayAnimation(self.Guide_BtnBackflow)
+        self.bPlayGuide = true
+        JsonUtils.DumpSaved("RecallPanelOpenRecord", {1})
+      end
     end
   end
   self.displayActivitiesClassified = activityTabData
+  self.returnActivitiesList = returnActivityData
   for _compositedKey, _valid in pairs(validCompositedKeys) do
     if not _valid then
       self.compositedActivities[_compositedKey] = nil
@@ -260,7 +295,11 @@ function UMG_ActivityMainPanel_C:RefreshDisplayActivities(displayActivities)
       end
     end
   end
-  self.TabList1:SelectItemByIndex(selectMainTabId)
+  if self.openSource == ActivityEnum.MainPanelOpenSource.RecallActivity and #returnActivityData > 0 then
+    self:OpenReturnActivities()
+  else
+    self.TabList1:SelectItemByIndex(selectMainTabId)
+  end
 end
 
 function UMG_ActivityMainPanel_C:RefreshCommonTitle(index)
@@ -303,22 +342,6 @@ end
 
 function UMG_ActivityMainPanel_C:ShowTabList(_mainTabId)
   local displayActivities = self.displayActivitiesClassified[_mainTabId] or {}
-  local isBan = _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.CheckUIFunctionBan, Enum.FunctionEntrance.FE_PANDORA)
-  local bIsPikaBaned = _G.NRCModuleManager:DoCmd(_G.FunctionBanManager.CheckUIFunctionBan, Enum.FunctionEntrance.FE_FASHION_STORE)
-  if isBan or bIsPikaBaned then
-    local indexToRemoved = {}
-    for i, displayActivity in ipairs(displayActivities) do
-      if displayActivity.activity_type == ActivityEnum.ActivityTypeSpecial.PandoraActivity then
-        table.insert(indexToRemoved, i)
-      end
-      if displayActivity.activityConf.activity_type == _G.Enum.ActivityType.ATP_PIKA then
-        table.insert(indexToRemoved, i)
-      end
-    end
-    for i = #indexToRemoved, 1, -1 do
-      table.remove(displayActivities, indexToRemoved[i])
-    end
-  end
   self.TabList:InitList(displayActivities)
   local selectIndex = 0
   if self.curShowTabId ~= _mainTabId then
@@ -563,21 +586,40 @@ function UMG_ActivityMainPanel_C:OnActivitySvrBlockedStateChange()
 end
 
 function UMG_ActivityMainPanel_C:OnBtnClosePanel()
-  local mappingContext = self:GetInputMappingContext("IMC_ActivityUI")
-  if mappingContext then
-    mappingContext:UnBindAction("IA_CloseActivityUI")
-    mappingContext:UnBindAction("IA_CloseActivityQuick")
+  if self.bReturnOpen then
+    self.bReturnOpen = false
+    self.TabListPanel:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    self.Title1:Set_MainTitle(self.titleConf.title)
+    if self.openSource == ActivityEnum.MainPanelOpenSource.RecallActivity then
+      _G.NRCAudioManager:PlaySound2DAuto(40009005, "UMG_ActivityMainPanel_C:RefreshDisplayActivities")
+      self.CanvasPanel_Aperture:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+      self.CanvasInstruction:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+      self:PlayAnimation(self.Guide_BtnBackflow)
+      self.bPlayGuide = true
+      JsonUtils.DumpSaved("RecallPanelOpenRecord", {1})
+      self.openSource = nil
+    end
+    self.BtnBackflow:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    self.TabList1:SelectItemByIndex(0)
+  else
+    local mappingContext = self:GetInputMappingContext("IMC_ActivityUI")
+    if mappingContext then
+      mappingContext:UnBindAction("IA_CloseActivityUI")
+      mappingContext:UnBindAction("IA_CloseActivityQuick")
+    end
+    _G.NRCAudioManager:PlaySound2DAuto(41401010, "UMG_ActivityMainPanel_C:OnBtnClosePanel")
+    local _curActivityView = self.curActiveActivity and self.activityViews[self.curActiveActivity]
+    if _curActivityView and _curActivityView.OnCloseView then
+      _curActivityView:OnCloseView()
+    end
+    self:OnClose()
   end
-  _G.NRCAudioManager:PlaySound2DAuto(41401010, "UMG_ActivityMainPanel_C:OnBtnClosePanel")
-  local _curActivityView = self.curActiveActivity and self.activityViews[self.curActiveActivity]
-  if _curActivityView and _curActivityView.OnCloseView then
-    _curActivityView:OnCloseView()
-  end
-  self:OnClose()
 end
 
 function UMG_ActivityMainPanel_C:DoClose()
-  _G.NRCEventCenter:DispatchEvent(MainUIModuleEvent.OnMainUISubPanelClosed, false)
+  if self.openSource == ActivityEnum.MainPanelOpenSource.LobbyMainInner then
+    _G.NRCEventCenter:DispatchEvent(MainUIModuleEvent.OnMainUISubPanelClosed, false)
+  end
   _G.NRCPanelBase.DoClose(self)
 end
 
@@ -594,6 +636,52 @@ end
 
 function UMG_ActivityMainPanel_C:LoadPanelByUITest(umgPath)
   self:LoadPanelRes(umgPath, 255, self.OnActivityViewClassLoadedByUITest)
+end
+
+function UMG_ActivityMainPanel_C:OpenReturnActivities()
+  self.bReturnOpen = true
+  self.TabListPanel:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  local titleConf = _G.DataConfigManager:GetTitleConf("RecallTheme")
+  self.Title1:SetBaseInfo(titleConf.head_icon, titleConf.subtitle[1].subtitle, titleConf.title)
+  local returnActivities = self.returnActivitiesList
+  self.TabList:InitList(returnActivities)
+  local selectIndex = 0
+  for _index, _ in ipairs(returnActivities) do
+    local hasRedPoint = self.TabList:OpItemByIndex(_index, ActivityEnum.ActivityTabOpType.GetHasRedPoint)
+    if hasRedPoint then
+      selectIndex = _index - 1
+      break
+    end
+  end
+  self.TabList:SelectItemByIndex(selectIndex)
+  self.BtnBackflow:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  if self.bPlayGuide then
+    self:CloseRecallGuide()
+    self.bPlayGuide = nil
+  end
+end
+
+function UMG_ActivityMainPanel_C:OnRecallActivityFinish()
+  if self.bReturnOpen then
+    _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, _G.LuaText.activity_expired_interaction_tip)
+    self:OnBtnClosePanel()
+  end
+  self:StopAllAnimations()
+  self.BtnBackflow:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self.CanvasPanel_Aperture:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self.CanvasInstruction:SetVisibility(UE4.ESlateVisibility.Collapsed)
+end
+
+function UMG_ActivityMainPanel_C:CloseRecallGuide()
+  self:StopAllAnimations()
+  self.CanvasInstruction:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self.CanvasPanel_Aperture:SetVisibility(UE4.ESlateVisibility.Collapsed)
+end
+
+function UMG_ActivityMainPanel_C:OnAnimFinished(Anim)
+  if Anim == self.Guide_BtnBackflow then
+    self:PlayAnimation(self.Guide_BtnBackflow_Loop, nil, 0)
+  end
 end
 
 return UMG_ActivityMainPanel_C

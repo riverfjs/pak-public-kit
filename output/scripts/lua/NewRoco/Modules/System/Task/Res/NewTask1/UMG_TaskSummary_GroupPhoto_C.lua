@@ -63,11 +63,11 @@ end
 
 function UMG_TaskSummary_GroupPhoto_C:OnPlayTips(tip)
   self.customData = tip.customData
-  self:SetTaskPhotoInfo()
   self:SetPanelInfo()
 end
 
-function UMG_TaskSummary_GroupPhoto_C:SetTaskPhotoInfo()
+function UMG_TaskSummary_GroupPhoto_C:SetTaskPhotoInfo(SetBgSuccess)
+  Log.Debug("UMG_TaskSummary_GroupPhoto_C:SetTaskPhotoInfo  SetBgSuccess", SetBgSuccess)
   self:DoSetTaskPhotoInfo()
   local bUseAvatarImageCache = self.UMG_TaskPhoto:IsUseAvatarImageCache()
   if bUseAvatarImageCache then
@@ -79,6 +79,21 @@ function UMG_TaskSummary_GroupPhoto_C:DoSetTaskPhotoInfo()
   self.UMG_TaskPhoto:SetPlayerData(self.customData, "popup")
   self.UMG_TaskPhoto:SetpanelName("TaskSummary_GroupPhoto")
   self.UMG_TaskPhoto:SetPlayerPath()
+end
+
+function UMG_TaskSummary_GroupPhoto_C:IconSetPathSuccess()
+  self:CancelDelay()
+  self:SetTaskPhotoInfo(true)
+end
+
+function UMG_TaskSummary_GroupPhoto_C:IconSetPathFailed()
+  self:CancelDelay()
+  self:SetTaskPhotoInfo(false)
+end
+
+function UMG_TaskSummary_GroupPhoto_C:IconSetPathOutTime()
+  self:CancelDelay()
+  self:SetTaskPhotoInfo(false)
 end
 
 function UMG_TaskSummary_GroupPhoto_C:SetPanelInfo()
@@ -111,7 +126,16 @@ function UMG_TaskSummary_GroupPhoto_C:SetPanelInfo()
     end
   end
   Log.Debug(BgPath, TodTime, Index, self.customData.summary_id, "UMG_TaskSummary_GroupPhoto_C:SetPanelInfo")
-  self.PanelBg:SetPath(BgPath)
+  self.PanelBg:SetPathWithSuccessAndFailedCallBack(BgPath, {
+    self,
+    self.IconSetPathSuccess
+  }, {
+    self,
+    self.IconSetPathFailed
+  })
+  self:DelaySeconds(2, function()
+    self:IconSetPathOutTime()
+  end)
   self.Text_Title:SetText(TaskSummaryConf.task_name)
   self.Text:SetText(TaskSummaryConf.task_des)
 end

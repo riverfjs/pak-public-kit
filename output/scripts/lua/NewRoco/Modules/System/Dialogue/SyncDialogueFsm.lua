@@ -101,7 +101,7 @@ local function CreateFsm()
   local TimelineState = FsmDialogueTimelineState("TimelineState")
   fsm:AddState(TimelineState)
   local PostTimelineState = fsm:CreateBurstState("PostTimelineState")
-  InitState:AddAction(DialogueInitAction("InitDialogue", {DialogueConf = CurrentDialogue, TargetNPC = TargetNPC}))
+  InitState:AddAction(DialogueInitAction("InitDialogue", {ConfID = NextConfID, TargetNPC = TargetNPC}))
   PrepareState:AddAction(BlockInputAction("BlockInput", {Block = true}))
   PrepareState:AddAction(ResolveCameraSettingsAction("ResolveCameraSettings", {
     DialogueConf = CurrentDialogue,

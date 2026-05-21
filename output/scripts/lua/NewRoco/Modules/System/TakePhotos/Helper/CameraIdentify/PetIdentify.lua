@@ -32,7 +32,7 @@ end
 
 function PetIdentify:TryUploadPetFound()
   if self.HitPetBaseConf then
-    _G.NRCModuleManager:DoCmd(_G.HandbookModuleCmd.OnCmdZoneAddPetRecordReq, self.HitPetBaseConf.id, _G.ProtoEnum.ZoneAddPetRecordReq.Reason.TAKE_PHOTO)
+    _G.NRCModuleManager:DoCmd(_G.HandbookModuleCmd.OnCmdZoneAddPetRecordReq, self.HitPetBaseConf.id, _G.ProtoEnum.ZoneAddPetRecordReq.Reason.TAKE_PHOTO, self.HitNpcActorId)
   end
 end
 
@@ -82,6 +82,7 @@ function PetIdentify:TryPetIdentify(Mode)
   end
   local HitResults, bHit = UE.UKismetSystemLibrary.Abs_SphereTraceMultiForObjects(UE4Helper.GetCurrentWorld(), CameraLocation + ForwardVector * (Radius + 10), CameraLocation + ForwardVector * MaxiDistance, Radius, self.IdentifyObjectTypes, false, Ignores, UE4.EDrawDebugTrace.None, nil, true, UE4.FLinearColor.Red, UE4.FLinearColor.Green, 1)
   local HitActorView, HitPetBaseConf
+  local NpcActorId = 0
   if bHit then
     for _, HitResult in tpairs(HitResults) do
       local Actor = HitResult.Actor
@@ -100,6 +101,7 @@ function PetIdentify:TryPetIdentify(Mode)
             Ignores:Add(Actor)
             HitActorView = Actor
             HitPetBaseConf = SceneCharacter:GetConfPetData()
+            NpcActorId = SceneCharacter.serverData and SceneCharacter.serverData.base.actor_id
             break
           end
         end
@@ -160,6 +162,7 @@ function PetIdentify:TryPetIdentify(Mode)
     self:UpdateOutlineEnabled(false)
   end
   self.HitPetBaseConf = HitPetBaseConf
+  self.HitNpcActorId = NpcActorId
 end
 
 function PetIdentify:UpdateOutlineEnabled(bEnable, HitActorView)

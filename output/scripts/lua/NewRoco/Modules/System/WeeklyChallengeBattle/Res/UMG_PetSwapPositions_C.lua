@@ -85,6 +85,7 @@ end
 function UMG_PetSwapPositions_C:OnTouchEnded(_MyGeometry, _TouchEvent)
   self:CancelAllDelay()
   _G.NRCEventCenter:DispatchEvent(PetUIModuleEvent.ReleaseStarLightDragItem, self.petData, self.index)
+  _G.NRCEventCenter:DispatchEvent(WeeklyChallengeBattleModuleEvent.ReleaseStarLightDragItemPlayAnim, self.index)
   Base.OnTouchEnded(self, _MyGeometry, _TouchEvent)
   return UE4.UWidgetBlueprintLibrary.Unhandled()
 end

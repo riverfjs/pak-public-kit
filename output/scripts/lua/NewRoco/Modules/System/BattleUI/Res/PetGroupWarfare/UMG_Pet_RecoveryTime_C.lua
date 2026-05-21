@@ -217,6 +217,9 @@ function UMG_Pet_RecoveryTime_C:Cancel()
 end
 
 function UMG_Pet_RecoveryTime_C:Confirm()
+  if not self.SelectItem then
+    return
+  end
   if self.SelectItem.itemType == _G.Enum.GoodsType.GT_VITEM then
     if self.leftStarChallengeTimes <= 0 then
       _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.star_chain_module_text_8)

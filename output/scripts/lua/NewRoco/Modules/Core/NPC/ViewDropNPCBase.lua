@@ -99,7 +99,7 @@ function ViewDropNPCBase:ReceiveTick(DeltaSeconds)
   end
   self.dropTime = self.dropTime + DeltaSeconds
   local timeOut = false
-  if self.dropTime > self.timeOutLimit and self:GetVelocityScale() < 2 then
+  if self.dropTime > self.timeOutLimit then
     self.stopCount = self.stopCountThreshold * 2
     timeOut = true
   end
@@ -109,11 +109,11 @@ function ViewDropNPCBase:ReceiveTick(DeltaSeconds)
   end
   if self:GetVelocityScale() < 51 then
     self.stopCount = self.stopCount + math.min(DeltaSeconds, 0.05)
-  else
+  elseif not timeOut then
     self.stopCount = 0
   end
   if self.sceneCharacter and self.sceneCharacter.bCreateFromSrcNpc then
-    if self.stopCount >= self.stopCountThreshold then
+    if timeOut or self.stopCount >= self.stopCountThreshold then
       if not self.BeamComponent.showing then
         self:PlayBeamEffect()
       end

@@ -46,4 +46,6 @@ BigMapModuleEvent.OnMapDataRefreshed = "BigMapModuleEvent.OnMapDataRefreshed"
 BigMapModuleEvent.ShowMapHint = "BigMapModuleEvent.ShowMapHint"
 BigMapModuleEvent.ShowSanctuary = "BigMapModuleEvent.ShowSanctuary"
 BigMapModuleEvent.OnNewMapUnlocked = "BigMapModuleEvent.OnNewMapUnlocked"
+BigMapModuleEvent.OnMapVisitorInfoChanged = "BigMapModuleEvent.OnMapVisitorInfoChanged"
+BigMapModuleEvent.DefaultTrackNpcChange = "BigMapModuleEvent.DefaultTrackNpcChange"
 return BigMapModuleEvent

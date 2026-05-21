@@ -109,7 +109,7 @@ function MultiTouchModuleData:Ctor()
       CLOSE = 2,
       EVO = 3
     },
-    PetInfoMain = {LEFTPANELOPEN = 0}
+    PetInfoMain = {LEFTPANELOPEN = 0, PETUPGRADEOPEN = 1}
   }
   self.lastTimeTouchNRCButton = os.msTime()
   self.nrcButtonCoolDownTime = 100

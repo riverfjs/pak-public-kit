@@ -188,7 +188,7 @@ function UMG_BagItemTemplate_C:updateItemInfo()
       self.BGColor:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
       self.skilliconBg:SetVisibility(UE4.ESlateVisibility.Collapsed)
       self.Skillicon:SetVisibility(UE4.ESlateVisibility.Collapsed)
-      self:SetQuality(bagItemConf.item_quality)
+      self:SetCornerColor()
       self.ItemIcon:SetVisibility(UE4.ESlateVisibility.Visible)
       self.SkillBG:SetVisibility(UE4.ESlateVisibility.Collapsed)
     end
@@ -411,6 +411,31 @@ function UMG_BagItemTemplate_C:SetSelectedVisible(visible)
     self.Selected:SetRenderOpacity(0)
     self.Selected:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
+end
+
+function UMG_BagItemTemplate_C:SetCornerColor()
+  if self.uiData == nil then
+    return
+  end
+  if nil == self.uiData.conf then
+    return
+  end
+  local bagItemConf = self.uiData.conf
+  local Quality = bagItemConf.item_quality
+  local EggConf
+  if bagItemConf.item_behavior and bagItemConf.type == Enum.BagItemType.BI_PET_EGG and bagItemConf.item_behavior[1] then
+    if bagItemConf.item_behavior[1].ratio and bagItemConf.item_behavior[1].ratio[1] and 0 ~= bagItemConf.item_behavior[1].ratio[1] then
+      EggConf = _G.DataConfigManager:GetPetEggConf(bagItemConf.item_behavior[1].ratio[1])
+    elseif bagItemConf.item_behavior[1].ratio2 and bagItemConf.item_behavior[1].ratio2[1] and 0 ~= bagItemConf.item_behavior[1].ratio2[1] then
+      EggConf = _G.DataConfigManager:GetPetRandomEggConf(bagItemConf.item_behavior[1].ratio2[1])
+    end
+  end
+  if EggConf and EggConf.precious_egg_type and EggConf.precious_egg_type ~= _G.Enum.PreciousEggType.PET_NONE then
+    Quality = 5
+  elseif self.uiData.egg_data and self.uiData.egg_data.precious_egg_type and self.uiData.egg_data.precious_egg_type ~= _G.Enum.PreciousEggType.PET_NONE then
+    Quality = 5
+  end
+  self:SetQuality(Quality)
 end
 
 function UMG_BagItemTemplate_C:SetQuality(quality)

@@ -10,6 +10,8 @@ function UMG_PlayerControl_C:OnConstruct()
   self:SetAimJoystickVisible(false)
   self:BindInputAction()
   self:SetChildViews(self.UMG_Aim_Joystick)
+  self.UMG_Aim_Joystick:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
+  self.CanvasPanel_0:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
 end
 
 function UMG_PlayerControl_C:OnDestruct()

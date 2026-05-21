@@ -490,6 +490,8 @@ function UMG_HomeMain_New_C:SetMode(Mode, bDisableTitleChange)
       self:SetFurnitureOperationEnabled(false)
       self:SetControlPanelEnabled(true)
       self.EditFurniture:SetVisibility(UE.ESlateVisibility.SelfHitTestInvisible)
+      self.CanvasDown:SetVisibility(UE.ESlateVisibility.Visible)
+      self.VerticalBox_0:SetVisibility(UE.ESlateVisibility.SelfHitTestInvisible)
       self:ToggleRoomNameToPropsName(false)
     elseif Mode == HomeIndoorSandbox.Enum.EnmPanelMode.Manager then
       self:SetCameraModeSwitchEnabled(false)
@@ -498,6 +500,8 @@ function UMG_HomeMain_New_C:SetMode(Mode, bDisableTitleChange)
       self:SetFurnitureOperationEnabled(false)
       self:SetControlPanelEnabled(true)
       self.EditFurniture:SetVisibility(UE.ESlateVisibility.SelfHitTestInvisible)
+      self.CanvasDown:SetVisibility(UE.ESlateVisibility.Visible)
+      self.VerticalBox_0:SetVisibility(UE.ESlateVisibility.SelfHitTestInvisible)
       self:ToggleRoomNameToPropsName(false)
     elseif Mode == HomeIndoorSandbox.Enum.EnmPanelMode.Placing then
       self:SetCameraModeSwitchEnabled(false)
@@ -657,7 +661,8 @@ end
 function UMG_HomeMain_New_C:OnAnimationFinished(Anim)
   if Anim == self.Tab_Hide then
     if self.Mode == HomeIndoorSandbox.Enum.EnmPanelMode.Placing then
-      self.EditFurniture:SetVisibility(UE.ESlateVisibility.Collapsed)
+      self.CanvasDown:SetVisibility(UE.ESlateVisibility.Collapsed)
+      self.VerticalBox_0:SetVisibility(UE.ESlateVisibility.Collapsed)
     end
     self.Furniture:SetAllowOverscroll(false)
   elseif Anim == self.CutTo_In then
@@ -772,6 +777,7 @@ function UMG_HomeMain_New_C:OnReqPublishCallback(bOk)
           HomeIndoorSandbox.Module:GetData():EvalCollectBagFurnitureItemInfo()
           self.FurnitureListHelper:Refresh()
         end
+        HomeIndoorSandbox.World.Controller:LandPos()
       end
     end)
   end

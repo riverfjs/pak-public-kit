@@ -31,6 +31,17 @@ function UMG_TabButton_C:OnItemUpdate(_data, datalist, index)
   else
     self.NRCImage_73:SetVisibility(UE.ESlateVisibility.Collapsed)
   end
+  self:UpdateName(self.itemData.name)
+end
+
+function UMG_TabButton_C:UpdateName(Name)
+  self.itemData.name = Name or ""
+  if self.itemData.name ~= "" then
+    self.ItemName:SetText(self.itemData.name)
+    self.ItemName:SetVisibility(UE.ESlateVisibility.SelfHitTestInvisible)
+  else
+    self.ItemName:SetVisibility(UE.ESlateVisibility.Collapsed)
+  end
 end
 
 function UMG_TabButton_C:OnItemSelected(_bSelected)

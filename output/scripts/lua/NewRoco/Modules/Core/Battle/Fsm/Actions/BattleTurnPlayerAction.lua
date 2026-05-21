@@ -16,14 +16,19 @@ function BattleTurnPlayerAction:Ctor(name, properties)
 end
 
 function BattleTurnPlayerAction:OnEnter()
+  if self.name and self.name == "BattlePrePlayAction" then
+    _G.NRCModuleManager:DoCmd(_G.BattleUIModuleCmd.ForceCloseLoading)
+  end
   self.timeout = BattleActionBase.PerformTimeoutValue
   _G.BattleManager.EscapeContext:Close()
   if self.TurnPlayer then
     self.TurnPlayer:OnActionAquireFromPool()
+    self.TurnPlayer:SetArriveTimeOut(false)
   end
   _G.BattleManager:SetTurnPlayer(self.TurnPlayer)
   local Flows = self:GetProperty("Flows")
   BattleConst.UpdateFootDelta = 0.3
+  self.arriveTimeOutThreshold = false
   self:DoPerform()
 end
 
@@ -39,6 +44,14 @@ function BattleTurnPlayerAction:DoPerform()
   else
     BattleEventCenter:Dispatch(BattlePerformEvent.TurnPlayComplete)
     self:Finish()
+  end
+end
+
+function BattleTurnPlayerAction:OnTick(deltaTime)
+  Base.OnTick(self, deltaTime)
+  if self.TurnPlayer and not self.TurnPlayer:GetArriveTimeOut() and self.execRealTime > self.timeout * BattleActionBase.SkipPerformProgressThreshold then
+    self.TurnPlayer:SetArriveTimeOut(true)
+    _G.BattleEventCenter:Dispatch(BattleEvent.WILL_ARRIVE_PERFORM_TIMEOUT)
   end
 end
 

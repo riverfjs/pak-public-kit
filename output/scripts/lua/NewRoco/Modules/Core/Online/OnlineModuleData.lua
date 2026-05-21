@@ -66,8 +66,10 @@ function OnlineModuleData:UpdateDeviceInfo()
   self.cli_info.dev_info.density = TDMInfo.DPI
   if RocoEnv.PLATFORM_IOS then
     self.cli_info.dev_info.aid = TDMInfo.CAID
-  elseif RocoEnv.PLATFORM_ANDROID or RocoEnv.PLATFORM_OPENHARMONY then
+  elseif RocoEnv.PLATFORM_ANDROID then
     self.cli_info.dev_info.aid = TDMInfo.OAID
+  elseif RocoEnv.PLATFORM_OPENHARMONY then
+    self.cli_info.dev_info.aid = UE.UNRCDeviceInfoHelper.GetOAID()
   else
     self.cli_info.dev_info.aid = RocoEnv.MAC_ADDR
   end

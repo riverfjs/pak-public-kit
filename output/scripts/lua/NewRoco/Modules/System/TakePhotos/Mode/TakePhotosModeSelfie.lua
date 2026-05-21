@@ -45,7 +45,8 @@ end
 
 function TakePhotosModeSelfie:GetRenderTarget2D()
   local Camera = self.SelfieCameraControl:GetCamera()
-  if Camera then
+  local bValidCamera = Camera and UE.UObject.IsValid(Camera)
+  if bValidCamera then
     local RT = NRCModuleManager:GetModule("TakePhotosModule").data:RequestRT()
     local player = _G.NRCModeManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
     local cameraManager = player:GetUEController().playerCameraManager
@@ -63,6 +64,9 @@ function TakePhotosModeSelfie:GetRenderTarget2D()
     local RT = NRCModuleManager:GetModule("TakePhotosModule").data:RequestRT()
     cameraManager:StartCaptureImmediately(RT)
     return RT
+  end
+  if not bValidCamera then
+    Log.Error("Invalid Camera")
   end
 end
 
@@ -102,6 +106,7 @@ function TakePhotosModeSelfie:OnEnter()
     playerModule:RegisterEvent(self, PlayerModuleEvent.ON_INPUT_TURN, self.OnInputTurn)
   end
   self.SelfieCameraControl:Enter()
+  TakePhotosUtils.ToggleSelfieStatus(true)
 end
 
 function TakePhotosModeSelfie:OnExit(bExitTakePhoto)
@@ -117,6 +122,7 @@ function TakePhotosModeSelfie:OnExit(bExitTakePhoto)
     playerModule:UnRegisterEvent(self, PlayerModuleEvent.ON_INPUT_TURN, self.OnInputTurn)
   end
   self.SelfieCameraControl:Exit()
+  TakePhotosUtils.ToggleSelfieStatus(false)
 end
 
 function TakePhotosModeSelfie:ResetCameraView()

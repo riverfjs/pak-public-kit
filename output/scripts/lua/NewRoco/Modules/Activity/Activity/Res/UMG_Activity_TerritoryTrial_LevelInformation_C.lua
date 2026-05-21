@@ -2,6 +2,7 @@ local UMG_Activity_TerritoryTrial_LevelInformation_C = _G.NRCPanelBase:Extend("U
 
 function UMG_Activity_TerritoryTrial_LevelInformation_C:OnConstruct()
   self:SetChildViews(self.PopUp, self.previewWorld)
+  self.firstSelect = true
 end
 
 function UMG_Activity_TerritoryTrial_LevelInformation_C:OnActive(information)
@@ -17,7 +18,13 @@ function UMG_Activity_TerritoryTrial_LevelInformation_C:OnActive(information)
   CommonPopUpData.ClosePanelHandler = self.CloseBtnClick
   CommonPopUpData.Call = self
   self.PopUp:SetPanelInfo(CommonPopUpData)
+  local guard_data = information.guardData[1]
   self.ListTab:SelectItemByIndex(0)
+  self:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self.previewWorld:SetPreviewByPetBaseId(nil, guard_data.base_id, nil, nil, nil, function()
+    self:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    self:LoadAnimation(0)
+  end)
 end
 
 function UMG_Activity_TerritoryTrial_LevelInformation_C:OnDeactive()
@@ -57,16 +64,13 @@ function UMG_Activity_TerritoryTrial_LevelInformation_C:InitInformation(index)
   self.skill_desc = guard_data.skill_desc
   self.TextGridView:InitGridView(guard_data.buff_data)
   self.TextGridView:SetItemCount(#guard_data.buff_data)
-  if self.ContentCanvas:GetVisibility() == UE4.ESlateVisibility.Collapsed then
-    self.previewWorld:SetPreviewByPetBaseId(nil, guard_data.base_id, nil, nil, nil, function()
-      self.ContentCanvas:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-      self:LoadAnimation(0)
-    end)
+  if self.firstSelect then
+    self.firstSelect = false
   else
     self.previewWorld:SetPreviewByPetBaseId(nil, guard_data.base_id)
+    self:PlayAnimation(self.Change)
   end
   self.SkillNameTxt_1:SetText(guard_data.skill_name)
-  self:PlayAnimation(self.Change)
   local initData = {}
   for i = 1, guard_data.inspire_time do
     table.insert(initData, {})

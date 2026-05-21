@@ -76,6 +76,7 @@ function UMG_Friend_Remark_C:OnTextChanged()
   end
   self.NewInput = self.InputBox:GetText()
   self.NewInput = UIUtils.RemoveEmoji(self.NewInput)
+  UIUtils.RemoveInvalidCharsHandle(self.InputBox)
   local MaxCount
   if self.data.note then
     MaxCount = _G.DataConfigManager:GetFriendGlobalConfig("friend_remake_name_num_max").num
@@ -83,12 +84,9 @@ function UMG_Friend_Remark_C:OnTextChanged()
     MaxCount = _G.DataConfigManager:GetRoleGlobalConfig("max_name_char_num").num
   end
   local MaxContent, CurrentNum = string.GetSubStr(self.NewInput, MaxCount)
-  if MaxCount <= CurrentNum then
+  if MaxContent ~= self.InputBox:GetText() then
     self.InputBox:SetText(MaxContent)
-  else
-    self.InputBox:SetText(self.NewInput)
   end
-  UIUtils.RemoveInvalidCharsHandle(self.InputBox)
   local bIsLegal = UIUtils.CheckNameIsLegal(self.InputBox:GetText())
   self.NameHint:SetVisibility(bIsLegal and UE4.ESlateVisibility.Collapsed or UE4.ESlateVisibility.Visible)
   UIUtils.SetBtnGary(self.PopUp3.Btn_Right, not bIsLegal, bIsLegal)

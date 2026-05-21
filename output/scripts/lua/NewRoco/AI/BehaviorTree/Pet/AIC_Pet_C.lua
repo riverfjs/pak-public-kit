@@ -252,6 +252,7 @@ function AIC_Pet_C:RunMFBT(path, isDots)
   local AIComp = npc.AIComponent
   self.configId = npc.config.id
   self.petbaseId = npc:GetPetbaseId()
+  self.npcDetailType = npc.serverData.base.detail_type or 0
   self.evoChain = AIComp.cfg_evochain
   self.performGroupId = AIComp.performId
   self.contentId = npc:GetContentId()
@@ -290,7 +291,8 @@ function AIC_Pet_C:LoadFinished(result)
     self:InitPredefinedBB()
     if self.Npc.config.npc_role_type == Enum.PetRoleTypeInNPCConf.PRTINC_HOME then
       self:InitHomePetBB()
-      if self.enterSceneTime and self.enterSceneTime <= 1 then
+      if not (self.enterSceneTime and self.enterSceneTime <= 1) or self.Npc.IsMagicReplayActor and self.Npc:IsMagicReplayActor() then
+      else
         _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.SendSenseEvent, self.Npc:GetActorLocation(), Enum.DotsAIWorldEventType.DAWET_HOME_PET_SPAWN, 1)
       end
     end
@@ -301,15 +303,24 @@ function AIC_Pet_C:ApplyDomainParams()
   local npc = self.Npc
   if npc.AIComponent.IsCurrentInHome() then
     self.domainId = 1
-    local AttrComp = self.Npc.HomePetAttributeComponent
+    local AttrComp = npc.HomePetAttributeComponent
     if AttrComp then
       self.baseFriendliness = AttrComp.FriendlinessBase
     end
-    self.collectionId = self.Npc:GetServerId()
+    self.collectionId = npc:GetServerId()
     return
   end
   if self.domainId and 0 == self.domainId then
     local belong_camp = npc.contentConf and npc.contentConf.belong_camp or 0
+    if 0 == belong_camp then
+      local sanctuary_id = npc.serverData.npc_base.owl_sanctuary_content_cfg_id
+      if sanctuary_id and sanctuary_id > 0 then
+        local sanctuary_conf = DataConfigManager:GetOwlSanctuaryConf(sanctuary_id)
+        if sanctuary_conf then
+          belong_camp = sanctuary_conf.camp_content_id or 0
+        end
+      end
+    end
     self.domainId = 0 == belong_camp and 0 or belong_camp | 4294967296
   end
   if self.collectionId and 0 == self.collectionId then
@@ -333,12 +344,20 @@ function AIC_Pet_C:ApplyGroupParams()
     if npc:IsLogicStatus(Enum.SpaceActorLogicStatus.SALS_HOME_PET_GUARD) then
       self:AppendGroupParam(280021, {90}, 0)
     end
+    local petbase = npc:GetPetbaseId()
+    if petbase then
+      local petbaseConf = _G.DataConfigManager:GetPetbaseConf(petbase, true)
+      if petbaseConf and petbaseConf.pet_habitat_group_role_type then
+        local habitatGroupRoleType = petbaseConf.pet_habitat_group_role_type
+        self:AppendGroupParam(100001, {habitatGroupRoleType}, 0)
+      end
+    end
   end
 end
 
 function AIC_Pet_C:InitModelBB()
   local Hab = self.Npc.modelConf.habitat_flag
-  if Hab == Enum.HABITAT_FLAG.HAB_FLY then
+  if Hab == Enum.HABITAT_FLAG.HAB_FLY or Hab == Enum.HABITAT_FLAG.HAB_FLY_WATER then
     self:SetDotsCommonBool("Global_CanEverFly", true)
   end
   local ServerData = self.Npc.serverData
@@ -350,7 +369,7 @@ function AIC_Pet_C:InitModelBB()
   end
   local mutation_type = ServerData.npc_base.mutation_type or 0
   if 0 ~= mutation_type then
-    if 0 ~= Enum.MutationDiffType.MDT_CHAOS & mutation_type then
+    if 0 ~= Enum.MutationDiffType.MDT_SHINING & mutation_type then
       self:SetDotsCommonInt("Global_HasShiningType", 1)
     end
     if 0 ~= Enum.MutationDiffType.MDT_GLASS & mutation_type then

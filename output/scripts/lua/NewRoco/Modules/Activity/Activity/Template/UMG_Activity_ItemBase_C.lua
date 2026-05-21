@@ -48,8 +48,8 @@ function UMG_Activity_ItemBase_C:OnItemUpdate(_data, datalist, index)
   self:InvokeParentFunc("OnItemUpdate")
 end
 
-function UMG_Activity_ItemBase_C:OnItemSelected(_bSelected)
-  self:InvokeParentFunc("OnItemSelected", _bSelected)
+function UMG_Activity_ItemBase_C:OnItemSelected(_bSelected, _bScroll)
+  self:InvokeParentFunc("OnItemSelected", _bSelected, _bScroll)
 end
 
 function UMG_Activity_ItemBase_C:OpItem(opType, ...)

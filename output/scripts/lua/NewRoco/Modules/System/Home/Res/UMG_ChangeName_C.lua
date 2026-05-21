@@ -52,6 +52,7 @@ function UMG_ChangeName_C:OnTextEndTransaction()
 end
 
 function UMG_ChangeName_C:OnBtnCancelClick()
+  _G.NRCAudioManager:PlaySound2DAuto(41401002, "UMG_ChangeName_C:OnBtnOkClick")
   if self.bInRequesting then
     return
   end
@@ -60,6 +61,7 @@ function UMG_ChangeName_C:OnBtnCancelClick()
 end
 
 function UMG_ChangeName_C:OnBtnOkClick()
+  _G.NRCAudioManager:PlaySound2DAuto(41401002, "UMG_ChangeName_C:OnBtnOkClick")
   if self.bInRequesting then
     return
   end

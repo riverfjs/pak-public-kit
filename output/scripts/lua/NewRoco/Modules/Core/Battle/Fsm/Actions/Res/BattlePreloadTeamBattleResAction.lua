@@ -28,7 +28,6 @@ function BattlePreloadTeamBattleResAction:OnTick(DeltaTime)
     _G.BattleManager:InitBattleField()
     self.isLevelLoad = true
     self:FindLevelBattleCenter()
-    _G.BattleLevelHelper:ResetBloodTeamLevelData()
     return
   end
 end

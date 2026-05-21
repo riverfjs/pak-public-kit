@@ -237,7 +237,8 @@ BattleEnum.AtomicStates = {
   "B1FinalBattleP1ToP2",
   "B1FinalBattleP2ToP3",
   "FinalBattleToP2",
-  "FinalBattleReconnectEnter"
+  "FinalBattleReconnectEnter",
+  "PveNearbyEnter"
 }
 BattleEnum.DestroyStates = {
   "NormalOver",
@@ -382,5 +383,22 @@ BattleEnum.EnterBattleState = {
   Default = 0,
   InSky = 1,
   InSwim = 2
+}
+BattleEnum.BattleLodModel = {
+  Auto = 0,
+  Lod0 = 1,
+  Lod1 = 2,
+  Lod2 = 3,
+  Lod3 = 4,
+  Lod4 = 5
+}
+BattleEnum.RunAwayType = {
+  TeamBeastNoCatch = 1,
+  ClickEscape = 2,
+  ClickGiveUp = 3,
+  NoFsm = 4,
+  NoCardInfo = 5,
+  Debug = 6,
+  Abandon = 7
 }
 return BattleEnum

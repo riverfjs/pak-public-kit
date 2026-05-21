@@ -2,6 +2,7 @@ local BattlePlayerBase = require("NewRoco.Modules.Core.Battle.BattleCore.BattleP
 local BattleEvent = require("NewRoco.Modules.Core.Battle.Common.BattleEvent")
 local BattleConst = require("NewRoco.Modules.Core.Battle.Common.BattleConst")
 local LineTraceUtils = require("NewRoco.Modules.Core.Battle.Common.LineTraceUtils")
+local RocoSkillLuaCustomEvent = require("NewRoco.Utils.RocoSkillLuaCustomEvent")
 local Base = BattlePlayerBase
 local BattlePrepareToBattlePlayer = Base:Extend("BattlePrepareToBattlePlayer")
 
@@ -146,7 +147,13 @@ function BattlePrepareToBattlePlayer:PlayPrepareToBattleSkill(skillClass, contex
     self:OnBossMoveSkillComplete(context)
     return
   end
-  local skillObj = CasterModel.RocoSkill:FindOrAddSkillObj(skillClass)
+  local RocoSkill = CasterModel and CasterModel.RocoSkill
+  if not UE.UObject.IsValid(RocoSkill) then
+    Log.Error("no RocoSkill found for BattleBagToPreparePlayer:PlayBagToPrepareSkill")
+    self:OnBossMoveSkillComplete(context)
+    return
+  end
+  local skillObj = RocoSkill:FindOrAddSkillObj(skillClass)
   if not UE.UObject.IsValid(skillObj) then
     Log.Error("skillObj is not found")
     return
@@ -170,7 +177,17 @@ function BattlePrepareToBattlePlayer:PlayPrepareToBattleSkill(skillClass, contex
   skillObj:RegisterEventCallback("PreEnd", self, function()
     self:OnBossMoveSkillComplete(context)
   end)
-  CasterModel.RocoSkill:PlaySkill(skillObj)
+  skillObj:RegisterEventCallback(RocoSkillLuaCustomEvent.StartFailed, self, function()
+    self:OnBossMoveSkillComplete(context)
+  end)
+  skillObj:RegisterEventCallback(RocoSkillLuaCustomEvent.Interrupt, self, function()
+    self:OnBossMoveSkillComplete(context)
+  end)
+  local skillStartResult = RocoSkill:PlaySkill(skillObj)
+  if skillStartResult ~= UE.ESkillStartResult.Success then
+    Log.Error("[BattlePrepareToBattlePlayer:PlayPrepareToBattleSkill] skill start not success")
+    self:OnSkillComplete()
+  end
 end
 
 function BattlePrepareToBattlePlayer:OnBossMoveSkillComplete(context)

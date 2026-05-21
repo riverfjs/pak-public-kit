@@ -12,6 +12,7 @@ function BattleTurnPlayer:Ctor()
   self.delaySafeCaller = DelaySafeCaller()
   self.isFinished = true
   self.DelayKey = 0
+  self.ArriveTimeOutThreshold = false
   BattleManager = _G.BattleManager
   PawnManager = _G.BattleManager.battlePawnManager
   self.performPlayer = BattlePerformPlayer(self)
@@ -28,6 +29,7 @@ function BattleTurnPlayer:RunFlows(Cmd, settleInfo, owner, callback, isMySelfPer
   self.CompleteCallback = callback
   self.IsMySelfPerform = isMySelfPerform
   self.performPlayer.IsFinalize = false
+  self:SetArriveTimeOut(false)
   if self.SettleInfo then
     self.SettleInfo.result = self.SettleInfo.result or 0
   end
@@ -36,6 +38,14 @@ function BattleTurnPlayer:RunFlows(Cmd, settleInfo, owner, callback, isMySelfPer
     self:AdjustCamera()
   end
   self:CollectSkillInfo()
+end
+
+function BattleTurnPlayer:SetArriveTimeOut(value)
+  self.ArriveTimeOutThreshold = value
+end
+
+function BattleTurnPlayer:GetArriveTimeOut()
+  return self.ArriveTimeOutThreshold
 end
 
 function BattleTurnPlayer:CollectSkillInfo()
@@ -161,6 +171,8 @@ end
 function BattleTurnPlayer:DelayStart(cmd, delayKey)
   if self.DelayKey == delayKey then
     self:Start(cmd)
+  else
+    Log.Error("BattleTurnPlayer DelayStart DelayKey not match", self.DelayKey, delayKey)
   end
 end
 

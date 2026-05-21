@@ -170,6 +170,14 @@ function UMG_FirstReleasePanel_C:_InitRivalInfo(eventConf)
   end
   local text = _G.LuaText[challengeConf.text]
   self.ContentTip:SetText(text)
+  local charCount = utf8.len(text) or 0
+  local font = self.ContentTip.Font
+  if charCount > 24 then
+    font.Size = 18
+  else
+    font.Size = 22
+  end
+  self.ContentTip:SetFont(font)
   local initList = _G.NRCModuleManager:DoCmd(_G.WeeklyChallengeBattleModuleCmd.GetRivalPetInitList)
   self.PetList_1:InitGridView(initList)
   local battleConf = _G.DataConfigManager:GetBattleConf(challengeConf.battle, true)

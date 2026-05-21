@@ -5,8 +5,8 @@ local SceneUtils = require("NewRoco.Modules.Core.Scene.Common.SceneUtils")
 local ScenePlayerInputManager = require("NewRoco.Modules.Core.Scene.ScenePlayerInputManager")
 local UMG_FastLoadingUI_Protagonist_C = Base:Extend("UMG_FastLoadingUI_Protagonist_C")
 
-function UMG_FastLoadingUI_Protagonist_C:OnConstruct()
-  Base.OnConstruct(self)
+function UMG_FastLoadingUI_Protagonist_C:Ctor()
+  Base.Ctor(self)
 end
 
 function UMG_FastLoadingUI_Protagonist_C:OnDestruct()
@@ -16,6 +16,7 @@ end
 
 function UMG_FastLoadingUI_Protagonist_C:OnActive(content, tips, switch_reason, teleport_id)
   Base.OnActive(self, content, tips, switch_reason, teleport_id)
+  self.OutDuration = self.FadeOut and self.FadeOut:GetEndTime() - self.FadeOut:GetStartTime() or 0.5
   self:SetData(content, tips, switch_reason, teleport_id)
   self:SetVisibility(UE4.ESlateVisibility.Hidden)
 end
@@ -26,7 +27,6 @@ end
 
 function UMG_FastLoadingUI_Protagonist_C:OnEnable()
   Base.OnEnable(self)
-  self.FxPlayed = false
   UE4Helper.SetDesiredShowCursor(true, "UMG_FastLoadingUI_Protagonist_C")
   ScenePlayerInputManager.Pause()
   self:StopAllAnimations()
@@ -34,7 +34,7 @@ function UMG_FastLoadingUI_Protagonist_C:OnEnable()
   UE4.UNRCAudioManager.Get():PlaySound2DAuto(1258, "UMG_FastLoadingUI_Protagonist_C:OnEnable")
   local bIsBlockPCInput = true
   _G.NRCEventCenter:DispatchEvent(LoadingUIModuleEvent.LOADING_UI_OPENED, bIsBlockPCInput)
-  self:ShowBackGround(false == _G.GlobalConfig.SetFastLoadingWorldRendering)
+  self:ShowBackGround(_G.GlobalConfig.SetFastLoadingWorldRendering == false)
   local bIsMale = _G.DataModelMgr.PlayerDataModel:IsMale()
   self:PlayAnimation(bIsMale and self.Loading_Nan or self.Loading_Nv, 0, 9999)
 end
@@ -53,6 +53,7 @@ function UMG_FastLoadingUI_Protagonist_C:OnViewTick(deltaTime)
   local curProcess = self.panel.curProcess
   if self.enableView and not self.FxPlayed and 100 == curProcess then
     self.FxPlayed = true
+    self.FxFinished = true
     self:Log("[OnViewTick] curProcess == 100")
     _G.NRCEventCenter:DispatchEvent(LoadingUIModuleEvent.LOADING_UI_PRECLOSED)
   end

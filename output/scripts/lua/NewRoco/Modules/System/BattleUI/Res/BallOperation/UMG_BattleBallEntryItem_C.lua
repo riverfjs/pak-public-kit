@@ -20,6 +20,10 @@ function UMG_BattleBallEntryItem_C:RenderWidget(prevProps, nextProps)
   local nextData = nextProps and nextProps.data
   local prevCanDoLongClick = prevProps and prevProps.disableDoLongClick
   local nextCanDoLongClick = nextProps and nextProps.disableDoLongClick
+  local prevCanCatch = prevProps and prevProps.bCanCatch
+  local currCanCatch = nextProps and nextProps.bCanCatch
+  local prevCatchMsg = prevProps and prevProps.catchMsg
+  local currCatchMsg = nextProps and nextProps.catchMsg
   if prevData ~= nextData then
     local _data = nextData
     self.data = _data
@@ -33,6 +37,14 @@ function UMG_BattleBallEntryItem_C:RenderWidget(prevProps, nextProps)
     entryProps.disableDoLongClick = nextCanDoLongClick
     entryProps.ballData = nextData
     self.UMG_BattleBallEntry:SetProps(entryProps)
+  end
+  if prevCanCatch ~= currCanCatch or prevCatchMsg ~= currCatchMsg or prevData ~= nextData then
+    local canCatch = true
+    if nil ~= currCanCatch then
+      canCatch = currCanCatch
+    end
+    local catchMsg = currCatchMsg
+    self.UMG_BattleBallEntry:SetCanCatch(canCatch, catchMsg)
   end
 end
 
@@ -82,6 +94,7 @@ function UMG_BattleBallEntryItem_C:OnDespawn()
   if onDespawnCallback and dataIndex then
     tcall(callbackOwner, onDespawnCallback, dataIndex)
   end
+  self.UMG_BattleBallEntry:StopCurrentAnimation()
   self.UMG_BattleBallEntry:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.UMG_BattleBallEntry:ResetPressState()
   self.UMG_BattleBallEntry.fatherList = nil

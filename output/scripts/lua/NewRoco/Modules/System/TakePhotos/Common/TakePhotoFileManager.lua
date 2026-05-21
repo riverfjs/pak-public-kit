@@ -1,3 +1,4 @@
+local TakePhotoFileBrief = require("NewRoco.Modules.System.TakePhotos.Common.TakePhotoFileBrief")
 local TakePhotoFileManager = Class("TakePhotoFileManager")
 
 function TakePhotoFileManager:Ctor()
@@ -13,6 +14,10 @@ function TakePhotoFileManager:ReleaseResources()
     end
   end
   self.Files = {}
+end
+
+function TakePhotoFileManager:CreateBrief()
+  return TakePhotoFileBrief()
 end
 
 function TakePhotoFileManager:CreateFileByBrief(Brief)
@@ -38,6 +43,18 @@ function TakePhotoFileManager:DeleteBrief(Brief)
     local Obj = ObjectRefUnBoxing(File)
     if UE.UObject.IsValid(Obj) then
       Obj:DeleteFile()
+      Obj:ReleaseResources()
+      UnLua.Unref(Obj)
+    end
+    self.Files[Brief] = nil
+  end
+end
+
+function TakePhotoFileManager:RemoveBriefResource(Brief)
+  local File = Brief and self.Files[Brief]
+  if File then
+    local Obj = ObjectRefUnBoxing(File)
+    if UE.UObject.IsValid(Obj) then
       Obj:ReleaseResources()
       UnLua.Unref(Obj)
     end

@@ -136,6 +136,7 @@ function BattleBuffPlayer:OnPlay()
   end
   rocoSkillComponent:CancelSkill(self.SkillObject, UE4.ESkillActionResult.SkillActionResultSuccessful)
   rocoSkillComponent:PlaySkill(self.SkillObject)
+  self.performNode.performPlayer:BuffSkillPlay(self.Caster, self.SkillObject, self.BuffTrigger.buff_id)
   self:CheckParallelPlay()
 end
 
@@ -309,16 +310,6 @@ function BattleBuffPlayer:ClearRef()
   self:Release()
 end
 
-function BattleBuffPlayer:MakeCallback(callback, param)
-  if callback then
-    return function()
-      callback(self, param)
-    end
-  else
-    return nil
-  end
-end
-
 function BattleBuffPlayer:GetPetWithID(id)
   local pet = self.PawnManager:GetPetByGuid(id)
   return pet
@@ -343,7 +334,7 @@ end
 function BattleBuffPlayer:TryTurnToTarget()
   local performGroup = self.performNode and self.performNode.OwnerGroup
   if performGroup then
-    if performGroup.OwnerCluster.IsProcessCounter then
+    if performGroup.IsProcessCounter then
       return
     end
     if performGroup.OwnerCluster.HeadGroup.HeadNode:IsCopeSkill() then

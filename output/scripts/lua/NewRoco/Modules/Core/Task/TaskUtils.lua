@@ -543,7 +543,7 @@ function TaskUtils.CollectRelativeTasks(Task, Map)
       elseif 1 == SearchType then
         for _, ParagraphID in ipairs(Guide.data2) do
           for _, SearchTask in pairs(TotalTaskMap) do
-            if SearchTask.Config.paragraph_id == ParagraphID then
+            if SearchTask.Config.paragraph_id == ParagraphID and not SearchTask:IsFinish() then
               Relatives = Relatives or {}
               SearchTask.ParentGoIndex = Index
               table.insert(Relatives, SearchTask)
@@ -553,7 +553,7 @@ function TaskUtils.CollectRelativeTasks(Task, Map)
       elseif 2 == SearchType then
         for _, TargetID in ipairs(Guide.data2) do
           local SearchTask = TotalTaskMap[TargetID]
-          if SearchTask then
+          if SearchTask and not SearchTask:IsFinish() then
             Relatives = Relatives or {}
             SearchTask.ParentGoIndex = Index
             table.insert(Relatives, SearchTask)

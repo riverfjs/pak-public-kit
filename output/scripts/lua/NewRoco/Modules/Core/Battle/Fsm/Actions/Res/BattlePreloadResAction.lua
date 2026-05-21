@@ -24,11 +24,10 @@ function BattlePreloadResAction:Ctor(name, properties)
   if BattleUtils.IsCrowdBattle() then
     table.insert(self.preloadResList, BattleConst.BattleSearchElliptic)
   end
-  if BattleUtils.IsPvp() then
-    table.insert(self.preloadResList, BattleConst.BattleCharacterMaskCamera)
-  end
   self.preloadSkillLst = {
     BattleConst.CounterSkillPreFx,
+    false,
+    BattleConst.CounterSkillPreNpc,
     false,
     BattleConst.AI_BattlePetJumpToLocation_C,
     false,

@@ -80,4 +80,8 @@ function UMG_TraceIconHero_C:SetIconDir(dir)
   self.heroIcon:SetRenderTransformAngle(dir or 0)
 end
 
+function UMG_TraceIconHero_C:GetSceneResId()
+  return self.uiData.sceneResId
+end
+
 return UMG_TraceIconHero_C

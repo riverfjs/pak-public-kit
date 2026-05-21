@@ -30,6 +30,8 @@ function BattlePlayerSkillPlayer:Play(performNode)
   self.role_skill_cast = self.performInfo.role_skill_cast
   self.change_model = self.performInfo.change_model
   self.SkillConf = _G.DataConfigManager:GetSkillConf(self.role_skill_cast.skill_id)
+  local isPerforming = true
+  _G.BattleEventCenter:Dispatch(BattleEvent.BATTLE_PLAYERSKILL_PERFORMING_UPDATE, isPerforming)
   self.Caster = BattleManager.battlePawnManager:GetPlayerByGuid(self.role_skill_cast.caster_uin)
   if not self.Caster or not self.Caster.model then
     Log.Error("BattlePlayerSkillPlayer no Caster ", self.role_skill_cast.caster_uin)
@@ -56,7 +58,7 @@ function BattlePlayerSkillPlayer:PrepareSkill()
   if not CastSkillParam then
     return nil
   end
-  CastSkillParam:SetCaster(self.Caster.model):SetCompleteCallback(self.OnSkillComplete):SetHideBuffBarCallback(self.OnHideBuffs):SetShowBuffBarCallback(self.OnShowBuffs):SetHideTargetsBuffBarCallback(self.HideTargetsBuffBar):SetShowTargetsBuffBarCallback(self.ShowTargetsBuffBar):SetCallbackOwner(self):SetInterrupt(true):SetIsPassive(false):SetTargetPets(self.targets):SetOnRoleMagicChangeModelCallback(self.OnRoleMagicChangeModel):SetExtraEvents({
+  CastSkillParam:SetCaster(self.Caster.model):SetCompleteCallback(self.OnSkillComplete):SetSkillBreakCallback(self.OnSkillFailed):SetStartFailedCallback(self.OnSkillFailed):SetHideBuffBarCallback(self.OnHideBuffs):SetShowBuffBarCallback(self.OnShowBuffs):SetHideTargetsBuffBarCallback(self.HideTargetsBuffBar):SetShowTargetsBuffBarCallback(self.ShowTargetsBuffBar):SetCallbackOwner(self):SetInterrupt(true):SetIsPassive(false):SetTargetPets(self.targets):SetOnRoleMagicChangeModelCallback(self.OnRoleMagicChangeModel):SetExtraEvents({
     ShowPetName = self.OnShowPetName,
     ActionStart = self.ShowPet
   })
@@ -282,6 +284,11 @@ function BattlePlayerSkillPlayer:ApplyDefaultCamera(Chain)
   end
 end
 
+function BattlePlayerSkillPlayer:OnSkillFailed()
+  Log.Error("BattlePlayerSkillPlayer OnSkillFailed")
+  self:OnSkillComplete()
+end
+
 function BattlePlayerSkillPlayer:OnSkillComplete()
   Log.Debug("BattlePlayerSkillPlayer OnSkillComplete")
   self:ClearDelay()
@@ -325,6 +332,8 @@ function BattlePlayerSkillPlayer:OnSkillComplete()
   if ServerData.values.battleMode then
     _G.BattleEventCenter:Dispatch(BattleEvent.FX_PERF_ON_SKILL_PLAY_PAUSE)
   end
+  local isPerforming = false
+  _G.BattleEventCenter:Dispatch(BattleEvent.BATTLE_PLAYERSKILL_PERFORMING_UPDATE, isPerforming)
   self.performNode:PerformComplete()
   self:Release()
 end

@@ -140,7 +140,7 @@ function UMG_PetTeam_C:SetBtnCloseState(state, isFirst)
     self.UMG_PetTeamImage:SetCaptureScene(false)
     self:RefreshBtnState(false)
     self:RefreshTrialInfo(false)
-    self:StopAllAnimations()
+    self:StopTweenInAndTweenOutAnimation()
     if not isFirst then
       self.playInUiCount = 0
       self:PlayAnimation(self.In_UI)
@@ -149,14 +149,14 @@ function UMG_PetTeam_C:SetBtnCloseState(state, isFirst)
     self.UMG_PetTeamImage:SetCaptureScene(true)
     self:RefreshBtnState(true)
     self:RefreshTrialInfo(true)
-    self:StopAllAnimations()
+    self:StopTweenInAndTweenOutAnimation()
     self.playOutUiCount = 0
     self:PlayAnimation(self.Out_UI)
   elseif state == PetUIModuleEnum.PetTeamShowType.HideUis then
     self.UMG_PetTeamImage:SetCaptureScene(false)
     self:RefreshBtnState(true)
     self:RefreshTrialInfo(true)
-    self:StopAllAnimations()
+    self:StopTweenInAndTweenOutAnimation()
     if not isFirst then
       self.playOutUiCount = 0
       self:PlayAnimation(self.Out_UI)
@@ -261,9 +261,22 @@ function UMG_PetTeam_C:RefreshTrialInfo(forceHide)
     if self.trialInfo then
       self.Btn_formation.RedDot:SetupKey(380)
       self.TrialBurnTime = 0
+      local pvp_rank_character31Conf = _G.DataConfigManager:GetBattleGlobalConfig("pvp_rank_character31")
+      local pvp_rank_character31ConfStr = pvp_rank_character31Conf and pvp_rank_character31Conf.str or ""
+      local pvp_rank_character32Conf = _G.DataConfigManager:GetBattleGlobalConfig("pvp_rank_character32")
+      local pvp_rank_character32ConfStr = pvp_rank_character32Conf and pvp_rank_character32Conf.str or ""
+      local trialInfo = self.trialInfo
+      local unitTypeList = trialInfo and trialInfo.unit_type or {}
+      local trailDescriptionText = ""
+      if next(unitTypeList) then
+        trailDescriptionText = pvp_rank_character31ConfStr
+      else
+        trailDescriptionText = pvp_rank_character32ConfStr
+      end
       self.TrialPanel:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-      self:RefreshTrialAttrList(self.trialInfo.unit_type or {1, 2})
+      self:RefreshTrialAttrList(unitTypeList)
       self:RefreshTrialTime(self.trialInfo.refresh_time or 0)
+      self.TrialDescription:SetText(trailDescriptionText)
     else
       self.TrialBurnTime = -1
       self.TrialPanel:SetVisibility(UE4.ESlateVisibility.Collapsed)
@@ -496,6 +509,7 @@ function UMG_PetTeam_C:SetTeamData(teamIdx, teamData, teamType, forceUpdate, IsR
   end
   self.FormationQuantity:InitGridView(dataList)
   self.FormationQuantity:SelectItemByIndex(teamIdx)
+  self:PlayAnimation(self.Cut_1)
 end
 
 function UMG_PetTeam_C:RefreshCommonTitle(teamType)
@@ -683,6 +697,15 @@ function UMG_PetTeam_C:PlayShowAnim()
     self.IsResetTrialPetData = nil
   end
   self.UMG_PetTeamImage:PlayShowAnim()
+end
+
+function UMG_PetTeam_C:StopTweenInAndTweenOutAnimation()
+  if self:IsAnimationPlaying(self.In_UI) then
+    self:StopAnimation(self.In_UI)
+  end
+  if self:IsAnimationPlaying(self.Out_UI) then
+    self:StopAnimation(self.Out_UI)
+  end
 end
 
 function UMG_PetTeam_C:OnAnimationFinished(Anim)

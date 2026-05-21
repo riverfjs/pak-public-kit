@@ -261,12 +261,6 @@ function UMG_BattleBallOperation_C:RefreshSelectPCKey(balls, ballListIndexToVisi
 end
 
 function UMG_BattleBallOperation_C:MoreStart()
-  if self.triggerInputActionName then
-    return
-  else
-    _G.BattleEventCenter:Dispatch(BattleEvent.INPUT_ACTION_TRIGGER, "IA_BattleMoreStart")
-  end
-  self.ExtraBallEntry:OnItemPressed()
 end
 
 function UMG_BattleBallOperation_C:MoreEnd()
@@ -299,6 +293,7 @@ function UMG_BattleBallOperation_C:Show(playAnim, callback)
   end
   self.isWaitingToShow = false
   self.IsShow = true
+  self:RefreshCanCatchData()
   self:InitBallData()
   self:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
   self:SetRenderOpacity(1)
@@ -331,6 +326,9 @@ function UMG_BattleBallOperation_C:Show(playAnim, callback)
   else
     self.recue:SetText(LuaText.ShinyFlower_battle_catch_tip1)
   end
+end
+
+function UMG_BattleBallOperation_C:RefreshCanCatchData()
   local bCanCatch = true
   local CatchMsg
   local visitCatchTimes = 1
@@ -347,9 +345,6 @@ function UMG_BattleBallOperation_C:Show(playAnim, callback)
       end
       break
     end
-  end
-  for i, _Ball in ipairs(self.Balls) do
-    _Ball:SetCanCatch(bCanCatch, CatchMsg)
   end
   self.ExtraBallEntry:SetCanCatch(bCanCatch, CatchMsg)
   self.bCanCatch = bCanCatch
@@ -385,7 +380,7 @@ function UMG_BattleBallOperation_C:OnAnimationFinished(Animation)
   end
 end
 
-function UMG_BattleBallOperation_C:CreateBalls()
+function UMG_BattleBallOperation_C:CreateBalls(ExcludeZero)
   self.hasSign = false
   self.bEnableShinyFlowerAgainConstraint = false
   local balls = {}
@@ -424,14 +419,16 @@ function UMG_BattleBallOperation_C:CreateBalls()
       PetBallIdMap[Id] = true
     end
     for _, v in ipairs(itemData) do
-      if (v.num or 0) > 0 and v.item_type == ProtoEnum.BagItemType.BI_PET_BALL and PetBallIdMap[v.item_conf_id] then
+      local flag = ExcludeZero or (v.num or 0) > 0
+      if flag and v.item_type == ProtoEnum.BagItemType.BI_PET_BALL and PetBallIdMap[v.item_conf_id] then
         table.insert(balls, BallEntryData(v.item_id, v.item_conf_id, v.gid, v.num))
       end
     end
   else
     tempBallId = DataConfigManager:GetLegendaryGlobalConfig("temp_ball_id").num
     for _, v in ipairs(itemData) do
-      if (v.num or 0) > 0 and v.item_type == ProtoEnum.BagItemType.BI_PET_BALL then
+      local flag = ExcludeZero or (v.num or 0) > 0
+      if flag and v.item_type == ProtoEnum.BagItemType.BI_PET_BALL then
         if v.item_conf_id == tempBallId then
           if true == v.is_temp then
             table.insert(balls, BallEntryData(v.item_id, v.item_conf_id, v.gid, v.num))
@@ -475,21 +472,18 @@ function UMG_BattleBallOperation_C:CreateBalls()
 end
 
 function UMG_BattleBallOperation_C:RefreshBallList()
-  local balls = self:CreateBalls()
+  local balls = self:CreateBalls(true)
   if not balls then
     Log.Error("UMG_BattleBallOperation_C:RefreshBallList  fail to create balls")
     return
   end
-  self:UpdateBallDataList(balls)
-  local curUseBallId = _G.BattleManager.battleRuntimeData.catchInfo.curUseBallId
-  if curUseBallId then
-    for _, Ball in ipairs(balls) do
-      if Ball and Ball:IsValid() and Ball.id == curUseBallId then
-        _G.BattleEventCenter:Dispatch(BattleEvent.BATTLE_CLICKED_BALL, Ball)
-        break
-      end
+  local BallIdNumMap = {}
+  for _, ball in pairs(balls) do
+    if ball.id and ball.num then
+      BallIdNumMap[ball.id] = ball.num
     end
   end
+  _G.BattleEventCenter:Dispatch(BattleEvent.UI_INSTANT_UPDATE_BALL_NUM, BallIdNumMap)
 end
 
 function UMG_BattleBallOperation_C:InitBallData(bNeedSelect, selectIndex)
@@ -775,7 +769,6 @@ end
 function UMG_BattleBallOperation_C:SetVisibleBallData(index, ballEntry)
   if ballEntry then
     ballEntry.fatherList = self
-    ballEntry:SetCanCatch(self.bCanCatch, self.CatchMsg)
   end
   local prevBalls = self.Balls or {}
   local prevBallListIndexToVisibleIndex = self.ballListIndexToVisibleBall or {}
@@ -835,6 +828,11 @@ function UMG_BattleBallOperation_C:OnWidgetDidUpdate(prevBallDataList, nextBallD
   for i, ball in ipairs(nextBallDataList) do
     ball.index = i
   end
+  local bCanCatch = true
+  if self.bCanCatch ~= nil then
+    bCanCatch = self.bCanCatch
+  end
+  local catchMsg = self.CatchMsg
   local propsList = {}
   local currentBallDataList = nextBallDataList or {}
   for i, ballData in ipairs(currentBallDataList) do
@@ -844,6 +842,8 @@ function UMG_BattleBallOperation_C:OnWidgetDidUpdate(prevBallDataList, nextBallD
     props.callbackOwner = self
     props.onSpawnCallback = self.OnBallItemSpawn
     props.onDespawnCallback = self.OnBallItemDespawn
+    props.bCanCatch = bCanCatch
+    props.catchMsg = catchMsg
     table.insert(propsList, props)
   end
   self.ArcScrollView:InitList(propsList, not ballDataListLengthChanged)

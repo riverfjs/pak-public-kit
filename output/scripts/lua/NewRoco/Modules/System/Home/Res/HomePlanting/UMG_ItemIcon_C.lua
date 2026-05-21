@@ -122,10 +122,12 @@ function UMG_ItemIcon_C:SetInfo()
     self.Text_Quantity:SetText(timeStr)
   end
   if _data.bEquipping then
+    self.Equipment:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     self:StopAnimation(self.normal)
     self:StopAnimation(self.change2)
     self:PlayAnimation(self.change1, 0, 1, UE4.EUMGSequencePlayMode.Forward, 5)
   else
+    self.Equipment:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self:StopAnimation(self.change1)
     self:StopAnimation(self.change2)
     self:PlayAnimation(self.normal, 0, 1, UE4.EUMGSequencePlayMode.Forward, 5)

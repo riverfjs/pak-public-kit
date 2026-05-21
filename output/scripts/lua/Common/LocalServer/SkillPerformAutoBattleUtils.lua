@@ -110,6 +110,7 @@ function SkillPerformAutoBattleUtils:ChangeToLocalServer()
   _G.ZoneServer.isLocalServer = true
   local zoneServer = _G.ZoneServer
   local localServer = require("Common.LocalServer.LocalServer")
+  Log.Warning("Switch To LocalServer")
   zoneServer.SendWithHandler = localServer.SendWithHandler
   zoneServer.Send = localServer.Send
   zoneServer.OnTick = localServer.OnTick

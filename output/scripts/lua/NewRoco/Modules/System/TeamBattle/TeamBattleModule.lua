@@ -96,7 +96,11 @@ end
 function TeamBattleModule:OpenPreWarInfoPanel(challengeType, param, bOwner)
   self:CloseOtherPanel()
   _G.NRCEventCenter:DispatchEvent(MainUIModuleEvent.OnInVisible)
-  _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.OpenOrCloseMainUIDownTips, false)
+  local localPlayer = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
+  if localPlayer then
+    localPlayer:ForceSendMoveReq(false, nil)
+  end
+  _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.OpenOrCloseMainUIDownTips, false, "OpenTeamBattlePreWarInfo")
   _G.NRCModuleManager:DoCmd(_G.FriendModuleCmd.PCKeyPressCloseFriendPanelTeam)
   self:OpenPanel("PreWarInformation", challengeType, param, bOwner)
 end
@@ -393,7 +397,7 @@ function TeamBattleModule:OnZoneTeamBattlePetQueryRsp(rsp)
       if self.CurChallengeType == _G.ProtoEnum.TeamBattleChallengeType.TBCT_BEAST or self.CurChallengeType == _G.ProtoEnum.TeamBattleChallengeType.TBCT_BEAST_SINGLE then
         petData.curBattleBaseId = _G.NRCModuleManager:DoCmd(_G.LegendaryBattleModuleCmd.GetBattlePetBaseId)
       elseif self.CurChallengeType == _G.ProtoEnum.TeamBattleChallengeType.TBCT_BLOOD_TEAM or self.CurChallengeType == _G.ProtoEnum.TeamBattleChallengeType.TBCT_BLOOD_SINGLE then
-        petData.curBattleBaseId = self.teamBattleInfo and self.teamBattleInfo.battle_petbase_id
+        petData.curBattleBaseId = self:GetOwnerSelectTeamBattlePetBaseId()
       end
       petData.uin = self.ZoneTeamBattlePetUin and self.ZoneTeamBattlePetUin[i]
       table.insert(self.TeamBattlePetDataList, petData)
@@ -416,6 +420,30 @@ function TeamBattleModule:OnZoneTeamBattlePetQueryRsp(rsp)
       _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText[key])
     end
   end
+end
+
+function TeamBattleModule:GetOwnerSelectTeamBattlePetBaseId()
+  if not self.teamBattleInfo then
+    return
+  end
+  if not _G.DataModelMgr.PlayerDataModel:IsVisitState() then
+    return self.teamBattleInfo.battle_petbase_id
+  end
+  if self.teamBattleInfo.select_flower_owner_id then
+    Log.Debug("UMG_PrewarInformation_C:SetFlowerSeedFusionInfo", self.teamBattleInfo.select_flower_owner_id)
+    local visit_flower_seed_boss_datas = self.teamBattleInfo.visit_flower_seed_boss_datas
+    local visit_flower_seed_boss_data
+    for i, v in pairs(visit_flower_seed_boss_datas) do
+      if v and v.owner_id == self.teamBattleInfo.select_flower_owner_id then
+        visit_flower_seed_boss_data = v
+        break
+      end
+    end
+    if visit_flower_seed_boss_data then
+      return visit_flower_seed_boss_data.inner_petbase_id
+    end
+  end
+  return self.teamBattleInfo.battle_petbase_id
 end
 
 function TeamBattleModule:GetTeamBattlePetDataByUin(uin)
@@ -526,6 +554,7 @@ end
 function TeamBattleModule:SetVisitSelectTeamBattlePetRsp(rsp)
   if 0 == rsp.ret_info.ret_code and rsp.uin and rsp.npc_logic_id then
     local visit_flower_seed_boss_datas = self.teamBattleInfo.visit_flower_seed_boss_datas
+    self.teamBattleInfo.select_flower_owner_id = rsp.uin
     local visit_flower_seed_boss_data
     if rsp.uin == _G.DataModelMgr.PlayerDataModel:GetPlayerVisitOwnerUin() then
       visit_flower_seed_boss_data = MagicManualUtils.GetFlowerSeedFusionDataByData(self.teamBattleInfo)
@@ -562,11 +591,14 @@ function TeamBattleModule:OnZoneTeamBattleInviteResultNotify(notify)
   local bAgree = notify.agree
   if bAgree then
   else
-    local visitorList = _G.NRCModuleManager:DoCmd(_G.FriendModuleCmd.GetOnlineVisitorList)
-    for k, v in ipairs(visitorList) do
-      if v.uin == uin then
-        local tips = v.name .. LuaText.teambattlemodule_3
-        _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, tips)
+    if _G.FunctionBanManager:GetConditionCounter(_G.Enum.PlayerConditionType.PCT_PROP_BLINDBOX) and uin == _G.DataModelMgr.PlayerDataModel:GetPlayerUin() then
+    else
+      local visitorList = _G.NRCModuleManager:DoCmd(_G.FriendModuleCmd.GetOnlineVisitorList)
+      for k, v in ipairs(visitorList) do
+        if v.uin == uin then
+          local tips = v.name .. LuaText.teambattlemodule_3
+          _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, tips)
+        end
       end
     end
     self:ClosePanel("PreWarInformation")

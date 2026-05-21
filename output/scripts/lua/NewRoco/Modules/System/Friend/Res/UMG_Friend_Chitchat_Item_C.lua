@@ -206,8 +206,11 @@ function UMG_Friend_Chitchat_Item_C:SetOnlineState()
 end
 
 function UMG_Friend_Chitchat_Item_C:PrepareOnlineData()
-  local roleInfo = self.moduleData:GetFriendByUin(self.uiData.basic_info.uin, FriendEnum.ClientFriendRoleInfoScene.FriendPanelDefault)
-  self.onlineTitle = self.module:GetFriendBehaviorText(roleInfo)
+  self.onlineTitle = ""
+  local sessionInfo = self.uiData.friend_session_info
+  if sessionInfo then
+    self.onlineTitle = self.module:GetPlayerOnlineStatusText(sessionInfo.battle_brief_info, sessionInfo.pos_info)
+  end
 end
 
 function UMG_Friend_Chitchat_Item_C:OnDeactive()

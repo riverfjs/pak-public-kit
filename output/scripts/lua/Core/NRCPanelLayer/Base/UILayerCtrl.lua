@@ -34,6 +34,12 @@ function UILayerCtrl:GetLayerWindowCount()
   return 0
 end
 
+function UILayerCtrl:BringToFront(windowId, ...)
+end
+
+function UILayerCtrl:SendToBack(windowId, ...)
+end
+
 function UILayerCtrl:GetDebugData()
 end
 
@@ -46,7 +52,7 @@ end
 function UILayerCtrl:RemoveAll()
 end
 
-function UILayerCtrl:SetPanelReadyToOpen(windowId, module, dependentPanelName)
+function UILayerCtrl:SetPanelReadyToOpen(windowId, module, panelData)
 end
 
 function UILayerCtrl:SetPanelAlreadyVisible(windowId, panel)
@@ -58,7 +64,7 @@ end
 function UILayerCtrl:SetPanelAlreadyClosed(windowId)
 end
 
-function UILayerCtrl:PreAssignedPanelDepth(windowId, module, dependentPanelName)
+function UILayerCtrl:PreAssignedPanelDepth(windowId, module, panelData)
 end
 
 function UILayerCtrl:UndoPreAssignedPanelDepth(windowId)

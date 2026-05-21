@@ -56,7 +56,7 @@ end
 function UMG_SecondaryPasswordCancelForceDisable_C:OnSecondaryPasswordForceDisableRsp(rsp)
   if 0 == rsp.ret_info.ret_code and rsp.action_type == ProtoEnum.ZoneSecondaryPasswordForceDisable.SPFD_CANCEL then
     _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.secondary_pwd_toast_recall_success)
-    _G.NRCModuleManager:DoCmd(_G.SystemSettingModuleCmd.OnSecondaryPasswordStatusChange, ProtoEnum.SecondaryPasswordStatus.SPS_Set)
+    _G.NRCModuleManager:DoCmd(_G.SystemSettingModuleCmd.OnSecondaryPasswordStatusChange, rsp.status, rsp.status_timestamp, rsp.default_free)
     self:DoClose()
   end
 end
@@ -83,8 +83,14 @@ function UMG_SecondaryPasswordCancelForceDisable_C:InitTime()
 end
 
 function UMG_SecondaryPasswordCancelForceDisable_C:OnTimerUpdate()
-  if self.leftTime then
-    self.leftTime = self.leftTime - 1
+  local statusStamp = 0
+  local passwordInfo = _G.NRCModuleManager:DoCmd(_G.SystemSettingModuleCmd.GetSecondaryPasswordInfo)
+  if passwordInfo and passwordInfo.status == ProtoEnum.SecondaryPasswordStatus.SPS_Disable then
+    statusStamp = passwordInfo.status_timestamp
+  end
+  local currentTime = _G.ZoneServer:GetServerTime() / 1000
+  if currentTime - statusStamp > 0 then
+    self.leftTime = 259200 - (currentTime - statusStamp)
     if self.leftTime > 0 then
       self:SetTimeText(self.leftTime)
     end

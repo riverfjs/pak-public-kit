@@ -32,7 +32,14 @@ function TakePhotoFileBrief:SetThumbnail(ThumbnailHeight)
   return self
 end
 
+function TakePhotoFileBrief:SetOverrideThumbnailPath(Path)
+  self.OverrideThumbnailPath = Path
+end
+
 function TakePhotoFileBrief:GetThumbnailPath()
+  if self.OverrideThumbnailPath then
+    return self.OverrideThumbnailPath
+  end
   if self:IsThumbnailFile() then
     return self.FilePath .. "_Thumbnail"
   else

@@ -10,10 +10,6 @@ FsmUtils.MergeMembers(Base, DialogueSyncEndAction, {
     type = "var"
   },
   {name = "ConfID", type = "var"},
-  {
-    name = "FirstConfID",
-    type = "var"
-  },
   {name = "TargetNPC", type = "var"},
   {name = "NPCOption", type = "var"}
 })

@@ -12,6 +12,7 @@ function UMG_RolePlay_GetTips_C:OnConstruct()
     [RolePlayModuleDef.RolePlayType.Suit] = self.Icon_2,
     [RolePlayModuleDef.RolePlayType.PutProp] = self.Icon
   }
+  self:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.tipsDisplayController = _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.GetDisplayController, TipEnum.TipObjectType.RolePlayGetTips)
   if self.tipsDisplayController then
     self.tipsDisplayController:BindView(self)
@@ -112,8 +113,10 @@ function UMG_RolePlay_GetTips_C:OnClickTips(bPcMode)
           else
             _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, _G.LuaText.umg_gameinfomain_1)
           end
+        else
+          return
         end
-      else
+      elseif _G.NRCModuleManager:DoCmd(_G.RolePlayModuleCmd.CheckCanOpenMainPanel) then
         _G.NRCModuleManager:DoCmd(_G.RolePlayModuleCmd.OpenMainPanel, tipData.rolePlayType)
       end
     end

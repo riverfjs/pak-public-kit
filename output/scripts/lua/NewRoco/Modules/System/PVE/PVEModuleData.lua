@@ -29,6 +29,7 @@ function PVEModuleData:GeneratePveTalentData()
     local seasonPveBaseConf = seasonConf and _G.DataConfigManager:GetSeasonPveBaseConf(seasonConf.season_pve_id)
     local seasonTalentConf = seasonPveBaseConf and _G.DataConfigManager:GetSeasonTalentConf(seasonPveBaseConf.season_talent)
     if seasonTalentConf then
+      talentData.seasonTalentConf = seasonTalentConf
       talentData.pveBaseConf = seasonPveBaseConf
       talentData.totalNodeCnt = #seasonTalentConf.point
       talentNodeData = table.new(0, talentData.totalNodeCnt)
@@ -38,13 +39,15 @@ function PVEModuleData:GeneratePveTalentData()
           if 0 == talentData.material and 0 ~= seasonGrowthConf.material then
             talentData.material = seasonGrowthConf.material
           end
-          talentData.nodeSortToId[seasonGrowthConf.sort] = seasonGrowthConf.id
+          if nil == talentData.nodeSortToId[seasonGrowthConf.sort] then
+            talentData.nodeSortToId[seasonGrowthConf.sort] = seasonGrowthConf.id
+          end
         end
         local nodeData = {
           id = pointId,
           sort = seasonGrowthConf and seasonGrowthConf.sort,
           status = seasonGrowthConf and 0 == seasonGrowthConf.sort and PVEModuleEnum.TalentNodeStatus.CanUnlock or PVEModuleEnum.TalentNodeStatus.Locked,
-          petGid = nil
+          newPetConfId = nil
         }
         talentNodeData[nodeData.id] = nodeData
       end

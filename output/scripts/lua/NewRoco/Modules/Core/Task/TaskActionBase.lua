@@ -103,4 +103,19 @@ function TaskActionBase:LogError(...)
   Log.Error(self:GetDesc(Log.LOG_LEVEL.ELogError), ...)
 end
 
+function TaskActionBase:GetClientConditionInfo()
+  local InfoList = {}
+  local Conds = self.Task.Config.task_condition
+  for Index, Cond in ipairs(Conds) do
+    if Cond.type == ProtoEnum.TaskKeyType.TKT_CLIENT_CINEMA_FINISHED or Cond.type == ProtoEnum.TaskKeyType.TKT_CAMERA or Cond.type == ProtoEnum.TaskKeyType.TKT_STATE_PATH_FINISH or Cond.type == ProtoEnum.TaskKeyType.TKT_MINI_PACKAGE_DONE then
+      local Info = {}
+      Info.taskid = self.Task.Config.id
+      Info.task_condition_idx = Index
+      Info.condition_type = Cond.type
+      table.insert(InfoList, Info)
+    end
+  end
+  return InfoList
+end
+
 return TaskActionBase

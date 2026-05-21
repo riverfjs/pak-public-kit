@@ -88,6 +88,8 @@ function BattlePvpEnterActionPetShow:MySkillLoadOver(skillClass)
   self.Skill:RegisterEventCallback("Start", self, self.OnSkillStart)
   self.Skill:RegisterEventCallback("End", self, self.OnSkillEnd)
   self.Skill:RegisterEventCallback("Unbind", self, self.OnUnbind)
+  self.Skill:RegisterEventCallback("Interrupt", self, self.OnSkillEnd)
+  self.Skill:RegisterEventCallback("StartFailed", self, self.OnSkillEnd)
   self.Skill:SetCaster(self.BattlePlayer.model)
   self.Skill:SetTargets({
     self.BattlePet.model
@@ -105,6 +107,8 @@ function BattlePvpEnterActionPetShow:EnemySkillLoadOver(skillClass)
   self.enemySkill:RegisterEventCallback("End", self, self.OnSkillEndEnemy)
   self.enemySkill:RegisterEventCallback("PostStart", self, self.OnPostStart)
   self.enemySkill:RegisterEventCallback("Unbind", self, self.OnUnbindEnemy)
+  self.enemySkill:RegisterEventCallback("Interrupt", self, self.OnSkillEndEnemy)
+  self.enemySkill:RegisterEventCallback("StartFailed", self, self.OnSkillEndEnemy)
   self.enemySkill:SetTargets({
     self.enemyPet.model
   })

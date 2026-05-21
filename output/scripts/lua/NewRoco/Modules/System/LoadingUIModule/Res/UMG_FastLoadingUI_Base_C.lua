@@ -3,13 +3,15 @@ local ScenePlayerInputManager = require("NewRoco.Modules.Core.Scene.ScenePlayerI
 local SceneUtils = require("NewRoco.Modules.Core.Scene.Common.SceneUtils")
 local UMG_FastLoadingUI_Base_C = _G.NRCViewBase:Extend("UMG_FastLoadingUI_Base_C")
 
-function UMG_FastLoadingUI_Base_C:OnConstruct()
-  self:Log("[OnConstruct]")
+function UMG_FastLoadingUI_Base_C:Ctor()
+  self:Log("[Ctor]")
   self.LoadingTipsList = {}
   self.tipsChangeTime = 0
   self.tipsTime = 0
   self.tipsIndex = 1
   self.tipsChangeTime = _G.DataConfigManager:GetGlobalConfig("loading_tips_change").num / 1000
+  self.FxPlayed = false
+  self.FxFinished = false
 end
 
 function UMG_FastLoadingUI_Base_C:OnDeconstruct()
@@ -18,6 +20,8 @@ end
 
 function UMG_FastLoadingUI_Base_C:OnActive(content, tips, switch_reason, teleport_id)
   self:Log("[OnActive] content:", content, "tips:", tips, "switch_reason:", switch_reason, "teleport_id:", teleport_id)
+  self.FxPlayed = false
+  self.FxFinished = false
   self.tipsChangeTime = 0
   self.LoadingTipsList = {}
   self.tipsTime = 0
@@ -26,6 +30,7 @@ function UMG_FastLoadingUI_Base_C:OnActive(content, tips, switch_reason, telepor
   self.switch_reason = switch_reason
   self.teleport_id = teleport_id
   self.IsSetTipsData = false
+  self.OutDuration = self.Out and self.Out:GetEndTime() - self.Out:GetStartTime() or 0.5
   self:SetData(content, tips, switch_reason, teleport_id)
   self:SetVisibility(UE4.ESlateVisibility.Hidden)
 end
@@ -36,6 +41,8 @@ end
 
 function UMG_FastLoadingUI_Base_C:OnEnable()
   self:Log("[OnEnable]", self.className)
+  self.FxPlayed = false
+  self.FxFinished = false
   UE4Helper.SetDesiredShowCursor(true, self.className)
   ScenePlayerInputManager.Pause()
   local bIsBlockPCInput = true

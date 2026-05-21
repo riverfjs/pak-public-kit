@@ -6,20 +6,18 @@ function UMG_DetailsOpenairChallenge_C:OnConstruct()
   self:AddButtonListener(self.ExplanationBtn.btnLevelUp, self.OnClickExplanationBtn)
   self:AddButtonListener(self.Btn_Challenge.btnLevelUp, self.OnClickChallengeBtn)
   self.Btn_Lock:SetTitleTextAndIcon()
-  self:SetCommonTitle()
 end
 
-function UMG_DetailsOpenairChallenge_C:SetCommonTitle()
-  local titleConf = _G.DataConfigManager:GetTitleConf(self:GetPanelName())
-  self.Title:Set_MainTitle(titleConf and titleConf.title)
-  self.Title:SetBg(titleConf and titleConf.head_icon)
-  self.Title:SetSubtitle(titleConf and titleConf.subtitle and titleConf.subtitle[1] and titleConf.subtitle[1].subtitle)
+function UMG_DetailsOpenairChallenge_C:SetTitle(cfg)
+  self.Title:Set_MainTitle(cfg and cfg.title)
+  self.Title:SetBg(cfg and cfg.head_icon)
+  self.Title:SetSubtitle(cfg and cfg.subtitle)
 end
 
 function UMG_DetailsOpenairChallenge_C:OnDestruct()
   local action = self.action
   if action then
-    local battleId = self.confirmChoose and self.selectItem and self.selectItem.battle_id
+    local battleId = self.confirmChoose and self.selectItem and self.selectItem.difficult_id
     if battleId then
       action:Finish(true, nil, tostring(battleId))
     else
@@ -33,6 +31,7 @@ function UMG_DetailsOpenairChallenge_C:OnActive(cfg, action)
   self.action = action
   self.bg1:SetPath(cfg.bg)
   self.ImageBadge:SetPath(cfg.bg_icon)
+  self:SetTitle(cfg)
   local challengeHandler = _G.NRCModuleManager:DoCmd(_G.ActivityModuleCmd.GetNpcChallengeHandler)
   local challengeObject = challengeHandler and challengeHandler:GetOrAddChallengeItem(cfg.id) or nil
   local clickCallback = _G.MakeWeakFunctor(self, self.OnSelectTab)
@@ -53,7 +52,7 @@ function UMG_DetailsOpenairChallenge_C:OnActive(cfg, action)
     item.tabName = v.tab_name
     item.clickCallback = clickCallback
     item.cfg = v
-    item.finished = challengeObject and challengeObject:IsBattleFinished(v.battle_id) or false
+    item.finished = challengeObject and challengeObject:IsBattleFinished(v.difficult_id) or false
     table.insert(tabItems, item)
   end
   for index, item in ipairs(tabItems) do
@@ -124,8 +123,15 @@ function UMG_DetailsOpenairChallenge_C:OnSelectTab(item)
     end
   end
   self.AwardList:InitGridView(rewardItems)
+  if #rewardItems > 0 then
+    self.CanvasPanel_781:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    self.AwardList:SetVisibility(UE4.ESlateVisibility.Visible)
+  else
+    self.CanvasPanel_781:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.AwardList:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  end
   if item.finished then
-    if item.is_loop then
+    if itemCfg.is_loop then
       self.BtnSwitcher:SetActiveWidgetIndex(0)
     else
       self.BtnSwitcher:SetActiveWidgetIndex(2)

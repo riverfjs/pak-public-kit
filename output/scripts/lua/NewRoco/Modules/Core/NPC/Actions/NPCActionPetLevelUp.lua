@@ -14,15 +14,35 @@ function NPCActionPetLevelUp:Execute()
   local BeforeEvoNpc = _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.GetNpcByRefreshID, tonumber(param2[1]))
   local AfterEvoNpc = _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.GetNpcByRefreshID, tonumber(param2[2]))
   if not BeforeEvoNpc or not AfterEvoNpc then
-    Log.Error("NPCActionPetLevelUp:Execute: npc is nil")
+    self.TempDelayId = _G.DelayManager:DelaySeconds(0.5, function()
+      BeforeEvoNpc = _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.GetNpcByRefreshID, tonumber(param2[1]))
+      AfterEvoNpc = _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.GetNpcByRefreshID, tonumber(param2[2]))
+      if not BeforeEvoNpc or not AfterEvoNpc then
+        Log.Error("NPCActionPetLevelUp:Execute: npc is nil")
+        self:Finish(true)
+        return
+      else
+        local serverData = BeforeEvoNpc.serverData
+        self:OpenLevelUpPanel(BeforeEvoNpc, AfterEvoNpc, serverData, param1)
+      end
+    end)
+  else
+    local serverData = BeforeEvoNpc.serverData
+    self:OpenLevelUpPanel(BeforeEvoNpc, AfterEvoNpc, serverData, param1)
   end
-  local serverData = BeforeEvoNpc.serverData
+end
+
+function NPCActionPetLevelUp:OpenLevelUpPanel(BeforeEvoNpc, AfterEvoNpc, serverData, param1)
   if not serverData then
     Log.Error("NPCActionPetLevelUp:Execute: serverData is nil")
+    self:Finish(true)
+    return
   end
   local NpcBase = serverData.npc_base
   if not NpcBase then
     Log.Error("NPCActionPetLevelUp:Execute: NpcBase is nil")
+    self:Finish(true)
+    return
   end
   local EvoPetInfo = {
     Action = self,
@@ -42,6 +62,10 @@ function NPCActionPetLevelUp:Finish(success)
   if self.DelayId then
     _G.DelayManager:CancelDelayById(self.DelayId)
     self.DelayId = nil
+  end
+  if self.TempDelayId then
+    _G.DelayManager:CancelDelayById(self.TempDelayId)
+    self.TempDelayId = nil
   end
 end
 

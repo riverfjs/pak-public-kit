@@ -1,5 +1,6 @@
 local NPCShopUIModuleEnum = require("NewRoco.Modules.System.NPCShopUI.NPCShopUIModuleEnum")
 local BattleUtils = require("NewRoco.Modules.Core.Battle.Common.BattleUtils")
+local BattleConst = require("NewRoco.Modules.Core.Battle.Common.BattleConst")
 local UMG_PvPSubPanel_C = _G.NRCPanelBase:Extend("UMG_PvPSubPanel_C")
 local PVPRankedMatchModuleEvent = require("NewRoco.Modules.System.PVPQualifier.PVPRankedMatchModuleEvent")
 local CWView_WeekendBenefitsPanel = require("NewRoco.Modules.System.PVPQualifier.Res.CWView_WeekendBenefitsPanel")
@@ -24,7 +25,8 @@ function UMG_PvPSubPanel_C:OnEnable(module)
   self:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.module = module
   self.data = self.module.data
-  local curSeasonId = _G.NRCModuleManager:DoCmd(_G.PVPRankedMatchModuleCmd.CmdGetCurSeasonId)
+  self:RefreshCurrentSeasonId()
+  local curSeasonId = self.curSeasonId
   self:OnAddEventListener()
   if curSeasonId then
     self:RefreshPvpUI()
@@ -34,9 +36,14 @@ function UMG_PvPSubPanel_C:OnEnable(module)
   end
 end
 
+function UMG_PvPSubPanel_C:RefreshCurrentSeasonId()
+  local curSeasonId = _G.NRCModuleManager:DoCmd(_G.PVPRankedMatchModuleCmd.CmdGetCurSeasonId)
+  self.curSeasonId = curSeasonId
+end
+
 function UMG_PvPSubPanel_C:RefreshPvpUI()
   self:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-  self.MoneyBtn:InitGridView(BattleUtils.GetPvpScoreItemInfo())
+  self.MoneyBtn:InitGridView(BattleUtils.GetPvpScoreItemInfo(self.curSeasonId))
   local PvpChallengeList = self:GetPvpChallengeData()
   self.PvpList:InitList(PvpChallengeList)
   local num1 = self.PvpList:GetItemCount()
@@ -84,8 +91,11 @@ function UMG_PvPSubPanel_C:OnDisable()
 end
 
 function UMG_PvPSubPanel_C:OnShopBtn()
+  local curSeasonId = self.curSeasonId
+  local seasonConf = _G.DataConfigManager:GetPvpRankSeasonConf(curSeasonId, true)
+  local shopId = seasonConf and seasonConf.shop or BattleConst.PvpDefaultShopId
   _G.NRCModuleManager:DoCmd(NPCShopUIModuleCmd.SetNpcShopOpenType, NPCShopUIModuleEnum.OpenNPCShopFormType.MagicManualMain)
-  _G.NRCModuleManager:DoCmd(NPCShopUIModuleCmd.FinishNPCActionOpenShop, nil, 2006)
+  _G.NRCModuleManager:DoCmd(NPCShopUIModuleCmd.FinishNPCActionOpenShop, nil, shopId)
 end
 
 function UMG_PvPSubPanel_C:OnAddEventListener()
@@ -116,6 +126,7 @@ end
 function UMG_PvPSubPanel_C:OnSetPvpInfoQueryData()
   if self.tryEnable then
     self.tryEnable = nil
+    self:RefreshCurrentSeasonId()
     self:RefreshPvpUI()
   end
 end

@@ -49,6 +49,10 @@ function UMG_UpgradeList_Item1_C:OnItemSelected(_bSelected)
           _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.SetTryOnAppearance, false, {ItemId}, false)
         elseif Type == _G.Enum.GoodsType.GT_FASHION then
           _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.SetTryOnAppearance, true, {ItemId}, false)
+          local fashionConf = _G.DataConfigManager:GetFashionItemConf(ItemId)
+          if fashionConf and fashionConf.type == _G.Enum.FashionLabelType.FLT_PENDANTA then
+            self.parent.TryOnImage:SetPendantaFromUpgrade(true)
+          end
         elseif Type == _G.Enum.GoodsType.GT_FASHION_SUITS then
           local fashionSuitConf = _G.DataConfigManager:GetFashionSuitsConf(ItemId)
           for k, v in ipairs(fashionSuitConf.item_id) do

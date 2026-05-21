@@ -122,7 +122,7 @@ function UMG_FastLoadingUI_C:OnTick(deltaTime)
       deltaTime = 0.1
     end
     if self.targetProcess > self.curProcess then
-      local delta = (self.targetProcess - self.curProcess) * deltaTime * 0.1
+      local delta = (self.targetProcess - self.curProcess) * deltaTime * 0.5
       if self.liveTime < 3 then
         delta = 1
       end
@@ -137,24 +137,25 @@ function UMG_FastLoadingUI_C:OnTick(deltaTime)
       self.curProcess = self.targetProcess
     end
     self._showingLoadingUI:OnViewTick(deltaTime)
-    if not self.IsClosing or self.liveTime < -0.5 then
-    elseif self.liveTime < 0 then
-      self.liveTime = self.liveTime - deltaTime
-      if self.liveTime < -0.5 then
+    if self.IsClosing and self._showingLoadingUI.FxFinished then
+      if not self._isOutAnimationPlayed then
+        self:StopInAnimation()
+        self:PlayOutAnimation()
+        self._isOutAnimationPlayed = true
+        UE4Helper.SetEnableWorldRendering(nil, false, "UMG_FastLoading_C")
+        _G.GEMPostManager:GEMPostStepEvent("CommonLoadingEnd")
+        _G.GEMPostManager:GEMPostStepEvent("EnterBigWorld")
+        if not self._showingLoadingUI.bOutAnimationPlayed then
+          self.liveTime = math.max(self._showingLoadingUI.OutDuration or 0.5, self.liveTime)
+        else
+          self.liveTime = -1
+        end
+      elseif self.liveTime < 0 then
         self:Log("StopAllAnimations")
         self.module:DisablePanel("UMG_FastLoadingUI")
+      else
+        self.liveTime = self.liveTime - deltaTime
       end
-    elseif deltaTime > self.liveTime then
-      self:Log("PlayAnimation self.Out")
-      self:StopInAnimation()
-      self:PlayOutAnimation()
-      self._isOutAnimationPlayed = true
-      UE4Helper.SetEnableWorldRendering(nil, false, "UMG_FastLoading_C")
-      _G.GEMPostManager:GEMPostStepEvent("CommonLoadingEnd")
-      _G.GEMPostManager:GEMPostStepEvent("EnterBigWorld")
-      self.liveTime = -0.01
-    else
-      self.liveTime = self.liveTime - deltaTime
     end
   end
 end

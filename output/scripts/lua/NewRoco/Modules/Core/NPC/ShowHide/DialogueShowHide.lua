@@ -33,18 +33,24 @@ function DialogueShowHide:StartHide()
   end
   _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.HIDE_OTHER_PLAYER, true, UE4.EPlayerForceHiddenType.Cinematic)
   local player = _G.NRCModeManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
-  if player and player:IsInTogetherMove() then
+  local DialogueOption = _G.NRCModuleManager:DoCmd(_G.DialogueModuleCmd.GetCurDialogueOption)
+  local bShowBoth = DialogueOption and DialogueOption.config and DialogueOption.config.show_holding_2p
+  local bHideLocalPlayer = not bShowBoth and player and player:IsInTogetherMove() and player:IsTogetherMove2P()
+  local bShowOtherPlayer = bShowBoth or player and player:IsInTogetherMove() and player:IsTogetherMove2P()
+  if not bShowBoth and player and player:IsInTogetherMove() then
     player:SendEvent(PlayerModuleEvent.ON_SET_LINK_STATE, false, PlayerModuleEvent.LinkReasonFlags.DIALOGUE)
   end
-  if player and player:IsInTogetherMove() and player:IsTogetherMove2P() then
+  if bHideLocalPlayer then
+    _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.HIDE_LOCAL_PLAYER, true, UE4.EPlayerForceHiddenType.Cinematic)
+  end
+  if bShowOtherPlayer then
     local other_player = player:GetAnotherTogetherMovePlayer()
     if other_player and other_player.viewObj then
       other_player.viewObj:SetHiddenMask(false, UE4.EPlayerForceHiddenType.Cinematic)
     end
-    if other_player and other_player.hudComponent then
+    if other_player and other_player.hudComponent and bHideLocalPlayer then
       other_player.hudComponent:SetHeadWidgetRenderStatus(false, _G.MainUIModuleEnum.DisableHudOpSource.Dialogue)
     end
-    _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.HIDE_LOCAL_PLAYER, true, UE4.EPlayerForceHiddenType.Cinematic)
   end
   return true
 end
@@ -93,7 +99,7 @@ function DialogueShowHide:StartShow()
   if player and player:IsInTogetherMove() then
     player:SendEvent(PlayerModuleEvent.ON_SET_LINK_STATE, true, PlayerModuleEvent.LinkReasonFlags.DIALOGUE)
   end
-  if player and player:IsInTogetherMove() and player:IsTogetherMove2P() then
+  if player and player:IsInTogetherMove() then
     local other_player = player:GetAnotherTogetherMovePlayer()
     if other_player and other_player.hudComponent then
       other_player.hudComponent:SetHeadWidgetRenderStatus(true, _G.MainUIModuleEnum.DisableHudOpSource.Dialogue)

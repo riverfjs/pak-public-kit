@@ -20,7 +20,8 @@ MagicActionFactory.Registry = {
   [Enum.ActionType.ACT_STAR_DESTROY_NIGHTMARE_BIGWORLD] = require("NewRoco.Modules.Core.NPC.Actions.MagicActions.MagicActionCleanNightmareBigWorld"),
   [Enum.ActionType.ACT_CAGE_BREAK] = require("NewRoco.Modules.Core.NPC.Actions.MagicActions.MagicActionBreakCage"),
   [Enum.ActionType.ACT_WORLD_COMBAT_BOSS] = require("NewRoco.Modules.Core.NPC.Actions.MagicActions.MagicActionWorldCombatBossShield"),
-  [Enum.ActionType.ACT_HOME_PLANT_UNLOCK_NPC_ENTRANCE] = require("NewRoco.Modules.Core.NPC.Actions.MagicActions.MagicActionHomePlantUnlockEntrance")
+  [Enum.ActionType.ACT_HOME_PLANT_UNLOCK_NPC_ENTRANCE] = require("NewRoco.Modules.Core.NPC.Actions.MagicActions.MagicActionHomePlantUnlockEntrance"),
+  [Enum.ActionType.ACT_CHANGE_CONTENT_SIZE_EFFECT] = require("NewRoco.Modules.Core.NPC.Actions.MagicActions.MagicActionChangeContentSizeEffect")
 }
 
 function MagicActionFactory:Get(Option, Action, Info, DontCreate)

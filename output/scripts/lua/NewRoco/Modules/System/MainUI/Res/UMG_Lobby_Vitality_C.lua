@@ -118,6 +118,9 @@ function UMG_Lobby_Vitality_C:ReBindPlayer()
     if not localPlayer:HasListener(self, PlayerModuleEvent.ON_VITALITY_BUFF_RANGE_STATE_UPDATE, self.OnVitalityBuffRangeStateUpdate) then
       localPlayer:AddEventListener(self, PlayerModuleEvent.ON_VITALITY_BUFF_RANGE_STATE_UPDATE, self.OnVitalityBuffRangeStateUpdate)
     end
+    if not localPlayer:HasListener(self, PlayerModuleEvent.ON_VITALITY_SHAKE, self.OnVitalityShake) then
+      localPlayer:AddEventListener(self, PlayerModuleEvent.ON_VITALITY_SHAKE, self.OnVitalityShake)
+    end
     local bHasRecoverBuff = localPlayer.buffComponent and not not localPlayer.buffComponent:HasBuff("VitalityRecoverBuff")
     local bRecoverBuffPerformingNow = not not self:GetFlag(PerformFlag.VitalityBuffActive)
     if bHasRecoverBuff ~= bRecoverBuffPerformingNow then
@@ -883,6 +886,14 @@ function UMG_Lobby_Vitality_C:OnVitalityBuffRangeStateUpdate(bLeaveRange)
     _G.NRCAudioManager:PlaySound2DAuto(40120003, "UMG_Lobby_Vitality_C:OnVitalityBuffRangeStateUpdate")
   else
     self:StopAnimation(self.Flash)
+  end
+end
+
+function UMG_Lobby_Vitality_C:OnVitalityShake(bShake)
+  if bShake then
+    self:PlayAnimation(self.Doudong, 0, 0, UE.EUMGSequencePlayMode.Forward, 1.0, true)
+  elseif self:IsAnimationPlaying(self.Doudong) then
+    self:StopAnimation(self.Doudong)
   end
 end
 

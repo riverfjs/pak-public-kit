@@ -1,4 +1,6 @@
 local Base = require("NewRoco.TUI.BP_NRCItemBase_C")
+local BattleUtils = require("NewRoco.Modules.Core.Battle.Common.BattleUtils")
+local BattleConst = require("NewRoco.Modules.Core.Battle.Common.BattleConst")
 local UMG_LineupSkills_C = Base:Extend("UMG_LineupSkills_C")
 local PetUIModuleEvent = reload("NewRoco.Modules.System.PetUI.PetUIModuleEvent")
 
@@ -41,15 +43,24 @@ function UMG_LineupSkills_C:UpdateInfo(skillData)
     return
   end
   local skillConf = _G.DataConfigManager:GetSkillConf(skillData.id)
+  local fantasticBackgroundPath = ""
+  local uiData = self.uiData
   if skillConf then
     self.skillConf = skillConf
     self.SkillIcon:SetPath(skillConf.icon)
     self.SkillNameTxt:SetText(skillConf.name)
     self.skillIsValid = true
     if self.uiData.bFantastic then
-      self.Select_NM_3:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-    else
-      self.Select_NM_3:SetVisibility(UE4.ESlateVisibility.Collapsed)
+      local skillId
+      if skillData and skillData.id and skillData.skill_id then
+        skillId = skillData and skillData.skill_id
+      elseif skillData and skillData.id then
+        skillId = skillData and skillData.id
+      end
+      local seasonId = skillData and skillData.season_id
+      seasonId = seasonId or uiData and uiData.fantasticSeasonId
+      local paths = BattleUtils.GetFantasticBackgroundPathWithSkillAndSeason(skillId, seasonId)
+      fantasticBackgroundPath = paths and paths.squareNm3 or fantasticBackgroundPath
     end
     self:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
   else
@@ -57,6 +68,12 @@ function UMG_LineupSkills_C:UpdateInfo(skillData)
     self.skillIsValid = false
     self:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
+  local selectNm3Visibility = UE4.ESlateVisibility.Collapsed
+  if not string.IsNilOrEmpty(fantasticBackgroundPath) then
+    selectNm3Visibility = UE4.ESlateVisibility.SelfHitTestInvisible
+  end
+  self.Select_NM_3:SetPath(fantasticBackgroundPath)
+  self.Select_NM_3:SetVisibility(selectNm3Visibility)
 end
 
 function UMG_LineupSkills_C:CheckHasSkillDataAndUpdateUI()

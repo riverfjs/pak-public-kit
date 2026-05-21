@@ -37,4 +37,18 @@ function BP_NPCMagicNexus_C:UpdateData(ServerData, bIsReconnect)
   end
 end
 
+function BP_NPCMagicNexus_C:OnAreaChanged(areaIdsBefore, areaIdsAfter)
+  local areaModule = _G.NRCModuleManager:GetModule("AreaAndZoneModule")
+  if not areaModule then
+    return
+  end
+  local abilityBanManager = areaModule:GetAbilityBanManager()
+  if not abilityBanManager then
+    return
+  end
+  local bannedAreaId
+  self.bBannedByArea, bannedAreaId = abilityBanManager:GetMagicIsBannedInAreasTArray(ProtoEnum.SceneMagicType.SMT_CREATE, areaIdsAfter)
+  Log.Debug("BP_NPCMagicNexus_C:OnAreaChanged", UE4.UKismetSystemLibrary.GetDisplayName(self), self.bBannedByArea, bannedAreaId)
+end
+
 return BP_NPCMagicNexus_C

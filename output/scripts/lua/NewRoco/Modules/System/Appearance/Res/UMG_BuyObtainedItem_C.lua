@@ -38,17 +38,23 @@ function UMG_BuyObtainedItem_C:UpdateUI()
   local cardFaceIcon = ""
   local goodsType = myUIData.type
   local itemId = myUIData.id
+  self.petIconBgColor = nil
   self.Protagonist:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.Icon:SetVisibility(UE4.ESlateVisibility.Collapsed)
   local ItemPartType = _G.NRCModuleManager:DoCmd(AppearanceModuleCmd.GetItemPartType, goodsType, itemId)
   if goodsType == _G.Enum.GoodsType.GT_FASHION_SUITS then
     local suitConf = _G.DataConfigManager:GetFashionSuitsConf(itemId)
     if suitConf and suitConf.suit_grade and suitConf.suits_icon_big then
-      quality = suitConf.suit_grade + 3
+      self.petIconBgColor, quality = AppearanceUtils:GetSuitGradeColor(suitConf.suit_grade)
       cardFaceIcon = suitConf.suits_icon_big
       name = suitConf.name
       self.CanvasPanel:SetVisibility(UE4.ESlateVisibility.Collapsed)
       if suitConf.suit_grade == Enum.SuitGrade.SG_BOND or suitConf.suit_grade == Enum.SuitGrade.SG_UNIBOND then
+        local petBg = UEPath.FASHION_MALL_REWARD_QUALITY_PET_BG[5]
+        if quality and UEPath.FASHION_MALL_REWARD_QUALITY_PET_BG[quality] then
+          petBg = UEPath.FASHION_MALL_REWARD_QUALITY_PET_BG[quality]
+        end
+        self.QualityBg:SetPath(petBg)
         local petBaseId
         if type(suitConf.petbase_id) == "table" and #suitConf.petbase_id > 0 then
           petBaseId = suitConf.petbase_id[1]
@@ -58,9 +64,15 @@ function UMG_BuyObtainedItem_C:UpdateUI()
           self.CanvasPanel:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
           if suitConf.suits_original_id and 0 ~= suitConf.suits_original_id then
             local id = string.format("%s_1", suitConf.petbase_id[1])
-            self.PetHeadIcon:SetPath(AppearanceUtils:GetPetIconById(id))
+            self.PetHeadIcon:SetPathWithCallBack(AppearanceUtils:GetPetIconById(id), {
+              self,
+              self.OnPetHeadIconSet
+            })
           else
-            self.PetHeadIcon:SetPath(petBaseConf.JL_res)
+            self.PetHeadIcon:SetPathWithCallBack(petBaseConf.JL_res, {
+              self,
+              self.OnPetHeadIconSet
+            })
           end
         end
       end
@@ -143,6 +155,15 @@ function UMG_BuyObtainedItem_C:OnTick(DeltaTime)
       nextProgress = nextProgress - self.totalScrollEnd / 2
     end
     self.ScrollBox_61:SetScrollOffset(nextProgress)
+  end
+end
+
+function UMG_BuyObtainedItem_C:OnPetHeadIconSet()
+  if self and UE4.UObject.IsValid(self) then
+    local dynamicMaterial = self.PetHeadIcon:GetDynamicMaterial()
+    if dynamicMaterial and self.petIconBgColor then
+      dynamicMaterial:SetVectorParameterValue("BackgroundColor", UE4.UNRCStatics.HexToLinearColor(self.petIconBgColor))
+    end
   end
 end
 

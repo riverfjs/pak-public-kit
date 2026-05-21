@@ -56,6 +56,7 @@ function UMG_Pass_PresentAGift_C:RefreshUI(battlePassInfo)
   self:SetupHeadItem()
   self:SetupItems()
   _G.NRCModuleManager:DoCmd(_G.BattlePassModuleCmd.ChangeThemeColor, "UMG_Pass_PresentAGift", self)
+  _G.NRCGCManager:TryGC(false, 33)
 end
 
 function UMG_Pass_PresentAGift_C:OnUpdateBattlePassInfo()
@@ -121,10 +122,9 @@ function UMG_Pass_PresentAGift_C:SetupHeadItem()
   self.AwardItem3.PaidIcon:SetPath(themCfg.paid_reward_icon)
   self.AwardItem3.PaidIconBg:SetPath(themCfg.paid_reward_icon)
   self.AwardItem3.PaidIconBg:SetBrushTintColor(UE4.UNRCStatics.HexToSlateColor("0000004C"))
-  local newPath = _G.NRCModuleManager:DoCmd(_G.BattlePassModuleCmd.GetCurrentThemeImagePath, "img_kuilidi1_png.img_kuilidi1_png")
-  self.AwardItem3.Theme_Bg:SetPath(newPath)
   local hexColor = themCfg.paid_reward_name_color
   self.AwardItem3.Theme_PaidNameText:SetColorAndOpacity(UE4.UNRCStatics.HexToSlateColor("#272727"))
+  _G.NRCModuleManager:DoCmd(_G.BattlePassModuleCmd.ChangeThemeColor, "UMG_Pass_AwardItem3", self.AwardItem3)
   if self:HasPaid() then
     self.AwardItem3.PaidIconBg:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.AwardItem3.lock_1:SetVisibility(UE4.ESlateVisibility.Collapsed)
@@ -289,8 +289,10 @@ function UMG_Pass_PresentAGift_C:SetupItems()
     local item = self.List_1:GetItemByIndex(0)
     if item then
       self.ItemWidth = item:GetDesiredSize().X
-      self.List_1:ScrollToIndex(self.curLevel - 1, true)
+      self.List_1:SetRenderOpacity(0)
       self:DelayFrames(2, function()
+        self.List_1:SetRenderOpacity(1)
+        self.List_1:ScrollToIndex(self.curLevel - 1 >= 0 and self.curLevel - 1 or 0, true)
         self:ListInit()
       end)
       self.curScrollLv = self.curLevel

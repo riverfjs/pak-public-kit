@@ -56,6 +56,7 @@ function BattleB1P1EnterPerformAction:OnEnter()
 end
 
 function BattleB1P1EnterPerformAction:OnActionStart()
+  _G.BattleManager.vBattleField.battleCameraManager:ChangeToSkill(0)
 end
 
 function BattleB1P1EnterPerformAction:EnemyHasSupplyPet()

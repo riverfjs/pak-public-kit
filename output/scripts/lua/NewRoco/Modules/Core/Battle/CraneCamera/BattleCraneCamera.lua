@@ -50,6 +50,17 @@ function BattleCraneCamera:OnTick(DeltaTime)
   Base.OnTick(self, DeltaTime)
 end
 
+function BattleCraneCamera:GetCameraComponentAndActorPos()
+  local CameraActor = self.CameraActor
+  if CameraActor then
+    self.CameraComponent = CameraActor:GetComponentByClass(UE4.UCameraComponent)
+    local pos1 = self.CameraComponent:Abs_K2_GetComponentLocation()
+    local pos2 = CameraActor:Abs_K2_GetActorLocation()
+    return pos1, pos2
+  end
+  return nil, nil
+end
+
 function BattleCraneCamera:DrawDebugLineInG6Editor(EditorWorld)
   local CameraActor = self.CameraActor
   if CameraActor then
@@ -74,6 +85,7 @@ function BattleCraneCamera:Destruct()
   Base.Destruct(self)
   self.EffectValueFuncMap = {}
   self.standManager = nil
+  self:ClearCheckJumpAnim()
   UpdateManager:UnRegister(self)
   self:ClearDelayControlCamId()
   _G.BattleManager:CloseDepthCfg()
@@ -210,7 +222,7 @@ function BattleCraneCamera:ChangeToSkill(DeltaTime, BlendFunc, CallBack, hidden,
   self.PrevTag = self.CurrentTag
   if 0 == RoundRecord then
     self.CurrentTag = UE4.EBattleCameraTags.PlayerPet
-    if BattleUtils.IsNpcAssist() then
+    if BattleUtils.IsNpcAssist() or BattleUtils.IsFriendAssist() then
       self.CurrentTag = UE4.EBattleCameraTags.PlayerNpcAssistSelectSkill
     elseif BattleUtils.IsFinalBattleP1() then
       self.CurrentTag = UE4.EBattleCameraTags.A1FBPerformSkill
@@ -226,7 +238,7 @@ function BattleCraneCamera:ChangeToSkill(DeltaTime, BlendFunc, CallBack, hidden,
     self.PetVictim = 2
     self.CurrentTag = UE4.EBattleCameraTags.PlayerSkillMult
     self:CalcPos(nil, nil, true)
-  elseif BattleUtils.IsNpcAssist() then
+  elseif BattleUtils.IsNpcAssist() or BattleUtils.IsFriendAssist() then
     self.CurrentTag = UE4.EBattleCameraTags.PlayerNpcAssistPerformSkill
   elseif BattleUtils.IsFinalBattleP1() then
     self.CurrentTag = UE4.EBattleCameraTags.A1FBPerformSkill
@@ -238,6 +250,10 @@ function BattleCraneCamera:ChangeToSkill(DeltaTime, BlendFunc, CallBack, hidden,
     self.CurrentTag = UE4.EBattleCameraTags.B1FBPerformSkillP2
   elseif BattleUtils.IsB1FinalBattleP3() then
     self.CurrentTag = UE4.EBattleCameraTags.B1FBPerformSkillP3
+  elseif BattleUtils.Is1VN() then
+    self.CurrentTag = UE4.EBattleCameraTags.OneVsAll_PerformSkill
+  elseif BattleUtils.IsTerritoryTrialBattle() then
+    self.CurrentTag = UE4.EBattleCameraTags.TerritoryTrial_PerformSkill
   else
     self.CurrentTag = UE4.EBattleCameraTags.PlayerSkill
   end
@@ -245,7 +261,7 @@ function BattleCraneCamera:ChangeToSkill(DeltaTime, BlendFunc, CallBack, hidden,
 end
 
 function BattleCraneCamera:ChangeToPlayerSkill(DeltaTime, BlendFunc, CallBack)
-  if BattleUtils.IsNpcAssist() then
+  if BattleUtils.IsNpcAssist() or BattleUtils.IsFriendAssist() then
     self:ChangeCameraTag(UE4.EBattleCameraTags.PlayerNpcAssistPerformSkill, DeltaTime, BlendFunc, CallBack)
   elseif BattleUtils.IsFinalBattleP1() then
     self:ChangeCameraTag(UE4.EBattleCameraTags.A1FBPerformSkill, DeltaTime, BlendFunc, CallBack)
@@ -257,13 +273,17 @@ function BattleCraneCamera:ChangeToPlayerSkill(DeltaTime, BlendFunc, CallBack)
     self:ChangeCameraTag(UE4.EBattleCameraTags.B1FBPerformSkillP2, DeltaTime, BlendFunc, CallBack)
   elseif BattleUtils.IsB1FinalBattleP3() then
     self:ChangeCameraTag(UE4.EBattleCameraTags.B1FBPerformSkillP3, DeltaTime, BlendFunc, CallBack)
+  elseif BattleUtils.Is1VN() then
+    self:ChangeCameraTag(UE4.EBattleCameraTags.OneVsAll_PerformSkill, DeltaTime, BlendFunc, CallBack)
+  elseif BattleUtils.IsTerritoryTrialBattle() then
+    self:ChangeCameraTag(UE4.EBattleCameraTags.TerritoryTrial_PerformSkill, DeltaTime, BlendFunc, CallBack)
   else
     self:ChangeCameraTag(UE4.EBattleCameraTags.PlayerSkill, DeltaTime, BlendFunc, CallBack)
   end
 end
 
 function BattleCraneCamera:ChangeToPlayerSkillMulti(DeltaTime, BlendFunc, CallBack)
-  if BattleUtils.IsNpcAssist() then
+  if BattleUtils.IsNpcAssist() or BattleUtils.IsFriendAssist() then
     self:ChangeCameraTag(UE4.EBattleCameraTags.PlayerNpcAssistPerformSkill, DeltaTime, BlendFunc, CallBack)
   elseif BattleUtils.IsFinalBattleP1() then
     self:ChangeCameraTag(UE4.EBattleCameraTags.A1FBPerformSkill, DeltaTime, BlendFunc, CallBack)
@@ -275,6 +295,10 @@ function BattleCraneCamera:ChangeToPlayerSkillMulti(DeltaTime, BlendFunc, CallBa
     self:ChangeCameraTag(UE4.EBattleCameraTags.B1FBPerformSkillP2, DeltaTime, BlendFunc, CallBack)
   elseif BattleUtils.IsB1FinalBattleP3() then
     self:ChangeCameraTag(UE4.EBattleCameraTags.B1FBPerformSkillP3, DeltaTime, BlendFunc, CallBack)
+  elseif BattleUtils.Is1VN() then
+    self:ChangeCameraTag(UE4.EBattleCameraTags.OneVsAll_PerformSkill, DeltaTime, BlendFunc, CallBack)
+  elseif BattleUtils.IsTerritoryTrialBattle() then
+    self:ChangeCameraTag(UE4.EBattleCameraTags.TerritoryTrial_PerformSkill, DeltaTime, BlendFunc, CallBack)
   else
     self:ChangeCameraTag(UE4.EBattleCameraTags.PlayerSkillMult, DeltaTime, BlendFunc, CallBack)
   end
@@ -289,7 +313,7 @@ function BattleCraneCamera:ChangeToPlayerPet(DeltaTime, BlendFunc, CallBack, hid
   if 1 ~= self.PetIndex then
     self.CurrentTag = UE4.EBattleCameraTags.PlayerPetMult2
   end
-  if BattleUtils.IsNpcAssist() then
+  if BattleUtils.IsNpcAssist() or BattleUtils.IsFriendAssist() then
     self.CurrentTag = UE4.EBattleCameraTags.PlayerNpcAssistSelectSkill
   end
   if BattleUtils.IsFinalBattleP1() then
@@ -310,6 +334,18 @@ function BattleCraneCamera:ChangeToPlayerPet(DeltaTime, BlendFunc, CallBack, hid
     self.CurrentTag = UE4.EBattleCameraTags.B1FBSSelectSkillP2_Pet1
   elseif BattleUtils.IsB1FinalBattleP3() then
     self.CurrentTag = UE4.EBattleCameraTags.B1FBSSelectSkillP3_Pet1
+  elseif BattleUtils.Is1VN() then
+    if 1 == self.PetIndex then
+      self.CurrentTag = UE4.EBattleCameraTags.OneVsAll_SelectSkill_Pet1
+    elseif 2 == self.PetIndex then
+      self.CurrentTag = UE4.EBattleCameraTags.OneVsAll_SelectSkill_Pet2
+    end
+  elseif BattleUtils.IsTerritoryTrialBattle() then
+    if 1 == self.PetIndex then
+      self.CurrentTag = UE4.EBattleCameraTags.TerritoryTrial_SelectSkill_Pet1
+    elseif 2 == self.PetIndex then
+      self.CurrentTag = UE4.EBattleCameraTags.TerritoryTrial_SelectSkill_Pet2
+    end
   end
   self:ChangeCameraTag(self.CurrentTag, DeltaTime, BlendFunc, CallBack, hidden, IsBindCamera)
 end
@@ -342,12 +378,16 @@ function BattleCraneCamera:IsMultiplayer()
 end
 
 function BattleCraneCamera:ChangeToPlayerItemToTeam(DeltaTime, BlendFunc, CallBack)
-  if BattleUtils.IsNpcAssist() then
+  if BattleUtils.IsNpcAssist() or BattleUtils.IsFriendAssist() then
     self:ChangeCameraTag(UE4.EBattleCameraTags.PlayerNpcAssistSelectItem, DeltaTime, BlendFunc, CallBack)
   elseif BattleUtils.IsFinalBattleP1() then
     self:ChangeCameraTag(UE4.EBattleCameraTags.A1FBSelectItem, DeltaTime, BlendFunc, CallBack)
   elseif BattleUtils.IsB1FinalBattleP1() then
     self:ChangeCameraTag(UE4.EBattleCameraTags.B1FBSelectItem, DeltaTime, BlendFunc, CallBack)
+  elseif BattleUtils.Is1VN() then
+    self:ChangeCameraTag(UE4.EBattleCameraTags.OneVsAll_PlayerItem, DeltaTime, BlendFunc, CallBack)
+  elseif BattleUtils.IsTerritoryTrialBattle() then
+    self:ChangeCameraTag(UE4.EBattleCameraTags.TerritoryTrial_PlayerItem, DeltaTime, BlendFunc, CallBack)
   else
     self:ChangeCameraTag(UE4.EBattleCameraTags.PlayerItemToTeam, DeltaTime, BlendFunc, CallBack)
   end
@@ -483,9 +523,9 @@ function BattleCraneCamera:ResetCameraByCurve(BlendFunc, DeltaTime)
 end
 
 function BattleCraneCamera:ResetCameraByCurveParam(BlendFunc, DeltaTime)
-  Log.Debug("BattleCraneCamera:ResetCameraByCurve", BlendFunc, DeltaTime)
+  Log.Debug("BattleCraneCamera:ResetCameraByCurveParam", BlendFunc, DeltaTime)
   self:ClearPlayerInputOffset()
-  Base.ResetCameraByCurveBase(self)
+  Base.RecordFormDataCameraByCurveParam(self)
   if not (self.CameraActor and self.SpringArmComponent) or not self.CameraComponent then
     self:InitCameraFromBattleField()
   end
@@ -506,26 +546,8 @@ function BattleCraneCamera:CameraByCurveParamStart()
   end
   self.curCameraRotation = self.CameraComponent:K2_GetComponentRotation()
   self.curCameraLocation = self.CameraComponent:K2_GetComponentLocation()
-  local Position = UE.FVector()
-  local Rotation = UE.FRotator()
-  local FOV
-  local localPlayer = NRCModuleManager:DoCmd(PlayerModuleCmd.GET_LOCAL_PLAYER)
-  local playerController = localPlayer:GetUEController()
-  local curCamActor = playerController:GetViewTarget()
-  if curCamActor then
-    local curCamComponent = curCamActor:GetComponentByClass(UE4.UCameraComponent)
-    if curCamComponent then
-      Rotation = curCamComponent:K2_GetComponentRotation()
-      Position = curCamComponent:K2_GetComponentLocation()
-      FOV = curCamComponent.FieldOfView
-      self.CameraComponent:K2_SetWorldLocationAndRotation(Position, Rotation, false, nil, false)
-      self.CameraComponent.FieldOfView = FOV
-      self.lastCameraComponentRotation = Rotation
-      self.lastCameraComponentLocation = Position
-      self.lastFov = FOV
-      self:BindCamera()
-    end
-  end
+  Base.RestoreCameraFromData(self)
+  self:BindCamera()
   self.CameraBlendFunc = true
 end
 
@@ -823,9 +845,17 @@ function BattleCraneCamera:JumpAnimCallBack()
     return
   end
   self.standManager:CheckOver()
-  _G.DelayManager:DelaySeconds(0.2, function()
+  self.CheckJumpAnimId = _G.DelayManager:DelaySeconds(0.2, function()
+    self.CheckJumpAnimId = nil
     self:CheckJumpAnim()
   end)
+end
+
+function BattleCraneCamera:ClearCheckJumpAnim()
+  if self.CheckJumpAnimId then
+    _G.DelayManager:CancelDelay(self.CheckJumpAnimId)
+    self.CheckJumpAnimId = nil
+  end
 end
 
 function BattleCraneCamera:CheckJumpAnim(Caller, CallBack)
@@ -872,6 +902,8 @@ function BattleCraneCamera:ChangeToPlayerCatch(deltaTime, blendFunc, callback, I
     else
       self:ChangeCameraTag(UE4.EBattleCameraTags.LegenderyTeamFight_PlayerCatch, deltaTime, blendFunc, callback, IsJustCalPos, IsBindCamera)
     end
+  elseif BattleUtils.Is1VN() then
+    self:ChangeCameraTag(UE4.EBattleCameraTags.OneVsAll_PlayerCatch, deltaTime, blendFunc, callback, IsJustCalPos, IsBindCamera)
   else
     self:ChangeCameraTag(UE4.EBattleCameraTags.PlayerCatch, deltaTime, blendFunc, callback, IsJustCalPos, IsBindCamera)
   end
@@ -899,6 +931,10 @@ function BattleCraneCamera:ChangeToPlayerChangePet(deltaTime, blendFunc, callbac
     self:ChangeCameraTag(UE4.EBattleCameraTags.PlayerNpcAssistSwitchPet, deltaTime, blendFunc, callback, IsJustCalPos, IsBindCamera)
   elseif BattleUtils.IsB1FinalBattleP1() then
     self:ChangeCameraTag(UE4.EBattleCameraTags.B1FBSP1_ChangePet, deltaTime, blendFunc, callback, IsJustCalPos, IsBindCamera)
+  elseif BattleUtils.Is1VN() then
+    self:ChangeCameraTag(UE4.EBattleCameraTags.OneVsAll_PlayerChangePet, deltaTime, blendFunc, callback, IsJustCalPos, IsBindCamera)
+  elseif BattleUtils.IsTerritoryTrialBattle() then
+    self:ChangeCameraTag(UE4.EBattleCameraTags.TerritoryTrial_PlayerChangePet, deltaTime, blendFunc, callback, IsJustCalPos, IsBindCamera)
   elseif 1 == _G.BattleManager.battleRuntimeData.playerNumber and 2 == _G.BattleManager.battleRuntimeData.playerPetNumber then
     self:ChangeCameraTag(UE4.EBattleCameraTags.PlayerChange2V2, deltaTime, blendFunc, callback, IsJustCalPos, IsBindCamera)
   else
@@ -917,7 +953,7 @@ end
 function BattleCraneCamera:ChangeToPlayerPetByCopeSkill(deltaTime, blendFunc, callback, IsJustCalPos, IsBindCamera)
   self.PrevTag = self.CurrentTag
   self.CurrentTag = UE4.EBattleCameraTags.PlayerSkill
-  if BattleUtils.IsNpcAssist() then
+  if BattleUtils.IsNpcAssist() or BattleUtils.IsFriendAssist() then
     self.CurrentTag = UE4.EBattleCameraTags.PlayerNpcAssistPerformSkill
   elseif BattleUtils.IsFinalBattleP1() then
     self.CurrentTag = UE4.EBattleCameraTags.A1FBPerformSkill
@@ -933,6 +969,10 @@ function BattleCraneCamera:ChangeToPlayerPetByCopeSkill(deltaTime, blendFunc, ca
     self.CurrentTag = UE4.EBattleCameraTags.TeamFight_PlayerSkill
   elseif BattleUtils.IsBeastTeam() then
     self.CurrentTag = UE4.EBattleCameraTags.LegenderyTeamFight_PlayerSkill
+  elseif BattleUtils.Is1VN() then
+    self.CurrentTag = UE4.EBattleCameraTags.OneVsAll_PerformSkill
+  elseif BattleUtils.IsTerritoryTrialBattle() then
+    self.CurrentTag = UE4.EBattleCameraTags.TerritoryTrial_PerformSkill
   else
     if self:IsMultiplayer() then
       self:CalcPos()

@@ -10,7 +10,6 @@ function BattlePerformCluster:Ctor(performPlayer)
   self.IsPerformed = false
   self.IsCompleteCallBack = false
   self.IsFinalize = false
-  self.IsProcessCounter = false
   self.FriendlyClusters = {}
   self.keepOrderClusters = {}
   self.ServerExecuteQueue = PriorityQueue()
@@ -24,15 +23,18 @@ function BattlePerformCluster:Reset()
   self.IsPerforming = false
   self.IsPerformed = false
   self.IsCompleteCallBack = false
-  self.IsProcessCounter = false
   self.FriendlyClusters = {}
   self.keepOrderClusters = {}
   self.ServerExecuteQueue:Clear()
+  self.groupDelayID = _G.DelayManager:CancelDelayByIdEx(self.groupDelayID)
   self.d_PlayGroup = _G.DelayManager:CancelDelayByIdEx(self.d_PlayGroup)
 end
 
 function BattlePerformCluster:AddKeepServerOrderCluster(cluster)
   if not cluster then
+    return
+  end
+  if cluster == self then
     return
   end
   if table.contains(self.keepOrderClusters, cluster) then
@@ -73,7 +75,7 @@ function BattlePerformCluster:AddOrRemoveFriendlyCluster(cluster, isAdd)
   end
 end
 
-function BattlePerformCluster:AddGroup(PerformGroup, changeRef)
+function BattlePerformCluster:AddGroup(PerformGroup, changeRef, RefValue)
   if PerformGroup and not table.contains(self.ClusterGroups, PerformGroup) then
     PerformGroup.OwnerCluster = self
     table.insert(self.ClusterGroups, PerformGroup)
@@ -81,7 +83,12 @@ function BattlePerformCluster:AddGroup(PerformGroup, changeRef)
       self.HeadGroup = PerformGroup
     end
     if changeRef and self.HeadGroup then
-      PerformGroup.HeadNode:SetGroupRef(self.HeadGroup.GroupId)
+      RefValue = RefValue or self.HeadGroup.GroupId
+      if not self:GetGroupById(RefValue) then
+        Log.Error("zgx BattlePerformCluster:AddGroup", "RefValue is not exist")
+        RefValue = self.HeadGroup.GroupId
+      end
+      PerformGroup.HeadNode:SetGroupRef(RefValue)
     end
     self.NeedPerformGroupCount = self.NeedPerformGroupCount + 1
     for i = 1, #PerformGroup.GroupNodes do
@@ -161,7 +168,8 @@ end
 
 function BattlePerformCluster:PlayGroupDelay(group)
   if group.OwnerCluster == self then
-    DelayManager:DelayFrames(1, function()
+    self.groupDelayID = DelayManager:DelayFrames(1, function()
+      self.groupDelayID = nil
       if self.IsFinalize then
         return
       end
@@ -297,9 +305,8 @@ function BattlePerformCluster:AddGroupInServerExecuteQueue(group)
   if not group.OwnerCluster then
     return
   end
-  local headNode = group.OwnerCluster.HeadGroup.HeadNode
   for _, node in ipairs(group.GroupNodes or {}) do
-    if node ~= headNode and not node.isPerformed then
+    if not node.isPerformed then
       self:AddNodeInServerExecuteQueue(node)
     end
   end
@@ -371,10 +378,67 @@ function BattlePerformCluster:CheckCanPlayNode(node)
       return true
     end
   end
-  if self.ServerExecuteQueue:GetTop() < node:GetExecIdx() then
+  local topExecIdx = self.ServerExecuteQueue:GetTop()
+  if topExecIdx < node:GetExecIdx() then
+    if self:CheckDeadLockForExecIdx(topExecIdx) then
+      Log.Error("zgx Has DeadLock!!!!")
+      return true
+    end
     return false
   end
   return true
+end
+
+function BattlePerformCluster:CheckDeadLockForExecIdx(ExecIdx)
+  local targetNode = self.performPlayer:GetNodeByExecId(ExecIdx)
+  if not targetNode then
+    return true
+  end
+  local Visited = {self}
+  local NextCluster = targetNode.OwnerGroup and targetNode.OwnerGroup.OwnerCluster
+  while NextCluster do
+    if table.contains(Visited, NextCluster) then
+      return true
+    end
+    table.insert(Visited, NextCluster)
+    local HeadGroup = NextCluster.HeadGroup
+    if HeadGroup then
+      if HeadGroup.IsPerforming then
+        for _, group in ipairs(NextCluster.ClusterGroups) do
+          if group.IsBlockByServerExecute then
+            return true
+          end
+        end
+        return false
+      else
+        local refGroupId = HeadGroup.HeadNode and HeadGroup.HeadNode:GetGroupRef()
+        if refGroupId then
+          local refGroup = self.performPlayer:GetGroupData(refGroupId)
+          if refGroup then
+            NextCluster = refGroup.OwnerCluster
+          else
+            return true
+          end
+        else
+          return true
+        end
+      end
+    else
+      return true
+    end
+  end
+  return true
+end
+
+function BattlePerformCluster:CheckBlockByServerExecute()
+  if self.ClusterGroups then
+    for _, group in ipairs(self.ClusterGroups) do
+      if group.IsBlockByServerExecute then
+        return true
+      end
+    end
+  end
+  return false
 end
 
 function BattlePerformCluster:AddNodesToTriggerByExecIdForKeepOrderCluster(ExecId, LimitType)

@@ -23,7 +23,7 @@ end
 
 function UMG_DialogueSelector_C:OnLevelListScrolled()
   local Count = self.ObjListNew:GetItemCount()
-  for i = 0, Count do
+  for i = 0, Count - 1 do
     local item = self.ObjListNew:GetItemByIndex(i)
     if item.Content then
       item:OnPanelScrolled()

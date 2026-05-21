@@ -63,7 +63,8 @@ function UMG_Lineup_ShareItem_C:UpdateUI()
       })
     end
     self.PersonalityIndividualValue1:InitGridView(NatureDataList1)
-    self.SkillList_1:InitGridView(self.data.skills)
+    local skills = data and data.skills
+    self.SkillList_1:InitGridView(skills)
   end
   self.NRCSwitcher1:SetActiveWidgetIndex(nrcSwitcherActiveIndex)
   self.Attr_1:InitGridView(unit_type)

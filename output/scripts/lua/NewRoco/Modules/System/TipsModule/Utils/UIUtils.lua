@@ -311,6 +311,13 @@ function UIUtils.GetTipsDetails(type, id)
     propIconPath = itemConf.fashion_bond_icon
     quality = itemConf.fashion_bond_quality
     desc = itemConf.popup_text
+  elseif type == Enum.GoodsType.GT_EMOJI then
+    itemConf = _G.DataConfigManager:GetChatEmojiConf(id)
+    if itemConf then
+      propName = itemConf.emoji_resource_name
+      propIconPath = itemConf.emoji_goods_icon
+      quality = itemConf.card_quality
+    end
   end
   if not propIconPath or not containerIcon then
     Log.Warning("IconPath is nil", type, id, propName, propIconPath, containerIcon, quality, desc, Prompt)
@@ -563,6 +570,18 @@ function UIUtils.GetConfigEnumByAvatarEnum(avatarEnum, Base)
   elseif avatarEnum == UE4.EAvatarBodyType.Bags then
     bFashion = true
     configEnum = Enum.FashionLabelType.FLT_PENDANTA
+  elseif avatarEnum == UE4.EAvatarBodyType.Hg then
+    bFashion = true
+    configEnum = Enum.FashionLabelType.FLT_HATS
+  elseif avatarEnum == UE4.EAvatarBodyType.Hp then
+    bFashion = true
+    configEnum = Enum.FashionLabelType.FLT_HATS
+  elseif avatarEnum == UE4.EAvatarBodyType.Wh then
+    bFashion = true
+    configEnum = Enum.FashionLabelType.FLT_DRESSES
+  elseif avatarEnum == UE4.EAvatarBodyType.Wa then
+    bFashion = true
+    configEnum = Enum.FashionLabelType.FLT_DRESSES
   end
   return bFashion, configEnum
 end

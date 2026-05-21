@@ -68,7 +68,6 @@ local function CreateFsm()
   local ParentModule = fsm:CreateVar("ParentModule", nil)
   local LastConfID = fsm:CreateVar("LastConfID", nil)
   local NextConfID = fsm:CreateVar("NextConfID", nil)
-  local FirstConfID = fsm:CreateVar("FirstConfID", nil)
   local bIsRestoring = fsm:CreateVar("bIsRestore", false)
   local NpcIDs = fsm:CreateVar("NpcIDs", {})
   local ClientAction = fsm:CreateVar("ClientAction", nil)
@@ -103,7 +102,7 @@ local function CreateFsm()
   local TimelineState = FsmDialogueTimelineState("TimelineState")
   fsm:AddState(TimelineState)
   local PostTimelineState = fsm:CreateBurstState("PostTimelineState")
-  InitState:AddAction(DialogueInitAction("InitDialogue", {DialogueConf = CurrentDialogue, TargetNPC = TargetNPC}))
+  InitState:AddAction(DialogueInitAction("InitDialogue", {ConfID = NextConfID, TargetNPC = TargetNPC}))
   PrepareState:AddAction(BlockInputAction("BlockInput", {Block = true}))
   PrepareState:AddAction(DialogueStopCameraSkillAction("StopCameraSkill"))
   PrepareState:AddAction(ResolveCameraSettingsAction("ResolveCameraSettings", {
@@ -318,15 +317,13 @@ local function CreateFsm()
     Action = ActionInfo,
     Restoring = bIsRestoring
   }))
+  NextState:AddAction(DialogueResolveAction("ResolveConf", {DialogueConf = CurrentDialogue, ConfID = NextConfID}))
   NextState:AddAction(DialogueSyncNextAction("SyncNext", {
-    DialogueConf = CurrentDialogue,
     ConfID = NextConfID,
-    FirstConfID = FirstConfID,
     TargetNPC = TargetNPC,
     Action = ActionInfo,
     NPCOption = CurrentOption
   }))
-  NextState:AddAction(DialogueResolveAction("ResolveConf", {DialogueConf = CurrentDialogue, ConfID = NextConfID}))
   NextState:AddAction(DialoguePreloadClientActionAction("PreloadClientAction", {
     ParentModule = ParentModule,
     DialogueConf = CurrentDialogue,
@@ -359,7 +356,6 @@ local function CreateFsm()
   EndState:AddAction(DialogueSyncEndAction("SyncEndAction", {
     DialogueConf = CurrentDialogue,
     ConfID = NextConfID,
-    FirstConfID = FirstConfID,
     TargetNPC = TargetNPC,
     NPCOption = CurrentOption
   }))
@@ -398,7 +394,10 @@ local function CreateFsm()
   TimelineState:AddTransitionToState(DialogueModuleEvent.Restart, RestartState)
   PostTimelineState:AddTransitionToState(DialogueModuleEvent.Restart, RestartState)
   fsm:AddTransitionToState(DialogueModuleEvent.EnterEndState, EndState)
-  fsm:AddTransitionToState(DialogueModuleEvent.EnterSkipState, SkipState)
+  PrepareState:AddTransitionToState(DialogueModuleEvent.EnterSkipState, SkipState)
+  SendSelectState:AddTransitionToState(DialogueModuleEvent.EnterSkipState, SkipState)
+  TimelineState:AddTransitionToState(DialogueModuleEvent.EnterSkipState, SkipState)
+  PostTimelineState:AddTransitionToState(DialogueModuleEvent.EnterSkipState, SkipState)
   fsm:SetInitState(InitState)
   EndState.isFinalState = true
   return fsm

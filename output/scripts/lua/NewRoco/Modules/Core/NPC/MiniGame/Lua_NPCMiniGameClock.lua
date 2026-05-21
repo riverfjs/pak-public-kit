@@ -15,6 +15,7 @@ function Lua_NPCMiniGameClock:Ctor()
   self.Finish = false
   self.timeout = false
   self.ConfigId = nil
+  self.Finished = false
 end
 
 function Lua_NPCMiniGameClock:RefreshActive()

@@ -54,7 +54,6 @@ function UMG_LobbyMain_C:OnConstruct()
   self.bThrowItemInitialized = false
   self:GetThrowItem()
   self.module.bAiming = false
-  self.module:OpenInteractMain()
   self:SetUpPhotoButton()
   self.bSceneLoaded = false
   self.SubUiType = {
@@ -78,6 +77,8 @@ function UMG_LobbyMain_C:OnConstruct()
   }
   self.CanThrowSelectBall = true
   self.UMG_LockBall:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self.UMG_CompassIcon:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  self.UMG_MainPet:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
 end
 
 function UMG_LobbyMain_C:OnActive(...)
@@ -165,6 +166,11 @@ function UMG_LobbyMain_C:OnEnable()
   self.UMG_Hud_PerceptionPanel:OnEnable()
   self:RemoveInputBlockMappingContext("UMG_LobbyMain_C:OnEnable")
   self.PlayerCtrl:OnEnable()
+  if self.module then
+    self.module:OpenInteractMain()
+  else
+    Log.Error("UMG_LobbyMain_C:OnEnable module is nil!!!")
+  end
 end
 
 function UMG_LobbyMain_C:OnDisable()
@@ -179,6 +185,7 @@ function UMG_LobbyMain_C:OnDisable()
   self.UMG_Compass:OnDisable()
   self.PCKeyFoundation:OnDisable()
   self.BallList:OnDisable()
+  self.UMG_MainPet:OnDisable()
   self.UMG_PlayerInfoHUD:SetSimpleUseListVisible(false)
   self:AddInputBlockMappingContext("UMG_LobbyMain_C:OnDisable")
 end
@@ -278,8 +285,8 @@ function UMG_LobbyMain_C:RefreshTaskDungeon()
       self.BtnExitDungeon:SetVisibility(UE.ESlateVisibility.Visible)
       self.UMG_CompassIcon.VisitListBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
     end
-    local isInOtherHome = _G.NRCModuleManager:DoCmd(_G.HomeModuleCmd.InOtherHome)
-    if isInOtherHome then
+    local isInOtherHomeInDoor = _G.HomeIndoorSandbox and _G.HomeIndoorSandbox:InOtherHomeIndoor()
+    if isInOtherHomeInDoor then
       self.Report:SetVisibility(UE4.ESlateVisibility.Visible)
     else
       self.Report:SetVisibility(UE4.ESlateVisibility.Collapsed)
@@ -349,7 +356,7 @@ function UMG_LobbyMain_C:RefreshIcons()
     table.insert(Items, {
       icon = "PaperSprite'/Game/NewRoco/Modules/System/TakePhotos/Raw/Frames/img_xiangji1_png.img_xiangji1_png'",
       on_clicked = FPartial(self.OpenTakePhotos, self),
-      redDotKey = 0,
+      redDotKey = 6,
       type = _G.Enum.FunctionEntrance.FE_TAKE_PHOTO
     })
   end
@@ -396,6 +403,10 @@ function UMG_LobbyMain_C:OnDeactive(...)
   self:SendMainUIClose()
   ReleaseForceAllChild(self)
   UE4.UNRCPlatformGameInstance.GetInstance().MinimapWidget = nil
+  if self.DelayUpdateFriendRideStateId then
+    _G.DelayManager:CancelDelay(self.DelayUpdateFriendRideStateId)
+    self.DelayUpdateFriendRideStateId = nil
+  end
 end
 
 function UMG_LobbyMain_C:UpdateStoryState(flag, bIsHomeOwner)
@@ -455,9 +466,12 @@ function UMG_LobbyMain_C:OnAddEventListener()
   _G.NRCEventCenter:RegisterEvent("UMG_LobbyMain_C", self, InstanceModuleEvent.RefreshMainPanelTasks, self.RefreshTaskDungeon)
   _G.NRCEventCenter:RegisterEvent("UMG_LobbyMain_C", self, RolePlayModuleEvent.RolePlayMainPanelOpen, self.OnRolePlayMainPanelOpen)
   _G.NRCEventCenter:RegisterEvent("UMG_LobbyMain_C", self, RolePlayModuleEvent.RolePlayMainPanelClosed, self.OnRolePlayMainPanelClosed)
+  _G.NRCEventCenter:RegisterEvent("UMG_LobbyMain_C", self, MainUIModuleEvent.OnPropPlacementPanelOpen, self.OnPropPlacementPanelOpen)
+  _G.NRCEventCenter:RegisterEvent("UMG_LobbyMain_C", self, MainUIModuleEvent.OnPropPlacementPanelClose, self.OnPropPlacementPanelClose)
   _G.NRCEventCenter:RegisterEvent("UMG_LobbyMain_C", self, BagModuleEvent.UpdateBag, self.OnBagInfoChange)
   _G.NRCEventCenter:RegisterEvent("UMG_LobbyMain_C", self, FunctionBanModuleEvent.OnUIFuncVisibilityChange, self.UIBan)
   _G.NRCEventCenter:RegisterEvent("UMG_LobbyMain_C", self, MainUIModuleEvent.OnLobbyMainChildVisibilityChange, self.OnChildVisibilityChange)
+  _G.NRCEventCenter:RegisterEvent("UMG_LobbyMain_C", self, MainUIModuleEvent.RefreshJoystick, self.RefreshJoystick)
   _G.NRCEventCenter:RegisterEvent("UMG_LobbyMain_C", self, EnhancedInputModuleEvent.KeyMappingsChanged, self.PCKeySetting)
   _G.NRCEventCenter:RegisterEvent("UMG_LobbyMain_C", self, EnhancedInputModuleEvent.TopBlockImcChange, self.TopBlockImcChange)
   _G.NRCEventCenter:RegisterEvent("UMG_LobbyMain_C", self, _G.NRCGlobalEvent.ON_RECONNECT_FINISH, self.SwitchToPet)
@@ -474,35 +488,13 @@ function UMG_LobbyMain_C:OnAddEventListener()
     homeModule:RegisterEvent(self, HomeModuleEvent.OnEnterHomeMap, self.OnEnterHomeMap)
   end
   _G.DataModelMgr.PlayerDataModel:AddEventListener(self, PlayerDataEvent.NAVIGATION_MODE_UPDATE, self.OnNavigationModeUpdate)
+  _G.NRCEventCenter:RegisterEvent("UMG_LobbyMain_C", self, LoadingUIModuleEvent.LOADING_UI_CLOSED, self.ForceRefreshWidget)
   FunctionBanManager:AddFunctionStateListener(Enum.PlayerFunctionBanType.PFBT_TAKE_PHOTO, self, self.RefreshIcons)
   FunctionBanManager:AddFunctionStateListener(Enum.PlayerFunctionBanType.PFBT_MULTI_MAIN_MULTI_CHAT, self, self.RefreshIcons)
   self:AddButtonListener(self.Report.btnLevelUp, self.OnOpenVisitOtherHomeReport)
 end
 
 function UMG_LobbyMain_C:OnWorldPlayerStatusChange()
-  self.UMG_CompassIcon:OnWorldPlayerStatusChange()
-  if self.UMG_CompassIcon.HomePlayerList and #self.UMG_CompassIcon.HomePlayerList > 0 then
-    self.BtnExitDungeon:SetVisibility(UE4.ESlateVisibility.Collapsed)
-    self.UMG_CompassIcon.VisitListBtn:SetVisibility(UE4.ESlateVisibility.Visible)
-  elseif HomeIndoorSandbox:InOtherHomeIndoor() or _G.FarmModuleCmd and _G.NRCModeManager:DoCmd(_G.FarmModuleCmd.OnCmdGetIsInFarm) and not FarmUtils.IsCurrentHomeOwner() then
-    _G.NRCModuleManager:DoCmd(_G.FriendModuleCmd.PCKeyPressCloseFriendPanelTeam)
-    self.BtnExitDungeon:SetVisibility(UE.ESlateVisibility.Visible)
-    self.UMG_CompassIcon.VisitListBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
-  elseif _G.DataModelMgr.PlayerDataModel:IsVisitState() then
-    self.UMG_CompassIcon.VisitListBtn:SetVisibility(UE4.ESlateVisibility.Visible)
-  else
-    _G.NRCModuleManager:DoCmd(_G.FriendModuleCmd.PCKeyPressCloseFriendPanelTeam)
-    local bInDungeon = _G.NRCModuleManager:DoCmd(InstanceModuleCmd.IsInDungeon)
-    if bInDungeon then
-      self:RefreshTaskDungeon()
-    else
-      self.BtnExitDungeon:SetVisibility(UE.ESlateVisibility.Collapsed)
-    end
-    self.UMG_CompassIcon.VisitListBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
-  end
-  if NRCModuleManager:DoCmd(TakePhotosModuleCmd.IfInTakePhotoState) then
-    self.UMG_CompassIcon.VisitListBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
-  end
 end
 
 function UMG_LobbyMain_C:OnNavigationModeUpdate(mode)
@@ -522,9 +514,23 @@ function UMG_LobbyMain_C:BindPlayerWorldPlayerStatusChange()
   if self.IsBindSceneLocalPlayer then
     return
   end
+  local player = _G.NRCModeManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
+  if player then
+    player:RemoveEventListener(self, PlayerModuleEvent.ON_STATUS_CHANGED, self.OnPlayerStatusChanged)
+    player:RemoveEventListener(self, PlayerModuleEvent.On_FRIENDRIDE_STATE_CHANGE, self.OnFriendRideStateChange)
+    player:AddEventListener(self, PlayerModuleEvent.ON_STATUS_CHANGED, self.OnPlayerStatusChanged)
+    player:AddEventListener(self, PlayerModuleEvent.On_FRIENDRIDE_STATE_CHANGE, self.OnFriendRideStateChange)
+  else
+    Log.Error("\228\184\187\231\149\140\233\157\162\230\179\168\229\134\140\230\151\182\230\151\160player!!!")
+  end
 end
 
 function UMG_LobbyMain_C:UnBindPlayerWorldPlayerStatusChange()
+  local player = _G.NRCModeManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
+  if player then
+    player:RemoveEventListener(self, PlayerModuleEvent.ON_STATUS_CHANGED, self.OnPlayerStatusChanged)
+    player:RemoveEventListener(self, PlayerModuleEvent.On_FRIENDRIDE_STATE_CHANGE, self.OnFriendRideStateChange)
+  end
 end
 
 function UMG_LobbyMain_C:PowerDashChargingEnd()
@@ -546,6 +552,8 @@ function UMG_LobbyMain_C:OnRemoveEventListener()
   _G.NRCEventCenter:UnRegisterEvent(self, RolePlayModuleEvent.RefreshMainPanelTasks, self.RefreshTaskDungeon)
   _G.NRCEventCenter:UnRegisterEvent(self, RolePlayModuleEvent.RolePlayMainPanelOpen, self.OnRolePlayMainPanelOpen)
   _G.NRCEventCenter:UnRegisterEvent(self, RolePlayModuleEvent.RolePlayMainPanelClosed, self.OnRolePlayMainPanelClosed)
+  _G.NRCEventCenter:UnRegisterEvent(self, MainUIModuleEvent.OnPropPlacementPanelOpen, self.OnPropPlacementPanelOpen)
+  _G.NRCEventCenter:UnRegisterEvent(self, MainUIModuleEvent.OnPropPlacementPanelClose, self.OnPropPlacementPanelClose)
   _G.NRCEventCenter:UnRegisterEvent(self, BagModuleEvent.UpdateBag, self.OnBagInfoChange)
   _G.DataModelMgr.PlayerDataModel:RemoveEventListener(self, PlayerDataEvent.STORY_FLAG_CHANGE, self.UpdateStoryState)
   _G.NRCEventCenter:UnRegisterEvent(self, EnhancedInputModuleEvent.KeyMappingsChanged, self.PCKeySetting)
@@ -562,6 +570,7 @@ function UMG_LobbyMain_C:OnRemoveEventListener()
   end
   _G.NRCEventCenter:UnRegisterEvent(self, FunctionBanModuleEvent.OnUIFuncVisibilityChange, self.UIBan)
   _G.NRCEventCenter:UnRegisterEvent(self, MainUIModuleEvent.OnLobbyMainChildVisibilityChange, self.OnChildVisibilityChange)
+  _G.NRCEventCenter:UnRegisterEvent(self, MainUIModuleEvent.RefreshJoystick, self.RefreshJoystick)
   self:UnRegisterEvent(self, MainUIModuleEvent.RefreshTaskDungeon, self.RefreshTaskDungeon)
   _G.NRCEventCenter:UnRegisterEvent(self, FriendModuleEvent.OnLeaveVisit, self.OnPlayerLeaveVisit)
   _G.NRCEventCenter:UnRegisterEvent(self, FriendModuleEvent.OnEnterVisit, self.OnPlayerEnterVisit)
@@ -573,6 +582,7 @@ function UMG_LobbyMain_C:OnRemoveEventListener()
   if homeModule then
     homeModule:UnRegisterEvent(self, HomeModuleEvent.OnEnterHomeMap)
   end
+  _G.NRCEventCenter:UnRegisterEvent(self, LoadingUIModuleEvent.LOADING_UI_CLOSED, self.ForceRefreshWidget)
   FunctionBanManager:RemoveFunctionStateListener(Enum.PlayerFunctionBanType.PFBT_TAKE_PHOTO, self, self.RefreshIcons)
   FunctionBanManager:RemoveFunctionStateListener(Enum.PlayerFunctionBanType.PFBT_MULTI_MAIN_MULTI_CHAT, self, self.RefreshIcons)
   self:RemoveButtonListener(self.Report.btnLevelUp)
@@ -637,13 +647,6 @@ function UMG_LobbyMain_C:WorldCombatEnter()
     return
   end
   self:PushObjective("UMG_WorldCombat_Task")
-  if _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GetPlayerIsAiming) then
-    local player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
-    if player then
-      player:SendEvent(PlayerModuleEvent.ON_INTERRUPT_THROW)
-      player:SendEvent(PlayerModuleEvent.ON_INTERRUPT_AIM)
-    end
-  end
 end
 
 function UMG_LobbyMain_C:WorldCombatExit()
@@ -714,10 +717,20 @@ function UMG_LobbyMain_C:OnPlayerStatusChanged(status, value, opCode)
   end
 end
 
-function UMG_LobbyMain_C:OnFriendRideStateChange(ridingPetGid, IsFriendRiding)
-  if self.UMG_MainPet then
-    self.UMG_MainPet:UpdateFriendRideState(ridingPetGid, IsFriendRiding)
+function UMG_LobbyMain_C:OnFriendRideStateChange()
+  if self.DelayUpdateFriendRideStateId then
+    return
   end
+  self.DelayUpdateFriendRideStateId = _G.DelayManager:DelayFrames(1, function()
+    if self.UMG_MainPet then
+      self.UMG_MainPet:OnForceUpdateFriendRideState()
+    end
+    if self.MainPetScrollList then
+      self.MainPetScrollList:OnForceUpdateFriendRideState()
+    end
+    _G.DelayManager:CancelDelay(self.DelayUpdateFriendRideStateId)
+    self.DelayUpdateFriendRideStateId = nil
+  end)
 end
 
 function UMG_LobbyMain_C:OnGameSecureAreaChanage()
@@ -1134,6 +1147,15 @@ function UMG_LobbyMain_C:SetThrowAimJoystickVisible(visible, mode)
   self:SetAimJoystickVisible(visible)
 end
 
+function UMG_LobbyMain_C:GetAimJoystickPointerIndex(mode)
+  mode = mode or MainUIModuleEnum.ShowAimJoystick.Throw
+  if mode == MainUIModuleEnum.ShowAimJoystick.Throw then
+    return self.UMG_PlayerAbilities.AbilitySlot_Throw.Btn_Slot:GetMouseCapturePointerIndex()
+  else
+    return self.UMG_PlayerAbilities.AbilitySlot_RideAbility.Btn_Slot:GetMouseCapturePointerIndex()
+  end
+end
+
 function UMG_LobbyMain_C:CheckThrowAimJoystick()
   local UMG_Aim_Joystick = self.PlayerCtrl.UMG_Aim_Joystick
   local List = UMG_Aim_Joystick.TouchListenList
@@ -1159,11 +1181,11 @@ function UMG_LobbyMain_C:SetAimJoystickVisible(visible)
   else
     self.module.bAiming = false
     self.ControlSwitcher:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-    self.UMG_MainPet:SetVisibility(UE4.ESlateVisibility.Visible)
-    self.UMG_PlayerInfoHUD:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    self.UMG_MainPet:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    if not _G.NRCModuleManager:GetModule("FriendModule"):HasPanel("QuickChatBubble") then
+      self.UMG_PlayerInfoHUD:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    end
     if NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.CheckUIFunctionHide, Enum.FunctionEntrance.FE_PET_LIST) then
-      self.UMG_MainPet.MainPetList:SetVisibility(UE4.ESlateVisibility.Collapsed)
-      return
     end
     if self.UMG_Task_Track:IsVisible() then
       self.UMG_Task_Track:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
@@ -1248,7 +1270,6 @@ function UMG_LobbyMain_C:RefreshThrowPet(type, petDatas)
   if 3 ~= self.Switcher:GetActiveWidgetIndex() then
     self.MainPetScrollList:InitPanelInfo(true)
   end
-  self.UMG_MainPet:AddBlockingTip()
 end
 
 function UMG_LobbyMain_C:TipShowOrHide(On)
@@ -1714,10 +1735,12 @@ function UMG_LobbyMain_C:OnPCSelectPetOrMagic(action_type, index)
     if customParams and customParams.throw_aim_param then
       local throwType = customParams.throw_aim_param.throw_item_type
       if throwType == _G.Enum.BagItemType.BI_PET_BALL then
-        if self.MainPetScrollList:IsCurMainTeamIndex() then
-          self.UMG_MainPet:OnPCSelectPet0(action_type, index)
+        if not self.MainPetScrollList:IsScrollIng() then
+          if self.MainPetScrollList:IsCurMainTeamIndex() then
+            self.UMG_MainPet:OnPCSelectPet0(action_type, index)
+          end
+          self.MainPetScrollList:OnPCSelectPet0(action_type, index)
         end
-        self.MainPetScrollList:OnPCSelectPet0(action_type, index)
         return
       end
     end
@@ -1726,7 +1749,7 @@ function UMG_LobbyMain_C:OnPCSelectPetOrMagic(action_type, index)
   local isHide = _G.NRCModuleManager:DoCmd(FunctionBanModuleCmd.CheckUIFunctionHide, Enum.FunctionEntrance.FE_PET_LIST, true)
   if isBan or isHide then
     return
-  else
+  elseif not self.MainPetScrollList:IsScrollIng() then
     self.UMG_MainPet:OnPCSelectPet0(action_type, index)
     if self.MainPetScrollList:IsCurMainTeamIndex() then
       self.MainPetScrollList:OnPCSelectPet0(action_type, index)
@@ -1865,7 +1888,7 @@ function UMG_LobbyMain_C:CheckOpenSubUi(ui_type)
 end
 
 function UMG_LobbyMain_C:GetLockOpenSubUi()
-  return self.lockOpenSubUi or self.WaitForEnterPhotoGraph
+  return self.lockOpenSubUi
 end
 
 function UMG_LobbyMain_C:LockOpenSubUi()
@@ -2062,7 +2085,7 @@ function UMG_LobbyMain_C:OpenHandbookUI(checkSucceed)
   if not bHadGotCompass then
     return
   end
-  local Ban, Msg = FunctionBanManager:GetFunctionState(Enum.PlayerFunctionBanType.PFBT_WORLD_MAP_UI, false, false)
+  local Ban, Msg = FunctionBanManager:GetFunctionState(Enum.PlayerFunctionBanType.PFBT_PETBOOK_UI, false, false)
   if Ban then
     Log.Debug("UMG_LobbyMain_C.OpenHandbookUI \228\186\146\230\150\165\231\179\187\231\187\159\230\139\166\230\136\170,CD", Msg)
     return
@@ -2157,7 +2180,7 @@ function UMG_LobbyMain_C:OpenActivityUI(checkSucceed)
   if not bHadGotCompass then
     return
   end
-  local Ban, Msg = FunctionBanManager:GetFunctionState(Enum.PlayerFunctionBanType.PFBT_WORLD_MAP_UI, false, false)
+  local Ban, Msg = FunctionBanManager:GetFunctionState(Enum.PlayerFunctionBanType.PFBT_ACTIVITY, false, false)
   if Ban then
     Log.Debug("UMG_LobbyMain_C.OpenActivityUI \228\186\146\230\150\165\231\179\187\231\187\159\230\139\166\230\136\170,CD", Msg)
     return
@@ -2184,7 +2207,7 @@ function UMG_LobbyMain_C:OpenMagicManualUI(checkSucceed)
   if not bHadGotCompass then
     return
   end
-  local Ban, Msg = FunctionBanManager:GetFunctionState(Enum.PlayerFunctionBanType.PFBT_WORLD_MAP_UI, false, false)
+  local Ban, Msg = FunctionBanManager:GetFunctionState(Enum.PlayerFunctionBanType.PFBT_MAGIC_BOOK, false, false)
   if Ban then
     Log.Debug("UMG_LobbyMain_C.OpenMagicManualUI \228\186\146\230\150\165\231\179\187\231\187\159\230\139\166\230\136\170,CD", Msg)
     return
@@ -2287,7 +2310,7 @@ function UMG_LobbyMain_C:OpenFashionMallUI(checkSucceed)
   if not bHadGotCompass then
     return
   end
-  local Ban, Msg = FunctionBanManager:GetFunctionState(Enum.PlayerFunctionBanType.PFBT_WORLD_MAP_UI, false, false)
+  local Ban, Msg = FunctionBanManager:GetFunctionState(Enum.PlayerFunctionBanType.PFBT_FASHION_STORE, false, false)
   if Ban then
     Log.Debug("UMG_LobbyMain_C.OpenShopUI \228\186\146\230\150\165\231\179\187\231\187\159\230\139\166\230\136\170,CD", Msg)
     return
@@ -2314,7 +2337,7 @@ function UMG_LobbyMain_C:OpenShopUI(checkSucceed)
   if not bHadGotCompass then
     return
   end
-  local Ban, Msg = FunctionBanManager:GetFunctionState(Enum.PlayerFunctionBanType.PFBT_WORLD_MAP_UI, false, false)
+  local Ban, Msg = FunctionBanManager:GetFunctionState(Enum.PlayerFunctionBanType.PFBT_CHARGE, false, false)
   if Ban then
     Log.Debug("UMG_LobbyMain_C.OpenShopUI \228\186\146\230\150\165\231\179\187\231\187\159\230\139\166\230\136\170,CD", Msg)
     return
@@ -2373,7 +2396,7 @@ function UMG_LobbyMain_C:HandleMessage(checkSucceed)
   bHasPanel = mainUIModule:HasPanel("LobbyDownTips")
   if bHasPanel then
     local panel = mainUIModule:GetPanel("LobbyDownTips")
-    if panel and panel.CurrentTip and panel:IsVisible() then
+    if panel and panel:IsVisible() then
       if IsBlockByTopPanel(panel) then
         return false
       end
@@ -2516,6 +2539,44 @@ end
 
 function UMG_LobbyMain_C:OnRolePlayMainPanelClosed()
   self.uiVisibilityConstraint:RemoveWidgetDisplayConstraintsByFactor("RolePlay")
+  if self:IsPCMode() then
+    self.PCKeyFoundation:RemoveInputBlock()
+  else
+    self.UMG_PlayerAbilities:RemoveInputBlock()
+  end
+end
+
+function UMG_LobbyMain_C:OnPropPlacementPanelOpen()
+  self.uiVisibilityConstraint:AddWidgetDisplayConstraints(self.UMG_CompassIcon, "PropPlacement")
+  self.uiVisibilityConstraint:AddWidgetDisplayConstraints(self.BtnExitDungeon, "PropPlacement")
+  self.uiVisibilityConstraint:AddWidgetDisplayConstraints(self.Report, "PropPlacement")
+  self.uiVisibilityConstraint:AddWidgetDisplayConstraints(self.UMG_Lobby_Vitality, "PropPlacement")
+  self.uiVisibilityConstraint:AddWidgetDisplayConstraints(self.UMG_EnergyStorage, "PropPlacement")
+  self.uiVisibilityConstraint:AddWidgetDisplayConstraints(self.UMG_Lobby_TandemRide, "PropPlacement")
+  self.uiVisibilityConstraint:AddWidgetDisplayConstraints(self.UMG_LockBall, "PropPlacement")
+  self.uiVisibilityConstraint:AddWidgetDisplayConstraints(self.UMG_LockPet, "PropPlacement")
+  self.uiVisibilityConstraint:AddWidgetDisplayConstraints(self.UMG_LockMagic, "PropPlacement")
+  self.uiVisibilityConstraint:AddWidgetDisplayConstraints(self.UMG_LiqueFaction, "PropPlacement")
+  self.uiVisibilityConstraint:AddWidgetDisplayConstraints(self.UMG_LightMagic, "PropPlacement")
+  self.uiVisibilityConstraint:AddWidgetDisplayConstraints(self.WorldCombat_Lifebar, "PropPlacement")
+  self.uiVisibilityConstraint:AddWidgetDisplayConstraints(self.On, "PropPlacement")
+  self.uiVisibilityConstraint:AddWidgetDisplayConstraints(self.Left, "PropPlacement")
+  self.uiVisibilityConstraint:AddWidgetDisplayConstraints(self.Right, "PropPlacement")
+  self.uiVisibilityConstraint:AddWidgetDisplayConstraints(self.VerticalBox_4, "PropPlacement")
+  self.uiVisibilityConstraint:AddWidgetDisplayConstraints(self.UMG_Hud_PerceptionPanel, "PropPlacement")
+  self.uiVisibilityConstraint:AddWidgetDisplayConstraints(self.UMG_TraceTaskPanel, "PropPlacement")
+  self.uiVisibilityConstraint:AddWidgetDisplayConstraints(self.UMG_OnlineTeammateTagPanel, "PropPlacement")
+  self.uiVisibilityConstraint:AddWidgetDisplayConstraints(self.UMG_TraceRelationTreePanel, "PropPlacement")
+  if self:IsPCMode() then
+    self.PCKeyFoundation:AddInputBlock()
+  else
+    self.UMG_PlayerAbilities:AddInputBlock()
+  end
+  self.UMG_PlayerInfoHUD:SetSimpleUseListVisible(false)
+end
+
+function UMG_LobbyMain_C:OnPropPlacementPanelClose()
+  self.uiVisibilityConstraint:RemoveWidgetDisplayConstraintsByFactor("PropPlacement")
   if self:IsPCMode() then
     self.PCKeyFoundation:RemoveInputBlock()
   else
@@ -2937,6 +2998,14 @@ function UMG_LobbyMain_C:OnChangeMagicLimit()
   else
     self.UMG_PlayerAbilities.AbilitySlot_Throw:OnChangeMagicLimit()
   end
+end
+
+function UMG_LobbyMain_C:ForceRefreshWidget()
+  self:DelayFrames(1, function(panelInst)
+    if UE4.UObject.IsValid(panelInst) then
+      panelInst:InvalidateLayoutAndVolatility()
+    end
+  end, self)
 end
 
 return UMG_LobbyMain_C

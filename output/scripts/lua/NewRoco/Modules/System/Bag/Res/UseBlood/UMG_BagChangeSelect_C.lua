@@ -61,7 +61,7 @@ function UMG_BagChangeSelect_C:OnItemSelected(Data)
     self.NRCImage_87:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     self.SkillCanvas:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     local PetBloodConf = _G.DataConfigManager:GetPetBloodConf(self.selectType)
-    local LevelSkillConf = _G.DataConfigManager:GetLevelSkillConf(self.PetItemData.base_conf_id)
+    local LevelSkillConf = _G.NRCModeManager:DoCmd(_G.PetUIModuleCmd.GetLevelSkillConfByPetBaseId, self.PetItemData.base_conf_id)
     local skillConf = PetUtils.GetSkillBloodData(PetBloodConf.id, LevelSkillConf) or PetUtils.GetPetCurBloodSkillConf(self.PetItemData)
     self.ChangeSkillId = skillConf.id
     self.SkillIcon:SetPath(skillConf.icon)

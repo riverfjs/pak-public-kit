@@ -12,7 +12,7 @@ local MarkInvalidReason = {
 }
 
 function ReachPointTrackItem:Ctor(config, info, go, TaskObject, Index)
-  Base.Ctor(self, config, info, go, TaskObject, Index)
+  self.TaskObject = TaskObject
   local Location = self.TaskObject.Config.task_special_structure_area
   if not Location or #Location < 4 then
     self.bConfigCorrect = false
@@ -23,6 +23,7 @@ function ReachPointTrackItem:Ctor(config, info, go, TaskObject, Index)
   self.CorrectPosY = Location[3] or 0
   self.CorrectPosZ = Location[4] or 0
   self.bConfigCorrect = true
+  Base.Ctor(self, config, info, go, TaskObject, Index)
 end
 
 function ReachPointTrackItem:FindNPC()

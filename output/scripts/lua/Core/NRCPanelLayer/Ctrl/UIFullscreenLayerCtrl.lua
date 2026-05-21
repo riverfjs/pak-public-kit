@@ -1,6 +1,7 @@
 local Array = require("Utils.Array")
 local Base = require("Core.NRCPanelLayer.Base.UICommonLayerCtrl")
 local UILayerEvent = require("Core.NRCPanelLayer.UILayerEvent")
+local NRCPanelEnum = require("Core.NRCPanel.NRCPanelEnum")
 local FAKE_FULLSCREEN = "fake_fullscreen"
 local UIFullscreenLayerCtrl = Base:Extend("UIFullscreenLayerCtrl")
 UIFullscreenLayerCtrl._windowDepthOffset = 1000
@@ -28,12 +29,106 @@ function UIFullscreenLayerCtrl:IsFakePanel(windowData)
   return windowData and windowData.windowId == FAKE_FULLSCREEN
 end
 
+function UIFullscreenLayerCtrl:AdjustWindowDepth(windowData, depth, inBatching)
+  if not windowData or not depth then
+    return
+  end
+  local popWins = self._relatePopWinsDic[windowData.windowId]
+  if popWins then
+    local curPopWinDepthStart = depth
+    for i = 1, popWins:Size() do
+      local popWinData = popWins:Get(i)
+      if popWinData then
+        popWinData.depth = Base.CalcWindowDepth(popWinData.layerCtrl, curPopWinDepthStart)
+        curPopWinDepthStart = popWinData.depth
+        Base.AdjustWindowDepth(self, popWinData, popWinData.depth, false)
+      end
+    end
+  end
+  Base.AdjustWindowDepth(self, windowData, depth, inBatching)
+end
+
+function UIFullscreenLayerCtrl:BringToFrontImpl(windowId)
+  local success, winData = Base.BringToFrontImpl(self, windowId)
+  if success then
+    self:UnDoFoldSpecifiedWindow(winData)
+    self:OnNewTopPanelVisible(windowId)
+  end
+  return success, winData
+end
+
+function UIFullscreenLayerCtrl:SendToBackImpl(windowId)
+  local size = self._showWins:Size()
+  if size <= 0 then
+    return false
+  end
+  local hasFakePanel = self:IsFakePanel(self._showWins:Get(1))
+  if hasFakePanel and size <= 1 then
+    return false
+  end
+  local winData, winIndex = self:GetWindowData(windowId)
+  local isTopWin = winIndex == size
+  local success = self:FloatingWindowByIndex(self._showWins, winIndex, hasFakePanel and 2 or 1)
+  if success and isTopWin then
+    local newTopWinData = self._showWins:Last()
+    if newTopWinData then
+      self:UnDoFoldSpecifiedWindow(newTopWinData)
+      self:OnNewTopPanelVisible(newTopWinData.windowId)
+    end
+  end
+  return success, winData
+end
+
 function UIFullscreenLayerCtrl:GetLayerWindowCount()
   local windowCount = Base.GetLayerWindowCount(self)
   if windowCount > 0 and self:IsFakePanel(self._showWins:First()) then
     windowCount = windowCount - 1
   end
   return windowCount
+end
+
+function UIFullscreenLayerCtrl:HasAnyWindow()
+  return self._showWins:Size() > 0
+end
+
+function UIFullscreenLayerCtrl:BringPopupToFront(windowData, topDepth)
+  local success = false
+  local topFullWinData = self._showWins:Last()
+  if topFullWinData then
+    if topFullWinData.windowId ~= windowData.parentId then
+      self:RemovePopWin(windowData)
+      if self:AddPopWin(windowData, topFullWinData) then
+        self:AdjustWindowDepth(windowData, windowData.depth, false)
+        success = true
+      end
+    else
+      local popWins = self._relatePopWinsDic[topFullWinData.windowId]
+      if popWins then
+        if popWins:Last() == windowData then
+          success = true
+        else
+          success = self:FloatingWindowByData(popWins, windowData, math.maxinteger)
+        end
+      end
+    end
+  end
+  if success then
+    self:UnDoFoldSpecifiedWindow(windowData)
+  end
+  return success
+end
+
+function UIFullscreenLayerCtrl:SendPopupToBack(windowData)
+  local success = false
+  if string.IsNilOrEmpty(windowData.parentId) then
+    success = self:FloatingWindowByData(self._relatePopWinsDic[windowData.parentId], windowData, 1)
+  else
+    Log.Error("UIFullscreenLayerCtrl:SendPopupToBack:", windowData.windowId, "parentId is nil or empty!")
+  end
+  if success then
+    self:DoFoldSpecifiedWindow(windowData)
+  end
+  return success
 end
 
 function UIFullscreenLayerCtrl:GetDebugData()
@@ -55,11 +150,20 @@ end
 function UIFullscreenLayerCtrl:RemoveFromLayerViewport(panelOrWindowId)
   local windowId = self:CastToWindowId(panelOrWindowId)
   if self._relatePopWinsDic[windowId] and self._relatePopWinsDic[windowId]:Size() > 0 then
+    local secondTopWin = self._showWins:Size() > 1 and self._showWins:Get(self._showWins:Size() - 1)
     local relatePopWinsDicClone = self._relatePopWinsDic[windowId]:Clone()
     local size = relatePopWinsDicClone:Size()
     for i = size, 1, -1 do
       local popWinData = relatePopWinsDicClone:Get(i)
-      self:CloseWindowByData(popWinData)
+      if popWinData and popWinData.panelData and popWinData.panelData.manualClosedPopPanel then
+        if not secondTopWin or not self:AddPopWin(popWinData, secondTopWin) then
+          popWinData.parentId = nil
+          popWinData.depth = Base.CalcWindowDepth(popWinData.layerCtrl)
+        end
+        self:AdjustWindowDepth(popWinData, popWinData.depth, false)
+      else
+        self:CloseWindowByData(popWinData)
+      end
     end
     self._relatePopWinsDic[windowId]:Clear()
   end
@@ -67,29 +171,20 @@ function UIFullscreenLayerCtrl:RemoveFromLayerViewport(panelOrWindowId)
   return Base.RemoveFromLayerViewport(self, windowId)
 end
 
-function UIFullscreenLayerCtrl:AddPopWin(windowData, dependentPanelName)
+function UIFullscreenLayerCtrl:AddPopWin(windowData, dependentWin)
   if not windowData then
     return
   end
-  if nil ~= dependentPanelName then
-    local TargetWin = self:GetTargetWinData(dependentPanelName)
-    if TargetWin then
-      local windowId = TargetWin.windowId
-      if nil == self._relatePopWinsDic[windowId] then
-        self._relatePopWinsDic[windowId] = Array()
-      end
-      self._relatePopWinsDic[windowId]:Add(windowData)
-      return windowId
-    end
-  end
-  local topWin = self._showWins:Last()
+  local topWin = dependentWin or self._showWins:Last()
   if topWin then
     local windowId = topWin.windowId
-    if nil == self._relatePopWinsDic[windowId] then
+    if self._relatePopWinsDic[windowId] == nil then
       self._relatePopWinsDic[windowId] = Array()
     end
+    windowData.parentId = windowId
+    windowData.depth = Base.CalcWindowDepth(windowData.layerCtrl, self:GetRelateTopPopWinDepth(topWin))
     self._relatePopWinsDic[windowId]:Add(windowData)
-    return windowId
+    return true
   end
 end
 
@@ -104,6 +199,7 @@ function UIFullscreenLayerCtrl:RemovePopWin(windowData)
       local popWinData = popWins:Get(i)
       if popWinData.windowId == windowData.windowId then
         popWins:RemoveAt(i)
+        windowData.parentId = nil
         break
       end
     end
@@ -122,37 +218,19 @@ function UIFullscreenLayerCtrl:GetLayerOpaqueWindowCount()
   end
 end
 
-function UIFullscreenLayerCtrl:GetTargetWinDepth(inWindowId)
-  local size = self._showWins:Size()
-  for i = 1, size do
-    local windowData = self._showWins:Get(i)
-    if windowData.windowId == inWindowId then
-      return windowData.depth
-    end
-  end
-  return nil
-end
-
-function UIFullscreenLayerCtrl:GetTargetWinData(inWindowId)
-  local size = self._showWins:Size()
-  for i = 1, size do
-    local windowData = self._showWins:Get(i)
-    if windowData.windowId == inWindowId then
-      return windowData
-    end
-  end
-  return nil
-end
-
 function UIFullscreenLayerCtrl:GetTopPopWinDepth()
-  local topFullWinData = self._showWins:Last()
-  if topFullWinData then
-    local popWins = self._relatePopWinsDic[topFullWinData.windowId]
+  return self:GetRelateTopPopWinDepth(self._showWins:Last())
+end
+
+function UIFullscreenLayerCtrl:GetRelateTopPopWinDepth(fullWindowData)
+  if fullWindowData then
+    local windowId = fullWindowData.windowId
+    local popWins = windowId and self._relatePopWinsDic[windowId]
     local topPopWinData = popWins and popWins:Last()
     if topPopWinData then
       return topPopWinData.depth
     else
-      return topFullWinData.depth
+      return fullWindowData.depth
     end
   end
 end
@@ -169,17 +247,30 @@ function UIFullscreenLayerCtrl:CheckWindowBeOverlay(inWindowId)
 end
 
 function UIFullscreenLayerCtrl:SetPanelAlreadyVisible(windowId, panel)
-  if _G.GlobalConfig.EnableFullScreenPanelCollapsed == true and not self.delayCollapsed then
-    self.delayCollapsed = _G.DelayManager:DelayFrames(1, self.CollapsedOtherPanelAndPopup, self)
-  end
+  Base.SetPanelAlreadyVisible(self, windowId, panel)
+  self:OnNewTopPanelVisible(windowId)
 end
 
 function UIFullscreenLayerCtrl:SetPanelReadyToClosed(frontWindowId)
+  Base.SetPanelReadyToClosed(self, frontWindowId)
+  self:OnCurTopPanelClosed(frontWindowId)
+end
+
+function UIFullscreenLayerCtrl:OnNewTopPanelVisible(topWindowId)
+  if _G.GlobalConfig.EnableFullScreenPanelCollapsed == true then
+    if self.delayCollapsed then
+      _G.DelayManager:CancelDelayById(self.delayCollapsed)
+    end
+    self.delayCollapsed = _G.DelayManager:DelayFrames(1, self.CollapsedOtherPanelAndPopup, self, topWindowId)
+  end
+end
+
+function UIFullscreenLayerCtrl:OnCurTopPanelClosed(topWindowId)
   if _G.GlobalConfig.EnableFullScreenPanelCollapsed == true then
     local size = self._showWins:Size()
     if size > 1 then
       local frontWindowData = self._showWins:Get(size)
-      if frontWindowData.windowId == frontWindowId then
+      if frontWindowData.windowId == topWindowId then
         self:ShowLastPanelAndPopup()
       end
     end
@@ -198,12 +289,7 @@ function UIFullscreenLayerCtrl:DoFoldSpecifiedWindow(windowData)
   if panel then
     curVisibility = panel:GetVisibility()
     panel:SetVisibility(UE4.ESlateVisibility.Collapsed)
-    if panel.OnFoldCollapsed then
-      local ok, msg = pcall(panel.OnFoldCollapsed, panel)
-      if not ok then
-        Log.Error(msg)
-      end
-    end
+    self:SafeInvokeWindowFunction(windowData, "OnFoldCollapsed")
   else
     self:ShowOrHideWindowByData(windowData, false)
   end
@@ -222,12 +308,7 @@ function UIFullscreenLayerCtrl:UnDoFoldSpecifiedWindow(windowData)
   end
   local panel = windowData.panel
   if visibilityBeforeFold and -1 ~= visibilityBeforeFold and panel then
-    if panel.OnUnDoFoldCollapsed then
-      local ok, msg = pcall(panel.OnUnDoFoldCollapsed, panel)
-      if not ok then
-        Log.Error(msg)
-      end
-    end
+    self:SafeInvokeWindowFunction(windowData, "OnUnDoFoldCollapsed")
     if self:IsWindowActive(panel) and panel:GetVisibility() == UE4.ESlateVisibility.Collapsed then
       panel:SetVisibility(visibilityBeforeFold)
       return true
@@ -250,14 +331,20 @@ function UIFullscreenLayerCtrl:FoldOtherPanelAndPopupInAdvance()
   end
 end
 
-function UIFullscreenLayerCtrl:CollapsedOtherPanelAndPopup()
+function UIFullscreenLayerCtrl:CollapsedOtherPanelAndPopup(desireFrontWindowId)
   self.delayCollapsed = nil
   local size = self._showWins:Size()
   if size > 1 then
     local frontWindowData = self._showWins:Get(size)
+    if frontWindowData.windowId ~= desireFrontWindowId then
+      return
+    end
+    if frontWindowData.status and frontWindowData.status >= NRCPanelEnum.PanelStatus.ReadyToClose then
+      return
+    end
     local frontWindow = frontWindowData.panel
     if frontWindow and frontWindow:GetVisibility() == UE4.ESlateVisibility.Collapsed then
-      self.delayCollapsed = _G.DelayManager:DelayFrames(1, self.CollapsedOtherPanelAndPopup, self)
+      self.delayCollapsed = _G.DelayManager:DelayFrames(1, self.CollapsedOtherPanelAndPopup, self, desireFrontWindowId)
       return
     end
     for i = 1, size - 1 do

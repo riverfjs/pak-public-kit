@@ -30,11 +30,27 @@ function NRCPanelRegisterData:Ctor()
   self.enablePcEsc = true
   self.closeGCWeight = 10
   self.autoSetDesiredCursor = nil
+  self.panelStaticConf = nil
   self.customDisableGC = false
 end
 
 function NRCPanelRegisterData:IsPreCache()
   return self.panelCacheType == NRCPanelRegisterData.PanelCacheType.PreCache
+end
+
+function NRCPanelRegisterData:SetFullSpeedDesired(isFullSpeed)
+  self.isFullSpeedDesired = isFullSpeed
+  return self
+end
+
+function NRCPanelRegisterData:SetEnableTouchMask(enableTouchMask)
+  self.enableTouchMask = enableTouchMask
+  return self
+end
+
+function NRCPanelRegisterData:SetManualClosedPopPanel(manualClosedPopPanel)
+  self.manualClosedPopPanel = manualClosedPopPanel
+  return self
 end
 
 function NRCPanelRegisterData:IsDesiredDisableWorldRendering()

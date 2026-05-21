@@ -1,4 +1,5 @@
 local SceneUtils = require("NewRoco.Modules.Core.Scene.Common.SceneUtils")
+local PetMutationUtils = require("NewRoco.Utils.PetMutationUtils")
 local ThrowUtils = {}
 
 function ThrowUtils.ShakeTrees(Location, Range, OutTreePosArray)
@@ -9,12 +10,6 @@ end
 function ThrowUtils.GatherMagicActions(Caster, RelativeLocation, MagicID, ChargeLevel, Range, FilterFunc, hitActor, hitActorBone)
   local World = _G.UE4Helper.GetCurrentWorld()
   local CasterView = Caster and Caster.viewObj
-  local ObjectTypes = {
-    UE.EObjectTypeQuery.WorldDynamic,
-    UE.EObjectTypeQuery.Pawn,
-    UE.EObjectTypeQuery.WorldStatic
-  }
-  local CachedResults = UE4.TArray(UE.AActor)
   local CachedIgnoreActors = {}
   if CasterView then
     table.insert(CachedIgnoreActors, CasterView)
@@ -22,71 +17,70 @@ function ThrowUtils.GatherMagicActions(Caster, RelativeLocation, MagicID, Charge
   if not RelativeLocation and CasterView then
     RelativeLocation = CasterView:K2_GetActorLocation()
   end
-  local Success = UE.UNRCStatics.SphereOverlapActors(World, RelativeLocation, Range, ObjectTypes, CachedIgnoreActors, CachedResults)
-  if not Success then
-    CachedResults:Clear()
-    table.clear(CachedIgnoreActors)
-    return nil, nil
-  end
-  local StarLoc
-  if Caster then
-    StarLoc = Caster:GetActorLocation()
-  else
-    StarLoc = SceneUtils.ConvertRelativeToAbsolute(RelativeLocation)
-  end
+  local drawDebugTrace = UE4.EDrawDebugTrace.None
+  local hitResults, isHit = UE4.UKismetSystemLibrary.SphereTraceMultiByProfile(World, RelativeLocation, RelativeLocation, Range, "ThrowedItem", false, CachedIgnoreActors, drawDebugTrace, nil, true, UE4.FLinearColor(0, 1, 0, 1), UE4.FLinearColor(1, 1, 0, 1), 999)
   local Actions = {}
   local TargetInfos = {}
+  local Players = {}
   local CharacterCheckedMap = {}
-  for _, Actor in tpairs(CachedResults) do
-    local Character = Actor.sceneCharacter
-    if Character then
-      if Character.IsHidden and Character:IsHidden() then
-      else
-        if CharacterCheckedMap[Character] then
-          goto lbl_186
+  for i = hitResults:Length(), 1, -1 do
+    local Hit = hitResults:Get(i)
+    local Actor = Hit.Actor
+    if not Actor then
+    else
+      local Character = Actor and Actor.sceneCharacter
+      if Character then
+        if Character.IsHidden and Character:IsHidden() then
         else
-          CharacterCheckedMap[Character] = true
-        end
-        if FilterFunc and not FilterFunc(Character) then
-        else
-          local InterComp = Character and Character.InteractionComponent
-          local Options = InterComp and InterComp._options
-          local weak_point_name
-          if hitActor and Actor == hitActor then
-            weak_point_name = hitActorBone
+          if CharacterCheckedMap[Character] then
+            goto lbl_201
+          else
+            CharacterCheckedMap[Character] = true
           end
-          if Options then
-            for _, value in pairs(Options) do
-              local ValidOption
-              local MagicActions = value:EnsureMagicActions()
-              for _, Action in pairs(MagicActions) do
-                if Action:CanExecute(Character, ChargeLevel, MagicID, RelativeLocation) then
-                  Action:Execute(Character, Caster)
-                  table.insert(Actions, Action)
-                  if Action.Config.action_type ~= _G.Enum.ActionType.ACT_TRIGGER_OPTION_ACTION then
-                    ValidOption = value
+          if FilterFunc and not FilterFunc(Character) then
+          else
+            if Actor:Cast(UE4.ARocoPlayerBase) and Character and not Character.isLocal then
+              local playerUin = Character.serverData.base.logic_id
+              table.insert(Players, playerUin)
+            end
+            local InterComp = Character and Character.InteractionComponent
+            local Options = InterComp and InterComp._options
+            local weak_point_name
+            if hitActor and Actor == hitActor then
+              weak_point_name = hitActorBone
+            end
+            if Options then
+              for _, value in pairs(Options) do
+                local ValidOption
+                local MagicActions = value:EnsureMagicActions()
+                for _, Action in pairs(MagicActions) do
+                  if Action:CanExecute(Character, ChargeLevel, MagicID, RelativeLocation) then
+                    Action:Execute(Character, Caster)
+                    table.insert(Actions, Action)
+                    if Action.Config.action_type ~= _G.Enum.ActionType.ACT_TRIGGER_OPTION_ACTION then
+                      ValidOption = value
+                    end
                   end
                 end
-              end
-              if ValidOption then
-                local TargetInfo = _G.ProtoMessage:newThrowTargetNpcInfo()
-                TargetInfo.npc_id = Character.serverData.base.actor_id
-                TargetInfo.option_id = value.optionInfo.option_id
-                TargetInfo.weakness_pos_name = weak_point_name
-                Character:GetServerPosition(TargetInfo.npc_pos)
-                table.insert(TargetInfos, TargetInfo)
+                if ValidOption then
+                  local TargetInfo = _G.ProtoMessage:newThrowTargetNpcInfo()
+                  TargetInfo.npc_id = Character.serverData.base.actor_id
+                  TargetInfo.option_id = value.optionInfo.option_id
+                  TargetInfo.weakness_pos_name = weak_point_name
+                  Character:GetServerPosition(TargetInfo.npc_pos)
+                  table.insert(TargetInfos, TargetInfo)
+                end
               end
             end
           end
         end
       end
     end
-    ::lbl_186::
+    ::lbl_201::
   end
-  CachedResults:Clear()
   table.clear(CachedIgnoreActors)
   table.clear(CharacterCheckedMap)
-  return Actions, TargetInfos
+  return Actions, TargetInfos, Players
 end
 
 function ThrowUtils:ToStandType(petData)
@@ -96,7 +90,7 @@ function ThrowUtils:ToStandType(petData)
     return 1
   elseif Hab == Enum.HABITAT_FLAG.HAB_AQUA then
     return 2
-  elseif Hab == Enum.HABITAT_FLAG.HAB_FLY then
+  elseif Hab == Enum.HABITAT_FLAG.HAB_FLY or Hab == Enum.HABITAT_FLAG.HAB_FLY_WATER then
     if SceneUtils.InHomeScene() then
       return 0
     else
@@ -249,6 +243,28 @@ function ThrowUtils.CheckActionEffectInAnglesVertical(Runner, RelativeLocation, 
   else
     return degree, false
   end
+end
+
+function ThrowUtils.IsDisableByMutation(CatchTarget, ballId)
+  local serverData = CatchTarget and CatchTarget.serverData
+  local npc_base = serverData and serverData.npc_base
+  local mutation_type = npc_base and npc_base.mutation_type
+  if not mutation_type or 0 == mutation_type then
+    return false, ""
+  end
+  local BallForbidCaptureConfig = _G.DataConfigManager:GetAllByTableID(_G.DataConfigManager.ConfigTableId.BALL_FORBID_CAPTURE)
+  for _, BallForbidCapture in ipairs(BallForbidCaptureConfig) do
+    if PetMutationUtils.GetMutationValue(mutation_type, BallForbidCapture.mutation_type) then
+      if BallForbidCapture.whitelist_ball_id and #BallForbidCapture.whitelist_ball_id > 0 then
+        if not table.contains(BallForbidCapture.whitelist_ball_id, ballId) then
+          return true, BallForbidCapture.forbid_tips
+        end
+      elseif BallForbidCapture.blacklist_ball_id and #BallForbidCapture.blacklist_ball_id > 0 and table.contains(BallForbidCapture.blacklist_ball_id, ballId) then
+        return true, BallForbidCapture.forbid_tips
+      end
+    end
+  end
+  return false, ""
 end
 
 return ThrowUtils

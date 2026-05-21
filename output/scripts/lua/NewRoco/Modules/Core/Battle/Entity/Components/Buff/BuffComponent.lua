@@ -154,8 +154,7 @@ end
 function BuffComponent:ChangeBuffData(buffChange, sync_data)
   local buff_id = buffChange.buff_id
   if not buff_id or 0 == buff_id then
-    Log.Error("Can't find valid buff id: ", buff_id)
-    Log.Dump(buffChange, 3, "Dumping wrong buff id")
+    BattleLog.BuffError("Can't find valid buff id: ", buff_id)
     return
   end
   local changeType = buffChange.type
@@ -179,7 +178,7 @@ function BuffComponent:ChangeBuffData(buffChange, sync_data)
       end
     end
   else
-    Log.Error("BuffComponent ChangeBuffData invalid changeType:", changeType)
+    BattleLog.BuffError("ChangeBuffData invalid changeType:", changeType)
   end
 end
 
@@ -219,7 +218,7 @@ end
 function BuffComponent:BuffHelper(buffInfo)
   local buff_id = buffInfo.buff_id
   if not buff_id or 0 == buff_id then
-    Log.Error("Can't find valid buff id: ", buff_id)
+    BattleLog.BuffError("Can't find valid buff id: ", buff_id)
     Log.Dump(buffInfo, 3, "Dumping wrong buff id")
     return
   end
@@ -243,6 +242,7 @@ function BuffComponent:BuffHelper(buffInfo)
 end
 
 function BuffComponent:OnAddBuff(buff_info)
+  BattleLog.BuffWarning("OnAddBuff ", buff_info.buff_id)
   local buffEntity = Buff(self.owner)
   if not buffEntity:InitByInfo(buff_info) then
     return
@@ -265,6 +265,7 @@ function BuffComponent:RemoveBuffs(immediate)
 end
 
 function BuffComponent:OnRemoveBuff(buff, immediate)
+  BattleLog.BuffWarning("OnRemoveBuff ", buff.id)
   if not self.owner or not self.petState then
     return
   end
@@ -336,6 +337,7 @@ function BuffComponent:CheckHasStuckBuff(damage_type)
 end
 
 function BuffComponent:CheckStateIsPlaying(buffSign)
+  BattleLog.BuffWarning("CheckStateIsPlaying: ", buffSign)
   local stateCfg = self.stateEffectCfg[buffSign]
   if not stateCfg then
     return false
@@ -360,7 +362,7 @@ function BuffComponent:StopStateEffect(buffSign, forceStop)
 end
 
 function BuffComponent:OnStateValueChange(buffSign, isOn)
-  Log.Debug("BuffComponent:OnStateValueChange ", buffSign)
+  BattleLog.BuffDebug("OnStateValueChange ", buffSign, isOn)
   if self.destroyed then
     return
   end
@@ -425,7 +427,7 @@ function BuffComponent:RestartBattleState(buffSign)
         end
         if not isAnimPlay then
           if string.IsNilOrEmpty(v.aniName) and self.buffSkillObjLst[i] then
-            self:PlayStateAnimation(v.restartCheckAnim[1])
+            self.buffSkillObjLst[i]:RestoreG6Effect()
             break
           end
           self:RestartStateEffect(i)
@@ -448,7 +450,20 @@ function BuffComponent:PlayStateAnimation(aniName)
   if not self:IsCanPlayAnimation(aniName) then
     return
   end
-  self.owner.model:PlayAnimByName(aniName, 1, 0, 0, 0, -1)
+  if _G.BattleManager.debugEnv and _G.BattleManager.debugEnv.EnableAnimLog then
+    local actorName = "Unknown"
+    if self.owner and self.owner.model then
+      actorName = self.owner.model:GetFullName() or "Unknown"
+    end
+    local curAnimName = "None"
+    if self.RocoAnim and self.RocoAnim.GetCurAnimNameWithCheck then
+      curAnimName = self.RocoAnim:GetCurAnimNameWithCheck() or "None"
+    end
+    BattleLog.AnimWarning(string.format("PlayStateAnimation - \229\189\147\229\137\141\229\138\168\231\148\187: %s, \232\166\129\230\146\173\230\148\190\231\154\132\229\138\168\231\148\187: %s, Owner: %s ", curAnimName, aniName, actorName))
+  end
+  if self.owner and self.owner.model then
+    self.owner.model:PlayAnimByName(aniName, 1, 0, 0, 0, -1)
+  end
 end
 
 function BuffComponent:IsCanPlayAnimation(aniName)
@@ -462,7 +477,7 @@ function BuffComponent:PlayStateSkill(buffSign)
   if not self.owner then
     return
   end
-  Log.Warning("BuffComponent:PlayStateSkill1 ", buffSign, self.owner:IsDead())
+  BattleLog.BuffWarning("PlayStateSkill1 ", buffSign, self.owner:IsDead())
   if self.buffSkillObjLst[buffSign] or self.buffSkillObjLoadingLst[buffSign] then
     local lastSkillObj = self.buffSkillObjLst and self.buffSkillObjLst[buffSign]
     if lastSkillObj and lastSkillObj:GetBlackboard() then
@@ -501,7 +516,7 @@ function BuffComponent:OnBuffResLoad(isLoadSucceed, resPath, ...)
   if not isLoadSucceed then
     return
   end
-  Log.Warning("BuffComponent:OnBuffResLoad", resPath)
+  BattleLog.BuffWarning("OnBuffResLoad", resPath)
   local params = {
     ...
   }
@@ -513,7 +528,7 @@ function BuffComponent:OnBuffResLoad(isLoadSucceed, resPath, ...)
   if self.owner then
     CastParam:SetCaster(self.owner.model)
   else
-    Log.Warning("BuffComponent:OnBuffResLoad self.owner.model is nil")
+    BattleLog.BuffWarning("OnBuffResLoad self.owner.model is nil")
   end
   CastParam:SetTargetPets({
     self.owner
@@ -528,7 +543,7 @@ function BuffComponent:OnBuffResLoad(isLoadSucceed, resPath, ...)
   end
   local _, skillObj = BattleSkillManager:PrepareSkill(self.owner, self.RocoSkill, CastParam)
   if not skillObj then
-    Log.DebugFormat("BuffComponent:OnBuffResLoad Skill Object not found %s", resPath)
+    Log.DebugFormat("OnBuffResLoad Skill Object not found %s", resPath)
     return
   end
   self.RocoSkill:CancelSkill(skillObj, UE4.ESkillActionResult.SkillActionResultSuccessful)
@@ -542,7 +557,7 @@ function BuffComponent:OnBuffResLoad(isLoadSucceed, resPath, ...)
   end
   local result = self.RocoSkill:PlaySkill(skillObj)
   if result ~= UE4.ESkillStartResult.Success then
-    Log.Warning("BuffComponent:OnBuffResLoad Error", result)
+    BattleLog.BuffWarning("OnBuffResLoad Error", result)
   end
   self.buffSkillObjLst[buffSign] = skillObj
   self.skillObjToBuffSign[skillObj] = buffSign
@@ -563,6 +578,20 @@ function BuffComponent:GetSkillPath(buffSign)
   return nil
 end
 
+function BuffComponent:StopStateAnimationByCfg(stateCfg)
+  if not self.RocoAnim then
+    return
+  end
+  if stateCfg and stateCfg.restartCheckAnim then
+    for key, anim in ipairs(stateCfg.restartCheckAnim) do
+      if self.RocoAnim:IsAnimPlaying(anim) then
+        self:StopStateAnimation(anim)
+        break
+      end
+    end
+  end
+end
+
 function BuffComponent:StopStateAnimation(aniName)
   if string.IsNilOrEmpty(aniName) then
     return
@@ -573,7 +602,7 @@ function BuffComponent:StopStateAnimation(aniName)
 end
 
 function BuffComponent:StopStateSkill(buffSign, forceStop)
-  Log.Warning("BuffComponent:StopStateSkill1 ", buffSign)
+  BattleLog.BuffWarning("StopStateSkill1 ", buffSign)
   local skillObj = self.buffSkillObjLst and self.buffSkillObjLst[buffSign]
   if not skillObj then
     local callBackInfo = self.skillCallBack[buffSign]
@@ -584,14 +613,7 @@ function BuffComponent:StopStateSkill(buffSign, forceStop)
     return
   end
   local stateCfg = self.stateEffectCfg[buffSign]
-  if stateCfg and stateCfg.restartCheckAnim then
-    for key, anim in ipairs(stateCfg.restartCheckAnim) do
-      if self.RocoAnim:IsAnimPlaying(anim) then
-        self:StopStateAnimation(anim)
-        break
-      end
-    end
-  end
+  self:StopStateAnimationByCfg(stateCfg)
   skillObj:UnregisterEventCallback("ActionStart", self, self.OnActionStart)
   if stateCfg and stateCfg.hasEndEffect and not forceStop then
     self:SetBuffLoopBlackBoard(skillObj, false)
@@ -620,7 +642,7 @@ end
 
 function BuffComponent:OnSkillComplete(eventName, skillObj)
   local buffSign = self.skillObjToBuffSign[skillObj]
-  Log.Warning("BuffComponent:OnSkillComplete", eventName, buffSign, skillObj:GetName())
+  BattleLog.BuffWarning("OnSkillComplete", eventName, buffSign, skillObj:GetName())
   if buffSign then
     local callBackInfo = self.skillCallBack[buffSign]
     if callBackInfo then
@@ -661,7 +683,7 @@ function BuffComponent:SetBuffLoopBlackBoard(skillObj, value)
   if not UE.UObject.IsValid(skillObj) then
     return
   end
-  Log.Warning("BuffComponent:SetBuffLoopBlackBoard", value, skillObj:GetName())
+  BattleLog.BuffWarning("SetBuffLoopBlackBoard", value, skillObj:GetName())
   local Blackboard = skillObj:GetBlackboard()
   if Blackboard then
     Blackboard:SetValueAsBool("BuffLoop", value)

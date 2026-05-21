@@ -94,6 +94,7 @@ function TaskTrackItem:Ctor(config, info, go, TaskObject, index)
   self.MapID = 0
   self.DestMapID = 0
   self.TargetMapID = 0
+  self.CurrentNpc = nil
   if info.is_track then
     self:Focus(true)
     _G.UpdateManager:Register(self)
@@ -139,7 +140,7 @@ function TaskTrackItem:GetSearcher()
     if self.GoData1 and #self.GoData1 > 0 then
       Searcher = self.ConstValidFunc
     elseif self.GoData2 and #self.GoData2 > 0 then
-      Searcher = self.ConstValidContentFunc
+      Searcher = self.ConstValidData2ContentFunc
     end
   end
   return Searcher
@@ -171,6 +172,19 @@ function TaskTrackItem:ConstValidContentFunc(npc)
     return false
   end
   return table.contains(self.GoData1, Content)
+end
+
+function TaskTrackItem:ConstValidData2ContentFunc(npc)
+  if not self.GoData2 then
+    return false
+  end
+  local Data = npc.serverData
+  local NPCBase = Data and Data.npc_base
+  local Content = NPCBase and NPCBase.npc_content_cfg_id or 0
+  if 0 == Content then
+    return false
+  end
+  return table.contains(self.GoData2, Content)
 end
 
 function TaskTrackItem:ConstValidPriorityData1For1(npc)
@@ -322,6 +336,69 @@ function TaskTrackItem:AdjustValidFunc(npc)
   return false
 end
 
+function TaskTrackItem:UpdateNPCTrackStatus(npc, LogPrefix)
+  if not npc then
+    return
+  end
+  LogPrefix = LogPrefix or "TaskTrackItem:FindNPC"
+  local NeedTrack = false
+  local serverData = npc.serverData
+  local base = serverData and serverData.base
+  local actor_id = base and base.actor_id
+  if not self.LastTrackNpcId or actor_id and actor_id == self.LastTrackNpcId then
+  else
+    Log.Debug(LogPrefix, "LastTrackNpcId:", self.LastTrackNpcId, "actor_id:", actor_id)
+    self:ClearTrackedNPC()
+  end
+  self.LastTrackNpcId = actor_id
+  if self.TaskObject:IsTrack() and npc:GetVisible() then
+    NeedTrack = true
+  end
+  npc:SetTracked(NeedTrack)
+end
+
+function TaskTrackItem:UpdateNPCPositionAndStatus(npc)
+  if not (npc and npc.viewObj) or not npc.viewObj.resourceLoaded then
+    return false
+  end
+  local pos = npc:GetActorLocation()
+  self.Position.X = pos.X
+  self.Position.Y = pos.Y
+  self.Valid = true
+  self.MinimapValid = true
+  self.TargetInSameScene = true
+  self.TargetInSameSceneGroup = true
+  local UpdateSign = false
+  local DistRatio = npc.squaredDis2LocalIgnoreZ / 4000000
+  self.TargetZ = self:ApplyViewOffset(pos.Z, npc, 1)
+  local DeltaZ = math.abs(self.Position.Z - pos.Z)
+  if DistRatio <= 1 then
+    self:UpdatePosition(self.Position.X, self.Position.Y, self.TargetZ)
+  elseif DistRatio > 1 and DistRatio < 16 then
+    local Alpha = 1 - math.clamp((DistRatio - 1) / 15, 0, 1)
+    self.Position.Z = (1 - Alpha) * self.Position.Z + self.TargetZ * Alpha
+    UpdateSign = true
+  elseif 0 == self.Position.Z or DeltaZ > 2000 then
+    self.Position.Z = pos.Z
+    UpdateSign = true
+  end
+  if not self.TaskObject:IsTrack() then
+    local CloseThreshold = 10
+    if self.TargetZ and self.Position and CloseThreshold >= math.abs(self.Position.Z - self.TargetZ) then
+      self:StopTick()
+    end
+  end
+  if not npc:GetVisible() then
+    self:MarkInvalid(MarkInvalidReason[3])
+  else
+    self:UpdateDirectionSign()
+    self:UpdateDistance()
+    npc:ScheduleNextTick(0.1)
+    self:CheckNPCOptions(npc)
+  end
+  return true
+end
+
 function TaskTrackItem:RestoreTrackingHud()
   local npcs = _G.NRCModuleManager:DoCmd(NPCModuleCmd.GetTopKNPC, self)
   if npcs and #npcs > 0 then
@@ -438,63 +515,29 @@ function TaskTrackItem:FindNPC()
     if npcs and #npcs > 0 then
       local npc = npcs[1]
       if npc then
-        local NeedTrack = false
-        local serverData = npc and npc.serverData
-        local base = serverData and serverData.base
-        local actor_id = base and base.actor_id
-        if not self.LastTrackNpcId or actor_id and actor_id == self.LastTrackNpcId then
-        else
-          Log.Debug("TaskTrackItem:FindNPC", "LastTrackNpcId:", self.LastTrackNpcId, "actor_id:", actor_id)
-          self:ClearTrackedNPC()
-        end
-        self.LastTrackNpcId = actor_id
-        if self.TaskObject:IsTrack() then
-          NeedTrack = true
-        end
-        npc:SetTracked(NeedTrack)
+        self.CurrentNpc = npc
+        self:UpdateNPCTrackStatus(npc, "TaskTrackItem:FindNPC")
       end
       HasTargetNPC = true
-      if npc.viewObj and npc.viewObj.resourceLoaded then
-        local pos = npc:GetActorLocation()
-        self.Position.X = pos.X
-        self.Position.Y = pos.Y
-        self.Valid = true
-        self.MinimapValid = true
-        self.TargetInSameScene = true
-        self.TargetInSameSceneGroup = true
-        local UpdateSign = false
-        local DistRatio = npc.squaredDis2LocalIgnoreZ / 4000000
-        self.TargetZ = self:ApplyViewOffset(pos.Z, npc, 1)
-        local DeltaZ = math.abs(self.Position.Z - pos.Z)
-        if DistRatio <= 1 then
-          self:UpdatePosition(self.Position.X, self.Position.Y, self.TargetZ)
-        elseif DistRatio > 1 and DistRatio < 16 then
-          local Alpha = 1 - math.clamp((DistRatio - 1) / 15, 0, 1)
-          self.Position.Z = (1 - Alpha) * self.Position.Z + self.TargetZ * Alpha
-          UpdateSign = true
-        elseif 0 == self.Position.Z or DeltaZ > 2000 then
-          self.Position.Z = pos.Z
-          UpdateSign = true
-        end
-        if not self.TaskObject:IsTrack() then
-          local CloseThreshold = 10
-          if self.TargetZ and self.Position and CloseThreshold >= math.abs(self.Position.Z - self.TargetZ) then
-            self:StopTick()
-          end
-        end
-        if not npc:GetVisible() then
-          self:MarkInvalid(MarkInvalidReason[3])
-        else
-          self:UpdateDirectionSign()
-          self:UpdateDistance()
-          npc:ScheduleNextTick(0.1)
-          self:CheckNPCOptions(npc)
-        end
+      if self:UpdateNPCPositionAndStatus(npc) then
         return
       end
-    elseif self.LastTrackNpcId then
-      Log.Debug("TaskTrackItem:FindNPC: ClearTrackedNPC")
-      self:ClearTrackedNPC()
+    elseif self.CurrentNpc and self.CurrentNpc.viewObj and self.CurrentNpc.viewObj.resourceLoaded then
+      Log.Debug("TaskTrackItem:FindNPC: CurrentNpc Exist")
+      local npc = self.CurrentNpc
+      if npc then
+        self:UpdateNPCTrackStatus(npc, "TaskTrackItem:FindNPC")
+      end
+      HasTargetNPC = true
+      if self:UpdateNPCPositionAndStatus(npc) then
+        return
+      end
+    else
+      self.CurrentNpc = nil
+      if self.LastTrackNpcId then
+        Log.Debug("TaskTrackItem:FindNPC: ClearTrackedNPC")
+        self:ClearTrackedNPC()
+      end
     end
   elseif self:IsRegisteredFinder() then
     self:UnRegisterFinder()
@@ -577,6 +620,7 @@ function TaskTrackItem:FindNPC()
     end
   end
   local InDungeon = _G.DataModelMgr.PlayerDataModel:IsInDungeon()
+  local DungeonID = _G.DataModelMgr.PlayerDataModel:GetDungeonID()
   if self.WasInDungeon ~= InDungeon or self.TargetInSameScene ~= HasAnyInSameScene or self.TargetInSameSceneGroup ~= HasAnyInSameGroup or self.CurrentSceneID ~= CurrentMapID then
     self.WasInDungeon = InDungeon
     self.TargetInSameScene = HasAnyInSameScene
@@ -584,9 +628,12 @@ function TaskTrackItem:FindNPC()
     self.CurrentSceneID = CurrentMapID
     self.ShouldSendEvent = true
   end
-  if not self.TargetInSameScene and InDungeon then
-    self.Valid = false
-    self.MinimapValid = false
+  if not self.TargetInSameScene and DungeonID > 0 then
+    local Dungeon = _G.DataConfigManager:GetDungeonConf(DungeonID)
+    if Dungeon and Dungeon.hide_tag ~= Enum.HideTagType.HD_SPEC_TASK then
+      self.Valid = false
+      self.MinimapValid = false
+    end
   end
   local NeedReport = false
   if self.IsOnline then
@@ -1043,12 +1090,13 @@ function TaskTrackItem:InitArea()
 end
 
 function TaskTrackItem:UpdateTaskInfo(taskInfo)
+  if taskInfo and self.TaskInfo.id == taskInfo.id then
+    self.TaskInfo = taskInfo
+  end
   if self.TaskObject:IsTrack() then
     self:Focus(true)
     self.AnimIndex = 0
     self:StartTick()
-  else
-    self:StopTick()
   end
 end
 
@@ -1164,6 +1212,9 @@ end
 function TaskTrackItem:OnTaskTrackReady()
   self.ScenePosList = {}
   self:RefreshScenePosList()
+  if PlayerPosCache and self.Position:SizeSquared() < 0.01 then
+    self:FindNPC()
+  end
   if not self.TaskObject:IsTrack() then
     self:UpdateNotTrackPosition()
   end

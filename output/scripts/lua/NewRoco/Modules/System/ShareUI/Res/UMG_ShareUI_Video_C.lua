@@ -19,6 +19,7 @@ function UMG_ShareUI_Video_C:OnActive(data)
   self.PhotoSub:Init(self.data.petData.gid)
   self:ShowPetInfo()
   self:ShowPlayerInfo()
+  self:ShowPlayerInfoPanel(false)
 end
 
 function UMG_ShareUI_Video_C:OnDeactive()
@@ -67,8 +68,7 @@ function UMG_ShareUI_Video_C:ShowPlayerInfo()
       self.PhotoSub.HeadPortrait:SetPath(avatarPath)
     end
   end
-  self.PhotoSub.Name:SetText(playerInfo.name)
-  self.PhotoSub.Amount:SetText(tostring(self.data.petData.gid))
+  self.PhotoSub.PetNameText:SetText(string.format(_G.LuaText.Pet_Share_NUM_Txt, playerInfo.name, tostring(self.data.petData.gid)))
   self:ShowCardInfo()
 end
 
@@ -170,12 +170,25 @@ function UMG_ShareUI_Video_C:OnPlayVideoClick()
     _G.NRCModuleManager:DoCmd(ShareUIModuleCmd.OpenShareUIPanel, data)
   end
   
+  _G.NRCModuleManager:DoCmd(_G.ShareUIModuleCmd.SetIsSharingPetVideo, true)
   _G.NRCModuleManager:DoCmd(PetUIModuleCmd.OpenShareCameraPanel, data.petData, OpenCb, CloseCb)
   _G.NRCModuleManager:DoCmd(ShareUIModuleCmd.CloseShareUIPanel, true)
 end
 
 function UMG_ShareUI_Video_C:PlayStampInAnim()
   self.PhotoSub:PlayStampInAnim()
+end
+
+function UMG_ShareUI_Video_C:ShowPlayerInfoPanel(isShow)
+  if isShow then
+    self.PhotoSub.HeadPortrait:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    self.PhotoSub.Grade:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    self.PhotoSub.Grade_1:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  else
+    self.PhotoSub.HeadPortrait:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.PhotoSub.Grade:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.PhotoSub.Grade_1:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  end
 end
 
 return UMG_ShareUI_Video_C

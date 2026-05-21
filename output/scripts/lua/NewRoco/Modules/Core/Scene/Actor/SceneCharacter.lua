@@ -244,15 +244,17 @@ function SceneCharacter:GetActorTransform()
   return UE4.FTransform()
 end
 
+local IdentityTransform = UE4.FTransform()
+
 function SceneCharacter:GetActorTransformInplace(transform, translation, rotation, scale)
   if UE.UObject.IsValid(self.viewObj) then
     UE4.UNRCStatics.Abs_GetActorTransformInplace(self.viewObj, transform, translation, rotation, scale)
     return
   end
-  transform = UE4.FTransform()
-  translation = UE4.FVector(0, 0, 0)
-  rotation = UE4.FQuat(0, 0, 0, 1)
-  scale = UE4.FVector(1, 1, 1)
+  transform:CopyFrom(IdentityTransform)
+  translation:Set(0, 0, 0)
+  rotation:Set(0, 0, 0, 1)
+  scale:Set(1, 1, 1)
 end
 
 function SceneCharacter:GetActorLocationInplace(location)
@@ -260,7 +262,7 @@ function SceneCharacter:GetActorLocationInplace(location)
     UE4.UNRCStatics.Abs_K2_GetActorLocationInplace(self.viewObj, location)
     return
   end
-  rotation = UE4.FVector(0, 0, 0)
+  location:Set(0, 0, 0)
 end
 
 function SceneCharacter:GetActorRotationInplace(rotation)
@@ -268,7 +270,7 @@ function SceneCharacter:GetActorRotationInplace(rotation)
     UE4.UNRCStatics.K2_GetActorRotationInplace(self.viewObj, rotation)
     return
   end
-  rotation = UE4.FRotator(0, 0, 0)
+  rotation:Set(0, 0, 0)
 end
 
 function SceneCharacter:GetActorLocation()

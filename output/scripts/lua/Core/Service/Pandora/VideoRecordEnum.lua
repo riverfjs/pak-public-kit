@@ -5,7 +5,8 @@ local VideoRecordEnum = {
     EVENT_ID_GENERATE_VIDEO = 3,
     EVENT_ID_SHOW_DIALOG = 4,
     EVENT_ID_LIFECYCLE = 5,
-    EVENT_ID_AUTH = 6
+    EVENT_ID_AUTH = 6,
+    EVENT_ID_MOVE_MEDIA_TO_ALBUM = 7
   },
   ErrorCode = {
     SUCCESS = 0,

@@ -557,6 +557,9 @@ function UMG_Pet_GroupWarfare_C:PlayRemoveAnim(_curRound)
 end
 
 function UMG_Pet_GroupWarfare_C:UpdateList()
+  if not self.curRound then
+    return
+  end
   self:RemoveBeforeRound(self.curRound + 1)
   local ShowSkillList = self:ShowFirstFourSkills(self.curRound + 1, true)
   self.List_1:AddOrRemoveItem(true, #ShowSkillList, ShowSkillList[#ShowSkillList], true)
@@ -578,6 +581,7 @@ function UMG_Pet_GroupWarfare_C:ShowEnemySkillListByChooseSkill(_PetSkillList, _
   local PetSkillList = _PetSkillList
   if PetSkillList.pkinfo then
     self:AddNewRound(_PetSkillList, _curRound)
+    self:CheckRefreshVisibleSkillItems(_curRound)
     for i, Skill in ipairs(self.EnemySkillList) do
       if Skill.SkillId == PetSkillList.pkinfo.skill_id and PetSkillList.pkinfo.attack_pet_id and _curRound == Skill.curRound then
         Skill.pet_id = PetSkillList.pkinfo.attack_pet_id
@@ -600,6 +604,7 @@ function UMG_Pet_GroupWarfare_C:ShowEnemySkillListByChooseSkill(_PetSkillList, _
           items = PetSkillList.pkinfo.items,
           simple_pets = PetSkillList.pkinfo.simple_pets
         }
+        Skill.is_set_info = true
         local Item = self.List_1:GetItemByIndex(i - 1)
         if Item then
           Item:SetPetPos(Skill)
@@ -660,7 +665,7 @@ function UMG_Pet_GroupWarfare_C:RefreshChildClickAnim()
   local listCount = self.List_1:GetItemCount()
   for index = 1, listCount do
     local Item = self.List_1:GetItemByIndex(index - 1)
-    if Item and Item.data and not Item.data.Pos then
+    if Item and Item.data and not Item.data.is_set_info then
       targetPos = index - 1
       break
     end
@@ -729,6 +734,39 @@ function UMG_Pet_GroupWarfare_C:ShowFirstFourSkills(curRound, _IsBoost)
   return ShowSkillList
 end
 
+function UMG_Pet_GroupWarfare_C:CheckRefreshVisibleSkillItems(_curRound)
+  local needRefresh = false
+  for i = #self.EnemySkillList, 1, -1 do
+    local Skill = self.EnemySkillList[i]
+    if _curRound > Skill.curRound and not Skill.is_set_info then
+      needRefresh = true
+      table.remove(self.EnemySkillList, i)
+    end
+  end
+  if not needRefresh then
+    return
+  end
+  Log.Debug("CheckRefreshVisibleSkillItems needRefresh!")
+  self.WaitPlayAddOrRemoveSkillAnim = {}
+  self.curRound = nil
+  local listCount = self.List_1:GetItemCount()
+  local ShowSkillList = self:ShowFirstFourSkills(_curRound, true)
+  for i = 0, listCount - 1 do
+    local Item = self.List_1:GetItemByIndex(i)
+    local targetData = ShowSkillList[i + 1]
+    Item:StopAllAnimations()
+    if targetData then
+      Item:OnItemUpdate(targetData, ShowSkillList, i + 1)
+      if targetData.is_set_info then
+        Item:SetPetPos(targetData)
+        Item:SetIconShow(targetData)
+        Item:PlayOutAnim()
+        Item:Release()
+      end
+    end
+  end
+end
+
 function UMG_Pet_GroupWarfare_C:AddNewRound(_PetSkillList, _curRound)
   local CurRound = _curRound
   if _PetSkillList.skills then
@@ -742,10 +780,9 @@ function UMG_Pet_GroupWarfare_C:AddNewRound(_PetSkillList, _curRound)
         end
       end
       if not IsHasSkill then
-        local Round = self.EnemySkillList[#self.EnemySkillList].curRound
         table.insert(self.EnemySkillList, {
           SkillId = skill_id.skill_id,
-          curRound = Round + 1,
+          curRound = CurRound,
           hide = skill_id.hide,
           EnemyPet = self.EnemyPet
         })

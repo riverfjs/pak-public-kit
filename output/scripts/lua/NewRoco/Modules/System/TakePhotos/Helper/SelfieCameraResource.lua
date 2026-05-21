@@ -26,11 +26,11 @@ function SelfieCameraResource:OnLoad(Request, Asset)
 end
 
 function SelfieCameraResource:IsCreating()
-  return self.SelfieCameraClassRequest and not self.SelfieCamera
+  return self.SelfieCameraClassRequest
 end
 
 function SelfieCameraResource:IsCreated()
-  return self.SelfieCamera
+  return self.SelfieCamera and UE4.UObject.IsValid(self.SelfieCamera)
 end
 
 function SelfieCameraResource:GetCamera()
@@ -42,6 +42,7 @@ function SelfieCameraResource:ConditionalSpawn(WorldTransform)
   if self:IsCreating() or self:IsCreated() then
     return
   end
+  self.SelfieCamera = nil
   self.SpawnWorldTransform = WorldTransform
   if self.SelfieCameraClass and UE.UObject.IsValid(self.SelfieCameraClass) then
     self:InternalSpawn()
@@ -63,8 +64,9 @@ function SelfieCameraResource:Process()
   if self.SelfieCamera and UE4.UObject.IsValid(self.SelfieCamera) then
     self.SelfieCamera:SetActorHiddenInGame(false)
     self.SelfieCamera:SetActorEnableCollision(true)
+    return self.SelfieCamera
   end
-  return self.SelfieCamera
+  return nil
 end
 
 function SelfieCameraResource:UnProcess()
@@ -79,8 +81,8 @@ function SelfieCameraResource:DestroyCamera()
   self.SpawnWorldTransform = nil
   if self.SelfieCamera and UE.UObject.IsValid(self.SelfieCamera) then
     self.SelfieCamera:K2_DestroyActor()
-    self.SelfieCamera = nil
   end
+  self.SelfieCamera = nil
 end
 
 return SelfieCameraResource

@@ -1,7 +1,75 @@
+if not string._raw_format then
+  string._raw_format = string.format
+  local _nonShipping
+  
+  function string.format(fmt, ...)
+    local profilerStartUs
+    if nil == _nonShipping and RocoEnv then
+      _nonShipping = not RocoEnv.IS_SHIPPING
+    end
+    if _nonShipping and UE4 and UE4.UNRCStatics and UE4.UNRCStatics.GetTimestampMicroseconds then
+      profilerStartUs = UE4.UNRCStatics.GetTimestampMicroseconds()
+    end
+    local nonShipping = _nonShipping
+    local argCount = select("#", ...)
+    if type(fmt) ~= "string" or not fmt:find("{%d+[}:]", 1, false) then
+      local ret = string._raw_format(fmt, ...)
+      if profilerStartUs then
+        local profiler = _G and _G.NRCProfilerLog
+        if profiler and profiler.RecordStringFormatCost then
+          local totalUs = UE4.UNRCStatics.GetTimestampMicroseconds() - profilerStartUs
+          if totalUs > 0 then
+            profiler:RecordStringFormatCost(totalUs)
+          end
+        end
+      end
+      return ret
+    end
+    if nonShipping then
+      local openCount = 0
+      local closeCount = 0
+      local s = fmt
+      local i = 1
+      local len = #s
+      while i <= len do
+        local c = s:sub(i, i)
+        if "{" == c and s:sub(i, i + 1) == "{{" then
+          openCount = openCount + 1
+          i = i + 2
+        elseif "}" == c and s:sub(i, i + 1) == "}}" then
+          closeCount = closeCount + 1
+          i = i + 2
+        else
+          i = i + 1
+        end
+      end
+      if openCount ~= closeCount then
+        Log.Warning(string._raw_format("[string.format] \232\173\166\229\145\138\239\188\154\230\163\128\230\181\139\229\136\176 '{{' \229\146\140 '}}' \228\184\141\230\136\144\229\175\185\239\188\136{{=%d, }}=%d\239\188\137\239\188\140\232\175\183\230\163\128\230\159\165\232\189\172\228\185\137\229\134\153\230\179\149\239\188\140\229\142\159\229\167\139fmt: %s", openCount, closeCount, tostring(fmt)))
+      end
+      local cleaned = fmt:gsub("{{.-}}", ""):gsub("{%d+:[^}]*}", ""):gsub("%%%%", "")
+      if cleaned:find("{%d+}") and cleaned:find("%%[-+#0]*%d*%.?%d*[cdeEfgGiouqsxX]") then
+        Log.Warning(string._raw_format("[string.format] \232\173\166\229\145\138\239\188\154\230\160\188\229\188\143\229\173\151\231\172\166\228\184\178\230\183\183\231\148\168\228\186\134 {n} \229\146\140 %%s/%%d \231\173\137\229\141\160\228\189\141\231\172\166\239\188\140%%... \233\131\168\229\136\134\229\176\134\228\184\141\228\188\154\232\162\171\229\164\132\231\144\134\239\188\129\229\142\159\229\167\139fmt: %s", tostring(fmt)))
+      end
+    end
+    local result = string.format_indexed(fmt, {
+      ...
+    }, argCount)
+    if profilerStartUs then
+      local profiler = _G and _G.NRCProfilerLog
+      if profiler and profiler.RecordStringFormatCost then
+        local totalUs = UE4.UNRCStatics.GetTimestampMicroseconds() - profilerStartUs
+        if totalUs > 0 then
+          profiler:RecordStringFormatCost(totalUs)
+        end
+      end
+    end
+    return result
+  end
+end
+
 function string.StartsWith(value, prefix, toffset)
   if value and prefix then
     toffset = (toffset or 1) > 0 and toffset or 1
-    
     return string.sub(value, toffset, toffset + #prefix - 1) == prefix
   end
   return false
@@ -501,4 +569,141 @@ end
 
 function string.AsObject(str)
   return UE.UObject.Load(str)
+end
+
+function string.ExtractColorCodes(text)
+  local resultText = ""
+  local colorList = {}
+  local lastEnd = 1
+  local plainPos = 0
+  while true do
+    local startPos, endPos = string.find(text, "#%x%x%x%x%x%x", lastEnd)
+    if not startPos then
+      local remaining = string.sub(text, lastEnd)
+      resultText = resultText .. remaining
+      break
+    end
+    local beforeCode = string.sub(text, lastEnd, startPos - 1)
+    resultText = resultText .. beforeCode
+    plainPos = plainPos + #beforeCode
+    local code = string.sub(text, startPos, endPos)
+    table.insert(colorList, {pos = plainPos, code = code})
+    lastEnd = endPos + 1
+  end
+  return resultText, colorList
+end
+
+function string.RebuildTextWithColorCodes(plainText, colorList)
+  if not colorList or 0 == #colorList then
+    return plainText
+  end
+  local result = ""
+  local lastPos = 0
+  table.sort(colorList, function(a, b)
+    return a.pos < b.pos
+  end)
+  for _, colorInfo in ipairs(colorList) do
+    local pos = colorInfo.pos
+    local code = colorInfo.code
+    if pos <= #plainText then
+      local segment = string.sub(plainText, lastPos + 1, pos)
+      result = result .. segment
+      result = result .. code
+      lastPos = pos
+    end
+  end
+  result = result .. string.sub(plainText, lastPos + 1)
+  return result
+end
+
+function string.ExtractInvalidColorCodes(text)
+  local result = text
+  while true do
+    local pattern = "#%x%x%x%x%x%x"
+    local foundInvalid = false
+    local lastEnd = 1
+    while true do
+      local startPos, endPos = string.find(result, pattern, lastEnd)
+      if not startPos then
+        break
+      end
+      local afterPos = endPos + 1
+      local isValid = false
+      local checkPos = afterPos
+      while true do
+        local char = string.sub(result, checkPos, checkPos)
+        if "" == char then
+          isValid = false
+          break
+        elseif string.match(char, "%s") then
+          checkPos = checkPos + 1
+        elseif "#" == char then
+          local nextChar = string.sub(result, checkPos + 1, checkPos + 1)
+          if string.match(nextChar, "[0-9a-fA-F]") then
+            isValid = false
+            break
+          else
+            isValid = true
+            break
+          end
+        else
+          isValid = true
+          break
+        end
+      end
+      if not isValid then
+        local before = string.sub(result, 1, startPos - 1)
+        local after = string.sub(result, endPos + 1)
+        result = before .. after
+        foundInvalid = true
+        break
+      end
+      lastEnd = endPos + 1
+    end
+    if not foundInvalid then
+      break
+    end
+  end
+  return result
+end
+
+function string.ConvertToRichText(text)
+  if string.IsNilOrEmpty(text) then
+    return ""
+  end
+  local pattern = "#(%x%x%x%x%x%x)"
+  local result = ""
+  local lastEnd = 1
+  local currentColor
+  local hasPendingContent = false
+  while true do
+    local startPos, endPos, colorCode = string.find(text, pattern, lastEnd)
+    if not startPos then
+      local remaining = string.sub(text, lastEnd)
+      if "" ~= remaining then
+        if currentColor then
+          result = result .. remaining .. "</>"
+          break
+        end
+        result = result .. remaining
+        break
+      end
+      if currentColor then
+        result = result .. "</>"
+      end
+      break
+    end
+    local content = string.sub(text, lastEnd, startPos - 1)
+    if currentColor and ("" ~= content or hasPendingContent) then
+      result = result .. content .. "</>"
+      hasPendingContent = false
+    else
+      result = result .. content
+    end
+    result = result .. "<span color=\"#" .. colorCode .. "\">"
+    currentColor = colorCode
+    hasPendingContent = true
+    lastEnd = endPos + 1
+  end
+  return result
 end

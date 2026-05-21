@@ -15,9 +15,28 @@ function UMG_PVE_Talent_C:OnConstruct()
   self:AddButtonListener(self.LexiconBtn.btnLevelUp, self.OnClickOpenPveCurrentPeriod)
   self:AddButtonListener(self.RefreshDataBtn.btnLevelUp, self.OnClickReset)
   self:AddButtonListener(self.DetailsBtn.btnLevelUp, self.OnClickShowBrief)
+  self:AddButtonListener(self.Btn_Return.btnClose, self.OnClickBtnReturn)
   self:RegisterEvent(self, PVEModuleEvent.TalentNodeLockStatusChange, self.OnTalentNodeLockStatusChange)
   self:RegisterEvent(self, PVEModuleEvent.TalentMaterialCntChange, self.OnTalentMaterialCntChange)
   self:RegisterEvent(self, PVEModuleEvent.TalentNodeUnlockCntChange, self.OnTalentNodeUnlockCntChange)
+  self:RegisterEvent(self, PVEModuleEvent.SwitchCurrentTalentNode, self.OnSwitchCurrentTalentNode)
+  self:RegisterEvent(self, PVEModuleEvent.ShowInnerPanels, self.ShowInnerPanels)
+  self.Text_Lexicon:SetText(_G.LuaText.season_battle_rule_entry)
+  self.lastSelectedItem = nil
+end
+
+function UMG_PVE_Talent_C:ShowInnerPanels(bVisible)
+  if self.bInnerPanelShowFlag == bVisible then
+    return
+  end
+  self.bInnerPanelShowFlag = bVisible
+  self.CanvasPanel_175:SetVisibility(bVisible and UE4.ESlateVisibility.SelfHitTestInvisible or UE4.ESlateVisibility.Collapsed)
+  self.LexiconBtn:SetVisibility(bVisible and UE4.ESlateVisibility.SelfHitTestInvisible or UE4.ESlateVisibility.Collapsed)
+  self.ScrollBox_0:SetVisibility(bVisible and UE4.ESlateVisibility.Visible or UE4.ESlateVisibility.Collapsed)
+  self.Text_Lexicon:SetVisibility(bVisible and UE4.ESlateVisibility.Visible or UE4.ESlateVisibility.Collapsed)
+  if self.NRCSwitcher_Btn then
+    self.NRCSwitcher_Btn:SetActiveWidgetIndex(bVisible and 0 or 1)
+  end
 end
 
 function UMG_PVE_Talent_C:OnDestruct()
@@ -68,6 +87,27 @@ function UMG_PVE_Talent_C:OnActive(talentData)
       initNodeImpl(row * 10 + col)
     end
   end
+  self:BindInputAction()
+  ZoneServer:Send(ProtoCMD.ZoneSvrCmd.ZONE_GET_SEASON_TALENT_POINT_REQ, {})
+end
+
+function UMG_PVE_Talent_C:OnDeactive()
+  self:UnBindInputAction()
+end
+
+function UMG_PVE_Talent_C:BindInputAction()
+  local mappingContext = self:AddInputMappingContext("IMC_CommonCloseUI")
+  if mappingContext then
+    mappingContext:BindAction("IA_CloseUI", self, "OnPcClose2")
+  end
+end
+
+function UMG_PVE_Talent_C:UnBindInputAction()
+  local mappingContext = self:GetInputMappingContext("IMC_CommonCloseUI")
+  if mappingContext then
+    mappingContext:UnBindAction("IA_CloseUI")
+  end
+  self:RemoveInputMappingContext("IMC_CommonCloseUI")
 end
 
 function UMG_PVE_Talent_C:SetCommonTitle()
@@ -86,7 +126,7 @@ function UMG_PVE_Talent_C:RefreshTalentNodeLinkLine(nodeConf, status)
     local lineCtrlName = neighborSortId > nodeSortId and nodeSortId .. "_" .. neighborSortId or neighborSortId .. "_" .. nodeSortId
     local lineCtrl = self[lineCtrlName]
     if lineCtrl then
-      lineCtrl:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+      lineCtrl:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
       local bothUnlock = false
       if status == PVEModuleEnum.TalentNodeStatus.Unlocked and talentData then
         local neighborId = talentData.nodeSortToId[neighborSortId]
@@ -104,7 +144,7 @@ function UMG_PVE_Talent_C:RefreshTalentNodeLinkLine(nodeConf, status)
   end
 end
 
-function UMG_PVE_Talent_C:OnTalentNodeLockStatusChange(nodeData)
+function UMG_PVE_Talent_C:OnTalentNodeLockStatusChange(nodeData, isInit)
   if not nodeData then
     return
   end
@@ -112,7 +152,7 @@ function UMG_PVE_Talent_C:OnTalentNodeLockStatusChange(nodeData)
   if nodeCtrl then
     local itemInst = nodeCtrl:GetPanel()
     if UE4.UObject.IsValid(itemInst) then
-      itemInst:RefreshLockStatus(nodeData)
+      itemInst:RefreshLockStatus(nodeData, isInit)
     end
   end
   local nodeConf = _G.DataConfigManager:GetSeasonGrowthConf(nodeData.id)
@@ -126,21 +166,74 @@ function UMG_PVE_Talent_C:OnTalentMaterialCntChange(materialCnt)
   if materialItemInst then
     materialItemInst:SetSumText(materialCnt)
   end
+  self:RefreshAllCanUnlockNodeRipple()
+end
+
+function UMG_PVE_Talent_C:RefreshAllCanUnlockNodeRipple()
+  local talentData = self.talentData
+  if not talentData then
+    return
+  end
+  
+  local function refreshNode(sortId)
+    local nodeCtrl = self[tostring(sortId)]
+    if nodeCtrl then
+      local itemInst = nodeCtrl:GetPanel()
+      if UE4.UObject.IsValid(itemInst) and itemInst.itemData and itemInst.itemData.status == PVEModuleEnum.TalentNodeStatus.CanUnlock then
+        itemInst:RefreshLockStatus(itemInst.itemData, true, true)
+      end
+    end
+  end
+  
+  refreshNode(0)
+  for row, nodeCnt in ipairs(TalentNodeLayoutInfo) do
+    for col = 1, nodeCnt do
+      refreshNode(row * 10 + col)
+    end
+  end
 end
 
 function UMG_PVE_Talent_C:OnTalentNodeUnlockCntChange(unLockCnt, totalCnt)
   self.ActivationQuantity:SetText(string.format("%d/%d", unLockCnt or 0, totalCnt or 0))
 end
 
+function UMG_PVE_Talent_C:GetItemInst(sortId)
+  local nodeCtrl = self[tostring(sortId)]
+  local itemInst = nodeCtrl and nodeCtrl:GetPanel()
+  return itemInst
+end
+
+function UMG_PVE_Talent_C:OnSwitchCurrentTalentNode(newItem)
+  local lastItem = self.lastSelectedItem
+  if lastItem == newItem then
+    return
+  end
+  local itemInst = lastItem and self:GetItemInst(lastItem.sort)
+  if itemInst then
+    itemInst:ChangeSelect(false)
+  end
+  itemInst = newItem and self:GetItemInst(newItem.sort)
+  if itemInst then
+    itemInst:ChangeSelect(true)
+  end
+  self.lastSelectedItem = newItem
+end
+
 function UMG_PVE_Talent_C:OnClickOpenPveCurrentPeriod()
+  _G.NRCAudioManager:PlaySound2DAuto(41401003, "UMG_PVE_Talent_C:OnClickOpenPveCurrentPeriod")
   _G.NRCModeManager:DoCmd(_G.PVEModuleCmd.OpenPveCurrentPeriod)
 end
 
 function UMG_PVE_Talent_C:OnClickReset()
   local returnMaterialCnt = _G.NRCModeManager:DoCmd(_G.PVEModuleCmd.GetTalentResetReturnMaterialCnt)
+  if returnMaterialCnt <= 0 then
+    _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, _G.LuaText.season_talent_none_reset)
+    return
+  end
   local DialogContext = require("NewRoco.Modules.System.TipsModule.DialogContext")
   local Context = DialogContext()
-  Context:SetTitle(_G.LuaText.TIPS):SetContent(string.format(_G.LuaText.seasontalent_reset, returnMaterialCnt or 0)):SetContentTextJustify(UE4.ETextJustify.Center):SetMode(DialogContext.Mode.OK_CANCEL):SetButtonText(_G.LuaText.tips_dialog_butten_accept, _G.LuaText.tips_dialog_butten_cancel):SetCallbackOkOnly(nil, function()
+  Context:SetTitle(_G.LuaText.TIPS):SetContent(string.format(_G.LuaText.seasontalent_reset, "<img id=\"Research_Point\"/>" .. tostring(returnMaterialCnt or 0))):SetContentTextJustify(UE4.ETextJustify.Center):SetMode(DialogContext.Mode.OK_CANCEL):SetButtonText(_G.LuaText.tips_dialog_butten_accept, _G.LuaText.tips_dialog_butten_cancel):SetClickAnywhereClose(true):SetCallbackOkOnly(nil, function()
+    _G.NRCAudioManager:PlaySound2DAuto(41401015, "PVEModule:OnZoneClearSeasonTalentPointRsp")
     local req = _G.ProtoMessage:newZoneClearSeasonTalentPointReq()
     _G.ZoneServer:Send(_G.ProtoCMD.ZoneSvrCmd.ZONE_CLEAR_SEASON_TALENT_POINT_REQ, req)
   end)
@@ -154,7 +247,11 @@ function UMG_PVE_Talent_C:OnClickShowBrief()
   _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.Dialog_OpenLongDialog, Context)
 end
 
-function UMG_PVE_Talent_C:OnPcClose()
+function UMG_PVE_Talent_C:OnClickBtnReturn()
+  _G.NRCModuleManager:DoCmd(_G.PVEModuleCmd.ClosePveParticulars)
+end
+
+function UMG_PVE_Talent_C:OnPcClose2()
   self:OnClose()
 end
 

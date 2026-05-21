@@ -109,6 +109,9 @@ function MiniGameShowHide:CheckShouldHide(npc)
   if npc:IsAThrownPet() then
     local bHide = npc:GetWorldOwnerID() ~= self.PlayerUIN
     self:DrawDebugHideReason(npc, bHide, MiniGameHideReason.IsAThrownPet)
+    if bHide then
+      _G.NRCModuleManager:DoCmd(_G.WorldCombatModuleCmd.AddHideNpcViews, npc.viewObj)
+    end
     return bHide
   end
   if npc.config and 1 ~= npc.config.can_hide_in_minigame then
@@ -121,6 +124,7 @@ function MiniGameShowHide:CheckShouldHide(npc)
     npc.AIComponent:ForceLockForReason(true, false, AIDefines.LockReason.MINIGAME_HIDE)
   end
   self:DrawDebugHideReason(npc, true, MiniGameHideReason.RegionContainPoint)
+  _G.NRCModuleManager:DoCmd(_G.WorldCombatModuleCmd.AddHideNpcViews, npc.viewObj)
   return true
 end
 
@@ -146,6 +150,7 @@ function MiniGameShowHide:CheckShouldShow(npc)
   if npc.AIComponent then
     npc.AIComponent:ForceLockForReason(false, false, AIDefines.LockReason.MINIGAME_HIDE)
   end
+  _G.NRCModuleManager:DoCmd(_G.WorldCombatModuleCmd.RemoveHideNpcViews, npc.viewObj)
   return true
 end
 

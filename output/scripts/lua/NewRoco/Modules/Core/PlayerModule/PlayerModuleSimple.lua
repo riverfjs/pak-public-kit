@@ -29,6 +29,12 @@ function PlayerModuleSimple:OnDestruct()
   self.player = nil
 end
 
+function PlayerModuleSimple:OnTick(deltaTime)
+  if self.player then
+    self.player:Update(deltaTime)
+  end
+end
+
 function PlayerModuleSimple:CreatePlayer()
   self.player = SceneLocalPlayerSimple(self)
   self.player.isLocal = true
@@ -42,9 +48,11 @@ function PlayerModuleSimple:CreatePlayer()
     return self.playerController
   end
   
-  self.playerActor:Abs_K2_SetActorLocation_WithoutHit(UE4.FVector(-5796, 2939, 60))
-  self.playerActor:K2_SetActorRotation(UE4.FRotator(0, 0, 0), false)
-  self.player:GetUEController().PlayerCameraManager:RefreshPCCameraRotateSetting()
+  local cameraMgr = self.player:GetUEController().PlayerCameraManager
+  cameraMgr:RefreshPCCameraRotateSetting()
+  cameraMgr:OnPossess(self.playerActor)
+  cameraMgr.CustomBigWorldCamera = true
+  self.player.FadeComponent:ApplyFadeRule()
   return self.player
 end
 

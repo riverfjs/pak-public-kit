@@ -55,7 +55,7 @@ function UMG_Appearance_Suit_C:UpdateList(fashionInfo, bClicked, _IsPlaySound, i
   local click = bClicked and bClicked or true
   local curIndex = fashionInfo.current_wardrobe_index
   if selectedIndex then
-    curIndex = selectedIndex
+    curIndex = selectedIndex - 1
   end
   local suitData = {}
   if fashionInfo.wardrobe_data then
@@ -176,7 +176,7 @@ function UMG_Appearance_Suit_C:SetScrollToPage(_curIndex)
   if nil == _curIndex then
     return
   end
-  if _curIndex <= 5 then
+  if _curIndex < 5 then
     self.ScrollPageController:ScrollToPage(0, 0.1)
   else
     self.ScrollPageController:ScrollToPage(1, 0.1)

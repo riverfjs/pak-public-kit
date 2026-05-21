@@ -440,10 +440,17 @@ function BattleAIManager:JumpToLocation(battlePetFrom, targetPoint, donntHandleE
   if not donntHandleEvent then
     skillObj:RegisterRawCallback(self, self.OnSkillEvent)
   end
+  skillObj:RegisterEventCallback("Interrupt", self, self.OnJumpFailed)
+  skillObj:RegisterEventCallback("StartFailed", self, self.OnJumpFailed)
   local Blackboard = skillObj:GetBlackboard()
   Blackboard:SetValueAsVector("TargetLocation", targetPoint)
   local result = skillComponent:PlaySkill(skillObj)
   return 0 == result
+end
+
+function BattleAIManager:OnJumpFailed()
+  Log.Error("BattleAIManager:OnJumpFailed")
+  self:OnMoveCompleted(false)
 end
 
 function BattleAIManager:OnSkillEvent(event, skill)

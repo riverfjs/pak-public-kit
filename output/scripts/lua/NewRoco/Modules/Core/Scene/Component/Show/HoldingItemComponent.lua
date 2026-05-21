@@ -10,6 +10,7 @@ function HoldingItemComponent:Ctor()
   self.loading_blackboard = {}
   self.request_map = {}
   self.wait_load_map = {}
+  self.order_map = {}
 end
 
 function HoldingItemComponent:Attach(owner)
@@ -64,9 +65,11 @@ function HoldingItemComponent:AddOrder(performers, caller, callback, priority)
   order.show_caller = caller
   order.show_callback = callback
   order:StartLoad(self, self.OnLoadFinished)
+  self.order_map[order] = true
 end
 
 function HoldingItemComponent:OnLoadFinished(order, success)
+  table.removeKey(self.order_map, order)
   if not success then
     Log.Error("\228\184\186\228\187\128\228\185\13630\231\167\146\232\191\152\229\138\160\232\189\189\228\184\141\229\135\186\230\157\165\229\149\138\229\149\138\229\149\138\229\149\138\229\149\138\229\149\138\239\188\140\232\191\153\229\144\136\231\144\134\229\144\151\239\188\140\232\191\153\228\184\128\231\130\185\228\185\159\228\184\141\229\144\136\231\144\134\239\188\129\239\188\129\239\188\129\239\188\129\239\188\129")
   end
@@ -100,6 +103,15 @@ end
 
 function HoldingItemComponent:UnRegisterItem(key)
   self.blackboard[key] = false
+end
+
+function HoldingItemComponent:CancelAllOrder()
+  local order, _ = next(self.order_map)
+  while order do
+    order:Release()
+    self.order_map[order] = nil
+    order, _ = next(self.order_map)
+  end
 end
 
 return HoldingItemComponent

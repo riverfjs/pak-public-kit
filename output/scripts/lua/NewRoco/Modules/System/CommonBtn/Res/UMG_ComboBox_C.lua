@@ -264,7 +264,9 @@ function UMG_ComboBox_C:SelectItem(index, dataList)
   local showData = self.uiData[index]
   self.Text:SetText(showData.name)
   self:SetPopupVisible(false)
-  _G.NRCModeManager:DoCmd(BigMapModuleCmd.CloseMapRightPanel)
+  if BigMapModuleCmd then
+    _G.NRCModeManager:DoCmd(BigMapModuleCmd.CloseMapRightPanel)
+  end
 end
 
 function UMG_ComboBox_C:OnComboBtnClicked()
@@ -272,7 +274,9 @@ function UMG_ComboBox_C:OnComboBtnClicked()
     return
   end
   _G.NRCAudioManager:PlaySound2DAuto(41401003, "UMG_ComboBox_C:OnBtnComboBoxClicked")
-  _G.NRCModuleManager:DoCmd(BagModuleCmd.ShowCloseBtnPanel)
+  if BagModuleCmd then
+    _G.NRCModuleManager:DoCmd(BagModuleCmd.ShowCloseBtnPanel)
+  end
   local bShowList = not self.bShowList
   if bShowList then
     _G.NRCEventCenter:DispatchEvent(BigMapModuleEvent.ExcludeUmgPanelEvent, "UMG_ComboBox")

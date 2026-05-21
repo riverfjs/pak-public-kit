@@ -5,7 +5,9 @@ local MainUIModuleEvent = reload("NewRoco.Modules.System.MainUI.MainUIModuleEven
 local PetUtils = require("NewRoco.Utils.PetUtils")
 local PetUIModuleEnum = require("NewRoco.Modules.System.PetUI.PetUIModuleEnum")
 local ShareUIModuleEvent = reload("NewRoco.Modules.System.ShareUI.ShareUIModuleEvent")
+local UIUtils = require("NewRoco.Utils.UIUtils")
 local UMG_PetLeftPanel_C = _G.NRCViewBase:Extend("UMG_PetLeftPanel_C")
+local EnumPetInfoChangeReasonType = {None = 0, TraceBack = 1}
 
 function UMG_PetLeftPanel_C:Initialize(Initializer)
   Log.Debug("UMG_PetLeftPanel_C:Initialize")
@@ -30,6 +32,7 @@ function UMG_PetLeftPanel_C:OnConstruct()
   self:updateCloseButtonVisible()
   self:updateSubPanelVisible()
   self.Incubating:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self.bPetBagBtnEnable = true
   local icon1 = "PaperSprite'/Game/NewRoco/Modules/System/PetUI/Raw/Atlas/GameInfo/Frames/ui_petinfo_basci_icon_png.ui_petinfo_basci_icon_png'"
   local icon2 = "PaperSprite'/Game/NewRoco/Modules/System/PetUI/Raw/Atlas/GameInfo/Frames/ui_petinfo_basci_icon2_png.ui_petinfo_basci_icon2_png'"
   local icon3 = "PaperSprite'/Game/NewRoco/Modules/System/PetUI/Raw/Atlas/GameInfo/Frames/umg_petAttri_png.umg_petAttri_png'"
@@ -111,6 +114,7 @@ function UMG_PetLeftPanel_C:OnConstruct()
   self.List_More:InitList(TitleList)
   self:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.TeamSwitch:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self.LongPressTime = _G.DataConfigManager:GetGlobalConfigByKeyType("drag_mode_press_time", _G.DataConfigManager.ConfigTableId.GLOBAL_CONFIG).num / 1000
 end
 
 function UMG_PetLeftPanel_C:SetSkillShow(bShowSkillPanel)
@@ -294,7 +298,10 @@ function UMG_PetLeftPanel_C:UpdateBloodInfo(IsPlayAnim)
   end
 end
 
-function UMG_PetLeftPanel_C:OnPlayerDataUpdate()
+function UMG_PetLeftPanel_C:OnPlayerDataUpdate(UpdateGoodType, PetDataChangeItemList)
+  if PetDataChangeItemList and 1 == #PetDataChangeItemList and PetDataChangeItemList[1] and PetDataChangeItemList[1].PetDataUpdateReasonType == PetUIModuleEnum.PetDataUpdateReason.TraceBack then
+    return
+  end
   local battlePetList = _G.DataModelMgr.PlayerDataModel:GetPlayerBattlePetInfo()
   for i = 1, self.petHeadList:GetItemCount() do
     local Item = self.petHeadList:GetItemByIndex(i - 1)
@@ -485,6 +492,10 @@ function UMG_PetLeftPanel_C:OnDestruct()
   self.uiData = nil
   self.uiItem = nil
   self.Attribute:Destruct()
+  if self.dragInstance and UE4.UObject.IsValid(self.dragInstance) then
+    self.dragInstance:RemoveFromParent()
+    self.dragInstance = nil
+  end
 end
 
 function UMG_PetLeftPanel_C:OnEnable()
@@ -511,6 +522,7 @@ function UMG_PetLeftPanel_C:OnAddEventListener()
   self:RegisterEvent(self, PetUIModuleEvent.USE_EXP_ITEM_SUCCESS1, self.OnUseExpItemSuccess)
   self:RegisterEvent(self, PetUIModuleEvent.OnRefreshEvoPetModel, self.OnEvolutionSuccess)
   self:RegisterEvent(self, PetUIModuleEvent.PET_GROWUP_SUCCESS, self.OnPetGroUpSuccess)
+  self:RegisterEvent(self, PetUIModuleEvent.PET_TRACEBACK_SUCCESS_REWARD_POPUP_CLOSE, self.OnPetTraceBackSuccessAndRewardPopupClose)
   self:RegisterEvent(self, PetUIModuleEvent.PET_UI_TEAMBTN_BTNCLICK, self.OnLeftPanelTeamButtonClick)
   self:RegisterEvent(self, PetUIModuleEvent.SET_PET_ISPLAY_SUCCESS, self.OnSetPetIsPlaySuccess)
   self:RegisterEvent(self, PetUIModuleEvent.PET_UI_PET_CHANGE_TEAM, self.OnUIPetChangeTeam)
@@ -542,11 +554,15 @@ function UMG_PetLeftPanel_C:OnAddEventListener()
   self:RegisterEvent(self, PetUIModuleEvent.PlayerDataUpdate, self.OnPlayerDataUpdate)
   self:RegisterEvent(self, PetUIModuleEvent.OnOpenNewPetBag, self.OnSwitchNewPetBagOpened)
   self:RegisterEvent(self, PetUIModuleEvent.SetAttributeState, self.CloseSwitchButton)
+  _G.NRCEventCenter:RegisterEvent("UMG_PetLeftPanel_C", self, _G.NRCGlobalEvent.OnRocoTouchStart, self.OnRocoTouchStartHandler)
+  _G.NRCEventCenter:RegisterEvent("UMG_PetLeftPanel_C", self, _G.NRCGlobalEvent.OnRocoTouchMove, self.OnRocoTouchMoveHandler)
+  _G.NRCEventCenter:RegisterEvent("UMG_PetLeftPanel_C", self, _G.NRCGlobalEvent.OnRocoTouchEnd, self.OnRocoTouchEndHandler)
   _G.NRCModuleManager:GetModule("PetUIModule"):RegisterEvent(self, PetUIModuleEvent.RemoveSkillNewState, self.RemoveSkillNewState)
   _G.DataModelMgr.PlayerDataModel:AddEventListener(self, PlayerDataEvent.UPDATE_PET_HP, self.OnPlayerPetHPChange)
   _G.NRCEventCenter:RegisterEvent("UMG_PetLeftPanel_C", self, PetUIModuleEvent.CHANGE_PET_POS_SUCCESS, self.OnChangePetBagPosComplete)
   self.RedDot:SetupKey(192)
   _G.NRCEventCenter:RegisterEvent(self.name, self, ShareUIModuleEvent.SHOW_ENTRANCE_REWARD, self.CheckShowShareReward)
+  self:RegisterEvent(self, PetUIModuleEvent.OnBigWorldTeamPetChangeEvent, self.OnBigWorldTeamPetChangeEvent)
 end
 
 function UMG_PetLeftPanel_C:OnRightSlide()
@@ -691,7 +707,7 @@ function UMG_PetLeftPanel_C:RefreshCurTeamName()
   local TeamIndex = self.petBagTeamIndex or teamInfo.main_team_idx and teamInfo.main_team_idx + 1 or 1
   local default_name = _G.DataConfigManager:GetPetGlobalConfig("mainworld_team_default_name").str
   local CurPetTeam = teamInfo.teams[TeamIndex]
-  if CurPetTeam.team_name then
+  if CurPetTeam and CurPetTeam.team_name then
     self.TeamName:SetText(CurPetTeam.team_name)
   else
     self.TeamName:SetText(string.format(default_name, TeamIndex))
@@ -700,6 +716,10 @@ end
 
 function UMG_PetLeftPanel_C:TryShowOrCloseTeamSwitch(_bShow)
   if _bShow then
+    if self.module:HasPanel("NewPetBag") then
+      self.TeamSwitch:SetVisibility(UE4.ESlateVisibility.Collapsed)
+      return
+    end
     if self.IsOpenWithOne then
       self.TeamSwitch:SetVisibility(UE4.ESlateVisibility.Collapsed)
     elseif self.ThumbVersion then
@@ -742,6 +762,9 @@ function UMG_PetLeftPanel_C:OnRemoveEventListener()
     _G.DataModelMgr.PlayerDataModel:RemoveEventListener(self, PlayerDataEvent.UPDATE_PET_HP, self.OnPlayerPetHPChange)
   end
   _G.NRCEventCenter:UnRegisterEvent(self, ShareUIModuleEvent.SHOW_ENTRANCE_REWARD, self.CheckShowShareReward)
+  _G.NRCEventCenter:UnRegisterEvent(self, _G.NRCGlobalEvent.OnRocoTouchStart, self.OnRocoTouchStartHandler)
+  _G.NRCEventCenter:UnRegisterEvent(self, _G.NRCGlobalEvent.OnRocoTouchMove, self.OnRocoTouchMoveHandler)
+  _G.NRCEventCenter:UnRegisterEvent(self, _G.NRCGlobalEvent.OnRocoTouchEnd, self.OnRocoTouchEndHandler)
 end
 
 function UMG_PetLeftPanel_C:OnSwitchNewPetBagOpened(isOpen, bNeedAutoSelectTeamPet)
@@ -753,7 +776,13 @@ function UMG_PetLeftPanel_C:OnSwitchNewPetBagOpened(isOpen, bNeedAutoSelectTeamP
 end
 
 function UMG_PetLeftPanel_C:CloseSwitchButton(isDisable)
-  self.PetBagBtn:SetIsEnabled(not isDisable)
+  self.bPetBagBtnEnable = not isDisable
+  self:UpdatePetBagBtnState()
+end
+
+function UMG_PetLeftPanel_C:UpdatePetBagBtnState()
+  local bEnable = _G.DataModelMgr.PlayerDataModel.WaitGetPetInfoRspSuccess and self.bPetBagBtnEnable
+  self.PetBagBtn:SetIsEnabled(bEnable)
 end
 
 function UMG_PetLeftPanel_C:OnPetBagOpen(bNeedAutoSelectTeamPet)
@@ -789,6 +818,7 @@ function UMG_PetLeftPanel_C:OnPetBagOpen(bNeedAutoSelectTeamPet)
       _G.NRCModuleManager:DoCmd(PetUIModuleCmd.SetEggFinshOpenAttribute, false)
     end)
   end
+  self:LeaveDragState()
 end
 
 function UMG_PetLeftPanel_C:CheckCurPetBagTeamIsValid(NeedTips)
@@ -874,11 +904,15 @@ end
 
 function UMG_PetLeftPanel_C:AutoSelectPetOnPetBagClose(petBagSelectIndex, PetBagTeamIsValid)
   local AutoSelectIndex = self:GetAutoSelectIndex(petBagSelectIndex, PetBagTeamIsValid)
-  if self.UpdateRefreshSelect then
-    local head = self.petHeadList:GetItemByIndex(AutoSelectIndex)
-    head.NeedOpenDoubleSelectAnim = true
+  local head = self.petHeadList:GetItemByIndex(AutoSelectIndex)
+  if head then
+    if self.UpdateRefreshSelect then
+      head.NeedOpenDoubleSelectAnim = true
+    end
+    head:SetIsRefreshSelect(true)
+    self.petHeadList:SelectItemByIndex(AutoSelectIndex)
+    head:SetIsRefreshSelect(false)
   end
-  self.petHeadList:SelectItemByIndex(AutoSelectIndex)
 end
 
 function UMG_PetLeftPanel_C:GetAutoSelectIndex(petBagSelectIndex, PetBagTeamIsValid)
@@ -1000,7 +1034,7 @@ function UMG_PetLeftPanel_C:updatePetListView(_petList, _selectIndex)
   end
   self:UpdatePetSelect()
   local friendInfo = _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.GetFriendInfoToPetMain)
-  if friendInfo and friendInfo.type ~= _G.ProtoEnum.PlayerRelationshipType.PRT_SELF then
+  if friendInfo and friendInfo.type ~= _G.ProtoEnum.PlayerRelationshipType.PRT_SELF or self.IsOpenWithOne then
   else
     _G.NRCModuleManager:GetModule("MainUIModule"):DispatchEvent(MainUIModuleEvent.UI_Refresh_MainPet, 1, petListData)
   end
@@ -1287,7 +1321,8 @@ function UMG_PetLeftPanel_C:OpenEggPanel()
   self:ShowOrHideBloodIcon(false)
   self.petInfoMainCtrl.ShareBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.petInfoMainCtrl.ViewingBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
-  self.petInfoMainCtrl.GiftColleaguesBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self.petInfoMainCtrl:ShowHideGiftColleaguesBtn(false)
+  self:DispatchEvent(PetUIModuleEvent.ShowHideTimeRewindBtn, false)
   if self.petInfoMainCtrl.ComboBox_Popup:GetVisibility() == UE4.ESlateVisibility.Visible then
     self.petInfoMainCtrl.ComboBox_Popup:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.petInfoMainCtrl.IsShowShareBox = false
@@ -1303,10 +1338,10 @@ function UMG_PetLeftPanel_C:OnOpenEggClick(isShowOver)
   self:PlayAnimation(self.In_FuDan)
   self.PetBagBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self:DispatchEvent(PetUIModuleEvent.PetBagNrcRedPointSetupKey, 0)
-  self.petInfoMainCtrl.UMG_btnClose:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self.petInfoMainCtrl:ShowOrHideCloseBtn(false)
   self.petInfoMainCtrl.ShareBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.petInfoMainCtrl.ViewingBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
-  self.petInfoMainCtrl.GiftColleaguesBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self.petInfoMainCtrl:ShowHideGiftColleaguesBtn(false)
   self:SetTitleVisible(false)
   self:ShowOrHideBloodIcon(false)
 end
@@ -1326,12 +1361,11 @@ function UMG_PetLeftPanel_C:OnCloseEggClick(isHatch)
   end
   local isShow = self:GetPetEggBtnShow()
   self.PetEggBtn:SetVisibility(isShow and UE4.ESlateVisibility.Visible or UE4.ESlateVisibility.Collapsed)
-  self.petInfoMainCtrl.UMG_btnClose:SetVisibility(UE4.ESlateVisibility.Visible)
+  self.petInfoMainCtrl:ShowOrHideCloseBtn(true)
   self:ShowOrHideBloodIcon(true)
   if self.petInfoMainCtrl.ShareIsOpen then
     self.petInfoMainCtrl.ShareBtn:SetVisibility(UE4.ESlateVisibility.Visible)
   end
-  self.petInfoMainCtrl.ViewingBtn:SetVisibility(UE4.ESlateVisibility.Visible)
 end
 
 function UMG_PetLeftPanel_C:OnNRCButton_41Click()
@@ -1366,7 +1400,8 @@ function UMG_PetLeftPanel_C:updatePetList(_isActive, bIgnoreUpdateSelection, sel
         base_conf_id = petData.base_conf_id,
         showPetHp = true,
         level = petData.level,
-        petData = petData
+        petData = petData,
+        parent = self
       })
     end
   end
@@ -1399,9 +1434,14 @@ function UMG_PetLeftPanel_C:OpenPanelWithOnePet(petData)
     base_conf_id = petData.base_conf_id,
     showPetHp = true,
     level = petData.level,
-    petData = petData
+    petData = petData,
+    parent = self
   })
   self:updatePetListView(petInfos, 1)
+end
+
+function UMG_PetLeftPanel_C:GetIsOpenWithOne()
+  return self.IsOpenWithOne
 end
 
 function UMG_PetLeftPanel_C:IsShowTitle(isShow)
@@ -1507,6 +1547,10 @@ function UMG_PetLeftPanel_C:OnPetGroUpSuccess(_changes)
   self:checkCurPetInfoChange(changes)
 end
 
+function UMG_PetLeftPanel_C:OnPetTraceBackSuccessAndRewardPopupClose(_changes)
+  self:checkCurPetInfoChange(_changes, nil, EnumPetInfoChangeReasonType.TraceBack)
+end
+
 function UMG_PetLeftPanel_C:OnEvolutionSuccess(_changes, IsEvolutionSuccess)
   self:checkCurPetInfoChange(_changes, IsEvolutionSuccess)
 end
@@ -1607,7 +1651,7 @@ function UMG_PetLeftPanel_C:RemoveSkillNewState(gid)
   end
 end
 
-function UMG_PetLeftPanel_C:checkCurPetInfoChange(_changes, IsEvolutionSuccess)
+function UMG_PetLeftPanel_C:checkCurPetInfoChange(_changes, IsEvolutionSuccess, PetInfoChangeReasonType)
   local curPetData = self.uiData.petData
   if not curPetData or not _changes then
     return
@@ -1616,7 +1660,7 @@ function UMG_PetLeftPanel_C:checkCurPetInfoChange(_changes, IsEvolutionSuccess)
   for i, changItem in ipairs(_changes) do
     if changItem.type == ProtoEnum.GoodsType.GT_PET then
       petData = changItem.pet_data
-      self:ChangesInfo(petData, curPetData, IsEvolutionSuccess)
+      self:ChangesInfo(petData, curPetData, IsEvolutionSuccess, PetInfoChangeReasonType)
     elseif changItem.type == ProtoEnum.GoodsType.GT_PETEXP then
       petData = _G.DataModelMgr.PlayerDataModel:GetPetDataByGid(changItem.gid)
       self:ChangesInfo(petData, curPetData, IsEvolutionSuccess)
@@ -1624,7 +1668,7 @@ function UMG_PetLeftPanel_C:checkCurPetInfoChange(_changes, IsEvolutionSuccess)
   end
 end
 
-function UMG_PetLeftPanel_C:ChangesInfo(petData, curPetData, IsEvolutionSuccess)
+function UMG_PetLeftPanel_C:ChangesInfo(petData, curPetData, IsEvolutionSuccess, PetInfoChangeReasonType)
   self:ResettingMenuSelect(petData.base_conf_id)
   self:UpdatePetListInfo(petData)
   if curPetData.gid == petData.gid then
@@ -1636,7 +1680,7 @@ function UMG_PetLeftPanel_C:ChangesInfo(petData, curPetData, IsEvolutionSuccess)
         self:OnPetItemClick(PetIndex)
       end
       local Item = self.petHeadList:GetItemByIndex(PetIndex - 1)
-      Item:UpdateNewData(petData, petData.base_conf_id)
+      Item:UpdateNewData(petData, petData.base_conf_id, PetInfoChangeReasonType)
     end
   end
 end
@@ -1867,8 +1911,8 @@ function UMG_PetLeftPanel_C:HiddenHeadListUI(_IsShow, IsMedalPanel)
     self.PetBagBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
     if not IsMedalPanel then
       self:SetTitleVisible(false)
+      self:DispatchEvent(PetUIModuleEvent.PetSkillTipsOpen, true)
     end
-    self:DispatchEvent(PetUIModuleEvent.PetSkillTipsOpen, true)
   else
     if not (not openPanelPetData or IsRevertMainPanel) or isOpenNewPetBagPanel then
       self.PetBagBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
@@ -1888,7 +1932,9 @@ function UMG_PetLeftPanel_C:HiddenHeadListUI(_IsShow, IsMedalPanel)
       self:SetTitleVisible(true)
       self:PlayAnimation(self.PetList_in)
     end
-    self:DispatchEvent(PetUIModuleEvent.PetSkillTipsOpen, false)
+    if not IsMedalPanel then
+      self:DispatchEvent(PetUIModuleEvent.PetSkillTipsOpen, false)
+    end
   end
 end
 
@@ -2012,6 +2058,336 @@ end
 function UMG_PetLeftPanel_C:CheckShareIsOpen()
   self.shareBaseId = _G.Enum.ShareButtonType.SBT_TEAM_SHARE
   self.ShareIsOpen = _G.NRCModuleManager:DoCmd(ShareUIModuleCmd.CheckIsOpen, self.shareBaseId)
+end
+
+function UMG_PetLeftPanel_C:SetEmptyHeadPutVisibility(visibility)
+  if not self.petHeadList then
+    return
+  end
+  local bLong = self.ThumbVersion == true
+  for i = 0, self.petHeadList:GetItemCount() - 1 do
+    local head = self.petHeadList:GetItemByIndex(i)
+    if head then
+      head:SetPutVisibility(visibility, bLong)
+    end
+  end
+end
+
+function UMG_PetLeftPanel_C:UpdateAllHeadsOnDrag(bDrag)
+  if not self.petHeadList then
+    return
+  end
+  local bLong = self.ThumbVersion == true
+  local putVisibility = bDrag and UE4.ESlateVisibility.SelfHitTestInvisible or UE4.ESlateVisibility.Collapsed
+  for i = 0, self.petHeadList:GetItemCount() - 1 do
+    local head = self.petHeadList:GetItemByIndex(i)
+    if head and UE4.UObject.IsValid(head) then
+      head:SetDragSelectState(bDrag)
+      head:SetPutVisibility(putVisibility, bLong)
+    end
+  end
+end
+
+function UMG_PetLeftPanel_C:EnsureDragInstance()
+  if not self.dragInstance or not UE4.UObject.IsValid(self.dragInstance) then
+    self.dragInstance = UE4.UWidgetBlueprintLibrary.Create(self, self.DragItem)
+    if self.dragInstance then
+      self.dragInstance:AddToViewport(_G.UILayerCtrlCenter.ENUM_LAYER.TOP_MSG, false)
+      self.dragInstance:SetAlignmentInViewport(UE4.FVector2D(0.5, 0.5))
+    end
+  end
+end
+
+function UMG_PetLeftPanel_C:FindFirstEmptySlotIndex(excludeIndex)
+  local count = self.petHeadList:GetItemCount()
+  for i = 0, count - 1 do
+    if i ~= excludeIndex then
+      local item = self.petHeadList:GetItemByIndex(i)
+      if item and UE4.UObject.IsValid(item) then
+        local gid = item.uiData and item.uiData.gid
+        if not gid or 0 == gid then
+          return i
+        end
+      end
+    end
+  end
+  return nil
+end
+
+function UMG_PetLeftPanel_C:ResolveDragTargetIndex()
+  local targetIndex = self.dragHoverIndex
+  if nil == targetIndex then
+    return nil
+  end
+  local targetItem = self.petHeadList:GetItemByIndex(targetIndex)
+  if not targetItem or not UE4.UObject.IsValid(targetItem) then
+    return nil
+  end
+  local targetGid = targetItem.uiData and targetItem.uiData.gid
+  if not targetGid or 0 == targetGid then
+    targetIndex = self:FindFirstEmptySlotIndex(self.dragSourceIndex)
+  end
+  return targetIndex
+end
+
+function UMG_PetLeftPanel_C:CachePetHeadItemRects()
+  self.cachedHeadItemRects = {}
+  local count = self.petHeadList:GetItemCount()
+  local bLong = self.ThumbVersion == true
+  for i = 0, count - 1 do
+    local item = self.petHeadList:GetItemByIndex(i)
+    if item and UE4.UObject.IsValid(item) then
+      local rect = bLong and item:GetLongRect() or item:GetShortRect()
+      self.cachedHeadItemRects[i] = {
+        pos = rect.pos,
+        size = rect.size,
+        item = item
+      }
+    end
+  end
+end
+
+function UMG_PetLeftPanel_C:GetHitHeadItemIndex(position)
+  if not self.cachedHeadItemRects then
+    return nil
+  end
+  local dragItemRect
+  if self.dragInstance and UE4.UObject.IsValid(self.dragInstance) then
+    local bLong = self.ThumbVersion == true
+    dragItemRect = self.dragInstance:GetDragItemRect(bLong)
+  end
+  if dragItemRect then
+    local realPosition = dragItemRect.pos
+    local dragLeft = realPosition.X
+    local dragRight = realPosition.X + dragItemRect.size.X
+    local dragTop = realPosition.Y
+    local dragBottom = realPosition.Y + dragItemRect.size.Y
+    for i, rect in pairs(self.cachedHeadItemRects) do
+      if rect.pos and rect.size then
+        local itemLeft = rect.pos.X
+        local itemRight = rect.pos.X + rect.size.X
+        local itemTop = rect.pos.Y
+        local itemBottom = rect.pos.Y + rect.size.Y
+        if dragLeft < itemRight and dragRight > itemLeft and dragTop < itemBottom and dragBottom > itemTop then
+          return i
+        end
+      end
+    end
+  end
+  return nil
+end
+
+function UMG_PetLeftPanel_C:UpdateDragInstancePosition(position)
+  if not self.dragInstance or not UE4.UObject.IsValid(self.dragInstance) then
+    return
+  end
+  local viewportPos = UIUtils.ScreenPositionToViewport(position)
+  self.dragInstance:SetPositionInViewport(viewportPos, false)
+end
+
+function UMG_PetLeftPanel_C:UpdateDragHover(position)
+  local hitIndex = self:GetHitHeadItemIndex(position)
+  if hitIndex == self.dragSourceIndex then
+    hitIndex = nil
+  end
+  if hitIndex == self.dragHoverIndex then
+    return
+  end
+  local bLong = self.ThumbVersion == true
+  if self.dragHoverIndex ~= nil then
+    local oldRect = self.cachedHeadItemRects[self.dragHoverIndex]
+    if oldRect and oldRect.item and UE4.UObject.IsValid(oldRect.item) then
+      oldRect.item:SetDragHover(false, bLong)
+    end
+  end
+  self.dragHoverIndex = hitIndex
+  if self.dragHoverIndex ~= nil then
+    local newRect = self.cachedHeadItemRects[self.dragHoverIndex]
+    if newRect and newRect.item and UE4.UObject.IsValid(newRect.item) then
+      newRect.item:SetDragHover(true, bLong)
+    end
+  end
+end
+
+function UMG_PetLeftPanel_C:StartDrag(position)
+  if not self.DragItem then
+    Log.Warning("UMG_PetLeftPanel_C:StartDrag DragItem \230\156\170\233\133\141\231\189\174")
+    return
+  end
+  if self.petInfoMainCtrl then
+    self.petInfoMainCtrl.BorderMask:SetVisibility(UE4.ESlateVisibility.Visible)
+  end
+  local bLong = self.ThumbVersion == true
+  self:CachePetHeadItemRects()
+  self:EnsureDragInstance()
+  if self.dragInstance then
+    self.dragInstance:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
+    local sourceItem = self.petHeadList and self.petHeadList:GetItemByIndex(self.dragSourceIndex)
+    local sourcePetData = sourceItem and sourceItem.uiData and sourceItem.uiData.petData
+    if sourcePetData then
+      self.dragInstance:SetDragData(sourcePetData, bLong)
+    end
+    self:UpdateDragInstancePosition(position)
+  end
+  self.isDragging = true
+  self.dragHoverIndex = nil
+  if self.petHeadList then
+    self.petHeadList:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
+  end
+  if self.petHeadList and self.dragSourceIndex ~= nil then
+    local sourceHead = self.petHeadList:GetItemByIndex(self.dragSourceIndex)
+    if sourceHead and UE4.UObject.IsValid(sourceHead) then
+      sourceHead:SetDragSelf(true, bLong)
+    end
+  end
+  self:UpdateAllHeadsOnDrag(true)
+  self:TryShowOrCloseTeamSwitch(false)
+end
+
+function UMG_PetLeftPanel_C:EndDrag()
+  local bLong = self.ThumbVersion == true
+  self:TryExchangePetOnDragEnd()
+  if self.dragHoverIndex ~= nil and self.cachedHeadItemRects then
+    local rect = self.cachedHeadItemRects[self.dragHoverIndex]
+    if rect and rect.item and UE4.UObject.IsValid(rect.item) then
+      rect.item:SetDragHover(false, bLong)
+    end
+    self.dragHoverIndex = nil
+  end
+  if self.dragInstance and UE4.UObject.IsValid(self.dragInstance) then
+    self.dragInstance:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  end
+  self.isDragging = false
+  if self.petHeadList and nil ~= self.dragSourceIndex then
+    local sourceHead = self.petHeadList:GetItemByIndex(self.dragSourceIndex)
+    if sourceHead and UE4.UObject.IsValid(sourceHead) then
+      sourceHead:SetDragSelf(false, bLong)
+    end
+  end
+  self.dragSourceIndex = nil
+  self.cachedHeadItemRects = nil
+  if self.petHeadList then
+    self.petHeadList:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  end
+  self:UpdateAllHeadsOnDrag(false)
+  if self.longPressDelayHandle then
+    _G.DelayManager:CancelDelay(self.longPressDelayHandle)
+    self.longPressDelayHandle = nil
+  end
+  self:TryShowOrCloseTeamSwitch(true)
+end
+
+function UMG_PetLeftPanel_C:TryExchangePetOnDragEnd()
+  if self.dragSourceIndex == nil then
+    return
+  end
+  local sourceItem = self.petHeadList and self.petHeadList:GetItemByIndex(self.dragSourceIndex)
+  if not sourceItem or not UE4.UObject.IsValid(sourceItem) then
+    return
+  end
+  local sourceGid = sourceItem.uiData and sourceItem.uiData.gid
+  if not sourceGid or 0 == sourceGid then
+    return
+  end
+  local targetIndex = self:ResolveDragTargetIndex()
+  if nil == targetIndex or targetIndex == self.dragSourceIndex then
+    return
+  end
+  local finalTargetItem = self.petHeadList:GetItemByIndex(targetIndex)
+  if not finalTargetItem or not UE4.UObject.IsValid(finalTargetItem) then
+    return
+  end
+  local targetGid = finalTargetItem.uiData and finalTargetItem.uiData.gid
+  if sourceGid == targetGid then
+    return
+  end
+  local sourceTeamIndex = _G.DataModelMgr.PlayerDataModel:GetPlayerBattleTeamIndexByGid(sourceGid)
+  if not sourceTeamIndex then
+    return
+  end
+  local targetTeamIndex = targetGid and 0 ~= targetGid and _G.DataModelMgr.PlayerDataModel:GetPlayerBattleTeamIndexByGid(targetGid) or sourceTeamIndex
+  local ori_info = {
+    pet_gid = sourceGid,
+    is_in_team = true,
+    id = sourceTeamIndex,
+    pos = self.dragSourceIndex + 1
+  }
+  local tar_info = {
+    pet_gid = targetGid or 0,
+    is_in_team = true,
+    id = targetTeamIndex,
+    pos = targetIndex + 1
+  }
+  self.pendingDragGid = sourceGid
+  _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.OnCmdZonePetBoxChangePetReq, ori_info, tar_info)
+end
+
+function UMG_PetLeftPanel_C:OnBigWorldTeamPetChangeEvent()
+  if self.pendingDragGid then
+    local pendingGid = self.pendingDragGid
+    self.pendingDragGid = nil
+    local battlePetList = _G.DataModelMgr.PlayerDataModel:GetPlayerBattlePetInfo()
+    local newIndex
+    if battlePetList then
+      for i, petData in ipairs(battlePetList) do
+        if petData.gid == pendingGid then
+          newIndex = i
+          break
+        end
+      end
+    end
+    if newIndex then
+      self.petInfoMainCtrl.currentSelectedPetIndex = newIndex
+    end
+    self:updatePetList()
+  end
+end
+
+function UMG_PetLeftPanel_C:SetDragItemTemp(dragItem)
+  if self.longPressDelayHandle then
+    _G.DelayManager:CancelDelay(self.longPressDelayHandle)
+    self.longPressDelayHandle = nil
+  end
+  if self.touchStartPosition and dragItem then
+    self.dragSourceIndex = dragItem.index - 1
+    self.longPressDelayHandle = _G.DelayManager:DelaySeconds(self.LongPressTime, function()
+      self.longPressDelayHandle = nil
+      if not self.isDragging and not self.petBagOpening then
+        self:StartDrag(self.touchStartPosition)
+      end
+    end)
+  end
+end
+
+function UMG_PetLeftPanel_C:OnRocoTouchStartHandler(touchIndex, position)
+  self.touchStartPosition = UE4.FVector2D(position.X, position.Y)
+  self.isDragging = false
+end
+
+function UMG_PetLeftPanel_C:OnRocoTouchMoveHandler(touchIndex, position)
+  if not self.isDragging then
+    return
+  end
+  self:UpdateDragInstancePosition(position)
+  self:UpdateDragHover(position)
+end
+
+function UMG_PetLeftPanel_C:OnRocoTouchEndHandler(touchIndex)
+  self:LeaveDragState()
+end
+
+function UMG_PetLeftPanel_C:LeaveDragState()
+  self.touchStartPosition = nil
+  if self.longPressDelayHandle then
+    _G.DelayManager:CancelDelay(self.longPressDelayHandle)
+    self.longPressDelayHandle = nil
+  end
+  if self.petInfoMainCtrl then
+    self.petInfoMainCtrl.BorderMask:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  end
+  if self.isDragging then
+    self:EndDrag()
+  end
 end
 
 return UMG_PetLeftPanel_C

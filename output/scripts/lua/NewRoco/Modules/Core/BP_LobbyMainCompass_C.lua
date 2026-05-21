@@ -73,67 +73,6 @@ function BP_LobbyMainCompass_C:SetStartRelativeRotation()
 end
 
 function BP_LobbyMainCompass_C:OnClickSkeletalMesh(StaticMesh)
-  if StaticMesh == self.Task then
-    local isBan = _G.NRCModuleManager:DoCmd(FunctionBanModuleCmd.CheckUIFunctionBan, Enum.FunctionEntrance.FE_TASK, true)
-    if isBan then
-      return
-    end
-    UE4.UNRCAudioManager.Get():PlaySound2DAuto(1010, "BP_LobbyMainCompass_C:OnClickSkeletalMesh")
-    _G.DelayManager:DelaySeconds(0.032, function()
-      _G.NRCModuleManager:DoCmd(TaskModuleCmd.OpenTaskPanel)
-    end)
-  elseif StaticMesh == self.Pet then
-    local isBan = _G.NRCModuleManager:DoCmd(FunctionBanModuleCmd.CheckUIFunctionBan, Enum.FunctionEntrance.FE_PET, true)
-    if isBan then
-      return
-    end
-    _G.NRCAudioManager:PlaySound2DAuto(1014, "BP_LobbyMainCompass_C Pet")
-    _G.DelayManager:DelaySeconds(0.15, function()
-      _G.NRCModuleManager:DoCmd(PetUIModuleCmd.OpenPanelPetMain, {
-        subPanelIndex = 4,
-        callback = self.OnUMGLoadFinished
-      })
-    end)
-  elseif StaticMesh == self.Bag then
-    local isBan = _G.NRCModuleManager:DoCmd(FunctionBanModuleCmd.CheckUIFunctionBan, Enum.FunctionEntrance.FE_BAG, true)
-    if isBan then
-      return
-    end
-    _G.DelayManager:DelaySeconds(0.15, function()
-      _G.NRCModuleManager:DoCmd(BagModuleCmd.OpenBagMainPanel, BagModuleEnum.DisplayMode.Zone)
-    end)
-  elseif StaticMesh == self.Book then
-    local isBan = _G.NRCModuleManager:DoCmd(FunctionBanModuleCmd.CheckUIFunctionBan, Enum.FunctionEntrance.FE_HANDBOOK, true)
-    if isBan then
-      return
-    end
-    _G.DelayManager:DelaySeconds(0.2, function()
-      _G.NRCModuleManager:DoCmd(HandbookModuleCmd.OpenHandbookPanel)
-    end)
-  elseif StaticMesh == self.PVP then
-    local isBan = _G.NRCModuleManager:DoCmd(FunctionBanModuleCmd.CheckUIFunctionBan, Enum.FunctionEntrance.FE_PVP, true)
-    if isBan then
-      return
-    end
-    _G.DelayManager:DelaySeconds(0.1, function()
-      _G.NRCModeManager:DoCmd(BattleUIModuleCmd.OpenBattlePvpHintPanel)
-    end)
-  elseif StaticMesh == self.Map then
-    local isBan = _G.NRCModuleManager:DoCmd(FunctionBanModuleCmd.CheckUIFunctionBan, Enum.FunctionEntrance.FE_MAP, true)
-    if isBan then
-      return
-    end
-    NRCProfilerLog:NRCClickBtn(true, "MainBigMap")
-    _G.DelayManager:DelaySeconds(0.1, function()
-      _G.NRCModuleManager:DoCmd(BigMapModuleCmd.OpenWorldMap)
-    end)
-  elseif StaticMesh == self.Email then
-    local tips = _G.DataConfigManager:GetLocalizationConf("Func_Unusable_Tip").msg
-    _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, tips)
-  elseif StaticMesh == self.Set then
-    local tips = _G.DataConfigManager:GetLocalizationConf("Func_Unusable_Tip").msg
-    _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, tips)
-  end
 end
 
 return BP_LobbyMainCompass_C

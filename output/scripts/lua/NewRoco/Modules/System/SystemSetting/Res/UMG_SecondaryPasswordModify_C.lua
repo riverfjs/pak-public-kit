@@ -63,6 +63,10 @@ function UMG_SecondaryPasswordModify_C:OnClickForget()
 end
 
 function UMG_SecondaryPasswordModify_C:OnClickConfirm()
+  if self.authInfo == nil then
+    return
+  end
+  
   local function is_valid_format(str)
     if #str >= 4 and #str <= 8 and string.match(str, "^%d+$") then
       return true
@@ -105,14 +109,13 @@ function UMG_SecondaryPasswordModify_C:OnSecondaryPasswordCheckRsp(rsp)
       leftSec = waiting_duration - (curSec - self.authInfo.status_timestamp)
     end
     _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, string.format(LuaText.secondary_pwd_cd_tips, math.ceil(leftSec / 60)))
-    _G.NRCModuleManager:DoCmd(_G.SystemSettingModuleCmd.OnSecondaryPasswordStatusChange, ProtoEnum.SecondaryPasswordStatus.SPS_Waiting)
+    _G.NRCModuleManager:DoCmd(_G.SystemSettingModuleCmd.OnSecondaryPasswordStatusChange, rsp.status, rsp.status_timestamp, rsp.default_free)
     self:DoClose()
     return
   end
   if 0 == rsp.ret_info.ret_code then
     _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.secondary_pwd_toast_change_success)
-    _G.NRCModuleManager:DoCmd(_G.SystemSettingModuleCmd.OnSecondaryPasswordStatusChange, ProtoEnum.SecondaryPasswordStatus.SPS_Set)
-    _G.NRCModuleManager:DoCmd(_G.SystemSettingModuleCmd.OnSecondaryDefaultFreeChange, 0)
+    _G.NRCModuleManager:DoCmd(_G.SystemSettingModuleCmd.OnSecondaryPasswordStatusChange, rsp.status, rsp.status_timestamp, rsp.default_free)
     self:DoClose()
   end
 end

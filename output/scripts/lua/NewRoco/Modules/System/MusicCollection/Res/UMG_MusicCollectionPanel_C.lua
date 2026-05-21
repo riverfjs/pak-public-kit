@@ -1,4 +1,5 @@
 local MusicCollectionModuleEvent = require("NewRoco.Modules.System.MusicCollection.MusicCollectionModuleEvent")
+local BattleEvent = require("NewRoco.Modules.Core.Battle.Common.BattleEvent")
 local UMG_MusicCollectionPanel_C = _G.NRCPanelBase:Extend("UMG_MusicCollectionPanel_C")
 
 function UMG_MusicCollectionPanel_C:OnActive(InMusicId, OpenType)
@@ -84,11 +85,15 @@ function UMG_MusicCollectionPanel_C:RefreshTabList()
   for i = 1, num do
     local item = self.TabList:GetItemByIndex(i - 1)
     for _, v in pairs(self.data.MusicList) do
-      if v.Type == item.uiData.Type then
-        item.uiData = v
+      if v.Type == item.data.Type then
+        item.data = v
       end
     end
   end
+end
+
+function UMG_MusicCollectionPanel_C:OnDestruct()
+  self:OnRemoveEventListener()
 end
 
 function UMG_MusicCollectionPanel_C:OnDeactive()
@@ -123,7 +128,7 @@ function UMG_MusicCollectionPanel_C:OnTick(deltaTime)
     return
   end
   self.UpdateSoundTime = self.UpdateSoundTime + deltaTime
-  if self.UpdateSoundTime >= 1 and self.SoundSession and -1 ~= self.SoundSession then
+  if self.UpdateSoundTime >= 0.2 and self.SoundSession and -1 ~= self.SoundSession then
     self.UpdateSoundTime = 0
     local PlayPositionMs = _G.NRCAudioManager:GetPlayPositionInMs(self.SoundSession)
     self:SetTimePosText(math.floor(PlayPositionMs / 1000))
@@ -222,7 +227,7 @@ function UMG_MusicCollectionPanel_C:SetCommonTitle()
   self.Title1:Set_MainTitle(self.titleConf.title)
   self.Title1:SetBg(self.titleConf.head_icon)
   if self.OpenType == "MagicMessage" then
-    self.Title1:SetSubtitle("\229\136\134\228\186\171\233\159\179\228\185\144")
+    self.Title1:SetSubtitle(LuaText.mark_music_share_title)
   else
     self.Title1:SetSubtitle(self.titleConf.subtitle[1].subtitle)
   end
@@ -287,6 +292,14 @@ function UMG_MusicCollectionPanel_C:StopSound()
   end
 end
 
+function UMG_MusicCollectionPanel_C:OnEnterBattle()
+  self:StopSound()
+end
+
+function UMG_MusicCollectionPanel_C:OnLeaveBattle()
+  self:Play()
+end
+
 function UMG_MusicCollectionPanel_C:OnAnimFinished(anim)
   if anim == self.In then
     self.MusicList:SetItemClickAble(true)
@@ -300,6 +313,15 @@ function UMG_MusicCollectionPanel_C:OnAddEventListener()
   self:RegisterEvent(self, MusicCollectionModuleEvent.ChangeItem, self.OnSelectedItemIndex)
   self:AddButtonListener(self.Btn_Select.btnLevelUp, self.OnClickSelectMusic)
   self:AddButtonListener(self.Btn_Replace.btnLevelUp, self.OnClickSelectMusic)
+  _G.NRCEventCenter:RegisterEvent(self.name, self, BattleEvent.EnterBattle, self.OnEnterBattle)
+  _G.NRCEventCenter:RegisterEvent(self.name, self, BattleEvent.LeaveBattle, self.OnLeaveBattle)
+end
+
+function UMG_MusicCollectionPanel_C:OnRemoveEventListener()
+  self:UnRegisterEvent(self, MusicCollectionModuleEvent.ChangeTabType)
+  self:UnRegisterEvent(self, MusicCollectionModuleEvent.ChangeItem)
+  _G.NRCEventCenter:UnRegisterEvent(self, BattleEvent.EnterBattle, self.OnEnterBattle)
+  _G.NRCEventCenter:UnRegisterEvent(self, BattleEvent.LeaveBattle, self.OnLeaveBattle)
 end
 
 function UMG_MusicCollectionPanel_C:OpenMusicSettingPanel()

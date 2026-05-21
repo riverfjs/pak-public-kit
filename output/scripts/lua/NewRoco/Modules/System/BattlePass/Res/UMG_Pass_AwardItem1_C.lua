@@ -25,14 +25,16 @@ function UMG_Pass_AwardItem1_C:RefreshItem()
   for i, v in pairs(data.freeItems) do
     table.insert(freeItemArray, {
       ItemData = v,
-      ItemID = data.level
+      ItemID = data.level,
+      isPremiumReward = false
     })
   end
   local paidItemArray = {}
   for i, v in pairs(data.paidItems) do
     table.insert(paidItemArray, {
       ItemData = v,
-      ItemID = data.level
+      ItemID = data.level,
+      isPremiumReward = true
     })
   end
   self.Icon:InitGridView(freeItemArray)
@@ -42,22 +44,6 @@ function UMG_Pass_AwardItem1_C:RefreshItem()
     self.Text_Class:SetColorAndOpacity(UE4.UNRCStatics.HexToSlateColor("#f4eee1"))
   else
     self.Text_Class:SetColorAndOpacity(UE4.UNRCStatics.HexToSlateColor("#929086"))
-  end
-  local newPath, themeId = _G.NRCModuleManager:DoCmd(_G.BattlePassModuleCmd.GetCurrentThemeImagePath, "img_kuililebiaodi_png.img_kuililebiaodi_png")
-  if 230011 == themeId then
-    self.Theme_Bg1:SetColorAndOpacity(UE4.UNRCStatics.HexToLinearColor("#9C9BDFFF"))
-    self.Theme_Bg2:SetColorAndOpacity(UE4.UNRCStatics.HexToLinearColor("#9190DCFF"))
-    self.Decorate:SetColorAndOpacity(UE4.UNRCStatics.HexToLinearColor("8a89d2"))
-    self.Decorate_1:SetColorAndOpacity(UE4.UNRCStatics.HexToLinearColor("f4eee1"))
-    local iconPath = "PaperSprite'/Game/NewRoco/Modules/System/BattlePass/Raw/Frames/img_huawen3_png.img_huawen3_png"
-    self.Decorate_2:SetPath(iconPath)
-  else
-    self.Theme_Bg1:SetColorAndOpacity(UE4.UNRCStatics.HexToLinearColor("#F6C6D1FF"))
-    self.Theme_Bg2:SetColorAndOpacity(UE4.UNRCStatics.HexToLinearColor("#F4BBC8FF"))
-    self.Decorate:SetColorAndOpacity(UE4.UNRCStatics.HexToLinearColor("f0afbe"))
-    self.Decorate_1:SetColorAndOpacity(UE4.UNRCStatics.HexToLinearColor("f4eee1"))
-    local iconPath = "PaperSprite'/Game/NewRoco/Modules/System/BattlePass/Raw/Frames/img_huawen1_png.img_huawen1_png"
-    self.Decorate_2:SetPath(iconPath)
   end
   _G.NRCModuleManager:DoCmd(_G.BattlePassModuleCmd.ChangeThemeColor, "UMG_Pass_AwardItem1", self)
 end

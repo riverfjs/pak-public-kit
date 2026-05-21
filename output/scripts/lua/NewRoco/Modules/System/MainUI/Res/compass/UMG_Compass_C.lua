@@ -25,6 +25,24 @@ UMG_Compass_C.State = {
   HIDE = 3,
   PERCEIVE = 4
 }
+UMG_Compass_C.HideState = {
+  Normal = 1,
+  Hidden = 2,
+  Hidden_Exposed = 3,
+  Hidden_Attacked = 4
+}
+
+function UMG_Compass_C.ConvertMinimapOrCompassStateToHideState(minimapOrCompassState)
+  if minimapOrCompassState == MainUIModuleEnum.MinimapOrCompassState.Hidden then
+    return UMG_Compass_C.HideState.Hidden
+  elseif minimapOrCompassState == MainUIModuleEnum.MinimapOrCompassState.Hidden_Exposed then
+    return UMG_Compass_C.HideState.Hidden_Exposed
+  elseif minimapOrCompassState == MainUIModuleEnum.MinimapOrCompassState.Hidden_Attacked then
+    return UMG_Compass_C.HideState.Hidden_Attacked
+  end
+  return UMG_Compass_C.HideState.Normal
+end
+
 UMG_Compass_C.UpdateType = {
   UpdateHeroPos = 1,
   UpdateCameraDir = 2,
@@ -115,6 +133,14 @@ function UMG_Compass_C:OnConstruct()
   self.IsUpdateTraceInfo = true
   self.bTaskClicked = false
   self.compassTraceInfo = {}
+  self.limitNumTrackTypeToListMap = {}
+  self.limitNumTrackTypeToMapIndexMap = {}
+  self.forceTrackTypeMap = {}
+  self.limitNumTrackTypeSortDirtyMap = {}
+  self.limitNumTrackTypeSortedMap = {}
+  self._defaultTrackNpcDataChangePending = false
+  self.mapDefaultTrackConfCache = {}
+  self:InitMapDefaultTrackConfCache()
   self.vector2DZero = UE4.FVector2D(0, 0)
   self.Deviation = {X = 70, Y = 60}
   self.screenPos = nil
@@ -138,6 +164,7 @@ function UMG_Compass_C:OnConstruct()
   NRCEventCenter:RegisterEvent("UMG_Compass_C", self, BigMapModuleEvent.OnTraceNpcDataChanged, self.OnTraceNpcDataChanged)
   NRCEventCenter:RegisterEvent("UMG_Compass_C", self, BigMapModuleEvent.AcceptTaskRefresh, self.UpdateAcceptableTaskData)
   NRCEventCenter:RegisterEvent("UMG_Compass_C", self, BigMapModuleEvent.TraceAcceptTaskRefresh, self.OnTraceAcceptTaskRefresh)
+  NRCEventCenter:RegisterEvent("UMG_Compass_C", self, BigMapModuleEvent.DefaultTrackNpcChange, self.OnDefaultTrackTypeNpcDataChange)
   _G.DataModelMgr.PlayerDataModel:AddEventListener(self, PlayerDataEvent.STORY_FLAG_ADDED, self.OnStoryFlagAdded)
   _G.DataModelMgr.PlayerDataModel:AddEventListener(self, PlayerDataEvent.NAVIGATION_MODE_UPDATE, self.OnNavigationModeUpdate)
   self:OnNavigationModeUpdate(_G.DataModelMgr.PlayerDataModel:GetNavigationMode(), true)
@@ -223,7 +250,8 @@ function UMG_Compass_C:GetUpdateFrameCount(DisLeveKeys)
   return frame
 end
 
-function UMG_Compass_C:ChangeCompassState(state)
+function UMG_Compass_C:ChangeCompassState(state, childState)
+  local convertedChildState = UMG_Compass_C.ConvertMinimapOrCompassStateToHideState(childState)
   if self.CurCompassState ~= state then
     if state == UMG_Compass_C.State.NORMAL then
       self.NpcLayer:SetRenderOpacity(1)
@@ -231,6 +259,7 @@ function UMG_Compass_C:ChangeCompassState(state)
       self.TaskLayer:SetRenderOpacity(1)
       self:StopAnimation(self.Eye_In)
       self:PlayAnimation(self.Eye_Out)
+      self.Compass_Sneak:ChangeTo(state)
       self:SetForceUpdatePos(true)
     else
       self.NpcLayer:SetRenderOpacity(0)
@@ -238,7 +267,7 @@ function UMG_Compass_C:ChangeCompassState(state)
       self.TaskLayer:SetRenderOpacity(0)
       self:StopAnimation(self.Eye_Out)
       self:PlayAnimation(self.Eye_In)
-      self.Compass_Sneak:ChangeTo(state)
+      self.Compass_Sneak:ChangeTo(state, convertedChildState)
       if state == UMG_Compass_C.State.HIDE then
         self:StopAnimation(self.Mas_kOut)
         self:PlayAnimation(self.Mask_In)
@@ -253,9 +282,11 @@ function UMG_Compass_C:ChangeCompassState(state)
       local PreNavigationMode = self.NavigationMode
       self.NavigationMode = nil
       self:OnNavigationModeUpdate(PreNavigationMode)
-    else
+    elseif self.NavigationMode == ProtoEnum.NavigationModeType.NMT_COMPASS then
       self:Show()
     end
+  elseif nil ~= convertedChildState then
+    self.Compass_Sneak:ChangeTo(state, convertedChildState)
   end
 end
 
@@ -319,7 +350,7 @@ function UMG_Compass_C:GetGetBelongSceneIdByNpcRefresh(npcRefreshId)
   return sceneId
 end
 
-function UMG_Compass_C:GetGetBelongSceneResIdByNpcRefresh(npcRefreshId)
+function UMG_Compass_C:GetGetBelongSceneResIdByNpcRefresh(npcRefreshId, npcInfo)
   local sceneId = 10003
   local npc_refresh = _G.DataConfigManager:GetNpcRefreshContentConf(npcRefreshId)
   if npc_refresh then
@@ -336,8 +367,10 @@ function UMG_Compass_C:GetGetBelongSceneResIdByNpcRefresh(npcRefreshId)
       if scene_conf then
         sceneId = BigMapUtils.GetSceneResIdByPos(scene_conf.position_xyz[1], scene_conf.position_xyz[2])
       end
-    else
-      sceneId = npc_refresh.refresh_type == Enum.RefreshType.RFT_BONUS and SceneUtils.GetSceneResId() or sceneId
+    elseif npc_refresh.refresh_type == Enum.RefreshType.RFT_BONUS then
+      sceneId = SceneUtils.GetSceneResId() or sceneId
+    elseif npcInfo and npcInfo.npc_pos then
+      sceneId = BigMapUtils.GetSceneResIdByPos(npcInfo.npc_pos.x, npcInfo.npc_pos.y)
     end
   end
   return sceneId
@@ -379,12 +412,19 @@ function UMG_Compass_C:GetBelongSceneResId(worldMap)
   return sceneId
 end
 
-function UMG_Compass_C:IsShowNpc(compassData, worldMap)
+function UMG_Compass_C:IsShowNpc(compassData, worldMap, isManualTracing)
   local model
   if compassData and compassData.NpcConfig then
     model = _G.DataConfigManager:GetModelConf(compassData.NpcConfig.model_conf, true)
   end
   if compassData and worldMap then
+    if worldMap.is_hide_init then
+      if isManualTracing then
+        return true
+      else
+        return false
+      end
+    end
     if compassData.IsUnLock then
       if worldMap.dungeon_id and worldMap.dungeon_id > 0 then
         if compassData.IsFinish then
@@ -406,8 +446,11 @@ function UMG_Compass_C:IsShowNpc(compassData, worldMap)
   return false
 end
 
-function UMG_Compass_C:IsShowMapArea(compassData, worldMap)
+function UMG_Compass_C:IsShowMapArea(compassData, worldMap, ignoreHideInit)
   if compassData and worldMap then
+    if not ignoreHideInit and worldMap.is_hide_init then
+      return false
+    end
     if compassData.IsUnLock then
       return 1 == worldMap.explored_in_compass and worldMap.areaicon_explore
     else
@@ -440,10 +483,10 @@ function UMG_Compass_C:CheckBelongToSameSceneId(npcInfo)
     return false
   end
   if npcInfo.npc_src_refresh_content_id and npcInfo.npc_src_refresh_content_id > 0 then
-    return self.CurSceneID == self:GetGetBelongSceneIdByNpcRefresh(npcInfo.npc_src_refresh_content_id) and self.CurSceneResID == self:GetGetBelongSceneResIdByNpcRefresh(npcInfo.npc_src_refresh_content_id)
+    return self.CurSceneID == self:GetGetBelongSceneIdByNpcRefresh(npcInfo.npc_src_refresh_content_id) and self.CurSceneResID == self:GetGetBelongSceneResIdByNpcRefresh(npcInfo.npc_src_refresh_content_id, npcInfo)
   end
   if npcInfo.npc_refresh_id and npcInfo.npc_refresh_id > 0 then
-    return self.CurSceneID == self:GetGetBelongSceneIdByNpcRefresh(npcInfo.npc_refresh_id) and self.CurSceneResID == self:GetGetBelongSceneResIdByNpcRefresh(npcInfo.npc_refresh_id)
+    return self.CurSceneID == self:GetGetBelongSceneIdByNpcRefresh(npcInfo.npc_refresh_id) and self.CurSceneResID == self:GetGetBelongSceneResIdByNpcRefresh(npcInfo.npc_refresh_id, npcInfo)
   end
   if not (worldMap.npc_refresh_ids and not (#worldMap.npc_refresh_ids <= 0) and worldMap.name_area_id) or worldMap.name_area_id <= 0 then
     return true
@@ -467,35 +510,43 @@ function UMG_Compass_C:UpdateNpcInfo()
   while self.NpcUpdateCommon.NeedUpdateCount > 0 do
     local areaNps
     self.NpcUpdateCommon.CurUpdateKey, areaNps = next(self.NpcUpdateCommon.Data, self.NpcUpdateCommon.CurUpdateKey)
-    if self.NpcUpdateCommon.CurUpdateKey then
-      self.NpcUpdateCommon.NeedUpdateCount = self.NpcUpdateCommon.NeedUpdateCount - 1
-      for _, npcInfo in pairs(areaNps) do
-        if npcInfo.entry_id and npcInfo.npcCfg then
+    if not self.NpcUpdateCommon.CurUpdateKey then
+      break
+    end
+    self.NpcUpdateCommon.NeedUpdateCount = self.NpcUpdateCommon.NeedUpdateCount - 1
+    for _entryId, npcInfoList in pairs(areaNps) do
+      for keyLogicId, item in pairs(npcInfoList) do
+        local npcInfo = item
+        if (npcInfo.logic_id or npcInfo.world_map_cfg_id) and npcInfo.npcCfg then
+          local logic_id = npcInfo.logic_id or npcInfo.world_map_cfg_id
           local worldMap = self:GetWorldMapByConfId(npcInfo.world_map_cfg_id)
           if not self:CheckBelongToSameSceneId(npcInfo) or npcInfo.next_npc_refresh_time and serveTime < npcInfo.next_npc_refresh_time then
           else
             self.NpcUpdateCommon.IsValueChange = true
+            local showCathPet = self:IsShowCatchPet(npcInfo.npc_refresh_id)
+            compassData.IsCathPetNpc = showCathPet
             compassData.Position = UE4.FVector(npcInfo.npc_pos.x, npcInfo.npc_pos.y, npcInfo.npc_pos.z)
             compassData.IsUnLock = npcInfo.status == _G.ProtoEnum.LockStatus.ENUM.UNLOCKED or npcInfo.status == _G.ProtoEnum.LockStatus.ENUM.DUNGEON_FINISH
             compassData.IsFinish = npcInfo.status == _G.ProtoEnum.LockStatus.ENUM.DUNGEON_FINISH
             compassData.NpcConfig = npcInfo.npcCfg
             compassData.IsOwlStarNpc = compassData.NpcConfig and compassData.NpcConfig.min_map_disappear and compassData.NpcConfig.min_map_disappear > 0
             compassData.NPC_Level = npcInfo.npc_level
-            compassData.Id = npcInfo.entry_id or -1
-            compassData.LogicId = npcInfo.logic_id or -1
+            compassData.Id = logic_id
+            compassData.LogicId = logic_id
             compassData.petInfo = npcInfo.petInfo
             compassData.glass_info = npcInfo.glass_info
             compassData.mutation_type = npcInfo.mutation_type
             compassData.npc_refresh_id = npcInfo.npc_refresh_id
             compassData.ownerId = npcInfo.ownerId
-            compassData.layer_id = npcInfo.layerId
             if worldMap and worldMap.map_tips_show_type == Enum.MapTipsShowType.MAP_TIPS_ACTIVITY_DROP then
               compassData.worldMapActivityConf = self.bigMapModuleData:GetMapActivityConfByMapId(worldMap.id)
             else
               compassData.worldMapActivityConf = nil
             end
-            local npcUI = self.NpcIcons[npcInfo.entry_id]
-            local isShowNpc = self:IsShowNpc(compassData, worldMap)
+            compassData.layer_id = npcInfo.layerId
+            local npcUI = self.NpcIcons[logic_id]
+            local isTrackingNpc = npcInfo == self.curTraceNpcInfo
+            local isShowNpc = self:IsShowNpc(compassData, worldMap, isTrackingNpc)
             if npcInfo == self.curTraceNpcInfo and not isShowNpc then
               self.curTraceNpcInfo = nil
             end
@@ -504,11 +555,11 @@ function UMG_Compass_C:UpdateNpcInfo()
               if isShowNpc then
                 local needResetUClass = false
                 if npcUI.WorldMapConfig and npcUI.WorldMapConfig.id ~= worldMap.id then
-                  Log.InfoFormat("UMG_Compass_C:UpdateNpcInfo worldMap change, needResetUClass = true, oldWorldMapId=%s, npcInfo.entry_id=%s, newWorldMapId=%s", tostring(npcUI.WorldMapConfig.id), tostring(npcInfo.entry_id), tostring(worldMap.id))
+                  Log.InfoFormat("UMG_Compass_C:UpdateNpcInfo worldMap change, needResetUClass = true, oldWorldMapId=%s, npcInfo.entry_id=%s, npcInfo.logic_id=%s, newWorldMapId=%s", tostring(npcUI.WorldMapConfig.id), tostring(npcInfo.entry_id), tostring(logic_id), tostring(worldMap.id))
                   needResetUClass = true
                   if compassData.NpcConfig and compassData.NpcConfig.genre == Enum.ClientNpcType.CNT_OUTDOOR_CHALLENGE then
                     local oldNpcConfigType = npcUI.NpcConfig and npcUI.NpcConfig.genre or -1
-                    Log.ErrorFormat("UMG_Compass_C:UpdateNpcInfo worldMap change, oldNpcConfigType=%s, npcInfo.entry_id=%s, newNpcConfigType=Enum.ClientNpcType.CNT_OUTDOOR_CHALLENGE", tostring(oldNpcConfigType), tostring(npcInfo.entry_id))
+                    Log.ErrorFormat("UMG_Compass_C:UpdateNpcInfo worldMap change, oldNpcConfigType=%s, npcInfo.entry_id=%s, npcInfo.logic_id=%s, newNpcConfigType=Enum.ClientNpcType.CNT_OUTDOOR_CHALLENGE", tostring(oldNpcConfigType), tostring(npcInfo.entry_id), tostring(logic_id))
                   end
                 end
                 npcUI:UpdateData(compassData, worldMap)
@@ -517,50 +568,17 @@ function UMG_Compass_C:UpdateNpcInfo()
                   self:SetNpcItemUClass(npcUI)
                 end
               else
-                self.NpcUpdateCommon.RemoveIds[#self.NpcUpdateCommon.RemoveIds + 1] = npcInfo.entry_id
+                self.NpcUpdateCommon.RemoveIds[#self.NpcUpdateCommon.RemoveIds + 1] = logic_id
               end
             elseif isShowNpc then
-              local showCathPet = self:IsShowCatchPet(npcInfo.npc_refresh_id)
+              self:CreateNpcHelper(npcInfo, compassData, worldMap, logic_id)
               if showCathPet then
                 isPlayCatchSound = true
-                if worldMap and worldMap.default_track then
-                  self.NpcIcons[npcInfo.entry_id] = self:CreateCatchPetData(compassData, worldMap, self.TraceNpcLayer)
-                  local catchePetCompassUIData = self.NpcIcons[npcInfo.entry_id]
-                  if worldMap.default_track_loop then
-                    catchePetCompassUIData:SetTrace(true, nil, 1, true)
-                    local traceInfo = {
-                      traceType = BigMapModuleEnum.TraceType.TempTrace,
-                      npcInfo = npcInfo
-                    }
-                    table.insert(self.compassTraceInfo, traceInfo)
-                  else
-                    catchePetCompassUIData:SetTrace(true, nil, 0, true)
-                  end
-                else
-                  self.NpcIcons[npcInfo.entry_id] = self:CreateCatchPetData(compassData, worldMap)
-                end
-              elseif worldMap and worldMap.default_track then
-                self.NpcIcons[npcInfo.entry_id] = self:CreateNpcData(compassData, worldMap, self.TraceNpcLayer)
-                local npcCompassUIData = self.NpcIcons[npcInfo.entry_id]
-                if worldMap.default_track_loop then
-                  npcCompassUIData:SetTrace(true, nil, 1, true)
-                  local traceInfo = {
-                    traceType = BigMapModuleEnum.TraceType.TempTrace,
-                    npcInfo = npcInfo
-                  }
-                  table.insert(self.compassTraceInfo, traceInfo)
-                else
-                  npcCompassUIData:SetTrace(true, nil, 0, true)
-                end
-              else
-                self.NpcIcons[npcInfo.entry_id] = self:CreateNpcData(compassData, worldMap)
               end
             end
           end
         end
       end
-    else
-      break
     end
   end
   if not self.NpcUpdateCommon.CurUpdateKey then
@@ -585,18 +603,75 @@ function UMG_Compass_C:UpdateNpcInfo()
   end
 end
 
+function UMG_Compass_C:CreateNpcHelper(npcInfo, compassData, worldMap, logic_id)
+  local curFrameNum = UE4.UNRCStatics.GetCurGFrameNumber()
+  if not npcInfo then
+    Log.ErrorFormat("UMG_Compass_C:CreateNpcHelper npcInfo is nil, logic_id=%s", tostring(logic_id))
+    return
+  end
+  if not compassData then
+    Log.ErrorFormat("UMG_Compass_C:CreateNpcHelper compassData is nil, logic_id=%s", tostring(logic_id))
+    return
+  end
+  if not worldMap then
+    Log.ErrorFormat("UMG_Compass_C:CreateNpcHelper worldMap is nil, logic_id=%s", tostring(logic_id))
+    return
+  end
+  if not logic_id then
+    Log.ErrorFormat("UMG_Compass_C:CreateNpcHelper logic_id is nil, npcInfo.entry_id=%s", tostring(npcInfo.entry_id))
+    return
+  end
+  local defaultTrackType = worldMap and worldMap.default_track_type or 0
+  if defaultTrackType > 0 then
+    local isForceTrack = self:IsForceTrackNpc(logic_id, defaultTrackType)
+    if isForceTrack then
+      self.NpcIcons[logic_id] = self:CreateNpcData(compassData, worldMap, self.TraceNpcLayer)
+      self.NpcIcons[logic_id]:SetTrace(true, nil, 1, false)
+      self:AddToForceTrackMap(logic_id, defaultTrackType)
+      local traceInfo = {
+        traceType = BigMapModuleEnum.TraceType.TempTrace,
+        npcInfo = npcInfo
+      }
+      table.insert(self.compassTraceInfo, traceInfo)
+    else
+      self.NpcIcons[logic_id] = self:CreateNpcData(compassData, worldMap)
+      self:AddToLimitNumTrackTypeCache(logic_id, defaultTrackType, curFrameNum)
+    end
+  elseif worldMap.default_track then
+    self.NpcIcons[logic_id] = self:CreateNpcData(compassData, worldMap, self.TraceNpcLayer)
+    local npcCompassUIData = self.NpcIcons[logic_id]
+    if worldMap.default_track_loop then
+      npcCompassUIData:SetTrace(true, nil, 1, true)
+      local traceInfo = {
+        traceType = BigMapModuleEnum.TraceType.TempTrace,
+        npcInfo = npcInfo
+      }
+      table.insert(self.compassTraceInfo, traceInfo)
+    else
+      npcCompassUIData:SetTrace(true, nil, 0, true)
+    end
+  else
+    self.NpcIcons[logic_id] = self:CreateNpcData(compassData, worldMap)
+  end
+end
+
 function UMG_Compass_C:RemoveUIById(removeIds, tables)
+  local curFrameNum = UE4.UNRCStatics.GetCurGFrameNumber()
   for i = 1, #removeIds do
     local ui = tables[removeIds[i]]
     if ui then
       if ui.WorldMapConfig.default_track_loop and self.compassTraceInfo and #self.compassTraceInfo > 0 then
         for k, traceInfo in ipairs(self.compassTraceInfo) do
-          local entryId = traceInfo.npcInfo.entry_id
-          if entryId and entryId == removeIds[i] then
+          local logicId = traceInfo.npcInfo.logic_id
+          if logicId and logicId == removeIds[i] then
             table.remove(self.compassTraceInfo, k)
             break
           end
         end
+      end
+      local defaultTrackType = ui.WorldMapConfig and ui.WorldMapConfig.default_track_type or 0
+      if defaultTrackType and defaultTrackType > 0 then
+        self:RemoveFromTrackTypeCache(removeIds[i], defaultTrackType, curFrameNum)
       end
       self:RemoveUIData(ui)
       tables[removeIds[i]] = nil
@@ -872,6 +947,7 @@ function UMG_Compass_C:CreateCatchPetData(info, worldMap, fatherLayer)
   catchIcon.itemUClass = self.CompassFunctionTemplate
   catchIcon:SetShowArray(self.CurShowNpcKeys)
   catchIcon.UpdateVersion = self.NpcUpdateCommon and self.NpcUpdateCommon.CurUpdateVersion or CacheNpcUpdateVersion
+  catchIcon.DistanceSquare = self:DistanceSquare(catchIcon.WorldPos, self.NowHeroPos)
   return catchIcon
 end
 
@@ -881,11 +957,14 @@ function UMG_Compass_C:CreateNpcData(info, worldMap, fatherLayer)
   self:SetNpcItemUClass(NpcIcon)
   NpcIcon:SetShowArray(self.CurShowNpcKeys)
   NpcIcon.UpdateVersion = self.NpcUpdateCommon and self.NpcUpdateCommon.CurUpdateVersion or CacheNpcUpdateVersion
+  NpcIcon.DistanceSquare = self:DistanceSquare(NpcIcon.WorldPos, self.NowHeroPos)
   return NpcIcon
 end
 
 function UMG_Compass_C:SetNpcItemUClass(NpcIcon)
-  if NpcIcon.NpcConfig then
+  if NpcIcon.IsCathPetNpc then
+    NpcIcon.itemUClass = self.CompassFunctionTemplate
+  elseif NpcIcon.NpcConfig then
     if NpcIcon.NpcConfig.genre == Enum.ClientNpcType.CNT_PETBOSS or NpcIcon.NpcConfig.genre == Enum.ClientNpcType.CNT_LEGENDARY_SPIRIT or NpcIcon.NpcConfig.genre == Enum.ClientNpcType.CNT_HOME_NPC then
       NpcIcon.itemUClass = self.CompassPetTemplate
     elseif NpcIcon.NpcConfig.genre == Enum.ClientNpcType.CNT_TELEPORT or NpcIcon.NpcConfig.genre == Enum.ClientNpcType.CNT_FLOWER_SEED or NpcIcon.NpcConfig.genre == Enum.ClientNpcType.CNT_CAMP or NpcIcon.WorldMapConfig.map_tips_show_type == Enum.MapTipsShowType.MAP_TIPS_OWL_SANCTUARY then
@@ -1021,9 +1100,16 @@ end
 
 local ComputeUIItemShowTempVector = UE4.FVector()
 
-function UMG_Compass_C:ComputeUIItemShow(uiItem)
+function UMG_Compass_C:ComputeUIItemShow(uiItem, curFrameNum)
   local disSquareInXY = self:DistanceSquareInXY(self.NowHeroPos, uiItem.WorldPos)
   uiItem.DistanceInXYSquare = disSquareInXY
+  local disSquare
+  local defaultTrackType = uiItem.WorldMapConfig and uiItem.WorldMapConfig.default_track_type
+  if defaultTrackType and defaultTrackType > 0 then
+    disSquare = self:DistanceSquare(self.NowHeroPos, uiItem.WorldPos)
+    uiItem.DistanceSquare = disSquare
+    self:_SetTrackTypeSortDirty(defaultTrackType, curFrameNum + 1, curFrameNum)
+  end
   if not self.DistanceLevelInitPos[uiItem.DistanceLevel] then
     self.DistanceLevelInitPos[uiItem.DistanceLevel] = self.NowHeroPos
   end
@@ -1045,8 +1131,14 @@ function UMG_Compass_C:ComputeUIItemShow(uiItem)
     return
   end
   self.IsUpdateIconPos = true
-  local disSquare = self:DistanceSquare(self.NowHeroPos, uiItem.WorldPos)
-  uiItem.DistanceSquare = disSquare
+  if not disSquare then
+    disSquare = self:DistanceSquare(self.NowHeroPos, uiItem.WorldPos)
+    uiItem.DistanceSquare = disSquare
+  end
+  if defaultTrackType and defaultTrackType > 0 and not self:CanShowByTrackTypeLimit(uiItem, curFrameNum) then
+    uiItem:SetIsShow(false)
+    return
+  end
   uiItem:SetIsShow(true)
   uiItem:SetIsBig(disSquare < self.SizeChangeDisSquare)
   if uiItem.CurState == uiItem.MapAreaState.MAP_NPC and uiItem.DistanceSquare <= 10000 then
@@ -1110,6 +1202,7 @@ function UMG_Compass_C:IsNeedUpdate(distanceLevel)
 end
 
 function UMG_Compass_C:UpdateDisLayer(Layers, KeyDatas)
+  local curFrameNum = UE4.UNRCStatics.GetCurGFrameNumber()
   if self.IsForceUpdatePos or self.IsShouldUpdatePos then
     Layers.WillUpdateFrame = Layers.NeedUpdateFrame or 1
     self.ForceUpdateFrame = math.max(self.ForceUpdateFrame or 1, Layers.WillUpdateFrame)
@@ -1147,7 +1240,7 @@ function UMG_Compass_C:UpdateDisLayer(Layers, KeyDatas)
           if layer.CurUpdateKey then
             local item = KeyDatas[layer.CurUpdateKey]
             if item then
-              self:ComputeUIItemShow(item)
+              self:ComputeUIItemShow(item, curFrameNum)
               self.willChangeItems[#self.willChangeItems + 1] = item
               if layer.KeysList[layer.CurUpdateKey] then
                 local integerId = math.tointeger(layer.CurUpdateKey)
@@ -1201,6 +1294,7 @@ function UMG_Compass_C:UpdateHeroPosition()
 end
 
 function UMG_Compass_C:UpdateMoveNpc(KeyDatas)
+  local curFrameNum = UE4.UNRCStatics.GetCurGFrameNumber()
   if self.MoveNpcDisLeveKey and self.MoveNpcDisLeveKey.KeysList then
     DisLayerUpdateNum = math.min(self.LayerUpdatePerTick, self.MoveNpcDisLeveKey.ItemNumber)
     if DisLayerUpdateNum > 0 then
@@ -1209,7 +1303,7 @@ function UMG_Compass_C:UpdateMoveNpc(KeyDatas)
         if self.MoveNpcDisLeveKey.CurUpdateKey then
           local item = KeyDatas[self.MoveNpcDisLeveKey.CurUpdateKey]
           if item then
-            self:ComputeUIItemShow(item)
+            self:ComputeUIItemShow(item, curFrameNum)
             item:SetPosByCamera(self.CurCameraDir)
             if self.ShowDisItem == item then
               local distance = math.sqrt(self.ShowDisItem.DistanceSquare)
@@ -1427,7 +1521,7 @@ function UMG_Compass_C:UpdateTraceNpc(bForceUpdate)
   end
   local isChangeValue = false
   if self.curTraceNpcInfo and (bForceUpdate or self.curTraceNpcInfo ~= npcData) then
-    local refreshId = self.curTraceNpcInfo.entry_id
+    local refreshId = self.curTraceNpcInfo.logic_id or self.curTraceNpcInfo.world_map_cfg_id
     local oldIsNpc = true
     local oldTraceData
     if not refreshId then
@@ -1449,15 +1543,30 @@ function UMG_Compass_C:UpdateTraceNpc(bForceUpdate)
       compassData.IsUnLock = self.curTraceNpcInfo.status == _G.ProtoEnum.LockStatus.ENUM.UNLOCKED
       local worldMap = self:GetWorldMapByConfId(self.curTraceNpcInfo.world_map_cfg_id)
       local isShowNpc = oldIsNpc and self:IsShowNpc(compassData, worldMap) or self:IsShowMapArea(compassData, worldMap)
+      if worldMap and worldMap.map_tips_show_type == Enum.MapTipsShowType.MAP_TIPS_ACTIVITY_DROP then
+        compassData.worldMapActivityConf = self.bigMapModuleData:GetMapActivityConfByMapId(worldMap.id)
+      else
+        compassData.worldMapActivityConf = nil
+      end
       if isShowNpc then
         compassData.Id = refreshId
         compassData.NpcConfig = self.curTraceNpcInfo.npcCfg
         compassData.IsOwlStarNpc = compassData.NpcConfig and compassData.NpcConfig.min_map_disappear and compassData.NpcConfig.min_map_disappear > 0
-        compassData.LogicId = self.curTraceNpcInfo.logic_id or -1
+        compassData.LogicId = refreshId
+        compassData.npc_refresh_id = self.curTraceNpcInfo.npc_refresh_id
+        compassData.ownerId = self.curTraceNpcInfo.ownerId
+        if worldMap and worldMap.map_tips_show_type == Enum.MapTipsShowType.MAP_TIPS_ACTIVITY_DROP then
+          compassData.worldMapActivityConf = self.bigMapModuleData:GetMapActivityConfByMapId(worldMap.id)
+        else
+          compassData.worldMapActivityConf = nil
+        end
+        compassData.layer_id = self.curTraceNpcInfo.layerId
         if oldIsNpc then
+          local showCathPet = self:IsShowCatchPet(self.curTraceNpcInfo.npc_refresh_id)
+          compassData.IsCathPetNpc = showCathPet
           compassData.NPC_Level = self.curTraceNpcInfo.npc_level
           compassData.Position = UE4.FVector(self.curTraceNpcInfo.npc_pos.x, self.curTraceNpcInfo.npc_pos.y, self.curTraceNpcInfo.npc_pos.z)
-          self.NpcIcons[refreshId] = self:CreateNpcData(compassData, worldMap, self.NpcLayer)
+          self:CreateNpcHelper(self.curTraceNpcInfo, compassData, worldMap, refreshId)
         else
           compassData.Position = UE4.FVector(self.curTraceNpcInfo.area_pos.x, self.curTraceNpcInfo.area_pos.y, self.curTraceNpcInfo.area_pos.z)
           self.MapAreaIcons[refreshId] = self:CreateAreaData(compassData, worldMap, self.NpcLayer)
@@ -1467,7 +1576,7 @@ function UMG_Compass_C:UpdateTraceNpc(bForceUpdate)
     self.curTraceNpcInfo = nil
   end
   if npcData and (bForceUpdate or self.curTraceNpcInfo ~= npcData) then
-    local refreshId = newIsNpc and npcData.entry_id or npcData.world_map_cfg_id
+    local refreshId = newIsNpc and npcData.logic_id or npcData.world_map_cfg_id
     if not refreshId then
       Log.Warning("TraceNpc No npc_refresh_id or world_map_cfg_id")
       return
@@ -1500,17 +1609,27 @@ function UMG_Compass_C:UpdateTraceNpc(bForceUpdate)
       compassData.Position = UE4.FVector(npcData.area_pos.x, npcData.area_pos.y, npcData.area_pos.z)
     end
     if newIsNpc then
+      local showCathPet = self:IsShowCatchPet(npcData.npc_refresh_id)
+      compassData.IsCathPetNpc = showCathPet
       compassData.IsFinish = npcData.status == _G.ProtoEnum.LockStatus.ENUM.DUNGEON_FINISH
       compassData.NPC_Level = npcData.npc_level
-      compassData.LogicId = npcData.logic_id or -1
-      if self:IsShowNpc(compassData, worldMap) then
+      compassData.LogicId = refreshId
+      compassData.npc_refresh_id = npcData.npc_refresh_id
+      compassData.ownerId = npcData.ownerId
+      compassData.layer_id = npcData.layerId
+      if worldMap and worldMap.map_tips_show_type == Enum.MapTipsShowType.MAP_TIPS_ACTIVITY_DROP then
+        compassData.worldMapActivityConf = self.bigMapModuleData:GetMapActivityConfByMapId(worldMap.id)
+      else
+        compassData.worldMapActivityConf = nil
+      end
+      if self:IsShowNpc(compassData, worldMap, true) then
         compassData.NPC_Level = self.curTraceNpcInfo.npc_level
         self.NpcIcons[refreshId] = self:CreateNpcData(compassData, worldMap, self.TraceNpcLayer)
         self.NpcIcons[refreshId]:SetTrace(true, isPlayAni)
       else
         self.curTraceNpcInfo = nil
       end
-    elseif self:IsShowMapArea(compassData, worldMap) then
+    elseif self:IsShowMapArea(compassData, worldMap, true) then
       self.MapAreaIcons[refreshId] = self:CreateAreaData(compassData, worldMap, self.TraceNpcLayer)
       self.MapAreaIcons[refreshId]:SetTrace(true, isPlayAni)
     else
@@ -1794,10 +1913,18 @@ function UMG_Compass_C:OnTick(InDeltaTime)
     else
       self:UpdateMoveNpc(self.NpcIcons)
     end
+    if self._defaultTrackNpcDataChangePending then
+      self._defaultTrackNpcDataChangePending = false
+      self:_ProcessDefaultTrackTypeNpcDataChange()
+    end
   end
 end
 
 function UMG_Compass_C:OnTouchStarted(MyGeometry, InTouchEvent)
+  if self.CurCompassState ~= UMG_Compass_C.State.NORMAL then
+    Log.Debug("UMG_Compass_C:OnTouchStarted not noraml state, can not open map")
+    return UE4.UWidgetBlueprintLibrary.Handled()
+  end
   local isBan = _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.CheckUIFunctionBan, _G.Enum.FunctionEntrance.FE_MAP, false)
   if not isBan and BigMapModuleCmd then
     NRCProfilerLog:NRCClickBtn(true, "MainBigMap")
@@ -1885,6 +2012,12 @@ function UMG_Compass_C:OnDestruct()
   self.CompItemCircle = {}
   self.PetSensing = {}
   self.DistanceLevelInitPos = {}
+  self.limitNumTrackTypeToListMap = {}
+  self.limitNumTrackTypeToMapIndexMap = {}
+  self.forceTrackTypeMap = {}
+  self.limitNumTrackTypeSortDirtyMap = {}
+  self.limitNumTrackTypeSortedMap = {}
+  self._defaultTrackNpcDataChangePending = false
   self:RemoveAllButtonListener()
   NRCEventCenter:UnRegisterEvent(self, SceneEvent.LoadMapStart, self.LoadMapStart)
   NRCEventCenter:UnRegisterEvent(self, SceneEvent.PlayerBornFinish, self.OnMapLoaded)
@@ -1894,6 +2027,7 @@ function UMG_Compass_C:OnDestruct()
   NRCEventCenter:UnRegisterEvent(self, SceneEvent.PlayerTeleportFinish, self.PlayerTeleportFinish)
   NRCEventCenter:UnRegisterEvent(self, BigMapModuleEvent.OnTraceNpcDataChanged, self.OnTraceNpcDataChanged)
   NRCEventCenter:UnRegisterEvent(self, BigMapModuleEvent.AcceptTaskRefresh, self.UpdateAcceptableTaskData)
+  NRCEventCenter:UnRegisterEvent(self, BigMapModuleEvent.DefaultTrackNpcChange, self.OnDefaultTrackTypeNpcDataChange)
   _G.DataModelMgr.PlayerDataModel:RemoveEventListener(self, PlayerDataEvent.STORY_FLAG_ADDED, self.OnStoryFlagAdded)
   _G.DataModelMgr.PlayerDataModel:RemoveEventListener(self, PlayerDataEvent.NAVIGATION_MODE_UPDATE, self.OnNavigationModeUpdate)
 end
@@ -1912,7 +2046,7 @@ function UMG_Compass_C:OnNavigationModeUpdate(mode, init)
       else
         self:Hide()
       end
-    elseif self.NavigationMode == ProtoEnum.NavigationModeType.NMT_MINIMAP and self.CurCompassState == UMG_Compass_C.State.NORMAL then
+    elseif self.NavigationMode == ProtoEnum.NavigationModeType.NMT_MINIMAP then
       self:Hide()
     end
   end
@@ -1946,6 +2080,226 @@ end
 
 function UMG_Compass_C:OnTraceNpcDataChanged()
   self:UpdateTraceNpc(true)
+end
+
+function UMG_Compass_C:AddToLimitNumTrackTypeCache(logicId, defaultTrackType, curFrameNum)
+  if not defaultTrackType or 0 == defaultTrackType then
+    return
+  end
+  if not self.limitNumTrackTypeToListMap[defaultTrackType] then
+    self.limitNumTrackTypeToListMap[defaultTrackType] = {}
+  end
+  if not self.limitNumTrackTypeToMapIndexMap[defaultTrackType] then
+    self.limitNumTrackTypeToMapIndexMap[defaultTrackType] = {}
+  end
+  local list = self.limitNumTrackTypeToListMap[defaultTrackType]
+  local map = self.limitNumTrackTypeToMapIndexMap[defaultTrackType]
+  if not map[logicId] then
+    list[#list + 1] = logicId
+    map[logicId] = #list
+    self:_SetTrackTypeSortDirty(defaultTrackType, curFrameNum, curFrameNum)
+  else
+    Log.ErrorFormat("UMG_Compass_C:AddToLimitNumTrackTypeCache unexpected, duplicate logicId: %s, defaultTrackType: %s", tostring(logicId), tostring(defaultTrackType))
+  end
+end
+
+function UMG_Compass_C:RemoveFromTrackTypeCache(logicId, defaultTrackType, curFrameNum)
+  if not defaultTrackType or 0 == defaultTrackType then
+    return
+  end
+  local list = self.limitNumTrackTypeToListMap[defaultTrackType]
+  local map = self.limitNumTrackTypeToMapIndexMap[defaultTrackType]
+  if not list or not map then
+    return
+  end
+  local idx = map[logicId]
+  if not idx or idx <= 0 then
+    return
+  end
+  local lastIdx = #list
+  map[logicId] = nil
+  if idx < lastIdx then
+    local lastLogicId = list[lastIdx]
+    list[idx] = lastLogicId
+    map[lastLogicId] = idx
+  end
+  table.remove(list, lastIdx)
+  self:_SetTrackTypeSortDirty(defaultTrackType, curFrameNum, curFrameNum)
+end
+
+function UMG_Compass_C:_SetTrackTypeSortDirty(trackType, sortFrame, curFrame)
+  local oriTargetFrame = self.limitNumTrackTypeSortDirtyMap[trackType]
+  if oriTargetFrame and sortFrame <= oriTargetFrame then
+    return
+  end
+  if oriTargetFrame and not self.limitNumTrackTypeSortedMap[trackType] and curFrame < sortFrame and curFrame >= oriTargetFrame then
+    self:_SortTrackTypeList(trackType)
+  end
+  self.limitNumTrackTypeSortDirtyMap[trackType] = sortFrame
+  self.limitNumTrackTypeSortedMap[trackType] = nil
+end
+
+function UMG_Compass_C:_SortTrackTypeList(trackType)
+  self.limitNumTrackTypeSortedMap[trackType] = true
+  local list = self.limitNumTrackTypeToListMap[trackType]
+  local map = self.limitNumTrackTypeToMapIndexMap[trackType]
+  if not list or not map then
+    return
+  end
+  for i = #list, 1, -1 do
+    local logicId = list[i]
+    if not self.NpcIcons[logicId] then
+      local lastIdx = #list
+      if i < lastIdx and lastIdx > 0 then
+        local lastLogicId = list[lastIdx]
+        list[i] = lastLogicId
+        map[lastLogicId] = i
+      end
+      table.remove(list, lastIdx)
+      map[logicId] = nil
+    end
+  end
+  if #list > 0 then
+    table.sort(list, function(a, b)
+      local npcA = self.NpcIcons[a]
+      local npcB = self.NpcIcons[b]
+      if not npcA then
+        return false
+      end
+      if not npcB then
+        return true
+      end
+      return (npcA.DistanceSquare or math.huge) < (npcB.DistanceSquare or math.huge)
+    end)
+    for i, logicId in ipairs(list) do
+      map[logicId] = i
+    end
+  end
+end
+
+function UMG_Compass_C:IsForceTrackNpc(logicId, defaultTrackType)
+  if not defaultTrackType or 0 == defaultTrackType then
+    return false
+  end
+  local conf = self:GetDefaultTrackConf(defaultTrackType)
+  if not conf then
+    return false
+  end
+  local npcList = _G.NRCModuleManager:DoCmd(BigMapModuleCmd.GetDefaultTrackNpcList, defaultTrackType)
+  if not npcList or 0 == #npcList then
+    return false
+  end
+  local trackNum = conf.track_num
+  local startIdx = math.max(1, #npcList - trackNum + 1)
+  for i = startIdx, #npcList do
+    if npcList[i].logic_id == logicId then
+      return true
+    end
+  end
+  return false
+end
+
+function UMG_Compass_C:CanShowByTrackTypeLimit(uiItem, curFrameNum)
+  if uiItem.IsTrace then
+    return true
+  end
+  local trackType = uiItem.WorldMapConfig and uiItem.WorldMapConfig.default_track_type or 0
+  if trackType <= 0 then
+    return true
+  end
+  local conf = self:GetDefaultTrackConf(trackType)
+  if not conf then
+    return true
+  end
+  local showNum = conf.minmap_num - conf.track_num
+  if showNum <= 0 then
+    return false
+  end
+  local dirtyFrame = self.limitNumTrackTypeSortDirtyMap[trackType]
+  if dirtyFrame and curFrameNum >= dirtyFrame and not self.limitNumTrackTypeSortedMap[trackType] then
+    self:_SortTrackTypeList(trackType)
+  end
+  local map = self.limitNumTrackTypeToMapIndexMap[trackType]
+  if not map then
+    return false
+  end
+  local idx = map[uiItem.LogicId]
+  if not idx then
+    return false
+  end
+  return showNum >= idx
+end
+
+function UMG_Compass_C:OnDefaultTrackTypeNpcDataChange()
+  self._defaultTrackNpcDataChangePending = true
+end
+
+function UMG_Compass_C:_ProcessDefaultTrackTypeNpcDataChange()
+  local curFrameNum = UE4.UNRCStatics.GetCurGFrameNumber()
+  for trackType, conf in pairs(self.mapDefaultTrackConfCache) do
+    local npcList = _G.NRCModuleManager:DoCmd(BigMapModuleCmd.GetDefaultTrackNpcList, trackType)
+    if not npcList then
+    else
+      local trackNum = conf.track_num
+      local startIdx = math.max(1, #npcList - trackNum + 1)
+      local newForceSet = {}
+      for i = startIdx, #npcList do
+        newForceSet[npcList[i].logic_id] = true
+      end
+      local oldForceSet = self.forceTrackTypeMap[trackType]
+      if oldForceSet then
+        for logicId, _ in pairs(oldForceSet) do
+          if not newForceSet[logicId] then
+            local npcUI = self.NpcIcons[logicId]
+            if npcUI then
+              npcUI:SetIsShow(false)
+              npcUI.fatherLayer = self.NpcLayer
+              npcUI:SetTrace(false)
+              self:AddToLimitNumTrackTypeCache(logicId, trackType, curFrameNum)
+            end
+          end
+        end
+      end
+      for logicId, _ in pairs(newForceSet) do
+        if not oldForceSet or not oldForceSet[logicId] then
+          local npcUI = self.NpcIcons[logicId]
+          if npcUI then
+            npcUI:SetIsShow(false)
+            npcUI.fatherLayer = self.TraceNpcLayer
+            npcUI:SetTrace(true, nil, 1, false)
+            self:RemoveFromTrackTypeCache(logicId, trackType, curFrameNum)
+          end
+        end
+      end
+      self.forceTrackTypeMap[trackType] = newForceSet
+    end
+  end
+end
+
+function UMG_Compass_C:AddToForceTrackMap(logicId, defaultTrackType)
+  if not defaultTrackType or 0 == defaultTrackType then
+    return
+  end
+  if not self.forceTrackTypeMap[defaultTrackType] then
+    self.forceTrackTypeMap[defaultTrackType] = {}
+  end
+  self.forceTrackTypeMap[defaultTrackType][logicId] = true
+end
+
+function UMG_Compass_C:InitMapDefaultTrackConfCache()
+  local allConfs = _G.DataConfigManager:GetTable(DataConfigManager.ConfigTableId.WORLD_MAP_DEFAULT_TRACK):GetAllDatas()
+  for _, conf in pairs(allConfs) do
+    if conf.track_type and conf.track_type > 0 then
+      self.mapDefaultTrackConfCache[conf.track_type] = conf
+    end
+  end
+end
+
+function UMG_Compass_C:GetDefaultTrackConf(defaultTrackType)
+  if not defaultTrackType or 0 == defaultTrackType then
+    return nil
+  end
+  return self.mapDefaultTrackConfCache[defaultTrackType]
 end
 
 return UMG_Compass_C

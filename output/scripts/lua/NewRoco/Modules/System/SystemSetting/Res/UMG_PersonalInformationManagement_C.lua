@@ -44,6 +44,12 @@ function UMG_PersonalInformationManagement_C:SetCommonPopUpInfo(PopUp)
   PopUp:SetPanelInfo(CommonPopUpData)
 end
 
+function UMG_PersonalInformationManagement_C:ChangePlayerName()
+  if self.Name then
+    self.Name:SetText(string.format("%s%s", LuaText.privacy_setting_49, _G.DataModelMgr.PlayerDataModel:GetPlayerName()))
+  end
+end
+
 function UMG_PersonalInformationManagement_C:OnCloseBtn()
   self:LoadAnimation(2)
 end

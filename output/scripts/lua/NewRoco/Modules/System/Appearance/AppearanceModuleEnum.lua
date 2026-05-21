@@ -44,4 +44,9 @@ AppearanceModuleEnum.SuitState = {
   OffShelf = 4,
   NotPurchasable = 5
 }
+AppearanceModuleEnum.ExclusionPanelType = {
+  None = 0,
+  GorgeousMedal = 1,
+  UpgradeComponent = 2
+}
 return AppearanceModuleEnum

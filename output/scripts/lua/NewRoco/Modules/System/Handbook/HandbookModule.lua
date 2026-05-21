@@ -7,6 +7,8 @@ local ProtoEnum = require("Data.PB.ProtoEnum")
 local SceneEvent = require("NewRoco.Modules.Core.Scene.Common.SceneEvent")
 local HandbookModuleEnum = reload("NewRoco.Modules.System.Handbook.HandbookModuleEnum")
 local NRCPanelDynamicData = require("Core.NRCPanel.NRCPanelDynamicData")
+local PetMutationUtils = require("NewRoco.Utils.PetMutationUtils")
+local ActivityUtils = require("NewRoco.Modules.System.Activity.ActivityUtils")
 local HandbookModule = NRCModuleBase:Extend("HandbookModule")
 
 function HandbookModule:OnConstruct()
@@ -52,11 +54,17 @@ function HandbookModule:OnConstruct()
   self:RegisterCmd(HandbookModuleCmd.GetDisableRewardAnimationState, self.OnGetDisableRewardAnimationState)
   self:RegisterCmd(HandbookModuleCmd.SetDisableRewardAnimationState, self.OnSetDisableRewardAnimationState)
   self:RegisterCmd(HandbookModuleCmd.SetClickTime, self.SetClickTime)
+  self:RegisterCmd(HandbookModuleCmd.GetHandbookTaskFinishCountById, self.GetHandbookTaskFinishCountById)
   self:RegisterCmd(HandbookModuleCmd.GetAccessHandbookData, self.OnCmdGetAccessHandbookData)
   self:RegisterCmd(HandbookModuleCmd.AreaHandbookChangePanel, self.OnCmdAreaHandbookChangePanel)
+  self:RegisterCmd(HandbookModuleCmd.OnCloseAreaHandbookChangPanel, self.OnCloseAreaHandbookChangPanel)
+  self:RegisterCmd(HandbookModuleCmd.OnHideAreaHandbookChangPanel, self.OnHideAreaHandbookChangPanel)
   self:RegisterCmd(HandbookModuleCmd.SelectAreaItem, self.OnCmdSelectAreaItem)
+  self:RegisterCmd(HandbookModuleCmd.UpdateCurSelectedSeasonHandbookData, self.OnCmdUpdateCurSelectedSeasonHandbookData)
+  self:RegisterCmd(HandbookModuleCmd.GetCurSelectedSeasonHandbookData, self.OnCmdGetCurSelectedSeasonHandbookData)
   self:RegisterCmd(HandbookModuleCmd.GetCurAreaHandbookEnum, self.OnCmdGetCurAreaHandbookEnum)
   self:RegisterCmd(HandbookModuleCmd.GetCurAreaHandbookId, self.OnCmdGetCurAreaHandbookId)
+  self:RegisterCmd(HandbookModuleCmd.GetCurSelectedSeason, self.GetCurSelectedSeason)
   self:RegisterCmd(HandbookModuleCmd.GetAreaHandbookInfo, self.OnCmdGetAreaHandbookInfo)
   self:RegisterCmd(HandbookModuleCmd.OnSearchHandbook, self.OnCmdSearchHandbook)
   self:RegisterCmd(HandbookModuleCmd.OnCmdOpenHandbookSearch, self.OnCmdOpenHandbookSearch)
@@ -78,6 +86,23 @@ function HandbookModule:OnConstruct()
   self:RegisterCmd(HandbookModuleCmd.GetAllPetHandbookConfs, self.OnCmdGetAllPetHandbookConfs)
   self:RegisterCmd(HandbookModuleCmd.GetHandbookCollectedPetsNum, self.OnCmdGetHandbookCollectedPetsNum)
   self:RegisterCmd(HandbookModuleCmd.OpenCollectionProgressTips, self.OnCmdOpenCollectionProgressTips)
+  self:RegisterCmd(HandbookModuleCmd.GetCurrentSeason, self.OnCmdGetCurrentSeason)
+  self:RegisterCmd(HandbookModuleCmd.OpenSeasonHandBook, self.OnCmdOpenSeasonHandBook)
+  self:RegisterCmd(HandbookModuleCmd.CloseSeasonHandBook, self.OnCmdCloseSeasonHandBook)
+  self:RegisterCmd(HandbookModuleCmd.SetCurSelectedSeasonPhotoType, self.OnCmdSetCurSelectedSeasonPhotoType)
+  self:RegisterCmd(HandbookModuleCmd.GetCurSelectedSeasonPhotoType, self.OnCmdGetCurSelectedSeasonPhotoType)
+  self:RegisterCmd(HandbookModuleCmd.OpenHandbookSeasonList, self.OnCmdOpenHandbookSeasonList)
+  self:RegisterCmd(HandbookModuleCmd.CloseHandbookSeasonList, self.OnCmdCloseHandbookSeasonList)
+  self:RegisterCmd(HandbookModuleCmd.GetSeasonPetCount, self.OnCmdGetSeasonPetCount)
+  self:RegisterCmd(HandbookModuleCmd.OpenSeasonRewardPanel, self.OnCmdOpenSeasonRewardPanel)
+  self:RegisterCmd(HandbookModuleCmd.GetSeasonRewardID, self.OnCmdGetSeasonRewardID)
+  self:RegisterCmd(HandbookModuleCmd.CheckHandbookSeasonIsGotReward, self.OnCmdCheckHandbookSeasonIsGotReward)
+  self:RegisterCmd(HandbookModuleCmd.SendGetHandbookSeasonAwardReq, self.OnCmdSendGetHandbookSeasonAwardReq)
+  self:RegisterCmd(HandbookModuleCmd.OpenSeasonPetPhotoShare, self.OnCmdOpenSeasonPetPhotoShare)
+  self:RegisterCmd(HandbookModuleCmd.GetPetHandbookRecordByPetBaseID, self.OnCmdGetPetHandbookRecordByPetBaseID)
+  self:RegisterCmd(HandbookModuleCmd.OpenHandbookAchievementRewardByRewardItemId, self.OpenHandbookAchievementRewardByRewardItemId)
+  self:RegisterCmd(HandbookModuleCmd.OpenSeasonPetPhotoRewardPanel, self.OnCmdOpenSeasonPetPhotoRewardPanel)
+  self:RegisterCmd(HandbookModuleCmd.CheckHandbookSeasonAwardState, self.OnCmdCheckHandbookSeasonAwardState)
   self:RegPanel("HandbookCover", "UMG_Handbook1", _G.Enum.UILayerType.UI_LAYER_FULLSCREEN, nil, true, true, true)
   self:RegPanel("HandbookMain", "UMG_Handbook", _G.Enum.UILayerType.UI_LAYER_FULLSCREEN)
   self:RegPanel("HandbookTrophy", "UMG_Handbook_CollectRewards", _G.Enum.UILayerType.UI_LAYER_POPUP)
@@ -85,11 +110,14 @@ function HandbookModule:OnConstruct()
   self:RegPanel("HandbookSubject", "UMG_Handbook_Subject", _G.Enum.UILayerType.UI_LAYER_POPUP)
   self:RegPanel("HandbookHabitTips", "UMG_Handbook_HabitReminder", _G.Enum.UILayerType.UI_LAYER_POPUP)
   self:RegPanel("BookPrompt", "UMG_BookPrompt", _G.Enum.UILayerType.UI_LAYER_TOP)
-  self:RegPanel("HandBook_RegionalSelection", "UMG_HandBook_RegionalSelection", _G.Enum.UILayerType.UI_LAYER_TOP)
+  self:RegPanel("HandBook_RegionalSelection", "UMG_HandBook_RegionalSelection", _G.Enum.UILayerType.UI_LAYER_TOP, nil, nil, true)
   self:RegPanel("HandBookSearch", "UMG_Handbook_Search", _G.Enum.UILayerType.UI_LAYER_POPUP)
   self:RegPanel("DistrictMapGuide", "UMG_DistrictMapGuide", _G.Enum.UILayerType.UI_LAYER_TOP)
-  self:RegPanel("DazzlingPopUp", "UMG_Dazzling_PopUp", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, true)
+  self:RegPanel("DazzlingPopUp", "UMG_Dazzling_PopUp", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, true, nil, "HandbookMain")
   self:RegPanel("CollectionProgressTipsPanel", "UMG_CollectionProgressTips", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, true)
+  self:RegPanel("HandbookSeason", "UMG_HandBook_Season", _G.Enum.UILayerType.UI_LAYER_TOP)
+  self:RegPanel("HandbookSeasonReward", "UMG_Handbook_CollectRewards2", _G.Enum.UILayerType.UI_LAYER_POPUP)
+  self:RegPanel("SeasonHandBookPhoto", "UMG_SeasonalGroupPhoto", _G.Enum.UILayerType.UI_LAYER_FULLSCREEN, true, true, true, true, nil, nil, "Out")
   NRCEventCenter:RegisterEvent("HandbookModule", self, SceneEvent.PlayerTeleportStart, self.OnPlayerTeleportStart)
   NRCEventCenter:RegisterEvent("RedPointModule", self, RedPointModuleEvent.RedPointChange, self.OnUpdateRedPointData)
   NRCEventCenter:RegisterEvent("HandbookModule", self, _G.NRCGlobalEvent.ON_RECONNECT_FINISH, self.OnReconnect)
@@ -213,19 +241,24 @@ function HandbookModule:OnStatChangeNotify(notify)
   end
 end
 
-function HandbookModule:OnCmdZoneAddPetRecordReq(baseId, reason)
+function HandbookModule:OnCmdZoneAddPetRecordReq(baseId, reason, npcActorId)
   local req = _G.ProtoMessage:newZoneAddPetRecordReq()
   req.base_id = baseId
   req.reason = reason or ProtoEnum.ZoneAddPetRecordReq.Reason.UNKOWN
+  req.npc_actor_id = npcActorId
   self.photoPetId = baseId
   _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_ADD_PET_RECORD_REQ, req, self, self.OnZoneAddPetRecordRsp)
+  Log.Debug("HandbookModule:OnCmdZoneAddPetRecordReq", baseId, reason, npcActorId)
 end
 
 function HandbookModule:OnZoneAddPetRecordRsp(rsp)
   if 0 == rsp.ret_info.ret_code and self.photoPetId then
-    local petName = _G.DataConfigManager:GetPetbaseConf(self.photoPetId).name
-    local des = string.format(LuaText.take_photo_hb_discover_tips, petName)
-    _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, des)
+    local recordData = self.data:GetPetHandbookRecordDataByPetBaseID(self.photoPetId)
+    if nil == recordData or recordData and recordData.State == _G.ProtoEnum.PetHandbookStatus.PHS_NOT_FOUND then
+      local petName = _G.DataConfigManager:GetPetbaseConf(self.photoPetId).name
+      local des = string.format(LuaText.take_photo_hb_discover_tips, petName)
+      _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, des)
+    end
     self.photoPetId = nil
   end
 end
@@ -266,35 +299,6 @@ function HandbookModule:ReqPetsStat(petIds)
     req.version = self.PetStatVersion
     self.LastPetStatReqTime = curTime
     _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_GET_PET_STAT_REQ, req, self, self.OnZoneGetPetStatRsp)
-  end
-end
-
-function HandbookModule:OnGetAllHandbookStatReq()
-  self:OnZoneGetHandbookStatReq(1)
-end
-
-function HandbookModule:OnZoneGetHandbookStatReq(page_index)
-  local req = _G.ProtoMessage:newZoneGetHandbookStatReq()
-  req.page = page_index
-  _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_GET_HANDBOOK_STAT_REQ, req, self, self.OnZoneGetHandbookstatRsp)
-end
-
-function HandbookModule:OnZoneGetHandbookstatRsp(rsp)
-  if rsp and rsp.hb_coll then
-    for _, collection in ipairs(rsp.hb_coll) do
-      if collection.record then
-        for _, record in pairs(collection.record) do
-          self.data:SetHandbookStatDic(record.pet_base_id, record.statistics)
-        end
-      end
-    end
-  end
-  if rsp and rsp.total_page and rsp.req_page then
-    if rsp.total_page <= rsp.req_page then
-      Log.Warning("\229\155\190\233\137\180\231\187\159\232\174\161\230\149\176\230\141\174\232\175\183\230\177\130\231\187\147\230\157\159\229\133\177", rsp.total_page)
-    else
-      self:OnZoneGetHandbookStatReq(rsp.req_page + 1)
-    end
   end
 end
 
@@ -414,7 +418,28 @@ function HandbookModule:OnCmdIsShowWorldHandbook(_IsShow)
 end
 
 function HandbookModule:OnCmdAreaHandbookChangePanel(arg)
-  self:OpenPanel("HandBook_RegionalSelection", arg)
+  if not self:HasPanel("HandBook_RegionalSelection") then
+    self:OpenPanel("HandBook_RegionalSelection", arg)
+  end
+end
+
+function HandbookModule:OnCloseAreaHandbookChangPanel(isDestory)
+  if isDestory then
+    if self:HasPanel("SeasonHandBookPhoto") or self:HasPanel("HandbookCover") then
+      return
+    end
+    self:ClosePanel("HandBook_RegionalSelection")
+  elseif self:HasPanel("HandBook_RegionalSelection") then
+    local panel = self:GetPanel("HandBook_RegionalSelection")
+    panel:OnClosePanel()
+  end
+end
+
+function HandbookModule:OnHideAreaHandbookChangPanel(isHide)
+  if self:HasPanel("HandBook_RegionalSelection") then
+    local panel = self:GetPanel("HandBook_RegionalSelection")
+    panel:OnHidePanel(isHide)
+  end
 end
 
 function HandbookModule:IsCollectHandBook(collect)
@@ -472,12 +497,19 @@ function HandbookModule:OnCmdOpenHandbookCoverPanel(arg)
   if arg and type(arg) == "number" then
     local conf = _G.DataConfigManager:GetAreaHandbook(arg)
     local banId = conf.enter_ban_id
-    local banConf = _G.DataConfigManager:GetUiEnterBanConf(banId)
-    local isBanBook = _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.CheckUIFunctionBan, banConf.function_entrance, true)
+    local isBanBook = false
+    if banId and banId > 0 then
+      local banConf = _G.DataConfigManager:GetUiEnterBanConf(banId)
+      isBanBook = _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.CheckUIFunctionBan, banConf.function_entrance, true)
+    end
     if isBanBook then
       return
     else
       self.data.CurHandbookAreaId = arg
+      if conf and conf.area_handbook_type then
+        self.data.CurHandbookAreaType = conf.area_handbook_type
+      end
+      self:OnCmdUpdateCurSelectedSeasonHandbookData(HandbookModuleEnum.SeasonHandbookTable.Handbook, arg)
     end
   end
   if not self:HasPanel("HandbookCover") then
@@ -572,11 +604,21 @@ function HandbookModule:OnOpenContentView(_handbookId, _petBaseId, _showBookAim)
     local panel = self:GetPanel("HandbookCover")
     panel:OnOpenAimMainPanel()
   end
-  self:OnCmdOpenHandbookPanel({
-    handbookId = _handbookId,
-    petbaseId = _petBaseId,
-    isShowBookAim = _showBookAim
-  })
+  self.data:SetHandbookInfo()
+  if self:HasPanel("HandbookMain") then
+    local Panel = self:GetPanel("HandbookMain")
+    Panel:SetArg({
+      handbookId = _handbookId,
+      petbaseId = _petBaseId,
+      isShowBookAim = _showBookAim
+    })
+  else
+    self:OpenPanel("HandbookMain", {
+      handbookId = _handbookId,
+      petbaseId = _petBaseId,
+      isShowBookAim = _showBookAim
+    })
+  end
 end
 
 function HandbookModule:OnOpenHandbookTrophyPanel(arg)
@@ -906,7 +948,12 @@ function HandbookModule:GetHandbookTopicAwardRsp(_rsp)
       _G.NRCEventCenter:DispatchEvent(HandbookModuleEvent.OnHandBookChanged)
       _G.NRCModuleManager:DoCmd(NPCShopUIModuleCmd.OpenNPCShopItemRewardsPanel, award, "")
     end
+    self:DispatchEvent(HandbookModuleEvent.OnUpdateLeftItemListTaskState)
   end
+end
+
+function HandbookModule:GetHandbookTaskFinishCountById(hb_id)
+  return self.data:GetHandbookTaskFinishCountById(hb_id)
 end
 
 function HandbookModule:SetHandbookTopicAward(hb_id, id)
@@ -1032,7 +1079,7 @@ function HandbookModule:OnCmdGetPetHandBookData(handbookId)
   return self.data:GetPetHandBookData(handbookId)
 end
 
-function HandbookModule:RegPanel(name, path, layer, customDisableRendering, fullSpeedDesired, disablePcEsc, autoSetDesiredCursor)
+function HandbookModule:RegPanel(name, path, layer, customDisableRendering, fullSpeedDesired, disablePcEsc, autoSetDesiredCursor, dependentPanelName, openAnimName, closeAnimName)
   local registerData = _G.NRCPanelRegisterData()
   registerData.panelName = name
   registerData.panelPath = string.format("/Game/NewRoco/Modules/System/Handbook/Res/%s", path)
@@ -1041,6 +1088,9 @@ function HandbookModule:RegPanel(name, path, layer, customDisableRendering, full
   registerData.fullSpeedDesired = fullSpeedDesired
   registerData.enablePcEsc = not disablePcEsc
   registerData.autoSetDesiredCursor = autoSetDesiredCursor
+  registerData.dependentPanelName = dependentPanelName
+  registerData.openAnimName = openAnimName
+  registerData.closeAnimName = closeAnimName
   self:RegisterPanel(registerData)
 end
 
@@ -1073,9 +1123,12 @@ function HandbookModule:OnSetPetUIScaleAndOffsetAndImageRevert(_IsRevert, _flip,
 end
 
 function HandbookModule:OnGetDisableRewardAnimationState()
+  if self.canPlayingTime == nil then
+    self.canPlayingTime = 3
+  end
   if self.playingTime then
     local curtime = os.time()
-    if curtime - self.playingTime > 3 then
+    if curtime - self.playingTime > self.canPlayingTime then
       self.playingTime = nil
       return false
     end
@@ -1083,9 +1136,10 @@ function HandbookModule:OnGetDisableRewardAnimationState()
   return self.isDisableRewardReceiveAnim
 end
 
-function HandbookModule:OnSetDisableRewardAnimationState(isPlayingAnim)
+function HandbookModule:OnSetDisableRewardAnimationState(isPlayingAnim, canPlayingTime)
   if isPlayingAnim then
     self.playingTime = os.time()
+    self.canPlayingTime = canPlayingTime
   end
   self.isDisableRewardReceiveAnim = isPlayingAnim
 end
@@ -1102,11 +1156,32 @@ function HandbookModule:SetClickTime()
 end
 
 function HandbookModule:OnCmdSelectAreaItem(areaItemData)
-  self.data.CurHandbookAreaId = areaItemData.conf.id
-  self.data.CurHandbookAreaType = areaItemData.conf.area_handbook_type
-  self.data:ChangeAreaHandbookInfo()
+  if areaItemData.type == HandbookModuleEnum.SeasonHandbookTable.Handbook then
+    self.data.CurHandbookAreaId = areaItemData.conf.id
+    self.data.CurHandbookAreaType = areaItemData.conf.area_handbook_type
+    self.data:ChangeAreaHandbookInfo()
+    if self.data.curSelectedSeasonHandbookData.type ~= areaItemData.type then
+      _G.NRCModuleManager:DoCmd(_G.HandbookModuleCmd.OpenHandbookCover, areaItemData.conf.id)
+    else
+      self:DispatchEvent(HandbookModuleEvent.OnChangeAreaData, areaItemData)
+    end
+  end
+  self:OnCmdUpdateCurSelectedSeasonHandbookData(areaItemData.type, areaItemData.conf.id)
+  self:DispatchEvent(HandbookModuleEvent.OnChangeAreaSelectItem, areaItemData)
+end
+
+function HandbookModule:OnCmdUpdateCurSelectedSeasonHandbookData(type, id)
+  if type then
+    self.data.curSelectedSeasonHandbookData.type = type
+  end
+  if id then
+    self.data.curSelectedSeasonHandbookData.id = id
+  end
   self:UpdateSelectPageRedPoint()
-  self:DispatchEvent(HandbookModuleEvent.OnChangeAreaData, areaItemData)
+end
+
+function HandbookModule:OnCmdGetCurSelectedSeasonHandbookData()
+  return self.data.curSelectedSeasonHandbookData
 end
 
 function HandbookModule:OnCmdGetCurAreaHandbookEnum()
@@ -1181,7 +1256,27 @@ function HandbookModule:GetRedPointModuleData()
   return self.redPointData
 end
 
-function HandbookModule:GetRedPointReasonState(areaId)
+function HandbookModule:GetRedPointReasonState(id, reason)
+  local redCollectedId = id
+  local redCollectedReason = reason or 0
+  local redPointData = self:GetRedPointModuleData()
+  local redPointCollecteNode = redPointData.RedPointNodeDic[redCollectedId]
+  if redPointCollecteNode and redPointCollecteNode.litUpReasonDic[redCollectedReason] and redPointCollecteNode.litUpReasonDic[redCollectedReason].oriPointData then
+    local listDatas = {}
+    if redPointCollecteNode.litUpReasonDic[redCollectedReason].splitPointData then
+      listDatas = redPointCollecteNode.litUpReasonDic[redCollectedReason].splitPointData
+    else
+      listDatas = self:SplitOriPointData(redPointCollecteNode.litUpReasonDic[redCollectedReason].oriPointData)
+    end
+    return #listDatas > 0
+  end
+  return false
+end
+
+function HandbookModule:GetBookRedPointReasonState(areaId)
+  if nil == areaId or 0 == areaId then
+    return false, false, {}
+  end
   local redCollectedId = _G.DataConfigManager:GetAreaHandbook(areaId).collected_red_point_id[1]
   local redCollectedReason = _G.DataConfigManager:GetRedPointConf(redCollectedId).change_reason[1] or 0
   local redTopicId = _G.DataConfigManager:GetAreaHandbook(areaId).topic_red_point_id[4]
@@ -1217,45 +1312,71 @@ function HandbookModule:GetRedPointReasonState(areaId)
   return isCollectePointUp, isTopicPointUp, TopicPointDatas
 end
 
-function HandbookModule:UpdateSelectPageRedPoint()
+function HandbookModule:GetPhotoRedPointReasonState(seasonId)
   local redPointData = self:GetRedPointModuleData()
-  if nil == redPointData or nil == redPointData.RedPointNodeDic then
-    return
-  end
-  local allAreaConfs = self:GetAllAreaHandbookConfs()
-  local curSelectAreaId = self.data.CurHandbookAreaId
-  if allAreaConfs then
-    local redPointData = {}
-    local entranData = {}
-    local isSelectCollectionRed, isSelectTopicRed, selectTopicPointDatas = self:GetRedPointReasonState(curSelectAreaId)
-    for i, areaConf in pairs(allAreaConfs) do
-      local isCollectionRed, isTopicRed, topicPointDatas = self:GetRedPointReasonState(areaConf.id)
-      if areaConf.id == curSelectAreaId then
-      elseif 1 == areaConf.id then
-        local isEqual = self:RedPointAreArraysEqual(selectTopicPointDatas, topicPointDatas)
-        if isEqual then
-          if isCollectionRed then
-            table.insert(redPointData, string.format("%d.%d", areaConf.area_handbook_type, areaConf.id))
-          end
-        elseif isCollectionRed or isTopicRed then
-          table.insert(redPointData, string.format("%d.%d", areaConf.area_handbook_type, areaConf.id))
+  local isPhotoPointUp = false
+  local photoRedPointId = _G.DataConfigManager:GetGlobalConfigByKeyType("season_photo_red_point_id", _G.DataConfigManager.ConfigTableId.PET_GLOBAL_CONFIG).num
+  local photoRedReason = _G.DataConfigManager:GetGlobalConfigByKeyType("season_photo_red_point_reason", _G.DataConfigManager.ConfigTableId.PET_GLOBAL_CONFIG).str
+  local redPhotoId = photoRedPointId
+  local redPhotoReason = _G.Enum.RedPointReason[photoRedReason]
+  local redPointPhotoNode = redPointData.RedPointNodeDic[redPhotoId]
+  if redPointPhotoNode and redPointPhotoNode.litUpReasonDic[redPhotoReason] and redPointPhotoNode.litUpReasonDic[redPhotoReason].oriPointData then
+    local listDatas = {}
+    if redPointPhotoNode.litUpReasonDic[redPhotoReason].splitPointData then
+      listDatas = redPointPhotoNode.litUpReasonDic[redPhotoReason].splitPointData
+    else
+      listDatas = self:SplitOriPointData(redPointPhotoNode.litUpReasonDic[redPhotoReason].oriPointData)
+    end
+    if nil == seasonId then
+      isPhotoPointUp = #listDatas > 0
+    else
+      for _, v in pairs(listDatas) do
+        if v and v[1] and v[1] == tostring(seasonId) then
+          isPhotoPointUp = true
+          break
         end
-      elseif isCollectionRed then
-        table.insert(redPointData, string.format("%d.%d", areaConf.area_handbook_type, areaConf.id))
       end
     end
-    if #redPointData > 0 then
-      table.insert(entranData, string.format("%d.%d", self.data.CurHandbookAreaType, self.data.CurHandbookAreaId))
-    end
-    _G.NRCModuleManager:DoCmd(RedPointModuleCmd.UpdateWithReasonPointData, _G.Enum.RedPointReason.RPR_AREA_HB_SELECT_PAGE, redPointData)
-    _G.NRCModuleManager:DoCmd(RedPointModuleCmd.UpdateWithReasonPointData, _G.Enum.RedPointReason.RPR_AREA_HB_SELECT_ENTRANCE, entranData)
   end
+  return isPhotoPointUp
+end
+
+function HandbookModule:UpdateSelectPageRedPoint()
+  local allAreaConfs = self:GetAllAreaHandbookConfs()
+  local selectData = self.data.curSelectedSeasonHandbookData
+  local redPointData = {}
+  local entranData = {}
+  for i, areaConf in pairs(allAreaConfs) do
+    local isCollectionRed, isTopicRed, topicPointDatas = self:GetBookRedPointReasonState(areaConf.id)
+    if selectData.type == HandbookModuleEnum.SeasonHandbookTable.Handbook and selectData.id == areaConf.id then
+    elseif 1 == areaConf.id then
+      if isCollectionRed or isTopicRed then
+        table.insert(redPointData, string.format("%d.%d", HandbookModuleEnum.SeasonHandbookTable.Handbook, areaConf.id))
+      end
+    elseif isCollectionRed then
+      table.insert(redPointData, string.format("%d.%d", HandbookModuleEnum.SeasonHandbookTable.Handbook, areaConf.id))
+    end
+  end
+  local allSeasonConfs = _G.DataConfigManager:GetTable(DataConfigManager.ConfigTableId.SEASON_CONF):GetAllDatas()
+  for i, conf in pairs(allSeasonConfs) do
+    local isPhotoRed = self:GetPhotoRedPointReasonState(conf.id)
+    if selectData.type == HandbookModuleEnum.SeasonHandbookTable.Photo and selectData.id == conf.id then
+    elseif isPhotoRed then
+      table.insert(redPointData, string.format("%d.%d", HandbookModuleEnum.SeasonHandbookTable.Photo, conf.id))
+    end
+  end
+  if #redPointData > 0 then
+    table.insert(entranData, string.format("%d.%d", selectData.type, selectData.id))
+  end
+  _G.NRCModuleManager:DoCmd(_G.RedPointModuleCmd.UpdateWithReasonPointData, _G.Enum.RedPointReason.RPR_AREA_HB_SELECT_ENTRANCE, entranData)
+  _G.NRCModuleManager:DoCmd(_G.RedPointModuleCmd.UpdateWithReasonPointData, _G.Enum.RedPointReason.RPR_AREA_HB_SELECT_PAGE, redPointData)
+  self:DispatchEvent(HandbookModuleEvent.OnUpdateRegionalLocalRedPoint)
 end
 
 function HandbookModule:OnUpdateRedPointData(notify)
   if notify.rp_group then
     for _, group in pairs(notify.rp_group) do
-      if group.reason_type == _G.Enum.RedPointReason.RPR_HB_TOPIC_FINISH or group.reason_type == _G.Enum.RedPointReason.RPR_COLLECTED_HB_NUM then
+      if group.reason_type == _G.Enum.RedPointReason.RPR_HB_TOPIC_FINISH or group.reason_type == _G.Enum.RedPointReason.RPR_COLLECTED_HB_NUM or group.Reason_type == _G.Enum.RedPointReason.RPR_LEGEND_SEASON_PHOTO_FINISH then
         self:UpdateSelectPageRedPoint()
       end
     end
@@ -1301,16 +1422,342 @@ function HandbookModule:OnCmdGetPetHandbookRecordDataByPetBaseID(petBaseID)
   end
 end
 
+function HandbookModule:OnCmdGetPetHandbookRecordByPetBaseID(petBaseID)
+  if self.data then
+    return self.data:GetPetHandbookRecordByPetBaseID(petBaseID)
+  end
+end
+
 function HandbookModule:OnCmdGetHandbookCollectedPetsNum()
   if self.data then
     return self.data:GetHandbookCollectedPetsNum()
   end
 end
 
-function HandbookModule:OnCmdOpenCollectionProgressTips()
-  local curAreaConf = _G.DataConfigManager:GetAreaHandbook(self.data.CurHandbookAreaId)
-  local curCount = self.data.CollectedCount
-  self:OpenPanel("CollectionProgressTipsPanel", curAreaConf, curCount)
+function HandbookModule:OnCmdOpenCollectionProgressTips(data)
+  if data then
+    self:OpenPanel("CollectionProgressTipsPanel", data)
+  else
+    local curAreaConf = _G.DataConfigManager:GetAreaHandbook(self.data.CurHandbookAreaId)
+    local curCount = self.data.CollectedCount
+    local info = {areaConf = curAreaConf, collectedCount = curCount}
+    self:OpenPanel("CollectionProgressTipsPanel", info)
+  end
+end
+
+function HandbookModule:GetCurAreaHandbookRewardConfs()
+  local curAreaId = self.data.CurHandbookAreaId
+  if self.handbookRewardConfs == nil then
+    self.handbookRewardConfs = _G.DataConfigManager:GetTable(_G.DataConfigManager.ConfigTableId.PET_HANDBOOK_REWARD):GetAllDatas()
+  end
+  local List = {}
+  for key, conf in pairs(self.handbookRewardConfs) do
+    if conf.belong_area_handbook == curAreaId then
+      table.insert(List, conf)
+    end
+  end
+  table.sort(List, function(a, b)
+    return a.handbook_number < b.handbook_number
+  end)
+  return List
+end
+
+function HandbookModule:OpenHandbookAchievementRewardByRewardItemId(areaId, itemType, itemId)
+  if nil == areaId or nil == itemType or nil == itemId then
+    Log.Error("HandbookModuleCmd.OpenHandbookAchievementRewardByRewardItemI\231\188\186\229\176\145\232\183\179\232\189\172\229\143\130\230\149\176 \232\175\183\231\173\150\229\136\146\230\163\128\230\159\165\233\133\141\231\189\174")
+    return
+  end
+  local conf = _G.DataConfigManager:GetAreaHandbook(areaId)
+  local banId = conf.enter_ban_id
+  local isBanBook = false
+  if banId and banId > 0 then
+    local banConf = _G.DataConfigManager:GetUiEnterBanConf(banId)
+    isBanBook = _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.CheckUIFunctionBan, banConf.function_entrance, true)
+  end
+  if _G.NRCModuleManager:DoCmd(FunctionBanModuleCmd.CheckUIFunctionHide, Enum.FunctionEntrance.FE_HANDBOOK) then
+    isBanBook = true
+  end
+  if isBanBook then
+    _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.jump_to_locked_area_handbook)
+    return
+  end
+  self.data.CurHandbookAreaId = areaId
+  local areaHandbookRewardConfs = self:GetCurAreaHandbookRewardConfs()
+  local rewardToggle = self.data:GetHandBookRewardStates()
+  local firstReceivedIndex, firstCanReceivedIndex, firstNotReceivedIndex, jumpIndex
+  if areaHandbookRewardConfs then
+    for i, rewardConf in pairs(areaHandbookRewardConfs) do
+      if rewardConf.handbook_reward then
+        local curHandbookNumber = rewardConf.handbook_number
+        for j = 1, #rewardConf.handbook_reward do
+          local handbook_reward = rewardConf.handbook_reward[j]
+          if handbook_reward.handbook_reward_type == itemType and handbook_reward.handbook_reward_id == itemId then
+            local isReceived = rewardToggle[i]
+            if not isReceived then
+              if curHandbookNumber <= self.data.CollectedCount then
+                if nil == firstCanReceivedIndex then
+                  firstCanReceivedIndex = i
+                  break
+                end
+              elseif nil == firstNotReceivedIndex then
+                firstNotReceivedIndex = i
+              end
+            elseif nil == firstReceivedIndex then
+              firstReceivedIndex = i
+            end
+          end
+        end
+      end
+    end
+  end
+  if firstCanReceivedIndex and firstCanReceivedIndex > 0 then
+    jumpIndex = firstCanReceivedIndex
+  elseif firstNotReceivedIndex and firstNotReceivedIndex > 0 then
+    jumpIndex = firstNotReceivedIndex
+  elseif firstReceivedIndex and firstReceivedIndex > 0 then
+    jumpIndex = firstReceivedIndex
+  end
+  if jumpIndex then
+    self:OnCmdOpenHandbookCoverPanel(areaId)
+    self:OnOpenHandbookTrophyPanel(jumpIndex)
+  else
+    Log.Error("\229\155\190\233\137\180\230\136\144\229\176\177\228\184\173\228\184\141\229\140\133\229\144\171\230\173\164\233\129\147\229\133\183  AreaId:", areaId, "  itemId:", itemId, "  itemType:", itemType)
+  end
+end
+
+function HandbookModule:OnCmdGetCurrentSeason()
+  local curTime = ActivityUtils.GetSvrTimestamp()
+  local seasonConf = _G.DataConfigManager:GetTable(DataConfigManager.ConfigTableId.SEASON_CONF):GetAllDatas()
+  local season
+  for _, conf in pairs(seasonConf or {}) do
+    season = conf.id
+    local endTime = ActivityUtils.ToTimestamp(conf.end_time)
+    local startTime = ActivityUtils.ToTimestamp(conf.start_time)
+    if curTime >= startTime and curTime < endTime then
+      return season
+    end
+  end
+  return 1
+end
+
+function HandbookModule:GetCurSelectedSeason()
+  return self.data.curSelectedSeason
+end
+
+function HandbookModule:OnCmdOpenSeasonHandBook(season_id, bOpenReward)
+  local season = season_id
+  if not season_id then
+    season = self:OnCmdGetCurrentSeason()
+  end
+  if season then
+    self:OnCmdSetCurSelectedSeasonPhotoType(ProtoEnum.PetHandbookSeasonPetType.PHSPT_NEW)
+    if self:HasPanel("SeasonHandBookPhoto") then
+      if self.data.curSelectedSeason == season then
+        return
+      end
+      self.data.curSelectedSeason = season
+      local panel = self:GetPanel("SeasonHandBookPhoto")
+      if panel then
+        panel:OnChangeSeason(season)
+      end
+    else
+      self.data.curSelectedSeason = season
+      self:OpenPanel("SeasonHandBookPhoto", season, bOpenReward)
+    end
+  end
+end
+
+function HandbookModule:OnCmdCloseSeasonHandBook()
+  if self:HasPanel("SeasonHandBookPhoto") then
+    local panel = self:GetPanel("SeasonHandBookPhoto")
+    if panel then
+      panel:OnClickedCloseBtn()
+    end
+  end
+end
+
+function HandbookModule:OnCmdSetCurSelectedSeasonPhotoType(newSelectedPhotoType)
+  self.data.curSelectedSeasonPhotoType = newSelectedPhotoType
+end
+
+function HandbookModule:OnCmdGetCurSelectedSeasonPhotoType()
+  return self.data.curSelectedSeasonPhotoType
+end
+
+function HandbookModule:OnCmdOpenHandbookSeasonList()
+  local season = self:OnCmdGetCurrentSeason()
+  self:OpenPanel("HandbookSeason", season)
+end
+
+function HandbookModule:OnCmdCloseHandbookSeasonList()
+  if self:HasPanel("HandbookSeason") then
+    self:ClosePanel("HandbookSeason")
+  end
+end
+
+function HandbookModule:OnCmdGetSeasonPetCount(season_id, photo_type)
+  local totalNum = 0
+  local collectedNum = 0
+  local rewardNum = 0
+  if season_id and photo_type then
+    local seasonHandbookConf = _G.DataConfigManager:GetSeasonHandbookConf(season_id)
+    if seasonHandbookConf then
+      local pets
+      if photo_type == ProtoEnum.PetHandbookSeasonPetType.PHSPT_NEW then
+        pets = seasonHandbookConf.season_new_pet_base_id
+        rewardNum = seasonHandbookConf.season_new_pet_num
+      elseif photo_type == ProtoEnum.PetHandbookSeasonPetType.PHSPT_SHINING then
+        pets = seasonHandbookConf.season_shining_pet_base_id
+        rewardNum = seasonHandbookConf.season_shining_pet_num
+      elseif photo_type == ProtoEnum.PetHandbookSeasonPetType.PHSPT_NORMAL_SHINING then
+        pets = seasonHandbookConf.normal_shining_pet_base_id
+        rewardNum = seasonHandbookConf.normal_shining_pet_num
+      end
+      if pets then
+        totalNum = #pets
+      end
+      for _, petBaseId in pairs(pets or {}) do
+        if petBaseId then
+          local record = self:OnCmdGetPetHandbookRecordByPetBaseID(petBaseId)
+          if record and record.status and record.status == ProtoEnum.PetHandbookStatus.PHS_COLLECTED then
+            if photo_type == ProtoEnum.PetHandbookSeasonPetType.PHSPT_NEW then
+              collectedNum = collectedNum + 1
+            else
+              local isShining = false
+              for _, mutation in pairs(record.catch_mutation or {}) do
+                isShining = PetMutationUtils.GetMutationValue(mutation, _G.Enum.MutationDiffType.MDT_SHINING)
+                if isShining then
+                  break
+                end
+              end
+              if isShining then
+                collectedNum = collectedNum + 1
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+  return totalNum, collectedNum, rewardNum
+end
+
+function HandbookModule:OnCmdOpenSeasonRewardPanel(seasonId)
+  self:OpenPanel("HandbookSeasonReward", seasonId)
+end
+
+function HandbookModule:OnCmdGetSeasonRewardID(seasonId, petType)
+  local rewardId
+  if seasonId and petType then
+    local seasonHandbookConf = _G.DataConfigManager:GetSeasonHandbookConf(seasonId)
+    if seasonHandbookConf then
+      if petType == ProtoEnum.PetHandbookSeasonPetType.PHSPT_NEW then
+        rewardId = seasonHandbookConf.season_normal_reward_id
+      elseif petType == ProtoEnum.PetHandbookSeasonPetType.PHSPT_SHINING then
+        rewardId = seasonHandbookConf.season_shining_reward_id
+      elseif petType == ProtoEnum.PetHandbookSeasonPetType.PHSPT_NORMAL_SHINING then
+        rewardId = seasonHandbookConf.normal_shining_reward_id
+      end
+    end
+  end
+  return rewardId
+end
+
+function HandbookModule:OnCmdCheckHandbookSeasonIsGotReward(seasonId, petType)
+  return self.data:CheckHandbookSeasonIsGotReward(seasonId, petType)
+end
+
+function HandbookModule:OnCmdSendGetHandbookSeasonAwardReq(season_id, pet_type)
+  local req = _G.ProtoMessage:newZoneGetHandbookSeasonAwardReq()
+  req.season_id = season_id
+  req.pet_type = pet_type
+  _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_GET_HANDBOOK_SEASON_AWARD_REQ, req, self, self.GetHandbookSeasonAwardRsp)
+end
+
+function HandbookModule:GetHandbookSeasonAwardRsp(_rsp)
+  if _rsp.ret_info and 0 == _rsp.ret_info.ret_code then
+    local seasonId = _rsp.season_id
+    local petType = _rsp.pet_type
+    if seasonId and petType then
+      self.data:UpdateHandbookSeasonIsGotReward(seasonId, petType)
+    end
+    if self:HasPanel("HandbookSeasonReward") then
+      local panel = self:GetPanel("HandbookSeasonReward")
+      if panel then
+        panel:UpdateSubjectList()
+      end
+    end
+    if _rsp.ret_info.goods_reward and _rsp.ret_info.goods_reward.rewards then
+      _G.NRCModuleManager:DoCmd(NPCShopUIModuleCmd.OpenNPCShopItemRewardsPanel, _rsp.ret_info.goods_reward.rewards, "")
+    end
+  end
+end
+
+function HandbookModule:OnCmdOpenSeasonPetPhotoShare(data)
+  local shareBaseId = _G.Enum.ShareButtonType.SBT_HB_PHOTO
+  local sharePartId = _G.NRCModuleManager:DoCmd(ShareUIModuleCmd.GetSharePartIdByShareBaseId, shareBaseId)
+  local shareData = {
+    shareBaseId = shareBaseId,
+    sharePartId = sharePartId,
+    photoData = data
+  }
+  _G.NRCModuleManager:DoCmd(ShareUIModuleCmd.OpenShareUIPanel, shareData)
+end
+
+function HandbookModule:OnCmdOpenSeasonPetPhotoRewardPanel()
+  local curSeasonId = self:OnCmdGetCurrentSeason()
+  local latestNotClaimed, latestNotReached
+  for seasonId = curSeasonId, 1, -1 do
+    local isBan = self:CheckSeasonHandbookIsBan(seasonId)
+    if not isBan then
+      local awardState = self:OnCmdCheckHandbookSeasonAwardState(seasonId)
+      if awardState == HandbookModuleEnum.SeasonHandbookAwardState.NotClaimed then
+        if nil == latestNotClaimed then
+          latestNotClaimed = seasonId
+        end
+      elseif awardState == HandbookModuleEnum.SeasonHandbookAwardState.NotReached and nil == latestNotReached then
+        latestNotReached = seasonId
+      end
+    end
+    if nil ~= latestNotClaimed and nil ~= latestNotReached then
+      break
+    end
+  end
+  local targetSeasonId = latestNotClaimed or latestNotReached
+  if not targetSeasonId then
+    for seasonId = curSeasonId, 1, -1 do
+      local isBan = self:CheckSeasonHandbookIsBan(seasonId)
+      if not isBan then
+        targetSeasonId = seasonId
+        break
+      end
+    end
+  end
+  if not targetSeasonId then
+    return
+  end
+  self:OnCmdOpenHandbookCoverPanel()
+  self:OnCmdOpenSeasonHandBook(targetSeasonId, true)
+end
+
+function HandbookModule:CheckSeasonHandbookIsBan(season_id)
+  local seasonHandbookConf = _G.DataConfigManager:GetSeasonHandbookConf(season_id)
+  if seasonHandbookConf then
+    local banId = seasonHandbookConf.enter_ban_id
+    if banId then
+      local banConf = _G.DataConfigManager:GetUiEnterBanConf(banId)
+      if banConf then
+        local banType = banConf.function_entrance
+        local isBan = _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.CheckUIFunctionBan, banType, false)
+        return isBan
+      end
+    end
+  end
+  return true
+end
+
+function HandbookModule:OnCmdCheckHandbookSeasonAwardState(seasonId)
+  return self.data:CheckHandbookSeasonAwardState(seasonId)
 end
 
 return HandbookModule

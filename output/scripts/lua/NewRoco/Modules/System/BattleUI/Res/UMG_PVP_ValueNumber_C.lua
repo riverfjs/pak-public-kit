@@ -59,7 +59,12 @@ function UMG_PVP_ValueNumber_C:OnActive()
     self.BtnCloseObserverList.OnClicked:Add(self, self.ToggleObserverListPanel)
   end
   _G.NRCEventCenter:RegisterEvent("UMG_PVP_ValueNumber_C", self, SystemSettingModuleEvent.PlayerSettingUpdate, self.HandlePlayerSettingUpdate)
-  self:PlayAnimation(self.In)
+  local panel = self.module:GetPanel("BattleMain")
+  if panel and not panel:IsShowing() then
+    self:HideUmg()
+  else
+    self:PlayAnimation(self.In)
+  end
 end
 
 function UMG_PVP_ValueNumber_C:OnDeactive()
@@ -185,34 +190,42 @@ function UMG_PVP_ValueNumber_C:OnBattleEvent(eventName, ...)
   elseif eventName == BattleEvent.BATTLE_STATE_SETTLEMENT then
     self:HandlePvpOver()
   elseif eventName == BattleEvent.UI_SHOW then
-    self.roundIsPlaying = false
-    self:Enable()
-    if BattleUtils.IsWatchingBattle() then
-      if self:IsAnimationPlaying(self.Out) then
-        self:StopAnimation(self.Out)
-      end
-      self.Switcher:SetVisibility(UE.ESlateVisibility.SelfHitTestInvisible)
-      if not self:IsAnimationPlaying(self.In) then
-        self:PlayAnimation(self.In)
-      end
-    else
-      self:UpdateObserverList()
-      self:TryShowNewWatchingNames()
-    end
+    self:ShowUmg()
   elseif eventName == BattleEvent.UI_HIDE then
-    self.roundIsPlaying = true
-    local runtimeDateObservingInfo = _G.BattleManager.battleRuntimeData.observingInfo
-    if runtimeDateObservingInfo and _G.BattleManager.battleRuntimeData.operateType ~= BattleEnum.Operation.ENUM_NONE then
-      runtimeDateObservingInfo.lastOperationType = _G.BattleManager.battleRuntimeData.operateType
-    end
-    if self:IsAnimationPlaying(self.In) then
-      self:StopAnimation(self.In)
-    end
-    if not self:IsAnimationPlaying(self.Out) then
-      self:PlayAnimation(self.Out)
-    end
-    self.isShow = false
+    self:HideUmg()
   end
+end
+
+function UMG_PVP_ValueNumber_C:ShowUmg()
+  self.roundIsPlaying = false
+  self:Enable()
+  if BattleUtils.IsWatchingBattle() then
+    if self:IsAnimationPlaying(self.Out) then
+      self:StopAnimation(self.Out)
+    end
+    self.Switcher:SetVisibility(UE.ESlateVisibility.SelfHitTestInvisible)
+    if not self:IsAnimationPlaying(self.In) then
+      self:PlayAnimation(self.In)
+    end
+  else
+    self:UpdateObserverList()
+    self:TryShowNewWatchingNames()
+  end
+end
+
+function UMG_PVP_ValueNumber_C:HideUmg()
+  self.roundIsPlaying = true
+  local runtimeDateObservingInfo = _G.BattleManager.battleRuntimeData.observingInfo
+  if runtimeDateObservingInfo and _G.BattleManager.battleRuntimeData.operateType ~= BattleEnum.Operation.ENUM_NONE then
+    runtimeDateObservingInfo.lastOperationType = _G.BattleManager.battleRuntimeData.operateType
+  end
+  if self:IsAnimationPlaying(self.In) then
+    self:StopAnimation(self.In)
+  end
+  if not self:IsAnimationPlaying(self.Out) then
+    self:PlayAnimation(self.Out)
+  end
+  self.isShow = false
 end
 
 function UMG_PVP_ValueNumber_C:ToggleObserverListPanel()
@@ -344,7 +357,7 @@ function UMG_PVP_ValueNumber_C:HandlePlayerSettingUpdate()
             runtimeDateObservingInfo.lastOperationType = _G.BattleManager.battleRuntimeData.operateType
           end
           _G.BattleManager:ChangeOperateMode(BattleEnum.Operation.ENUM_NONE)
-          _G.BattleManager.vBattleField.battleCameraManager:ChangeToSkill(0.5, true)
+          _G.BattleManager.vBattleField.battleCameraManager:ChangeToPlayerPet(0.5, true)
         end
       end
     end

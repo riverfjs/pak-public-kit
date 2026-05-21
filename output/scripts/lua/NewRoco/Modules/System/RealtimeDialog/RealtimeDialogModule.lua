@@ -24,7 +24,7 @@ end
 function RealtimeDialogModule:StartRealtimeDialogByOption(Option, DialogConf)
   print("==amonsu=====RealtimeDialogModule===StartRealtimeDialogByOption=", DialogConf.id, table.contains(self.DialogList, Option.config.id))
   if table.contains(self.DialogList, Option.config.id) then
-    Log.Warning("amonsu: \229\189\147\229\137\141\230\176\148\230\179\161\229\175\185\232\175\157\230\173\163\229\156\168\232\191\155\232\161\140\228\184\173, OptionID:", Option.config.id)
+    Log.Debug("amonsu: \229\189\147\229\137\141\230\176\148\230\179\161\229\175\185\232\175\157\230\173\163\229\156\168\232\191\155\232\161\140\228\184\173, OptionID:", Option.config.id)
     return
   end
   if not table.contains(self.DialogList, Option.config.id) then
@@ -50,7 +50,7 @@ function RealtimeDialogModule:StartRealtimeDialogByNpcText(Npc, ID, Text)
     speaker = Npc.config.id
   }
   if table.contains(self.DialogList, ID) then
-    Log.Warning("amonsu: \229\189\147\229\137\141\230\176\148\230\179\161\229\175\185\232\175\157\230\173\163\229\156\168\232\191\155\232\161\140\228\184\173, NPC:", Npc.config.id, ID)
+    Log.Debug("amonsu: \229\189\147\229\137\141\230\176\148\230\179\161\229\175\185\232\175\157\230\173\163\229\156\168\232\191\155\232\161\140\228\184\173, NPC:", Npc.config.id, ID)
     return
   end
   if not table.contains(self.DialogList, ID) then
@@ -120,7 +120,13 @@ function RealtimeDialogModule:CloseDialogPanel(Actor, DialogConf)
     if Performs and #Performs > 0 then
       for _, Perform in ipairs(Performs) do
         if -1 == Perform.actor then
-          DialogueUtils.StopLookAt(DialogueUtils.GetPlayer())
+          local player = DialogueUtils.GetPlayer()
+          if player then
+            local headLookAt = player:GetHeadLookAtComponent()
+            if headLookAt then
+              headLookAt:DisableManualOverride()
+            end
+          end
         end
       end
     end
@@ -168,7 +174,7 @@ end
 function RealtimeDialogModule:CheckTimeout(DialogKey, DialogConf)
   self:RemoveTickTimer(DialogKey .. DialogConf.id)
   self:SetAllPerformerAIEnabled(DialogConf, true)
-  Log.Warning("==amonsu======NPCDialogRealtimeAction===CheckTimeout==DialogConf:", DialogConf.id)
+  Log.Debug("==amonsu======NPCDialogRealtimeAction===CheckTimeout==DialogConf:", DialogConf.id)
 end
 
 function RealtimeDialogModule:Check(Actor, DialogConf)

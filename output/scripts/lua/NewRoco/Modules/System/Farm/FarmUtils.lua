@@ -462,11 +462,11 @@ function FarmUtils.GetWateringReduceTimeCurrent(land_id)
     return
   end
   local growConf = FarmUtils.GetPlantGrowConfByLandId(land_id, landInfo)
+  local growGrade = growConf.plant_grow_grade[landInfo.plant_tab_id]
   if not growConf then
     Log.Error("FarmUtils.GetWateringReduceTimeCurrent cannot find growConf: ")
     return 0
   end
-  local growGrade = growConf.plant_grow_grade[landInfo.plant_tab_id]
   if not growGrade then
     Log.Error("FarmUtils.GetWateringReduceTimeCurrent cannot find growGrade: ", landInfo.plant_tab_id)
     return 0

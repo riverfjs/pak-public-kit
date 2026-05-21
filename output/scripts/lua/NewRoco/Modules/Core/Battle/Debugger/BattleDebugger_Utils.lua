@@ -1,4 +1,5 @@
 local ProtoEnum = require("Data.PB.ProtoEnum")
+local BattleEnum = require("NewRoco.Modules.Core.Battle.Common.BattleEnum")
 local BattleUtils = require("NewRoco.Modules.Core.Battle.Common.BattleUtils")
 require("NewRoco.Modules.Core.Battle.Entity.BattleInfo.Basic.TableTools")
 local BattleDebugger = require("NewRoco.Modules.Core.Battle.Debugger.BattleDebugger_Declare")
@@ -11,7 +12,6 @@ function BattleDebugger:GetBattlePet(pet_id)
 end
 
 function BattleDebugger:DoPlayAnimByName(animName, team, pos, LoopCount, endPosition)
-  local BattleEnum = require("NewRoco.Modules.Core.Battle.Common.BattleEnum")
   local BattleManager = _G.BattleManager
   local pet = BattleManager.battlePawnManager:GetPetByPos(team, pos)
   if pet then
@@ -23,6 +23,24 @@ function BattleDebugger:DoPlayAnimByName(animName, team, pos, LoopCount, endPosi
     local LoopCount = LoopCount
     local endPosition = endPosition
     pet.model:PlayAnimByName(animName, rate, position, BlendInTime, BlendOutTime, LoopCount, endPosition)
+  end
+end
+
+function BattleDebugger:DoEnableScrollCamera(bEnable, x, y, z)
+  if bEnable then
+    local myPet = BattleManager.battlePawnManager:GetPetByPos(BattleEnum.Team.ENUM_TEAM, 1)
+    local enemyPet = BattleManager.battlePawnManager:GetPetByPos(BattleEnum.Team.ENUM_ENEMY, 1)
+    if myPet then
+      local offset = UE4.FVector(x, y, z)
+      local myPetTransform = myPet.model:Abs_GetTransform()
+      local forwardVector = myPetTransform.Rotation:GetForwardVector()
+      local rightVector = myPetTransform.Rotation:GetRightVector()
+      local upVector = myPetTransform.Rotation:GetUpVector()
+      local targetPosition = myPetTransform.Translation + myPetTransform.Rotation:RotateVector(offset)
+      local targetRotation = (-rightVector):ToRotator()
+      local targetTransform = UE4.FTransform(targetRotation:ToQuat(), targetPosition, UE4.FVector(1, 1, 1))
+      UE4.UNRCStatics.EnableScrollCamera(myPet.model, targetTransform)
+    end
   end
 end
 

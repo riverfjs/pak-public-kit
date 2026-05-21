@@ -30,6 +30,7 @@ function BattleBranchAction:OnEnter()
       else
         Log.Debug("BattleInitAction onenter leader fight")
       end
+    elseif BattleUtils.IsTrainBattle() then
     elseif BattleUtils.IsBloodTeam() then
       if self:CheckIsReconnect() then
       elseif _G.EnableSpeedUpEnterBloodTeamBattle then
@@ -70,6 +71,9 @@ function BattleBranchAction:CheckIsReconnect()
 end
 
 function BattleBranchAction:CheckIsDebugConnect()
+  if _G.IsEnterBattleByDebug then
+    return false
+  end
   if not BattleManager.battleRuntimeData:HasValidNPC() then
     return true
   end

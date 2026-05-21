@@ -41,6 +41,9 @@ function UMG_FriendTeam_ImportIineupItem_C:OnItemUpdate(_data, datalist, index)
   self.ParentPanel = _data.Panel
   self.IsEmptyTeam = self:GetIsEmptyTeam(self.petList1)
   self.ImportlineupView:InitGridView(self.petList1)
+  if _data.HideBtn then
+    self.NRCSwitcher_0:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  end
   if self.team.is_mirror then
     self.FriendsLineupText:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     self.FriendsLineupText:SetText(string.format(LuaText.share_pet_owner_inf_1, self.team.mirror_friend_name))

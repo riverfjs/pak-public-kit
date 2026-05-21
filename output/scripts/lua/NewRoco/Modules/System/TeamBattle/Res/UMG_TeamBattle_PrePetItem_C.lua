@@ -62,7 +62,9 @@ function UMG_TeamBattle_PrePetItem_C:OnItemUpdate(_data, datalist, index)
             end
           elseif true == isPhase then
             isPetPhase = true
-            IsPetDouble = IsDouble
+            if nil == IsPetDouble or false == IsPetDouble then
+              IsPetDouble = IsDouble
+            end
           end
         end
       end
@@ -109,7 +111,9 @@ function UMG_TeamBattle_PrePetItem_C:OnItemUpdate(_data, datalist, index)
               end
             elseif true == isPhase then
               isPetPhase = true
-              IsPetDouble = IsDouble
+              if nil == IsPetDouble or false == IsPetDouble then
+                IsPetDouble = IsDouble
+              end
             end
           end
         end
@@ -148,7 +152,9 @@ function UMG_TeamBattle_PrePetItem_C:OnItemUpdate(_data, datalist, index)
             end
           elseif true == isPhase then
             isPetPhase = true
-            IsPetDouble = IsDouble
+            if nil == IsPetDouble or false == IsPetDouble then
+              IsPetDouble = IsDouble
+            end
           end
         end
       end

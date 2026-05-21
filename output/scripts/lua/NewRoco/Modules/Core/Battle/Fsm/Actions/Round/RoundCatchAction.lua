@@ -12,6 +12,7 @@ FsmUtils.MergeMembers(Base, RoundCatchAction, {})
 function RoundCatchAction:Ctor(name, properties)
   Base.Ctor(self, name, properties)
   self.isWaitRsp = 0
+  self.catch_pet_owner_uni = nil
   self:SetActionType(BattleActionBase.ActionType.ClientPlayerSelectAction)
 end
 
@@ -191,6 +192,7 @@ function RoundCatchAction:OnPetClicked(Pet)
   table.insert(req.req, BattleRoundFlowReq)
   self.CatchPet = Pet
   self.CatchPetId = Card.guid
+  self.catch_pet_owner_uni = Card.petInfo.battle_inside_pet_info.owner_uin
   self.fsm:SetProperty("WillCatchPet", true)
   self.isWaitRsp = os.time()
   self:SendPushbackReq(req)
@@ -218,33 +220,43 @@ function RoundCatchAction:OnPushbackSent(rsp)
       end
       local ErrorText = string.format(_G.LuaText.cant_use_glass_ball, ball_name)
       _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, ErrorText)
+      _G.BattleEventCenter:Dispatch(BattleEvent.BATTLE_CLICKED_BALL)
     elseif ProtoEnum.MOBA_RET.ZoneErr.ERR_ZONE_VISIT_SHINY_CATCH_TIMES_LIMIT == rsp.ret_info.ret_code then
       _G.BattleEventCenter:Dispatch(BattleEvent.BATTLE_CLICKED_BALL, nil)
     elseif ProtoEnum.MOBA_RET.ZoneErr.ERR_ZONE_VISIT_HIGH_VALUE_PET_CATCH_NEED_FRIEND_TIMES == rsp.ret_info.ret_code then
-      local uni = _G.DataModelMgr.PlayerDataModel:GetPlayerVisitOwnerUin()
-      local player = _G.BattleManager.battlePawnManager:GetPlayerByGuid(_G.DataModelMgr.PlayerDataModel:GetPlayerUin())
-      local owner_player = _G.BattleManager.battlePawnManager:GetPlayerByGuid(uni)
-      local owner_name = owner_player:GetName()
-      local tips
-      if _G.DataModelMgr.PlayerDataModel:IsFriend(uni) then
-        local seconds = player:GetFriendSeconds(uni)
-        local friend_timecheck = _G.DataConfigManager:GetGlobalConfigByKey("highvalue_pet_battle_rule_friend_timecheck")
-        if friend_timecheck and seconds < friend_timecheck.num then
-          local tip = _G.DataConfigManager:GetLocalizationConf("Highvaluepet_Owner_Rule_Friendtime").msg
-          tips = string.format(tip, owner_name, math.floor(friend_timecheck.num / 3600))
+      if self.catch_pet_owner_uni then
+        local player = _G.BattleManager.battlePawnManager:GetPlayerByGuid(_G.DataModelMgr.PlayerDataModel:GetPlayerUin())
+        local tips
+        local pet_owner_player = _G.BattleManager.battlePawnManager:GetPlayerByGuid(self.catch_pet_owner_uni)
+        if pet_owner_player then
+          local pet_owner_player_name = pet_owner_player:GetName()
+          if _G.DataModelMgr.PlayerDataModel:IsFriend(self.catch_pet_owner_uni) then
+            local seconds = player:GetFriendSeconds(self.catch_pet_owner_uni)
+            local friend_timecheck = _G.DataConfigManager:GetGlobalConfigByKey("highvalue_pet_battle_rule_friend_timecheck")
+            if friend_timecheck and seconds < friend_timecheck.num then
+              local tip = _G.DataConfigManager:GetLocalizationConf("Highvaluepet_Owner_Rule_Friendtime").msg
+              tips = string.format(tip, pet_owner_player_name, math.floor(friend_timecheck.num / 3600))
+            end
+          else
+            local tip = _G.DataConfigManager:GetLocalizationConf("Highvaluepet_Owner_Rule_Nonfriend").msg
+            tips = string.format(tip, pet_owner_player_name)
+          end
+          if nil ~= tips then
+            _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, tips)
+          else
+            Log.Error(string.format("lsr ZoneSceneCatchMonsterRsp error!!! code is %s, catch_pet_owner_uni is %s", rsp.ret_info.ret_code, self.catch_pet_owner_uni))
+          end
+        else
+          Log.Error(string.format("lsr ZoneSceneCatchMonsterRsp error!!! pet_owner_player is nil, catch_pet_owner_uni is %s", self.catch_pet_owner_uni))
         end
+        self.catch_pet_owner_uni = nil
       else
-        local tip = _G.DataConfigManager:GetLocalizationConf("Highvaluepet_Owner_Rule_Nonfriend").msg
-        tips = string.format(tip, owner_name)
-      end
-      if nil ~= tips then
-        _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, tips)
-      else
-        Log.Error(string.format("lsr ZoneSceneCatchMonsterRsp error!!! code is %s, uni is %s", rsp.ret_info.ret_code, uni))
+        Log.Error(string.format("lsr ZoneSceneCatchMonsterRsp error!!! CatchPet is nil"))
       end
     else
       Log.Error("zgx ZoneSceneCatchMonsterRsp error!!! code is ", rsp.ret_info.ret_code)
     end
+    _G.BattleEventCenter:Dispatch(BattleEvent.BATTLE_CLICKED_BALL)
     return
   end
   local runtimeData = _G.BattleManager.battleRuntimeData

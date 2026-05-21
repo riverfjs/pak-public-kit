@@ -157,19 +157,26 @@ function UMG_LevelUpRewards_C:SortItem(RewardsList)
     GoodItem.level_reward_type = Reward.level_reward_type
     GoodItem.level_reward_count = Reward.level_reward_count
     GoodItem.Sort = 0
+    GoodItem.Quality = 0
     if Reward.level_reward_type == _G.ProtoEnum.GoodsType.GT_VITEM then
       GoodItem.Conf = _G.DataConfigManager:GetVisualItemConf(Reward.level_reward_id)
       GoodItem.Sort = GoodItem.Conf.sort_id
+      GoodItem.Quality = GoodItem.Conf.item_quality
     elseif Reward.level_reward_type == _G.ProtoEnum.GoodsType.GT_PET then
       GoodItem.Sort = 0
       GoodItem.Conf = _G.DataConfigManager:GetPetbaseConf(Reward.level_reward_id)
+      GoodItem.Quality = 0
     elseif Reward.level_reward_type == _G.ProtoEnum.GoodsType.GT_BAGITEM then
       GoodItem.Conf = _G.DataConfigManager:GetBagItemConf(Reward.level_reward_id)
       GoodItem.Sort = GoodItem.Conf.sort_id
+      GoodItem.Quality = GoodItem.Conf.item_quality
     end
     SortRewardsList[i] = GoodItem
   end
   table.sort(SortRewardsList, function(a, b)
+    if a.Quality ~= b.Quality then
+      return a.Quality > b.Quality
+    end
     if a.Sort < b.Sort then
       return a.Sort < b.Sort
     elseif a.Sort == b.Sort then
@@ -194,10 +201,20 @@ function UMG_LevelUpRewards_C:refreshLevelUpRewardsList(Data)
       if 1 == Data.type then
         self.uiData.roleExpAwards = roleExpConf.reward
       elseif 2 == Data.type then
-        self.uiData.roleExpAwards = self:GetRewardsDataById(Data.data.level_reward_show)
+        self.uiData.roleExpAwards = self:GetRewardsDataById(Data.data.world_level_reward_show)
       end
       local SortReward = self:SortItem(self.uiData.roleExpAwards)
-      self.awardListScroll:InitList(SortReward)
+      if 2 == Data.type then
+        if SortReward and #SortReward > 0 then
+          self.awardListScroll1:SetVisibility(UE4.ESlateVisibility.Visible)
+          self.awardListScroll1:InitList(SortReward)
+        else
+          self.awardListScroll1:SetVisibility(UE4.ESlateVisibility.Collapsed)
+        end
+      else
+        self.awardListScroll1:SetVisibility(UE4.ESlateVisibility.Collapsed)
+        self.awardListScroll:InitList(SortReward)
+      end
       if 1 == Data.type and 2 == Data.awardState then
         for i, _ in ipairs(self.uiData.roleExpAwards) do
           local Item = self.awardListScroll:GetItemByIndex(i - 1)

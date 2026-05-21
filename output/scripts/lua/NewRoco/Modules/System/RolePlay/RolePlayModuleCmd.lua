@@ -25,4 +25,5 @@ RolePlayModuleCmd.GetGroupByRoleplayConf = "RolePlayModuleCmd.GetGroupByRoleplay
 RolePlayModuleCmd.CreateLockedRoleplayAction = "RolePlayModuleCmd.CreateLockedRoleplayAction"
 RolePlayModuleCmd.AddHiddenSuitTipsId = "RolePlayModuleCmd.AddHiddenSuitTipsId"
 RolePlayModuleCmd.RemoveHiddenSuitTipsId = "RolePlayModuleCmd.RemoveHiddenSuitTipsId"
+RolePlayModuleCmd.OnRolePlayHoldInfoChange = "RolePlayModuleCmd.OnRolePlayHoldInfoChange"
 return RolePlayModuleCmd

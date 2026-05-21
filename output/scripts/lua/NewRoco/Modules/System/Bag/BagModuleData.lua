@@ -825,6 +825,8 @@ end
 
 function BagModuleData:ResetFurnitureFilterTabMap()
   self._FurnitureFilterTabMap = nil
+  self._FurnitureDisplayNumInTabDecompose = nil
+  self._FurnitureDisplayNumInTab = nil
 end
 
 function BagModuleData:HasFurnitureFilters()
@@ -903,6 +905,36 @@ end
 
 function BagModuleData:GetFurnitureFilterTabMap()
   return self._FurnitureFilterTabMap
+end
+
+function BagModuleData:countFurnitureDisplayNumInTab(dataStoreTable, targetBagItem, HomeModuleData)
+  if not dataStoreTable or not targetBagItem then
+    return
+  end
+  local ItemConf = _G.DataConfigManager:GetFurnitureItemConf(targetBagItem.id, true)
+  ItemConf = ItemConf or _G.DataConfigManager:GetInteriorFinishConf(targetBagItem.id)
+  local TabId = ItemConf and HomeModuleData and ItemConf.classification
+  local firstTabId = HomeModuleData:GetFirstTabId(TabId)
+  if TabId and firstTabId then
+    if nil == dataStoreTable[TabId] then
+      dataStoreTable[TabId] = 0
+    end
+    if nil == dataStoreTable[firstTabId] then
+      dataStoreTable[firstTabId] = 0
+    end
+    dataStoreTable[TabId] = dataStoreTable[TabId] + 1
+    if firstTabId ~= TabId then
+      dataStoreTable[firstTabId] = dataStoreTable[firstTabId] + 1
+    end
+  end
+end
+
+function BagModuleData:GetFurnitureDisplayNumInTab()
+  return self._FurnitureDisplayNumInTab
+end
+
+function BagModuleData:GetFurnitureDisplayNumInTabDecompose()
+  return self._FurnitureDisplayNumInTabDecompose
 end
 
 function BagModuleData:GetTotalDecomposeNum()
@@ -1539,29 +1571,44 @@ function BagModuleData:GetBagItemByLableType(lable_type, IsFilterBag)
     end
   end
   if lable_type == Enum.ItemLableType.ILT_FURNITURE then
-    if self._FurnitureFilterTabMap and next(self._FurnitureFilterTabMap) then
-      local HomeData = NRCModuleManager:GetModule("HomeModule"):GetData()
-      for i = #bagItem, 1, -1 do
-        local item = bagItem[i]
-        local ItemConf = _G.DataConfigManager:GetFurnitureItemConf(item.id, true)
-        ItemConf = ItemConf or _G.DataConfigManager:GetInteriorFinishConf(item.id)
-        local TabId = ItemConf and HomeData and HomeData:GetFirstTabId(ItemConf.classification)
+    self._FurnitureDisplayNumInTab = {}
+    self._FurnitureDisplayNumInTabDecompose = {}
+    local bInFurnitureDecomposeMode = self:InFurnitureDecomposeMode()
+    local HomeData = NRCModuleManager:GetModule("HomeModule"):GetData()
+    for i = #bagItem, 1, -1 do
+      local item = bagItem[i]
+      local bRemoveThisItem = false
+      self:countFurnitureDisplayNumInTab(self._FurnitureDisplayNumInTab, item, HomeData)
+      local ItemConf = _G.DataConfigManager:GetFurnitureItemConf(item.id, true)
+      local bDontShowInDecomposeMode = not ItemConf or ItemConf and ItemConf.Ban_Recycle ~= true
+      if bDontShowInDecomposeMode then
+        if bInFurnitureDecomposeMode then
+          bRemoveThisItem = true
+        end
+      else
+        self:countFurnitureDisplayNumInTab(self._FurnitureDisplayNumInTabDecompose, item, HomeData)
+      end
+      ItemConf = ItemConf or _G.DataConfigManager:GetInteriorFinishConf(item.id)
+      if self._FurnitureFilterTabMap and next(self._FurnitureFilterTabMap) then
+        local TabId = ItemConf and HomeData and ItemConf.classification
+        local bFilterToShow = false
+        if TabId then
+          bFilterToShow = self._FurnitureFilterTabMap[TabId]
+          if not bFilterToShow then
+            local firstTabId = HomeData:GetFirstTabId(TabId)
+            if firstTabId then
+              bFilterToShow = self._FurnitureFilterTabMap[firstTabId]
+            end
+          end
+        end
         if not TabId then
-          table.remove(bagItem, i)
-        elseif not self._FurnitureFilterTabMap[TabId] then
-          table.remove(bagItem, i)
+          bRemoveThisItem = true
+        elseif not bFilterToShow then
+          bRemoveThisItem = true
         end
       end
-    end
-    if self:InFurnitureDecomposeMode() then
-      for i = #bagItem, 1, -1 do
-        local item = bagItem[i]
-        local ItemConf = _G.DataConfigManager:GetFurnitureItemConf(item.id, true)
-        if not ItemConf then
-          table.remove(bagItem, i)
-        elseif ItemConf.Ban_Recycle ~= true then
-          table.remove(bagItem, i)
-        end
+      if bRemoveThisItem then
+        table.remove(bagItem, i)
       end
     end
   end

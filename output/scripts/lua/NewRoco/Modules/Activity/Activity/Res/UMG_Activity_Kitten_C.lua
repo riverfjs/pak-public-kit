@@ -1,5 +1,6 @@
 local Base = require("NewRoco.Modules.Activity.Activity.Template.UMG_Activity_Base_C")
 local ActivityUtils = require("NewRoco.Modules.System.Activity.ActivityUtils")
+local ActivityEnum = require("NewRoco.Modules.System.Activity.ActivityEnum")
 local UMG_Activity_Kitten_C = Base:Extend("UMG_Activity_Kitten_C")
 local ActivityModuleEvent = require("NewRoco.Modules.System.Activity.ActivityModuleEvent")
 local PetUtils = require("NewRoco.Utils.PetUtils")
@@ -66,7 +67,7 @@ function UMG_Activity_Kitten_C:RefreshView()
   if conf then
     self.TraceBtn:SetBtnText(conf.option_txt1)
     self.PeerTaskBtn:SetBtnText(conf.option_txt2)
-    if conf.condition_id and #conf.condition_id > 0 then
+    if conf.condition_id and #conf.condition_id > 0 and not self.activityInst:IsActivityInactive() then
       self.PeerTaskBtn:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     else
       self.PeerTaskBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
@@ -117,6 +118,10 @@ function UMG_Activity_Kitten_C:OnTraceBtnClick()
 end
 
 function UMG_Activity_Kitten_C:OnPeerTaskBtnClick()
+  if self.activityInst:IsActivityInactive() then
+    ActivityUtils.ShowActivityExpiredTips()
+    return
+  end
   _G.NRCModuleManager:DoCmd(_G.ActivityModuleCmd.OpenPeerTask, self.activityInst)
 end
 

@@ -9,6 +9,7 @@ local BattleUIModuleCmd = require("NewRoco.Modules.System.BattleUI.BattleUIModul
 local BattleUIModuleEvent = require("NewRoco.Modules.System.BattleUI.BattleUIModuleEvent")
 local PetMutationUtils = require("NewRoco.Utils.PetMutationUtils")
 local LineTraceUtils = require("NewRoco.Modules.Core.Battle.Common.LineTraceUtils")
+local BattleUtils = require("NewRoco.Modules.Core.Battle.Common.BattleUtils")
 local BattleEvolutionPlayer = BattlePlayerBase:Extend("BattleEvolutionPlayer")
 
 function BattleEvolutionPlayer:Ctor(owner)
@@ -187,7 +188,7 @@ function BattleEvolutionPlayer:DoOnPawnNewPetFinish()
   self.newPet:SetScale(1)
   self.newPet:HidePet()
   self.newPet:PinOnTheGround()
-  if self.performNode.IsFastPlay or self.newPet.player ~= _G.BattleManager.battlePawnManager.TeamatePlayer then
+  if self.performNode.IsFastPlay or self.newPet.player ~= _G.BattleManager.battlePawnManager.TeamatePlayer or BattleUtils.IsWatchingBattle() or BattleUtils.IsReplayMode() then
     self:TimeOutFinish()
   else
     self.performNode:AddTimeoutDuration(20)

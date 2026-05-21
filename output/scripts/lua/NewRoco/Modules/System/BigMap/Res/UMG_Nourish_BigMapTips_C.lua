@@ -34,7 +34,7 @@ function UMG_Nourish_BigMapTips_C:ShowIcon()
   else
     self.Pet:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     self.HaveNotMet:SetVisibility(UE4.ESlateVisibility.Collapsed)
-    if petbaseConf.form then
+    if petbaseConf.form and petbaseConf.form ~= "" then
       self.Type:SetText(petbaseConf.form)
       self.UsualAppearance:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     else

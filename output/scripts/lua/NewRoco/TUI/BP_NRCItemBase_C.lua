@@ -138,9 +138,6 @@ function BP_NRCItemBase_C:OnTouchEnded(MyGeometry, InTouchEvent)
       self.ParentView:OnChildItemClick(self, nil, true)
     end
   end
-  if self.BroadcastOnClicked then
-    self:BroadcastOnClicked()
-  end
   self.StartIndex = nil
   return UE4.UWidgetBlueprintLibrary.Unhandled()
 end
@@ -207,6 +204,13 @@ function BP_NRCItemBase_C:GetParentCustomData()
   local parent = self.ParentView
   if parent and UE4.UObject.IsValid(parent) then
     return parent._customData
+  end
+end
+
+function BP_NRCItemBase_C:BroadcastMsg(msg, ...)
+  local parent = self.ParentView
+  if parent and UE4.UObject.IsValid(parent) then
+    parent:OnMsg(msg, ...)
   end
 end
 

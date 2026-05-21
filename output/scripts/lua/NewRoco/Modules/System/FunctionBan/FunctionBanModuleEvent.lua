@@ -3,4 +3,5 @@ FunctionBanModuleEvent.OnUIEnterBanStateChange = "FunctionBanModuleEvent.OnUIEnt
 FunctionBanModuleEvent.OnUIFuncVisibilityChange = "FunctionBanModuleEvent.OnUIBanFuncVisibilityChange"
 FunctionBanModuleEvent.OnShieldingActivitiesChange = "FunctionBanModuleEvent.OnShieldingActivitiesChange"
 FunctionBanModuleEvent.OnSystemFuncBlockingTypeChange = "FunctionBanModuleEvent.OnSystemFuncBlockingTypeChange"
+FunctionBanModuleEvent.OnPlayerConditionTypeChanged = "FunctionBanModuleEvent.OnPlayerConditionTypeChanged"
 return FunctionBanModuleEvent

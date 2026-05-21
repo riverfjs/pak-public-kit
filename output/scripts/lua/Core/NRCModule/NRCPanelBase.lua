@@ -8,6 +8,7 @@ function NRCPanelBase:Construct()
   _G.NRCProfilerLog:NRCPanelConstruct(true, self.panelName)
   NRCViewBase.Construct(self)
   self.isActive = false
+  self.AllWidgetConfDic = {}
   self:DoSetChildViewDataAndConstruct(self)
   _G.NRCProfilerLog:NRCPanelConstruct(false, self.panelName)
 end
@@ -34,6 +35,75 @@ function NRCPanelBase:SetPanelData(module, panelData)
   self:Log("bind panel:", module.moduleName, self.panelName)
 end
 
+function NRCPanelBase:InitUmgStaticConf(umgStaticConf)
+  if self.umgStaticConf == nil then
+    Log.Debug("NRCPanelBase:InitUmgStaticConf fail", self.panelName)
+    return
+  end
+  local widgetConfName = self.umgStaticConf.panel_widget_conf_name
+  if widgetConfName then
+    self.AllWidgetConf = _G.DataConfigManager:GetAllByName(widgetConfName)
+    if self.AllWidgetConf then
+      for k, v in pairs(self.AllWidgetConf) do
+        if v.widget_name then
+          self.AllWidgetConfDic[v.widget_name] = v
+          local widget = self:GetWidgetByName(v.widget_name)
+          if widget then
+            if v.redpoint_id and 0 ~= v.redpoint_id then
+              if widget.SetupKey then
+                widget:SetupKey(v.redpoint_id)
+              else
+                Log.Warning("NRCPanelBase:InitUmgStaticConf widget is not NrcRedPoint_C ", v.widget_name, self.panelName, v.id)
+              end
+            end
+            if v.btn_sound_id and 0 ~= v.btn_sound_id and widget.GetSoundID then
+              local btnSound = widget:GetSoundID()
+              if 0 == btnSound then
+                if widget.SetSoundID then
+                  widget:SetSoundID(v.btn_sound_id)
+                else
+                  Log.Warning("NRCPanelBase:InitUmgStaticConf widget is not UNRCButton", v.widget_name, self.panelName, v.id)
+                end
+              end
+            end
+            if v.mutex_group_name and v.mutex_group_name ~= "" then
+              if widget.SetMutexGroup then
+                widget:SetMutexGroup(v.mutex_group_name)
+              else
+                Log.Warning("NRCPanelBase:InitUmgStaticConf widget is not UNRCButton", v.widget_name, self.panelName, v.id)
+              end
+            end
+          else
+            Log.Warning("NRCPanelBase:InitUmgStaticConf wiget not found", v.widget_name, self.panel, v.id)
+          end
+        else
+          Log.Warning("NRCPanelBase:InitUmgStaticConf widget_name is nil ", v.widget_name, self.panelName, v.id)
+        end
+      end
+    else
+      Log.Debug("NRCPanelBase:InitUmgStaticConf fail AllWidgetConf", widgetConfName, self.panelName)
+    end
+  end
+end
+
+function NRCPanelBase:GetWidgetByName(widgetName)
+  if not widgetName or "" == widgetName then
+    return nil
+  end
+  if not string.find(widgetName, ".", 1, true) then
+    return self[widgetName]
+  end
+  local parts = string.split(widgetName, "%.")
+  local current = self
+  for i, part in ipairs(parts) do
+    if nil == current then
+      return nil
+    end
+    current = current[part]
+  end
+  return current
+end
+
 function NRCPanelBase:Active(...)
   local panelData = self.panelData
   if nil == panelData then
@@ -49,13 +119,42 @@ function NRCPanelBase:Active(...)
   if openAnimName and self[openAnimName] then
     self:PlayAnimation(self[openAnimName])
   else
-    NRCModuleManager:DoCmd(MultiTouchModuleCmd.CloseBlockingMask)
+    if panelData.enableTouchMask then
+      NRCModuleManager:DoCmd(MultiTouchModuleCmd.CloseBlockingMask)
+    end
     if not self.hasCustomOpenAnim then
       self:SetPanelAlreadyVisible()
     end
   end
   _G.NRCProfilerLog:NRCPanelProfilerLog(true, false, self.panelName)
   _G.NRCProfilerLog:NRCPanelActive(false, self.panelName)
+  if panelData.panelStaticConf then
+    self.umgStaticConf = panelData.panelStaticConf
+    self:RegisterStaticConf()
+  end
+end
+
+function NRCPanelBase:RegisterStaticConf()
+  local panelConf = self.umgStaticConf
+  self:InitUmgStaticConf(panelConf)
+  if panelConf.bgm_state_name then
+    Log.Debug("NRCPanelBase:OnActive bgm_state_name", panelConf.bgm_state_name, self.panelName)
+    _G.NRCAudioManager:SetStateByName("UI_Music", panelConf.bgm_state_name)
+  end
+  if panelConf.bgm_state_ui_type then
+    Log.Debug("NRCPanelBase:OnActive bgm_state_ui_type", panelConf.bgm_state_ui_type, self.panelName)
+    _G.NRCAudioManager:SetStateByName("UI_Type", panelConf.bgm_state_ui_type)
+  end
+  if panelConf.open_effect then
+    Log.Debug("NRCPanelBase:OnActive playanim", panelConf.open_effect, self.panelName)
+    local Anim = self[panelConf.open_effect]
+    self:PlayAnimation(Anim)
+  end
+  if panelConf.open_soundid then
+    Log.Debug("NRCPanelBase:OnActive play sound", panelConf.open_soundid, self.panelName)
+    local Tag = self.panelName .. ":OnActive"
+    _G.NRCAudioManager:PlaySound2DAuto(panelConf.open_soundid, Tag)
+  end
 end
 
 function NRCPanelBase:OnAddDynamicIMC()
@@ -156,6 +255,23 @@ function NRCPanelBase:IsNeedCache()
   return self.panelData.panelCacheType == NRCPanelRegisterData.PanelCacheType.PreCache or self.panelData.panelCacheType == NRCPanelRegisterData.PanelCacheType.LoadAndCache
 end
 
+function NRCPanelBase:OnFoldCollapsed()
+end
+
+function NRCPanelBase:OnUnDoFoldCollapsed()
+end
+
+function NRCPanelBase:OnDepthChanged(depth)
+  self:SetAllInputMappingContextPriority(depth)
+  _G.NRCPanelManager:UpdatePanelTriggerPriority(self.panelName, depth)
+end
+
+function NRCPanelBase:OnBringToFront(...)
+end
+
+function NRCPanelBase:OnSendToBack(...)
+end
+
 function NRCPanelBase:BindCloseBtn(btn)
   btn = btn and btn.btnClose or btn or self.CloseBtn
   self:AddButtonListener(btn, self.DoClose)
@@ -168,6 +284,9 @@ function NRCPanelBase:OnClose()
         return
       end
       self.isPanelClosing = true
+      if self[self.panelData.openAnimName] then
+        self:StopAnimation(self[self.panelData.openAnimName])
+      end
       self:PlayAnimation(self[self.panelData.closeAnimName])
       self:SetPanelReadyToClosed()
     else
@@ -180,6 +299,12 @@ end
 
 function NRCPanelBase:DoClose()
   if self.panelData then
+    local panelConf = self.umgStaticConf
+    if panelConf and panelConf.close_effect then
+      Log.Debug("NRCPanelBase:DoClose playanim", panelConf.close_effect, self.panelName)
+      local Anim = self[panelConf.close_effect]
+      self:PlayAnimation(Anim)
+    end
     if self:IsNeedCache() then
       self:Log("NRCPanelBase:DoClose:")
       self:Disable()
@@ -225,8 +350,12 @@ function NRCPanelBase:OnAnimationFinished(Anim)
   if self.panelData.openAnimName and Anim == self[self.panelData.openAnimName] or self.panelData.closeAnimName and Anim == self[self.panelData.closeAnimName] then
     self:RecoverAllButtonListener()
     if Anim == self[self.panelData.openAnimName] then
-      NRCModuleManager:DoCmd(MultiTouchModuleCmd.CloseBlockingMask)
-      self:SetPanelAlreadyVisible()
+      if self.panelData.enableTouchMask then
+        NRCModuleManager:DoCmd(MultiTouchModuleCmd.CloseBlockingMask)
+      end
+      if not self.isPanelClosing then
+        self:SetPanelAlreadyVisible()
+      end
     elseif Anim == self[self.panelData.closeAnimName] and self.DoClose then
       self:DoClose()
     end

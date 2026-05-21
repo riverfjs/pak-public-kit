@@ -15,20 +15,24 @@ function UMG_AlchemyItem_tips_C:OnActive(data)
   local get_goods_type = exchangeConf.get_item[1].get_goods_type
   if get_goods_type == _G.Enum.GoodsType.GT_BAGITEM then
     local BagItem = _G.DataConfigManager:GetBagItemConf(get_goods_id)
-    self.Icon:SetPath(BagItem.big_icon)
-    self.Icon_1:SetPath(BagItem.big_icon)
-    self.request = _G.NRCResourceManager:LoadResAsync(self, BagItem.big_icon, -1, -1, function(caller, resRequest, asset)
-      self:SetTextureToGrey(asset)
-    end, nil, nil)
-    self:SetQuality(BagItem.item_quality, BagItem.name, get_goods_num * self.exchangeNum, BagItem.description)
+    if BagItem then
+      self.Icon:SetPath(BagItem.big_icon)
+      self.Icon_1:SetPath(BagItem.big_icon)
+      local asset = self.module:GetRes(BagItem.big_icon, "AlchemyItem_tips")
+      if asset then
+        self:SetTextureToGrey(asset)
+      end
+      self:SetQuality(BagItem.item_quality, BagItem.name, get_goods_num * self.exchangeNum, BagItem.description)
+    end
   elseif get_goods_type == _G.Enum.GoodsType.GT_VITEM then
     local vItemConf = _G.DataConfigManager:GetVisualItemConf(get_goods_id)
     if vItemConf then
       self.Icon:SetPath(vItemConf.bigIcon)
       self.Icon_1:SetPath(vItemConf.bigIcon)
-      self.request = _G.NRCResourceManager:LoadResAsync(self, vItemConf.bigIcon, -1, -1, function(caller, resRequest, asset)
+      local asset = self.module:GetRes(vItemConf.bigIcon, "AlchemyItem_tips")
+      if asset then
         self:SetTextureToGrey(asset)
-      end, nil, nil)
+      end
       self:SetQuality(vItemConf.item_quality, vItemConf.displayName, get_goods_num * self.exchangeNum, vItemConf.discription)
     end
   else
@@ -74,7 +78,6 @@ function UMG_AlchemyItem_tips_C:PreprocessDescription(description)
 end
 
 function UMG_AlchemyItem_tips_C:OnDeactive()
-  _G.NRCResourceManager:UnLoadRes(self.request)
 end
 
 function UMG_AlchemyItem_tips_C:OnAddEventListener()

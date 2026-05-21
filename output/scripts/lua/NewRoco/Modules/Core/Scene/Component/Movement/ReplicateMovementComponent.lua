@@ -66,7 +66,7 @@ function ReplicateMovementComponent:PushToNativeMovementComponent(moveData, nati
   if not moveData or not nativeMoveComponent then
     return
   end
-  local targetPos = SceneUtils.ServerPos2ClientPos(moveData.to_pos)
+  local targetPos = SceneUtils.ServerPos2PlayerPos(moveData.to_pos)
   local targetRot = SceneUtils.ServerPos2ClientRotator(moveData.to_rot)
   self.ctrlRot = SceneUtils.ServerPos2ClientRotator(moveData.ctrl_rot)
   local velocity = SceneUtils.ServerPos2ClientPos(moveData.speed)
@@ -77,7 +77,7 @@ function ReplicateMovementComponent:PushToNativeMovementComponent(moveData, nati
   local timeStamp = moveData.time_stamp
   local matePos, mateRot, mateMoveMode
   if moveData.mate_point then
-    matePos = SceneUtils.ServerPos2ClientPos(moveData.mate_point.pos)
+    matePos = SceneUtils.ServerPos2PlayerPos(moveData.mate_point.pos)
     mateRot = SceneUtils.ServerPos2ClientRotator(moveData.mate_point.dir)
     mateMoveMode = moveData.mate_move_mode or 1
   end
@@ -105,8 +105,12 @@ function ReplicateMovementComponent:Update(deltaTime)
   if Owner and Owner.serverData and self:HasRemainingMoveData() then
     local bLoadingRidePet = Owner:IsLoadingRidePet()
     local bStatusRecovering = Owner:IsStatusRecovering()
-    if bLoadingRidePet or bStatusRecovering then
-      Log.Debug("[DebugMove3P]ReplicateMovementComponent skip Replicate,LoadingRidePet=", bLoadingRidePet, ",StatusRecovering=", bStatusRecovering, ",MainMoveQueue.Size=", self.MainMoveQueue:Size(), ",RideMoveQueue.Size=", self.RideMoveQueue:Size(), self.owner.serverData.base.name)
+    local bInStartTransforming = Owner:IsInStartTransforming()
+    local bInEndTransforming = Owner:IsInEndTransforming()
+    if bLoadingRidePet or bStatusRecovering or bInStartTransforming or bInEndTransforming then
+      if _G.GlobalConfig.bDebugMoveLog then
+        Log.Debug("[DebugMove3P]ReplicateMovementComponent skip Replicate,LoadingRidePet=", bLoadingRidePet, ",StatusRecovering=", bStatusRecovering, ",MainMoveQueue.Size=", self.MainMoveQueue:Size(), ",RideMoveQueue.Size=", self.RideMoveQueue:Size(), self.owner.serverData.base.name)
+      end
       return
     end
     self:PushCurrentMoveData()
@@ -181,6 +185,7 @@ function ReplicateMovementComponent:OnPlayerStatusRecoverFinish()
   if not self:IsInRideStatus() then
     local Owner = self.owner
     Owner:CheckPlayerInSeat()
+    Owner:CheckPlayerInBox()
   end
 end
 

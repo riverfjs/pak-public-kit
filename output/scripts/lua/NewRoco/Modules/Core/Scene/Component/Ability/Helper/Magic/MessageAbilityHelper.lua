@@ -68,9 +68,8 @@ end
 
 function MessageAbilityHelper:CanCastAbility(caster)
   local result = Base.CanCastAbility(self, caster)
-  if result ~= AbilityErrorCode.NO_ERROR and self.lastErrorCode ~= result then
-    Log.Warning("CreateAbilityHelper Cannot cast ability", result, AbilityErrorCode.ToString(result))
-    self.lastErrorCode = result
+  if result ~= AbilityErrorCode.NO_ERROR then
+    return result
   end
   if self.story then
     return AbilityErrorCode.STORY_BAN
@@ -78,25 +77,8 @@ function MessageAbilityHelper:CanCastAbility(caster)
   if self.SystemBan then
     return AbilityErrorCode.SYSTEM_BAN
   end
-  local Flag = NRCModuleManager:DoCmd(AreaAndZoneModuleCmd.CanSetMessage)
-  if not Flag then
-    return AbilityErrorCode.FUNC_BAN
-  end
   if _G.NRCModuleManager:DoCmd(MiniGameModuleCmd.IsPlaying) then
     return AbilityErrorCode.GAME_BAN
-  end
-  local sceneModule = NRCModuleManager:GetModule("SceneModule")
-  if sceneModule then
-    local curSceneResId = sceneModule:GetCurrentMapResId()
-    local CanSetMessageConf = _G.DataConfigManager:GetGlobalConfig("mark_allow_area_whitelist", true)
-    if CanSetMessageConf and CanSetMessageConf.numList then
-      for _, v in ipairs(CanSetMessageConf.numList) do
-        if v == curSceneResId then
-          return result
-        end
-      end
-      return AbilityErrorCode.FUNC_BAN
-    end
   end
   return result
 end

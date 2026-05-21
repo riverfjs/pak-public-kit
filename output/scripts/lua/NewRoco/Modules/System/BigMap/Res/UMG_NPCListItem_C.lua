@@ -1,5 +1,6 @@
 local BigMapModuleEvent = reload("NewRoco.Modules.System.BigMap.BigMapModuleEvent")
 local BigMapModuleEnum = require("NewRoco.Modules.System.BigMap.BigMapModuleEnum")
+local BigMapUtils = require("NewRoco/Modules/System/BigMap/BigMapUtils")
 local UMG_NPCListItem_C = _G.NRCPanelBase:Extend("UMG_NPCListItem_C")
 
 function UMG_NPCListItem_C:OnConstruct()
@@ -41,7 +42,7 @@ function UMG_NPCListItem_C:SetData(npcData)
     end
     if npcData.npcCfg then
       npcCfg = npcData.npcCfg
-      if worldMapCfg.element_text_name then
+      if worldMapCfg.element_text_name and worldMapCfg.element_text_name ~= "" then
         self.ItemDesc:SetText(worldMapCfg.element_text_name)
       else
         self.ItemDesc:SetText(npcCfg.name)
@@ -64,7 +65,11 @@ function UMG_NPCListItem_C:SetData(npcData)
             self:GetIconPath(worldMapCfg.npcicon_unfinished)
           end
         elseif worldMapCfg.areaicon_explore then
-          self:GetIconPath(worldMapCfg.areaicon_explore)
+          if BigMapUtils.CheckShowRongDuanIcon(worldMapCfg, self.uiData.mutation_type) then
+            self:GetIconPath(worldMapCfg.shine_rongduan_icon)
+          else
+            self:GetIconPath(worldMapCfg.areaicon_explore)
+          end
         elseif worldMapCfg.npcicon_unlock then
           if #worldMapCfg.npcicon_levelup > 0 then
             for i = 1, #worldMapCfg.npcicon_levelup do
@@ -102,7 +107,7 @@ function UMG_NPCListItem_C:SetData(npcData)
         if worldMapCfg.dungeon_id and worldMapCfg.dungeon_id > 0 then
           self:GetIconPath(worldMapCfg.npcicon_unlock)
         end
-      elseif worldMapCfg.map_show_type == Enum.MapIconShowType.MAP_SEASON_DAZZLING then
+      elseif worldMapCfg.map_show_type == Enum.MapIconShowType.MAP_SEASON_DAZZLING or worldMapCfg.map_show_type == Enum.MapIconShowType.MAP_SHINING_SEASON_DAZZLING then
         local path = self:GetHiddenGlassIcon()
         if path and "" ~= path then
           self.NRCSwitcher_63:SetActiveWidgetIndex(2)
@@ -283,13 +288,17 @@ function UMG_NPCListItem_C:SetPetIconPath(iconPath)
   if iconPath then
     if self.uiData and self.uiData.state then
       self.NRCSwitcher_63:SetActiveWidgetIndex(2)
-      if self.uiData.state == _G.ProtoEnum.PetHandbookStatus.PHS_NOT_FOUND then
-        self.iconPath = iconPath
-        self:SetUnFoundIcon()
-      elseif not self.uiData.isFound then
-        self.pet1:SetPath(iconPath)
-        self.Icon_Mask:SetPath(iconPath)
-        self.Icon_Mask:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+      if self.uiData.petBase_id and 0 ~= self.uiData.petBase_id then
+        if self.uiData.state == _G.ProtoEnum.PetHandbookStatus.PHS_NOT_FOUND then
+          self.iconPath = iconPath
+          self:SetUnFoundIcon()
+        elseif not self.uiData.isFound then
+          self.pet1:SetPath(iconPath)
+          self.Icon_Mask:SetPath(iconPath)
+          self.Icon_Mask:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+        else
+          self.pet1:SetPath(iconPath)
+        end
       else
         self.pet1:SetPath(iconPath)
       end

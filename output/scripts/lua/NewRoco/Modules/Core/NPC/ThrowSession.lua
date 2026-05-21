@@ -7,6 +7,7 @@ local PlayerDataEvent = require("Data.Global.PlayerDataEvent")
 local SceneUtils = require("NewRoco.Modules.Core.Scene.Common.SceneUtils")
 local Base = require("NewRoco.Modules.Core.NPC.ThrowSessionBase")
 local PlayerModuleEvent = require("NewRoco.Modules.Core.PlayerModule.PlayerModuleEvent")
+local TaskModuleEvent = require("NewRoco.Modules.Core.Task.TaskModuleEvent")
 local ShowTrajectory = false
 local ColorMap = {
   [ThrowSessionStatusEnum.InHand] = UE4.FLinearColor(1, 1, 0, 1),
@@ -96,6 +97,7 @@ function ThrowSession:Ctor()
   self.canBeRecycle = nil
   self.BallId = 0
   self.hasSentRecycle = false
+  self.isCatchFinished = false
 end
 
 function ThrowSession:SetBallStatus(Status)
@@ -188,6 +190,15 @@ function ThrowSession:OnSessionDestroyed()
     table.remove(ThrowSession.ActivePetSessions, Found)
   else
     Log.Debug("Session\232\162\171\229\136\160\228\186\134\228\189\134\230\152\175\228\184\141\229\173\152\229\156\168\229\156\168ActivePetSessions\233\135\140\233\157\162", self.Status, self.SeqID, self.petData and self.petData.gid)
+  end
+  if self.is_local then
+    local player = SceneUtils.GetPlayer()
+    local throwManagementComponent = player and player.ThrowManagementComponent
+    local isCatching = throwManagementComponent and throwManagementComponent:IsCatchSession(self) or false
+    if isCatching then
+      Log.Error("\229\146\149\229\153\156\231\144\131\231\155\184\229\133\179\230\151\165\229\191\151: \232\167\166\229\143\145\228\186\134\230\156\128\228\191\157\229\186\149\231\154\132\228\191\157\230\138\164\230\142\170\230\150\189\239\188\140\230\156\137\228\186\155\230\158\129\231\171\175\230\131\133\229\134\181\228\188\154\229\175\188\232\135\180\230\141\149\230\141\137\232\161\168\230\188\148\230\178\161\229\138\158\230\179\149\230\173\163\229\184\184\232\191\155\232\161\140\239\188\140\230\173\164\230\151\182\232\135\179\229\176\145\232\166\129\229\156\168\233\148\128\230\175\129\231\154\132\230\151\182\229\128\153\230\184\133\231\144\134\228\184\128\228\184\139\239\188\140\228\184\141\232\131\189\232\174\169\230\141\149\230\141\137\231\138\182\230\128\129\230\174\139\231\149\153", self.SeqID)
+      throwManagementComponent:EndCatch(self)
+    end
   end
 end
 
@@ -506,6 +517,7 @@ function ThrowSession:OnNPCLeave(npc)
     local IsFriendRiding = false
     if self.petData and self.petData.gid and npc and npc.serverData and npc.serverData.base and npc.serverData.base.actor_id and _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.GetPetIsDieForFriendRide, npc.serverData.base.actor_id) then
       IsFriendRiding = true
+      _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.SetDiePetForFriendRideMap, npc.serverData.base.actor_id, nil)
     end
     if IsFriendRiding then
       self:SetStatus(ThrowSessionStatusEnum.FriendRiding)
@@ -664,38 +676,7 @@ function ThrowSession:OnHit()
   if not self.Ball then
     return
   end
-  do return end
-  local BallView = self.Ball.viewObj
-  local ProjectTileComp = BallView.ProjectileMovement
-  if not ProjectTileComp then
-    return
-  end
-  local Dist = ProjectTileComp:GetMovingDistance()
-  if Dist < 50 then
-    return
-  end
-  if self.bHasPendingCollisionReq then
-    Log.Error("has pending collision", self.SeqID)
-    return
-  end
-  self.bHasPendingCollisionReq = true
-  ProjectTileComp:ResetMovingDistance()
-  if not self.CollisionReq then
-    self.CollisionReq = _G.ProtoMessage:newZoneSceneThrowCollisionReq()
-    self.CollisionReq.throw_id = self.SeqID
-    self.CollisionReq.throw_type = ProtoEnum.ThrowType.THROW_BAGITEM
-    self.CollisionReq.gid = self:GetGID()
-    self.CollisionReq.item_conf_id = self:GetItemID()
-  end
-  local BallPos = BallView:Abs_K2_GetActorLocation()
-  self.CollisionReq.collision_pos.x = math.round(BallPos.X)
-  self.CollisionReq.collision_pos.y = math.round(BallPos.Y)
-  self.CollisionReq.collision_pos.z = math.round(BallPos.Z)
-  self.CollisionReq.fly_distance = math.round(Dist)
-  _G.ZoneServer:SendWithHandler(ProtoCMD.ZoneSvrCmd.ZONE_SCENE_THROW_COLLISION_REQ, self.CollisionReq, self, self.OnCollisionRsp, false, true)
-  if ThrowSession.DebugHits then
-    Log.Error(self.SeqID, "\229\143\145\231\148\159\231\162\176\230\146\158\239\188\140\231\162\176\230\146\158\232\183\157\231\166\187\228\184\186", Dist, "\231\162\176\230\146\158\229\156\176\231\130\185", BallPos.X, BallPos.Y, BallPos.Z)
-  end
+  return
 end
 
 function ThrowSession:OnCollisionRsp(rsp)
@@ -939,6 +920,36 @@ function ThrowSession:GetThrowBallActConf()
     ballActConf = _G.DataConfigManager:GetBallAct(280001, true)
   end
   return ballActConf
+end
+
+function ThrowSession:SendCatchFinishReq()
+  if not self.is_local then
+    return
+  end
+  if self.isCatchFinished then
+    Log.Error("\229\176\157\232\175\149\233\135\141\229\164\141\229\143\145\233\128\129CatchFinish", self.SeqID)
+    return
+  end
+  self.isCatchFinished = true
+  if not self.SeqID then
+    Log.Error("\230\178\161\230\156\137throwId")
+    return
+  end
+  ThrowSession.RawSendCatchFinish(self.SeqID)
+  local PlayerModule = NRCModuleManager:GetModule("PlayerModule")
+  if PlayerModule then
+    _G.NRCEventCenter:DispatchEvent(TaskModuleEvent.OnWorldPetCatchFinish, self.bCatchSuccess)
+  end
+end
+
+function ThrowSession.RawSendCatchFinish(throwId)
+  if not throwId then
+    Log.Error("ThrowSession.RawSendCatchFinish with throwId nil")
+    return
+  end
+  local req = _G.ProtoMessage:newZoneSceneThrowCatchFinishReq()
+  req.throw_id = throwId
+  _G.ZoneServer:Send(_G.ProtoCMD.ZoneSvrCmd.ZONE_SCENE_THROW_CATCH_FINISH_REQ, req)
 end
 
 return ThrowSession

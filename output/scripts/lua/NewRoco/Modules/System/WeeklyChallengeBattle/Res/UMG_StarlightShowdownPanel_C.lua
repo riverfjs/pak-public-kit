@@ -11,7 +11,6 @@ end
 function UMG_StarlightShowdownPanel_C:OnActive()
   self.module.bIsTeamDirty = false
   _G.NRCModuleManager:DoCmd(_G.WeeklyChallengeBattleModuleCmd.RefetchTeamList)
-  _G.NRCModuleManager:DoCmd(_G.WeeklyChallengeBattleModuleCmd.CloseCurtainPopup)
   self:SetChildViews(self.MyTeam)
   self.MyTeam:SetParent(self)
   self:OnAddEventListener()
@@ -66,7 +65,8 @@ function UMG_StarlightShowdownPanel_C:OnActivityEventIdChanged()
 end
 
 function UMG_StarlightShowdownPanel_C:OnReConnectStart()
-  self:DoClose()
+  _G.NRCModuleManager:DoCmd(_G.WeeklyChallengeBattleModuleCmd.CloseCurtainPopup)
+  self:ClosePanel()
 end
 
 function UMG_StarlightShowdownPanel_C:OnPetAdjust()

@@ -67,12 +67,12 @@ function MapItemVisitor:Refresh(itemData)
     for _uin, v in pairs(self.iconList) do
       local hasSame = false
       visitorIndex = visitorIndex + 1
-      local removeInfo = v.data
+      local removeInfo = v.uiData
       if visitorInfo and #visitorInfo > 0 then
         for i, val in ipairs(visitorInfo) do
           local myUin = _G.DataModelMgr.PlayerDataModel:GetPlayerUin()
           if v.uin ~= myUin then
-            removeInfo = v.data
+            removeInfo = v.uiData
             if _uin == val.uin then
               hasSame = true
               break

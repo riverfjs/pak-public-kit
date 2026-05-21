@@ -211,6 +211,7 @@ function UMG_GiftVoucherSharingItem_C:OnClickBtnShare()
     return
   end
   _G.NRCModuleManager:DoCmd(MultiTouchModuleCmd.LockIsSelectBtn, moduleName, panelName, _G.NRCModuleManager:DoCmd(MultiTouchModuleCmd.GetPanelSelectBtnReason, panelName).SHARE)
+  self.isCancelled = false
   local initData = _G.NRCCommonPopUpData()
   initData.Call = self
   initData.TitleText = _G.DataConfigManager:GetLocalizationConf("bp_share_confirm_title").msg
@@ -231,6 +232,10 @@ function UMG_GiftVoucherSharingItem_C:OnClickBtnShare()
 end
 
 function UMG_GiftVoucherSharingItem_C:SendGiftMessage()
+  if self.isCancelled then
+    Log.Info("UMG_GiftVoucherSharingItem_C:SendGiftMessage already cancelled, ignore confirm")
+    return
+  end
   local moduleName = "BagModule"
   local panelName = "UMG_GiftVoucherSharing"
   local touchReasonType = _G.NRCModuleManager:DoCmd(MultiTouchModuleCmd.GetPanelSelectBtnReason, panelName).SHARE
@@ -283,6 +288,7 @@ function UMG_GiftVoucherSharingItem_C:OnZoneGiftGivingRsp(rsp)
 end
 
 function UMG_GiftVoucherSharingItem_C:CancelShare()
+  self.isCancelled = true
   local moduleName = "BagModule"
   local panelName = "UMG_GiftVoucherSharing"
   local touchReasonType = _G.NRCModuleManager:DoCmd(MultiTouchModuleCmd.GetPanelSelectBtnReason, panelName).SHARE

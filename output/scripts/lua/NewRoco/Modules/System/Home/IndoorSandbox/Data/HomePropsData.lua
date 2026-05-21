@@ -1,4 +1,5 @@
 local HomePropsData = Class("HomePropsData")
+local HomeNpcInfoComponent = require("NewRoco.Modules.System.Home.Components.HomeNpcInfoComponent")
 
 function HomePropsData:Ctor(RoomId, bTempData)
   self.RoomId = RoomId
@@ -20,6 +21,14 @@ function HomePropsData:Ctor(RoomId, bTempData)
   self.bInManagerSelected = nil
   self.TempFurnitureData = nil
   self.bExpandedInManager = false
+end
+
+function HomePropsData:GetConfigId()
+  return self.ConfId
+end
+
+function HomePropsData:GetConfig()
+  return self.Conf
 end
 
 function HomePropsData:IsValidConfig()
@@ -144,12 +153,43 @@ function HomePropsData:OnPostLoad(PropsActor)
   end
   PropsActor:SetCameraCollisionEnabled(not HomeIndoorSandbox.HomeEditServ:InEditMode())
   HomeIndoorSandbox.HomeEditServ.EditContext:OnPropsCreated(self)
+  self:SyncNpcComponents()
 end
 
 function HomePropsData:OnPreRelease()
   self.PropsActor = nil
   self.RealtimePlane = nil
   self.TempFurnitureData = nil
+end
+
+local COMPARATOR_
+
+local function COMPARE_VAL(a, b)
+  return math.abs(a - b) < 5
+end
+
+function HomePropsData.GetSerializeComparatorTable()
+  if not COMPARATOR_ then
+    COMPARATOR_ = {
+      position = {
+        dir = {
+          x = COMPARE_VAL,
+          y = COMPARE_VAL,
+          z = COMPARE_VAL
+        }
+      }
+    }
+  end
+  return COMPARATOR_
+end
+
+local NIL_FIELDS
+
+function HomePropsData.GetSerializeNilFields()
+  if not NIL_FIELDS then
+    NIL_FIELDS = {npc_id = true, dynamic_npc_ids = true}
+  end
+  return NIL_FIELDS
 end
 
 function HomePropsData:Serialize()
@@ -173,7 +213,8 @@ function HomePropsData:Serialize()
         z = math.floor(self.Rotator.Yaw * 100)
       }
     },
-    npc_id = self.NpcId or 0
+    npc_id = self.NpcId or 0,
+    dynamic_npc_ids = self.DynamicNpcIdList
   }
   return Table
 end
@@ -195,6 +236,7 @@ function HomePropsData:Deserialize(Table, Extra)
   local WorldRotZ = (Dir.z or 0) / 100
   self.Rotator = UE.FRotator(WorldRotY, WorldRotZ, WorldRotX)
   self.NpcId = Table.npc_id or 0
+  self.DynamicNpcIdList = Table.dynamic_npc_ids or {}
   if HomeIndoorSandbox:Ensure(0 ~= self.Id, "invalid props id") and HomeIndoorSandbox:Ensure(0 ~= self.ConfId, "invalid props conf id") then
     self.Conf = DataConfigManager:GetFurnitureItemConf(self.ConfId)
   end
@@ -262,17 +304,56 @@ function HomePropsData:GetIcon()
   end
 end
 
-function HomePropsData:ResolvePetNpc()
-  local Pet = NRCModuleManager:DoCmd(HomeModuleCmd.GetPairNestAndPet, self.Id)
-  if Pet and Pet.home_pet and Pet.home_pet.home_pet_info.furniture_guid == self.Id then
-    return Pet
+function HomePropsData:AnyDynamicNpc()
+  if self.DynamicNpcIdList and 0 ~= #self.DynamicNpcIdList then
+    for i, NpcId in pairs(self.DynamicNpcIdList) do
+      local Npc = _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.GetNpcByServerID, NpcId)
+      if Npc then
+        return true
+      end
+    end
   end
+  return false
 end
 
-function HomePropsData:ResolveRelativeNpc()
-  if 0 ~= self.NpcId then
-    local pet = _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.GetNpcByServerID, self.NpcId)
-    return pet
+function HomePropsData:UpdateDynamicNpc(DynamicIdList)
+  HomeIndoorSandbox:LogDebug("UpdateDynamicNpc", self.Id, table.concat(DynamicIdList, ";"))
+  self.DynamicNpcIdList = DynamicIdList
+end
+
+function HomePropsData:UpdateNpc(NpcId)
+  HomeIndoorSandbox:LogDebug("UpdateNpc", self.Id, NpcId)
+  self.NpcId = NpcId
+end
+
+function HomePropsData:GetConfigNpcId()
+  return self.NpcId
+end
+
+function HomePropsData:GetDynamicNpcIdList()
+  return self.DynamicNpcIdList
+end
+
+function HomePropsData:SyncNpcComponents()
+  if self.NpcId and 0 ~= self.NpcId then
+    local Npc = _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.GetNpcByServerID, self.NpcId)
+    if Npc then
+      local Comp = Npc:GetComponent(HomeNpcInfoComponent)
+      if Comp then
+        Comp:OnFurniturePostLoad()
+      end
+    end
+    if self.DynamicNpcIdList then
+      for i, NpcId in pairs(self.DynamicNpcIdList) do
+        Npc = _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.GetNpcByServerID, NpcId)
+        if Npc then
+          local Comp = Npc:GetComponent(HomeNpcInfoComponent)
+          if Comp then
+            Comp:OnFurniturePostLoad()
+          end
+        end
+      end
+    end
   end
 end
 

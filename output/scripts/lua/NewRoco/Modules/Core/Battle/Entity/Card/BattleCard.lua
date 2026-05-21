@@ -73,7 +73,7 @@ end
 function BattleCard:RefreshResource()
   self.icon = PetUtils.GetPetIconPath(self.petInfo, self.petBaseConf)
   self.resourcePath = PetUtils.GetPetModelPath(self.petInfo, self.petBaseConf)
-  self.resourceScale, self.initResourceScale = PetUtils.GetPetResourceScale(self.petInfo, self.petBaseConf)
+  self.resourceScale, self.initResourceScale = PetUtils.GetPetResourceScale(self.petInfo, self.petBaseConf, self:IsEnemy())
 end
 
 function BattleCard:InitAppearancePath()
@@ -146,6 +146,21 @@ function BattleCard:SetEnergy(value)
   end
   self.petInfo.battle_common_pet_info.energy = value
   self.energy = value
+end
+
+function BattleCard:SetMaxEnergy(maxEnergy)
+  maxEnergy = maxEnergy or 0
+  maxEnergy = math.max(maxEnergy, 0)
+  local currPetInfo = self.petInfo
+  local currInsideInfo = currPetInfo and currPetInfo.battle_inside_pet_info
+  local nextInsideInfo = {}
+  table.copy(currInsideInfo, nextInsideInfo)
+  nextInsideInfo.max_energy = maxEnergy
+  local nextPetInfo = {}
+  table.copy(currPetInfo, nextPetInfo)
+  nextPetInfo.battle_inside_pet_info = nextInsideInfo
+  self:OverwriteByServer(nextPetInfo)
+  self:RefreshByServer()
 end
 
 function BattleCard:RefreshMedal(petInfo)
@@ -410,6 +425,8 @@ function BattleCard:RefreshAttr(battleInfo)
   self.max_shield, self.shield = PetUtils.GetNightMareShield(battleInfo)
   self.isNightMarePet = PetUtils.CheckIsNightMarePet(battleInfo)
   self.haveNightMareShield = PetUtils.CheckHasNightMareShield(battleInfo)
+  self.isSurpriseBoxPet = PetUtils.CheckIsSurpriseBoxPet(battleInfo.base_conf_id)
+  self.haveSurpriseBoxShield = PetUtils.CheckHasSurpriseShield(battleInfo)
   if self.max_hp < self.hp then
     Log.Error("zgx \229\174\160\231\137\169\231\154\132\229\189\147\229\137\141\232\161\128\233\135\143\233\171\152\228\186\142\230\156\128\229\164\167\232\161\128\233\135\143\239\188\129\239\188\129\239\188\129 \233\156\128\232\166\129\229\144\142\229\143\176\230\163\128\230\159\165\230\149\176\230\141\174\231\154\132\229\144\136\231\144\134\230\128\167\239\188\129\239\188\129", self.max_hp, self.hp, self.name)
     self.max_hp = self.hp
@@ -811,6 +828,18 @@ function BattleCard:CheckIsMimic(isInited)
   end
 end
 
+function BattleCard:CheckIsSurpriseBox(isInited)
+  if isInited then
+    return self.petState:GetSurpriseBox()
+  else
+    local isMimic, sign, buff = PetUtils.DoCheckIsSurpriseBox(self.petInfo.battle_inside_pet_info)
+    if isMimic then
+      return isMimic, sign, buff
+    end
+    return self.petState:GetSurpriseBox() or false
+  end
+end
+
 function BattleCard:GetMonsterConfigIsNightmareValue()
   return self.config and self.isMonster and self.config.is_nightmare
 end
@@ -1112,11 +1141,25 @@ function BattleCard:ShowPopup(Info, target, callback)
         Info
       })
     end
-    _G.DelayManager:DelaySeconds(1, self.HidePopup, self, target, callback)
+    self:TryCancelHidePopupDelay()
+    self.hidePopupDelayId = _G.DelayManager:DelaySeconds(1, self.DelayHidePopupTimeOut, self, target, callback)
   elseif target and callback then
     callback(target)
   end
   return isShow
+end
+
+function BattleCard:TryCancelHidePopupDelay()
+  local hidePopupDelayId = self.hidePopupDelayId
+  if hidePopupDelayId then
+    _G.DelayManager:CancelDelayById(hidePopupDelayId)
+  end
+  self.hidePopupDelayId = nil
+end
+
+function BattleCard:DelayHidePopupTimeOut(target, callback)
+  self.hidePopupDelayId = nil
+  self:HidePopup(target, callback)
 end
 
 function BattleCard:HidePopup(target, callback)
@@ -1127,6 +1170,7 @@ function BattleCard:HidePopup(target, callback)
 end
 
 function BattleCard:Destroy()
+  self:TryCancelHidePopupDelay()
   self.petInfo = nil
   self.petBaseConf = nil
   self.petState = nil

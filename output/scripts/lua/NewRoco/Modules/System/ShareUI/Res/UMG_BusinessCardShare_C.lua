@@ -91,7 +91,14 @@ function UMG_BusinessCardShare_C:InitAdventureLog()
     collectPercentDesc = string.format("%.1f%%", percentage)
   end
   self.PhotoSub.Time_3:SetText(collectPercentDesc)
-  local shiningPetCount, glassPetCount = _G.DataModelMgr.PlayerDataModel:GetShiningOrGlassPetCount()
+  if CardInfo.card_handbook_collect_num then
+    collectNum = CardInfo.card_handbook_collect_num
+  end
+  local shiningPetCount, glassPetCount = 0, 0
+  if CardInfo.card_pet_info then
+    glassPetCount = CardInfo.card_pet_info.collected_glass_pet_count or 0
+    shiningPetCount = CardInfo.card_pet_info.collected_shining_pet_count or 0
+  end
   self.PhotoSub.Time_6:SetText(tostring(glassPetCount))
   self.PhotoSub.Time_7:SetText(tostring(shiningPetCount))
 end
@@ -194,6 +201,7 @@ function UMG_BusinessCardShare_C:InitSelectBox()
       end
       
       self.PhotoSub.ComboBox_Popup:SetInAnimCallBack(cb)
+      self.PhotoSub.ComboBox_Popup:SetAnimChoice(true)
     else
       self.PhotoSub.PetMedalSwitch:SetVisibility(UE4.ESlateVisibility.Collapsed)
     end
@@ -233,7 +241,9 @@ function UMG_BusinessCardShare_C:ShowSelectBox(isShow)
 end
 
 function UMG_BusinessCardShare_C:ShowShareChannelCode(qrcodeShow, qrcodeLink)
-  if qrcodeShow and qrcodeShow == Enum.ShareQRcodeScenario.SQRS_HIDE then
+  if self.data.IsBanQRCode then
+    self.PhotoSub.QRCode:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  elseif qrcodeShow and qrcodeShow == Enum.ShareQRcodeScenario.SQRS_HIDE then
     self.PhotoSub.QRCode:SetVisibility(UE4.ESlateVisibility.Collapsed)
   else
     self.PhotoSub.QRCode:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
@@ -248,6 +258,13 @@ end
 
 function UMG_BusinessCardShare_C:ResetShareChannelCode()
   self:InitCode()
+end
+
+function UMG_BusinessCardShare_C:HideSelectBoxByShare()
+  if self.PhotoSub.ComboBox_Popup and self.PhotoSub.ComboBox_Popup:GetVisibility() == UE4.ESlateVisibility.SelfHitTestInvisible then
+    self.IsShowSelectBox = false
+    self.PhotoSub.ComboBox_Popup:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  end
 end
 
 return UMG_BusinessCardShare_C

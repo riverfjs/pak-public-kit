@@ -183,6 +183,10 @@ function StatusComponent:DeAttach()
 end
 
 function StatusComponent:ApplyStatus(status, opCode, subStatus, customParam, ...)
+  if self._shouldWaitRecover then
+    Log.Error("StatusComponent:ApplyStatus While Waitting Recover")
+    return
+  end
   subStatus = subStatus or 1
   self:ClearCachePreApplyStatus()
   local canApply, overrideValues, opCodePre = self:PreApplyStatus(status, subStatus)
@@ -192,7 +196,7 @@ function StatusComponent:ApplyStatus(status, opCode, subStatus, customParam, ...
   end
   self._pendingStatus = status
   self._pendingSubStatus = subStatus
-  local expectedAfterClearStatusCount = #self._statusDic
+  local expectedAfterClearStatusCount = table.size(self._statusDic)
   if overrideValues then
     expectedAfterClearStatusCount = expectedAfterClearStatusCount - #overrideValues
     for _, v in pairs(overrideValues) do
@@ -371,6 +375,10 @@ function StatusComponent:ClearCachePreApplyStatus()
 end
 
 function StatusComponent:RemoveStatus(status, opCode, subStatus, ...)
+  if self._shouldWaitRecover and not self._recovering then
+    Log.Error("StatusComponent:RemoveStatus While Waitting Recover")
+    return
+  end
   local originStatusValue = self._statusDic[status] or 0
   if originStatusValue <= 0 or subStatus and 0 ~= subStatus and subStatus ~= originStatusValue then
     return
@@ -551,6 +559,9 @@ function StatusComponent:InitMovementModeStatus(MovementMode, CustomMode)
   if MovementMode == UE4.EMovementMode.MOVE_Custom and CustomMode == UE4.ERocoCustomMovementMode.MOVE_Sliping then
     self:ApplyStatus(ProtoEnum.WorldPlayerStatusType.WPST_SLIDING, opCode)
   end
+  if MovementMode == UE4.EMovementMode.MOVE_Custom and CustomMode == UE4.ERocoCustomMovementMode.MOVE_Climbing then
+    self:ApplyStatus(ProtoEnum.WorldPlayerStatusType.WPST_CLIMB, opCode)
+  end
 end
 
 function StatusComponent:ClearAll()
@@ -638,77 +649,76 @@ function StatusComponent:SyncStatus(status, subStatus, opCode, clearFlag, custom
 end
 
 function StatusComponent:RecoverAllStatus()
-  if not self.owner.serverData then
-    return
-  end
-  Log.Warning("\230\156\172\229\156\176\231\142\169\229\174\182 \231\138\182\230\128\129\230\129\162\229\164\141")
-  self._recovering = true
-  Log.Dump(self.owner.serverData.avatar_status, 5, "RecoverAllStatus")
-  if self._shouldWaitRecover then
-    local serverInfo = self.owner.serverData.avatar_status
-    self:FixStatusWhileReConnect()
-    local serverStatus = serverInfo.status_list or {}
-    local serverSubStatus = serverInfo.sub_status_list or {}
-    local serverStatusParams = serverInfo.avatar_status_params
-    self._recover_clearing = true
-    local ignoreStatus = {}
-    
-    local function RemoveLocalStatus()
-      local clearStatus = {}
-      for k, v in pairs(self._statusDic) do
-        if not table.contains(serverStatus, k) then
-          table.insert(clearStatus, k)
-        elseif k == ProtoEnum.WorldPlayerStatusType.WPST_RIDEALL then
-          local subStatusIndex = table.indexOf(serverStatus, k)
-          local statusParam = serverStatusParams[subStatusIndex]
-          local localStatusParam = self._statusParams[k]
-          if statusParam.ride_param.ride_pet_gid == localStatusParam.ride_param.ride_pet_gid and statusParam.ride_param.double_ride_2p_id == localStatusParam.ride_param.double_ride_2p_id then
-            ignoreStatus[subStatusIndex] = serverStatus[subStatusIndex]
+  if self.owner.serverData then
+    Log.Warning("\230\156\172\229\156\176\231\142\169\229\174\182 \231\138\182\230\128\129\230\129\162\229\164\141")
+    self._recovering = true
+    Log.Dump(self.owner.serverData.avatar_status, 5, "RecoverAllStatus")
+    if self._shouldWaitRecover then
+      local serverInfo = self.owner.serverData.avatar_status
+      self:FixStatusWhileReConnect()
+      local serverStatus = serverInfo.status_list or {}
+      local serverSubStatus = serverInfo.sub_status_list or {}
+      local serverStatusParams = serverInfo.avatar_status_params
+      self._recover_clearing = true
+      local ignoreStatus = {}
+      
+      local function RemoveLocalStatus()
+        local clearStatus = {}
+        for k, v in pairs(self._statusDic) do
+          if not table.contains(serverStatus, k) then
+            table.insert(clearStatus, k)
+          elseif k == ProtoEnum.WorldPlayerStatusType.WPST_RIDEALL then
+            local subStatusIndex = table.indexOf(serverStatus, k)
+            local statusParam = serverStatusParams[subStatusIndex]
+            local localStatusParam = self._statusParams[k]
+            if statusParam.ride_param.ride_pet_gid == localStatusParam.ride_param.ride_pet_gid and statusParam.ride_param.double_ride_2p_id == localStatusParam.ride_param.double_ride_2p_id then
+              ignoreStatus[subStatusIndex] = serverStatus[subStatusIndex]
+            else
+              table.insert(clearStatus, k)
+            end
           else
             table.insert(clearStatus, k)
           end
-        else
-          table.insert(clearStatus, k)
         end
+        if 0 == #clearStatus then
+          return true
+        end
+        for k, v in pairs(clearStatus) do
+          self:ClearStatusLocal(v)
+        end
+        return false
       end
-      if 0 == #clearStatus then
-        return true
+      
+      if not RemoveLocalStatus() then
+        RemoveLocalStatus()
       end
-      for k, v in pairs(clearStatus) do
-        self:ClearStatusLocal(v)
-      end
-      return false
-    end
-    
-    if not RemoveLocalStatus() then
-      RemoveLocalStatus()
-    end
-    self._recover_clearing = false
-    local opCode = ProtoEnum.WPST_OpCode.WPST_OPCODE_RECOVER
-    if serverStatus and serverSubStatus then
-      local postStatusList = {}
-      for index, value in ipairs(serverStatus) do
-        if ignoreStatus[index] then
-        elseif self:CheckHasRequire(value) then
-          table.insert(postStatusList, value)
-        elseif not self:IsMovementStatus(value) then
-          self:ApplyStatusInternalLocal(value, opCode, serverSubStatus[index], serverStatusParams[index])
-          if value == ProtoEnum.WorldPlayerStatusType.WPST_CLIMB then
-            self.owner.viewObj.CharacterMovement:SetMovementMode(UE.EMovementMode.MOVE_Falling)
-            self.owner.viewObj.CharacterMovement:TryClimbWhileOffClimbPet(0)
+      self._recover_clearing = false
+      local opCode = ProtoEnum.WPST_OpCode.WPST_OPCODE_RECOVER
+      if serverStatus and serverSubStatus then
+        local postStatusList = {}
+        for index, value in ipairs(serverStatus) do
+          if ignoreStatus[index] then
+          elseif self:CheckHasRequire(value) then
+            table.insert(postStatusList, value)
+          elseif not self:IsMovementStatus(value) then
+            self:ApplyStatusInternalLocal(value, opCode, serverSubStatus[index], serverStatusParams[index])
+            if value == ProtoEnum.WorldPlayerStatusType.WPST_CLIMB then
+              self.owner.viewObj.CharacterMovement:SetMovementMode(UE.EMovementMode.MOVE_Falling)
+              self.owner.viewObj.CharacterMovement:TryClimbWhileOffClimbPet(0)
+            end
+          end
+        end
+        if #postStatusList > 0 then
+          for index, value in ipairs(postStatusList) do
+            self:ApplyStatusInternalLocal(value, opCode, 1)
           end
         end
       end
-      if #postStatusList > 0 then
-        for index, value in ipairs(postStatusList) do
-          self:ApplyStatusInternalLocal(value, opCode, 1)
-        end
-      end
+      self._shouldWaitRecover = false
+      self.owner:SendEvent(PlayerModuleEvent.ON_PLAYER_STATUS_RECOVER_FINISH)
     end
-    self._shouldWaitRecover = false
-    self.owner:SendEvent(PlayerModuleEvent.ON_PLAYER_STATUS_RECOVER_FINISH)
+    self._recovering = false
   end
-  self._recovering = false
   self.owner._bearing = false
   self.owner:LandPos(self.owner.viewObj:Abs_K2_GetActorLocation())
 end
@@ -836,6 +846,7 @@ function StatusComponent:FixStatusWhileReConnect(isFirstAttach)
     })
   end
   if isTransform and not hasTransform then
+    Log.Debug("\233\156\128\232\166\129\230\129\162\229\164\141\229\143\152\229\189\162\231\138\182\230\128\129\239\188\129\239\188\129\239\188\129\239\188\129")
     table.insert(FixOptionList, {
       ProtoEnum.WorldPlayerStatusType.WPST_TRANSFORM,
       1,
@@ -986,6 +997,7 @@ function StatusComponent:OnLogicStatusChange(ChangeInfo)
     return
   end
   if ChangeInfo.changed_status.status == ProtoEnum.SpaceActorLogicStatus.SALS_TRANSFORM then
+    Log.Debug("\229\143\152\229\189\162\231\138\182\230\128\129\229\143\152\230\155\180\239\188\129\239\188\129\239\188\129\239\188\129")
     if ChangeInfo.op_type == ProtoEnum.LogicStatusOpType.LSOT_ADD then
       self:ApplyStatus(ProtoEnum.WorldPlayerStatusType.WPST_TRANSFORM, ProtoEnum.WPST_OpCode.WPST_OPCODE_ADD, 1, {
         transform_param = {
@@ -999,9 +1011,16 @@ function StatusComponent:OnLogicStatusChange(ChangeInfo)
       end
     end
     if ChangeInfo.op_type == ProtoEnum.LogicStatusOpType.LSOT_REMOVE then
+      local customParams = self:GetCustomParams(ProtoEnum.WorldPlayerStatusType.WPST_TRANSFORM)
+      customParams = customParams or ProtoMessage:newPlayerStatusCustomParams()
+      if not customParams.transform_param then
+        customParams.transform_param = ProtoMessage:newPlayerTransformStatusParams()
+      end
+      customParams.transform_param.cancel_reason = ChangeInfo.changed_status.extra_data.transform_end_reason
+      self:RefreshStatus(ProtoEnum.WorldPlayerStatusType.WPST_TRANSFORM, 1, ProtoEnum.WPST_OpCode.WPST_OPCODE_REFRESH, customParams)
       self:RemoveStatus(ProtoEnum.WorldPlayerStatusType.WPST_TRANSFORM, ProtoEnum.WPST_OpCode.WPST_OPCODE_REMOVE, 1, {
         transform_param = {
-          transform_end_reason = ChangeInfo.changed_status.extra_data.transform_end_reason
+          cancel_reason = ChangeInfo.changed_status.extra_data.transform_end_reason
         }
       })
       self.owner.serverData.avatar_status.end_transform_time = _G.ZoneServer:GetServerTime()
@@ -1011,8 +1030,10 @@ function StatusComponent:OnLogicStatusChange(ChangeInfo)
   if ChangeInfo.changed_status.status == ProtoEnum.SpaceActorLogicStatus.SALS_WAIT_FOR_OTHERS then
     if ChangeInfo.op_type == ProtoEnum.LogicStatusOpType.LSOT_ADD then
       self.owner:OnWaitForOtherStatus(true)
+      _G.FunctionBanManager:AddPlayerConditionType(_G.Enum.PlayerConditionType.PCT_WAIT_FOR_OTHERS)
     elseif ChangeInfo.op_type == ProtoEnum.LogicStatusOpType.LSOT_REMOVE then
       self.owner:OnWaitForOtherStatus(false)
+      _G.FunctionBanManager:RemovePlayerConditionType(_G.Enum.PlayerConditionType.PCT_WAIT_FOR_OTHERS)
     end
     return
   end

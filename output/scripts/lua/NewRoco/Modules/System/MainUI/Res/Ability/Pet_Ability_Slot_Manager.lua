@@ -147,7 +147,7 @@ function Pet_Ability_Slot_Manager:SetMainPet(pet)
     self:AddPet(pet)
   end
   if self._mainPet ~= pet then
-    if self._mainPet and self._mainPet:GetStatus() ~= ProtoEnum.WorldPlayerPetStatusType.WPPST_IN_RIDE then
+    if self._mainPet and self._mainPet:GetStatus() == ProtoEnum.WorldPlayerPetStatusType.WPPST_IN_BAG then
       self:RemovePet(self._mainPet)
     end
     self._mainPet = pet
@@ -163,6 +163,7 @@ function Pet_Ability_Slot_Manager:AddPet(pet)
   end
   self._petInfo[pet] = pet.config.id
   pet:AddEventListener(self, PlayerModuleEvent.ON_STATUS_CHANGED, self.OnPetStatusChanged)
+  self:OnPetStatusChanged(pet:GetStatus(), nil, pet)
 end
 
 function Pet_Ability_Slot_Manager:RemovePet(pet)
@@ -231,7 +232,7 @@ function Pet_Ability_Slot_Manager:BindShortCutPet()
 end
 
 function Pet_Ability_Slot_Manager:TryShowShortCut()
-  if self.localPlayer.statusComponent:HasStatus(ProtoEnum.WorldPlayerStatusType.WPST_DEATH) then
+  if self.localPlayer.statusComponent:HasStatus(ProtoEnum.WorldPlayerStatusType.WPST_DEATH) or self.localPlayer.statusComponent:HasStatus(ProtoEnum.WorldPlayerStatusType.WPST_TRANSFORM) then
     return
   end
   _G.NRCModuleManager:GetModule("MainUIModule"):DispatchEvent(MainUIModuleEvent.UI_SHOW_ABILITY_SHORTCUT)
@@ -418,7 +419,7 @@ function Pet_Ability_Slot_Manager:OnPetStatusChanged(status, value, pet)
     self._shortCutSlot:NotifyPetStatus(pet, petStatus)
   end
   self._perceptionSlot:NotifyPetStatus(pet, petStatus)
-  if petStatus ~= ProtoEnum.WorldPlayerPetStatusType.WPPST_IN_RIDE and pet ~= self._mainPet then
+  if petStatus == ProtoEnum.WorldPlayerPetStatusType.WPPST_IN_BAG and pet ~= self._mainPet then
     self:RemovePet(pet)
   end
 end
@@ -471,24 +472,22 @@ end
 function Pet_Ability_Slot_Manager:OnMovementModeChanged(PreMoveMode, CurMoveMode, PreCustomMode, CurCustomMode)
 end
 
-function Pet_Ability_Slot_Manager:OnMiniGameRide(petID, vitality, isWildRide, npcId)
+function Pet_Ability_Slot_Manager:OnMiniGameRide(petID, vitality, rideAllCustomGid, npcId, optionId)
   if petID > 0 then
     if self._mainPet and self._mainPet.config.id == petID and self._mainPet:GetStatus() == ProtoEnum.WorldPlayerPetStatusType.WPPST_IN_RIDE then
       return
     end
     local pet
-    if not isWildRide then
+    if rideAllCustomGid == _G.ProtoEnum.SceneRideAllCustomGid.SRCG_MiniGame then
       pet = self:GetMiniGamePetFromTeam(petID)
     end
     if not pet then
       local playerModule = NRCModuleManager:GetModule("PlayerModule")
-      local gid = -ProtoEnum.SceneRideAllCustomGid.SRCG_MiniGame
-      if isWildRide then
-        gid = -ProtoEnum.SceneRideAllCustomGid.SRCG_Wild
-      end
+      local gid = -rideAllCustomGid
       pet = ScenePlayerPet(playerModule, petID, gid, self.localPlayer)
       pet.isMiniGamePet = true
       pet.npcId = npcId
+      pet.optionId = optionId
     end
     self.localPlayer:StopRide(true)
     self.localPlayer.abilityComponent:StopAbility(true)

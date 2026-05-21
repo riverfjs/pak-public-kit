@@ -41,7 +41,7 @@ function DialoguePresetAction:OnEnter()
       return
     end
   end
-  if self:IsEntryDialogue() then
+  if DialogueUtils.IsEntryDialogue(self.fsm) then
     local Target = self.TargetNPC
     DialogueUtils.ToggleAI(Target, false)
     DialogueUtils.StopTurn(Target)
@@ -72,22 +72,9 @@ function DialoguePresetAction:OnFinish()
     self:ResetActorTransforms()
   end
   self:RecordActorTransforms()
-  if self:IsEntryDialogue() and not self.fsm:GetProperty("PlayerPosSyncBlocker") then
+  if DialogueUtils.IsEntryDialogue(self.fsm) and not self.fsm:GetProperty("PlayerPosSyncBlocker") then
     self:SyncPlayerPosition()
   end
-end
-
-function DialoguePresetAction:IsEntryDialogue()
-  local CurrentOption = self.fsm:GetProperty("CurrentOption")
-  local OptionConf = CurrentOption and CurrentOption.config
-  OptionConf = OptionConf or self.fsm:GetProperty("OptionConf")
-  if not OptionConf then
-    return false
-  end
-  if OptionConf.action.action_type ~= Enum.ActionType.ACT_DIALOG then
-    return false
-  end
-  return tonumber(OptionConf.action.action_param1) == self.DialogueConf.id
 end
 
 function DialoguePresetAction:NeedFixNPCLocation()

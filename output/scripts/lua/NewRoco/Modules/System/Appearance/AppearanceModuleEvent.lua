@@ -29,4 +29,5 @@ AppearanceModuleEvent.OnEnterFilterGlassItem = "AppearanceModuleEvent.OnEnterFil
 AppearanceModuleEvent.OnUpgradeSuitLevelPanelClose = "AppearanceModuleEvent.OnUpgradeSuitLevelPanelClose"
 AppearanceModuleEvent.OnUnlockNewHeterochromeSuit = "AppearanceModuleEvent.OnUnlockNewHeterochromeSuit"
 AppearanceModuleEvent.OnTryOnBuyPanelClose = "AppearanceModuleEvent.OnTryOnBuyPanelClose"
+AppearanceModuleEvent.SetAppearanceTabSelectedIndex = "AppearanceModuleEvent.SetAppearanceTabSelectedIndex"
 return AppearanceModuleEvent

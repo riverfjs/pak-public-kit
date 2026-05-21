@@ -63,6 +63,12 @@ function UMG_Battle_Buff_C:Unclickableclick(InPos)
   end
 end
 
+function UMG_Battle_Buff_C:OnBtnBuffClick()
+  if self.call and self.caller then
+    self.call(self.caller)
+  end
+end
+
 function UMG_Battle_Buff_C:SetBuffInfo(buff)
   self.buff = buff
 end
@@ -136,17 +142,12 @@ function UMG_Battle_Buff_C:OnTriggerNumberChange(isAdd)
   if not self:IsCanShow() then
     return
   end
-  self.NumberSubAnimCallback = nil
   local stackToDisplay = self.stack
   if isAdd then
-    self:UpdateStackDisplay(stackToDisplay)
-    self:PlayAnimation(self.NumberAdd)
+    self:InsertAnimPlayQueue(self.NumberAdd, self.UpdateStackDisplay, self, stackToDisplay)
   else
-    function self.NumberSubAnimCallback()
-      self:UpdateStackDisplay(stackToDisplay)
-    end
-    
-    self:PlayAnimation(self.NumberSub)
+    self:InsertAnimPlayQueue(self.NumberSub)
+    self:InsertAnimPlayQueue(self.NumberSub_2, self.UpdateStackDisplay, self, stackToDisplay)
   end
 end
 
@@ -159,18 +160,23 @@ function UMG_Battle_Buff_C:RunRemoveCall()
 end
 
 function UMG_Battle_Buff_C:OnAnimationFinished(animation)
-  if animation == self.DestructAnim and not self.exist then
-    self:RemoveFromParent()
-    self:RunRemoveCall()
-  end
-  if animation == self.NumberSub then
-    local callback = self.NumberSubAnimCallback
-    self.NumberSubAnimCallback = nil
-    if callback then
-      callback()
-      self:PlayAnimation(self.NumberSub_2)
+  if animation == self.DestructAnim then
+    self:ClearAnimPlayQueue()
+    if not self.exist then
+      self:RemoveFromParent()
+      self:RunRemoveCall()
     end
+  elseif animation == self.NumberSub then
+    self:DoAnimPlayQueue(true)
+  else
+    self:ClearPendingDelayID()
+    self.pendingDelayID = _G.DelayManager:DelayFrames(1, self.DelayDoAnimPlayQueue, self)
   end
+end
+
+function UMG_Battle_Buff_C:DelayDoAnimPlayQueue()
+  self.pendingDelayID = nil
+  self:DoAnimPlayQueue()
 end
 
 function UMG_Battle_Buff_C:Remove(immediate, removeCaller, removeCall)
@@ -189,6 +195,7 @@ function UMG_Battle_Buff_C:TriggerDestructAnimation()
     self:RemoveFromParent()
     return
   end
+  self:ClearAnimPlayQueue()
   self:PlayAnimation(self.DestructAnim)
   self.exist = false
 end
@@ -197,8 +204,39 @@ function UMG_Battle_Buff_C:TriggerConstructAnimation()
   if not self:IsCanShow() then
     return
   end
-  self:PlayAnimation(self.ConstructAnim)
+  self:InsertAnimPlayQueue(self.ConstructAnim)
   self.exist = true
+end
+
+function UMG_Battle_Buff_C:InsertAnimPlayQueue(anim, callBack, caller, param1)
+  if not self.animPlayQueue then
+    self.animPlayQueue = {}
+  end
+  table.insert(self.animPlayQueue, {
+    anim = anim,
+    callBack = callBack,
+    caller = caller,
+    param1 = param1
+  })
+  self:DoAnimPlayQueue()
+end
+
+function UMG_Battle_Buff_C:DoAnimPlayQueue(IsJumpCheck)
+  if not self.animPlayQueue or 0 == #self.animPlayQueue then
+    return
+  end
+  if not IsJumpCheck and self:IsAnyAnimationPlaying() then
+    return
+  end
+  local item = table.remove(self.animPlayQueue, 1)
+  if item.callBack and item.caller then
+    item.callBack(item.caller, item.param1)
+  end
+  self:PlayAnimation(item.anim)
+end
+
+function UMG_Battle_Buff_C:ClearAnimPlayQueue()
+  self.animPlayQueue = nil
 end
 
 function UMG_Battle_Buff_C:SetShowState(needShow)
@@ -220,7 +258,16 @@ function UMG_Battle_Buff_C:SetCallBack(Caller, CallBack)
   self.CallBack = CallBack
 end
 
+function UMG_Battle_Buff_C:ClearPendingDelayID()
+  if self.pendingDelayID then
+    _G.DelayManager:CancelDelayById(self.pendingDelayID)
+    self.pendingDelayID = nil
+  end
+end
+
 function UMG_Battle_Buff_C:OnDestruct()
+  self:ClearPendingDelayID()
+  self:ClearAnimPlayQueue()
   if self.Caller and self.CallBack then
     self.CallBack(self.Caller)
     self.Caller = nil

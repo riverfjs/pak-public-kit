@@ -64,19 +64,46 @@ function PSOInitTask:EnablePSO()
   end
   self.PSOPrecompilingReason = ""
   local OSVersion = UE4.UNRCStatics.GetOSVersion()
-  Log.Debug("GetOSVersion : ", OSVersion)
-  Log.Debug("Get PSOHash : ", self.PSOHash or "nil")
+  local CurrentPrecompileMask = UE.UNRCStatics.GetPrecompileMask()
+  Log.Debug("[PSO] Get OSVersion : ", OSVersion)
+  Log.Debug("[PSO] Get PSOHash : ", self.PSOHash or "nil")
+  Log.Debug("[PSO] Get Precompile Mask: ", string.format("%s -> %s", version.PrecompileMask, CurrentPrecompileMask))
   local bNeedToReWarmUp = false
   if version.SystemVersion ~= OSVersion then
     self.PSOPrecompilingReason = string.format(" APM System_Driven %s -> %s", version.SystemVersion, OSVersion)
     self:ReportPrecompilingReason("OSVersion", self.PSOPrecompilingReason)
     Log.Warning("PSOInitTask:EnablePSO \231\137\136\230\156\172\228\184\141\229\140\185\233\133\141 \233\156\128\232\166\129\233\135\141\230\150\176\233\162\132\231\131\173", self.PSOPrecompilingReason)
     bNeedToReWarmUp = true
+    self.CombinedPrecompileMask = CurrentPrecompileMask
   elseif not (self.PSOHash and version.Hash) or version.Hash ~= self.PSOHash then
     self.PSOPrecompilingReason = string.format(" APM PSOHash %s -> %s", version.Hash or "nil", self.PSOHash or "nil")
     self:ReportPrecompilingReason("PSOVersion", self.PSOPrecompilingReason)
     Log.Warning("PSOInitTask:EnablePSO \231\137\136\230\156\172\228\184\141\229\140\185\233\133\141 \233\156\128\232\166\129\233\135\141\230\150\176\233\162\132\231\131\173", self.PSOPrecompilingReason)
     bNeedToReWarmUp = true
+    self.CombinedPrecompileMask = CurrentPrecompileMask
+  else
+    local bQualityChanged = false
+    self.CombinedPrecompileMask = 0
+    local BinaryCacheSize = UE4.UNRCStatics.GetBinaryProgramSize()
+    if 0 == BinaryCacheSize or nil == version.PrecompileMask then
+      bNeedToReWarmUp = true
+      self.CombinedPrecompileMask = CurrentPrecompileMask
+    elseif 0 ~= version.PrecompileMask then
+      local bPrecompileOnHigerQuality = UE4.UKismetSystemLibrary.GetConsoleVariableBoolValue("PSO.PrecompileOnHigherQuality")
+      Log.Warning("PSOInitTask:EnablePSO bPrecompileOnHigerQuality", bPrecompileOnHigerQuality)
+      bQualityChanged = CurrentPrecompileMask & version.PrecompileMask ~= CurrentPrecompileMask
+      if bQualityChanged and bPrecompileOnHigerQuality then
+        self.CombinedPrecompileMask = version.PrecompileMask | CurrentPrecompileMask
+        bNeedToReWarmUp = true
+      else
+        self.CombinedPrecompileMask = version.PrecompileMask
+      end
+    end
+    if bNeedToReWarmUp then
+      self.PSOPrecompilingReason = string.format(" APM Quality %s | %s -> %s", version.PrecompileMask, CurrentPrecompileMask, self.CombinedPrecompileMask)
+      self:ReportPrecompilingReason("Quality", self.PSOPrecompilingReason)
+      Log.Warning("PSOInitTask:EnablePSO \231\137\136\230\156\172\228\184\141\229\140\185\233\133\141 \233\156\128\232\166\129\233\135\141\230\150\176\233\162\132\231\131\173", self.PSOPrecompilingReason)
+    end
   end
   if bNeedToReWarmUp then
     if RocoEnv.PLATFORM_IOS then
@@ -122,6 +149,9 @@ function PSOInitTask:OnBeginCompile(Count)
     return
   end
   self.NumExpiredPSO = UE.UNRCStatics.GetNumExpiredPSO()
+  if not _G.RocoEnv.IS_EDITOR then
+    UE.UNRCStatics.ReportPrecompilingReason("", "")
+  end
   JsonUtils.DumpSaved("PSOVersion", {
     SystemVersion = UE4.UNRCStatics.GetOSVersion(),
     Hash = "0"
@@ -160,7 +190,8 @@ function PSOInitTask:OnTick(DeltaTime)
     Log.Warning("PSOInitTask:OnTick PSOHash : ", self.PSOHash)
     JsonUtils.DumpSaved("PSOVersion", {
       SystemVersion = UE4.UNRCStatics.GetOSVersion(),
-      Hash = self.PSOHash
+      Hash = self.PSOHash,
+      PrecompileMask = self.CombinedPrecompileMask
     })
     self:ChangeProgress(1, LuaText.psoinitaction_3)
     self:Finish()

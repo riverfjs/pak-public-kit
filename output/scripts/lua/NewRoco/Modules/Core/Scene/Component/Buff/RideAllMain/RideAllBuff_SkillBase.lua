@@ -197,4 +197,12 @@ function RideAllBuff_SkillBase:HasInput()
   return not UE4Helper.IsZeroVector(self.RidePet.CharacterMovement.ProxyInputVector)
 end
 
+function RideAllBuff_SkillBase:CanOffPet()
+  return true
+end
+
+function RideAllBuff_SkillBase:CanThrowBall()
+  return true
+end
+
 return RideAllBuff_SkillBase

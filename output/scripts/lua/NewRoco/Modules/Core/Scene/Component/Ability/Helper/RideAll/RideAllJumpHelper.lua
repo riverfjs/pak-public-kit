@@ -116,6 +116,9 @@ function RideAllJumpHelper:IsBlock(caster)
   end
   if caster.statusComponent:HasStatus(ProtoEnum.WorldPlayerStatusType.WPST_RIDEALL_ABILITY) then
     local buff = caster.buffComponent:GetBuff("RideAll_Main_Buff")
+    if not buff then
+      return false
+    end
     local curSkillType = buff.RideType
     if curSkillType and not EnableActiveMap[curSkillType] then
       return true

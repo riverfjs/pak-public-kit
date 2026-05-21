@@ -22,6 +22,9 @@ end
 
 function BP_RideComponent_C:ReceiveEndPlay(EndPlayReason)
   self.Overridden.ReceiveEndPlay(self, EndPlayReason)
+  if self.StopRideDelayID then
+    _G.DelayManager:CancelDelayById(self.StopRideDelayID)
+  end
   self:RemoveEventListener()
   UpdateManager:UnRegister(self)
 end
@@ -251,6 +254,12 @@ function BP_RideComponent_C:AfterBeginRide()
       player.FadeComponent:SetFadeRange(150, 200)
     end
     player:SendEvent(PlayerModuleEvent.ON_RIDE_SET_VIEWOBJ_END, self.ScenePet)
+    if not self.RidePet then
+      Log.Error("[BP_RideComponent] RidePet nil in AfterBeginRide pet = ", self.ScenePet and self.ScenePet.config.name or "nil")
+      self:OnRideFailed()
+      self:StopRide()
+      return
+    end
     self.PetRadius = self.RidePet.CapsuleComponent:GetScaledCapsuleRadius()
     if self.ScenePet.config.id == 3412 then
       self.RidePet.RocoMoveFx:RemoveFxPlayer(UE.EMovementMode.MOVE_Swimming)
@@ -487,6 +496,12 @@ function BP_RideComponent_C:OnRideFailed()
   self.bIsLoading = false
   self.Rider.RideEyeHeight = 0
   self.SocketType = -1
+  if self.bIsRoomFail and not self.bIsFastLoading then
+    self.bIsRoomFail = false
+    if self:TryChangeToLinkWhileRoomFail() then
+      return
+    end
+  end
   local player = self.Rider.sceneCharacter
   if not player then
     Log.Error("RideComponent\230\137\190\228\184\141\229\136\176\229\175\185\229\186\148Lua Character")
@@ -502,6 +517,7 @@ function BP_RideComponent_C:OnRideFailed()
 end
 
 function BP_RideComponent_C:StopRide(ManualStop)
+  self.bIsRoomFail = false
   if self:GetOwner() and self:GetOwner().sceneCharacter then
     if not self:GetOwner().sceneCharacter.isLocal then
       self:GetOwner():SetNetRole(UE4.ENetRole.ROLE_SimulatedProxy)
@@ -557,7 +573,7 @@ function BP_RideComponent_C:StopRide(ManualStop)
         self.CurActiveSkill = nil
       end
       if skillObj then
-        _G.DelayManager:DelayFrames(1, function(rideComp, skill)
+        self.StopRideDelayID = _G.DelayManager:DelayFrames(1, function(rideComp, skill)
           if not UE.UObject.IsValid(rideComp) then
             return
           end
@@ -752,6 +768,7 @@ function BP_RideComponent_C:SetRelativeTransform()
       TipsText = "transform_failed"
     end
     _G.NRCModeManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, _G.LuaText[TipsText])
+    self.bIsRoomFail = true
     return false
   end
   return true
@@ -836,6 +853,9 @@ function BP_RideComponent_C:OnVitalityOver()
     if buff and buff.SkillConf and buff.SkillConf.vitality_cost.min_start and buff.SkillConf.vitality_cost.min_start > 0 then
       return
     end
+  end
+  if self:TryChangeToLink() then
+    return
   end
   self:OnRideFailed()
 end
@@ -971,9 +991,9 @@ function BP_RideComponent_C:PrepareForMutation(loadingList)
       end
     end
     self.petData.mutation_type = self.petData.mutation_type & ~_G.Enum.MutationDiffType.MDT_SHINING
-  end
-  if 0 == matNum then
-    Log.Debug("PetMutationUtils \229\188\130\232\137\178\230\157\144\232\180\168\233\133\141\231\189\174\228\184\186\231\169\186\239\188\129", petId)
+    if 0 == matNum then
+      Log.Debug("PetMutationUtils \229\188\130\232\137\178\230\157\144\232\180\168\233\133\141\231\189\174\228\184\186\231\169\186\239\188\129", petId)
+    end
   end
 end
 
@@ -985,7 +1005,6 @@ function BP_RideComponent_C:DoColorDiffMutation(assets)
     end
   end
   if 0 == #materials then
-    Log.Warning("BP_RideComponent_C:DoColorDiffMutation materials num is 0", self.petData.base_conf_id)
     return
   end
   local character = self.RidePet
@@ -1066,6 +1085,7 @@ function BP_RideComponent_C:ChangeSocketWhileRiding(FullSocketName)
           self.SocketType = v
           self.SocketName_Head = slot_type
           self.SocketName_Tail = suffix
+          self.RidePet.SocketType = self.SocketType
           local shouldSetPetOffset = self.RidePet.Mesh:GetAttachParent() ~= self.RidePet.CapsuleComponent
           self.Rider.Mesh:K2_AttachToComponent(self.Rider.CapsuleComponent, "None", UE4.EAttachmentRule.KeepWorld, UE4.EAttachmentRule.KeepWorld, UE4.EAttachmentRule.KeepWorld, true)
           self.RidePet.Mesh:K2_AttachToComponent(self.RidePet.CapsuleComponent, "None", UE4.EAttachmentRule.KeepWorld, UE4.EAttachmentRule.KeepWorld, UE4.EAttachmentRule.KeepWorld, true)
@@ -1142,9 +1162,13 @@ function BP_RideComponent_C:LoadByPath(MeshPath, ABPPath)
   table.insert(self.LoadingList, rideStopPath)
   self:CollectAllCurves(self.LoadingList)
   self:PrepareForMutation(self.LoadingList)
+  self:PrepareResonanceAnimSeq(self.LoadingList)
+  self.bIsRoomFail = false
+  self.bIsFastLoading = true
   _G.PlayerResourceManager:LoadResources_PlayerLogic_List(self, self.LoadingList, self.Rider.sceneCharacter.isLocal, self.OnRideLoadSuccess, self.OnRideLoadFailed, function(id)
     self.curSessionId = id
   end)
+  self.bIsFastLoading = false
 end
 
 function BP_RideComponent_C:CollectAllCurves(LoadingList)
@@ -1173,6 +1197,22 @@ function BP_RideComponent_C:CollectAllCurves(LoadingList)
         if type(k) == "string" and type(v) == "string" and k:match("^move_param_") and string.find(v, "RideCurve") then
           table.insert(LoadingList, v)
         end
+      end
+    end
+  end
+end
+
+function BP_RideComponent_C:PrepareResonanceAnimSeq(LoadingList)
+  local Player = self.Rider.sceneCharacter
+  local petID = self.ScenePet.config.id
+  local RideConf = DataConfigManager:GetAllRidePet(petID)
+  for _, PassiveSkillID in pairs(RideConf.passive_skill) do
+    local PassiveSkillConf = DataConfigManager:GetRidePassiveSkill(PassiveSkillID)
+    if PassiveSkillConf.type == Enum.RidePetPassiveSkillType.RPPST_Resonance then
+      local AnimName = tostring(PassiveSkillConf.param_3)
+      if "" ~= AnimName then
+        table.insert(LoadingList, string.format("AnimSequence'/Game/ArtRes/AnimSequence/Human/PC/PC1/Animation/%s.%s'", AnimName, AnimName))
+        table.insert(LoadingList, string.format("AnimSequence'/Game/ArtRes/AnimSequence/Human/PC/PC2/Animation/%s.%s'", AnimName, AnimName))
       end
     end
   end
@@ -1502,7 +1542,7 @@ function BP_RideComponent_C:TryChangeToLink()
   if not self.RideMoveComp or not UE4.UObject.IsValid(self.RideMoveComp) then
     return false
   end
-  if self.RideMoveComp.MovementMode == UE.EMovementMode.MOVE_Walking or self.RideMoveComp.MovementMode == UE.EMovementMode.MOVE_Falling or self.RideMoveComp.MovementMode == UE.EMovementMode.MOVE_Custom and self.RideMoveComp.CustomMovementMode == UE.ERocoCustomMovementMode.MOVE_Gliding or self.RideMoveComp.MovementMode == UE.EMovementMode.MOVE_Swimming and self.RidePet.CharacterSwimMovement:GetWaterDepth() < 120 then
+  if self.RideMoveComp.MovementMode == UE.EMovementMode.MOVE_Walking or self.RideMoveComp.MovementMode == UE.EMovementMode.MOVE_Falling or self.RideMoveComp.MovementMode == UE.EMovementMode.MOVE_Custom and (self.RideMoveComp.CustomMovementMode == UE.ERocoCustomMovementMode.MOVE_Gliding or self.RideMoveComp.CustomMovementMode == UE.ERocoCustomMovementMode.MOVE_ClimbWater) or self.RideMoveComp.MovementMode == UE.EMovementMode.MOVE_Swimming and self.RidePet.CharacterSwimMovement:GetWaterDepth() < 120 then
     local player = self.Rider.sceneCharacter
     local RideParam = player.statusComponent:GetCustomParams(ProtoEnum.WorldPlayerStatusType.WPST_RIDEALL)
     if RideParam and RideParam.ride_param.double_ride_2p_id and RideParam.ride_param.double_ride_2p_id > 0 then
@@ -1534,6 +1574,43 @@ function BP_RideComponent_C:TryChangeToLink()
         player:SendEvent(PlayerModuleEvent.ON_UPDATE_TOGETHER)
         return true
       end
+    end
+  end
+  return false
+end
+
+function BP_RideComponent_C:TryChangeToLinkWhileRoomFail()
+  local player = self.Rider.sceneCharacter
+  local RideParam = player.statusComponent:GetCustomParams(ProtoEnum.WorldPlayerStatusType.WPST_RIDEALL)
+  if RideParam and RideParam.ride_param.double_ride_2p_id and RideParam.ride_param.double_ride_2p_id > 0 then
+    local actor_2p_id = RideParam.ride_param.double_ride_2p_id
+    local player2P = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GetPlayerByServerID, actor_2p_id)
+    if player.isLocal and player.InviteComponent._interactType then
+      player:ForceSendMoveReq()
+    end
+    _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.SyncStatusImmediately)
+    if player2P and player.InviteComponent:PreChangeTogether(ProtoEnum.RelationInteractSubType.RIST_HOLD_HANDS) then
+      self:OnRideFailed()
+      self.Rider.EnvInfoComponent:ForceUpdateSurfaceImmediately()
+      self.Rider.CharacterMovement:UpdateWaterDepth()
+      if self.Rider.CharacterMovement:GetImmergeWaterDepth() > 0 then
+        self.Rider.MoveFXComponent:OnLandImpl(false, true)
+      end
+      local custom_params = ProtoMessage.newPlayerStatusCustomParams()
+      custom_params.player_interact_param.player_uin1 = player.serverData.base.logic_id
+      custom_params.player_interact_param.player_uin2 = player2P.serverData.base.logic_id
+      local HandStatus = ProtoEnum.WorldPlayerStatusType.WPST_HAND_IN_HAND
+      player.InviteComponent.CurStatus = HandStatus
+      player2P.statusComponent:PreChangeStatus(ProtoEnum.WorldPlayerStatusType.WPST_RIDEALL, 1, ProtoEnum.WPST_OpCode.WPST_OPCODE_REMOVE)
+      local handSuccess = player.InviteComponent:HandInHandLink(custom_params, HandStatus)
+      player.InviteComponent:EndChangeTogether()
+      if not handSuccess then
+        player.InviteComponent:InteractCancel()
+      else
+        player2P.statusComponent:PreChangeStatus(ProtoEnum.WorldPlayerStatusType.WPST_HAND_IN_HAND_2P, 1, ProtoEnum.WPST_OpCode.WPST_OPCODE_ADD, custom_params)
+      end
+      player:SendEvent(PlayerModuleEvent.ON_UPDATE_TOGETHER)
+      return true
     end
   end
   return false

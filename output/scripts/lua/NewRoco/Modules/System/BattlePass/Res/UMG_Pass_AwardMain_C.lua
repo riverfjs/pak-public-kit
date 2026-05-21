@@ -1,5 +1,6 @@
 local BattlePassModuleEvent = require("NewRoco.Modules.System.BattlePass.BattlePassModuleEvent")
 local SceneEvent = require("NewRoco.Modules.Core.Scene.Common.SceneEvent")
+local MusicCollectionUtils = require("NewRoco.Modules.System.MusicCollection.MusicCollectionUtils")
 local MainUIModuleEvent = require("NewRoco.Modules.System.MainUI.MainUIModuleEvent")
 local UMG_Pass_AwardMain_C = _G.NRCPanelBase:Extend("UMG_Pass_AwardMain_C")
 local UIUtils = require("NewRoco.Utils.UIUtils")
@@ -15,12 +16,18 @@ function UMG_Pass_AwardMain_C:OnConstruct()
 end
 
 function UMG_Pass_AwardMain_C:OnActive(arg, isSelectJump, tabIndex)
+  _G.NRCModuleManager:DoCmd(_G.BattlePassModuleCmd.ReqBattlePassShopData)
   self.Dot:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
   self.Dot_1:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
   self.Dot_1:SetupKey(142)
   self.Dot:SetupKey(147)
+  self.module:InitSpineWidgetForPanel(self, "BattlePassAwardMain", "UMG_Pass_AwardMain")
   self.battlePassInfo = self.module.data:GetPlayerBattlePassInfo()
   self.updateTaskTime = self:GetUpdateActiveTime()
+  if self.battlePassInfo then
+    self.oldLv = self.battlePassInfo.exp_info.level
+    self.oldExp = self.battlePassInfo.exp_info.exp
+  end
   self.PassAwardMap = self:GetPassLevelAwardMap()
   _G.NRCModuleManager:DoCmd(_G.BattlePassModuleCmd.SetActiveSelectTabIndex, 0)
   self.countDown = self:DisablePass(self.battlePassInfo.battle_pass_id)
@@ -62,10 +69,10 @@ function UMG_Pass_AwardMain_C:OnDestruct()
   _G.NRCEventCenter:UnRegisterEvent(self, BattlePassModuleEvent.UpdateActivityTaskDatas, self.RefreshRevAllBtnVisState)
   _G.DataModelMgr.PlayerDataModel:RemovePanelMusic(Enum.MusicApplyType.MAT_UI, Enum.InterfaceType.IT_BP, self.module.ActivityPassBgmState)
   if self.module.ActivityPassBgmState then
-    _G.NRCAudioManager:SetStateByName("UI_Type", "ShanYaoDaSai")
-    _G.NRCAudioManager:SetStateByName("UI_Music", "UI_Music")
+    MusicCollectionUtils.GetBgmStateGroupByApplyType(Enum.MusicApplyType.MAT_UI, Enum.InterfaceType.IT_BP)
   end
   _G.NRCEventCenter:UnRegisterEvent(self, "UMG_Pass_AwardMain_C", self, SceneEvent.OnRelogin, self.OnReLoginUpdate)
+  _G.NRCEventCenter:UnRegisterEvent(self, BattlePassModuleEvent.RefreshAnotherThemeFriendUI, self.OnRefreshAnotherThemeFriendUI)
   self.module:CloseAllPanel()
   _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.Dialog_CloseDialog)
   self.WidgetLoader:UnLoadPanel(true)
@@ -106,6 +113,8 @@ function UMG_Pass_AwardMain_C:OnAddEventListener()
   _G.NRCEventCenter:RegisterEvent("UMG_Pass_AwardMain_C", self, BattlePassModuleEvent.UpdateActivityTaskDatas, self.RefreshRevAllBtnVisState)
   _G.NRCEventCenter:RegisterEvent("UMG_Pass_AwardMain_C", self, SceneEvent.OnRelogin, self.OnReLoginUpdate)
   self.ViewDetails.btnLevelUp:SetVisibility(UE4.ESlateVisibility.Visible)
+  self:AddButtonListener(self.BPFriendButton, self.OnBPFriendButtonClicked)
+  _G.NRCEventCenter:RegisterEvent("UMG_Pass_AwardMain_C", self, BattlePassModuleEvent.RefreshAnotherThemeFriendUI, self.OnRefreshAnotherThemeFriendUI)
   self.Unlock.OnPressed:Add(self, self.OnUnlockBtnPressed)
   self.Unlock.OnReleased:Add(self, self.OnUnlockBtnReleased)
 end
@@ -264,24 +273,21 @@ function UMG_Pass_AwardMain_C:DisablePass(pass_id)
 end
 
 function UMG_Pass_AwardMain_C:SetThemeRes()
-  local path = _G.NRCModuleManager:DoCmd(_G.BattlePassModuleCmd.GetThemeResPath)
-  local iconPath = path .. "/img_logo1_png.img_logo1_png"
-  local logoPath = path .. "/img_diwen_png.img_diwen_png"
-  local PetPath = path .. "/img_zhuti_png.img_zhuti_png"
-  self.NRCImage_69:SetPath(logoPath)
   self.NRCImage_4:SetVisibility(UE4.ESlateVisibility.Collapsed)
-  if self.theme_id == 230011 then
+  local isThemeA = _G.NRCModuleManager:DoCmd(_G.BattlePassModuleCmd.IsThemeA, self.theme_id)
+  if isThemeA then
     self.SpineWidget_Blue:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
     self.SpineWidget_Pink:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.SpineWidget_Pink:ClearTrack(0)
     self.SpineWidget_Blue:SetAnimation(0, "Idle", true)
-  elseif self.theme_id == 230012 then
+  else
     self.SpineWidget_Blue:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.SpineWidget_Pink:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
     self.SpineWidget_Blue:ClearTrack(0)
     self.SpineWidget_Pink:SetAnimation(0, "Idle", true)
     self.SpineWidget_Pink:SetScaleX(-1)
   end
+  _G.NRCModuleManager:DoCmd(_G.BattlePassModuleCmd.ChangeThemeColor, "UMG_Pass_AwardMain", self)
 end
 
 function UMG_Pass_AwardMain_C:GetExpireTimeDateString(time)
@@ -413,11 +419,16 @@ function UMG_Pass_AwardMain_C:OnOpenTipsPanel()
 end
 
 function UMG_Pass_AwardMain_C:OnUpdateBattlePassInfo()
-  local oldLv = self.battlePassInfo.exp_info.level
-  local oldExp = self.battlePassInfo.exp_info.exp
+  if self.battlePassInfo == nil then
+    return
+  end
+  local oldLv = self.oldLv or self.battlePassInfo.exp_info.level
+  local oldExp = self.oldExp or self.battlePassInfo.exp_info.exp
   self.battlePassInfo = self.module.data:GetPlayerBattlePassInfo()
   local newLv = self.battlePassInfo.exp_info.level
   local newExp = self.battlePassInfo.exp_info.exp
+  self.oldLv = newLv
+  self.oldExp = newExp
   self:RefreshHeadBar(oldExp)
   self:RefreshRevAllBtnVisState()
   self:InitGiftInfo()
@@ -542,8 +553,13 @@ function UMG_Pass_AwardMain_C:RefreshHeadBar(oldExp)
     Log.Error("\230\136\152\228\187\164id:", bpInfo.battle_pass_id, "\228\184\187\233\162\152id:", themId, "\230\156\137\232\175\175")
     return
   end
-  self.NRCSwitcher_1:SetActiveWidgetIndex(0)
   local curGrade = bpInfo.battle_pass_brief_info.gift_grade
+  if curGrade ~= _G.ProtoEnum.BattlePassGiftGrade.BPGG_FREE then
+    self.NRCSwitcher_1:SetActiveWidgetIndex(1)
+    self:InitBPFriendUI()
+  else
+    self.NRCSwitcher_1:SetActiveWidgetIndex(0)
+  end
   local themName = battleThemConf.theme_name
   local paid_reward_name = battleThemConf.paid_reward_name
   local maxWeekExp = self.module.data:GetMaxWeekExp()
@@ -578,7 +594,7 @@ function UMG_Pass_AwardMain_C:RefreshHeadBar(oldExp)
       local anmTime = anm:GetEndTime() - anm:GetStartTime()
       if oldExp < bpInfo.exp_info.exp then
         local beginTime = anm:GetStartTime() + anmTime * (oldExp / nextLvlExp)
-        local endTime = anm:GetStartTime() + bpInfo.exp_info.exp / nextLvlExp
+        local endTime = anm:GetStartTime() + anmTime * (bpInfo.exp_info.exp / nextLvlExp)
         self:PlayAnimationTimeRange(anm, beginTime, endTime)
         self.panel_expEffext:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
       elseif oldExp > bpInfo.exp_info.exp and bpInfo.exp_info.exp > 0 then
@@ -591,6 +607,8 @@ function UMG_Pass_AwardMain_C:RefreshHeadBar(oldExp)
         local endTime = beginTime - anm:GetEndTime() + anmTime * bpInfo.exp_info.exp / nextLvlExp
         self:PlayAnimationTimeRange(anm, beginTime, endTime)
         self.panel_expEffext:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+      else
+        self.Schedule:SetPercent(bpInfo.exp_info.exp / nextLvlExp)
       end
     end
   else
@@ -799,6 +817,30 @@ end
 function UMG_Pass_AwardMain_C:OnLoadWidgetCallback(Panel)
   if Panel then
   end
+end
+
+function UMG_Pass_AwardMain_C:InitBPFriendUI()
+  local petIcon = self.module.data:GetAnotherThemePetIcon()
+  if petIcon and "" ~= petIcon then
+    self.BPFriendThemeImage:SetPath(petIcon)
+  end
+  self:RefreshFriendButtonUI()
+  _G.NRCModuleManager:DoCmd(_G.BattlePassModuleCmd.ReqGetAnotherThemeFriends, false)
+end
+
+function UMG_Pass_AwardMain_C:OnRefreshAnotherThemeFriendUI()
+  self:RefreshFriendButtonUI()
+end
+
+function UMG_Pass_AwardMain_C:RefreshFriendButtonUI()
+  local count = self.module.data:GetAnotherThemeFriendCount()
+  self.BPFriendThemeNum:SetText(string.safeFormat(LuaText.bp_friend_another_button, tostring(count)))
+end
+
+function UMG_Pass_AwardMain_C:OnBPFriendButtonClicked()
+  _G.NRCAudioManager:PlaySound2DAuto(41401003, "UMG_Pass_AwardMain_C:OnBPFriendButtonClicked")
+  _G.NRCModuleManager:DoCmd(_G.BattlePassModuleCmd.ReqGetAnotherThemeFriends, true)
+  _G.NRCModuleManager:DoCmd(_G.BattlePassModuleCmd.OpenSelectFriendPanel)
 end
 
 return UMG_Pass_AwardMain_C

@@ -5,6 +5,7 @@ function HomeWorldData:Ctor()
   self.RoomLevel = 1
   self.RoomDataMap = {}
   self.HomeFurnitureGuidSet = {}
+  self.RuntimeLayoutVersion = 0
 end
 
 function HomeWorldData:GetRoomData(Id)
@@ -42,6 +43,11 @@ function HomeWorldData:Serialize()
   return Table
 end
 
+function HomeWorldData:OnLayoutChanged()
+  self.RuntimeLayoutVersion = self.RuntimeLayoutVersion + 1
+  HomeIndoorSandbox:LogDebug("HomeWorldData:OnLayoutChanged", self.RuntimeLayoutVersion)
+end
+
 function HomeWorldData:BuildFurnitureGuidSet()
   self.HomeFurnitureGuidSet = {}
   for i, room in pairs(self.RoomDataMap) do
@@ -54,6 +60,57 @@ function HomeWorldData:BuildFurnitureGuidSet()
   end
 end
 
+function HomeWorldData:PostCollectFurniture()
+  self.HomeNpcIdSet = {}
+  for i, room in pairs(self.RoomDataMap) do
+    for k, v in pairs(room.PropsDataMap) do
+      local npcId = v:GetConfigNpcId()
+      if 0 ~= npcId then
+        if self.HomeNpcIdSet[npcId] then
+          HomeIndoorSandbox:Ensure(false, "logical error, duplicate npc:", npcId, k)
+        end
+        self.HomeNpcIdSet[npcId] = k
+        local SceneNpc = NRCModuleManager:DoCmd(_G.NPCModuleCmd.GetNpcByServerID, npcId)
+        HomeIndoorSandbox.Utils.EnsureHomeNpcComponents(SceneNpc)
+      end
+      local dynamicNpcList = v:GetDynamicNpcIdList()
+      if dynamicNpcList then
+        for j, id in pairs(dynamicNpcList) do
+          npcId = id
+          if 0 ~= npcId then
+            if self.HomeNpcIdSet[npcId] then
+              HomeIndoorSandbox:Ensure(false, "logical error, duplicate npc:", npcId, k)
+            end
+            self.HomeNpcIdSet[npcId] = k
+            local SceneNpc = NRCModuleManager:DoCmd(_G.NPCModuleCmd.GetNpcByServerID, npcId)
+            HomeIndoorSandbox.Utils.EnsureHomeNpcComponents(SceneNpc)
+          end
+        end
+      end
+    end
+  end
+end
+
+function HomeWorldData:GetFurnitureById(Id)
+  return Id and self.HomeFurnitureGuidSet and self.HomeFurnitureGuidSet[Id]
+end
+
+function HomeWorldData:GetFurnitureByNpcId(Id)
+  local FurnitureId = self.HomeNpcIdSet and self.HomeNpcIdSet[Id]
+  return FurnitureId and self:GetFurnitureById(FurnitureId)
+end
+
+function HomeWorldData:GetFurnitureNumByConfigId(ConfigId)
+  local Num = 0
+  for k, v in pairs(self.HomeFurnitureGuidSet) do
+    local TestId = v:GetConfigId()
+    if ConfigId == TestId then
+      Num = Num + 1
+    end
+  end
+  return Num
+end
+
 function HomeWorldData:IsBanned()
   local BanInfo = self.HomeAccessInfo.ban_info or {}
   if (BanInfo.is_banned or false) and BanInfo.end_time > ZoneServer:GetServerTime() / 1000 then
@@ -63,6 +120,26 @@ end
 
 function HomeWorldData:IsViolation()
   return (self.HomeAccessInfo.violation_info or {}).is_violation or false
+end
+
+function HomeWorldData:UpdateFurnitureBindingInfo(HomeInfo)
+  self.RawRoomLayoutInfo = HomeInfo.room_layout or {}
+  self:UpdateFurnitureBindingInfoByLayoutInfo(self.RawRoomLayoutInfo)
+end
+
+function HomeWorldData:UpdateFurnitureBindingInfoByLayoutInfo(LayoutInfo)
+  if not LayoutInfo then
+    return
+  end
+  local Rooms = LayoutInfo.rooms
+  if Rooms then
+    for i, RoomInfo in pairs(Rooms) do
+      local Room = self.RoomDataMap[RoomInfo.room_id]
+      if Room then
+        Room:UpdatePropsBindingInfo(RoomInfo)
+      end
+    end
+  end
 end
 
 function HomeWorldData:DeserializeBasic(Table)
@@ -97,6 +174,8 @@ function HomeWorldData:Deserialize(Table)
     end
   end
   self:BuildFurnitureGuidSet()
+  self:PostCollectFurniture()
+  self:OnLayoutChanged()
   if OldRoomLevel ~= self.RoomLevel then
     HomeIndoorSandbox:DispatchEvent(HomeIndoorSandbox.Event.OnVisitingRoomLevelChanged, self.RoomLevel)
   end
@@ -166,6 +245,15 @@ function HomeWorldData:CompareUpdateLayout(RoomLayoutInfo)
     end
   end
   self:BuildFurnitureGuidSet()
+  self:UpdateFurnitureBindingInfoByLayoutInfo(RoomLayoutInfo)
+  self:PostCollectFurniture()
+  if ChangeRoomList then
+    for i, RoomData in ipairs(ChangeRoomList) do
+      if RoomData.TempFlags and RoomData.TempFlags.bPropsChanged then
+        self:OnLayoutChanged()
+      end
+    end
+  end
   return ChangeRoomList
 end
 

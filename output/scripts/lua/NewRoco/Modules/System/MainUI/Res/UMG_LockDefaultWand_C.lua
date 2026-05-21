@@ -41,7 +41,6 @@ function UMG_LockDefaultWand_C:OnShow()
   if self.isLockingState == false then
     _G.NRCProfilerLog:NRCPanelOpenAnimation(true, self.panelName)
     self:PlayAnimation(self.open)
-    self.Particle:ActivateParticles(true, true)
   else
     self:OnEnterLockingState(true)
   end
@@ -55,7 +54,6 @@ function UMG_LockDefaultWand_C:OnCancel(cancelType)
   end
   self:StopAllAnim()
   self:PlayAnimation(self.close)
-  self.Particle:ActivateParticles(false, true)
 end
 
 function UMG_LockDefaultWand_C:OnEnterLockingState(bool)

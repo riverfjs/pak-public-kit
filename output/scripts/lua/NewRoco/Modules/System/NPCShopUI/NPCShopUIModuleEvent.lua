@@ -13,4 +13,5 @@ NPCShopUIModuleEvent.NPCSHOP_Cancel = "NPCShopUIModuleEvent.NPCSHOP_Cancel"
 NPCShopUIModuleEvent.SoldOutBtnState = "NPCShopUIModuleEvent.SoldOutBtnState"
 NPCShopUIModuleEvent.NPCSHOP_REFRESH_SHOP_DATA = "NPCShopUIModuleEvent.NPCSHOP_REFRESH_SHOP_DATA"
 NPCShopUIModuleEvent.OnReceiveMallBuyItemRspHandler = "NPCShopUIModuleEvent.OnReceiveMallBuyItemRspHandler"
+NPCShopUIModuleEvent.RefreshHasCountAfterClaimReward = "NPCShopUIModuleEvent.RefreshHasCountAfterClaimReward"
 return NPCShopUIModuleEvent

@@ -227,6 +227,9 @@ end
 
 function UMG_PetFoodTemple_C:OnItemSelected(_bSelected)
   if _bSelected then
+    if self:IsAnimationPlaying(self.Eat) or self:IsAnimationPlaying(self.NewFruit) or self:IsAnimationPlaying(self.NewFruitNell) then
+      return
+    end
     if self.uiData.IsHasNum then
       _G.NRCAudioManager:PlaySound2DAuto(41401007, "UMG_PetFoodTemple_C:OnItemSelected")
       _G.NRCModeManager:DoCmd(PetUIModuleCmd.FoodClickAddOrDelItem, true, self.uiData, PetUIModuleEnum.AddAutomaticallyType.NuLL)

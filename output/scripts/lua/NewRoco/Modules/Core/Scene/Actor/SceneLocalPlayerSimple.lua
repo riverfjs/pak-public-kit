@@ -2,6 +2,7 @@ local StatusComponent = require("NewRoco.Modules.Core.Scene.Component.Status.Sta
 local Base = require("NewRoco.Modules.Core.Scene.Actor.ScenePlayerBase")
 local InputComp = require("NewRoco.Modules.Core.Scene.Component.Input.InputComponent")
 local ThrowManagementComponent = require("NewRoco.Modules.Core.Scene.Component.Interaction.ThrowManagementComponent")
+local FadeComponent = require("NewRoco.Modules.Core.Scene.Component.Fade.FadeComponent")
 local SceneLocalPlayerSimple = Base:Extend("SceneLocalPlayerSimple")
 
 function SceneLocalPlayerSimple:Ctor(module)
@@ -15,6 +16,7 @@ function SceneLocalPlayerSimple:InitComponent()
   self.inputComponent = InputComp()
   self:AddComponent(self.inputComponent)
   self:EnsureComponent(ThrowManagementComponent)
+  self:EnsureComponent(FadeComponent)
 end
 
 function SceneLocalPlayerSimple:GetControlPawnCapsuleSize()

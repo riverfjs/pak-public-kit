@@ -94,6 +94,11 @@ function UMG_LineupSharing_C:UpdateUI()
         for _, v in ipairs(self.petData[i].skills) do
           if v.id == fantasticID then
             v.bFantastic = true
+            local petData = teamData and teamData[i]
+            local petGid = petData and petData.gid
+            local skillId = v and v.id
+            local seasonId = PetUtils.TryGetPetSkillSeasonId(petGid, skillId)
+            v.fantasticSeasonId = seasonId
             break
           end
         end
@@ -258,7 +263,9 @@ function UMG_LineupSharing_C:AddCodeAnnotation()
 end
 
 function UMG_LineupSharing_C:ShowShareChannelCode(qrcodeShow, qrcodeLink)
-  if qrcodeShow and qrcodeShow == Enum.ShareQRcodeScenario.SQRS_HIDE then
+  if self.data.IsBanQRCode then
+    self.PhotoSub.QRCode:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  elseif qrcodeShow and qrcodeShow == Enum.ShareQRcodeScenario.SQRS_HIDE then
     self.PhotoSub.QRCode:SetVisibility(UE4.ESlateVisibility.Collapsed)
   else
     self.PhotoSub.QRCode:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)

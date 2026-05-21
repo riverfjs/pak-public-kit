@@ -272,7 +272,7 @@ function EnvSystemModule:ApplyGameTimeInfo(DestInfo, SmoothChange)
     end
   end
   self:ChangeTimeScale(DestInfo.accelerative_ratio)
-  self:UpdateTODType(DestInfo.accelerative_ratio)
+  self:UpdateTimeType(DestInfo.accelerative_ratio)
   local DestTimestamp = self:GetTimestampWithInfo(DestInfo) / 1000
   if SmoothChange then
     local Setter = LinearTimeSetter()
@@ -281,7 +281,7 @@ function EnvSystemModule:ApplyGameTimeInfo(DestInfo, SmoothChange)
   self:UpdateClientTime(DestTimestamp)
 end
 
-function EnvSystemModule:UpdateTODType(Ratio)
+function EnvSystemModule:UpdateTimeType(Ratio)
   if Ratio <= 1 then
     self.TimeType = TimeType.Night
   else

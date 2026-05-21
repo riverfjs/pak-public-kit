@@ -158,3 +158,8 @@ local ESearchHabitatNpcType = {
   Nearest = 1,
   SecondNearest = 2
 }
+local ESvrSkillFilterSelfDamageType = {
+  None = 0,
+  Self = 1,
+  Other = 2
+}

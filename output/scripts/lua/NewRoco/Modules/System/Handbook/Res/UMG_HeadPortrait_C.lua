@@ -6,11 +6,17 @@ local UMG_HeadPortrait_C = Base:Extend("UMG_HeadPortrait_C")
 function UMG_HeadPortrait_C:OnConstruct()
 end
 
+function UMG_HeadPortrait_C:OnUpdateTaskState()
+  self.data.UnfinishedTaskCount, self.data.FinishedTaskCount, self.data.TaskCount = _G.NRCModuleManager:DoCmd(HandbookModuleCmd.GetHandbookTaskFinishCountById, self.data.HandbookId)
+  self.ProjectAgreed:SetVisibility(0 == self.data.UnfinishedTaskCount and self.data.FinishedTaskCount == self.data.TaskCount and UE4.ESlateVisibility.Visible or UE4.ESlateVisibility.Collapsed)
+end
+
 function UMG_HeadPortrait_C:OnItemUpdate(_data, datalist, index)
   if not UE.UObject.IsValid(self) then
     return
   end
   self.data = _data
+  self:OnUpdateTaskState()
   self.curIndex = index
   self.Bg_4:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.Bg:SetVisibility(UE4.ESlateVisibility.Visible)
@@ -35,7 +41,7 @@ function UMG_HeadPortrait_C:SetPetHeadIcon(_petId, _state, _mutation, _glass_inf
   local handbookConf = self.data.PetBaseConf
   local petBaseConf = _G.DataConfigManager:GetPetbaseConf(_petId)
   local petModuleCof = _G.DataConfigManager:GetModelConf(petBaseConf.model_conf)
-  local petName = self.data.PetBaseConf.name
+  local petName = petBaseConf.name
   local petNumber = self.data.HandbookNumber
   local iconPath = NRCUtils:FormatConfIconPath(petModuleCof.icon, _G.UIIconPath.HeadIconPath)
   if _mutation and (0 ~= _mutation & _G.Enum.MutationDiffType.MDT_SHINING or PetUtils.CheckIsShiningGlass(_mutation)) then

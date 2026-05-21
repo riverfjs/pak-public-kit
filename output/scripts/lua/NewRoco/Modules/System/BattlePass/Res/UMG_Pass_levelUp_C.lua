@@ -5,6 +5,9 @@ function UMG_Pass_levelUp_C:OnConstruct()
 end
 
 function UMG_Pass_levelUp_C:OnPcClose()
+  if self._isClosing then
+    return
+  end
   self:OnCloseBtnClick()
 end
 
@@ -12,6 +15,7 @@ function UMG_Pass_levelUp_C:OnDestruct()
 end
 
 function UMG_Pass_levelUp_C:OnActive(oldLv, newLv)
+  self._isClosing = false
   self.oldLv = oldLv
   self.newLv = newLv
   self:InitUI()
@@ -20,6 +24,7 @@ end
 
 function UMG_Pass_levelUp_C:OnUpdatePanel(oldLv, newLv)
   Log.Error("\232\176\131\231\148\168\229\136\183\230\150\176\239\188\129", oldLv, newLv)
+  self._isClosing = false
   self.oldLv = oldLv
   self.newLv = newLv
   self:InitUI()
@@ -53,33 +58,33 @@ function UMG_Pass_levelUp_C:InitUI()
   self.Title_1:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.Title_1:SetText(self.oldLv)
   self.Title_2:SetText(self.newLv)
-  local newPath = _G.NRCModuleManager:DoCmd(_G.BattlePassModuleCmd.GetCurrentThemeImagePath, "img_guangtuan_png.img_guangtuan_png")
-  self.Theme_Colour1:SetPath(newPath)
-  newPath = _G.NRCModuleManager:DoCmd(_G.BattlePassModuleCmd.GetCurrentThemeImagePath, "img_dengjitisheng_png.img_dengjitisheng_png")
-  self.Theme_Figure:SetPath(newPath)
-  newPath = _G.NRCModuleManager:DoCmd(_G.BattlePassModuleCmd.GetCurrentThemeImagePath, "img_guangxian_png.img_guangxian_png")
-  self.Theme_Colour2:SetPath(newPath)
   local bpInfo = self.module.data:GetPlayerBattlePassInfo()
   self.themeId = bpInfo.theme_id
-  if self.themeId == 230011 then
+  local isThemeA = _G.NRCModuleManager:DoCmd(_G.BattlePassModuleCmd.IsThemeA, self.themeId)
+  if isThemeA then
     self.PSW_Blue:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     self.PSW_Pink:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.Theme_TintColorImage:SetBrushTintColor(UE4.UNRCStatics.HexToSlateColor("#002BFFFF"))
-    self:PlayAnimation(self.Open_0)
     self.NRCText_20:SetText(LuaText.battlepass_bule_level)
-  elseif self.themeId == 230012 then
+  else
     self.PSW_Blue:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.PSW_Pink:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     self.Theme_TintColorImage:SetBrushTintColor(UE4.UNRCStatics.HexToSlateColor("#E981FFFF"))
-    self:PlayAnimation(self.Open)
     self.NRCText_20:SetText(LuaText.battlepass_pink_level)
   end
+  self:PlayAnimation(self.Open)
+  _G.NRCModuleManager:DoCmd(_G.BattlePassModuleCmd.ChangeThemeColor, "UMG_Pass_levelUp", self)
 end
 
 function UMG_Pass_levelUp_C:OnCloseBtnClick()
+  if self._isClosing then
+    return
+  end
+  self._isClosing = true
   _G.NRCAudioManager:PlaySound2DAuto(41400008, "UMG_Pass_levelUp_C:OnCloseBtnClick")
   self.Button_116:SetIsEnabled(false)
-  if self.themeId and self.themeId == 230012 then
+  local isThemeA = _G.NRCModuleManager:DoCmd(_G.BattlePassModuleCmd.IsThemeA, self.themeId)
+  if self.themeId and not isThemeA then
     self:PlayAnimation(self.Close)
   else
     self:PlayAnimation(self.Close_2)

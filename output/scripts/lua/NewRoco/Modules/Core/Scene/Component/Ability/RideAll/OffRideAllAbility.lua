@@ -112,8 +112,15 @@ function OffRideAllAbility:OffRide2p()
   end
   if self.caster.isLocal then
     self.caster:SendEvent(PlayerModuleEvent.ON_DOUBLERIDE_SUCCEED, false, false)
+    local ABP = player_1p:GetAnimComponent():GetAnimInstance("RideAll")
+    if ABP then
+      ABP.bEnableTransformFilter = false
+    end
   end
-  player_1p.viewObj.BP_RideComponent:LuaDoubleRideStatusChange(player_1p.viewObj, self.caster.viewObj, false)
+  self.caster:SendEvent(PlayerModuleEvent.ON_PLAYER_RIDING_ACTUALLY, false)
+  local RideComp1P = player_1p.viewObj.BP_RideComponent
+  RideComp1P:LuaDoubleRideStatusChange(player_1p.viewObj, self.caster.viewObj, false)
+  RideComp1P.ScenePet:OnSetDoubleRide2P(false, self.caster)
 end
 
 function OffRideAllAbility:FindOff2PPos(player_1p, player_2p, useStartAngle)

@@ -10,10 +10,6 @@ function HomePetFeedStatusComponent:Attach(owner)
     return
   end
   Base.Attach(self, owner)
-  local player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
-  if player then
-    player:EnsureComponent(require("NewRoco.Modules.Core.Scene.Component.Home.Pet.HomePetSenseComponent"))
-  end
   self:UpdateData(owner.serverData)
   self.actorId = self.owner.serverData.base and self.owner.serverData.base.actor_id
   self.enableInteract = false

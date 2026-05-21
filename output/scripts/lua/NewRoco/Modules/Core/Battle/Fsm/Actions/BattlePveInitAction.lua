@@ -20,6 +20,9 @@ function BattlePveInitAction:CheckIsReconnect()
 end
 
 function BattlePveInitAction:CheckIsDebugConnect()
+  if _G.IsEnterBattleByDebug then
+    return false
+  end
   if not BattleManager.battleRuntimeData:HasValidNPC() then
     return true
   end

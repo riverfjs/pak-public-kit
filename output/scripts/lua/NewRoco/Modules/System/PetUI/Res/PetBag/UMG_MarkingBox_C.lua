@@ -11,7 +11,10 @@ function UMG_MarkingBox_C:OnActive(box_data)
     self.CurEditorBoxId = box_data.id
     self.CurMarkType = box_data.mark_type
     self.CurBoxName = box_data.box_name
+    self.CurLockState = box_data.lock
   end
+  self.newLockState = self.CurLockState
+  self.bOpenDetails = false
   self:OnAddEventListener()
   self:PlayAnimation(self:GetAnimByIndex(0))
   self:OnInitPanel()
@@ -26,10 +29,14 @@ function UMG_MarkingBox_C:OnAddEventListener()
   self:AddDelegateListener(self.InputBox.OnTextCommitted, self.OnTextCommitted)
   self:AddDelegateListener(self.InputBox.OnTextEndTransaction, self.OnTextEndTransaction)
   self:AddDelegateListener(self.InputBox.OnTextChanged, self.OnTextChanged)
+  self:AddButtonListener(self.CheckButton, self.OnClickedCheckButton)
+  self:AddButtonListener(self.SwitchBtn.btnLevelUp, self.OnClickedSwitchBtn)
+  self:AddButtonListener(self.CloseTipsBtn, self.OnClickedCloseTipsBtn)
 end
 
 function UMG_MarkingBox_C:OnInitPanel()
   self:SetCommonPopUpInfo(self.PopUp3)
+  self.CloseTipsBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.NRCText:SetText(LuaText.box_name_customize)
   self.NRCText_98:SetText(LuaText.box_mark_customize)
   self.maxNameLength = _G.DataConfigManager:GetPetGlobalConfig("box_name_length").num
@@ -62,6 +69,12 @@ function UMG_MarkingBox_C:OnInitPanel()
     self.FilterList:SelectItemByIndex(selectIndex)
   end
   self:OnTextChanged(self.CurBoxName)
+  if self.CurLockState then
+    self.CheckSwitcher:SetActiveWidgetIndex(1)
+  else
+    self.CheckSwitcher:SetActiveWidgetIndex(0)
+  end
+  self.DetailTips.Title:SetText(LuaText.box_lock_tips)
 end
 
 function UMG_MarkingBox_C:SetCommonPopUpInfo(PopUp)
@@ -74,6 +87,7 @@ function UMG_MarkingBox_C:SetCommonPopUpInfo(PopUp)
   CommonPopUpData.Btn_RightGrayStatHandler = self.OnBtnOkClick
   CommonPopUpData.TitleText = LuaText.select_box_icon_titile
   CommonPopUpData.Btn_Right_GrayState_Text = LuaText.general_confirm
+  CommonPopUpData.Btn_LeftText = LuaText.general_cancel
   self.OnPcCloseHandler = CommonPopUpData.ClosePanelHandler
   PopUp:SetPanelInfo(CommonPopUpData)
 end
@@ -110,8 +124,8 @@ function UMG_MarkingBox_C:OnBtnOkClick()
     end
     if isUnLock and self.bLegalName and self.nameLen > 0 then
       local curName = self.InputBox:GetText()
-      if self.CurMarkType ~= curSelectMarkType or curName ~= self.box_name then
-        _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.OnCmdZonePetBoxSetMarkTypeReq, self.CurEditorBoxId, curSelectMarkType, curName)
+      if self.CurMarkType ~= curSelectMarkType or curName ~= self.box_name or self.newLockState ~= self.CurLockState then
+        _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.OnCmdZonePetBoxSetMarkTypeReq, self.CurEditorBoxId, curSelectMarkType, curName, self.newLockState)
       end
       self:OnBtnCancelClick()
     elseif 0 == self.nameLen then
@@ -192,6 +206,35 @@ function UMG_MarkingBox_C:OnAnimationFinished(Anim)
   if Anim == self:GetAnimByIndex(2) then
     self:DoClose()
   end
+end
+
+function UMG_MarkingBox_C:OnClickedCheckButton()
+  _G.NRCAudioManager:PlaySound2DAuto(41401001, "UMG_MarkingBox_C:OnClickedCheckButton")
+  if self.newLockState then
+    self.newLockState = false
+    self.CheckSwitcher:SetActiveWidgetIndex(0)
+  else
+    self.newLockState = true
+    self.CheckSwitcher:SetActiveWidgetIndex(1)
+  end
+end
+
+function UMG_MarkingBox_C:OnClickedSwitchBtn()
+  if self.bOpenDetails then
+    self:OnClickedCloseTipsBtn()
+  else
+    _G.NRCAudioManager:PlaySound2DAuto(41401011, "UMG_MarkingBox_C:OnClickedSwitchBtn")
+    self.bOpenDetails = true
+    self.DetailTips:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    self.CloseTipsBtn:SetVisibility(UE4.ESlateVisibility.Visible)
+  end
+end
+
+function UMG_MarkingBox_C:OnClickedCloseTipsBtn()
+  _G.NRCAudioManager:PlaySound2DAuto(41401012, "UMG_MarkingBox_C:OnClickedSwitchBtn")
+  self.bOpenDetails = false
+  self.DetailTips:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self.CloseTipsBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
 end
 
 return UMG_MarkingBox_C

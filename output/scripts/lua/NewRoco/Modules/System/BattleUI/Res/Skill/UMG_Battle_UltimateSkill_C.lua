@@ -6,7 +6,12 @@ function UMG_Battle_UltimateSkill_C:OnActive(pet)
   self.pet = pet
   self.battleManager = _G.BattleManager
   self:OnAddEventListener()
+  if self:IsPlayingAnimation() then
+    self:StopAllAnimations()
+  end
   self:PlayAnimation(self.In)
+  self.ParticleSystemWidget2_75:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  self.ParticleSystemWidget2_75:SetIsEnabled(true)
   self:RefreshUI()
   self:BindInputAction()
   self:PCKeySetting()

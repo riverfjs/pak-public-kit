@@ -94,7 +94,7 @@ function UMG_TeamBattle_ChangePet_C:InitPanelInfo()
   if self.module.CurChallengeType == _G.ProtoEnum.TeamBattleChallengeType.TBCT_BEAST or self.module.CurChallengeType == _G.ProtoEnum.TeamBattleChallengeType.TBCT_BEAST_SINGLE then
     self.curBattleBaseId = _G.NRCModuleManager:DoCmd(_G.LegendaryBattleModuleCmd.GetBattlePetBaseId)
   elseif self.module.CurChallengeType == _G.ProtoEnum.TeamBattleChallengeType.TBCT_BLOOD_TEAM or self.module.CurChallengeType == _G.ProtoEnum.TeamBattleChallengeType.TBCT_BLOOD_SINGLE then
-    self.curBattleBaseId = self.module.teamBattleInfo and self.module.teamBattleInfo.battle_petbase_id
+    self.curBattleBaseId = self.module:GetOwnerSelectTeamBattlePetBaseId()
   end
   if self.module.CurChallengeType ~= _G.ProtoEnum.TeamBattleChallengeType.TBCT_BLOOD_SINGLE and self.module.CurChallengeType ~= _G.ProtoEnum.TeamBattleChallengeType.TBCT_BEAST_SINGLE then
     self.JinduProgressBar:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)

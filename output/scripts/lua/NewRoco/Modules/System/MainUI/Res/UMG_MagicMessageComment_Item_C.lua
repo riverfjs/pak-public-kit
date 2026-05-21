@@ -10,15 +10,6 @@ function UMG_MagicMessageComment_Item_C:OnConstruct()
   if self.showMessagePanel then
     self.feedInfo = self.showMessagePanel.feedInfo
     self.encryptCommentFlag = self.showMessagePanel.encryptCommentFlag
-    local Font = self.Text_Content.Font
-    if 1 == self.encryptCommentFlag then
-      local FontObject = mainUIModule:GetRes(UEPath.Font_1, "ShowMagicMessage")
-      Font.FontObject = FontObject
-    else
-      local FontObject = mainUIModule:GetRes(UEPath.Font, "ShowMagicMessage")
-      Font.FontObject = FontObject
-    end
-    self.Text_Content:SetFont(Font)
   end
 end
 
@@ -48,7 +39,17 @@ function UMG_MagicMessageComment_Item_C:OnItemUpdate(_data, datalist, index)
   local currentSec = _G.ZoneServer:GetServerTime() / 1000
   local timeSeconds = currentSec - self.data.create_timestamp
   self:SetTime(timeSeconds)
-  self.Text_Content:SetText(self.data.comment)
+  if 1 == self.encryptCommentFlag then
+    self.TextSwitcher:SetActiveWidgetIndex(1)
+    self.RocoText_Content:SetText(self.data.comment)
+  else
+    self.TextSwitcher:SetActiveWidgetIndex(0)
+    local content = self.data.comment
+    if self.feedInfo and self.feedInfo.sub_type and 0 ~= self.feedInfo.sub_type then
+      content = string.ConvertToRichText(self.data.comment)
+    end
+    self.Text_Content:SetText(content)
+  end
   if self.data.good_num > 9999 then
     self.Text_PraiseNum:SetText("9999+")
   else
@@ -86,16 +87,9 @@ function UMG_MagicMessageComment_Item_C:OnClickPraise()
 end
 
 function UMG_MagicMessageComment_Item_C:OnFeedCommentAttitudeRsp(rsp)
-  if rsp.ret_info.ret_code == 18306 and self.feedInfo then
-    if self.feedInfo.category == ProtoEnum.MarkGameplay.MK_MAGIC_VIDEO then
-      _G.NRCModuleManager:DoCmd(_G.MagicReplayModuleCmd.StopMagicReplay)
-    end
-    _G.NRCModuleManager:DoCmd(_G.MagicMessageModuleCmd.DeleteNpcByGridAndFeedId, self.feedInfo.grid_id, self.feedInfo.feed_id, self.feedInfo.category)
+  if rsp.ret_info.ret_code == 18306 then
     if self.showMessagePanel then
-      if 0 ~= self.feedInfo.music_id and -1 ~= self.showMessagePanel.SoundSession then
-        self.showMessagePanel:DoStopMusic()
-      end
-      self.showMessagePanel:CloseUI()
+      self.showMessagePanel:DeleteCurFeed()
     end
     return
   end

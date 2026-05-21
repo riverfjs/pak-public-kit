@@ -65,4 +65,11 @@ PayEnum.FailType = {
   USER_CANCEL = 3,
   INIT_SDK_FAIL = 4
 }
+PayEnum.PayOpType = {
+  QueryGoods = 0,
+  QueryGoodsFinish = 1,
+  LaunchPay = 2,
+  FinishPay = 3,
+  RequestReLogin = 4
+}
 return PayEnum

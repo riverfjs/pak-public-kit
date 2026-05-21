@@ -11,33 +11,58 @@ local UnknownText = string.format("<span color=\"#%s\">\239\188\159\239\188\159\
 function DialogueTextReplacer:Ctor()
   self.Patterns = {}
   self:AddPattern("\231\178\190\231\129\181\231\179\187\229\136\171", self.GetPetClass)
+  self:AddPattern("PetClass", self.GetPetClass)
   self:AddPattern("\231\178\190\231\129\181\231\137\169\231\167\141", self.GetPetSpecies)
+  self:AddPattern("PetSpecies", self.GetPetSpecies)
   self:AddPattern("\231\178\190\231\129\181\231\173\137\231\186\167", self.GetPetLevel)
+  self:AddPattern("PetLevel", self.GetPetLevel)
   self:AddPattern("\231\178\190\231\129\181\233\135\141\233\135\143", self.GetPetWeight)
+  self:AddPattern("PetWeight", self.GetPetWeight)
   self:AddPattern("\231\178\190\231\129\181\232\186\171\233\171\152", self.GetPetHeight)
+  self:AddPattern("PetHeight", self.GetPetHeight)
   self:AddPattern("\229\183\178\230\141\149\230\141\137\230\149\176\233\135\143", self.GetCatchCount)
+  self:AddPattern("CatchCount", self.GetCatchCount)
   self:AddPattern("\231\178\190\231\129\181\233\152\182\228\189\141", self.GetPetStage)
+  self:AddPattern("PetStage", self.GetPetStage)
   self:AddPattern("\230\150\176\230\141\149\230\141\137\231\178\190\231\129\181\230\128\187\230\149\176", self.GetSubmitPetNum)
+  self:AddPattern("SubmitPetNum", self.GetSubmitPetNum)
   self:AddPattern("\230\141\149\230\141\137\231\178\190\231\129\181\230\138\165\229\145\138", self.GetSubmitPetReport)
+  self:AddPattern("SubmitPetReport", self.GetSubmitPetReport)
   self:AddPattern("\230\152\159\233\147\190\231\167\187\232\189\172\229\143\145\232\181\183\230\150\185\231\142\169\229\174\182\229\144\141\229\173\151", self.GetMiraclePlayerName)
+  self:AddPattern("MiraclePlayerName", self.GetMiraclePlayerName)
   self:AddPattern("\231\142\169\229\174\182\229\144\141\231\167\176", self.GetPlayerName)
   self:AddPattern("name", self.GetPlayerName)
   self:AddPattern("gender:(.-),(.-)", self.GetPlayerGender)
   self:AddPattern("\229\143\145\232\181\183\230\150\185\231\142\169\229\174\182\229\144\141\229\173\151", self.GetMiracleFinishPlayerName)
+  self:AddPattern("MiracleFinishPlayerName", self.GetMiracleFinishPlayerName)
   self:AddPattern("\229\143\145\232\181\183\230\150\185\231\142\169\229\174\182\231\154\132\231\178\190\231\129\181\229\144\141\229\173\151", self.GetMiracleFinishPetName)
+  self:AddPattern("MiracleFinishPetName", self.GetMiracleFinishPetName)
   self:AddPattern("\231\137\169\229\147\129\230\149\176\233\135\143:(%d+)", self.GetItemCount)
+  self:AddPattern("ItemCount:(%d+)", self.GetItemCount)
   self:AddPattern("\231\137\169\229\147\129\229\144\141\231\167\176:(%d+)", self.GetItemName)
+  self:AddPattern("ItemName:(%d+)", self.GetItemName)
   self:AddPattern("\229\186\135\230\138\164\230\137\128\229\141\135\231\186\167\230\182\136\232\128\151", self.GetSanctuaryLevelUpCount)
+  self:AddPattern("SanctuaryLevelUpCount", self.GetSanctuaryLevelUpCount)
   self:AddPattern("\231\178\190\231\129\181\228\184\138\230\138\165", self.GetCampPetReportDialogue)
+  self:AddPattern("CampPetReport", self.GetCampPetReportDialogue)
   self:AddPattern("\229\136\135\231\163\139\232\131\156\229\136\169\229\156\186\230\172\161", self.GetPvpWin)
+  self:AddPattern("PvpWin", self.GetPvpWin)
   self:AddPattern("\229\136\135\231\163\139\229\164\177\232\180\165\229\156\186\230\172\161", self.GetPvpLose)
+  self:AddPattern("PvpLose", self.GetPvpLose)
   self:AddPattern("\229\136\135\231\163\139\230\156\128\229\184\184\231\148\168\231\178\190\231\129\181\229\144\141\231\167\176", self.GetPvpPetName)
+  self:AddPattern("PvpPetName", self.GetPvpPetName)
   self:AddPattern("\229\136\135\231\163\139\230\156\128\229\184\184\231\148\168\231\178\190\231\129\181\229\189\162\230\128\129", self.GetPvpPetForm)
+  self:AddPattern("PvpPetForm", self.GetPvpPetForm)
   self:AddPattern("\233\128\137\230\139\169\231\178\190\231\129\181\229\144\141\231\167\176", self.GetFinalBattlePetName)
+  self:AddPattern("FinalBattlePetName", self.GetFinalBattlePetName)
   self:AddPattern("\230\160\145\232\139\151\230\137\128\229\164\132\229\156\176\229\140\186", self.GetFruitTreeArea)
+  self:AddPattern("FruitTreeArea", self.GetFruitTreeArea)
   self:AddPattern("\229\155\190\233\137\180\232\128\131\230\160\184\229\183\174\229\128\188", self.GetFruitTreeDiffNum)
+  self:AddPattern("FruitTreeDiffNum", self.GetFruitTreeDiffNum)
   self:AddPattern("\229\155\190\233\137\180\232\128\131\230\160\184\230\149\176\233\135\143", self.GetFruitTreeTotalNum)
+  self:AddPattern("FruitTreeTotalNum", self.GetFruitTreeTotalNum)
   self:AddPattern("\229\143\175\232\167\163\233\148\129\229\156\159\229\156\176\230\149\176\233\135\143", self.GetMaxUnlockFarmLandNum)
+  self:AddPattern("MaxUnlockFarmLandNum", self.GetMaxUnlockFarmLandNum)
 end
 
 function DialogueTextReplacer:AddPattern(Pattern, Processor)
@@ -74,6 +99,13 @@ end
 
 function DialogueTextReplacer:GetPlayerGender(Context, Male, Female)
   local player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
+  if player and player:IsInTogetherMove() and player:IsTogetherMove2P() then
+    local other_player = player:GetAnotherTogetherMovePlayer()
+    if other_player then
+      local gender = other_player and other_player.serverData and other_player.serverData.base.gender
+      return 1 == gender and Male or Female
+    end
+  end
   if 1 == player.serverData.base.gender then
     return Male
   else
@@ -167,6 +199,7 @@ function DialogueTextReplacer:GetSubmitPetReport(Context)
         Text = LuaText.report_text_easy
       end
       Text = Text:gsub("{\230\150\176\230\141\149\230\141\137\231\178\190\231\129\181\230\128\187\230\149\176}", tostring(SubmitNum))
+      Text = Text:gsub("{SubmitPetNum}", tostring(SubmitNum))
       return Text
     else
       return "No valid pet submit report info!"

@@ -318,9 +318,9 @@ function NPCShopUIModule:OnCmdFinishNPCActionOpenShop(NPCAction, ShopId, param)
     elseif shopType == _G.Enum.ShopType.ST_FASHION_PIKA or shopType == _G.Enum.ShopType.ST_FASHION_RANDOM or shopType == _G.Enum.ShopType.ST_FASHION_DISCOUNT then
       _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.OpenSeasonalCombinationBagShopDirectly, shopId, param, reqParamList)
     elseif shopType == _G.Enum.ShopType.ST_EXCHANGE then
-      self:OpenPanel("NPCShopPlantSell", shopId, reqParamList)
+      self:OpenPanel("NPCShopPlantSell", shopId, reqParamList, _G.NRCPanelOpenOptions.New():SetOpenStrategy(_G.NRCPanelEnum.NRCPanelOpenStrategy.BringToFront))
     else
-      self:OpenPanel("NPCShop", shopId, reqParamList)
+      self:OpenPanel("NPCShop", shopId, reqParamList, _G.NRCPanelOpenOptions.New():SetOpenStrategy(_G.NRCPanelEnum.NRCPanelOpenStrategy.BringToFront))
     end
   end
 end
@@ -342,7 +342,7 @@ function NPCShopUIModule:OnCmdFinishNPCActionOpenGPShop(NPCAction, ShopId)
     reqParamList.needModal = false
     reqParamList.Caller = self
     reqParamList.Callback = self.GetShopDataRsp
-    self:OpenPanel("NPCShop", shopId, reqParamList)
+    self:OpenPanel("NPCShop", shopId, reqParamList, _G.NRCPanelOpenOptions.New():SetOpenStrategy(_G.NRCPanelEnum.NRCPanelOpenStrategy.BringToFront))
   end
 end
 
@@ -406,15 +406,25 @@ end
 function NPCShopUIModule:GetShopDataRsp(rsp)
   if not rsp then
     Log.Error("NPCShopUIModule:GetShopDataRsp", "rsp is nil")
+    if self:HasPanel("NPCShop") or self:IsPanelInOpening("NPCShop") then
+      self:ClosePanel("NPCShop")
+    end
     return
   end
   if rsp.ret_info == nil then
     Log.Error("NPCShopUIModule:GetShopDataRsp", "ret_info is nil")
+    if self:HasPanel("NPCShop") or self:IsPanelInOpening("NPCShop") then
+      self:ClosePanel("NPCShop")
+    end
     return
   end
   if 0 ~= rsp.ret_info.ret_code then
     if rsp.ret_info.ret_code ~= ProtoEnum.MOBA_RET.ZoneErr.ERR_ZONE_SHOP_DATA_NEWEST then
       Log.Error("NPCShopUIModule:GetShopDataRsp", "ret_code:", rsp.ret_info.ret_code)
+      if self:HasPanel("NPCShop") or self:IsPanelInOpening("NPCShop") then
+        self:ClosePanel("NPCShop")
+      end
+      return
     else
       Log.Info("NPCShopUIModule:GetShopDataRsp use cache data", "ret_code:", rsp.ret_info.ret_code)
     end

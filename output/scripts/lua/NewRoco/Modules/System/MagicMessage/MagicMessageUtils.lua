@@ -10,12 +10,13 @@ MagicMessageUtils.NpcValidType = {
   Invalid = -1,
   Valid = 0,
   TooHigh = 3,
-  Planeness_NoLand = 1,
+  Planeness_NoLand = 6,
   Water = 4,
   Overlap = 10,
   OverlapNotLoaded = 11,
   AirWall = 30,
-  Normal = 100
+  Normal = 100,
+  OnIllegal = 5
 }
 
 function MagicMessageUtils.TryGetLocalizationMessage(id, default)
@@ -44,6 +45,8 @@ function MagicMessageUtils.GetInvalidReason(type)
     return MagicMessageUtils.TryGetLocalizationMessage("Error_Code_50040", "")
   elseif type == MagicMessageUtils.NpcValidType.UnInited then
     return MagicMessageUtils.TryGetLocalizationMessage("mark_magic_message_not_ready", "")
+  elseif type == MagicMessageUtils.NpcValidType.OnIllegal then
+    return MagicMessageUtils.TryGetLocalizationMessage("mark_message_move_plate", "")
   end
   return nil
 end
@@ -63,6 +66,8 @@ function MagicMessageUtils.GetVideoInvalidReason(type)
     return MagicMessageUtils.TryGetLocalizationMessage("Error_Code_50040", "")
   elseif type == MagicMessageUtils.NpcValidType.UnInited then
     return MagicMessageUtils.TryGetLocalizationMessage("mark_magic_message_not_ready", "")
+  elseif type == MagicMessageUtils.NpcValidType.OnIllegal then
+    return MagicMessageUtils.TryGetLocalizationMessage("mark_video_move_plate", "")
   end
   return nil
 end
@@ -366,6 +371,16 @@ function MagicMessageUtils.CheckOnIllegal(targetLocation)
   if nil == BlackList or nil == next(BlackList) then
     return false
   end
+  local landInfo = MagicMessageUtils.GetLandInfo(targetLocation)
+  local landHeight
+  if landInfo and landInfo.position then
+    landHeight = landInfo.position.Z
+  end
+  local waterInfo = MagicMessageUtils.GetWaterInfo(targetLocation)
+  local waterHeight
+  if waterInfo and waterInfo.position then
+    waterHeight = waterInfo.position.Z
+  end
   local duration = 0.03333333333333333
   local startLocation = UE.FVector(targetLocation.X, targetLocation.Y, targetLocation.Z + UpLandTraceExtent)
   local endLocation = UE.FVector(targetLocation.X, targetLocation.Y, targetLocation.Z - LandTraceExtent)
@@ -373,13 +388,30 @@ function MagicMessageUtils.CheckOnIllegal(targetLocation)
   local channel2 = UE4.UNRCStatics.ConvertToTraceChannel(UE4.ECollisionChannel.ECC_GameTraceChannel2)
   local hitResult1, bSuccess1 = UE4.UKismetSystemLibrary.LineTraceMulti(_G.UE4Helper.GetCurrentWorld(), startLocation, endLocation, channel1, true, nil)
   local hitResult2, bSuccess2 = UE4.UKismetSystemLibrary.LineTraceMulti(_G.UE4Helper.GetCurrentWorld(), startLocation, endLocation, channel2, true, nil)
-  local hitResults = {hitResult1, hitResult2}
-  if bSuccess1 or bSuccess2 then
-    for _, value in pairs(hitResults) do
-      for i = 1, value:Length() do
-        local hitResult = value:Get(i)
-        if hitResult.Actor and hitResult.Actor:IsA(UE.ATriggerBase) then
-        elseif hitResult.Actor:IsValid() and hitResult.Actor.sceneCharacter and hitResult.Actor.sceneCharacter.config then
+  local value
+  if landHeight and waterHeight then
+    if landHeight > waterHeight then
+      value = hitResult1
+    else
+      value = hitResult2
+    end
+  elseif landHeight then
+    value = hitResult1
+  elseif waterHeight then
+    value = hitResult2
+  end
+  if (bSuccess1 or bSuccess2) and value then
+    for i = 1, value:Length() do
+      local hitResult = value:Get(i)
+      if hitResult.Actor and hitResult.Actor:IsA(UE.ATriggerBase) then
+      else
+        if hitResult.Actor:IsA(UE.ANPCSceneSkeletalMeshActor) or hitResult.Actor:IsA(UE.ANRCSceneMoveMeshActor) then
+          if ShowTrajectory then
+            UE4.UKismetSystemLibrary.DrawDebugString(_G.UE4Helper.GetCurrentWorld(), hitResult.ImpactPoint, "\228\184\141\229\144\136\230\179\149\229\156\176\229\157\151", nil, UE4.FLinearColor(1, 1, 0, 1), duration)
+          end
+          return true
+        end
+        if hitResult.Actor:IsValid() and hitResult.Actor.sceneCharacter and hitResult.Actor.sceneCharacter.config then
           local characterId = hitResult.Actor.sceneCharacter.config.id
           for _, v in pairs(BlackList) do
             if characterId == v then
@@ -420,6 +452,9 @@ function MagicMessageUtils.CheckOverlap(npc, center, extent, actorsToIgnore, dur
     table.insert(actorsToIgnore, localPlayer.viewObj)
   end
   table.insert(actorsToIgnore, npc.viewObj)
+  if npc.viewObj.NRCChildActor then
+    table.insert(actorsToIgnore, npc.viewObj.NRCChildActor:GetChildActor())
+  end
   if nil == duration then
     duration = 0.03333333333333333
   end
@@ -649,6 +684,7 @@ function MagicMessageUtils.PlayMessageSkill(npc, onLoadedCaller, onLoadedCallbac
   
   local function onLoadSuccess(caller, req, skillClass)
     local viewObj = npc.viewObj
+    local ChildActor = viewObj.NRCChildActor:GetChildActor()
     local skillComp = viewObj and viewObj.RocoSkill
     if not skillComp then
       Log.Error("target npc has no skill component", npc.modelConf.id, npc.modelConf.path)
@@ -659,8 +695,8 @@ function MagicMessageUtils.PlayMessageSkill(npc, onLoadedCaller, onLoadedCallbac
       return
     end
     local skill = skillComp:FindOrAddSkillObj(skillClass)
-    skill:SetCaster(viewObj)
-    skill:SetTargets({viewObj})
+    skill:SetCaster(ChildActor)
+    skill:SetTargets({ChildActor})
     skill:RegisterEventCallback("End", npc, onSkillPreEnd)
     skillComp:StopCurrentSkill()
     
@@ -684,6 +720,66 @@ function MagicMessageUtils.PlayMessageSkill(npc, onLoadedCaller, onLoadedCallbac
   end
   
   _G.NRCResourceManager:LoadResAsync(self, skillPath, 1, 0, onLoadSuccess, onLoadFailed, nil)
+end
+
+function MagicMessageUtils.GetAvatarWandConfig(Type, IsFirst)
+  local player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
+  if player then
+    if Type == ProtoEnum.MarkGameplay.MK_MAGIC_MESSAGE then
+      local wandData = player:GetCurWandDataByMagicType(ProtoEnum.SceneMagicType.SMT_CREATE_MAGIC_MASSAGE)
+      if wandData then
+        return wandData.MessageMagicResource
+      end
+    elseif Type == ProtoEnum.MarkGameplay.MK_MAGIC_VIDEO then
+      if IsFirst then
+        local wandData = player:GetCurWandDataByMagicType(ProtoEnum.SceneMagicType.SMT_CREATE_MAGIC_VIDEO)
+        if wandData then
+          return wandData.VideoMagicResource
+        end
+      else
+        local param = _G.NRCModeManager:DoCmd(_G.MagicReplayModuleCmd.GetRecordFeedInitInfo)
+        local conf = param.ChildConf
+        local wand_id = 32500101
+        if conf then
+          wand_id = conf.wand_id
+        end
+        local WandConf = _G.DataConfigManager:GetFashionWandConf(wand_id, true)
+        local avatarSystem = UE.USubsystemBlueprintLibrary.GetGameInstanceSubsystem(UE4Helper.GetCurrentWorld(), UE.UAvatarSubsystem)
+        local type = ProtoEnum.SceneMagicType.SMT_CREATE_MAGIC_VIDEO
+        local magic_id = WandConf.magic_list[type]
+        if nil == magic_id or 0 == magic_id then
+          magic_id = 1
+        end
+        local AvatarConfig = avatarSystem:GetAvatarConfig()
+        local RowKey = AvatarConfig:GetWandDataRowKeyByMagic(magic_id, type)
+        local returnRow = UE.FAvatarWandInfo_Video()
+        UE.UDataTableFunctionLibrary.GetTableDataRowFromName(AvatarConfig.AvatarWandDataMap:Find(type), RowKey, returnRow)
+        if returnRow then
+          return returnRow.VideoMagicResource
+        end
+      end
+    end
+  end
+end
+
+function MagicMessageUtils.CreateParam(TraceType, npc, create_pos, valid)
+  local param = {
+    create_pos = create_pos.pos,
+    npc_id = npc.serverData.base.actor_id,
+    valid = valid,
+    markType = TraceType,
+    ChildConf = nil
+  }
+  local player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
+  local wandId = player:GetCurWandId()
+  local config = _G.DataConfigManager:GetTable(DataConfigManager.ConfigTableId.MARK_MESSAGE_CHILD_CONF):GetAllDatas()
+  for _, value in pairs(config) do
+    if value.wand_id == wandId and value.gameplay_type == param.markType then
+      param.ChildConf = value
+      break
+    end
+  end
+  return param
 end
 
 return MagicMessageUtils

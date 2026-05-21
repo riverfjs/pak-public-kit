@@ -61,6 +61,7 @@ function UMG_Callname_C:OnBtnOkClick()
     req.name = name
     req.confirmed = 0
     self.name = name
+    self.p2SummonReq = req
     petName = name
     _G.ZoneServer:SendWithHandler(ProtoCMD.ZoneSvrCmd.ZONE_BATTLE_FINAL_BATTLE_P2_SUMMON_REQ, req, self, self.OnFinalBattle2Rsp, nil, true)
   end
@@ -89,6 +90,11 @@ end
 function UMG_Callname_C:OnFinalBattle2Rsp(rsp)
   if not self or not UE4.UObject.IsValid(self) then
     Log.Error("UMG_Callname_C:OnFinalBattle2Rsp: self is destroyed")
+    return
+  end
+  if rsp.ret_info.ret_code == ProtoEnum.MOBA_RET.ZoneErr.ERR_COMMON_CORO_TIMEOUT then
+    Log.Warning("UMG_Callname_C:OnFinalBattle2Rsp: \230\163\128\230\181\139\229\136\176\232\182\133\230\151\182\239\188\140\233\135\141\230\150\176\229\143\145\233\128\129\232\175\183\230\177\130")
+    _G.ZoneServer:SendWithHandler(ProtoCMD.ZoneSvrCmd.ZONE_BATTLE_FINAL_BATTLE_P2_SUMMON_REQ, self.p2SummonReq, self, self.OnFinalBattle2Rsp, nil, true)
     return
   end
   if 0 == rsp.ret_info.ret_code then

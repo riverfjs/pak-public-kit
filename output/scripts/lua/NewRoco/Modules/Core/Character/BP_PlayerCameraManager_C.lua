@@ -102,6 +102,9 @@ function BP_PlayerCameraManager_C:DrawDebug()
 end
 
 function BP_PlayerCameraManager_C:OnStatusChanged(status, value, type)
+  if not UE.UObject.IsValid(self.CameraTargetProxy) then
+    return
+  end
   local CurrentTarget = self.CameraTargetProxy:GetCurrentTarget()
   if not CurrentTarget then
     return
@@ -408,7 +411,7 @@ function BP_PlayerCameraManager_C:BeginFilming(NewPawn, bGenNewPawn)
     cameraAnimInstance.InRiding = self.bInRiding or false
     self._lastAnimMode = cameraAnimInstance.AnimMode
     if bGenNewPawn then
-      cameraAnimInstance.AnimMode = 7
+      self:SetPlayerCameraMode(UE.EPlayerCameraMode.Film)
     end
   end
 end
@@ -431,6 +434,7 @@ function BP_PlayerCameraManager_C:EndFilming()
   if cameraAnimInstance then
     cameraAnimInstance.AnimMode = self._lastAnimMode or 0
   end
+  self:SetPlayerCameraMode(self._lastAnimMode or UE.EPlayerCameraMode.Locomotion)
 end
 
 function BP_PlayerCameraManager_C:DetectRidingAndHighlights(status, value, type)
@@ -458,6 +462,24 @@ function BP_PlayerCameraManager_C:DetectRidingAndHighlights(status, value, type)
       break
     end
   end
+end
+
+function BP_PlayerCameraManager_C:BeginSideView()
+  local cameraAnimInstance = self:GetCameraAnimInstance()
+  if cameraAnimInstance then
+    self._lastAnimMode = self:GetCameraAnimInstance().AnimMode
+    self:SetPlayerCameraMode(UE.EPlayerCameraMode.SideView)
+  end
+  self.blastBlendBack = self.bBlendBack
+  self.bLastEnableAdditive = self.bEnableAdditive
+  self.blendBack = false
+  self.bEnableAdditive = false
+end
+
+function BP_PlayerCameraManager_C:LeaveSideView()
+  self:SetPlayerCameraMode(self._lastAnimMode or UE.EPlayerCameraMode.Locomotion)
+  self.blendBack = self.blastBlendBack or false
+  self.bEnableAdditive = self.bLastEnableAdditive or false
 end
 
 return BP_PlayerCameraManager_C

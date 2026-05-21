@@ -15,6 +15,7 @@ function PhotoFileData:Ctor()
   self.OnUploadCardDelegate = Delegate()
   self.OnCloseDelegate = Delegate()
   self.OnTextureReadyDelegate = Delegate()
+  self.OnReqUploadReportDelegate = Delegate()
 end
 
 function PhotoFileData:GetPetIdentifyInfo()
@@ -117,7 +118,8 @@ function PhotoFileData:Attach(List, Manager)
   self.SerializeId = #List
 end
 
-function PhotoFileData:AttachSection(List)
+function PhotoFileData:AttachSection(List, bDisableSectionDots)
+  self.bDisableSectionDots = bDisableSectionDots
   self.SectionList = List
   table.insert(self.SectionList, self)
   self.SectionIdx = #List
@@ -150,29 +152,71 @@ end
 
 function PhotoFileData:GetPhotoTexture2D()
   if self:GetPhotoPath() then
+    if not self:IsValidPhoto() then
+      return
+    end
     return NRCModuleManager:GetModule("TakePhotosModule"):UpdatePhotoBigTexture(self:GetPhotoPath())
   end
   return nil
 end
 
-function PhotoFileData:GetNext()
+function PhotoFileData:IsValidPhoto()
+  local FilePath = self:GetPhotoPath()
+  local DesiredMd5 = self:GetDesiredMd5()
+  if not UE.UNRCStatics.FileExists(FilePath) then
+    Log.Error("Cannot found file", FilePath)
+    return nil
+  end
+  local LocalDesiredMd5 = UE.UNRCStatics.HashFileMD5(FilePath)
+  if LocalDesiredMd5 ~= DesiredMd5 then
+    Log.Error("Invalid Photo File", FilePath, LocalDesiredMd5, DesiredMd5)
+    return nil
+  end
+  return true
+end
+
+function PhotoFileData:GetNext(Condition)
+  for i = 0, 1000 do
+    local Item = self:InternalNext(i)
+    if not Item then
+      return
+    end
+    if not Condition or Condition(Item) then
+      return Item
+    end
+  end
+end
+
+function PhotoFileData:InternalNext(AdditionIndex)
   if self.SectionList then
-    local Idx = self.SectionIdx
+    local Idx = self.SectionIdx + AdditionIndex
     return self.SectionList[Idx + 1]
   end
   if self.PhotoList then
-    local Idx = self.SerializeId
+    local Idx = self.SerializeId + AdditionIndex
     return self.PhotoList[Idx + 1]
   end
 end
 
-function PhotoFileData:GetPrevious()
+function PhotoFileData:GetPrevious(Condition)
+  for i = 0, 1000 do
+    local Item = self:InternalPrevious(i)
+    if not Item then
+      return
+    end
+    if not Condition or Condition(Item) then
+      return Item
+    end
+  end
+end
+
+function PhotoFileData:InternalPrevious(NegativeIndex)
   if self.SectionList then
-    local Idx = self.SectionIdx
+    local Idx = self.SectionIdx - NegativeIndex
     return self.SectionList[Idx - 1]
   end
   if self.PhotoList then
-    local Idx = self.SerializeId
+    local Idx = self.SerializeId - NegativeIndex
     return self.PhotoList[Idx - 1]
   end
 end
@@ -182,19 +226,63 @@ function PhotoFileData:OnReqDelete()
 end
 
 function PhotoFileData:OnReqUpload()
+  if not self:IsValidPhoto() then
+    return
+  end
   self.OnUploadDelegate:Invoke(self)
 end
 
 function PhotoFileData:OnReqUploadCard()
+  if not self:IsValidPhoto() then
+    return
+  end
   self.OnUploadCardDelegate:Invoke(self)
 end
 
 function PhotoFileData:OnReqShare()
+  if not self:IsValidPhoto() then
+    return
+  end
   self.OnShareDelegate:Invoke(self)
+end
+
+function PhotoFileData:OnReqUploadReport()
+  if not self:IsValidPhoto() then
+    return
+  end
+  self.OnReqUploadReportDelegate:Invoke(self)
 end
 
 function PhotoFileData:SetWaterMaskEnabled(bEnable)
   self.bWaterMaskEnabled = bEnable
+end
+
+function PhotoFileData:SetPhotoInfo(PhotoInfo)
+  if not PhotoInfo then
+    PhotoInfo = _G.ProtoMessage:newPlayerPhotoAlbumInfo()
+    Log.Debug("[TakePhoto] SetPhotoInfo() Set Empty PhotoInfo", self:GetPhotoPath())
+  end
+  Log.Debug("[PhotoFileData] SetPhotoInfo", self, PhotoInfo and PhotoInfo.include_myself, PhotoInfo and PhotoInfo.pet_base_id_list and PhotoInfo.pet_base_id_list[1])
+  self.PhotoInfo = PhotoInfo
+  if not PhotoInfo.pet_base_id_list then
+    PhotoInfo.pet_base_id_list = {}
+  end
+end
+
+function PhotoFileData:GetPhotoInfo()
+  if not self.PhotoInfo then
+    self.PhotoInfo = _G.ProtoMessage:newPlayerPhotoAlbumInfo()
+    Log.Debug("[TakePhoto] GetPhotoInfo() Set Empty PhotoInfo", self:GetPhotoPath())
+  end
+  return self.PhotoInfo
+end
+
+function PhotoFileData:MarkUpload(bUploading)
+  self.bUploading = bUploading
+end
+
+function PhotoFileData:IsUploadFinish()
+  return not self.bUploading
 end
 
 local PhotoFileDefine = Class("PhotoFileDefine")

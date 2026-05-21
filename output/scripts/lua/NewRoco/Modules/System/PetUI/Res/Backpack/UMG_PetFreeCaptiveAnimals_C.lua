@@ -1,6 +1,7 @@
 local PetUIModuleEvent = reload("NewRoco.Modules.System.PetUI.PetUIModuleEvent")
 local PetUtils = require("NewRoco.Utils.PetUtils")
 local PetMutationUtils = require("NewRoco.Utils.PetMutationUtils")
+local PetUIModuleEnum = require("NewRoco.Modules.System.PetUI.PetUIModuleEnum")
 local UMG_PetFreeCaptiveAnimals_C = _G.NRCPanelBase:Extend("UMG_PetFreeCaptiveAnimals_C")
 
 function UMG_PetFreeCaptiveAnimals_C:OnConstruct()
@@ -16,13 +17,16 @@ end
 function UMG_PetFreeCaptiveAnimals_C:OnAddEventListener()
 end
 
-function UMG_PetFreeCaptiveAnimals_C:OnActive(_data)
+function UMG_PetFreeCaptiveAnimals_C:OnActive(_data, stateType, coverRewardList)
+  stateType = stateType or PetUIModuleEnum.PetFreeCaptivePanelStateType.None
   self:LoadAnimation(0)
   self.uiData = {}
   self.uiData.petList = _data
+  self.stateType = stateType
   self.uiData.gid = {}
   self.uiData.PetFreeAward = {}
   self.uiData.UnlockedHabitItemNum = {}
+  self.coverRewardList = coverRewardList
   self:SetCommonPopUpInfo()
   self:SetUpList()
   self:SetNewBelowList()
@@ -31,7 +35,11 @@ end
 
 function UMG_PetFreeCaptiveAnimals_C:SetCommonPopUpInfo()
   local CommonPopUpData = _G.NRCCommonPopUpData()
-  CommonPopUpData.Desc = _G.DataConfigManager:GetLocalizationConf("pet_remove_text").msg
+  if self.stateType == PetUIModuleEnum.PetFreeCaptivePanelStateType.None then
+    CommonPopUpData.Desc = _G.DataConfigManager:GetLocalizationConf("pet_remove_text").msg
+  elseif self.stateType == PetUIModuleEnum.PetFreeCaptivePanelStateType.IncludeCanTraceBackPet then
+    CommonPopUpData.Desc = _G.DataConfigManager:GetLocalizationConf("pet_free_return_tip").msg
+  end
   CommonPopUpData.Btn_RightText = LuaText.umg_petfreecaptiveanimals_2
   CommonPopUpData.Btn_LeftText = LuaText.umg_petfreecaptiveanimals_1
   CommonPopUpData.Call = self
@@ -58,6 +66,10 @@ function UMG_PetFreeCaptiveAnimals_C:SetButtonIcon(okIcon, cancelIcon)
 end
 
 function UMG_PetFreeCaptiveAnimals_C:SetNewBelowList()
+  if self.coverRewardList ~= nil then
+    Log.Debug("UMG_PetFreeCaptiveAnimals_C:SetNewBelowList, coverRewardList ~= nil, return")
+    return
+  end
   local petData = self.uiData.petList
   for i, _petData in ipairs(petData) do
     local AwardList = PetUtils.GetPetFreeAwradList(_petData)
@@ -264,7 +276,7 @@ function UMG_PetFreeCaptiveAnimals_C:SetAttributeAward(_PetAttributeData, Type)
   local PetAttributeData = _PetAttributeData or 0
   local PetEffortsList = _G.DataConfigManager:GetTable(_G.DataConfigManager.ConfigTableId.PET_EFFORTS_LEVEL):GetAllDatas()
   for i, PetEfforts in pairs(PetEffortsList) do
-    if type(PetAttributeData) == "table" and PetEfforts.attribute_type == Type and PetEfforts.efforts_level == PetAttributeData.effort_lv and PetEfforts.free_item_id and 0 ~= PetEfforts.free_item_id then
+    if type(PetAttributeData) == "table" and PetEfforts.attribute_type == Type and PetEfforts.free_item_id and 0 ~= PetEfforts.free_item_id then
       local wardItemInfo = self.uiData.PetFreeAward
       local IsHaveItem = false
       for j, item in ipairs(wardItemInfo) do
@@ -363,15 +375,28 @@ end
 
 function UMG_PetFreeCaptiveAnimals_C:UpdateList()
   local wardItemInfo = self.uiData.PetFreeAward
+  if self.coverRewardList then
+    wardItemInfo = self.coverRewardList
+  end
   local itemInfo = {}
   for i, item in pairs(wardItemInfo) do
-    local itemCfg = item.Id > 0 and _G.DataConfigManager:GetBagItemConf(item.Id) or nil
-    table.insert(itemInfo, {
-      itemCfg = itemCfg,
-      itemId = item.Id,
-      itemCount = item.Count,
-      itemType = item.Type
-    })
+    if self.coverRewardList == nil then
+      local itemCfg = item.Id > 0 and _G.DataConfigManager:GetBagItemConf(item.Id) or nil
+      table.insert(itemInfo, {
+        itemCfg = itemCfg,
+        itemId = item.Id,
+        itemCount = item.Count,
+        itemType = item.Type
+      })
+    else
+      local itemCfg = item.id > 0 and _G.DataConfigManager:GetBagItemConf(item.id) or nil
+      table.insert(itemInfo, {
+        itemCfg = itemCfg,
+        itemId = item.id,
+        itemCount = item.num,
+        itemType = item.Type
+      })
+    end
   end
   
   local function compare(a, b)

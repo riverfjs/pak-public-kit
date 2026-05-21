@@ -13,26 +13,41 @@ function UMG_PetHatching_jiesu_C:OnActive(arg)
     self.ImagePetGender2
   }
   UE4.UNRCAudioManager.Get():PlaySound2DAuto(41401004, "UMG_EggIncubatePanel_C:OnFinshPerform")
-  local PetData = _G.DataModelMgr.PlayerDataModel:GetPetDataByGid(eggPetGid)
-  if PetData then
-    self.module:SetCurrPetData(PetData)
-    local PetBaseConf = _G.DataConfigManager:GetPetbaseConf(PetData.base_conf_id)
-    local PetBloodConf = _G.DataConfigManager:GetPetBloodConf(PetData.blood_id)
-    local commonAttrData = {}
-    table.insert(commonAttrData, {
-      Name = PetBloodConf.blood_name,
-      Path = PetBloodConf.icon
-    })
-    if self.Attr then
-      self.Attr:InitGridView(commonAttrData)
+  if eggPetGid then
+    local PetData = _G.DataModelMgr.PlayerDataModel:GetPetDataByGid(eggPetGid)
+    if PetData then
+      self.module:SetCurrPetData(PetData)
+      local PetBaseConf = _G.DataConfigManager:GetPetbaseConf(PetData.base_conf_id)
+      local PetBloodConf = _G.DataConfigManager:GetPetBloodConf(PetData.blood_id)
+      local commonAttrData = {}
+      table.insert(commonAttrData, {
+        Name = PetBloodConf.blood_name,
+        Path = PetBloodConf.icon
+      })
+      if self.Attr then
+        self.Attr:InitGridView(commonAttrData)
+      end
+      self:updatePetGender(PetData.gender)
+      self:updatePetTypeIcon(PetBaseConf.unit_type)
+      self:SetTalentRank(PetData)
+      self.petGid = PetData.gid
+      self:UpdateCollect(PetData.partner_mark)
+      self:UpdateMDT_SHINING(PetData)
+      self:UpdateBallInfluencePanel(eggBallItemId)
     end
-    self:updatePetGender(PetData.gender)
-    self:updatePetTypeIcon(PetBaseConf.unit_type)
-    self:SetTalentRank(PetData)
-    self.petGid = PetData.gid
-    self:UpdateCollect(PetData.partner_mark)
-    self:UpdateMDT_SHINING(PetData)
-    self:UpdateBallInfluencePanel(eggBallItemId)
+  else
+    self.bSimpleShow = true
+    self.petBaseId = petBaseId
+    local PetBaseConf = _G.DataConfigManager:GetPetbaseConf(petBaseId)
+    if PetBaseConf then
+      self:updatePetTypeIcon(PetBaseConf.unit_type)
+    end
+    self:updatePetGender()
+    self:UpdateBallInfluencePanel()
+    self.Attr:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.PetRate:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.UMG_CollectBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.DazzlingColors:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
 end
 
@@ -148,7 +163,14 @@ function UMG_PetHatching_jiesu_C:OnBtnRechristen_1Click()
     return
   end
   UE4.UNRCAudioManager.Get():PlaySound2DAuto(1002, "UMG_PetBaseInfo_C:OnBtnBtnRechristenClick")
-  _G.NRCModeManager:DoCmd(_G.PetUIModuleCmd.PetUIOpenPetTips)
+  if self.bSimpleShow then
+    local petData = {
+      base_conf_id = self.petBaseId
+    }
+    _G.NRCModeManager:DoCmd(_G.PetUIModuleCmd.PetUIOpenPetTips, petData)
+  else
+    _G.NRCModeManager:DoCmd(_G.PetUIModuleCmd.PetUIOpenPetTips)
+  end
   local touchReasonType = _G.NRCModuleManager:DoCmd(MultiTouchModuleCmd.GetPanelSelectBtnReason, "EggIncubatePanel").PETTIPS
   _G.NRCModuleManager:DoCmd(MultiTouchModuleCmd.LockIsSelectBtn, "PetUIModule", "EggIncubatePanel", touchReasonType)
 end
@@ -211,6 +233,9 @@ function UMG_PetHatching_jiesu_C:OnClosePanel()
   _G.NRCModuleManager:DoCmd(MultiTouchModuleCmd.LockIsSelectBtn, "PetUIModule", "EggIncubatePanel", touchReasonType)
   if not self:IsAnimationPlaying(self.Out) then
     _G.NRCModuleManager:DoCmd(MultiTouchModuleCmd.UnlockIsSelectBtn, "PetUIModule", "EggIncubatePanel", touchReasonType)
+    if self.bSimpleShow then
+      _G.NRCModuleManager:DoCmd(PetUIModuleCmd.ClosePetHatchOnlyPanel)
+    end
     self:OnClose()
   end
 end

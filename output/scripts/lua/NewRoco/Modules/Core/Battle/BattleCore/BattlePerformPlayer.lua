@@ -35,11 +35,13 @@ function BattlePerformPlayer:Ctor(turnPlayer)
   self.cmdValidCheckResult = BattleEnum.PerformCmdValidCheckResult.Success
   self.LimitMaxNumber = 5
   self.CurTriggerNumber = 0
+  self.FrameStartNodeNum = 0
+  self.hadChangeSkillPositionPlayer = nil
   self:EnableUpdate()
 end
 
 function BattlePerformPlayer:CanTriggerNext()
-  if self.CurTriggerNumber > self.LimitMaxNumber then
+  if self.CurTriggerNumber > self.LimitMaxNumber or self.FrameStartNodeNum >= self.LimitMaxNumber and self.bUpdateRegistered then
     return false
   end
   return true
@@ -109,6 +111,7 @@ end
 
 function BattlePerformPlayer:CreatePerformNode(cmd, CreateCount)
   if not BattleManager:IsInBattle(true) then
+    Log.Warning("zgx BattlePerformPlayer:CreatePerformNode not in battle")
     return
   end
   local performInfos = cmd.perform_info
@@ -135,6 +138,10 @@ function BattlePerformPlayer:CreatePerformNode(cmd, CreateCount)
         self:StartPerform()
       end)
     end
+  else
+    Log.Warning("zgx BattlePerformPlayer:CreatePerformNode", self.performNodeIdx, #performInfos)
+    self:PreProcessClientData(cmd)
+    self:StartPerform()
   end
 end
 
@@ -332,15 +339,15 @@ function BattlePerformPlayer:PreProcessCounterNew()
       local group_ref = cluster.HeadGroup.HeadNode:GetGroupRef()
       if group_ref then
         local beCounterGroup = self.PerformGroupLst[group_ref]
-        if beCounterGroup and beCounterGroup ~= cluster.HeadGroup then
+        if beCounterGroup and beCounterGroup ~= cluster.HeadGroup and not beCounterGroup.IsProcessCounter then
           local beCounterCluster = beCounterGroup.OwnerCluster
-          if beCounterCluster and not beCounterCluster.IsProcessCounter and beCounterGroup == beCounterCluster.HeadGroup then
-            beCounterCluster.IsProcessCounter = true
+          if beCounterCluster then
+            beCounterGroup.IsProcessCounter = true
             cluster.HeadGroup.HeadNode:SetBeCounterNode(beCounterGroup.HeadNode)
             beCounterGroup.HeadNode:SetCounterNode(cluster.HeadGroup.HeadNode)
             beCounterGroup.HeadNode:SetLogicCastMoment(BattlePerformNode.LogicCastType.ON_BE_COUNTER)
-            self:MoveNodesToOtherCluster(beCounterCluster, cluster, ProtoEnum.Buffbasetrigger_type.OnBeforeAttack, ProtoEnum.Buffbasetrigger_type.OnAfterAttack)
-            self:MoveNodesToOtherCluster(cluster, beCounterCluster, ProtoEnum.Buffbasetrigger_type.OnBeforeAttack, ProtoEnum.Buffbasetrigger_type.OnBeforeAttack)
+            self:MoveNodesToOtherGroup(beCounterGroup, cluster.HeadGroup, ProtoEnum.Buffbasetrigger_type.OnBeforeAttack, ProtoEnum.Buffbasetrigger_type.OnAfterAttack)
+            self:MoveNodesToOtherGroup(cluster.HeadGroup, beCounterGroup, ProtoEnum.Buffbasetrigger_type.OnBeforeAttack, ProtoEnum.Buffbasetrigger_type.OnBeforeAttack)
             beCounterCluster:AddKeepServerOrderCluster(cluster)
           end
         end
@@ -349,20 +356,20 @@ function BattlePerformPlayer:PreProcessCounterNew()
   end
 end
 
-function BattlePerformPlayer:MoveNodesToOtherCluster(formCluster, toCluster, fromCastMoment, toCastMoment)
-  local fromGroup = formCluster.HeadGroup
-  local toGroup = toCluster.HeadGroup
+function BattlePerformPlayer:MoveNodesToOtherGroup(fromGroup, toGroup, fromCastMoment, toCastMoment)
+  local formCluster = fromGroup.OwnerCluster
+  local toCluster = toGroup.OwnerCluster
   local RemoveGroupId = {}
   for i = #formCluster.ClusterGroups, 1, -1 do
     local group = formCluster.ClusterGroups[i]
     if group ~= fromGroup and group.HeadNode and group.HeadNode:GetCastMoment() == fromCastMoment and group.HeadNode:GetGroupRef() == fromGroup.GroupId then
       formCluster:RemoveGroup(group)
-      toCluster:AddGroup(group, true)
+      toCluster:AddGroup(group, true, toGroup.GroupId)
       table.insert(RemoveGroupId, group.GroupId)
       group.HeadNode:ModifyCastMoment(toCastMoment)
     end
   end
-  local loopMax = 200
+  local loopMax = 300
   while #RemoveGroupId > 0 and loopMax > 0 do
     local oldRemoveGroupId = RemoveGroupId
     RemoveGroupId = {}
@@ -936,7 +943,7 @@ function BattlePerformPlayer:PreprocessResonance()
 end
 
 function BattlePerformPlayer:GetPerformCluster(group, depth)
-  if depth >= 100 then
+  if depth >= 300 then
     self.cmdValidCheckResult = BattleEnum.PerformCmdValidCheckResult.RefDeadLoop
     return nil
   end
@@ -1049,6 +1056,7 @@ function BattlePerformPlayer:StartPerform()
     return
   end
   self.CurTriggerNumber = 0
+  self.FrameStartNodeNum = 0
   self.performClusterIdxCur = 0
   self.performingClusterCount = 0
   self:PerformNextCluster(0.01)
@@ -1140,6 +1148,7 @@ end
 
 function BattlePerformPlayer:OnTick(deltaTime)
   self.curMsTime = UpdateManager.Timestamp
+  self.FrameStartNodeNum = 0
   if self.isPause then
     return
   end
@@ -1298,6 +1307,26 @@ function BattlePerformPlayer:DoFinalize()
   end
 end
 
+function BattlePerformPlayer:GetNodeByExecId(execId)
+  if self.performLst then
+    for _, node in ipairs(self.performLst) do
+      if node:GetExecIdx() == execId then
+        return node
+      end
+    end
+  end
+end
+
+function BattlePerformPlayer:BuffSkillPlay(pet, skillObject, buffId)
+  if self.hadChangeSkillPositionPlayer and pet and skillObject and pet.teamEnm == BattleEnum.Team.ENUM_ENEMY and not skillObject.IsIgnoreCameraAction and _G.SkillUtils.SkillHasCameraAction(skillObject) then
+    local battleMainWindow = BattleUtils.GetMainWindow()
+    if battleMainWindow then
+      battleMainWindow.SkillPanelLoader:SetVisibility(UE4.ESlateVisibility.Collapsed)
+      Log.Warning("BattlePerformPlayer:BuffSkillPlayWithCameraAction  Hide Skill panel by buffid=", buffId, skillObject:GetName())
+    end
+  end
+end
+
 function BattlePerformPlayer:Clear()
   self.isRoundBegin = false
   self.PerformGroupLst = {}
@@ -1314,6 +1343,7 @@ function BattlePerformPlayer:Clear()
   self.PerformedBuffInfo = {}
   self.PerformedPopInfo = {}
   self.PerformedEffectPopInfo = {}
+  self.hadChangeSkillPositionPlayer = false
 end
 
 return BattlePerformPlayer

@@ -79,6 +79,13 @@ function NPCShopUtils:GetGoodsCurrencyNum(shopId, goodsId)
   local goodsData = _G.NRCModuleManager:DoCmd(NPCShopUIModuleCmd.OnCmdGetGoodsSeverData, shopId, goodsId)
   if not goodsData then
     Log.Warning("NPCShopUtils:GetGoodsCurrencyIconPath", "goodsData not found", shopId, goodsId)
+    local goodsConf = self:GetAdjustGoodConf(goodsId, shopId)
+    if goodsConf then
+      local GoodsType, GoodsId = goodsConf.price_goods_type, goodsConf.price_goods_id
+      if GoodsType and GoodsId then
+        return self:GetGoodsCurrencyNumByType(GoodsType, GoodsId)
+      end
+    end
     return 0
   end
   local priceInfo = goodsData.real_price

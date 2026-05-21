@@ -42,6 +42,10 @@ function UMG_DimoControl_C:OnActive(levelData)
   end
 end
 
+function UMG_DimoControl_C:IsPCMode()
+  return self.isPC
+end
+
 function UMG_DimoControl_C:OnDeactive()
   UE4Helper.ReleaseDesiredShowCursor("UMG_DimoControl_C")
   _G.NRCEventCenter:UnRegisterEvent(self, CreatePlayerEvent.PlayerJump, self.OnPlayerJump)

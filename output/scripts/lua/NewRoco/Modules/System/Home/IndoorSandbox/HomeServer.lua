@@ -318,9 +318,7 @@ function HomeServer:GetLocalHomeBriefInfo()
   if Player then
     local home_info = (Player.serverData or {}).home_basic_info or {}.my_home_info
     if home_info then
-      if not home_info.home_local_name then
-        home_info.home_local_name = string.format(LuaText.home_name, home_info.home_name)
-      end
+      home_info.home_local_name = string.format(LuaText.home_name, home_info.home_name)
       local room_conf = DataConfigManager:GetRoomConf(home_info.room_level, true)
       home_info.home_tag_name = room_conf and room_conf.name or ""
     end
@@ -346,9 +344,7 @@ function HomeServer:GetDisplayHomeBriefInfo()
     local home_basic_info = (Player.serverData or {}).home_basic_info or {}
     local home_info = home_basic_info.target_home_info or home_basic_info.my_home_info
     if home_info then
-      if not home_info.home_local_name then
-        home_info.home_local_name = string.format(LuaText.home_name, home_info.home_name)
-      end
+      home_info.home_local_name = string.format(LuaText.home_name, home_info.home_name)
       local room_conf = DataConfigManager:GetRoomConf(home_info.room_level, true)
       home_info.home_tag_name = room_conf and room_conf.name or ""
     end
@@ -603,44 +599,6 @@ function HomeServer:ReqTaskInfoForExpandRoom(Callback)
       local task_info_list = _protoData.task_info_list
       HomeIndoorSandbox.Module:GetData():UpdateExpandTask(task_paragraph_id, task_info_list)
     end
-    Callback(bSuccess, _protoData)
-  end
-  
-  bSuccess = _G.ZoneServer:SendWithHandler(Cmd, Req, rspWrapper, OnSvrRspHandle)
-  if not bSuccess then
-    Callback(bSuccess)
-  end
-  return bSuccess
-end
-
-function HomeServer:ReqUnplacedNpcFromFurniture(Callback, PropsDataList, bForce)
-  Callback = Callback or HomeIndoorSandbox.DummyFunction
-  local Packets = {}
-  for i, PropsData in ipairs(PropsDataList) do
-    local Npc = PropsData:ResolveRelativeNpc()
-    local ActorId = Npc and Npc.serverData.base.actor_id or 0
-    if 0 ~= ActorId then
-      local Packet = {
-        furniture_guid = PropsData.Id,
-        npc_obj_id = ActorId
-      }
-      table.insert(Packets, Packet)
-      HomeIndoorSandbox:LogDebug("unplaced furniture", PropsData.Id, ActorId)
-    end
-  end
-  local Cmd = ProtoCMD.ZoneSvrCmd.ZONE_HOME_PET_UNPLACE_REQ
-  local Req = ProtoMessage:newZoneHomePetUnplaceReq()
-  Req.pet_unplace_info_list = Packets
-  Req.force = bForce
-  local rspWrapper = {}
-  rspWrapper.reqMsg = Req
-  local bSuccess = false
-  
-  local function OnSvrRspHandle(_rspWrapper, _protoData)
-    bSuccess = self:IfReceiveSuccess(_protoData, "ZoneHomePetUnplaceRsp")
-    if bSuccess then
-    end
-    HomeIndoorSandbox:LogDebug("unplaced finish", bSuccess)
     Callback(bSuccess, _protoData)
   end
   

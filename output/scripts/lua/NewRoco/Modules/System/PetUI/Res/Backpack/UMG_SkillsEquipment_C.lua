@@ -1,4 +1,6 @@
 local Base = require("NewRoco.TUI.BP_NRCItemBase_C")
+local BattleUtils = require("NewRoco.Modules.Core.Battle.Common.BattleUtils")
+local BattleConst = require("NewRoco.Modules.Core.Battle.Common.BattleConst")
 local UMG_SkillsEquipment_C = Base:Extend("UMG_SkillsEquipment_C")
 
 function UMG_SkillsEquipment_C:OnConstruct()
@@ -22,20 +24,35 @@ function UMG_SkillsEquipment_C:UpdateInfo(skillData)
   end
   local skillConf = _G.SkillUtils.GetSkillConf(skillData.id)
   local commonAttrData = {}
+  local fantasticBackgroundPath = ""
   if skillConf then
     self.skillConf = skillConf
     self.SkillIcon:SetPath(skillConf.icon)
     self.SkillNameTxt:SetText(skillConf.name)
     self.Number:SetText(self.index)
-    if self.Select_NM_3 then
-      if self.uiData.bFantastic then
-        self.Select_NM_3:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-      else
-        self.Select_NM_3:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    if self.uiData.bFantastic then
+      local skillId
+      if skillData and skillData.id and skillData.skill_id then
+        skillId = skillData and skillData.skill_id
+      elseif skillData and skillData.id then
+        skillId = skillData and skillData.id
+      end
+      local seasonId = skillData and skillData.season_id
+      local paths = BattleUtils.GetFantasticBackgroundPathWithSkillAndSeason(skillId, seasonId)
+      if paths then
+        fantasticBackgroundPath = paths.squareNm3 or fantasticBackgroundPath
       end
     end
   else
     Log.Debug("\230\138\128\232\131\189id\230\178\146\230\156\137\230\137\190\229\136\176", skillData.skill_id)
+  end
+  if self.Select_NM_3 then
+    local selectNm3Visibility = UE4.ESlateVisibility.Collapsed
+    if not string.IsNilOrEmpty(fantasticBackgroundPath) then
+      selectNm3Visibility = UE4.ESlateVisibility.SelfHitTestInvisible
+    end
+    self.Select_NM_3:SetPath(fantasticBackgroundPath)
+    self.Select_NM_3:SetVisibility(selectNm3Visibility)
   end
 end
 

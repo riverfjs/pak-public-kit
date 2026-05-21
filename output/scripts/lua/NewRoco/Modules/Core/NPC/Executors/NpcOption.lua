@@ -22,6 +22,7 @@ local HomeUtils = require("NewRoco/Modules/System/Home/IndoorSandbox/HomeUtils")
 local FarmModuleEnum = require("NewRoco.Modules.System.Farm.FarmModuleEnum")
 local AbilityHelperManager = require("NewRoco.Modules.Core.Scene.Component.Ability.AbilityHelperManager")
 local AbilityID = require("NewRoco.Modules.Core.Scene.Component.Ability.AbilityID")
+local PlayerModuleEvent = require("NewRoco.Modules.Core.PlayerModule.PlayerModuleEvent")
 local NoPetForbidActions = {
   ProtoEnum.ActionType.ACT_BATTLE,
   ProtoEnum.ActionType.ACT_ENTER_CAMP,
@@ -31,6 +32,7 @@ local ActionsNotShowForHomeVisit = {
   Enum.ActionType.ACT_PICKEGG_HOME
 }
 local needStatusNotify = false
+local EmoteParamCacheDict = {}
 
 local function PreprocessOptionInfo(info)
   info.enabled = info.enabled or false
@@ -116,10 +118,37 @@ function NpcOption:Ctor(owner, optionInfo)
     end
     self:UpdateCustomDisable()
   end
+  if self.config.npc_interact_condition == Enum.InteractConditionType.INTERACT_COND_NPC_CREATOR_AND_TOGETHER then
+    self:RegisterTogetherMoveEvents()
+  end
 end
 
 function NpcOption:GetExecuteTimes()
   return math.max(self.executeTimes, self.optionInfo.succ_exec_times)
+end
+
+function NpcOption:RegisterTogetherMoveEvents()
+  local localPlayer = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
+  if localPlayer then
+    localPlayer:AddEventListener(self, PlayerModuleEvent.ON_HANDINHAND, self.OnTogetherMoveStateChange)
+  end
+end
+
+function NpcOption:UnregisterTogetherMoveEvents()
+  local localPlayer = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
+  if localPlayer then
+    localPlayer:RemoveEventListener(self, PlayerModuleEvent.ON_HANDINHAND, self.OnTogetherMoveStateChange)
+  end
+end
+
+function NpcOption:OnTogetherMoveStateChange(isTogether)
+  Log.Debug("NpcOption:OnTogetherMoveStateChange \231\137\181\230\137\139\231\138\182\230\128\129\229\143\145\231\148\159\229\143\152\229\140\150", isTogether, self.config.id)
+  if self.owner then
+    local interactionComponent = self.owner.InteractionComponent
+    if interactionComponent then
+      interactionComponent:CalcCheckOpts()
+    end
+  end
 end
 
 function NpcOption:IncreaseExecuteTimes()
@@ -290,6 +319,7 @@ function NpcOption:Destroy()
     homeModule:UnRegisterEvent(self, HomeModuleEvent.OnInteractingItemChange)
     homeModule:UnRegisterEvent(self, HomeModuleEvent.OnReEnterHomeMap)
   end
+  self:UnregisterTogetherMoveEvents()
   if self.DelayActionHandler > 0 then
     _G.DelayManager:CancelDelayById(self.DelayActionHandler)
     self.DelayActionHandler = -1
@@ -340,6 +370,32 @@ function NpcOption:IsDisableByOnlineModeMagicAction()
   end
 end
 
+function NpcOption:CheckIsOwnerAndPartner()
+  if self.config.npc_interact_condition == Enum.InteractConditionType.INTERACT_COND_NPC_CREATOR_AND_TOGETHER then
+    if self.owner:IsControlledByPlayer() then
+      return true
+    end
+    local localPlayer = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
+    if not localPlayer then
+      return false
+    end
+    if not localPlayer:IsInTogetherMove() then
+      return false
+    end
+    local anotherPlayer = localPlayer:GetAnotherTogetherMovePlayer()
+    if not anotherPlayer then
+      return false
+    end
+    local creatorID = self.owner:GetCreatorID()
+    if not creatorID then
+      return false
+    end
+    local anotherPlayerUin = anotherPlayer.serverData and anotherPlayer.serverData.base and anotherPlayer.serverData.base.actor_id
+    return anotherPlayerUin == creatorID
+  end
+  return true
+end
+
 function NpcOption:IsOptionEnable(strict)
   if not self.optionInfo.enabled then
     return false
@@ -349,6 +405,27 @@ function NpcOption:IsOptionEnable(strict)
   end
   if self.disable_by_custom_condition then
     return false
+  end
+  if not self:CheckIsOwnerAndPartner() then
+    return false
+  end
+  if self.optionInfo.whitelist_uins and 0 ~= #self.optionInfo.whitelist_uins then
+    local CurUin = _G.DataModelMgr.PlayerDataModel:GetPlayerUin()
+    for _, uin in ipairs(self.optionInfo.whitelist_uins) do
+      if uin == CurUin then
+        return true
+      end
+    end
+    return false
+  end
+  if self.optionInfo.blacklist_uins and 0 ~= #self.optionInfo.blacklist_uins then
+    local CurUin = _G.DataModelMgr.PlayerDataModel:GetPlayerUin()
+    for _, uin in ipairs(self.optionInfo.blacklist_uins) do
+      if uin == CurUin then
+        return false
+      end
+    end
+    return true
   end
   if strict then
     return not self:IsDisableByOnlineMode()
@@ -500,7 +577,13 @@ function NpcOption:OnOptionChange(action, Tag, BaseData)
   local HeadComp = self.owner:GetHeadLookAtComponent()
   local CanRotate = self.owner.CanRotation and self.owner:CanRotation()
   local CanInteractSameTime = self.CanInteractSameTime and self:CanInteractSameTime()
-  if CanRotate and not CanInteractSameTime and action.ineteracting_avatar_id and HeadComp then
+  local ownerIsBoss = self.owner.config.genre == Enum.ClientNpcType.CNT_PETBOSS
+  local npcActionConf = _G.DataConfigManager:GetNpcActionConf(self.config.action.action_type, true)
+  local ActionCanRotate = true
+  if npcActionConf then
+    ActionCanRotate = not npcActionConf.disable_sync_rotate
+  end
+  if CanRotate and ActionCanRotate and not CanInteractSameTime and action.ineteracting_avatar_id and HeadComp and not ownerIsBoss then
     local localUin = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_UIN)
     local player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GetPlayerByServerID, action.ineteracting_avatar_id)
     local local_player = _G.NRCModeManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
@@ -653,7 +736,22 @@ function NpcOption:OnOptionEnter(BehaviorID)
     self:OnPlayerEnterActionArea()
   elseif InteractType == Enum.InteractType.IT_EMOTE then
     local RolePlayerBehaviorID = BehaviorID or Module:GetRolePlayBehaviorID()
-    if RolePlayerBehaviorID == tonumber(self.config.interact_param1) then
+    local optionId = self.optionInfo.option_id
+    local cache = EmoteParamCacheDict[optionId]
+    if not cache then
+      cache = {}
+      if self.config.interact_param1 then
+        local paramArray = string.split(tostring(self.config.interact_param1), ";")
+        for _, idStr in ipairs(paramArray) do
+          local id = tonumber(idStr)
+          if id then
+            cache[id] = true
+          end
+        end
+      end
+      EmoteParamCacheDict[optionId] = cache
+    end
+    if cache[RolePlayerBehaviorID] then
       self.inActionArea = true
       self:OnOptionAction()
     end
@@ -779,6 +877,9 @@ function NpcOption:Inter_OnNpcAction()
   end
   if self:IsDisableByOnlineMode() then
     if self.config.npc_interact_type == _G.Enum.InteractType.IT_AUTO then
+      if self.config.id == 19000001 then
+        _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.transform_fanying_fail)
+      end
       return
     end
     local showTip = ""
@@ -1020,7 +1121,7 @@ function NpcOption:GetValidationAmount()
   if #self.config.npc_interact_condition_param <= 1 then
     return 0
   end
-  local Index = math.clamp(#self.config.npc_interact_condition_param - self.optionInfo.executable_times + 1, 1, #self.config.npc_interact_condition_param)
+  local Index = math.clamp(#self.config.npc_interact_condition_param - self.optionInfo.executable_times + 1, 2, #self.config.npc_interact_condition_param)
   return self.config.npc_interact_condition_param[Index]
 end
 
@@ -1417,7 +1518,7 @@ function NpcOption:CanSitSceneSeat()
   local SeatSlot = self.config.action.action_param1
   if not self.SeatIdx then
     self.SeatIdx = tonumber(string.match(SeatSlot, "Seat_(%d+)"))
-    if not OwnerView.StaticMesh or not OwnerView.StaticMesh:DoesSocketExist(SeatSlot) then
+    if self.config.action.action_type == Enum.ActionType.ACT_SIT and (not OwnerView.StaticMesh or not OwnerView.StaticMesh:DoesSocketExist(SeatSlot)) then
       return false
     end
   end
@@ -1502,6 +1603,14 @@ function NpcOption:SetHomeOptionActive(bActive)
   if self:GetEnableCondition() == _G.Enum.OptionVisibleCondition.ENABLE_CONDITION_OPTION_TYPE then
     self.owner:SetHomeOptionActive(bActive)
   end
+end
+
+function NpcOption:IsHomeSound2dOption()
+  return self:GetActionType() == _G.Enum.ActionType.ACT_FURNITURE_CHANGE_BGM
+end
+
+function NpcOption:IsHomeViewArtOption()
+  return self:GetActionType() == _G.Enum.ActionType.ACT_VIEW_WALL_ART
 end
 
 return NpcOption

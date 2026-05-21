@@ -20,6 +20,7 @@ function PlayerModuleHead:OnConstruct()
   self:BindCmd(PlayerModuleCmd.RemoveMagicStarCounts, "RemoveMagicStarCounts")
   self:BindCmd(PlayerModuleCmd.TryAttackLocalPlayerWithRangeCheck, "TryAttackLocalPlayerWithRangeCheck")
   self:BindCmd(PlayerModuleCmd.OnCatchRecordInfoChange, "OnCatchRecordInfoChange")
+  self:BindCmd(PlayerModuleCmd.OnAIMutualPerformStateChanged, "OnAIMutualPerformStateChanged")
   self:BindCmd(PlayerModuleCmd.GetRideThrowCameraOffset, "GetRideThrowCameraOffset")
 end
 

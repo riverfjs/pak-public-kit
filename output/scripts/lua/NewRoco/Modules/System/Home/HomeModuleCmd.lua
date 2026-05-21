@@ -67,4 +67,6 @@ HomeModuleCmd.OnCmdZoneSceneHomeTeamDisbandReq = "HomeModuleCmd.OnCmdZoneSceneHo
 HomeModuleCmd.OnCmdZoneSceneHomeTeamEnterHomeReq = "HomeModuleCmd.OnCmdZoneSceneHomeTeamEnterHomeReq"
 HomeModuleCmd.OnCmdZoneSceneHomeTeamLeaveHomeReq = "HomeModuleCmd.OnCmdZoneSceneHomeTeamLeaveHomeReq"
 HomeModuleCmd.OnZoneSceneHomeTeamQueryReq = "HomeModuleCmd.OnZoneSceneHomeTeamQueryReq"
+HomeModuleCmd.OpenFurnitureFilterPanel = "HomeModuleCmd.OpenFurnitureFilterPanel"
+HomeModuleCmd.CloseFurnitureFilterPanel = "HomeModuleCmd.CloseFurnitureFilterPanel"
 return HomeModuleCmd

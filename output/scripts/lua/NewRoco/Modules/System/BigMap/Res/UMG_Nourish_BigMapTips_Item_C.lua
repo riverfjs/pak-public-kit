@@ -38,7 +38,7 @@ function UMG_Nourish_BigMapTips_Item_C:ShowTypeIcons(petBaseConf)
   local commonAttrData = {}
   local unit_type = petBaseConf.unit_type
   for i = 1, 2 do
-    local petType = unit_type[#unit_type - i + 1]
+    local petType = unit_type and unit_type[i]
     if petType then
       local typeDic = _G.DataConfigManager:GetTypeDictionary(petType)
       if typeDic then

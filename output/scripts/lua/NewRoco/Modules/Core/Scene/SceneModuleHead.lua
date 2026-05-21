@@ -17,6 +17,7 @@ function SceneModuleHead:OnConstruct()
   self:BindCmd(SceneModuleCmd.GetCurrentMapResId, "GetCurrentMapResId")
   self:BindCmd(SceneModuleCmd.CheckSceneFullyEntered, "CheckSceneFullyEntered")
   self:BindCmd(SceneModuleCmd.IsMagicBanned, "IsMagicBanned")
+  self:BindCmd(SceneModuleCmd.IsRolePlayPropBanned, "IsRolePlayPropBanned")
 end
 
 return SceneModuleHead

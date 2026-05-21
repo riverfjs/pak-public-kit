@@ -39,7 +39,7 @@ function ScenePlayerRideAllBuff:OnBegin(Owner, PetMesh, PetABP, Scale, isRecover
 end
 
 function ScenePlayerRideAllBuff:OnUpdateByComponent(deltaTime)
-  if not self.RideComponent.bIsDoubleRide2p and self.RideComponent.RidePet and self.RideComponent.ScenePet and self.RideComponent:IsPetOnlyFly(self.RideComponent.ScenePet.config.id) and not self.RideComponent:IsInDoubleRide() then
+  if not self.RideComponent.bIsDoubleRide2p and self.RideComponent.RidePet and self.RideComponent.ScenePet and self.RideComponent.ScenePet.config and self.RideComponent:IsPetOnlyFly(self.RideComponent.ScenePet.config.id) and not self.RideComponent:IsInDoubleRide() then
     local MoveForward = self.RideComponent.RidePet:GetMovementComponent().Acceleration
     local petRadius = self.RideComponent.PetRadius or 0
     if self.Rider:GetMovementComponent():CanClimbWhileRiding(MoveForward, petRadius) then
@@ -176,6 +176,7 @@ function ScenePlayerRideAllBuff:CheckEnterDoubleRide()
         self.RideComponent:DoubleRide2p(RideComponent_1p.RidePet, pet_Id, player_2p.isLocal)
         self.RideComponent:ChangeAnimSocketName()
         RideComponent_1p:UpdateHeadWidgetDoubleRide(true)
+        RideComponent_1p.ScenePet:OnSetDoubleRide2P(true, player_2p)
         self.RideComponent:UpdateHeadWidgetDoubleRide(true)
         self.waitDoubleRide = false
         if player_1p.isLocal then
@@ -184,6 +185,7 @@ function ScenePlayerRideAllBuff:CheckEnterDoubleRide()
         if player_2p.isLocal then
           player_2p:SendEvent(PlayerModuleEvent.ON_DOUBLERIDE_SUCCEED, true, pet_Id, false)
         end
+        player_2p:SendEvent(PlayerModuleEvent.ON_PLAYER_RIDING_ACTUALLY, true)
         self:OnRidePetChangeMoveType()
       end
     end
@@ -337,7 +339,7 @@ function ScenePlayerRideAllBuff:GetPropertyModifySpeedValue(param2)
     local _, GrowOrder = PetUtils.GetResidueGrowCountAndGrowOrder(petData)
     local addSpeedValuePercent = (petNatureConf.positive_effect_proportion + petNatureConf.positive_effect_grow * (GrowOrder - 1)) / 10000
     natureSpeedPercent = natureSpeedPercent + addSpeedValuePercent
-  elseif petNatureConf.positive_effect == Enum.AttributeType.AT_SPEED_PERCENT then
+  elseif petNatureConf and petNatureConf.positive_effect == Enum.AttributeType.AT_SPEED_PERCENT then
     local _, GrowOrder = PetUtils.GetResidueGrowCountAndGrowOrder(petData)
     local addSpeedValuePercent = (petNatureConf.positive_effect_proportion + petNatureConf.positive_effect_grow * (GrowOrder - 1)) / 10000
     natureSpeedPercent = natureSpeedPercent + addSpeedValuePercent

@@ -51,14 +51,16 @@ function AlbumList:GetDataList()
 end
 
 function AlbumList:ToggleSelectFlagBySerialId(SerialId)
-  if self.CurrDataList[SerialId] then
-    self.CurrDataList[SerialId].bSelected = not self.CurrDataList[SerialId].bSelected
+  local UIData = self:GetDataBySerialId(SerialId)
+  if UIData then
+    UIData.bSelected = not UIData.bSelected
   end
 end
 
 function AlbumList:SelectPhotoBySerialId(SerialId)
-  if self.CurrDataList[SerialId] then
-    self.CurrDataList[SerialId].bSelected = true
+  local UIData = self:GetDataBySerialId(SerialId)
+  if UIData then
+    UIData.bSelected = true
   end
 end
 
@@ -139,7 +141,7 @@ function AlbumList:RemoveSelection()
   local NeedRemove = {}
   for i, Data in ipairs(self.CurrDataList) do
     if Data.bSelected then
-      table.insert(NeedRemove, i)
+      table.insert(NeedRemove, Data.SerialId)
     end
   end
   self:ToggleToDefault()
@@ -161,10 +163,64 @@ function AlbumList:OnThumbnailTextureGenerated(PhotoData)
     return
   end
   local SerialId = PhotoData.SerializeId
-  local Item = self.List:GetItemByIndex(SerialId - 1)
+  local Item = self:GetViewBySerialId(SerialId)
   if Item then
     Item:OnItemUpdate(self.CurrDataList[SerialId])
   end
+end
+
+function AlbumList:GetViewBySerialId(SerialId)
+  return self.List:GetItemByIndex(SerialId - 1)
+end
+
+function AlbumList:GetDataBySerialId(SerialId)
+  return self.CurrDataList[SerialId]
+end
+
+function AlbumList:RefreshActivityData()
+  local PhotoActivityManager = _G.NRCModuleManager:DoCmd(_G.TakePhotosModuleCmd.GetPhotoActivityManager)
+  local InAlbumSubmitStatus = PhotoActivityManager:InAlbumSubmitStatus()
+  for i, Data in ipairs(self.CurrDataList) do
+    Data.bHasBeenActivityReported = PhotoActivityManager and InAlbumSubmitStatus and PhotoActivityManager:IsPhotoDataHasBeenSubmit(Data.PhotoData)
+    Data.bActivityRequiredPhoto = PhotoActivityManager and InAlbumSubmitStatus and PhotoActivityManager:CanRequestPhotoData(Data.PhotoData)
+    Data.InAlbumSubmitStatus = InAlbumSubmitStatus
+  end
+end
+
+function AlbumList:RefreshActivityReportedFlag()
+  self:RefreshActivityData()
+  for i = 0, self.List:GetItemCount() - 1 do
+    local Item = self.List:GetItemByIndex(i)
+    if Item then
+      Item:OnRefreshActivityReportedFlag()
+    end
+  end
+end
+
+function AlbumList:RefreshByUploadRefresh()
+end
+
+function AlbumList:InternalBuildCreateDateText(SerialId)
+  local Data = self:GetPhotoBySerialId(SerialId)
+  if not Data then
+    return ""
+  end
+  local Name = Data:UnpackPhotoName()
+  if not Name then
+    return ""
+  end
+  local EndIdx = string.find(Name, "%.") or #Name + 1
+  local Len = 13
+  local J = EndIdx - 1
+  local I = J - Len + 1
+  local Timestamp = math.tointeger(string.sub(Name, I, J))
+  if Timestamp then
+    local Date = os.date("*t", math.floor(Timestamp / 1000))
+    if Date then
+      return string.format("%s/%s/%s", Date.year, Date.month, Date.day), Timestamp
+    end
+  end
+  return ""
 end
 
 return AlbumList

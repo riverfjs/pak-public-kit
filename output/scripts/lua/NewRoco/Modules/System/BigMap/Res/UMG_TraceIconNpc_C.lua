@@ -82,11 +82,13 @@ function UMG_TraceIconNpc_C:UpdatePanel()
               Icon = worldMapCfg.npcicon_levelup[i].icon
             end
           end
+        elseif BigMapUtils.CheckShowRongDuanIcon(worldMapCfg, self.uiData.mutation_type) then
+          Icon = worldMapCfg.shine_rongduan_icon
         else
-          Icon = worldMapCfg.npcicon_unlock or model and model.ui_icon
+          Icon = worldMapCfg.npcicon_unlock or model and model.ui_icon or model and model.icon
         end
       else
-        Icon = worldMapCfg.npcicon_lock or model and model.ui_icon
+        Icon = worldMapCfg.npcicon_lock or model and model.ui_icon or model and model.icon
       end
       if _npcInfo.npcCfg.genre == Enum.ClientNpcType.CNT_PETBOSS or _npcInfo.npcCfg.genre == Enum.ClientNpcType.CNT_LEGENDARY_SPIRIT then
         Type = UMG_TraceIconNpc_C.IconType.Pet
@@ -106,6 +108,15 @@ function UMG_TraceIconNpc_C:UpdatePanel()
           Type = UMG_TraceIconNpc_C.IconType.HandBook
         else
           Type = UMG_TraceIconNpc_C.IconType.NPC
+        end
+        if worldMapCfg.default_track_type == Enum.DefaultTrackType.DTT_GLASS or worldMapCfg.default_track_type == Enum.DefaultTrackType.DTT_SURPRISEBOX then
+          Type = UMG_TraceIconNpc_C.IconType.NPC
+        elseif worldMapCfg.default_track_type == Enum.DefaultTrackType.DTT_SHINE then
+          if BigMapUtils.CheckShowRongDuanIcon(worldMapCfg, self.uiData.mutation_type) then
+            Type = UMG_TraceIconNpc_C.IconType.NPC
+          else
+            Type = UMG_TraceIconNpc_C.IconType.Other
+          end
         end
         local bigMapModule = _G.NRCModuleManager:GetModule("BigMapModule")
         if worldMapCfg.npcicon_corner_unlock and bigMapModule then
@@ -184,7 +195,11 @@ function UMG_TraceIconNpc_C:GetIconPath(icon, type)
       self.Pet:SetVisibility(UE4.ESlateVisibility.Collapsed)
       self.Icon:SetVisibility(UE4.ESlateVisibility.Collapsed)
     elseif type == UMG_TraceIconNpc_C.IconType.Pet then
-      self.PetIcon:SetPath(bigMapModule:GetBigMapIconRes(icon))
+      if bigMapModule:IsFullPath(icon) then
+        self.PetIcon:SetIconPath(icon)
+      else
+        self.PetIcon:SetIconPath(bigMapModule:GetBigMapIconRes(icon))
+      end
       self.Pet:SetVisibility(UE4.ESlateVisibility.Visible)
       self.NPC:SetVisibility(UE4.ESlateVisibility.Collapsed)
       self.Icon:SetVisibility(UE4.ESlateVisibility.Collapsed)
@@ -206,7 +221,10 @@ function UMG_TraceIconNpc_C:GetSceneResId()
   local npcCfg = self.uiData.npcCfg
   if npcCfg then
     if npcCfg.npc_refresh_id then
-      return BigMapUtils.GetSceneResIdByRefreshId(npcCfg.npc_refresh_id)
+      local sceneResId = BigMapUtils.GetSceneResIdByRefreshId(npcCfg.npc_refresh_id)
+      if sceneResId then
+        return sceneResId
+      end
     end
     local posX = 0
     local posY = 0
@@ -234,13 +252,17 @@ function UMG_TraceIconNpc_C:SetPetIconPath(iconPath)
   self.QuestionMark:SetVisibility(UE4.ESlateVisibility.Collapsed)
   if iconPath then
     if self.uiData and self.uiData.npcCfg and self.uiData.npcCfg.state then
-      if self.uiData.npcCfg.state == _G.ProtoEnum.PetHandbookStatus.PHS_NOT_FOUND then
-        self.iconPath = iconPath
-        self:SetUnFoundIcon()
-      elseif not self.uiData.npcCfg.isFound then
-        self.npcIcon:SetPath(iconPath)
-        self.Icon_Mask:SetPath(iconPath)
-        self.Icon_Mask:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+      if self.uiData.npcCfg.petBase_id and 0 ~= self.uiData.npcCfg.petBase_id then
+        if self.uiData.npcCfg.state == _G.ProtoEnum.PetHandbookStatus.PHS_NOT_FOUND then
+          self.iconPath = iconPath
+          self:SetUnFoundIcon()
+        elseif not self.uiData.npcCfg.isFound then
+          self.npcIcon:SetPath(iconPath)
+          self.Icon_Mask:SetPath(iconPath)
+          self.Icon_Mask:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+        else
+          self.npcIcon:SetPath(iconPath)
+        end
       else
         self.npcIcon:SetPath(iconPath)
       end

@@ -10,6 +10,8 @@ function ShareUIModule:OnConstruct()
   self.data = self:SetData("ShareUIModuleData", "NewRoco.Modules.System.ShareUI.ShareUIModuleData")
   self.IsLoadingPanelOpen = true
   self.IsOpenWebView = false
+  self.IsSharingPetVideo = false
+  self.IsSharingMagicVideo = false
   self.CheckRewardStateList = {}
 end
 
@@ -42,7 +44,6 @@ function ShareUIModule:OnDeactive()
   _G.NRCEventCenter:UnRegisterEvent(self, LoadingUIModuleEvent.LOADING_UI_CLOSED, self.LoadingPanelIsClose)
   _G.NRCSDKManager:RemoveEventListener(self, NRCSDKManagerEvent.OnWebViewOptNotify, self.OnWebViewOptNotify)
   _G.NRCSDKManager:RemoveEventListener(self, NRCSDKManagerEvent.OnOpenWebView, self.OnOpenWebView)
-  _G.NRCEventCenter:UnRegisterEvent(self, ShareUIModuleEvent.SHOW_ENTRANCE_REWARD, self.CheckShowShareRewardPanel)
 end
 
 function ShareUIModule:OnDestruct()
@@ -107,6 +108,15 @@ function ShareUIModule:OnCmdOpenScreenshotSharingPanel()
     return
   end
   if NRCModuleManager:DoCmd(TakePhotosModuleCmd.CheckPhotoFileViewUI) then
+    return
+  end
+  if self.IsSharingPetVideo then
+    return
+  end
+  if self.IsSharingMagicVideo then
+    return
+  end
+  if _G.NRCModuleManager:DoCmd(_G.DialogueModuleCmd.HasDialogue) then
     return
   end
   local myUin = _G.DataModelMgr.PlayerDataModel:GetPlayerUin()
@@ -422,6 +432,21 @@ end
 function ShareUIModule:OnReconnect()
   _G.NRCModuleManager:DoCmd(PetUIModuleCmd.CloseShareCameraPanel)
   self:CloseAllPanel()
+end
+
+function ShareUIModule:OnCmdSetIsSharingPetVideo(flag)
+  self.IsSharingPetVideo = flag
+end
+
+function ShareUIModule:OnCmdSetIsSharingMagicVideo(flag)
+  self.IsSharingMagicVideo = flag
+end
+
+function ShareUIModule:OnCmdPlayPetVideoShareInAnim()
+  if self:HasPanel("ShareUIPanel") then
+    local panel = self:GetPanel("ShareUIPanel")
+    panel:PlayPetVideoShareInAnim()
+  end
 end
 
 return ShareUIModule

@@ -7,6 +7,7 @@ local UMG_Handbook_C = _G.NRCPanelBase:Extend("UMG_Handbook_C")
 
 function UMG_Handbook_C:OnActive(arg)
   self.InputBox_1:SetHintText(LuaText.hb_default_search_text2)
+  self:ShowPhotoSwitchTabs()
   if not _G.DataModelMgr.PlayerDataModel:HasPanelMusic(Enum.InterfaceType.IT_HANDBOOK) then
     local StateGroup = _G.DataModelMgr.PlayerDataModel:GetStateGroupByApplyEnum(Enum.MusicApplyType.MAT_UI, Enum.InterfaceType.IT_HANDBOOK)
     _G.DataModelMgr.PlayerDataModel:AddPanelMusic(Enum.MusicApplyType.MAT_UI, Enum.InterfaceType.IT_HANDBOOK)
@@ -80,7 +81,23 @@ end
 function UMG_Handbook_C:SetArg(arg)
   self.arg = arg
   self:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-  self:InitPanel()
+  local isAssignTo = arg and arg.handbookId and arg.petbaseId and true or false
+  local isShowBookAim = self.arg and self.arg.isShowBookAim or false
+  self.IsCanPlayAnima = isShowBookAim
+  self.IsPlayAnimOpen = true
+  self.module = _G.NRCModuleManager:GetModule("HandbookModule")
+  self.data = self.module:GetData("HandbookModuleData")
+  local list, SelectComboIndex = self.data:UpdatePetHandbookSortLeftList()
+  self.NRCScrollView_43:InitList(list)
+  self.NRCScrollView_43:SetVisibility(UE4.ESlateVisibility.Visible)
+  self.curListDatas = list
+  self:JumpToIndex(isAssignTo, list)
+  self:ShowPhotoSwitchTabs()
+  self.HandbookContent:OnActive(self.IsCanPlayAnima)
+  if self.IsCanPlayAnima then
+    self.HandbookContent:HidePreviewWorld(3)
+    self:PlayAnimation(self.Book_Open)
+  end
 end
 
 function UMG_Handbook_C:OnConstruct()
@@ -106,15 +123,8 @@ end
 function UMG_Handbook_C:OnPcClose()
   if not self.bEnableClick then
     return
-  elseif self.bPcClosed then
-    _G.NRCModeManager:DoCmd(_G.HandbookModuleCmd.CloseHandbookCoverByPlayer)
-  else
-    if self:GetVisibility() ~= UE4.ESlateVisibility.Visible and self:GetVisibility() ~= UE4.ESlateVisibility.SelfHitTestInvisible then
-      return
-    end
-    self.bPcClosed = true
-    self:OnClickCloseBtn()
   end
+  self:OnClickCloseBtn()
   _G.NRCEventCenter:DispatchEvent(_G.MainUIModuleEvent.OnMainUISubPanelClosed, false)
 end
 
@@ -157,6 +167,8 @@ function UMG_Handbook_C:InitPanel()
   if self.IsCanPlayAnima then
     self.HandbookContent:HidePreviewWorld(3)
     self:PlayAnimation(self.Book_Open)
+  else
+    self.bEnableClick = true
   end
   _G.NRCProfilerLog:NRCPanelOpenAnimation(true, self.panelName)
 end
@@ -242,7 +254,9 @@ function UMG_Handbook_C:OnDeactive()
   self:UnRegisterEvent(self, HandbookModuleEvent.OnChangeAreaData)
   self:UnRegisterEvent(self, HandbookModuleEvent.OnSearchHandbook)
   self:UnRegisterEvent(self, HandbookModuleEvent.OnChangSelectItemData)
+  self:UnRegisterEvent(self, HandbookModuleEvent.SetSelectedItemUpdatePanel)
   _G.NRCEventCenter:UnRegisterEvent(self, BagModuleEvent.UpdateSort, self.OnUpdateSortType)
+  self.HandbookContent:OnDeactive()
 end
 
 function UMG_Handbook_C:SetCommonComboBoxInfo(ComboBox, DropDownListInfo, DropDownListIndex, DropDownListText, ComboBoxText, ComboBoxIcon)
@@ -283,8 +297,24 @@ function UMG_Handbook_C:OnAddEventListener()
   self:RegisterEvent(self, HandbookModuleEvent.OnSearchHandbook, self.OnSearchHandbook)
   self:RegisterEvent(self, HandbookModuleEvent.OnTopicTurnPage, self.OnChangeNextPage)
   self:RegisterEvent(self, HandbookModuleEvent.OnChangSelectItemData, self.OnChageSelectLeftListItemData)
+  self:RegisterEvent(self, HandbookModuleEvent.OnUpdateLeftItemListTaskState, self.OnUpdateLeftListTaskState)
+  self:RegisterEvent(self, HandbookModuleEvent.SetSelectedItemUpdatePanel, self.UpdateSelectItemInfo)
   _G.NRCEventCenter:RegisterEvent("UMG_Handbook_C", self, BagModuleEvent.OnFilter, self.OnFilter)
   _G.NRCEventCenter:RegisterEvent("HandbookModule", self, BagModuleEvent.UpdateSort, self.OnUpdateSortType)
+end
+
+function UMG_Handbook_C:UpdateSelectItemInfo(handbookInfo)
+  if handbookInfo and handbookInfo.State then
+    if self.LastState ~= handbookInfo.State and handbookInfo.State == _G.ProtoEnum.PetHandbookStatus.PHS_COLLECTED then
+      self:ShowPhotoSwitchTabs()
+    end
+    if handbookInfo.State ~= _G.ProtoEnum.PetHandbookStatus.PHS_COLLECTED then
+      self.Panel_TabBg:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    else
+      self.Panel_TabBg:SetVisibility(UE4.ESlateVisibility.Visible)
+    end
+    self.LastState = handbookInfo.State
+  end
 end
 
 function UMG_Handbook_C:GetSortList()
@@ -327,10 +357,13 @@ function UMG_Handbook_C:OnOpenFilter()
 end
 
 function UMG_Handbook_C:ActiveFiltering(list)
-  if self.filterConditon then
+  if self:IsFilterCondition() then
     local lst = self.module.data:GetAllFilterData()
     local filterList = _G.NRCModuleManager:DoCmd(_G.BagModuleCmd.FilterDepart, self.filterConditon.FilterDepartCondition, lst or {})
     local showList = self:FilterShining(filterList, self.filterConditon)
+    if self.filterConditon.FilterSeasonCondition and #self.filterConditon.FilterSeasonCondition > 0 then
+      showList = self:FilterSeason(showList, self.filterConditon)
+    end
     return showList
   end
   return list
@@ -363,9 +396,51 @@ function UMG_Handbook_C:FilterShining(filterList, condition)
   return showList
 end
 
+function UMG_Handbook_C:FilterSeason(filterList, condition)
+  local bookIdDic = {}
+  local showList = {}
+  for i, data in pairs(filterList) do
+    if bookIdDic[data.HandbookId] == nil then
+      if condition.FilterSeasonCondition and #condition.FilterSeasonCondition > 0 then
+        for j = 1, #condition.FilterSeasonCondition do
+          local enum = condition.FilterSeasonCondition[j]
+          local handbookData = _G.NRCModuleManager:DoCmd(_G.HandbookModuleCmd.GetPetHandBookData, data.HandbookId)
+          if handbookData and handbookData.Records then
+            local records = handbookData.Records
+            if records then
+              for _, v in pairs(records) do
+                local baseConf = v.PetBaseConf
+                if baseConf.belong_season and 0 ~= baseConf.belong_season then
+                  local belong_season = baseConf.belong_season
+                  if belong_season == enum then
+                    bookIdDic[data.HandbookId] = data.HandbookId
+                    break
+                  end
+                end
+              end
+            end
+            if bookIdDic[data.HandbookId] then
+              break
+            end
+          end
+        end
+      end
+    else
+      bookIdDic[data.HandbookId] = data.HandbookId
+    end
+  end
+  local curLeftListDatas = self.module.data.CacheLeftHandbookList
+  for i, data in pairs(curLeftListDatas) do
+    if bookIdDic[data.HandbookId] then
+      table.insert(showList, data)
+    end
+  end
+  return showList
+end
+
 function UMG_Handbook_C:OnFilter(filterList, condition)
   self.filterConditon = condition
-  if (condition.FilterDepartCondition == nil or 0 == #condition.FilterDepartCondition) and (nil == condition.FilterShiningCondition or condition.FilterShiningCondition == _G.Enum.FilterShining.FS_NONE) then
+  if (condition.FilterDepartCondition == nil or 0 == #condition.FilterDepartCondition) and (nil == condition.FilterShiningCondition or condition.FilterShiningCondition == _G.Enum.FilterShining.FS_NONE) and condition.FilterSeasonCondition and 0 == #condition.FilterSeasonCondition then
     local showList = self.module.data.CacheLeftHandbookList
     self.NRCScrollView_43:InitList(showList)
     self.curListDatas = showList
@@ -374,6 +449,9 @@ function UMG_Handbook_C:OnFilter(filterList, condition)
     return
   end
   local showList = self:FilterShining(filterList, condition)
+  if condition.FilterSeasonCondition and #condition.FilterSeasonCondition > 0 then
+    showList = self:FilterSeason(showList, condition)
+  end
   if #showList > 0 then
     self.NRCScrollView_43:InitList(showList)
     self.curListDatas = showList
@@ -466,7 +544,7 @@ function UMG_Handbook_C:IsFilterCondition()
   if self.filterConditon == nil then
     return false
   end
-  local isFilter = nil ~= self.filterConditon.FilterShiningCondition and self.filterConditon.FilterShiningCondition ~= _G.Enum.FilterShining.FS_NONE or #self.filterConditon.FilterDepartCondition > 0
+  local isFilter = nil ~= self.filterConditon.FilterShiningCondition and self.filterConditon.FilterShiningCondition ~= _G.Enum.FilterShining.FS_NONE or #self.filterConditon.FilterDepartCondition > 0 or #self.filterConditon.FilterSeasonCondition > 0
   return isFilter
 end
 
@@ -522,6 +600,15 @@ function UMG_Handbook_C:UpdateLeftList()
   self.curListDatas = list
   local index = self.data:GetSelectIndex()
   self.NRCScrollView_43:SelectItemByIndex(index)
+end
+
+function UMG_Handbook_C:OnUpdateLeftListTaskState()
+  for i = 1, self.NRCScrollView_43:GetItemCount() do
+    local item = self.NRCScrollView_43:GetItemByIndex(i - 1)
+    if UE4.UObject.IsValid(item) then
+      item:OnUpdateTaskState()
+    end
+  end
 end
 
 function UMG_Handbook_C:ShowHandBookHomeInfoList(handbookId, petBaseId)
@@ -606,14 +693,26 @@ function UMG_Handbook_C:OnSelectDataShowPanel(_handbookId, _petBaseId)
   local subIndex = self.data:GetPetHandBookRecordIndex(_handbookId, _petBaseId)
 end
 
-function UMG_Handbook_C:OnChangeNextPage(index)
+function UMG_Handbook_C:OnChangeNextPage(index, handbookId, petBaseId)
   local indexPage = index
-  local curLeftListDatas = self.module.data.CacheLeftHandbookList
+  local curLeftListDatas = self.curListDatas or self.module.data.CacheLeftHandbookList
   local curBookData = curLeftListDatas[indexPage]
+  if handbookId and (not curBookData or curBookData.HandbookId ~= handbookId) then
+    for i, data in ipairs(curLeftListDatas) do
+      if data.HandbookId == handbookId then
+        indexPage = i
+        curBookData = data
+        break
+      end
+    end
+  end
+  if not curBookData then
+    return
+  end
   self.NRCScrollView_43:SelectItemByIndex(indexPage - 1)
   self:SetScrollOffsetInfo()
   local petBookInfo = _G.NRCModuleManager:DoCmd(_G.HandbookModuleCmd.GetPetHandBookData, curBookData.HandbookId)
-  _G.NRCModuleManager:DoCmd(_G.HandbookModuleCmd.OpenHandbookSubjectPanel, petBookInfo, curBookData.PetBaseId)
+  _G.NRCModuleManager:DoCmd(_G.HandbookModuleCmd.OpenHandbookSubjectPanel, petBookInfo, petBaseId or curBookData.PetBaseId)
 end
 
 function UMG_Handbook_C:OnChageSelectLeftListItemData(handbookId, subIndex)
@@ -687,6 +786,18 @@ function UMG_Handbook_C:OnAnimationFinished(Animation)
   elseif Animation == self.input_out then
     self.Mask:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
+end
+
+function UMG_Handbook_C:ShowPhotoSwitchTabs()
+  local tableDatas = {}
+  table.insert(tableDatas, {
+    title = LuaText.handbook_tab_text_1
+  })
+  table.insert(tableDatas, {
+    title = LuaText.handbook_tab_text_2
+  })
+  self.TabList1:InitGridView(tableDatas)
+  self.TabList1:SelectItemByIndex(0)
 end
 
 return UMG_Handbook_C

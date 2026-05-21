@@ -444,4 +444,33 @@ function BP_PlayerController_C:BlueprintPreAxisInput(actionName)
   end
 end
 
+function BP_PlayerController_C:SetIsSideView(isSideView)
+  if self.bIsSIdeView == isSideView then
+    return
+  end
+  self.bIsSideView = isSideView
+  if self.bIsSideView then
+    local Rot = UE4.FRotator()
+    Rot.Yaw = 180
+    Rot.Pitch = 5
+    self:SetControlRotation(Rot)
+    if self.PlayerCameraManager then
+      self.PlayerCameraManager:BeginSideView()
+    end
+  elseif self.PlayerCameraManager then
+    self.PlayerCameraManager:LeaveSideView()
+  end
+end
+
+function BP_PlayerController_C:IsSideView()
+  return self.bIsSideView
+end
+
+function BP_PlayerController_C:IsCameraControlDisabled()
+  if self:IsSideView() then
+    return true
+  end
+  return false
+end
+
 return BP_PlayerController_C

@@ -1,14 +1,7 @@
 local PufferDownloadInfo = Class("PufferDownloadInfo")
 local JsonUtils = require("Common.JsonUtils")
 local VideoEnum = require("Common.VideoEnum")
-local PakSourceType = {
-  Installer = 0,
-  Optional = 1,
-  NecessaryPatch = 2,
-  OptionalPatch = 3,
-  EarlyContent = 4,
-  Base = 5
-}
+local PakSourceType = require("NewRoco.Modules.System.UpdateUIModule.PakSourceType")
 
 function PufferDownloadInfo:Ctor()
   self.bInited = false
@@ -17,24 +10,51 @@ function PufferDownloadInfo:Ctor()
   Log.Debug("[PufferDownloadInfo:Ctor] bLowEnd:", self.bLowEnd)
 end
 
-function PufferDownloadInfo:Init(PufferImpl, PufferConfigPath)
+function PufferDownloadInfo:Init(PufferImpl, PufferConfigPath, ResVerifyPath)
+  self.PufferInstance = PufferImpl
+  if not self:InitPufferPakInfoJson(PufferConfigPath) then
+    return false
+  end
+  if not self:InitResVerifyJson(ResVerifyPath) then
+    return false
+  end
+  self:CacheDownloadInfo()
+  self.bInited = true
+  return true
+end
+
+function PufferDownloadInfo:InitPufferPakInfoJson(PufferConfigPath)
   local JsonData, bSuccess = UE4.UHotUpdateUtils.ReadEncryptedJsonData(PufferConfigPath)
   if bSuccess then
     local JsonObject = JsonUtils.StringToJson(JsonData)
     if JsonObject then
       self:InitPufferPakInfoList(JsonObject)
+      return true
     else
-      Log.Error("[PufferDownloadInfo:Init] JsonObject is nil")
+      Log.Error("[PufferDownloadInfo:InitPufferPakInfoJson] JsonObject is nil")
       return false
     end
   else
-    Log.Error("[PufferDownloadInfo:Init] ReadEncryptedJsonData failed")
+    Log.Error("[PufferDownloadInfo:InitPufferPakInfoJson] ReadEncryptedJsonData failed")
     return false
   end
-  self.PufferInstance = PufferImpl
-  self:CacheDownloadInfo()
-  self.bInited = true
-  return true
+end
+
+function PufferDownloadInfo:InitResVerifyJson(ResVerifyPath)
+  local JsonData, bSuccess = UE4.UHotUpdateUtils.ReadEncryptedJsonData(ResVerifyPath)
+  if bSuccess then
+    local JsonObject = JsonUtils.StringToJson(JsonData)
+    if JsonObject then
+      self:InitResVerifyMap(JsonObject)
+      return true
+    else
+      Log.Error("[PufferDownloadInfo:InitResVerifyJson] JsonObject is nil")
+      return false
+    end
+  else
+    Log.Error("[PufferDownloadInfo:InitResVerifyJson] ReadEncryptedJsonData failed")
+    return false
+  end
 end
 
 function PufferDownloadInfo:InitPufferPakInfoList(JsonObject)
@@ -44,6 +64,7 @@ function PufferDownloadInfo:InitPufferPakInfoList(JsonObject)
       if PakInfoList then
         if type(PakInfoList) == "table" then
           self.PufferPakInfoList = PakInfoList
+          self:NormalizeAllPufferPath(self.PufferPakInfoList)
           self:InitHDMap()
         else
           Log.Error("[PufferDownloadInfo:InitPufferPakInfoList] PakInfoList is not table")
@@ -60,6 +81,55 @@ function PufferDownloadInfo:InitPufferPakInfoList(JsonObject)
   end
 end
 
+function PufferDownloadInfo:InitResVerifyMap(JsonObject)
+  self.ResVerifyMap = {}
+  if JsonObject then
+    if JsonObject.Content then
+      local ResVerifyList = JsonObject.Content.Paks
+      if ResVerifyList then
+        if type(ResVerifyList) == "table" then
+          for _, PakInfo in ipairs(ResVerifyList) do
+            self.ResVerifyMap[PakInfo.Name] = PakInfo
+            Log.Debug(string.format("[PufferDownloadInfo:InitResVerifyMap] Add PakName:%s Hash:%s", PakInfo.Name, PakInfo.Hash))
+          end
+        else
+          Log.Error("[PufferDownloadInfo:InitResVerifyMap] ResVerifyList is not table")
+        end
+      else
+        Log.Error("[PufferDownloadInfo:InitResVerifyMap] ResVerifyList is nil")
+      end
+    else
+      Log.Error("[PufferDownloadInfo:InitResVerifyMap] Content is nil")
+    end
+  else
+    Log.Error("[PufferDownloadInfo:InitResVerifyMap] JsonObject is nil")
+  end
+end
+
+function PufferDownloadInfo:GetHashByName(Name)
+  if self.ResVerifyMap then
+    local PakInfo = self.ResVerifyMap[Name]
+    if PakInfo then
+      return PakInfo.Hash
+    end
+  end
+end
+
+function PufferDownloadInfo:NormalizeAllPufferPath(PakInfoList)
+  if PakInfoList then
+    for _, PakInfo in ipairs(PakInfoList) do
+      if PakInfo then
+        if not string.IsNilOrEmpty(PakInfo.PakName) then
+          PakInfo.PakName = self:NormalizeFilename(PakInfo.PakName)
+        end
+        if not string.IsNilOrEmpty(PakInfo.HDPakName) then
+          PakInfo.HDPakName = self:NormalizeFilename(PakInfo.HDPakName)
+        end
+      end
+    end
+  end
+end
+
 function PufferDownloadInfo:NormalizeFilename(Name)
   return string.gsub(Name, "\\", "/")
 end
@@ -71,8 +141,8 @@ function PufferDownloadInfo:InitHDMap()
   self.PakNameToHDNameMap = {}
   for _, PakInfo in ipairs(self.PufferPakInfoList) do
     if PakInfo and PakInfo.HDPakName and PakInfo.PakName then
-      local PakName = self:NormalizeFilename(PakInfo.PakName)
-      local HDPakName = self:NormalizeFilename(PakInfo.HDPakName)
+      local PakName = PakInfo.PakName
+      local HDPakName = PakInfo.HDPakName
       Log.Debug(string.format("[PufferDownloadInfo:InitHDMap] Add PakName:%s HDPakName:%s", PakName, HDPakName))
       self.PakNameToHDNameMap[PakName] = HDPakName
     end
@@ -112,6 +182,9 @@ function PufferDownloadInfo:Clear()
   self.BasePakList = nil
   self.BasePatchList = nil
   self.PakNameToHDNameMap = nil
+  self.ShaderPatchList = nil
+  self.PufferPakInfoList = nil
+  self.ResVerifyMap = nil
 end
 
 function PufferDownloadInfo:HasAnyPatch()
@@ -338,14 +411,14 @@ function PufferDownloadInfo:GetBasePakListWithPatch()
   local BasePakList = self:GetBasePakList()
   local PatchList = self:GetBasePatchList()
   local ReturnList = {}
-  if BasePakList then
-    for _, PakFile in pairs(BasePakList) do
-      table.insert(ReturnList, PakFile)
-    end
-  end
   if PatchList then
     for _, PatchFile in pairs(PatchList) do
       table.insert(ReturnList, PatchFile)
+    end
+  end
+  if BasePakList then
+    for _, PakFile in pairs(BasePakList) do
+      table.insert(ReturnList, PakFile)
     end
   end
   return ReturnList

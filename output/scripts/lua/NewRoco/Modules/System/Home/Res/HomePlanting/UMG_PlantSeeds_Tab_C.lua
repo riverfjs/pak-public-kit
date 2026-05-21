@@ -20,12 +20,15 @@ function UMG_PlantSeeds_Tab_C:OnItemUpdate(_data, datalist, index)
   self.SeedTitle_1:SetText(tabName)
 end
 
-function UMG_PlantSeeds_Tab_C:OnItemSelected(_bSelected)
+function UMG_PlantSeeds_Tab_C:OnItemSelected(_bSelected, placeHolder, userClick)
   if not self.uiData then
     return
   end
   if _bSelected then
     self:PlayAnimation(self.change1)
+    if userClick then
+      _G.NRCAudioManager:PlaySound2DAuto(1005, "UMG_PlantSeeds_Tab_C:OnItemSelected")
+    end
     if self.uiData and self.uiData.callbackCaller and self.uiData.callbackFunc then
       self.uiData.callbackFunc(self.uiData.callbackCaller, self._index, self.uiData.index)
     end

@@ -34,6 +34,9 @@ function UMG_Activity_SeasonPetCertification_Item_C:OnBtnClicked()
   local index = self.Switcher:GetActiveWidgetIndex()
   local hasStoryFlag = 0 == self.flag or _G.DataModelMgr.PlayerDataModel:IsAssignStoryFlags(self.flag)
   if 1 == index then
+    if self.redPointNew:IsRed() then
+      self.redPointNew:EraseRedPoint()
+    end
     local teleportDialog = DialogContext()
     if hasStoryFlag then
       teleportDialog:SetCallbackOkOnly(self, self.ConfirmTeleport)

@@ -4,6 +4,7 @@ MagicReplayModuleEvent.EnterReplayState = "MagicReplayModuleEvent.EnterReplaySta
 MagicReplayModuleEvent.EnterPreviewState = "MagicReplayModuleEvent.EnterPreviewState"
 MagicReplayModuleEvent.EnterShareState = "MagicReplayModuleEvent.EnterShareState"
 MagicReplayModuleEvent.EnterIdleState = "MagicReplayModuleEvent.EnterIdleState"
+MagicReplayModuleEvent.EnterShareVideoState = "MagicReplayModuleEvent.EnterShareVideoState"
 MagicReplayModuleEvent.EnterEndState = "MagicReplayModuleEvent.EnterEndState"
 MagicReplayModuleEvent.EnterRecordProcessState = "MagicReplayModuleEvent.EnterRecordProcessState"
 MagicReplayModuleEvent.EnterPreviewProcessState = "MagicReplayModuleEvent.EnterPreviewProcessState"

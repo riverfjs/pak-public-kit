@@ -44,10 +44,8 @@ function UMG_PrewarInformation_C:OnActive(challengeType, param, bOwner)
   self.ItemRequired:SetText(LuaText.worldmap_tips_reward_text)
   if param.bind_pet_gid and 0 ~= param.bind_pet_gid then
     self.bGetMedal = true
-    self.Progress:SetText(string.format(_G.LuaText.Activity_PlayerCoCreation_task, 1, 1))
   else
     self.bGetMedal = false
-    self.Progress:SetText(string.format(_G.LuaText.Activity_PlayerCoCreation_task, 0, 1))
   end
   self:SetFlowerSeedFusionInfo()
 end
@@ -212,9 +210,6 @@ function UMG_PrewarInformation_C:UpdateShinyFlowerTips()
             self.CueBubble:SetVisibility(UE.ESlateVisibility.Visible)
             self.bg:SetPath(self.star7_hard_bg_icon_soft_path.AssetPathName)
             self.Img_di:SetVisibility(UE4.ESlateVisibility.Collapsed)
-            if self.challengeType == _G.ProtoEnum.TeamBattleChallengeType.TBCT_BLOOD_SINGLE then
-              self.MedalCanvas:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-            end
           end
           return
         end
@@ -299,6 +294,7 @@ end
 
 function UMG_PrewarInformation_C:OnDestruct()
   self.module.CanSetTeamBattle = false
+  _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.OpenOrCloseMainUIDownTips, true, "OpenTeamBattlePreWarInfo")
   _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.RemoveCondition, Enum.PlayerConditionType.PCT_UI, "PreWarInformation")
   _G.NRCModuleManager:DoCmd(TUIModuleCmd.PopBlackBackgroundWidgets, self.bgProxy)
 end
@@ -354,7 +350,6 @@ function UMG_PrewarInformation_C:OnCloseBtnClicked()
     self.module:OnZoneTeamBattleConfirmInviteReq(false)
   end
   self.module:ClearFusionInfo()
-  _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.OpenOrCloseMainUIDownTips, true)
   self:OnClose()
 end
 
@@ -487,6 +482,12 @@ function UMG_PrewarInformation_C:OnDialogChallengeClicked(_ok)
 end
 
 function UMG_PrewarInformation_C:OnChallengeClicked()
+  if _G.FunctionBanManager:GetConditionCounter(_G.Enum.PlayerConditionType.PCT_PROP_BLINDBOX) then
+    local banConf = _G.DataConfigManager:GetFunctionBanConf(_G.Enum.PlayerConditionType.PCT_PROP_BLINDBOX)
+    _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, banConf and banConf.ban_desc)
+    self:OnCloseBtnClicked()
+    return
+  end
   if self.IsReCom then
   else
     local title = LuaText.TIPS
@@ -550,6 +551,44 @@ function UMG_PrewarInformation_C:UpdatePanelInfo()
       table.insert(StarList, {hasStar = true})
     end
     local rewardsTable = {}
+    local activity_objects = _G.NRCModuleManager:DoCmd(_G.ActivityModuleCmd.GetActivityInstByType, _G.Enum.ActivityType.ATP_FLOWER_APPEAR_HARD)
+    for _, v in ipairs(activity_objects) do
+      if v:IsInProgress() then
+        local flower_group = _G.DataConfigManager:GetActivityFlowerAppearConf(v:GetSinglePartId()).flower_group
+        for _, seed in ipairs(flower_group) do
+          if seed.seed_id == self.uiData.spec_flower_seed_id then
+            local bGetReward = v:GetTaskState(seed.appear_task_id[1])
+            local bGetMedal = v:GetTaskState(seed.appear_task_id[2])
+            if not bGetMedal then
+              local flowerTaskConf = _G.DataConfigManager:GetActivityFlowerTaskConf(seed.appear_task_id[2])
+              local rewards = _G.NRCCommonItemIconData()
+              rewards.itemType = flowerTaskConf.reward_type
+              rewards.itemId = flowerTaskConf.reward_id
+              rewards.itemNum = 1
+              rewards.bShowTip = true
+              rewards.tag = _G.Enum.RewardTag.RTA_ACTIVITY_FLOWER_MEDAL
+              table.insert(rewardsTable, rewards)
+            end
+            if not bGetReward then
+              local reward_id = _G.DataConfigManager:GetActivityFlowerTaskConf(seed.appear_task_id[1]).reward_id
+              local rewardItem = _G.DataConfigManager:GetRewardConf(reward_id).RewardItem
+              for _, item in ipairs(rewardItem) do
+                local rewards = _G.NRCCommonItemIconData()
+                rewards.itemType = item.Type
+                rewards.itemId = item.Id
+                rewards.itemNum = item.Count
+                rewards.bShowNum = true
+                rewards.bShowTip = true
+                rewards.tag = _G.Enum.RewardTag.RTA_ACTIVITY_FLOWER_FIRST
+                table.insert(rewardsTable, rewards)
+              end
+            end
+            goto lbl_165
+          end
+        end
+      end
+    end
+    ::lbl_165::
     local dropReward = _G.NRCModuleManager:DoCmd(_G.ActivityModuleCmd.GetSpecificTimeActivityReward, ProtoEnum.ActivityDropShowArea.ADSA_FLOWER)
     if dropReward then
       for k, v in ipairs(dropReward) do

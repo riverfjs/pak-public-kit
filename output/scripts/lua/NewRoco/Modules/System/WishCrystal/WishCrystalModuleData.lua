@@ -17,7 +17,7 @@ function WishCrystalModuleData:UpdateStarlightInfo(InStarlightInfo, StarlightInc
     starlightInfo.PlayerStarInfo = InStarlightInfo
     starlightInfo.IncrementStarlight = StarlightIncrement
     starlightInfo.MarkUsed = false
-    starlightInfo.Unlock = false
+    starlightInfo.Unlock = true
     starlightInfo.IsShare = InIsShare
     table.insert(self.StarlightInfoList, starlightInfo)
   end

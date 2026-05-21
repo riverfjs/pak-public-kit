@@ -55,6 +55,8 @@ function UMG_Pet_GetItems_Item_C:updateItemInfo()
     self.Extra:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     if 6 == tag then
       self.Switcher_33:SetActiveWidgetIndex(0)
+    elseif tag == Enum.RewardTag.RTA_ACTIVITY_FLOWER_FIRST then
+      self.Switcher_33:SetActiveWidgetIndex(2)
     end
   end
   if tag == Enum.RewardTag.RTA_SHINYDOUBLE or tag == Enum.RewardTag.RTA_ACTIVITY then

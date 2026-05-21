@@ -1,4 +1,5 @@
 local Base = require("NewRoco.Modules.System.MainUI.Res.compass.CompItemBase")
+local PetMutationUtils = require("NewRoco.Utils.PetMutationUtils")
 local CompItemNpcBase = Base:Extend("CompItemNpcBase")
 
 function CompItemNpcBase:SetIcon()
@@ -58,11 +59,13 @@ function CompItemNpcBase:SetIcon()
           end
         end
       elseif self.uiData.IsCathPetNpc then
-        if self.uiData.WorldMapConfig.npc_refresh_ids and #self.uiData.WorldMapConfig.npc_refresh_ids > 0 then
-          local refresh_id = self.uiData.WorldMapConfig.npc_refresh_ids[1]
-          local path = _G.NRCModuleManager:DoCmd(_G.BigMapModuleCmd.GetCatchPetIconPath, refresh_id)
-          self:SetNpcIconPath(path)
+        local path = ""
+        if self.uiData.WorldMapConfig.default_track_type == Enum.DefaultTrackType.DTT_SHINE and self.uiData.mutation_type ~= nil and not PetMutationUtils.GetMutationValue(self.uiData.mutation_type, _G.Enum.MutationDiffType.MDT_SHINING) then
+          path = self.uiData.WorldMapConfig.shine_rongduan_icon
+        else
+          path = self.uiData.WorldMapConfig.world_map_NPCicon_des
         end
+        self:SetNpcIconPath(path)
       else
         if self.Predestined then
           local world_map_ids = _G.DataConfigManager:GetActivityGlobalConfig("hard_flower_world_map_id").numList

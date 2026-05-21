@@ -52,6 +52,9 @@ end
 
 function CommonAttrBase:OnClickItem()
   self:PlayPressAnim()
+  if self.click then
+    self:PlayAnimation(self.click)
+  end
   local data = self.data
   if data and data.ShowTips then
     if data.IsBlood and data.petData then

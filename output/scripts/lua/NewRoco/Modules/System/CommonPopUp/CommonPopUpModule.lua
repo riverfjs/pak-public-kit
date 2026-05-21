@@ -21,6 +21,7 @@ function CommonPopUpModule:OnActive()
   self:RegPanel("CommonPopUp_WithItem", "UMG_CommonPopUp_WithItem", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, true, true)
   self:RegPanel("NounInterpretationTips", "UMG_Common_NounInterpretationTips", _G.Enum.UILayerType.UI_LAYER_TOP, nil, nil, true, true)
   self:RegPanel("ActivityCommon", "UMG_Activity_Common", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, nil, true)
+  self:RegPanel("CommonExplanation", "UMG_Common_Explanation", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, nil, true)
 end
 
 function CommonPopUpModule:OnRelogin()
@@ -80,8 +81,9 @@ function CommonPopUpModule:ChangeScene()
   end
 end
 
-function CommonPopUpModule:OnCmdOpenNPCShopItemRewardsPanel(_param, _param1, IsLevelReward, IsOpenByBattleRewardPanel, IsOpenLegendaryBattleClosePanel, IsWorldOpen, bIsSpecialAward, PopUpData, IsBestowBlessings)
-  if _param and type(_param) == "table" then
+function CommonPopUpModule:OnCmdOpenNPCShopItemRewardsPanel(param, _param1, IsLevelReward, IsOpenByBattleRewardPanel, IsOpenLegendaryBattleClosePanel, IsWorldOpen, bIsSpecialAward, PopUpData, IsBestowBlessings)
+  local _param = table.deepCopy(param or {})
+  if _param and "table" == type(_param) then
     local finalGoodsItemList, hasFiltered, removeItemIdList = self:FilterGoodsItemShowByVisualItemConfig(_param)
     if hasFiltered then
       if removeItemIdList and #removeItemIdList > 0 then
@@ -153,7 +155,18 @@ function CommonPopUpModule:OpenActivityCommonPanel(data)
   if not (data and data.entries) or #data.entries <= 0 then
     return
   end
-  self:OpenPanel("ActivityCommon", data)
+  local allEntryHasImage = true
+  for _, entry in ipairs(data.entries) do
+    if string.IsNilOrEmpty(entry.imagPath) then
+      allEntryHasImage = false
+      break
+    end
+  end
+  if allEntryHasImage then
+    self:OpenPanel("ActivityCommon", data)
+  else
+    self:OpenPanel("CommonExplanation", data)
+  end
 end
 
 return CommonPopUpModule

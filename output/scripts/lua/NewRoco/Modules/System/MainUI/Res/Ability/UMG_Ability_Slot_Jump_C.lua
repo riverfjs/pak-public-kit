@@ -203,6 +203,7 @@ function UMG_Ability_Slot_Jump_C:InternalRefreshFlag()
   local UIBan = _G.NRCModuleManager:DoCmd(FunctionBanModuleCmd.CheckUIFunctionHide, Enum.FunctionEntrance.FE_MAIN_ABILITY_SLOT_JUMP)
   if UIBan then
     self._isVisible = false
+    self._isBlock = true
   end
   self:RefreshUI()
   UE4.FCycleCounter.Stop()

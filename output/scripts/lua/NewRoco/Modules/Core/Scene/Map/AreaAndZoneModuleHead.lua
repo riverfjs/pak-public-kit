@@ -18,6 +18,8 @@ function AreaAndZoneModuleHead:OnConstruct()
   self:BindCmd(_G.AreaAndZoneModuleCmd.GetCaveInfo, "GetCaveInfo")
   self:BindCmd(_G.AreaAndZoneModuleCmd.CanSetMessage, "CanSetMessage")
   self:BindCmd(_G.AreaAndZoneModuleCmd.OnTeleportClearAreaInfo, "OnTeleportClearAreaInfo")
+  self:BindCmd(_G.AreaAndZoneModuleCmd.CheckRolePlayPropsIsBan, "CheckRolePlayPropsIsBan")
+  self:BindCmd(_G.AreaAndZoneModuleCmd.OnActivityMapNpcDataChanged, "OnActivityMapNpcDataChanged")
 end
 
 return AreaAndZoneModuleHead

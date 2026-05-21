@@ -107,7 +107,10 @@ function UMG_Battle_ChangePetConfirm_BaseUtility:OnActive(data)
       levelSkillId = data.levelSkillId,
       lv = data.level,
       curBattleBaseId = data.curBattleBaseId,
-      bloodId = data.bloodId
+      bloodId = data.bloodId,
+      hideCompatInfo = data.hideCompatInfo,
+      showSeasonBattleRule = data.showSeasonBattleRule,
+      seasonBattleRuleList = data.seasonBattleRuleList
     })
   elseif usage == EUsageEnum.AsTable_BattlePetInfo then
     self:OnActiveAsBattlePetInfo(usage, data.battlePetInfo)
@@ -128,8 +131,11 @@ function UMG_Battle_ChangePetConfirm_BaseUtility:OnActiveAsTable_InfoData(usage,
   self:DoOnActiveAnywhere_Class4(usage)
   if infoData.levelSkillId then
     self:UpdateSkillListByLevelSkillConf_Class4(infoData)
-  else
+  elseif not infoData.hideCompatInfo then
     self:UpdatePropertyInfoInCombat_Class4(infoData)
+  end
+  if infoData.showSeasonBattleRule then
+    self:UpdateSeasonBattleRuleInfo(infoData.seasonBattleRuleList)
   end
 end
 
@@ -178,6 +184,7 @@ function UMG_Battle_ChangePetConfirm_BaseUtility:DoOnActiveAnywhere_Class4(usage
   self:SafeCall(self.Divider, "SetVisibility", Invisible)
   self:SafeCall(self.Line1_1, "SetVisibility", Invisible)
   self:SafeCall(self.PetTypeAdvantagePanel, "SetVisibility", Invisible)
+  self:SafeCall(self.SeasonBattleRuleList, "SetVisibility", Invisible)
 end
 
 function UMG_Battle_ChangePetConfirm_BaseUtility:DoOnActiveInPeace(usage, petData)
@@ -333,6 +340,14 @@ function UMG_Battle_ChangePetConfirm_BaseUtility:UpdatePropertyInfoInCombat_Clas
   local bHasContent = #RestainTypeList > 0 or #ResistTypeList > 0
   if bHasContent then
     self:SafeCall(self.Divider, "SetVisibility", UE4.ESlateVisibility.SelfHitTestInvisible)
+  end
+end
+
+function UMG_Battle_ChangePetConfirm_BaseUtility:UpdateSeasonBattleRuleInfo(seasonBattleRuleList)
+  self:SafeCall(self.SeasonBattleRuleList, "SetVisibility", UE4.ESlateVisibility.SelfHitTestInvisible)
+  self:SafeCall(self.SeasonBattleRuleList, "Clear")
+  if seasonBattleRuleList and #seasonBattleRuleList > 0 then
+    self:SafeCall(self.SeasonBattleRuleList, "InitGridView", seasonBattleRuleList)
   end
 end
 

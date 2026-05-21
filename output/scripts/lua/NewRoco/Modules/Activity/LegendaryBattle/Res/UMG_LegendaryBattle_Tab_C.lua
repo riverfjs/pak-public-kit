@@ -20,7 +20,7 @@ function UMG_LegendaryBattle_Tab_C:OnItemSelected(_bSelected)
   if _bSelected then
     _G.NRCAudioManager:PlaySound2DAuto(40007008, "UMG_LegendaryBattle_Tab_C:OnItemSelected")
     self:PlayAnimation(self.change1)
-    _G.NRCModuleManager:DoCmd(_G.LegendaryBattleModuleCmd.SetStarNum, self.starNum)
+    self:BroadcastMsg("OnItemSelected", self.starNum)
   else
     self:PlayAnimation(self.change2)
   end

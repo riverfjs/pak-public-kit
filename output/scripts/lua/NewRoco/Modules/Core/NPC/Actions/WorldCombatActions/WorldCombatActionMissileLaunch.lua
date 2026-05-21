@@ -18,6 +18,10 @@ function WorldCombatActionMissileLaunch:InternalExecute()
   local missileData = MissileUtils:NewMissileData()
   missileData.MissileType = self.ServerInfo.missile_type or Enum.MissileType.TRACE_TARGET
   missileData.InitSpeed = self.ServerInfo.speed or 0
+  if target and missileData.MissileType ~= Enum.MissileType.TRACE_TARGET then
+    target = nil
+    Log.Debug("WorldCombatActionMissileLaunch:InternalExecute not trace missile get target id! Make it nil now!", self.ServerInfo.skill_id, missileData.MissileType)
+  end
   if missileData.MissileType == Enum.MissileType.TRACE_TARGET then
     missileData.AccelerateSpeed = self.ServerInfo.trace_bullet.accelerate_speed or 0
     missileData.MaxSpeed = self.ServerInfo.trace_bullet.max_speed or missileData.InitSpeed
@@ -62,13 +66,16 @@ end
 function WorldCombatActionMissileLaunch:ProcessPerformOnReConnect(skillId, actionData)
   local worldCombatModule = _G.NRCModuleManager:GetModule("WorldCombatModule")
   if not worldCombatModule then
+    Log.Error("WorldCombatActionMissileLaunch:ProcessPerformOnReConnect worldCombatModule is nil")
     return
   end
   if not self.Runner or not self.Runner.viewObj then
+    Log.Error("WorldCombatActionMissileLaunch:ProcessPerformOnReConnect Runner is nil")
     return
   end
   local actionObj = self:GetSkillActionByGuid(actionData.GUID)
   if not UE.UObject.IsValid(actionObj) then
+    Log.Error("WorldCombatActionMissileLaunch:ProcessPerformOnReConnect actionObj is nil")
     return
   end
   local missileInfo = _G.ProtoMessage:newWorldCombatDotsSkillMissileLaunchInfo()

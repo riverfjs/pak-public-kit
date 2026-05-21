@@ -28,6 +28,7 @@ function UMG_PVP_HistoricalRecord_Item_C:OnItemUpdate(_data, datalist, index)
   enemyParam.PetInfos = _data.pet_info
   enemyParam.PvpRankStar = _data.pvp_rank_star
   enemyParam.PvpRankOder = _data.pvp_rank_order
+  enemyParam.season_id = _data.season_id
   if _data.enemy then
     enemyParam.name = _data.enemy.name
     enemyParam.headIcon = _data.enemy.additional_data.card_brief_info.card_icon_selected
@@ -41,18 +42,21 @@ function UMG_PVP_HistoricalRecord_Item_C:OnItemUpdate(_data, datalist, index)
   playerParam.PetInfos = _data.pet_info_self or {}
   playerParam.PvpRankStar = _data.pvp_rank_star_self or _G.DataModelMgr.PlayerDataModel:GetVItemCount(_G.Enum.VisualItem.VI_PVP_RANK_STAR)
   playerParam.PvpRankOder = _data.pvp_rank_order_self or _G.DataModelMgr.PlayerDataModel:GetVItemCount(_G.Enum.VisualItem.VI_PVP_RANK_ORDER)
+  playerParam.season_id = _data.season_id
   local playerCardInfo = _G.DataModelMgr.PlayerDataModel:GetCardBriefInfo()
   playerParam.headIcon = playerCardInfo.card_icon_selected
   self:SetInfos(true, playerParam)
 end
 
 function UMG_PVP_HistoricalRecord_Item_C:SetInfos(IsPlayer, Param)
+  local curSeasonId = _G.NRCModuleManager:DoCmd(_G.PVPRankedMatchModuleCmd.CmdGetCurSeasonId)
+  local seasonId = Param.season_id or 9
   if IsPlayer then
     self.Text_Name:SetText(Param.name)
     self.PetList:InitGridView(Param.PetInfos)
     local enemyRankStarConf = PVPRankedMatchModuleUtils.GetPvpRankConf(Param.PvpRankStar)
     if enemyRankStarConf then
-      self.ClassIcon:SetRankInfo(enemyRankStarConf, Param.PvpRankOder)
+      self.ClassIcon:SetRankInfo(enemyRankStarConf, Param.PvpRankOder, seasonId)
     end
     self:SetHeadInfo(self.HeadPortrait, Param.headIcon)
   else
@@ -60,7 +64,7 @@ function UMG_PVP_HistoricalRecord_Item_C:SetInfos(IsPlayer, Param)
     self.PetList_1:InitGridView(Param.PetInfos)
     local enemyRankStarConf = PVPRankedMatchModuleUtils.GetPvpRankConf(Param.PvpRankStar)
     if enemyRankStarConf then
-      self.ClassIcon_1:SetRankInfo(enemyRankStarConf, Param.PvpRankOder)
+      self.ClassIcon_1:SetRankInfo(enemyRankStarConf, Param.PvpRankOder, seasonId)
     end
     self:SetHeadInfo(self.HeadPortrait_1, Param.headIcon)
   end

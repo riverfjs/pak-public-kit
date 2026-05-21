@@ -37,6 +37,9 @@ function NRCProfilerLog:Ctor(name)
   self.panelPreloadStartTime = {}
   self.panelPreloadEndTime = {}
   self.ExportData = {}
+  self.stringFormatTotalCostTotalUs = 0
+  self.stringFormatTotalCostMaxUs = 0
+  self.stringFormatTotalCostCount = 0
   self.sumSubUMGTime = 0
   self.sumNoSubUMGTime = 0
   self.sumIdx = {
@@ -506,10 +509,36 @@ function NRCProfilerLog:ExportCSVData()
     content = content .. line
   end
   UE4.UNRCStatics.WriteToFile(filePath, content)
+  self:DumpStringFormatExtraCost()
 end
 
 function NRCProfilerLog:ClearCSVData()
   self.ExportData = {}
+  self.stringFormatTotalCostTotalUs = 0
+  self.stringFormatTotalCostMaxUs = 0
+  self.stringFormatTotalCostCount = 0
+end
+
+function NRCProfilerLog:RecordStringFormatCost(totalUs)
+  if self:IsStopProfiler() then
+    return
+  end
+  if not totalUs or totalUs <= 0 then
+    return
+  end
+  self.stringFormatTotalCostTotalUs = (self.stringFormatTotalCostTotalUs or 0) + totalUs
+  self.stringFormatTotalCostCount = (self.stringFormatTotalCostCount or 0) + 1
+  if totalUs > (self.stringFormatTotalCostMaxUs or 0) then
+    self.stringFormatTotalCostMaxUs = totalUs
+  end
+end
+
+function NRCProfilerLog:DumpStringFormatExtraCost()
+  local totalCount = self.stringFormatTotalCostCount or 0
+  local totalTotalUs = self.stringFormatTotalCostTotalUs or 0
+  local totalMaxUs = self.stringFormatTotalCostMaxUs or 0
+  local totalAvgUs = totalCount > 0 and totalTotalUs / totalCount or 0
+  Log.Debug(string._raw_format("[NRCStringFormatProfilerLog] " .. "total_calls=%d total=%.3fms avg=%.2fus max=%.2fus", totalCount, totalTotalUs / 1000.0, totalAvgUs, totalMaxUs))
 end
 
 function NRCProfilerLog:IsStopProfiler()

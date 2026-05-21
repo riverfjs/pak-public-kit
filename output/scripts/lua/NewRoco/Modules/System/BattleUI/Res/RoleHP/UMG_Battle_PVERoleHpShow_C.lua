@@ -134,8 +134,12 @@ function UMG_Battle_PVERoleHpShow_C:RefreshInfoShow()
   end
   self.teamHpDataList = {}
   self.enemyHpDataList = {}
-  for i = 1, #self.playerTeams do
-    self:InsertHpDataByRule1(self.playerTeams[i].player)
+  local teamPlayer = self.battleManager.battlePawnManager.TeamatePlayer
+  for i = #self.playerTeams, 1, -1 do
+    if self.playerTeams[i].player == teamPlayer then
+      self:InsertHpDataByRule1(self.playerTeams[i].player)
+      break
+    end
   end
   for i = 1, #self.enemyTeams do
     self:InsertHpDataByRule1(self.enemyTeams[i].player)

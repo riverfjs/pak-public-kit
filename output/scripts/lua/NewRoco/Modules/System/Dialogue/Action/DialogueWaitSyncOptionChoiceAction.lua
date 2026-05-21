@@ -67,11 +67,12 @@ function DialogueWaitSyncOptionChoiceAction:OnSyncOptionChoice(NextSync)
   for i = OptionsUI.ObjListNew:GetItemCount() - 1, 0, -1 do
     local item = OptionsUI.ObjListNew:GetItemByIndex(i)
     if item and item.SelectConf and item.SelectConf.id == NextSync.LastSelectID then
-      item:PlayAnimation(item.Select)
+      item:PlaySelectAnimation()
       UE4.UNRCAudioManager.Get():PlaySound2DAuto(1067, "UMG_DialogueSelectItem_C:OnMouseEnter")
     end
   end
-  _G.DelayManager:DelaySeconds(0.5, function()
+  self.DelayHandle = _G.DelayManager:DelaySeconds(0.5, function()
+    self.DelayHandle = nil
     self:Finish()
   end)
 end
@@ -111,6 +112,9 @@ function DialogueWaitSyncOptionChoiceAction:CheckOptionUI()
 end
 
 function DialogueWaitSyncOptionChoiceAction:OnFinish()
+  if self.DelayHandle then
+    _G.DelayManager:CancelDelayById(self.DelayHandle)
+  end
   if self.ParentModule then
     self.ParentModule:UnRegisterEvent(self, DialogueModuleEvent.SyncNextDialogue)
   end

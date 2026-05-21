@@ -16,6 +16,7 @@ local NRCPanelDynamicData = require("Core.NRCPanel.NRCPanelDynamicData")
 local UIUtilsTotal = require("NewRoco.Utils.UIUtils")
 local TipObject = require("NewRoco.Modules.System.TipsModule.Utils.TipObject")
 local FunctionBanUIController = require("NewRoco.Modules.System.FunctionBan.FunctionBanUIController")
+local BigMapModuleEnum = require("NewRoco.Modules.System.BigMap.BigMapModuleEnum")
 local FriendModule = NRCModuleBase:Extend("FriendModule")
 local FunctionEntranceMain = Enum.FunctionEntrance.FE_FRIEND
 
@@ -54,6 +55,7 @@ function FriendModule:OnConstruct()
   self:RegPanel("Friend_HomeEntrance", "UMG_FriendHome_Entrance", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, nil, true)
   self:RegPanel("QuickChatBubble", "UMG_QuickChatBubble", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, nil)
   self:RegPanel("TalkingBboutBubbles_Panel2", "UMG_TalkingBboutBubbles_Panel2", _G.Enum.UILayerType.UI_LAYER_BG)
+  self:RegPanel("FriendRecommendFilter", "UMG_FriendRecommendFilter", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, nil, true)
   local player = _G.NRCModuleManager:DoCmd(PlayerModuleCmd.GET_LOCAL_PLAYER)
   player:AddEventListener(self, PlayerModuleEvent.ON_PLAYER_DEAD, self.CmdClosePlaneExchangeVisitsHint)
   _G.NRCEventCenter:RegisterEvent("FriendModule", self, LoadingUIModuleEvent.LOADING_UI_CLOSED, self.GetVisitOwnerName)
@@ -65,6 +67,7 @@ function FriendModule:OnConstruct()
   _G.ZoneServer:AddProtocolListener(self, _G.ProtoCMD.ZoneSvrCmd.ZONE_SCENE_INTERACT_RESULT_NOTIFY, self.OnNotifyInteractResult)
   _G.ZoneServer:AddProtocolListener(self, _G.ProtoCMD.ZoneSvrCmd.ZONE_SCENE_BE_INTERACTED_NOTIFY, self.OnNotifyBeInteract)
   _G.ZoneServer:AddProtocolListener(self, _G.ProtoCMD.ZoneSvrCmd.ZONE_CHAT_GET_CHAT_LIST_RSP, self.OnZoneChatGetChatListRsp)
+  _G.ZoneServer:AddProtocolListener(self, _G.ProtoCMD.ZoneSvrCmd.ZONE_SCENE_DISBAND_VISIT_RSP, self.GetZoneDisbandVisitRsp)
   _G.ZoneServer:AddProtocolListener(self, _G.ProtoCMD.ZoneSvrCmd.ZONE_CHAT_UPDATE_CHAT_INFO_NOTIFY, self.UpdataChatInfoNotify)
   _G.ZoneServer:AddProtocolListener(self, _G.ProtoCMD.ZoneSvrCmd.ZONE_NEW_CARD_ICON_NOTIFY, self.OnReceiveNewCardIconNotify)
   _G.ZoneServer:AddProtocolListener(self, _G.ProtoCMD.ZoneSvrCmd.ZONE_NEW_CARD_SKIN_NOTIFY, self.OnReceiveNewCardSkinNotify)
@@ -77,7 +80,7 @@ function FriendModule:OnConstruct()
   _G.NRCEventCenter:RegisterEvent("FriendModule", self, BattleEvent.EnterBattle, self.CmdBattleClosePlane_Team)
   _G.NRCEventCenter:RegisterEvent("FriendModule", self, _G.NRCGlobalEvent.ON_RECONNECT_FINISH, self.OnReconnect)
   _G.DataModelMgr.PlayerDataModel:AddEventListener(self, PlayerDataEvent.VISIT_OWNER_CHANGED, self.OnVisitPlayerInfoSyncNotify)
-  _G.NRCEventCenter:RegisterEvent("FriendModule", self, SceneEvent.OnEnterSceneFinishNtyAck, self.AfterEnterScene)
+  _G.NRCEventCenter:RegisterEvent("FriendModule", self, SceneEvent.OnEnterSceneFinishNtyAckEnd, self.AfterEnterScene)
   _G.NRCEventCenter:RegisterEvent("FriendModule", self, SceneEvent.EntranceVisibleZone, self.OnPlayerEntranceVisibleZone)
   _G.NRCEventCenter:RegisterEvent("FriendModule", self, SceneEvent.LeaveVisibleZone, self.OnPlayerLeaveVisibleZone)
   _G.NRCEventCenter:RegisterEvent("FriendModule", self, SceneEvent.OnPlayerDead, self.DeadCloseStarChainPanel)
@@ -86,7 +89,6 @@ function FriendModule:OnConstruct()
   self.IsWaitVisitReplyRsp = false
   self.VisitListRefreshTime = 0
   self.bOpenByQuickChat = nil
-  self:InitializeCardInfo()
   self:SetEmojiRanges()
   _G.GVoiceManager:Init(_G.DataModelMgr.PlayerDataModel:GetPlayerUin())
   self.VisitNumMax = 0
@@ -178,12 +180,43 @@ end
 
 function FriendModule:OnDeactive()
   table.clear(self.chatBubblePanel2VisibilityFlags)
-  self:ClearAllBubbles()
+  self:ClearAllBubbles(false)
 end
 
-function FriendModule:ClearAllBubbles()
+function FriendModule:ClearAllBubbles(bAutoRestoreTypingBubble)
+  self:DoClearAllBubbles()
+  if bAutoRestoreTypingBubble then
+    self:TryRestoreTypingBubble()
+    self:TryRestoreOtherPlayersTypingBubble()
+  end
+end
+
+function FriendModule:DoClearAllBubbles(bAutoRestoreTypingBubble)
   if self.chatBubbleController_Ref then
     self.chatBubbleController:ClearAllBubbles()
+  end
+end
+
+function FriendModule:TryRestoreTypingBubble()
+  local shouldShow = self.data:ShouldShowTyping()
+  if shouldShow then
+    self:HideOrShowTypingBubbleInfo(false, _G.DataModelMgr.PlayerDataModel:GetPlayerUin())
+  end
+end
+
+function FriendModule:TryRestoreOtherPlayersTypingBubble()
+  local allPlayers = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_ALL_PLAYER)
+  if not allPlayers then
+    return
+  end
+  local selfUin = _G.DataModelMgr.PlayerDataModel:GetPlayerUin()
+  for _, player in pairs(allPlayers) do
+    if player and player.serverData and player.serverData.base then
+      local uin = player.serverData.base.logic_id
+      if uin ~= selfUin and player:IsLogicStatus(_G.Enum.SpaceActorLogicStatus.SALS_MSG_INPUT) then
+        self:HideOrShowTypingBubbleInfo(false, uin)
+      end
+    end
   end
 end
 
@@ -417,7 +450,7 @@ function FriendModule:OnReconnect()
   if self:HasPanel("Friend_Report") then
     self:ClosePanel("Friend_Report")
   end
-  self:ClearAllBubbles()
+  self:ClearAllBubbles(true)
   _G.NRCModuleManager:DoCmd(_G.CameraModuleCmd.ReturnCamera, self)
   _G.NRCPanelManager:CloseAllPanelByLayer(_G.Enum.UILayerType.UI_LAYER_POPUP)
   _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.TryDisplayAdditionalTarget)
@@ -515,7 +548,7 @@ function FriendModule:OnEnterMapByVisit()
   _G.NRCPanelManager:CloseAllPanelByLayer(_G.Enum.UILayerType.UI_LAYER_FULLSCREEN)
   _G.NRCPanelManager:CloseAllPanelByLayer(_G.Enum.UILayerType.UI_LAYER_POPUP)
   _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.CloseCompass)
-  self:ClearAllBubbles()
+  self:ClearAllBubbles(true)
   _G.NRCModuleManager:DoCmd(MainUIModuleCmd.OpenPanelLobbyMain)
   _G.NRCModuleManager:DoCmd(TeamBattleModuleCmd.CloseModuleAllPanel)
   _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.Dialog_CloseDialog)
@@ -525,14 +558,14 @@ function FriendModule:OnOwnerEnterMapByVisit()
   _G.NRCPanelManager:CloseAllPanelByLayer(_G.Enum.UILayerType.UI_LAYER_FULLSCREEN)
   _G.NRCModuleManager:DoCmd(_G.InstanceModuleCmd.CloseEnterPanel)
   _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.CloseCompass)
-  self:ClearAllBubbles()
+  self:ClearAllBubbles(true)
   _G.NRCModuleManager:DoCmd(MainUIModuleCmd.OpenPanelLobbyMain)
   _G.NRCModuleManager:DoCmd(TeamBattleModuleCmd.CloseModuleAllPanel)
   _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.Dialog_CloseDialog)
 end
 
 function FriendModule:HandleSceneEvent_OnTeleportNotify()
-  self:ClearAllBubbles()
+  self:ClearAllBubbles(true)
 end
 
 function FriendModule:GetRandomPos()
@@ -549,80 +582,6 @@ function FriendModule:GetRandomPos()
 end
 
 function FriendModule:ReqZonePlayerInteract(Uin, Type)
-  if Type == ProtoEnum.PlayerInteractType.Visiting then
-    local isBan = _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.CheckUIFunctionBan, _G.Enum.FunctionEntrance.FE_VISITOR, true)
-    if isBan then
-      return
-    end
-  elseif Type == ProtoEnum.PlayerInteractType.InviteVisiting then
-    local isBan = _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.CheckUIFunctionBan, _G.Enum.FunctionEntrance.FE_TEAM_INVITE, true)
-    if isBan then
-      return
-    end
-  elseif Type == ProtoEnum.PlayerInteractType.ExchangeEgg then
-    local isBan = _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.CheckUIFunctionBan, _G.Enum.FunctionEntrance.FE_EXCHANGE_EGG, true)
-    if isBan then
-      return
-    end
-  end
-  local touchReasonType = _G.NRCModuleManager:DoCmd(MultiTouchModuleCmd.GetPanelSelectBtnReason, "Friend").STARTVISIT
-  local Req = _G.ProtoMessage:newZoneScenePlayerInteractReq()
-  Req.type = Type
-  Req.uin = Uin
-  Req.pos = self:GetRandomPos()
-  if Type == ProtoEnum.PlayerInteractType.InviteVisiting then
-    if Req.pos then
-      print("==amonsu========ReqZonePlayerInteract1", Type)
-      _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_SCENE_PLAYER_INTERACT_REQ, Req, self, self.OnResZonePlayerInteract, false, true)
-    else
-      _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, _G.DataConfigManager:GetLocalizationConf("Error_Code_2184").msg)
-      _G.NRCModuleManager:DoCmd(MultiTouchModuleCmd.UnlockIsSelectBtn, "FriendModule", "Friend", touchReasonType)
-    end
-  else
-    local tackTaskList = NRCModuleManager:DoCmd(_G.TaskModuleCmd.getAllTraceTask, true)
-    if tackTaskList then
-      for i = 1, #tackTaskList do
-        if tackTaskList[i].Config.online_forbid then
-          _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, string.format(_G.DataConfigManager:GetLocalizationConf("Error_Code_2147").msg, tackTaskList[i].Config.name))
-          _G.NRCModuleManager:DoCmd(MultiTouchModuleCmd.UnlockIsSelectBtn, "FriendModule", "Friend", touchReasonType)
-          return
-        end
-      end
-    end
-    print("==amonsu========ReqZonePlayerInteract2", Type)
-    _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_SCENE_PLAYER_INTERACT_REQ, Req, self, self.OnResZonePlayerInteract, false, true)
-  end
-end
-
-function FriendModule:OnResZonePlayerInteract(Res)
-  print("==amonsu========OnResZonePlayerInteract", Res.type, Res.ret_info.ret_code)
-  if 0 == Res.ret_info.ret_code then
-    if Res.type == ProtoEnum.PlayerInteractType.Visiting and Res.visitting_permission_type ~= ProtoEnum.VisitPermissionSettingType.VPST_JOIN_DIRECT then
-      _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, _G.DataConfigManager:GetLocalizationConf("online_apply_succeed_visitor_tips").msg)
-    elseif Res.type == ProtoEnum.PlayerInteractType.InviteVisiting then
-      _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, _G.DataConfigManager:GetLocalizationConf("online_invite_succeed_tips").msg)
-    elseif Res.type == ProtoEnum.PlayerInteractType.Fighting then
-      _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, _G.DataConfigManager:GetLocalizationConf("spar_invite_succeed_tips").msg)
-    elseif Res.type == ProtoEnum.PlayerInteractType.ExchangeEgg then
-      _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, _G.DataConfigManager:GetLocalizationConf("petegg_trade_invite_succeed_tips").msg)
-    elseif Res.type == ProtoEnum.PlayerInteractType.DoubleRide then
-      _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, _G.DataConfigManager:GetLocalizationConf("ride_invitation_sent").msg)
-    end
-    local playerInteractType = FriendEnum.CardInteractionEntrance.None
-    if Res.type == ProtoEnum.PlayerInteractType.Visiting then
-      playerInteractType = FriendEnum.CardInteractionEntrance.RequestAccess
-    elseif Res.type == ProtoEnum.PlayerInteractType.InviteVisiting then
-      playerInteractType = FriendEnum.CardInteractionEntrance.Invitation
-    end
-    if playerInteractType ~= FriendEnum.CardInteractionEntrance.None then
-      self.data:SetApplyTimeForPlayerInteractType(Res.player_info.uin, playerInteractType, Res.player_info.apply_time)
-    end
-    self:DispatchEvent(FriendModuleEvent.ResZonePlayerInteract, Res)
-  else
-    self:DealErrorCodeForInteract(Res)
-  end
-  local touchReasonType = _G.NRCModuleManager:DoCmd(MultiTouchModuleCmd.GetPanelSelectBtnReason, "Friend").STARTVISIT
-  _G.NRCModuleManager:DoCmd(MultiTouchModuleCmd.UnlockIsSelectBtn, "FriendModule", "Friend", touchReasonType)
 end
 
 function FriendModule:OnNotifyInteractResult(Notify)
@@ -728,72 +687,6 @@ function FriendModule:CmdGetWaitVisitReplyRsp()
 end
 
 function FriendModule:ReqZoneReplyPlayerInteract(Uin, Type, Agree)
-  local Req = _G.ProtoMessage:newZoneSceneReplyPlayerInteractReq()
-  Req.type = Type
-  Req.uin = Uin
-  Req.agree = Agree
-  Req.pos = self:GetRandomPos()
-  self.AgreeReplyPlayerInteract = Agree
-  if Type == ProtoEnum.PlayerInteractType.Visiting then
-    if self.IsWaitVisitReplyRsp then
-      _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.online_visitor_apply_list_cd)
-      return
-    else
-      self.IsWaitVisitReplyRsp = true
-      self.delayReqZoneReplyPlayerInteractId = _G.DelayManager:DelaySeconds(1, function()
-        if self.IsWaitVisitReplyRsp then
-          self.IsWaitVisitReplyRsp = false
-        end
-      end)
-    end
-    self.data:RemoveApplyVisitNotifyToListByUin(Uin)
-    if Req.pos then
-      print("==amonsu========ReqZoneReplyPlayerInteract1", Type)
-      _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_SCENE_REPLY_PLAYER_INTERACT_REQ, Req, self, self.OnResZoneReplyPlayerInteract, false, true)
-      self:DispatchEvent(FriendModuleEvent.ConfirmReplyPlayerInteract, Req)
-    else
-      local VisitPermissionType = _G.DataModelMgr.PlayerDataModel:GetVisitPermissionType()
-      if VisitPermissionType == ProtoEnum.VisitPermissionSettingType.VPST_JOIN_DIRECT then
-      else
-        _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, _G.DataConfigManager:GetLocalizationConf("Error_Code_2184").msg)
-      end
-    end
-  else
-    if Type == ProtoEnum.PlayerInteractType.InviteVisiting and Uin == self.InviteVisitingUin then
-      self.InviteVisitingUin = nil
-    end
-    print("==amonsu========ReqZoneReplyPlayerInteract2", Type)
-    _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_SCENE_REPLY_PLAYER_INTERACT_REQ, Req, self, self.OnResZoneReplyPlayerInteract, false, true)
-    self:DispatchEvent(FriendModuleEvent.ConfirmReplyPlayerInteract, Req)
-  end
-end
-
-function FriendModule:OnResZoneReplyPlayerInteract(Res)
-  if Res.type == ProtoEnum.PlayerInteractType.Visiting then
-    self.IsWaitVisitReplyRsp = false
-    local VisitPermissionType = _G.DataModelMgr.PlayerDataModel:GetVisitPermissionType()
-    if VisitPermissionType == ProtoEnum.VisitPermissionSettingType.VPST_JOIN_DIRECT then
-      local NotifyList = self.data:GetApplyVisitNotifyList()
-      if NotifyList and #NotifyList > 0 then
-        self:ReqZoneReplyPlayerInteract(NotifyList[1].uin, ProtoEnum.PlayerInteractType.Visiting, true)
-      end
-    elseif VisitPermissionType == ProtoEnum.VisitPermissionSettingType.VPST_JOIN_REFUSE then
-      local NotifyList = self.data:GetApplyVisitNotifyList()
-      if NotifyList and #NotifyList > 0 then
-        self:ReqZoneReplyPlayerInteract(NotifyList[1].uin, ProtoEnum.PlayerInteractType.Visiting, false)
-      end
-    end
-  end
-  if 0 == Res.ret_info.ret_code then
-    if self.AgreeReplyPlayerInteract then
-      if Res.type == ProtoEnum.PlayerInteractType.ExchangeEgg then
-        _G.NRCModeManager:DoCmd(_G.BagModuleCmd.OpenSwapEggsUI)
-      end
-      self.AgreeReplyPlayerInteract = nil
-    end
-  else
-    self:DealErrorCodeForInteract(Res)
-  end
 end
 
 function FriendModule:ReqZonePickEggReq(EggGid)
@@ -942,8 +835,6 @@ function FriendModule:DealErrorCodeForInteract(rsp)
 end
 
 function FriendModule:GetApplyVisitListInfoReq()
-  local req = _G.ProtoMessage:newZoneSceneApplyVisitListQueryReq()
-  _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_SCENE_APPLY_VISIT_LIST_QUERY_REQ, req, self, self.OpenApplyVisitPanel, false, true)
 end
 
 function FriendModule:OpenApplyVisitPanel(_rsp)
@@ -1101,6 +992,16 @@ function FriendModule:SetOnlineVisitorChangeNotify(_notify)
     self.FirstVisit = false
   else
     if not _notify.visitors then
+      if _notify.change_reason == ProtoEnum.OnlineVisitorInfoChangeReason.OVICR_VISITOR_NUM then
+        self:ClosePanel("Plane_Team")
+        if self:HasPanel("Friend") then
+          local panel = self:GetPanel("Friend")
+          panel:SetItemsVisitState()
+        end
+        local uin = _G.DataModelMgr.PlayerDataModel:GetPlayerUin() or 0
+        NRCEventCenter:DispatchEvent(FriendModuleEvent.OnVisitorLeaved, uin)
+        Log.Error("\232\167\163\230\149\163\233\152\159\228\188\141")
+      end
       return
     end
     local OnlineVisitorList = self.data:GetOnlineVisitorList()
@@ -1161,19 +1062,6 @@ function FriendModule:SetOnlineVisitorChangeNotify(_notify)
         end
       end
     end
-    if #_notify.visitors > #OnlineVisitorList then
-      local visitorOwnerUin = _notify.visitors[1].uin
-      for i = 1, #_notify.visitors do
-        if nil == OnlineVisitorList[i] and _notify.visitors[i].uin ~= visitorOwnerUin then
-          local player = NRCModeManager:DoCmd(PlayerModuleCmd.GetPlayerByUin, _notify.visitors[i].uin)
-          if player then
-            player:PlayVisitorTeleportEffect()
-          else
-            NRCModeManager:DoCmd(PlayerModuleCmd.SetWaitToPlayVisitorAppearEffect, _notify.visitors[i].uin)
-          end
-        end
-      end
-    end
   end
   local visitList = _notify.visitors
   local visitListInfo = self.data:GetVisitListChangeInfo()
@@ -1222,8 +1110,7 @@ function FriendModule:CmdZoneVisitNetworkSyncReq(PlayerList)
       return
     end
   end
-  local req = _G.ProtoMessage:newZoneSceneVisitNetworkSyncReq()
-  _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_SCENE_VISIT_NETWORK_SYNC_REQ, req, self, self.GetZoneVisitNetworkSyncRsp, false, true)
+  self:OnOpenFriendPanelTeam()
   local _req = _G.ProtoMessage:newZoneQueryVisitorInfoReq()
   _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_QUERY_VISITOR_INFO_REQ, _req, self, self.GetZoneQueryVisitorInfoRsp, false, true)
 end
@@ -1247,10 +1134,6 @@ function FriendModule:ZoneGetHomeNetWorkRsp(rsp)
     end
   end
   self:OpenPanel("Plane_Team", self.HomePlayerList)
-end
-
-function FriendModule:GetZoneVisitNetworkSyncRsp(rsp)
-  self:OnOpenFriendPanelTeam()
 end
 
 function FriendModule:SetOnlineVisitorInfoNotify(_notify)
@@ -1284,19 +1167,11 @@ end
 
 function FriendModule:SetZoneDisbandVisitReq()
   local Req = _G.ProtoMessage:newZoneSceneDisbandVisitReq()
-  _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_SCENE_DISBAND_VISIT_REQ, Req, self, self.GetZoneDisbandVisitRsp, false, true)
+  _G.ZoneServer:Send(_G.ProtoCMD.ZoneSvrCmd.ZONE_SCENE_DISBAND_VISIT_REQ, Req)
 end
 
 function FriendModule:GetZoneDisbandVisitRsp(rsp)
   if 0 == rsp.ret_info.ret_code then
-    self:ClosePanel("Plane_Team")
-    if self:HasPanel("Friend") then
-      local panel = self:GetPanel("Friend")
-      panel:SetItemsVisitState()
-    end
-    local uin = _G.DataModelMgr.PlayerDataModel:GetPlayerUin() or 0
-    NRCEventCenter:DispatchEvent(FriendModuleEvent.OnVisitorLeaved, uin)
-    Log.Error("\232\167\163\230\149\163\233\152\159\228\188\141")
   elseif rsp.ret_info.ret_code == ProtoEnum.MOBA_RET.ZoneErr.ERR_ZONE_ONLY_OWNER_DISBAND_VISIT then
     _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, _G.DataConfigManager:GetLocalizationConf("Error_Code_2157").msg)
   else
@@ -1401,7 +1276,7 @@ function FriendModule:CmdBattleClosePlane_Team()
   if self:HasPanel("Plane_Team") then
     self:ClosePanel("Plane_Team")
   end
-  self:ClearAllBubbles()
+  self:ClearAllBubbles(true)
 end
 
 function FriendModule:CmdOnPCKeyPressClosePlane_Team()
@@ -1733,6 +1608,7 @@ function FriendModule:OnAddOrRemoveBlackListRsp(_rsp)
     self:DispatchEvent(FriendModuleEvent.AddOrRemoveBlackListUpdate)
     NRCEventCenter:DispatchEvent(FriendModuleEvent.AddOrRemoveBlackListUpdate)
     self:DispatchEvent(FriendModuleEvent.AddFriendOrRemoveFriendSucceed)
+    _G.NRCEventCenter:DispatchEvent(FriendModuleEvent.AddFriendOrRemoveFriendSucceed)
     self:DispatchEvent(FriendModuleEvent.OnFriendApplyListUpdate)
     self:DispatchEvent(FriendModuleEvent.OnFriendRefreshRecommendSuccess)
     self:CloseStudentCard()
@@ -1824,6 +1700,7 @@ function FriendModule:FriendAddOrRemoveFriendNotify(_notify)
     self.data:RemoveFriendListByUin(_notify.uin, _notify.change_friend_role)
     self.data:SetIsFriend(false, _notify.uin)
     self:DispatchEvent(FriendModuleEvent.AddFriendOrRemoveFriendSucceed)
+    _G.NRCEventCenter:DispatchEvent(FriendModuleEvent.AddFriendOrRemoveFriendSucceed)
     self.data:RemoveSessionInfo(_notify.uin)
     self:OnCloseFriendInfoFrame()
   elseif _notify.oper_type == _G.ProtoEnum.ZoneFriendAddOrRemoveFriendNotify.TYPE.ADD_FRIEND_AGREE then
@@ -1834,6 +1711,7 @@ function FriendModule:FriendAddOrRemoveFriendNotify(_notify)
     if self:HasPanel("Friend") then
       self:DispatchEvent(FriendModuleEvent.AddFriendOrRemoveFriendSucceed)
     end
+    _G.NRCEventCenter:DispatchEvent(FriendModuleEvent.AddFriendOrRemoveFriendSucceed)
   elseif _notify.oper_type == _G.ProtoEnum.ZoneFriendAddOrRemoveFriendNotify.TYPE.REMOVE_FRIEND_REQ then
     self.data:RemoveFriendApplyForListByUin(_notify.uin)
     self:DispatchEvent(FriendModuleEvent.OnFriendApplyListUpdate)
@@ -2114,6 +1992,10 @@ function FriendModule:OnFriendSearchPlayerRsp(Rsp)
   self.LastSearchPlayerRsp = Rsp
   if 0 == Rsp.ret_info.ret_code then
     self.data:SetIsSearchSucceed(true)
+    if Rsp.player_info and Rsp.can_be_add_friend ~= nil then
+      Rsp.player_info.can_be_add_friend = Rsp.can_be_add_friend
+      Log.DebugFormat("FriendModule:OnFriendSearchPlayerRsp can_be_add_friend = %s, uin = %s", tostring(Rsp.can_be_add_friend), tostring(Rsp.player_info.uin))
+    end
     self.data:SetIsFriend(Rsp.is_friend, Rsp.player_info.uin)
     self.data:SetSearchInfo(Rsp.player_info)
     self:DispatchEvent(FriendModuleEvent.IsSearchSucceed, self.data:GetIsSearchSucceed())
@@ -2234,6 +2116,7 @@ function FriendModule:OnBatchRemoveFriendRsp(rsp)
       self.data:RemoveSessionInfo(uin)
     end
     self:DispatchEvent(FriendModuleEvent.AddFriendOrRemoveFriendSucceed)
+    _G.NRCEventCenter:DispatchEvent(FriendModuleEvent.AddFriendOrRemoveFriendSucceed)
     _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.delete_friend_tips)
   else
     Log.Error("[FriendModule:OnBatchRemoveFriendRsp] failed, ret_code = " .. rsp.ret_info.ret_code)
@@ -2254,7 +2137,11 @@ function FriendModule:OnFriendRefreshRecommendReq(isResetCount)
   end
   local req = _G.ProtoMessage:newZoneFriendGetRecommendFriendListReq()
   req.count = refreshCount
-  Log.Debug("[FriendModule:OnGetRecommendFriendListReq] req count = " .. refreshCount .. ", curMsTime = " .. curMsTime)
+  local filterBitFlag = self.data:GetRecommendFilterSourceBitFlag()
+  if filterBitFlag > 0 then
+    req.source = filterBitFlag
+  end
+  Log.Debug("[FriendModule:OnGetRecommendFriendListReq] req count = " .. refreshCount .. ", curMsTime = " .. curMsTime .. ", source = " .. filterBitFlag)
   _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_FRIEND_GET_RECOMMEND_FRIEND_LIST_REQ, req, self, self.OnFriendRefreshRecommendRsp, false, true)
   self.data:SetLastMsTimeRecommendRefresh(curMsTime)
   self.data:SetRecommendRefreshCount(refreshCount + 1)
@@ -2338,6 +2225,7 @@ function FriendModule:OnModifyPlayerRemarkRsp(_rsp)
     self:DispatchEvent(FriendModuleEvent.ModifyPlayerNameUpdate, _rsp.name)
     self:DispatchEvent(FriendModuleEvent.NotifyNameChangeRsp, _rsp)
     _G.NRCModeManager:DoCmd(LevelUpUIModuleCmd.ChangeLevelPlayerName)
+    _G.NRCModeManager:DoCmd(SystemSettingModuleCmd.ChangePlayerName)
     self:ClosePanelByName("Friend_Remark")
     _G.NRCModeManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.card_name_modify_tips)
   elseif _rsp.ret_info.ret_code == ProtoEnum.MOBA_RET.ZoneErr.ERR_ZONE_ILLEGAL_CHAR then
@@ -2419,7 +2307,7 @@ function FriendModule:OnDestruct()
     _G.DelayManager:CancelDelayById(self.MoveEndHandler)
     self.MoveEndHandler = nil
   end
-  _G.NRCEventCenter:UnRegisterEvent(self, SceneEvent.OnEnterSceneFinishNtyAck, self.AfterEnterScene)
+  _G.NRCEventCenter:UnRegisterEvent(self, SceneEvent.OnEnterSceneFinishNtyAckEnd, self.AfterEnterScene)
   if self.chatBubbleController_Ref then
     self.chatBubbleController:DestroyForLua()
     self.chatBubbleController_Ref = nil
@@ -2543,6 +2431,10 @@ function FriendModule:OnCmdCloseChatMainPanel()
       chatPanel:DoClose()
     end
   end
+end
+
+function FriendModule:OnCmdCheckChatMainPanelIsOpen()
+  return self:HasPanel("Chat_Main")
 end
 
 function FriendModule:OnCmdCloseFriendChatPanel()
@@ -2714,6 +2606,7 @@ function FriendModule:OnZoneChatSendChatMessageRsp(rsp)
       local tip = _G.DataConfigManager:GetLocalizationConf("input_sensitive_words_tips").msg
       _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, tip)
     end
+    self:ShowBubblePanel(rsp.recv_uin, rsp.chat_message)
   elseif recode == _G.ProtoEnum.MOBA_RET.ChatErr.ERR_CHAT_MSG_INVALID then
     local tip = _G.DataConfigManager:GetLocalizationConf("chat_message_send_empty_tips2").msg
     _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, tip)
@@ -2818,10 +2711,18 @@ end
 
 function FriendModule:ShowBubblePanel(recv_uin, chat_message)
   if recv_uin == _G.ProtoEnum.SpecialChatSessionUin.SCSU_MULTI_TEAM then
+    local bLogicVisible = false
     local playerUin = chat_message and chat_message.uin
     local model = self:GetAdaptivePlayerModel(playerUin)
     local time_stamp = chat_message and chat_message.time_stamp
-    if model and UE.UObject.IsValid(model) and not model.bHidden then
+    local selfInFighting = _G.BattleManager:IsInBattle()
+    if selfInFighting then
+      bLogicVisible = model and UE.UObject.IsValid(model) and not model.bHidden
+    else
+      local bigWordPlayer = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GetPlayerByUin, playerUin)
+      bLogicVisible = self:CheckChatVisibleForPlayer(bigWordPlayer)
+    end
+    if bLogicVisible then
       if self:IsEmo(chat_message.chat_message) then
         local Path = self:OnCmdGetEmoPathByEsc(chat_message.chat_message)
         if Path then
@@ -2863,17 +2764,24 @@ function FriendModule:OnZoneChatRemoveChatListRsp(rsp)
 end
 
 function FriendModule:OnZoneChatGetChatMessageReq(uin, offset, count)
+  if uin == self.data.MultiPlayerChannelType then
+    Log.DebugFormat("FriendModule:OnZoneChatGetChatMessageReq for multi-player channel, uin=%s, offset=%s, count=%s. Using local cache without server request.", tostring(uin), tostring(offset), tostring(count))
+    self:DispatchEvent(FriendModuleEvent.OnGetChatMessageSucc, uin)
+    return
+  end
   local messageList = self:OnCmdGetChatInfoByUin(uin, false)
   if messageList and #messageList >= offset + count - 1 then
     self:OnCmdRefreshMessageListByUin(uin)
   else
+    if self.data.ChatAllMsgFetchedMap[uin] and messageList and #messageList > 0 then
+      Log.DebugFormat("FriendModule:OnZoneChatGetChatMessageReq for uin=%s, offset=%s, count=%s. All messages already fetched and local cache exists. Refreshing from local cache without server request.", tostring(uin), tostring(offset), tostring(count))
+      self:OnCmdRefreshMessageListByUin(uin)
+      return
+    end
     local req = _G.ProtoMessage.newZoneChatGetChatMessageReq()
     req.uin = uin
     req.offset = offset
     req.count = count
-    if req.uin == self.data.MultiPlayerChannelType then
-      req.visit_owner_uin = _G.DataModelMgr.PlayerDataModel:GetPlayerVisitOwnerUin()
-    end
     _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_CHAT_GET_CHAT_MESSAGE_REQ, req, self, self.OnZoneChatGetChatMessageRsp, false, true)
   end
 end
@@ -2883,6 +2791,12 @@ function FriendModule:OnZoneChatGetChatMessageRsp(rsp)
   local chatMessageList = rsp.chat_message_list
   local uin = rsp.uin
   if 0 == rsp.ret_info.ret_code then
+    if rsp.all_msg_fetched then
+      Log.DebugFormat("FriendModule:OnZoneChatGetChatMessageRsp, all messages fetched for uin=%s", tostring(uin))
+      self.data.ChatAllMsgFetchedMap[uin] = true
+    else
+      self.data.ChatAllMsgFetchedMap[uin] = false
+    end
     if rsp.offset and rsp.offset > 1 then
       for k, v in ipairs(self.data.ChatSessionList) do
         if v.basic_info.uin == uin then
@@ -2917,7 +2831,7 @@ function FriendModule:OnCmdGetEmoPathByEsc(message)
   if string.IsNilOrEmpty(message) then
     return
   end
-  local EmojiEscData = self.data.EmojiEscToIdMap[message]
+  local EmojiEscData = self.data.CanSeeEmojiEscToIdMap[message]
   local EmoId = EmojiEscData and EmojiEscData.id
   if not EmoId then
     return nil
@@ -3030,15 +2944,25 @@ end
 
 function FriendModule:HideOrShowTypingBubbleInfo(IsHide, Uin)
   local player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GetPlayerByUin, Uin)
-  if player and player.viewObj and not player.viewObj.bHidden then
-    local bInFighting = player:IsLogicStatus(ProtoEnum.SpaceActorLogicStatus.SALS_FIGHTING)
-    if IsHide or bInFighting then
+  if player and player.viewObj and UE.UObject.IsValid(player.viewObj) then
+    local bLogicVisible = self:CheckChatVisibleForPlayer(player)
+    if IsHide or not bLogicVisible then
       self.chatBubbleController:HideTypingBubble(player.viewObj)
     else
       local TextColor = self:GetTextColorByPlayerUin(Uin)
       self.chatBubbleController:ShowTypingBubble(player.viewObj, TextColor)
     end
   end
+end
+
+function FriendModule:CheckChatVisibleForPlayer(player)
+  local bLogicVisible = true
+  if not player.viewObj.bHidden then
+  else
+    local bInBlindBox = player:IsLogicStatus(ProtoEnum.SpaceActorLogicStatus.SALS_PLAYER_IN_BLINDBOX)
+    bLogicVisible = bInBlindBox
+  end
+  return bLogicVisible
 end
 
 function FriendModule:HideOrSHowQuickChatBubble(IsHide)
@@ -3099,7 +3023,7 @@ function FriendModule:OnCmdUpdateCardInfo(_rsp)
   self:OnInitializeCardInfo(_rsp)
 end
 
-function FriendModule:OnOpenStudentCardPanel(FriendInfo, AdminFriendType, Source, SELECT_TAB, IsPhotograph, bToggleToPhotoCropping, studentCardForbidAddFriend)
+function FriendModule:OnOpenStudentCardPanel(FriendInfo, AdminFriendType, Source, SELECT_TAB, IsPhotograph, bToggleToPhotoCropping, studentCardForbidAddFriend, Action, forbidEdit)
   self:ChitchatOpenCardPanel()
   local FriendType = AdminFriendType
   local SourceType = Source
@@ -3115,7 +3039,10 @@ function FriendModule:OnOpenStudentCardPanel(FriendInfo, AdminFriendType, Source
   if nil == studentCardForbidAddFriend then
     studentCardForbidAddFriend = false
   end
-  self.data:SetModifyCardInfo(FriendInfo, FriendType, SourceType, SELECT_TAB, bToggleToPhotoCropping, studentCardForbidAddFriend)
+  if nil == forbidEdit then
+    forbidEdit = false
+  end
+  self.data:SetModifyCardInfo(FriendInfo, FriendType, SourceType, SELECT_TAB, bToggleToPhotoCropping, studentCardForbidAddFriend, forbidEdit)
   if FriendType == FriendEnum.AdminFriendType.Own then
     local PlayerCardInfo = _G.DataModelMgr.PlayerDataModel:GetPlayerCardInfo()
     local PlayerCardBriefInfo = _G.DataModelMgr.PlayerDataModel:GetCardBriefInfo()
@@ -3141,12 +3068,18 @@ function FriendModule:OnOpenStudentCardPanel(FriendInfo, AdminFriendType, Source
         if Text then
           _G.NRCModeManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, Text)
         end
+        if Action then
+          Action:Finish()
+        end
         return
       end
-      _G.NRCModuleManager:DoCmd(_G.RelationTreeCmd.OpenRelationCover, uin)
+      _G.NRCModuleManager:DoCmd(_G.RelationTreeCmd.OpenRelationCover, uin, Action)
       return
     else
       if not FriendInfo or not FriendInfo.uin then
+        if Action then
+          Action:Finish()
+        end
         Log.Error("FriendModule:OnOpenStudentCardPanel", "FriendInfo or FriendInfo.uin is nil")
         return
       end
@@ -3813,6 +3746,7 @@ function FriendModule:OnVisitPlayerInfoSyncNotify(oldOwner, newOwner, bFirstEnte
       if nil ~= oldOwner then
         if oldOwner ~= playerUin then
           _G.NRCModuleManager:DoCmd(BigMapModuleCmd.TraceNpcByID, -1)
+          _G.NRCModuleManager:DoCmd(BigMapModuleCmd.ClearTraceInfoByType, BigMapModuleEnum.TraceType.ForceTrace)
         end
         self:OnLeaveOnlineVisit()
         _G.NRCEventCenter:DispatchEvent(FriendModuleEvent.OnLeaveVisit)
@@ -3820,6 +3754,7 @@ function FriendModule:OnVisitPlayerInfoSyncNotify(oldOwner, newOwner, bFirstEnte
     elseif bFirstEnter then
       if not _G.DataModelMgr.PlayerDataModel:IsVisitOwner() then
         _G.NRCModuleManager:DoCmd(BigMapModuleCmd.TraceNpcByID, -1)
+        _G.NRCModuleManager:DoCmd(BigMapModuleCmd.ClearTraceInfoByType, BigMapModuleEnum.TraceType.ForceTrace)
       end
       self:OnEnterOnlineVisit()
       _G.NRCEventCenter:DispatchEvent(FriendModuleEvent.OnEnterVisit, bFirstEnter)
@@ -3864,6 +3799,13 @@ function FriendModule:OnCmdWatchFriendBattle(battlerUin)
   end
   local a = require("Common.Coroutine.async")
   local au = require("Common.Coroutine.async_util")
+  local localPlayer = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
+  if localPlayer:IsInTogetherMove() and localPlayer.viewObj then
+    local rideComp = localPlayer.viewObj.BP_RideComponent
+    if rideComp and rideComp:TryChangeToLink() then
+      localPlayer:StopRide(true, nil)
+    end
+  end
   _G.NRCModuleManager:DoCmd(BattleUIModuleCmd.ReqJoinObservingBattle, battlerUin)
 end
 
@@ -3881,6 +3823,24 @@ end
 
 function FriendModule:OnCmdCloseFriendWold()
   self:ClosePanel("Friend_Wold")
+end
+
+function FriendModule:OnOpenFriendRecommendFilter()
+  self:OpenPanel("FriendRecommendFilter")
+end
+
+function FriendModule:OnCloseFriendRecommendFilter()
+  self:ClosePanel("FriendRecommendFilter")
+end
+
+function FriendModule:OnCmdHasCardIcon(cardIconId)
+  local cardIconList = self.data:GetIconList()
+  for idx, skin in ipairs(cardIconList) do
+    if skin.card_item_id == cardIconId and 0 ~= skin.card_item_get_timestamp then
+      return true
+    end
+  end
+  return false
 end
 
 function FriendModule:OnCmdHasCardSkin(cardSkinItemId)
@@ -3965,7 +3925,7 @@ function FriendModule:OnReceiveNewCardLabelNotify(newCardLabelNotify)
   end
 end
 
-function FriendModule:AfterEnterScene()
+function FriendModule:AfterEnterScene(notify, isReconnecting, isEnteringCell, preMapId, mapID)
   if self.bHadReqInitializeCardInfo == false then
     self:InitializeCardInfo()
   end
@@ -4082,6 +4042,9 @@ function FriendModule:SetIsPanelMoveCamera(isMove)
   if nil == player then
     return
   end
+  if _G.BattleManager:IsInBattle() then
+    return
+  end
   local isHand2p = player.statusComponent:HasStatus(_G.ProtoEnum.WorldPlayerStatusType.WPST_HAND_IN_HAND_2P)
   if isHand2p then
     self.data.isPanelMoveCamera = false
@@ -4096,6 +4059,10 @@ end
 
 function FriendModule:OnCmdGetOwnedLabel()
   return self.data.label_owned
+end
+
+function FriendModule:OnCmdGetFriendBehaviorText(friendRoleInfo)
+  return self:GetFriendBehaviorText(friendRoleInfo)
 end
 
 function FriendModule:MoveCamera(TargetCameraTransform, InitCameraTransform, timer, isRevert)
@@ -4264,11 +4231,15 @@ function FriendModule:IsInInteract(playerUin1, playerUin2)
 end
 
 function FriendModule:GetFriendBehaviorText(friendRoleInfo)
-  local onlineTitle = self:GetBattleInfo(friendRoleInfo)
+  return self:GetPlayerOnlineStatusText(friendRoleInfo.battle_brief_info, friendRoleInfo.pos_info)
+end
+
+function FriendModule:GetPlayerOnlineStatusText(battle_brief_info, pos_info)
+  local onlineTitle = self:GetBattleInfo(battle_brief_info)
   if "" ~= onlineTitle then
     return onlineTitle
   end
-  onlineTitle = self:GetZonePositionInfo(friendRoleInfo)
+  onlineTitle = self:GetZonePositionInfo(pos_info)
   if "" ~= onlineTitle then
     return onlineTitle
   end
@@ -4277,12 +4248,11 @@ function FriendModule:GetFriendBehaviorText(friendRoleInfo)
   return onlineTitle
 end
 
-function FriendModule:GetBattleInfo(friendRoleInfo)
-  if not friendRoleInfo then
+function FriendModule:GetBattleInfo(battleBriefInfo)
+  if not battleBriefInfo then
     return ""
   end
   local onlineTitle = ""
-  local battleBriefInfo = friendRoleInfo.battle_brief_info
   local canBeWatchBattle = false
   if nil ~= battleBriefInfo and nil ~= next(battleBriefInfo) and battleBriefInfo.battle_state and battleBriefInfo.battle_state > 0 then
     local isInBattleState = battleBriefInfo.battle_state == ProtoEnum.PlayerBattleState.PLAYER_BATTLE_STATE_IN_BATTLE
@@ -4312,11 +4282,11 @@ function FriendModule:GetBattleInfo(friendRoleInfo)
   return onlineTitle
 end
 
-function FriendModule:GetZonePositionInfo(friendRoleInfo)
-  if not friendRoleInfo then
+function FriendModule:GetZonePositionInfo(pos_info)
+  if not pos_info then
     return ""
   end
-  local zonePositionInfo = friendRoleInfo.pos_info
+  local zonePositionInfo = pos_info
   if not zonePositionInfo then
     return ""
   end

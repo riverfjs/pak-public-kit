@@ -61,6 +61,7 @@ function UMG_MapRightPanel_C:OnCloseButtonClicked()
   UE4.UNRCAudioManager.Get():PlaySound2DAuto(40008020, "UMG_MapRightPanel_C:OnCloseButtonClicked")
   if self.playAniEffect then
     self:PlayAnimation(self.Out)
+    _G.NRCEventCenter:DispatchEvent(_G.NRCGlobalEvent.CloseOwlTips)
     if self.curSubPanelIndex and self.curSubPanelIndex >= 0 then
       local subPanel = self.switcherPanels:GetWidgetAtIndex(self.curSubPanelIndex)
       if subPanel then

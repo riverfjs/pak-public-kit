@@ -9,17 +9,21 @@ local ItemState = {
   CanExchange = 1,
   CanAddIn = 2,
   LockNormal = 3,
-  Lock = 4
+  Lock = 4,
+  RandomPet = 5
 }
+UMG_Common_ListItem_Pet1_C.ItemState = ItemState
 
 function UMG_Common_ListItem_Pet1_C:OnConstruct()
+  self.isSelect = false
+  self.isSelectDisplay = false
+  self.isAnimPlaying = false
+  self.uiData = nil
+  self.data = nil
 end
 
 function UMG_Common_ListItem_Pet1_C:OnDestruct()
   if self.Module then
-    self.Module:UnRegisterEvent(self, PetUIModuleEvent.PetTeamWarehouseItemSelected, self.OnPetTeamWarehouseItemSelected)
-    self.Module:UnRegisterEvent(self, PetUIModuleEvent.PetTeamWarehouseItemExChanging, self.OnPetTeamWarehouseItemExChanging)
-    self.Module:UnRegisterEvent(self, PetUIModuleEvent.PetTeamFastFormationChanged, self.OnPetTeamFastFormationChanged)
     self.Module:UnRegisterEvent(self, PetUIModuleEvent.PetTeamWarehouseItemLocked, self.OnPetTeamWarehouseItemLocked)
     self.Module:UnRegisterEvent(self, PetUIModuleEvent.PetTeamFastFormationRefreshed, self.OnPetTeamFastFormationRefreshed)
   end
@@ -30,13 +34,12 @@ function UMG_Common_ListItem_Pet1_C:RefreshItem()
 end
 
 function UMG_Common_ListItem_Pet1_C:OnItemUpdate(_data, datalist, index, IsRefreshItem)
-  self.curIndex = index
+  local prevData = self.data
+  local prevKey = prevData and prevData.key
+  local currKey = _data and _data.key
+  self.curIndex = index or -1
   self.Module = _G.NRCModuleManager:GetModule("PetUIModule")
-  self.Module:UnRegisterEvent(self, PetUIModuleEvent.PetTeamWarehouseItemSelected, self.OnPetTeamWarehouseItemSelected)
   self.Module:UnRegisterEvent(self, PetUIModuleEvent.PetTeamWarehouseItemLocked, self.OnPetTeamWarehouseItemLocked)
-  self.Module:UnRegisterEvent(self, PetUIModuleEvent.PetTeamWarehouseItemExChanging, self.OnPetTeamWarehouseItemExChanging)
-  self.Module:UnRegisterEvent(self, PetUIModuleEvent.PetTeamFastFormationChanged, self.OnPetTeamFastFormationChanged)
-  self.Module:UnRegisterEvent(self, PetUIModuleEvent.PetTeamFastFormationRefreshed, self.OnPetTeamFastFormationRefreshed)
   self.uiData = _data
   self.data = _data
   local iconNum = _data.itemNum
@@ -114,12 +117,9 @@ function UMG_Common_ListItem_Pet1_C:OnItemUpdate(_data, datalist, index, IsRefre
     self.Text_Quantity:SetText("--")
     self.TryOut:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
-  if self.Switcher_bg then
-    if _data.isPetListItem then
-      self.Switcher_bg:SetActiveWidgetIndex(0)
-    else
-      self.Switcher_bg:SetActiveWidgetIndex(1)
-    end
+  if self.Switcher_bg and _data.isPetListItem then
+    self.Switcher_bg:SetActiveWidgetIndex(0)
+  else
   end
   if self.NRCSwitcher_TopLeft then
     self.NRCSwitcher_TopLeft:SetVisibility(NRCSwitcherTopLeftVisibility)
@@ -131,23 +131,28 @@ function UMG_Common_ListItem_Pet1_C:OnItemUpdate(_data, datalist, index, IsRefre
   end
   self.Text_Quantity:SetText(textQuantityText)
   self.Image_Icon:SetPath(imageIconPath)
-  self.Module:RegisterEvent(self, PetUIModuleEvent.PetTeamWarehouseItemSelected, self.OnPetTeamWarehouseItemSelected)
   self.Module:RegisterEvent(self, PetUIModuleEvent.PetTeamWarehouseItemLocked, self.OnPetTeamWarehouseItemLocked)
-  self.Module:RegisterEvent(self, PetUIModuleEvent.PetTeamWarehouseItemExChanging, self.OnPetTeamWarehouseItemExChanging)
-  self.Module:RegisterEvent(self, PetUIModuleEvent.PetTeamFastFormationChanged, self.OnPetTeamFastFormationChanged)
-  self.Module:RegisterEvent(self, PetUIModuleEvent.PetTeamFastFormationRefreshed, self.OnPetTeamFastFormationRefreshed)
   local curMode = _G.NRCModuleManager:DoCmd(PetUIModuleCmd.PetTeamReplaceGetCurMode)
-  if curMode == PetUIModuleEnum.ModifyPetMode.SingleEdit then
+  self.rightShowNumber = _data and _data.rightShowNumber
+  if self.rightShowNumber == nil then
     self.number:SetVisibility(UE4.ESlateVisibility.Collapsed)
-  elseif curMode == PetUIModuleEnum.ModifyPetMode.QuickEdit then
-    self.number:SetVisibility(UE4.ESlateVisibility.Collapsed)
-    if _data.isHasPet then
-      if self.rightShowNumber and _data.canInTeamNum and self.rightShowNumber <= _data.canInTeamNum then
-        self.number:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-      elseif not _data.canInTeamNum then
-        Log.Error("UMG_Common_ListItem_Pet1_C canInTeamNum data is nil, check pet data")
-      end
-    end
+  else
+    self.number:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    self.Text_number:SetText(tostring(self.rightShowNumber))
+  end
+  local prevIsSelect = prevData and prevData.isSelect or false
+  local isSelect = _data and _data.isSelect or false
+  local needInit = prevKey ~= currKey or nil == currKey
+  if needInit then
+    self:InitSelectState()
+  end
+  self:SetIsSelect(isSelect)
+  local prevExchangePetData = prevData and prevData.exchangePetData
+  local currExchangePetData = _data and _data.exchangePetData
+  local prevExchangeIsInTeam = prevData and prevData.exchangeIsInTeam
+  local currExchangeIsInTeam = _data and _data.exchangeIsInTeam
+  if prevExchangePetData ~= currExchangePetData or prevExchangeIsInTeam ~= currExchangeIsInTeam or prevIsSelect ~= isSelect then
+    self:OnPetTeamWarehouseItemExChanging(currExchangeIsInTeam, currExchangePetData)
   end
 end
 
@@ -170,37 +175,48 @@ function UMG_Common_ListItem_Pet1_C:SetObturationPet()
 end
 
 function UMG_Common_ListItem_Pet1_C:ChangeItemState(Sate)
+  local isObturationVisible = false
   if Sate == ItemState.Normal then
     self.Switcher:SetVisibility(UE4.ESlateVisibility.Collapsed)
-    self.Obturation:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.Obturation_Pet:SetVisibility(UE4.ESlateVisibility.Collapsed)
   elseif Sate == ItemState.CanExchange then
     self.Switcher:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     self.Switcher:SetActiveWidgetIndex(0)
-    self.Obturation:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    isObturationVisible = true
     self:SetObturationPet()
   elseif Sate == ItemState.CanAddIn then
     self.Switcher:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     self.Switcher:SetActiveWidgetIndex(1)
-    self.Obturation:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    isObturationVisible = true
     self:SetObturationPet()
   elseif Sate == ItemState.LockNormal then
     self.Switcher:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     self.Switcher:SetActiveWidgetIndex(2)
-    self.Obturation:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.Obturation_Pet:SetVisibility(UE4.ESlateVisibility.Collapsed)
   elseif Sate == ItemState.Lock then
     self.Switcher:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     self.Switcher:SetActiveWidgetIndex(2)
-    self.Obturation:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    isObturationVisible = true
     self.Obturation_Pet:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  end
+  self:SetObturationVisible(isObturationVisible)
+end
+
+function UMG_Common_ListItem_Pet1_C:SetObturationVisible(isVisible)
+  if not UE.UObject.IsValid(self.Obturation) then
+    return
+  end
+  if isVisible then
+    self.Obturation:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  else
+    self.Obturation:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
 end
 
 function UMG_Common_ListItem_Pet1_C:OnPetTeamWarehouseItemExChanging(isInTeam, PetData)
   if self.Switcher then
     self:ChangeItemState(ItemState.Normal)
-    if self.data.isPetListItem then
+    if self.data and self.data.isPetListItem then
       local state = _G.NRCModuleManager:DoCmd(PetUIModuleCmd.PetTeamReplaceGetCurExChangeState)
       if not state then
         if self.curIndex > self.data.canInTeamNum then
@@ -212,7 +228,7 @@ function UMG_Common_ListItem_Pet1_C:OnPetTeamWarehouseItemExChanging(isInTeam, P
             if PetData and self.data.PetData.gid ~= PetData.gid then
               self:ChangeItemState(ItemState.CanExchange)
             end
-          else
+          elseif PetData then
             local hasCommon = _G.NRCModeManager:DoCmd(PetUIModuleCmd.PetTeamHasCommonEvolution, PetData.gid)
             if hasCommon then
               if PetUtils.IsCommonEvolution(PetData.gid, self.data.PetData.gid) then
@@ -224,7 +240,7 @@ function UMG_Common_ListItem_Pet1_C:OnPetTeamWarehouseItemExChanging(isInTeam, P
               self:ChangeItemState(ItemState.CanExchange)
             end
           end
-        elseif not isInTeam then
+        elseif PetData and not isInTeam then
           local hasCommon = _G.NRCModeManager:DoCmd(PetUIModuleCmd.PetTeamHasCommonEvolution, PetData.gid)
           if hasCommon then
             self:ChangeItemState(ItemState.Normal)
@@ -257,24 +273,23 @@ function UMG_Common_ListItem_Pet1_C:OnPetTeamWarehouseItemLocked(_PetData, teamP
       end
     end
   end
+  local isObturationVisible = false
   if self.IsLock then
-    self.Obturation:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    isObturationVisible = true
     self.Obturation_Pet:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
   else
-    self.Obturation:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.Obturation_Pet:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
+  self:SetObturationVisible(isObturationVisible)
 end
 
 function UMG_Common_ListItem_Pet1_C:OnSpawn()
-  self:OnSpawn1()
   self:OnSpawn2()
 end
 
 function UMG_Common_ListItem_Pet1_C:OnSpawn1()
   local curMode = _G.NRCModuleManager:DoCmd(PetUIModuleCmd.PetTeamReplaceGetCurMode)
   if curMode == PetUIModuleEnum.ModifyPetMode.QuickEdit then
-    self:StopAllAnimationsAndRecord()
     local data = self.data
     if data and data.PetData then
       self:OnPetTeamFastFormationRefreshed(self.teamInfoDic)
@@ -283,21 +298,11 @@ function UMG_Common_ListItem_Pet1_C:OnSpawn1()
     local data = self.data
     if data and data.PetData then
       local curSelectGid = _G.NRCModuleManager:DoCmd(PetUIModuleCmd.PetTeamReplaceGetCurSelPetDataGid)
-      local isInTeam = self:GetIsSelect()
       if data.PetData.gid == curSelectGid then
-        if not isInTeam then
-          self:PlayAnimationAndRecord(PetUIModuleEnum.CommonListItemPet1Anim.In)
-        end
-      elseif isInTeam then
-        self:PlayAnimationAndRecord(PetUIModuleEnum.CommonListItemPet1Anim.Out)
+      else
       end
     end
   end
-end
-
-function UMG_Common_ListItem_Pet1_C:GetIsSelect()
-  local Opacity = self.Selected_bg:GetRenderOpacity()
-  return Opacity > 0 or self:IsPlayingAnimationByRecord(PetUIModuleEnum.CommonListItemPet1Anim.In)
 end
 
 function UMG_Common_ListItem_Pet1_C:OnPetTeamWarehouseItemSelected(_PetData)
@@ -308,18 +313,14 @@ function UMG_Common_ListItem_Pet1_C:OnPetTeamWarehouseItemSelected(_PetData)
   if not state then
     return
   end
-  local isInTeam = self:GetIsSelect()
-  if self.data and self.data.PetData then
-    if _PetData and self.data.PetData.gid == _PetData.gid then
-      if not isInTeam then
-        self:PlayAnimationAndRecord(PetUIModuleEnum.CommonListItemPet1Anim.In)
-      end
-    elseif isInTeam then
-      self:PlayAnimationAndRecord(PetUIModuleEnum.CommonListItemPet1Anim.Out)
-    end
-  elseif isInTeam then
-    self:PlayAnimationAndRecord(PetUIModuleEnum.CommonListItemPet1Anim.Out)
+  local isSelect = false
+  if self.data and self.data.PetData and _PetData and self.data.PetData.gid == _PetData.gid then
+    isSelect = true
+  else
   end
+  goto lbl_35
+  ::lbl_35::
+  self:SetIsSelect(isSelect)
 end
 
 function UMG_Common_ListItem_Pet1_C:UpdateCollectCanvas()
@@ -329,44 +330,38 @@ function UMG_Common_ListItem_Pet1_C:OnPetTeamFastFormationRefreshed(newTeamInfoD
   local data = self.data
   self.number:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.teamInfoDic = newTeamInfoDic
+  local isSelect = false
   if data and data.PetData then
-    self:StopAllAnimationsAndRecord()
     if newTeamInfoDic and newTeamInfoDic[data.PetData.gid] then
+      isSelect = true
       self.rightShowNumber = newTeamInfoDic[data.PetData.gid]
       if self.rightShowNumber and data.canInTeamNum and self.rightShowNumber <= data.canInTeamNum then
         self.number:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
       end
       self.Text_number:SetText(self.rightShowNumber)
-      self:PlayAnimationAndRecord(PetUIModuleEnum.CommonListItemPet1Anim.In)
       if self.data.PetData.PetBaseInfo.partner_mark and self.data.PetData.PetBaseInfo.partner_mark ~= ProtoEnum.PetPartnerMarkType.PPMT_NONE then
         self.CollectCanvas:SetVisibility(UE4.ESlateVisibility.Collapsed)
       end
     else
-      if not self:IsPlayingAnimationByRecord() then
-        self:PlayAnimationAndRecord(PetUIModuleEnum.CommonListItemPet1Anim.Normal)
-      end
       if self.data.PetData.PetBaseInfo.partner_mark and self.data.PetData.PetBaseInfo.partner_mark ~= ProtoEnum.PetPartnerMarkType.PPMT_NONE then
         self.CollectCanvas:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+      else
       end
     end
-  elseif not self:IsPlayingAnimationByRecord() then
-    self:PlayAnimationAndRecord(PetUIModuleEnum.CommonListItemPet1Anim.Normal)
   end
+  self:SetIsSelect(isSelect)
 end
 
 function UMG_Common_ListItem_Pet1_C:ResetUI()
-  local isInTeam = self:GetIsSelect()
-  if isInTeam then
-    self:PlayAnimationAndRecord(PetUIModuleEnum.CommonListItemPet1Anim.Out)
-  end
 end
 
 function UMG_Common_ListItem_Pet1_C:OnPetTeamFastFormationChanged(newTeamInfoDic)
   local data = self.data
   self.teamInfoDic = newTeamInfoDic
-  local isInTeam = self:GetIsSelect()
+  local isSelect = false
   if data and data.PetData then
     if newTeamInfoDic and newTeamInfoDic[data.PetData.gid] then
+      isSelect = true
       self.rightShowNumber = newTeamInfoDic[data.PetData.gid]
       self.Text_number:SetText(self.rightShowNumber)
       if self.rightShowNumber > data.canInTeamNum then
@@ -376,20 +371,14 @@ function UMG_Common_ListItem_Pet1_C:OnPetTeamFastFormationChanged(newTeamInfoDic
         if not self.data.PetData.PetBaseInfo.partner_mark or self.data.PetData.PetBaseInfo.partner_mark ~= ProtoEnum.PetPartnerMarkType.PPMT_NONE then
         end
       end
-      if not isInTeam then
-        self:PlayAnimationAndRecord(PetUIModuleEnum.CommonListItemPet1Anim.In)
-      end
     else
       self.rightShowNumber = nil
-      if isInTeam then
-        self:PlayAnimationAndRecord(PetUIModuleEnum.CommonListItemPet1Anim.Out)
-      end
       if not self.data.PetData.PetBaseInfo.partner_mark or self.data.PetData.PetBaseInfo.partner_mark ~= ProtoEnum.PetPartnerMarkType.PPMT_NONE then
+      else
       end
     end
-  else
-    self:PlayAnimationAndRecord(PetUIModuleEnum.CommonListItemPet1Anim.Normal)
   end
+  self:SetIsSelect(isSelect)
 end
 
 function UMG_Common_ListItem_Pet1_C:SetQuality(quality)
@@ -431,12 +420,12 @@ function UMG_Common_ListItem_Pet1_C:OnItemSelected(_bSelected, _bScrollSelected)
       return
     end
     local curMode = _G.NRCModuleManager:DoCmd(PetUIModuleCmd.PetTeamReplaceGetCurMode)
+    local canSelect = false
     if curMode == PetUIModuleEnum.ModifyPetMode.SingleEdit then
       local state = true
       if not self.uiData.bFromShiningWeekend then
         state = _G.NRCModuleManager:DoCmd(PetUIModuleCmd.PetTeamReplaceGetCurExChangeState)
       end
-      local canSelect = false
       if state then
         canSelect = true
       else
@@ -452,10 +441,16 @@ function UMG_Common_ListItem_Pet1_C:OnItemSelected(_bSelected, _bScrollSelected)
         end
       end
       if canSelect then
-        self.Module:DispatchEvent(PetUIModuleEvent.PetTeamWarehouseItemSelected, self.uiData.PetData)
       end
     elseif curMode == PetUIModuleEnum.ModifyPetMode.QuickEdit then
-      self.Module:DispatchEvent(PetUIModuleEvent.PetTeamFastFormationSelected, self.uiData.PetData)
+      canSelect = true
+    end
+    local data = self.uiData
+    local petData = data.PetData
+    local callbackOwner = data and data.CallbackOwner
+    local onSelectCallback = data and data.OnSelectCallback
+    if canSelect and onSelectCallback then
+      tcall(callbackOwner, onSelectCallback, petData)
     end
   end
 end
@@ -474,39 +469,46 @@ function UMG_Common_ListItem_Pet1_C:OnSpawn2()
   end
 end
 
-function UMG_Common_ListItem_Pet1_C:PlayAnimationAndRecord(Animation)
-  if not Animation or self.curAnimation == Animation then
+function UMG_Common_ListItem_Pet1_C:OnAnimationFinished(Animation)
+  if Animation == self.In or Animation == self.Out then
+    self.isAnimPlaying = false
+    self:RefreshIsSelectDisplay()
+  end
+end
+
+function UMG_Common_ListItem_Pet1_C:InitSelectState()
+  self.isSelect = false
+  self.isSelectDisplay = false
+  self:StopAllAnimations()
+  local normalEndTime = self.Normal:GetEndTime()
+  self:PlayAnimation(self.Normal, normalEndTime)
+end
+
+function UMG_Common_ListItem_Pet1_C:SetIsSelect(isSelect)
+  local data = self.uiData
+  if data then
+    data.isSelect = isSelect
+  end
+  self.isSelect = isSelect
+  self:RefreshIsSelectDisplay()
+end
+
+function UMG_Common_ListItem_Pet1_C:RefreshIsSelectDisplay()
+  if self.isAnimPlaying then
     return
   end
-  if self.curAnimation and self.curAnimation ~= Animation then
-    self:StopAllAnimationsAndRecord()
+  local prevIsSelectDisplay = self.isSelectDisplay or false
+  local nextIsSelectDisplay = self.isSelect or false
+  if prevIsSelectDisplay == nextIsSelectDisplay then
+    return
   end
-  if Animation == PetUIModuleEnum.CommonListItemPet1Anim.In then
-    self:PlayAnimation(self.In)
-  elseif Animation == PetUIModuleEnum.CommonListItemPet1Anim.Out then
+  self.isSelectDisplay = nextIsSelectDisplay
+  if prevIsSelectDisplay and not nextIsSelectDisplay then
+    self.isAnimPlaying = true
     self:PlayAnimation(self.Out)
-  elseif Animation == PetUIModuleEnum.CommonListItemPet1Anim.Normal then
-    self:PlayAnimation(self.Normal)
-  end
-  self.curAnimation = Animation
-end
-
-function UMG_Common_ListItem_Pet1_C:StopAllAnimationsAndRecord()
-  if self.curAnimation then
-    self:StopAllAnimations()
-  end
-  self.curAnimation = nil
-end
-
-function UMG_Common_ListItem_Pet1_C:OnAnimationFinished(Animation)
-  self.curAnimation = nil
-end
-
-function UMG_Common_ListItem_Pet1_C:IsPlayingAnimationByRecord(Animation)
-  if not Animation then
-    return self.curAnimation ~= nil
-  else
-    return self.curAnimation == Animation
+  elseif not prevIsSelectDisplay and nextIsSelectDisplay then
+    self.isAnimPlaying = true
+    self:PlayAnimation(self.In)
   end
 end
 

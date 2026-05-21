@@ -6,6 +6,7 @@ local ResQueue = require("NewRoco.Utils.ResQueue")
 local PetMutationUtils = require("NewRoco.Utils.PetMutationUtils")
 local MainUIModuleEnum = require("NewRoco.Modules.System.MainUI.MainUIModuleEnum")
 local PlayerModuleEvent = require("NewRoco.Modules.Core.PlayerModule.PlayerModuleEvent")
+local MagicReplayModuleEvent = require("NewRoco.Modules.System.MagicReplay.MagicReplayModuleEvent")
 local NPCModuleEnum = require("NewRoco.Modules.Core.NPC.NPCModuleEnum")
 local SuitPerformAbility = Base:Extend("SuitPerformAbility")
 local MAX_CAST_TIME = 30
@@ -19,7 +20,7 @@ function SuitPerformAbility:Ctor(caster)
   self.keepOriginSize = nil
 end
 
-function SuitPerformAbility:StartPerform(skillId, petBaseId, petServerId, mutationType, glassInfo, nature)
+function SuitPerformAbility:StartPerform(skillId, petBaseId, petServerId, mutationType, glassInfo, nature, ball_id)
   if self.petNpc and self.petNpc.isFake then
     Log.Error("SuitPerformAbility:StartPerform Previous fakeNpc not destroyed, destroy now")
     self.petNpc:Destroy()
@@ -61,6 +62,7 @@ function SuitPerformAbility:StartPerform(skillId, petBaseId, petServerId, mutati
         self:RegisterMoveEvent()
         self.petNpc.isFake = false
         self:StartG6()
+        sceneNpc:SetCollisionDisable(true, NPCModuleEnum.NpcReasonFlags.SUIT_PERFORM)
       else
         Log.Error("SuitPerformAbility cant find sceneNpc by serverId ", petServerId)
       end
@@ -88,7 +90,8 @@ function SuitPerformAbility:StartPerform(skillId, petBaseId, petServerId, mutati
           mutation_type = mutationType,
           nature = nature,
           glass_info = glassInfo,
-          base_conf_id = petBaseId
+          base_conf_id = petBaseId,
+          ball_id = ball_id or 0
         }
       end
     else
@@ -106,8 +109,12 @@ function SuitPerformAbility:OnLoadFakeNpc(Queue, Success)
     PetMutationUtils.DoMutation(self.petNpc.viewObj, self.petData)
     if UE.UObject.IsValid(self.petNpc.viewObj) then
       self.petNpc.viewObj:SetActorEnableCollision(false)
+      self.petNpc.viewObj.Mesh.BoundsScale = 5
     end
     self.LoadQueue = nil
+    if self.caster and self.caster.IsMagicReplayActor and self.caster:IsMagicReplayActor() then
+      _G.NRCEventCenter:DispatchEvent(MagicReplayModuleEvent.OnMagicSeqNpcSpawned, self.petNpc.viewObj, true)
+    end
     self:StartG6()
   else
     if self.fakeNpc then
@@ -123,6 +130,7 @@ function SuitPerformAbility:StartG6()
   if self.relaxSkillPath then
     local petBp = self.petNpc and self.petNpc.viewObj
     if nil ~= petBp then
+      self:SetBlobShadowEnable(false)
       self.petOriginXfm = petBp:GetTransform()
       if petBp and petBp.Mesh then
         if not self.keepOriginSize then
@@ -130,7 +138,8 @@ function SuitPerformAbility:StartG6()
           UE.UNRCCharacterUtils.SetCharacterMeshScale(petBp, 1)
         end
         if not self.skipPetBack then
-          petBp:SetActorHiddenInGame(true)
+          self.petNpc:SetHidden(true, NPCModuleEnum.NpcReasonFlags.SUIT_PERFORM)
+          Log.Debug("[SuitPerform] StartG6 Hide(true) HiddenBits = ", petBp:GetHiddenBits())
         end
         petBp.IkOverride = false
       end
@@ -139,7 +148,9 @@ function SuitPerformAbility:StartG6()
         self.petNpc:FaceTo(self.caster)
         self.caster:FaceTo(self.petNpc)
       end
-      self.petNpc.AIComponent:ForceLockForReason(true, false, _G.AIDefines.LockReason.SUIT_PERFORM)
+      if self.petNpc.AIComponent then
+        self.petNpc.AIComponent:ForceLockForReason(true, false, _G.AIDefines.LockReason.SUIT_PERFORM)
+      end
       self.petNpc:SetHeadLookAtActor(nil)
       self.petNpc.TurnComponent:StopTurn(AIDefines.ActionResult.Aborted, true)
       local targets = {petBp}
@@ -154,8 +165,29 @@ function SuitPerformAbility:StartG6()
   self:FinishPerform()
 end
 
+function SuitPerformAbility:SetBlobShadowEnable(enable)
+  if self.petNpc and UE.UObject.IsValid(self.petNpc.viewObj) then
+    self.petNpc.viewObj:SetBlobShadowActive(enable)
+  end
+  if self.caster and UE.UObject.IsValid(self.caster.viewObj) then
+    if self.caster.isLocal then
+      self.caster.viewObj.bEnableBlobShadow = enable
+    else
+      self.caster.viewObj:SetBlobShadowActive(enable)
+    end
+  end
+end
+
 function SuitPerformAbility:Update(DeltaTime)
   if self:IsCasting() then
+    if GlobalConfig.DebugSuitPerform then
+      local playerLoc = self.caster.viewObj:K2_GetActorLocation()
+      local playerFwd = self.caster.viewObj:GetActorForwardVector()
+      UE.UKismetSystemLibrary.DrawDebugArrow(self.caster.viewObj, playerLoc, playerLoc + playerFwd * 100, 6, UE.FLinearColor(0, 1, 1, 1), 0, 3)
+      local petLoc = self.petNpc.viewObj:K2_GetActorLocation()
+      local petFwd = self.petNpc.viewObj:GetActorForwardVector()
+      UE.UKismetSystemLibrary.DrawDebugArrow(self.caster.viewObj, petLoc, petLoc + petFwd * 100, 6, UE.FLinearColor(1, 0, 0, 1), 0, 3)
+    end
     self.castTime = self.castTime + DeltaTime
     if self.castTime > MAX_CAST_TIME then
       Log.Warning("SuitPerformAbility Casting Time Over MAX_CAST_TIME ", self.castTime)
@@ -187,6 +219,12 @@ function SuitPerformAbility:PlayPetBack()
   self:UnRegisterPetLeave()
   if self.petNpc and UE.UObject.IsValid(self.petNpc.viewObj) and not self.skipPetBack then
     if self.petNpc.isFake then
+      local ballId = self.petData and self.petData.ball_id
+      local petServerData = self.petNpc and self.petNpc.serverData
+      local petInfo = petServerData and petServerData.pet_info
+      if petInfo then
+        petInfo.ball_id = ballId
+      end
       self.petNpc.viewObj:FlyBackToPlayer()
       self.petNpc = nil
     else
@@ -197,6 +235,7 @@ function SuitPerformAbility:PlayPetBack()
         return
       end
       petBp:SetActorHiddenInGame(true)
+      Log.Debug("[SuitPerform] PlayPetBack Hide(true) HiddenBits = ", petBp:GetHiddenBits())
       if not self.keepOriginSize then
         UE.UNRCCharacterUtils.SetCharacterMeshScale(petBp, self.petOriginScale.X)
       end
@@ -214,6 +253,7 @@ function SuitPerformAbility:PlayPetBack()
       end
       self.endSkillProxy.Priority = priority
       self.endSkillProxy:SetCaster(casterActor)
+      self.endSkillProxy:SetPassive(true)
       self.endSkillProxy:SetTargets({petBp})
       self.endSkillProxy:RegisterRawCallback(self, self.OnEndSkillEvent)
       self.endSkillProxy:RegisterEventCallback("PreStart", self, self.OnEndG6PreStart)
@@ -230,6 +270,7 @@ function SuitPerformAbility:InterruptPerform()
   self:UnregisterMoveEvent()
   self:UnRegisterPetLeave()
   self.bInterrupted = true
+  self:SetBlobShadowEnable(true)
   if self.LoadQueue then
     self.LoadQueue:DoRelease()
     self.LoadQueue = nil
@@ -243,6 +284,9 @@ function SuitPerformAbility:InterruptPerform()
   self.caster:StopAllMontage(0.1)
   self.state = ABEnum.AbilityState.Finished
   self:SetPetInteractionEnable(true)
+  if self.petNpc and self.petNpc.SetCollisionDisable then
+    self.petNpc:SetCollisionDisable(false, NPCModuleEnum.NpcReasonFlags.SUIT_PERFORM)
+  end
   self:ReleaseNpc()
   if self.caster.isLocal and self.caster.statusComponent then
     self.caster.statusComponent:ClearStatus(Enum.WorldPlayerStatusType.WPST_ROLEPLAY_BEHAVIOR)
@@ -256,12 +300,16 @@ function SuitPerformAbility:InterruptPerform()
 end
 
 function SuitPerformAbility:FinishPerform(keepNpc)
+  if self.petNpc and self.petNpc.SetCollisionDisable then
+    self.petNpc:SetCollisionDisable(false, NPCModuleEnum.NpcReasonFlags.SUIT_PERFORM)
+  end
   self:UnregisterMoveEvent()
   self:UnRegisterPetLeave()
   self:FinishG6Ability()
   self:FinishEndSkill()
   self.state = ABEnum.AbilityState.Finished
   self:SetPetInteractionEnable(true)
+  self:SetBlobShadowEnable(true)
   if not keepNpc then
     self:ReleaseNpc()
   end
@@ -292,9 +340,13 @@ function SuitPerformAbility:ReleaseNpc()
         if not self.keepOriginSize then
           UE.UNRCCharacterUtils.SetCharacterMeshScale(petBp, self.petOriginScale.X)
         end
+        self.petNpc:SetHidden(false, NPCModuleEnum.NpcReasonFlags.SUIT_PERFORM)
         petBp:SetActorHiddenInGame(false)
+        Log.Debug("[SuitPerform] ReleaseNpc Hide(false) HiddenBits = ", petBp:GetHiddenBits())
       end
-      self.petNpc.AIComponent:ForceLockForReason(false, false, _G.AIDefines.LockReason.SUIT_PERFORM)
+      if self.petNpc.AIComponent then
+        self.petNpc.AIComponent:ForceLockForReason(false, false, _G.AIDefines.LockReason.SUIT_PERFORM)
+      end
       self.petNpc.PetHUDComponent:SetRenderStatus(true, MainUIModuleEnum.DisableHudOpSource.SuitPerform)
     end
     self.petNpc = nil
@@ -314,11 +366,18 @@ function SuitPerformAbility:OnG6PreStart()
   local casterXfm = self.caster.viewObj:GetTransform()
   Blackboard:SetValueAsTransform("Target", casterXfm)
   Blackboard:SetValueAsString("HavePet", "HavePet")
+  if self.caster.IsMagicReplayActor and self.caster:IsMagicReplayActor() then
+    Blackboard:SetValueAsString("VideoMagicMat", "VideoMagicMat")
+  end
 end
 
 function SuitPerformAbility:OnEndG6PreStart()
-  local Blackboard = self.endSkillProxy.SkillObject:GetBlackboard()
-  Blackboard:SetValueAsTransform("Target", self.petOriginXfm)
+  if self.endSkillProxy then
+    local Blackboard = self.endSkillProxy.SkillObject:GetBlackboard()
+    Blackboard:SetValueAsTransform("Target", self.petOriginXfm)
+  else
+    Log.Debug("[[SuitPerform] OnEndG6PreStart self.endSkillProxy == nil ")
+  end
 end
 
 function SuitPerformAbility:OnCastG6Failed()
@@ -329,7 +388,8 @@ function SuitPerformAbility:OnCastG6Success()
   self._delayId = DelayManager:DelaySeconds(0.5, function()
     self._delayId = nil
     if self.petNpc and UE.UObject.IsValid(self.petNpc.viewObj) then
-      self.petNpc.viewObj:SetActorHiddenInGame(false)
+      self.petNpc:SetHidden(false, NPCModuleEnum.NpcReasonFlags.SUIT_PERFORM)
+      Log.Debug("[SuitPerform] OnCastG6Success Hide(false) HiddenBits = ", self.petNpc.viewObj:GetHiddenBits())
     end
   end)
 end

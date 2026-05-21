@@ -454,10 +454,6 @@ WidgetPerformanceTier.WidgetPerformanceTierDict = {
     PerformanceTierEnum.Small,
     "Small"
   },
-  UMG_TakePhotos_Share = {
-    PerformanceTierEnum.Small,
-    "Small"
-  },
   SeasonIntegrationPanel = {
     PerformanceTierEnum.Small,
     "Small"
@@ -509,12 +505,6 @@ WidgetPerformanceTier.WidgetPerformanceTierDict = {
     PerformanceTierEnum.Small,
     "Small",
     "RT"
-  },
-  SharePanel = {
-    PerformanceTierEnum.Big,
-    "Big",
-    "RT",
-    "WorldView"
   },
   Friend_Report = {
     PerformanceTierEnum.Small,

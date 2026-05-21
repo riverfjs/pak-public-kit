@@ -103,9 +103,14 @@ function CameraHolder:Activate(BlendTime, BlendFunc, BlendExp)
     Log.Error("Failed to activate camera")
     return
   end
+  local main_camera = self:GetMainCamera()
+  if main_camera and Controller.PlayerCameraManager then
+    main_camera:K2_SetActorTransform(UE4.FTransform(Controller.PlayerCameraManager:GetCameraRotation():ToQuat(), Controller.PlayerCameraManager:GetCameraLocation()), false, nil, false)
+  end
   if self.MainCamera and Controller:IsCurrentViewTarget(self.MainCamera) then
     Controller:SetViewTargetWithBlend(self:GetBackUpCamera(), BlendTime, BlendFunc, BlendExp)
   else
+    Controller:SetViewTargetWithBlend(self.MainCamera, 0.0, UE4.EViewTargetBlendFunction.VTBlend_Linear, 0.0)
     Controller:ChangeToCustomCamera(self:GetBackUpCamera(), BlendTime, BlendFunc, BlendExp)
   end
   self:SwapCamera()

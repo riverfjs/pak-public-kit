@@ -20,13 +20,15 @@ PetUIModuleEnum.OpenSortType = {
   WeeklyChallengeBattle = 7,
   PetInheritance = 8,
   PetPartnerActivity = 9,
-  CertificationActivity = 10
+  CertificationActivity = 10,
+  BattleRogue = 11
 }
 PetUIModuleEnum.EnterType = {
   PetAltar = 0,
   PvpPetTeamUmg = 1,
   PetInheritance = 2,
-  WeeklyChallengeBattle = 3
+  WeeklyChallengeBattle = 3,
+  HerbologyBadge = 4
 }
 PetUIModuleEnum.AddAutomaticallyType = {
   NuLL = 0,
@@ -64,8 +66,11 @@ PetUIModuleEnum.PetHatchingRightPanelDisplayMode = {
   None = 0,
   SelectEgg = 1,
   SelectPetBall = 2,
-  SelectColor = 3
+  SelectColor = 3,
+  IncubationProgress = 4
 }
+PetUIModuleEnum.PetHatchingRightPanelCloseReasonType = {None = 0, UsedIncubationProgressItem = 1}
+PetUIModuleEnum.HatchingPanelCommonAddSubtractPanelUpdateReasonType = {None = 0, HatchSecsUpdate = 1}
 PetUIModuleEnum.PetEggConfigType = {
   None = 0,
   NormalEgg = 1,
@@ -91,7 +96,8 @@ PetUIModuleEnum.MainPetTemplateOpType = {
   Lock = 2,
   DiedState = 3,
   FriendRideState = 4,
-  updateThrowPetSelect = 5
+  updateThrowPetSelect = 5,
+  ForceClearTips = 6
 }
 PetUIModuleEnum.MainPetTemplateOpReasonType = {None = 0, LobbyMainUIShow = 1}
 PetUIModuleEnum.PetGrowUpType = {
@@ -101,10 +107,21 @@ PetUIModuleEnum.PetGrowUpType = {
   WaitToInspire = 3,
   Max = 4
 }
+PetUIModuleEnum.PetFreeCaptivePanelStateType = {None = 0, IncludeCanTraceBackPet = 1}
+PetUIModuleEnum.ReleaseTipsOpenType = {
+  None = 0,
+  Free = 1,
+  TraceBack = 2
+}
 PetUIModuleEnum.PetFreeReasonType = {
   None = 0,
   FreeInFreeMode = 1,
   DragToFree = 2
+}
+PetUIModuleEnum.PetCommonHandleCheckType = {
+  None = 0,
+  Free = 1,
+  TraceBack = 2
 }
 PetUIModuleEnum.PetDataUpdateReason = {
   None = 0,
@@ -114,7 +131,8 @@ PetUIModuleEnum.PetDataUpdateReason = {
   Inspire = 4,
   Evolve = 5,
   TalentChange = 6,
-  Free = 7
+  Free = 7,
+  TraceBack = 8
 }
 PetUIModuleEnum.PortableBagSelectItemType = {
   None = 0,
@@ -125,7 +143,8 @@ PetUIModuleEnum.PetEquipSkillType = {
   PetBag = 1,
   PvpTeam = 2,
   Assumption = 3,
-  StarlightDuel = 4
+  StarlightDuel = 4,
+  HerbologyBadge = 5
 }
 PetUIModuleEnum.CommonListItemPet1Anim = {
   In = 1,

@@ -164,28 +164,64 @@ function UMG_ReceiveAward_PopUp_C:SetDatas(RewardsList)
       rewardsTable[i].bagItemGid = SortRewardsList[i].bagItemGid
       rewardsTable[i].AssignQuality = SortRewardsList[i].AssignQuality
       rewardsTable[i] = self:HandleBossEvoReward(rewardsTable[i])
-    end
-    self.List1:InitList(rewardsTable)
-    if (self.IsDungeonEggReward or self.IsBestowBlessings) and bHavePetEgg then
-      self.RewardAnimFinished = false
-      for i = 1, #SortRewardsList do
-        local item = self.List1:GetItemByIndex(i - 1)
-        if item then
-          item:SetVisibility(UE4.ESlateVisibility.Collapsed)
-          local waitTime = SortRewardsList[i].isPetEgg and 0 or 2 + i * 0.2
-          local bLast = i == #SortRewardsList
-          self:DelaySeconds(waitTime, function()
-            item:SetVisibility(UE4.ESlateVisibility.Visible)
-            item.BGColor:SetVisibility(UE4.ESlateVisibility.Collapsed)
-            item:PlayAnimation(item.change1)
-            UE4.UNRCAudioManager.Get():PlaySound2DAuto(41400001, "UMG_ItemRewards_C:OnActive")
-            self.RewardAnimFinished = bLast
-          end)
-        end
+      if SortRewardsList[i].eggInfo then
+        rewardsTable[i].eggInfo = SortRewardsList[i].eggInfo
       end
+      if SortRewardsList[i].gid then
+        rewardsTable[i].gid = SortRewardsList[i].gid
+      end
+    end
+    if self:NeedSpecialRefreshShow(bHavePetEgg) then
+      self:SpecialRefreshListHandle(rewardsTable)
+    else
+      self.List1:InitList(rewardsTable)
     end
   else
     self.List1:Clear()
+  end
+end
+
+function UMG_ReceiveAward_PopUp_C:NeedSpecialRefreshShow(bHavePetEgg)
+  if (self.IsDungeonEggReward or self.IsBestowBlessings) and bHavePetEgg then
+    return true
+  end
+  return false
+end
+
+function UMG_ReceiveAward_PopUp_C:SpecialRefreshListHandle(rewardsTable)
+  if not rewardsTable or #rewardsTable < 1 then
+    self.List1:Clear()
+    Log.Error("UMG_ReceiveAward_PopUp_C:SpecialRefreshListHandle rewardsTable is nil or empty")
+    return
+  end
+  self.rewardsTable = rewardsTable
+  self.refreshIndex = 0
+  self.RewardAnimFinished = false
+  self:DoNextRefresh()
+end
+
+function UMG_ReceiveAward_PopUp_C:DoNextRefresh()
+  if not UE4.UObject.IsValid(self) then
+    return
+  end
+  self.refreshIndex = self.refreshIndex + 1
+  local refreshIndex = self.refreshIndex
+  if refreshIndex > #self.rewardsTable then
+    self.RewardAnimFinished = true
+    return
+  end
+  local thisRewardList = {}
+  for i = 1, refreshIndex do
+    local item = table.deepCopy(self.rewardsTable[i])
+    item.SpecialShowHandle = i == refreshIndex
+    table.insert(thisRewardList, item)
+  end
+  self.List1:InitList(thisRewardList)
+  if refreshIndex <= #self.rewardsTable then
+    local waitTime = 1 == refreshIndex and 2 or 0.2
+    self:DelaySeconds(waitTime, function()
+      self:DoNextRefresh()
+    end)
   end
 end
 
@@ -195,7 +231,7 @@ function UMG_ReceiveAward_PopUp_C:HandleBossEvoReward(RewardItem)
     Log.Error("UMG_ReceiveAward_PopUp_C:HandleBossEvoReward RewardItem is nil")
     return RetRewardItem
   end
-  if RewardItem.itemId ~= nil then
+  if RewardItem.itemId ~= nil and RewardItem.itemType and RewardItem.itemType == _G.Enum.GoodsType.GT_BAGITEM then
     local BagItemConf = _G.DataConfigManager:GetBagItemConf(RewardItem.itemId)
     local BagItemData = _G.NRCModeManager:DoCmd(BagModuleCmd.GetBagItemByID, RewardItem.itemId)
     if BagItemConf then
@@ -214,7 +250,7 @@ function UMG_ReceiveAward_PopUp_C:CheckThisRewardShouldShow(RewardItem)
     Log.Error("UMG_ReceiveAward_PopUp_C:CheckThisRewardShouldShow RewardItem is nil")
     return bShow
   end
-  if RewardItem.itemId ~= nil and RewardItem.itemType == _G.Enum.GoodsType.GT_BAGITEM then
+  if RewardItem.itemId ~= nil and RewardItem.itemType and RewardItem.itemType == _G.Enum.GoodsType.GT_BAGITEM then
     local BagItemConf = _G.DataConfigManager:GetBagItemConf(RewardItem.itemId)
     local BagItemData = _G.NRCModeManager:DoCmd(BagModuleCmd.GetBagItemByID, RewardItem.itemId)
     if BagItemData and BagItemConf then
@@ -279,6 +315,24 @@ function UMG_ReceiveAward_PopUp_C:SortItem(RewardsList)
       if Reward.Conf then
         Reward.Sort = Reward.Conf.sort_id
         Reward.Quality = Reward.Conf.item_quality
+      end
+    elseif Reward.type == _G.ProtoEnum.GoodsType.GT_EMOJI then
+      Reward.Conf = _G.DataConfigManager:GetChatEmojiConf(Reward.id)
+      if Reward.Conf then
+        Reward.Sort = 0
+        Reward.Quality = Reward.Conf.card_quality
+      end
+    elseif Reward.type == _G.ProtoEnum.GoodsType.GT_CARD_ICON then
+      Reward.Conf = _G.DataConfigManager:GetCardIconConf(Reward.id)
+      if Reward.Conf then
+        Reward.Sort = 0
+        Reward.Quality = Reward.Conf.card_quality
+      end
+    elseif Reward.type == _G.ProtoEnum.GoodsType.GT_CARD_SKIN then
+      Reward.Conf = _G.DataConfigManager:GetCardSkinConf(Reward.id)
+      if Reward.Conf then
+        Reward.Sort = 0
+        Reward.Quality = Reward.Conf.card_quality
       end
     end
   end

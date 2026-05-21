@@ -13,20 +13,38 @@ function UMG_RolePlayPoseItem_C:OnItemUpdate(_data, datalist, index)
   self:UpdateBehaviorConfItem()
 end
 
-function UMG_RolePlayPoseItem_C:OnItemSelected(_bSelected)
-  if self.data.customData and self.data.customData.bLocked then
-    return
-  end
-  self:StopAllAnimations()
-  if _bSelected then
-    self:PlayAnimation(self.Selected_in)
-  else
+function UMG_RolePlayPoseItem_C:PlayOutAnimation()
+  if self.Selected_out ~= self.FinishedAnimation and not self:IsAnimationPlaying(self.Selected_out) then
     self:PlayAnimation(self.Selected_out)
   end
 end
 
+function UMG_RolePlayPoseItem_C:PlayInAnimation()
+  if self.Selected_in ~= self.FinishedAnimation and not self:IsAnimationPlaying(self.Selected_in) then
+    self:PlayAnimation(self.Selected_in)
+  end
+end
+
+function UMG_RolePlayPoseItem_C:OnItemSelected(_bSelected)
+  if self.data.customData and self.data.customData.bLocked then
+    return
+  end
+  Log.Debug("RolePlayItem PlayAnimation UMG_RolePlayPoseItem_C OnItemSelected", _bSelected, self.FinishedAnimation and self.FinishedAnimation:GetName())
+  self:StopAllAnimations()
+  if _bSelected then
+    self:PlayInAnimation()
+  else
+    self:PlayOutAnimation()
+  end
+end
+
+function UMG_RolePlayPoseItem_C:OnAnimationStarted(Animation)
+  Log.Debug("RolePlayItem PlayAnimation UMG_RolePlayPoseItem_C Start", Animation:GetName())
+end
+
 function UMG_RolePlayPoseItem_C:OnAnimationFinished(Animation)
   Log.Debug("UMG_RolePlayPoseItem_C:OnAnimationFinished", Animation:GetName())
+  self.FinishedAnimation = Animation
 end
 
 function UMG_RolePlayPoseItem_C:UpdateBehaviorConfItem()

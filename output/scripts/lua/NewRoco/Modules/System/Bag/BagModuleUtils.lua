@@ -191,4 +191,35 @@ function BagModuleUtils.GetPetSkillLearnList(bagItemInfo, PetData)
   return petSkillLearnList
 end
 
+function BagModuleUtils.GetConvertAfterItemsList(_data)
+  local afterConvertList = {}
+  if _data then
+    for _, expireInfo in ipairs(_data) do
+      local bagItemConf = _G.DataConfigManager:GetBagItemConf(expireInfo.id)
+      if bagItemConf and bagItemConf.expire_converse_struct then
+        for _, converseInfo in ipairs(bagItemConf.expire_converse_struct) do
+          local bFound = false
+          for _, existingItem in ipairs(afterConvertList) do
+            if existingItem.itemType == converseInfo.converse_type and existingItem.itemId == converseInfo.converse_id then
+              existingItem.itemNum = existingItem.itemNum + (converseInfo.converse_num or 1)
+              bFound = true
+              break
+            end
+          end
+          if not bFound then
+            local afterItem = _G.NRCCommonItemIconData()
+            afterItem.itemType = converseInfo.converse_type
+            afterItem.itemId = converseInfo.converse_id
+            afterItem.itemNum = converseInfo.converse_num or 1
+            afterItem.bShowNum = true
+            afterItem.bShowTip = true
+            table.insert(afterConvertList, afterItem)
+          end
+        end
+      end
+    end
+  end
+  return afterConvertList
+end
+
 return BagModuleUtils

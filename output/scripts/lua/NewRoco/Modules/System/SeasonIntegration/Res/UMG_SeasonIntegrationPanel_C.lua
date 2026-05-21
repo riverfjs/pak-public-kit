@@ -2,6 +2,7 @@ local UMG_SeasonIntegrationPanel_C = _G.NRCPanelBase:Extend("UMG_SeasonIntegrati
 local ActivityUtils = require("NewRoco.Modules.System.Activity.ActivityUtils")
 local SeasonIntegrationModuleEvent = require("NewRoco.Modules.System.SeasonIntegration.SeasonIntegrationModuleEvent")
 local BattlePassModuleEvent = require("NewRoco.Modules.System.BattlePass.BattlePassModuleEvent")
+local MainUIModuleEvent = require("NewRoco.Modules.System.MainUI.MainUIModuleEvent")
 local a = require("Common.Coroutine.async")
 local au = require("Common.Coroutine.async_util")
 local aOpenSeasonPVFirstTime = a.sync(function(self)
@@ -53,7 +54,7 @@ function UMG_SeasonIntegrationPanel_C:OnActive()
     Log.Error("UMG_SeasonIntegrationPanel_C:OnActive seasonConf is nil season_id = ", self.seasonInfo.season_id)
     return
   end
-  if self:CheckShouldPlayPV() then
+  if 0 ~= seasonConf.pv_id and self:CheckShouldPlayPV() then
     Log.Info("UMG_SeasonIntegrationPanel_C:OnActive:CheckShouldPlayPV")
     if self._playPVFirstTimeAsyncContext then
       a.kill(self._playPVFirstTimeAsyncContext)
@@ -72,14 +73,13 @@ function UMG_SeasonIntegrationPanel_C:OnActive()
     self:PlaySpineAnimation()
     self:PlayLoopAnimation()
   end
-  self.OnVisibilityChanged:Add(self, self.HandleOnVisibilityChanged)
 end
 
 function UMG_SeasonIntegrationPanel_C:CheckShouldPlayPV()
   Log.Info("UMG_SeasonIntegrationPanel_C:CheckShouldPlayPV season_pv_time =", self.seasonInfo.season_pv_time)
   if self.seasonInfo and self.seasonInfo.season_pv_time and self.seasonInfo.season_pv_time > 0 then
-    local curUTC = UE4.UNRCStatics.GetUTCTimestampMS() / 1000
-    if curUTC >= self.seasonInfo.season_pv_time then
+    local currentSec = _G.ZoneServer:GetServerTime() / 1000
+    if currentSec >= self.seasonInfo.season_pv_time then
       return false
     end
   end
@@ -88,9 +88,12 @@ end
 
 function UMG_SeasonIntegrationPanel_C:CheckShouldPlayPopup()
   Log.Info("UMG_SeasonIntegrationPanel_C:CheckShouldPlayPopup season_pop_windows_time =", self.seasonInfo.season_pop_windows_time)
+  if not self.enableView then
+    return false
+  end
   if self.seasonInfo and self.seasonInfo.season_pop_windows_time and self.seasonInfo.season_pop_windows_time > 0 then
-    local curUTC = UE4.UNRCStatics.GetUTCTimestampMS() / 1000
-    if curUTC >= self.seasonInfo.season_pop_windows_time then
+    local currentSec = _G.ZoneServer:GetServerTime() / 1000
+    if currentSec >= self.seasonInfo.season_pop_windows_time then
       return false
     end
   end
@@ -135,15 +138,11 @@ function UMG_SeasonIntegrationPanel_C:OnTick(deltaTime)
 end
 
 function UMG_SeasonIntegrationPanel_C:OnDeactive()
+  Log.Info("UMG_SeasonIntegrationPanel_C:OnDeactive")
   if self._playPVFirstTimeAsyncContext then
     a.kill(self._playPVFirstTimeAsyncContext)
   end
   self._playPVFirstTimeAsyncContext = nil
-end
-
-function UMG_SeasonIntegrationPanel_C:DoClose()
-  _G.NRCModuleManager:DoCmd(_G.DialogueModuleCmd.CloseVideo)
-  _G.NRCPanelBase.DoClose(self)
 end
 
 function UMG_SeasonIntegrationPanel_C:OnAddEventListener()
@@ -152,13 +151,11 @@ function UMG_SeasonIntegrationPanel_C:OnAddEventListener()
   self:AddButtonListener(self.Button_Switch, self.OnClickSwitchBtn)
   self:AddButtonListener(self.SeasonTips, self.OnClickSeasonTipsBtn)
   _G.NRCEventCenter:RegisterEvent(self.name, self, SeasonIntegrationModuleEvent.OnSeasonInfoChange, self.OnSeasonInfoChange)
-  _G.NRCEventCenter:RegisterEvent(self.name, self, SceneEvent.LoadMapStart, self.OnLoadMapStart)
   _G.NRCEventCenter:RegisterEvent(self.name, self, BattlePassModuleEvent.UpdateBattlePassInfo, self.OnBattlePassInfoUpdate)
 end
 
 function UMG_SeasonIntegrationPanel_C:OnRemoveEventListener()
   _G.NRCEventCenter:UnRegisterEvent(self, SeasonIntegrationModuleEvent.OnSeasonInfoChange, self.OnSeasonInfoChange)
-  _G.NRCEventCenter:UnRegisterEvent(self, SceneEvent.LoadMapStart, self.OnLoadMapStart)
   _G.NRCEventCenter:UnRegisterEvent(self, BattlePassModuleEvent.UpdateBattlePassInfo, self.OnBattlePassInfoUpdate)
 end
 
@@ -183,11 +180,6 @@ function UMG_SeasonIntegrationPanel_C:OnSeasonInfoChange()
   end
 end
 
-function UMG_SeasonIntegrationPanel_C:OnLoadMapStart()
-  _G.NRCEventCenter:DispatchEvent(MainUIModuleEvent.OnMainUISubPanelClosed, false)
-  self:DoClose()
-end
-
 function UMG_SeasonIntegrationPanel_C:OnBattlePassInfoUpdate()
   if self.bpLevelText then
     local BPModule = _G.NRCModuleManager:GetModule("BattlePassModule")
@@ -199,22 +191,22 @@ function UMG_SeasonIntegrationPanel_C:OnBattlePassInfoUpdate()
   end
 end
 
-function UMG_SeasonIntegrationPanel_C:HandleOnVisibilityChanged()
-  Log.Info("UMG_SeasonIntegrationPanel_C:HandleOnVisibilityChanged")
-  if self:IsVisible() then
-    self:RefreshSlotUI()
-    if not self:CheckShouldPlayPopup() and not self:CheckShouldPlayPV() then
-      _G.NRCModuleManager:DoCmd(TaskModuleCmd.LookSeasonTaskLetter)
-    end
+function UMG_SeasonIntegrationPanel_C:OnUnDoFoldCollapsed()
+  Log.Info("UMG_SeasonIntegrationPanel_C:OnUnDoFoldCollapsed")
+  if not self:CheckShouldPlayPopup() and not self:CheckShouldPlayPV() then
+    _G.NRCModuleManager:DoCmd(TaskModuleCmd.LookSeasonTaskLetter)
   end
+  self:RefreshSlotUI()
 end
 
 function UMG_SeasonIntegrationPanel_C:OnConstruct()
+  Log.Info("UMG_SeasonIntegrationPanel_C:OnConstruct")
   self:OnAddEventListener()
   self:BindInputAction()
 end
 
 function UMG_SeasonIntegrationPanel_C:OnDestruct()
+  Log.Info("UMG_SeasonIntegrationPanel_C:OnDestruct")
   self:OnRemoveEventListener()
   local mappingContext = self:GetInputMappingContext("IMC_SeasonIntegration")
   if mappingContext then
@@ -222,6 +214,12 @@ function UMG_SeasonIntegrationPanel_C:OnDestruct()
     mappingContext:UnBindAction("IA_EscCloseSeason")
   end
   _G.DataModelMgr.PlayerDataModel:RemovePanelMusic(Enum.MusicApplyType.MAT_UI, Enum.InterfaceType.IT_SEASON)
+end
+
+function UMG_SeasonIntegrationPanel_C:OnDisable()
+  Log.Trace("UMG_SeasonIntegrationPanel_C:OnDisable")
+  _G.NRCEventCenter:DispatchEvent(MainUIModuleEvent.OnMainUISubPanelClosed, false)
+  _G.NRCModuleManager:DoCmd(_G.DialogueModuleCmd.CloseVideo)
 end
 
 function UMG_SeasonIntegrationPanel_C:BindInputAction()
@@ -281,7 +279,7 @@ function UMG_SeasonIntegrationPanel_C:InitUI()
   if nil == seasonConf then
     return
   end
-  _G.NRCAudioManager:PlaySound2DAuto(40008040, "UMG_SeasonIntegrationPanel_C:OnActive")
+  _G.NRCAudioManager:PlaySound2DAuto(40008040, "UMG_SeasonIntegrationPanel_C:InitUI")
   local bgm_state = seasonConf and seasonConf.bgm_state or ""
   if "" ~= bgm_state then
     _G.DataModelMgr.PlayerDataModel:AddPanelMusic(Enum.MusicApplyType.MAT_UI, Enum.InterfaceType.IT_SEASON)
@@ -332,7 +330,9 @@ function UMG_SeasonIntegrationPanel_C:InitUI()
     self.RedDot_PopUp:SetupKey(415)
   end
   for i = 1, 10 do
-    self["CanvasPanel_Slot_" .. i]:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    if self["CanvasPanel_Slot_" .. i] then
+      self["CanvasPanel_Slot_" .. i]:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    end
   end
   self:RefreshSlotUI()
   if not self:CheckShouldPlayPopup() and not self:CheckShouldPlayPV() then
@@ -341,7 +341,9 @@ function UMG_SeasonIntegrationPanel_C:InitUI()
 end
 
 function UMG_SeasonIntegrationPanel_C:OnPcClose()
+  Log.Info("UMG_SeasonIntegrationPanel_C:OnPcClose")
   if self.bClickedClose then
+    Log.Info("UMG_SeasonIntegrationPanel_C:OnPcClose return")
     return
   end
   self.bClickedClose = true
@@ -349,8 +351,10 @@ function UMG_SeasonIntegrationPanel_C:OnPcClose()
 end
 
 function UMG_SeasonIntegrationPanel_C:OnClickCloseBtn()
+  Log.Info("UMG_SeasonIntegrationPanel_C:OnClickCloseBtn")
   _G.NRCAudioManager:PlaySound2DAuto(40008006, "UMG_SeasonIntegrationPanel_C:OnClickCloseBtn")
   if self.bClickedClose then
+    Log.Info("UMG_SeasonIntegrationPanel_C:OnClickCloseBtn return")
     return
   end
   self.bClickedClose = true
@@ -359,14 +363,22 @@ end
 
 function UMG_SeasonIntegrationPanel_C:OnAnimationFinished(anim)
   if anim == self.Out then
-    _G.NRCEventCenter:DispatchEvent(MainUIModuleEvent.OnMainUISubPanelClosed, false)
     self:DoClose()
   end
 end
 
 function UMG_SeasonIntegrationPanel_C:OnClickVideoBtn()
+  if self.bClickedClose then
+    Log.Info("UMG_SeasonIntegrationPanel_C:OnClickVideoBtn return")
+    return
+  end
   if self.bSeasonOver then
     _G.NRCModeManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.season_expire_tips)
+    return
+  end
+  local seasonConf = _G.DataConfigManager:GetSeasonConf(self.seasonInfo.season_id)
+  if seasonConf and 0 == seasonConf.pv_id then
+    Log.Error("UMG_SeasonIntegrationPanel_C:OnClickVideoBtn pv_id is nil")
     return
   end
   self:PlaySeasonPV()
@@ -422,7 +434,8 @@ function UMG_SeasonIntegrationPanel_C:OnClickSeasonTipsBtn()
   if seasonConf then
     self.RedDot_PopUp:EraseRedPoint()
     local tipsID = seasonConf.season_tips_id
-    _G.NRCModuleManager:DoCmd(_G.SeasonIntegrationModuleCmd.OpenSeasonIntegrationPopUp, tipsID)
+    local seasonId = seasonConf and seasonConf.id
+    _G.NRCModuleManager:DoCmd(_G.SeasonIntegrationModuleCmd.OpenSeasonIntegrationPopUp, tipsID, seasonId)
   end
 end
 
@@ -482,8 +495,20 @@ function UMG_SeasonIntegrationPanel_C:SetItemInfo(partInfo)
     end
   elseif itemConf.time_show_type == Enum.ActivitySeasonTimeShow.ASTS_SETTING_TIME then
     local startTime = ActivityUtils.ToTimestamp(itemConf.time_show_param)
-    local endTime = ActivityUtils.ToTimestamp(itemConf.time_show_param2)
-    timeStr, bOpen = self:GetTimeStr(startTime, endTime)
+    if not itemConf.time_show_param2 or "" == itemConf.time_show_param2 then
+      local endTime = ActivityUtils.ToTimestamp(itemConf.time_show_param2)
+      local currentTime = _G.ZoneServer:GetServerTime() / 1000
+      if startTime <= currentTime then
+        timeStr = ""
+        bOpen = true
+      else
+        timeStr = self:GetTimeStr(startTime, endTime)
+        bOpen = false
+      end
+    else
+      local endTime = ActivityUtils.ToTimestamp(itemConf.time_show_param2)
+      timeStr, bOpen = self:GetTimeStr(startTime, endTime)
+    end
   elseif itemConf.time_show_type == Enum.ActivitySeasonTimeShow.ASTS_SEASON_TASK_NEXT_TIME then
     bOpen = true
     if bUnlock then
@@ -609,6 +634,10 @@ function UMG_SeasonIntegrationPanel_C:SetItemInfo(partInfo)
   end
   local jumpBtn = self["Button_" .. slot]
   jumpBtn.OnClicked:Add(self, function()
+    if self.bClickedClose then
+      Log.Info("OnClickedJumpBtn return")
+      return
+    end
     if self.bSeasonOver then
       _G.NRCModeManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.season_expire_tips)
       _G.NRCModuleManager:DoCmd(_G.RedPointModuleCmd.EraseRedPoint, 442, {
@@ -634,27 +663,54 @@ function UMG_SeasonIntegrationPanel_C:SetItemInfo(partInfo)
       elseif itemConf.jump_type == Enum.ActivitySeasonItemJump.ASIJ_SKIP_INSTRUCTION or itemConf.jump_type == Enum.ActivitySeasonItemJump.ASIJ_ACTIVITY then
         _G.NRCModuleManager:DoCmd(itemConf.jump_param, itemConf.param1, itemConf.param2, itemConf.param3)
       elseif itemConf.jump_type == Enum.ActivitySeasonItemJump.ASIJ_WORLD_MAP then
-        local success = false
+        local bNpcRefreshed = false
         local worldMapIds = string.split(itemConf.jump_param, ";")
         for _, worldMapId in pairs(worldMapIds) do
           local worldMapConf = _G.DataConfigManager:GetWorldMapConf(tonumber(worldMapId))
           if worldMapConf then
             local refreshIds = worldMapConf.npc_refresh_ids
             if refreshIds and #refreshIds > 0 then
-              local npcData = _G.NRCModuleManager:DoCmd(BigMapModuleCmd.GetNpcInfoByRefreshId, refreshIds[1])
+              local refresh_content_id = refreshIds[1]
+              Log.Info("UMG_SeasonIntegrationPanel_C:SetItemInfo jumpBtn.OnClicked refresh_content_id", refresh_content_id)
+              local npcData = _G.NRCModuleManager:DoCmd(_G.BigMapModuleCmd.GetNpcInfoByRefreshId, refresh_content_id)
               if npcData then
-                _G.NRCModuleManager:DoCmd(BigMapModuleCmd.OpenWorldMap, {
-                  centerNPCRefreshId = refreshIds[1]
-                })
-                success = true
+                bNpcRefreshed = true
+                local bIsIndoor = false
+                local seasonLegendaryID = _G.NRCModuleManager:DoCmd(_G.LegendaryBattleModuleCmd.GetSeasonLegendaryID, refresh_content_id)
+                if seasonLegendaryID then
+                  local seasonLegendaryDataConf = _G.DataConfigManager:GetSeasonLegendaryBattleEvent(seasonLegendaryID)
+                  if seasonLegendaryDataConf then
+                    bIsIndoor = seasonLegendaryDataConf.is_indoor
+                    Log.Info("UMG_SeasonIntegrationPanel_C:SetItemInfo jumpBtn.OnClicked bIsIndoor", bIsIndoor)
+                  end
+                end
+                if bIsIndoor then
+                  do
+                    local bBan = _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.GetFunctionState, Enum.PlayerFunctionBanType.PFBT_UI_TELEPORT, true, true)
+                    if not bBan then
+                      _G.NRCModuleManager:DoCmd(_G.BigMapModuleCmd.DoCommonTransfer, npcData.entry_id, npcData.worldMapConf)
+                      break
+                    end
+                    Log.Info("UMG_SeasonIntegrationPanel_C:SetItemInfo jumpBtn.OnClicked ASIJ_WORLD_MAP bIsIndoor forbid transfer")
+                  end
+                  break
+                end
+                _G.NRCModuleManager:DoCmd(_G.BigMapModuleCmd.OpenWorldMap, {centerNPCRefreshId = refresh_content_id})
                 break
               end
             end
           end
         end
-        local strTips = itemConf.param1
-        if not success and not string.IsNilOrEmpty(strTips) then
-          _G.NRCModeManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, strTips)
+        if not bNpcRefreshed then
+          local strTips
+          if _G.DataModelMgr.PlayerDataModel:IsVisitState() then
+            strTips = LuaText.visitor_state_season_slot_skip_unsuccess_tips
+          else
+            strTips = itemConf.param1
+          end
+          if not string.IsNilOrEmpty(strTips) then
+            _G.NRCModeManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, strTips)
+          end
         end
       end
     end

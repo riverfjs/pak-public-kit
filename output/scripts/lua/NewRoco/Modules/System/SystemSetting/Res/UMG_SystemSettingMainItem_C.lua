@@ -13,6 +13,7 @@ function UMG_SystemSettingMainItem_C:OnDestruct()
   end
   if self.Timer then
     _G.TimerManager:RemoveTimer(self.Timer)
+    self.Timer = nil
   end
 end
 
@@ -109,12 +110,15 @@ function UMG_SystemSettingMainItem_C:InitInfo()
     self.SecondaryPassword:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     local statusStamp = self.uiData.countDownTimeStamp
     local currentTime = _G.ZoneServer:GetServerTime() / 1000
-    if currentTime - statusStamp > 0 then
+    if currentTime - statusStamp >= 0 then
       self.leftTime = 259200 - (currentTime - statusStamp)
       if self.leftTime > 0 then
         self:SetTimeText(self.leftTime)
-        _G.TimerManager:RemoveTimer(self.Timer)
-        self.Timer = _G.TimerManager:CreateTimer(self, "UMG_SystemSettingMainItem_C", self.leftTime, self.OnTimerUpdate, self.OnTimerEnd, 1)
+        if self.Timer then
+          _G.TimerManager:RemoveTimer(self.Timer)
+          self.Timer = nil
+        end
+        self.Timer = _G.TimerManager:CreateTimer(self, "UMG_SystemSettingMainItem_C", self.leftTime, self.OnTimerUpdate, self.OnTimerEnd, 0.1)
       else
         if statusStamp <= 0 then
           Log.Error("\228\188\160\229\133\165\231\154\132\229\128\146\232\174\161\230\151\182\230\151\182\233\151\180\230\136\179\229\188\130\229\184\184!!!")
@@ -140,8 +144,16 @@ function UMG_SystemSettingMainItem_C:SetTimeText(leftTime)
 end
 
 function UMG_SystemSettingMainItem_C:OnTimerUpdate()
-  if self.leftTime then
-    self.leftTime = self.leftTime - 1
+  local statusStamp = 0
+  if self.uiData.isSecondaryPasswordCountdown then
+    local passwordInfo = _G.NRCModuleManager:DoCmd(_G.SystemSettingModuleCmd.GetSecondaryPasswordInfo)
+    if passwordInfo and passwordInfo.status == ProtoEnum.SecondaryPasswordStatus.SPS_Disable then
+      statusStamp = passwordInfo.status_timestamp
+    end
+  end
+  local currentTime = _G.ZoneServer:GetServerTime() / 1000
+  if currentTime - statusStamp > 0 then
+    self.leftTime = 259200 - (currentTime - statusStamp)
     if self.leftTime > 0 then
       self:SetTimeText(self.leftTime)
     end
@@ -149,7 +161,7 @@ function UMG_SystemSettingMainItem_C:OnTimerUpdate()
 end
 
 function UMG_SystemSettingMainItem_C:OnTimerEnd()
-  _G.NRCModuleManager:DoCmd(_G.SystemSettingModuleCmd.OnSecondaryPasswordStatusChange, ProtoEnum.SecondaryPasswordStatus.SPS_Unset)
+  _G.NRCModuleManager:DoCmd(_G.SystemSettingModuleCmd.OnSecondaryPasswordStatusChange, ProtoEnum.SecondaryPasswordStatus.SPS_Unset, 0, 0)
 end
 
 function UMG_SystemSettingMainItem_C:DisableClick()

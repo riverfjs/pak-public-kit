@@ -277,7 +277,7 @@ function NRCUtils.LuaFatalError(errorMsg, reason, stackTrace, enableRetry)
   if not _G.RocoEnv.IS_EDITOR then
     _G.NRCSDKManager:CrashSightReportExceptionWithReason(errorMsg, reason, stackTrace)
   end
-  if _G.AppMain:ShouldPopErrorWin() then
+  if not _G.RocoEnv.IS_SHIPPING then
     local callStackLines = {}
     local callStacks = string.split(stackTrace, "\n")
     for i = 1, 5 do

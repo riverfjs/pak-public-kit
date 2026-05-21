@@ -157,6 +157,12 @@ function UMG_PetReport_Particulars_C:InitPetRatioUI()
           local ratioInfo = {}
           ratioInfo.enum_name = ratioConf.enum_name
           ratioInfo.param_name = ratioConf.param_name
+          if ratioConf.enum_ReportCoinRatio == Enum.ReportCoinRatio.RCR_GLASS_HIDDEN then
+            local glassName = self:GetHiddenGlassName()
+            if glassName then
+              ratioInfo.param_name = glassName
+            end
+          end
           ratioInfo.ratio = info.ratio / 10000
           ratioInfo.id = id
           table.insert(ratioList, ratioInfo)
@@ -183,6 +189,21 @@ function UMG_PetReport_Particulars_C:InitPetRatioUI()
   self.itemMaxNum = 6
   self:ClearItemMoveInTimer()
   self.ItemMoveInTimer = _G.TimerManager:CreateTimer(self, "ItemMoveInTimer", 0.6, self.OnItemMoveIn, self.OnItemMoveInTimerComplete, 0.1)
+end
+
+function UMG_PetReport_Particulars_C:GetHiddenGlassName()
+  if self.uiData and self.uiData.pet_brief and self.uiData.pet_brief.glass_info and self.uiData.pet_brief.glass_info.glass_type == ProtoEnum.GlassType.GT_HIDDEN then
+    local HiddenGlassID = self.uiData.pet_brief.glass_info.glass_value
+    if HiddenGlassID then
+      local HiddenGlassConf = _G.DataConfigManager:GetHiddenGlassConf(HiddenGlassID)
+      if HiddenGlassConf then
+        local name = HiddenGlassConf.name
+        name = name and name:gsub("<[^>]*>", ""):gsub("</>", "")
+        return name
+      end
+    end
+  end
+  return nil
 end
 
 function UMG_PetReport_Particulars_C:OnItemMoveIn()

@@ -26,4 +26,10 @@ HandbookModuleEnum.UIEditorOperationType = {
   shadow_opacity = 6
 }
 HandbookModuleEnum.UIEditorAxialType = {XAxial = 0, YAxial = 1}
+HandbookModuleEnum.SeasonHandbookAwardState = {
+  NotReached = 0,
+  NotClaimed = 1,
+  Claimed = 2
+}
+HandbookModuleEnum.SeasonHandbookTable = {Handbook = 0, Photo = 1}
 return HandbookModuleEnum

@@ -56,7 +56,7 @@ function DialogueTimelineMeshMoveAction:OnEnter()
     self:Finish()
     return
   end
-  local Actor = self:GetActor(self.OwnerActorID)
+  local Actor = self:GetActor(self.OwnerActorID, self.NPCContentID)
   if not Actor then
     Log.Debug("DialogueTimelineMeshMoveAction:OnEnter, no actor")
     self:Finish()
@@ -81,7 +81,7 @@ function DialogueTimelineMeshMoveAction:OnEnter()
 end
 
 function DialogueTimelineMeshMoveAction:OnTick(DeltaTime)
-  local Actor = self:GetActor(self.OwnerActorID)
+  local Actor = self:GetActor(self.OwnerActorID, self.NPCContentID)
   if not Actor then
     Log.Debug("DialogueTimelineMeshMoveAction:OnTick, no actor")
     self:Finish()
@@ -131,7 +131,7 @@ function DialogueTimelineMeshMoveAction:OnTick(DeltaTime)
 end
 
 function DialogueTimelineMeshMoveAction:OnFinish()
-  local Actor = self:GetActor(self.OwnerActorID)
+  local Actor = self:GetActor(self.OwnerActorID, self.NPCContentID)
   if Actor then
     Actor.DialogueTimelineTransformCache = nil
   end

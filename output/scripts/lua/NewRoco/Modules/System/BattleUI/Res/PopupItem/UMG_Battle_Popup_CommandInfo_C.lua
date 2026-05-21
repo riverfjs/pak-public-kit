@@ -3,6 +3,8 @@ local ProtoEnum = require("Data.PB.ProtoEnum")
 local BattleEnum = require("NewRoco.Modules.Core.Battle.Common.BattleEnum")
 local BattleEvent = require("NewRoco.Modules.Core.Battle.Common.BattleEvent")
 local BuffUtils = require("NewRoco.Modules.Core.Battle.Entity.Components.Buff.BuffUtils")
+local BattleUtils = require("NewRoco.Modules.Core.Battle.Common.BattleUtils")
+local BattleConst = require("NewRoco.Modules.Core.Battle.Common.BattleConst")
 local UMG_Battle_Popup_CommandInfo_C = NRCViewBase:Extend("")
 
 function UMG_Battle_Popup_CommandInfo_C:Construct()
@@ -55,6 +57,8 @@ function UMG_Battle_Popup_CommandInfo_C:ShowPopup(msg, isleft, flag)
     return false
   end
   self.flag = flag
+  self:ClearNameMask()
+  self.fantasticBackgroundPath = ""
   if msg[1] == BattleEnum.InfoPopupType.SummonPet then
     if 3 ~= #msg then
       Log.Error("Popup SummonPet have error param")
@@ -96,6 +100,7 @@ function UMG_Battle_Popup_CommandInfo_C:ShowPopup(msg, isleft, flag)
     else
       needOverride = self.AttackPlayer.Caster.card.petState:GetSleep() or self.AttackPlayer.Caster.card.petState:GetDrill() or self.AttackPlayer.Caster.card.petState:GetStatic() or self.AttackPlayer.Caster.card.petState:GetMimic() or self.AttackPlayer.Caster.card.petState:GetThunder() or self.AttackPlayer.Caster.card.petState:GetTrail() or self.AttackPlayer.Caster.card.petState:GetDiving()
     end
+    local fantasticBackgroundPath = ""
     if needOverride then
       if self.AttackPlayer.Caster.card.petState:GetSleep() then
         local tip = _G.DataConfigManager:GetGlobalConfigStrByKeyType("sleep_skill_tip", _G.DataConfigManager.ConfigTableId.BATTLE_GLOBAL_CONFIG, "")
@@ -127,9 +132,19 @@ function UMG_Battle_Popup_CommandInfo_C:ShowPopup(msg, isleft, flag)
       elseif msg[1] == BattleEnum.InfoPopupType.UseSkillCountered then
         SskillName = string.format("<orange>%s</>", SkillConf.name)
         local Text
-        if msg[3].skill_cast.perform_flag == _G.ProtoEnum.PET_SKILL_PERFORM_FLAG.PET_SKILL_PERFORM_FLAG_FANTASTIC then
+        local battleAttackPlayer = msg[3]
+        local skillCast = battleAttackPlayer and battleAttackPlayer.skill_cast
+        local performFlag = skillCast and skillCast.perform_flag
+        local petId = skillCast and skillCast.caster_id
+        local skillId = skillCast and skillCast.skill_id
+        local checkedSkillId = skillId and _G.SkillUtils.CheckSkillId(skillId)
+        local seasonId = skillCast and skillCast.season_id
+        if performFlag == _G.ProtoEnum.PET_SKILL_PERFORM_FLAG.PET_SKILL_PERFORM_FLAG_FANTASTIC then
           Text = string.format(LuaText.INFO_POPUP_COUNTER_FANTASTIC_SKILL, SpetName, SskillName)
-          self.Select_NM_3:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+          local paths = BattleUtils.GetFantasticBackgroundPathWithSkillAndSeason(checkedSkillId, seasonId)
+          if paths then
+            fantasticBackgroundPath = paths.stripNm3 or fantasticBackgroundPath
+          end
         else
           Text = string.format(LuaText.INFO_POPUP_COUNTER_SKILL, SpetName, SskillName)
         end
@@ -163,14 +178,23 @@ function UMG_Battle_Popup_CommandInfo_C:ShowPopup(msg, isleft, flag)
         SskillName = SskillName or string.format("<orange>%s</>", SkillConf.name)
         local Text
         local battleAttackPlayer = msg[3]
-        if battleAttackPlayer.skill_cast.perform_flag == _G.ProtoEnum.PET_SKILL_PERFORM_FLAG.PET_SKILL_PERFORM_FLAG_FANTASTIC then
+        local skillCast = battleAttackPlayer and battleAttackPlayer.skill_cast
+        local performFlag = skillCast and skillCast.perform_flag
+        local petId = skillCast and skillCast.caster_id
+        local skillId = skillCast and skillCast.skill_id
+        local checkedSkillId = skillId and _G.SkillUtils.CheckSkillId(skillId)
+        local seasonId = skillCast and skillCast.season_id
+        if performFlag == _G.ProtoEnum.PET_SKILL_PERFORM_FLAG.PET_SKILL_PERFORM_FLAG_FANTASTIC then
           local stringFormat = LuaText.INFO_POPUP_USE_FANTASTIC_SKILL
           if not isleft and self:IsB1FinalBattle() then
             Text = string.format(stringFormat, SpetName, "", "", SskillName)
           else
             Text = string.format(stringFormat, SpetName, starText, energyText, SskillName)
           end
-          self.Select_NM_3:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+          local paths = BattleUtils.GetFantasticBackgroundPathWithSkillAndSeason(checkedSkillId, seasonId)
+          if paths then
+            fantasticBackgroundPath = paths.stripNm3 or fantasticBackgroundPath
+          end
         elseif battleAttackPlayer.skill_cast.perform_flag == _G.ProtoEnum.PET_SKILL_PERFORM_FLAG.PET_SKILL_PERFORM_FLAG_ESCPAPE_NOTIFY then
           local stringFormat = LuaText.INFO_POPUP_USE_ESCAPE_NOTICE_SKILL
           Text = string.format(stringFormat, SpetName)
@@ -190,6 +214,9 @@ function UMG_Battle_Popup_CommandInfo_C:ShowPopup(msg, isleft, flag)
         end
         self.Popinfo:SetText(Text)
       end
+    end
+    if not string.IsNilOrEmpty(fantasticBackgroundPath) then
+      self.fantasticBackgroundPath = fantasticBackgroundPath
     end
     if not self.AttackPlayer.skill_cast.combo_index or 0 == self.AttackPlayer.skill_cast.combo_index then
       self:DelayFrames(6, self.TimeUp, self)
@@ -370,6 +397,14 @@ function UMG_Battle_Popup_CommandInfo_C:ShowPopup(msg, isleft, flag)
     self.PopInfo:SetText(string.format(tip, player.roleInfo.base.name, ballName))
     self:DelaySeconds(2, self.HidePopup, self)
   end
+  local fantasticBackgroundPath = self.fantasticBackgroundPath or ""
+  local selectNm3Visibility = UE4.ESlateVisibility.Collapsed
+  if not string.IsNilOrEmpty(fantasticBackgroundPath) then
+    self.fantasticBackgroundPath = fantasticBackgroundPath
+    selectNm3Visibility = UE4.ESlateVisibility.SelfHitTestInvisible
+  end
+  self.Select_NM_3:SetPath(fantasticBackgroundPath)
+  self.Select_NM_3:SetVisibility(selectNm3Visibility)
   self:StopAllAnimations()
   self.IsHide = false
   self.IsPlayIn = false
@@ -429,6 +464,13 @@ function UMG_Battle_Popup_CommandInfo_C:AdaptSize()
   end
 end
 
+function UMG_Battle_Popup_CommandInfo_C:ClearNameMask()
+  if self.hasLoadNameMask and self.NameMask then
+    self.hasLoadNameMask = false
+    self.NameMask:UnLoadPanel(false)
+  end
+end
+
 function UMG_Battle_Popup_CommandInfo_C:HidePopup()
   if not self.Slot then
     Log.Error("zgx Slot is nil, can't find C++ object")
@@ -454,6 +496,7 @@ end
 function UMG_Battle_Popup_CommandInfo_C:OnAnimationFinished(Animation)
   if self.FadeOut == Animation then
     self:SetRenderOpacity(0)
+    self:ClearNameMask()
     if self.IsPlayIn and self.IsHide and not self.IsCanRepeat then
       self.IsPlayIn = false
       self.IsCanRepeat = true
@@ -475,9 +518,6 @@ function UMG_Battle_Popup_CommandInfo_C:OnAnimationFinished(Animation)
     if self.IsHide then
       self:HidePopup()
     end
-  elseif Animation == self.FadeOut and self.hasLoadNameMask then
-    self.hasLoadNameMask = false
-    self.NameMask:UnLoadPanel(false)
   end
 end
 

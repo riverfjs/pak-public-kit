@@ -7,6 +7,8 @@ local SceneUtils = require("NewRoco.Modules.Core.Scene.Common.SceneUtils")
 local ActionUtils = require("NewRoco.Modules.Core.NPC.Actions.ActionUtils")
 local TimeoutEventListener = require("Common.TimeoutEventListener")
 local TaskModuleEvent = require("NewRoco.Modules.Core.Task.TaskModuleEvent")
+local UIUtils = require("NewRoco.Utils.UIUtils")
+local ProtoEnum = require("Data.PB.ProtoEnum")
 local Base = ActorComponent
 local PlayerThrowInteractionComponent = Base:Extend("PlayerThrowInteractionComponent")
 
@@ -32,7 +34,6 @@ function PlayerThrowInteractionComponent:SubmitBattle(Session, SceneCharacter, W
   end
   self.Session = Session
   self.SceneCharacter = SceneCharacter
-  SceneCharacter.InteractionComponent:TryDisableInteraction()
   _G.NRCModuleManager:DoCmd(MainUIModuleCmd.SetThrowHitTestInvisible, true)
   self:SendThrowEnd(WeakPointName)
 end
@@ -44,7 +45,6 @@ function PlayerThrowInteractionComponent:SendThrowEnd(WeakPointName)
   if UE4.UObject.IsValid(BallView) then
     BallView:SetActorHiddenInGame(true)
   end
-  self.SceneCharacter.InteractionComponent:TryEnableInteraction()
   if self.owner:IsInTogetherMove() and self.owner.viewObj then
     local rideComp = self.owner.viewObj.BP_RideComponent
     if rideComp then
@@ -97,13 +97,19 @@ function PlayerThrowInteractionComponent:SendThrowEnd(WeakPointName)
       end
     end
   end
-  do
+  if req.throw_effect ~= _G.ProtoEnum.ThrowEffect.TE_NONE then
     local actDir = self.SceneCharacter:GetActorLocation() - self.owner:GetActorLocation()
     actDir:Normalize()
-    local isBack = SceneUtils.TriggerBackwardBattle(self.SceneCharacter, actDir, 1, Ball.ThrowSession.ScenePet)
+    local isBack, isTalent = SceneUtils.TriggerBackwardBattle(self.SceneCharacter, actDir, 1, Ball.ThrowSession.ScenePet)
     if isBack then
       req.throw_battle_info.npc_ai_blackboard.back_of_head = true
-      req.throw_battle_info.npc_ai_blackboard.ai_status = req.throw_battle_info.npc_ai_blackboard.ai_status | 1 << Enum.BattleAIStatus.BAS_BACK_OF_HEAD
+      local alterStatus
+      if isTalent then
+        alterStatus = 1 << Enum.BattleAIStatus.BAS_BACK_OF_HEAD_TALENT
+      else
+        alterStatus = 1 << Enum.BattleAIStatus.BAS_BACK_OF_HEAD
+      end
+      req.throw_battle_info.npc_ai_blackboard.ai_status = req.throw_battle_info.npc_ai_blackboard.ai_status | alterStatus
     end
     if self.SceneCharacter.config.genre ~= Enum.ClientNpcType.CNT_PETBOSS then
       BattleManager:StartFocus(self.SceneCharacter, isBack, req.throw_battle_info.npc_ai_blackboard.ai_status)
@@ -175,6 +181,10 @@ function PlayerThrowInteractionComponent:OnSubmitBattle(rsp)
     end
     if self.SceneCharacter and self.SceneCharacter.AIComponent then
       self.SceneCharacter.AIComponent:UnlockForBattleReason()
+    end
+    if rsp.ret_info.ret_code == ProtoEnum.MOBA_RET.SceneErr.ERR_SCENE_CATCH_FORBID and self.SceneCharacter.serverData then
+      local tip, ownerName = UIUtils.GetHighValuePetTipsAndOwnerName(self.SceneCharacter.serverData)
+      _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, tip)
     end
   else
     local BallView = self.Session and self.Session:GetBallView()

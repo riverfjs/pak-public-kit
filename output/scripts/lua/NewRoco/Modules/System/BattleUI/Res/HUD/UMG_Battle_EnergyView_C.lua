@@ -100,7 +100,9 @@ function UMG_Battle_EnergyView_C:OnBattleEvent(eventName, ...)
     end
   elseif eventName == BattleEvent.UI_UPDATE_ENERGY then
     self:OnDirectUpdateEnergy(...)
-  elseif eventName == BattleEvent.DIRECT_UPDATE_UI or eventName == BattleEvent.ROUND_START then
+  elseif eventName == BattleEvent.DIRECT_UPDATE_UI then
+    self:OnDirectUpdateEnergy()
+  elseif eventName == BattleEvent.ROUND_START then
     self:OnDirectUpdateEnergy(...)
   end
 end

@@ -11,6 +11,8 @@ local MapItemAreaName = require("NewRoco/Modules/System/BigMap/Res/MapItemAreaNa
 local MapItemLayerMap = require("NewRoco/Modules/System/BigMap/Res/MapItemLayerMap")
 local MapItemCircle = require("NewRoco/Modules/System/BigMap/Res/MapItemCircle")
 local BigMapModuleEvent = require("NewRoco.Modules.System.BigMap.BigMapModuleEvent")
+local MainUIModuleEnum = require("NewRoco.Modules.System.MainUI.MainUIModuleEnum")
+local FriendModuleEvent = require("NewRoco.Modules.System.Friend.FriendModuleEvent")
 local PlayerDataEvent = require("Data.Global.PlayerDataEvent")
 local FVector2DUtils = require("NewRoco.Utils.FVector2DUtils")
 local UMG_Minimap_C = _G.NRCPanelBase:Extend("UMG_Minimap_C")
@@ -53,6 +55,7 @@ function UMG_Minimap_C:OnConstruct()
     self.showAreaNpc = self.bigMapModule:GetMinimapShowAreaNpc()
     self.showMapList = self.bigMapModule:OnCmdGetCurUnlockMapBlockIds()
     self.data = self.bigMapModule.data
+    self.forceTraceLimit = self.bigMapModule:GetForceTraceLimit()
   end
   self.innerRadius = 0
   self.outerRadius = 0
@@ -65,6 +68,9 @@ function UMG_Minimap_C:OnConstruct()
   self.delTaskList = {}
   self.miniMapTraceInfo = {}
   self.curShowNpc = {}
+  self.defaultTrackNpcList = {}
+  self.defaultTrackNpcLogicIdList = {}
+  self.npc = nil
   self.curTraceInfoList = {}
   self.ShowHighAngle = _G.DataConfigManager:GetMapGlobalConfig("high_divide_angle").num
   self.ShowHighDis = _G.DataConfigManager:GetMapGlobalConfig("min_divide_range").num
@@ -113,14 +119,25 @@ function UMG_Minimap_C:OnConstruct()
   self.areaNameIconCreator = MapItemAreaName(self, self.iconLayerList, self.iconNPCTemplate)
   self.mapLayerCreator = MapItemLayerMap(self, self.layerMapLayer, self.mapLayerTemplate)
   self.iconCircleCreator = MapItemCircle(self, self.iconLayerList, self.iconCircleTemplate)
+  self.creatorList = {
+    self.npcIconCreator,
+    self.taskIconCreator,
+    self.markerIconCreator,
+    self.visitorIconCreator,
+    self.areaNameIconCreator,
+    self.mapLayerCreator,
+    self.iconCircleCreator
+  }
   self:CalcMapImageScale()
   self:SetMapMaskVisible()
   self.heroIcon:SetRenderScale(UE4.FVector2D(self.iconScale, self.iconScale))
   self:OnAddEventListener()
   self:OnZoneInfoChange()
   self.tickInterval = 0
-  self.preTeleporting = false
+  self.calcDisInterval = 0
   self.CurTrackIconCircleList = {}
+  self.preTeleporting = false
+  self.CurrentTrackingTaskId = nil
 end
 
 function UMG_Minimap_C:OnActive()
@@ -142,6 +159,8 @@ function UMG_Minimap_C:OnAddEventListener()
   NRCEventCenter:RegisterEvent("UMG_Minimap_C", self, BigMapModuleEvent.OnMapInfoChange, self.OnMapInfoChanged)
   NRCModuleManager:GetModule("MainUIModule"):RegisterEvent(self, MainUIModuleEvent.UpdateMinimapShow, self.OnZoneInfoChange)
   NRCEventCenter:RegisterEvent("UMG_Minimap_C", self, BigMapModuleEvent.OnNewMapUnlocked, self.SetMapMaskVisible)
+  NRCEventCenter:RegisterEvent("UMG_Minimap_C", self, FriendModuleEvent.OnVisitorChanged, self.OnVisitorChanged)
+  NRCEventCenter:RegisterEvent("UMG_Minimap_C", self, BigMapModuleEvent.DefaultTrackNpcChange, self.OnDefaultTrackNpcChange)
 end
 
 function UMG_Minimap_C:OnRemoveEventListener()
@@ -156,6 +175,8 @@ function UMG_Minimap_C:OnRemoveEventListener()
   NRCEventCenter:UnRegisterEvent(self, BigMapModuleEvent.OnMapInfoChange, self.OnMapInfoChanged)
   NRCModuleManager:GetModule("MainUIModule"):UnRegisterEvent(self, MainUIModuleEvent.UpdateMinimapShow, self.OnZoneInfoChange)
   NRCEventCenter:UnRegisterEvent(self, BigMapModuleEvent.OnNewMapUnlocked, self.SetMapMaskVisible)
+  NRCEventCenter:UnRegisterEvent(self, FriendModuleEvent.OnVisitorChanged, self.OnVisitorChanged)
+  NRCEventCenter:UnRegisterEvent(self, BigMapModuleEvent.DefaultTrackNpcChange, self.OnDefaultTrackNpcChange)
 end
 
 function UMG_Minimap_C:OnDestruct()
@@ -222,6 +243,12 @@ function UMG_Minimap_C:OnOpenBtnClick()
 end
 
 function UMG_Minimap_C:OnSceneLoaded()
+  self:DelayFrames(1, function()
+    self:OnSceneLoaded_Impl()
+  end)
+end
+
+function UMG_Minimap_C:OnSceneLoaded_Impl()
   self:ClearCache()
   self:UpdateScaleData()
   self:SetMapShowRadius()
@@ -230,10 +257,14 @@ function UMG_Minimap_C:OnSceneLoaded()
   self:SetMapAndMaskBySceneResId()
   self:SetMapMaskVisible()
   self:UpdateTaskInfo()
+  self:UpdateMarkInfo()
+  self:OnZoneInfoChange()
+  self:ChangeMinimapState(MainUIModuleEnum.MinimapOrCompassState.Normal)
   local sceneResId = SceneUtils.GetSceneResId()
   if sceneResId and sceneResId > 0 then
     self:SetMiniMapBg(sceneResId)
   end
+  self.defaultTrackNpcList = table.deepCopy(NRCModuleManager:DoCmd(BigMapModuleCmd.GetDefaultTrackNpcList))
 end
 
 function UMG_Minimap_C:SetMiniMapBg(sceneResId)
@@ -271,28 +302,45 @@ function UMG_Minimap_C:ShowLayerMap(layerId)
     if layerId > 0 then
       self:CreateLayerMap(layerId)
     end
-    if self.data.layerIdToIcons[layerId] then
-      local layerNpcInfo = self.data.layerIdToIcons[layerId][BigMapModuleEnum.CreatorPriority.NpcIcons]
-      if layerNpcInfo and #layerNpcInfo > 0 then
-        for k, v in ipairs(layerNpcInfo) do
-          if self.npcIconCreator and self.npcIconCreator:Get(v) then
-            self.npcIconCreator:Get(v):SetLayerMapIcon(true)
+    if layerId > 0 then
+      self:SetIconLayerColor(layerId, BigMapModuleEnum.CreatorPriority.NpcIcons, true)
+      self:SetIconLayerColor(layerId, BigMapModuleEnum.CreatorPriority.MarkerIcons, true)
+    end
+    if self.lastShowLayerId > 0 and self.lastShowLayerId ~= layerId then
+      self:SetIconLayerColor(self.lastShowLayerId, BigMapModuleEnum.CreatorPriority.NpcIcons, false)
+      self:SetIconLayerColor(self.lastShowLayerId, BigMapModuleEnum.CreatorPriority.MarkerIcons, false)
+    end
+  end
+  self.lastShowLayerId = layerId
+end
+
+function UMG_Minimap_C:SetIconLayerColor(layerId, iconType, bColorful)
+  if self.data.layerIdToIcons[layerId] == nil then
+    return
+  end
+  if iconType == BigMapModuleEnum.CreatorPriority.NpcIcons then
+    local layerNpcInfo = self.data.layerIdToIcons[layerId][iconType]
+    if layerNpcInfo then
+      for entryId, npcList in pairs(layerNpcInfo) do
+        if npcList and #npcList > 0 then
+          for k, logicId in ipairs(npcList) do
+            if self.npcIconCreator and self.npcIconCreator:Get(entryId, logicId) then
+              self.npcIconCreator:Get(entryId, logicId):SetLayerMapIcon(bColorful)
+            end
           end
         end
       end
     end
-    if self.lastShowLayerId ~= layerId and self.data.layerIdToIcons[self.lastShowLayerId] then
-      local layerNpcInfo = self.data.layerIdToIcons[self.lastShowLayerId][BigMapModuleEnum.CreatorPriority.NpcIcons]
-      if layerNpcInfo and #layerNpcInfo > 0 then
-        for k, v in ipairs(layerNpcInfo) do
-          if self.npcIconCreator and self.npcIconCreator:Get(v) then
-            self.npcIconCreator:Get(v):SetLayerMapIcon(false)
-          end
+  elseif iconType == BigMapModuleEnum.CreatorPriority.MarkerIcons then
+    local layerMarkInfo = self.data.layerIdToIcons[layerId][iconType]
+    if layerMarkInfo then
+      for markId, markList in pairs(layerMarkInfo) do
+        if self.markerIconCreator and self.markerIconCreator:Get(markId) then
+          self.markerIconCreator:Get(markId):SetLayerMapIcon(bColorful)
         end
       end
     end
   end
-  self.lastShowLayerId = layerId
 end
 
 function UMG_Minimap_C:CreateLayerMap(layerId)
@@ -317,7 +365,7 @@ function UMG_Minimap_C:CreateLayerMap(layerId)
   self.mapLayerCreator:Create({iconData = iconData, imageInfo = imageData})
 end
 
-function UMG_Minimap_C:OnMapInfoChanged(bDelete, npcInfo, entryId)
+function UMG_Minimap_C:OnMapInfoChanged(bDelete, npcInfo, entryId, logicId)
   Log.Debug("UMG_Minimap_C:OnMapInfoChanged", bDelete, entryId, logicId)
   Log.Dump(npcInfo, 4, "UMG_Minimap_C:OnMapInfoChanged")
   local bigMapModule = _G.NRCModuleManager:GetModule("BigMapModule")
@@ -325,9 +373,9 @@ function UMG_Minimap_C:OnMapInfoChanged(bDelete, npcInfo, entryId)
     self.showNpc = bigMapModule:GetMinimapShowNpc()
     self.showAreaNpc = bigMapModule:GetMinimapShowAreaNpc()
   end
-  if npcInfo and npcInfo.entry_id then
+  if npcInfo and npcInfo.entry_id and npcInfo.logic_id then
     if true == bDelete then
-      self.npcIconCreator:Recycle(npcInfo.entry_id)
+      self.npcIconCreator:Recycle(npcInfo.entry_id, npcInfo.logic_id)
       if npcInfo.worldMapActivityConf then
         local activityMapId = npcInfo.worldMapActivityConf.id
         self.iconCircleCreator:Destroy(BigMapModuleEnum.CircleIconType.Activity, activityMapId, activityMapId)
@@ -338,12 +386,12 @@ function UMG_Minimap_C:OnMapInfoChanged(bDelete, npcInfo, entryId)
       iconData.iconImagePos = {x = posX, y = posY}
       iconData.curMapImageScale = 1 / self.iconScale * self.imageScale.X
       iconData.curMapSliderScale = 1
-      if self.npcIconCreator:Get(npcInfo.entry_id) then
+      if self.npcIconCreator:Get(npcInfo.entry_id, npcInfo.logic_id) then
         self.npcIconCreator:Refresh({iconData = iconData, npcInfo = npcInfo})
       end
     end
-  elseif entryId and entryId > 0 and true == bDelete then
-    self.npcIconCreator:Recycle(entryId)
+  elseif entryId and entryId > 0 and logicId and logicId > 0 and true == bDelete then
+    self.npcIconCreator:Recycle(entryId, logicId)
     if npcInfo and npcInfo.worldMapActivityConf then
       local activityMapId = npcInfo.worldMapActivityConf.id
       self.iconCircleCreator:Destroy(BigMapModuleEnum.CircleIconType.Activity, activityMapId, activityMapId)
@@ -397,6 +445,15 @@ function UMG_Minimap_C:SetMapMaskVisible()
   end
 end
 
+function UMG_Minimap_C:OnVisitorChanged(notify)
+  self:UpdateVisitorInfo()
+end
+
+function UMG_Minimap_C:OnDefaultTrackNpcChange()
+  self.defaultTrackNpcList = table.deepCopy(NRCModuleManager:DoCmd(BigMapModuleCmd.GetDefaultTrackNpcList))
+  self:UpdateDefaultNpcInfo()
+end
+
 function UMG_Minimap_C:OnTick(deltaTime)
   if self.bShow then
     self:UpdatePlayerAndMapPos()
@@ -416,6 +473,11 @@ function UMG_Minimap_C:UpdateNpcAndTrace(deltaTime)
     self:UpdateAreaNpcInfo()
     self:UpdateHomePetInfo()
     self.tickInterval = 0
+  end
+  self.calcDisInterval = self.calcDisInterval + deltaTime
+  if self.calcDisInterval > 1 then
+    self:UpdateDefaultNpcInfo()
+    self.calcDisInterval = 0
   end
   self:UpdateTraceIconPosition()
 end
@@ -570,7 +632,7 @@ end
 function UMG_Minimap_C:CreateCircleIcon(iconData, npcInfo)
   if npcInfo.worldMapActivityConf then
     iconData.iconTemplateIndex = 1
-    iconData.layerIndex = 2
+    iconData.layerIndex = 1
     local circleInfo = {}
     circleInfo.showType = BigMapModuleEnum.CircleIconType.Activity
     circleInfo.typeId = npcInfo.worldMapActivityConf.id
@@ -596,6 +658,25 @@ function UMG_Minimap_C:SetCurShowTaskList(taskInfo)
   self.curShowTaskList[subTaskId] = taskId
 end
 
+function UMG_Minimap_C:CheckUseRealNpcPos(worldMapConf)
+  if not worldMapConf then
+    return
+  end
+  if worldMapConf.map_show_type == Enum.MapIconShowType.MAP_SEASON_DAZZLING then
+    return true
+  end
+  if worldMapConf.map_show_type == Enum.MapIconShowType.MAP_NPC_DAZZLING then
+    return true
+  end
+  if worldMapConf.map_show_type == Enum.MapIconShowType.MAP_HANDBOOK_TRACK then
+    return true
+  end
+  if worldMapConf.default_track_type ~= Enum.DefaultTrackType.DTT_NONE then
+    return true
+  end
+  return false
+end
+
 function UMG_Minimap_C:UpdateNpcInfo()
   table.clear(self.miniMapTraceInfo)
   table.clear(self.curShowNpc)
@@ -606,93 +687,102 @@ function UMG_Minimap_C:UpdateNpcInfo()
         if self.showNpc[sceneResId] then
           local npcList = self.showNpc[sceneResId][showPieceId]
           if npcList and self.npcIconCreator then
-            for npcId, npcInfo in pairs(npcList) do
-              if npcInfo.npcCfg and npcInfo.npcCfg.genre and npcInfo.npcCfg.genre == _G.Enum.ClientNpcType.CNT_HOME_NPC then
-                local npc = _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.GetNpcByServerID, npcInfo.entry_id)
-                if npc and npc.viewObj then
-                  local pos = npc:GetActorLocation()
-                  npcInfo.npc_pos.x = pos.X
-                  npcInfo.npc_pos.y = pos.Y
-                  npcInfo.npc_pos.z = pos.Z
-                end
-              end
-              if npcInfo.worldMapConf and (npcInfo.worldMapConf.map_show_type == Enum.MapIconShowType.MAP_SEASON_DAZZLING or npcInfo.worldMapConf.map_show_type == Enum.MapIconShowType.MAP_NPC_DAZZLING) then
-                local npc = _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.GetNpcByLogicID, npcInfo.logic_id or -1)
-                if npc and npc.viewObj then
-                  local pos = npc:GetActorLocation()
-                  npcInfo.npc_pos.x = pos.X
-                  npcInfo.npc_pos.y = pos.Y
-                  npcInfo.npc_pos.z = pos.Z
-                end
-              end
-              if npcInfo.npc_pos then
-                local npcPosX = npcInfo.npc_pos.x
-                local npcPosY = npcInfo.npc_pos.y
-                local npcPosZ = npcInfo.npc_pos.z
-                local bShowNpc = self:CheckShowIcon(npcPosX, npcPosY, npcPosZ, npcInfo.worldMapConf)
-                local distance = self:GetDistance3D(npcPosX, npcPosY, npcPosZ)
-                local bTracing = self:CheckIsTracing(BigMapModuleEnum.TraceType.NPC, npcInfo)
-                local bShow = bShowNpc or bTracing
-                if bShow then
-                  local entryId = npcInfo.entry_id
-                  if self.npcIconCreator:Get(entryId) then
-                    local itemData = self.npcIconCreator:GetItemData(entryId)
-                    if itemData then
-                      local curLayerIndex = itemData.iconData.layerIndex
-                      if bTracing and self:CheckShowNpcTraceEffect(npcInfo.worldMapConf) then
-                        self.npcIconCreator:SetTraceEffect(true, entryId)
-                      else
-                        self.npcIconCreator:SetTraceEffect(false, entryId)
-                      end
-                      if bTracing then
-                        if 4 ~= curLayerIndex then
-                          self.npcIconCreator:SetIconLayer(entryId, 4)
+            for npcId, _npcInfo in pairs(npcList) do
+              for logicId, npcInfo in pairs(_npcInfo) do
+                local bForceTrace = self:CheckIsTracing(BigMapModuleEnum.TraceType.ForceTrace, npcInfo)
+                local bCommonTrace = self:CheckIsTracing(BigMapModuleEnum.TraceType.NPC, npcInfo)
+                local trackType = npcInfo.worldMapConf and npcInfo.worldMapConf.default_track_type
+                if trackType ~= Enum.DefaultTrackType.DTT_NONE and self:CheckIsShowDefaultNpc(trackType, npcInfo.logic_id) ~= true and not bForceTrace and not bCommonTrace then
+                else
+                  if npcInfo.npcCfg and npcInfo.npcCfg.genre and npcInfo.npcCfg.genre == _G.Enum.ClientNpcType.CNT_HOME_NPC then
+                    local npc = _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.GetNpcByServerID, npcInfo.entry_id)
+                    if npc and npc.viewObj then
+                      local pos = npc:GetActorLocation()
+                      npcInfo.npc_pos.x = pos.X
+                      npcInfo.npc_pos.y = pos.Y
+                      npcInfo.npc_pos.z = pos.Z
+                    end
+                  end
+                  if self:CheckUseRealNpcPos(npcInfo.worldMapConf) then
+                    self.npc = _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.GetNpcByLogicID, npcInfo.logic_id or -1)
+                    if self.npc and self.npc.viewObj then
+                      local pos = self.npc:GetActorLocation()
+                      npcInfo.npc_pos.x = pos.X
+                      npcInfo.npc_pos.y = pos.Y
+                      npcInfo.npc_pos.z = pos.Z
+                    end
+                  end
+                  if npcInfo.npc_pos then
+                    local npcPosX = npcInfo.npc_pos.x
+                    local npcPosY = npcInfo.npc_pos.y
+                    local npcPosZ = npcInfo.npc_pos.z
+                    local bShowNpc = self:CheckShowIcon(npcPosX, npcPosY, npcPosZ, npcInfo.worldMapConf)
+                    local distance = self:GetDistance3D(npcPosX, npcPosY, npcPosZ)
+                    local bTracing = bCommonTrace or bForceTrace
+                    local bShow = bShowNpc or bTracing
+                    if bShow then
+                      local entryId = npcInfo.entry_id
+                      if self.npcIconCreator:Get(entryId, logicId) then
+                        local itemData = self.npcIconCreator:GetItemData(entryId, logicId)
+                        if itemData then
+                          local curLayerIndex = itemData.iconData.layerIndex
+                          if bTracing and self:CheckShowNpcTraceEffect(npcInfo.worldMapConf) then
+                            self.npcIconCreator:SetTraceEffect(true, entryId, logicId)
+                          else
+                            self.npcIconCreator:SetTraceEffect(false, entryId, logicId)
+                          end
+                          if bTracing then
+                            if 4 ~= curLayerIndex then
+                              self.npcIconCreator:SetIconLayer(entryId, logicId, 4)
+                            end
+                          else
+                            local layerIndex = BigMapUtils.GetNpcIconLayer(npcInfo, true)
+                            if curLayerIndex ~= layerIndex then
+                              self.npcIconCreator:SetIconLayer(entryId, logicId, layerIndex)
+                            end
+                          end
                         end
                       else
-                        local layerIndex = BigMapUtils.GetNpcIconLayer(npcInfo)
-                        if curLayerIndex ~= layerIndex then
-                          self.npcIconCreator:SetIconLayer(entryId, layerIndex)
+                        local iconData = {}
+                        local posX, posY = BigMapUtils.ScenePosToImagePosF(SceneUtils.GetSceneResId(), npcPosX, npcPosY)
+                        iconData.iconImagePos = {x = posX, y = posY}
+                        iconData.curMapImageScale = 1 / self.iconScale * self.imageScale.X
+                        iconData.curMapSliderScale = 1
+                        if bTracing then
+                          iconData.layerIndex = 4
+                        else
+                          iconData.layerIndex = nil
                         end
+                        iconData.bMiniMap = true
+                        self:CreateNpcIcon(iconData, npcInfo)
                       end
+                      if npcInfo.worldMapActivityConf then
+                        local radius = npcInfo.worldMapActivityConf.radius
+                        self.npcIconCreator:SetItemVisibility(self:CheckShowCircleActivityNpc(npcPosX, npcPosY, radius), BigMapModuleEnum.CreatorPriority.NpcIcons, entryId, logicId)
+                      else
+                        self.npcIconCreator:SetItemVisibility(true, BigMapModuleEnum.CreatorPriority.NpcIcons, entryId, logicId)
+                      end
+                      table.insert(self.curShowNpc, logicId)
+                      self:ShowDirectionFlag(BigMapModuleEnum.CreatorPriority.NpcIcons, distance, npcInfo.entry_id, self:GetTempVector(npcPosX, npcPosY, npcPosZ), logicId)
+                    elseif self.npcIconCreator:Get(npcInfo.entry_id, npcInfo.logic_id) then
+                      self.npcIconCreator:Recycle(npcInfo.entry_id, npcInfo.logic_id)
                     end
                     if npcInfo.worldMapActivityConf then
-                      local radius = npcInfo.worldMapActivityConf.radius
-                      self.npcIconCreator:SetItemVisibility(self:CheckShowCircleActivityNpc(npcPosX, npcPosY, radius), BigMapModuleEnum.CreatorPriority.NpcIcons, entryId)
-                    else
-                      self.npcIconCreator:SetItemVisibility(true, BigMapModuleEnum.CreatorPriority.NpcIcons, entryId)
+                      local bShowCircle = self:CheckShowDropActivityCircle(npcPosX, npcPosY, npcInfo)
+                      local activityId = npcInfo.worldMapActivityConf.id
+                      if bShowCircle then
+                        if not self.iconCircleCreator:Get(BigMapModuleEnum.CircleIconType.Activity, activityId) then
+                          local posX, posY = BigMapUtils.ScenePosToImagePosF(SceneUtils.GetSceneResId(), npcPosX, npcPosY)
+                          local iconData = {}
+                          iconData.iconImagePos = {x = posX, y = posY}
+                          iconData.curMapImageScale = self.imageScale.X
+                          iconData.curMapSliderScale = 1
+                          self:CreateCircleIcon(iconData, npcInfo)
+                        end
+                      else
+                        self.iconCircleCreator:Destroy(BigMapModuleEnum.CircleIconType.Activity, activityId)
+                      end
                     end
-                  else
-                    local iconData = {}
-                    local posX, posY = BigMapUtils.ScenePosToImagePosF(SceneUtils.GetSceneResId(), npcPosX, npcPosY)
-                    iconData.iconImagePos = {x = posX, y = posY}
-                    iconData.curMapImageScale = 1 / self.iconScale * self.imageScale.X
-                    iconData.curMapSliderScale = 1
-                    if bTracing then
-                      iconData.layerIndex = 4
-                    else
-                      iconData.layerIndex = nil
-                    end
-                    self:CreateNpcIcon(iconData, npcInfo)
-                  end
-                  table.insert(self.curShowNpc, entryId)
-                  self:ShowDirectionFlag(BigMapModuleEnum.CreatorPriority.NpcIcons, distance, npcInfo.entry_id, self:GetTempVector(npcPosX, npcPosY, npcPosZ))
-                elseif self.npcIconCreator:Get(npcInfo.entryId) then
-                  self.npcIconCreator:Recycle(npcInfo.entry_id)
-                end
-                if npcInfo.worldMapActivityConf then
-                  local bShowCircle = self:CheckShowDropActivityCircle(npcPosX, npcPosY, npcInfo)
-                  local activityId = npcInfo.worldMapActivityConf.id
-                  if bShowCircle then
-                    if not self.iconCircleCreator:Get(BigMapModuleEnum.CircleIconType.Activity, activityId) then
-                      local posX, posY = BigMapUtils.ScenePosToImagePosF(SceneUtils.GetSceneResId(), npcPosX, npcPosY)
-                      local iconData = {}
-                      iconData.iconImagePos = {x = posX, y = posY}
-                      iconData.curMapImageScale = self.imageScale.X
-                      iconData.curMapSliderScale = 1
-                      self:CreateCircleIcon(iconData, npcInfo)
-                    end
-                  else
-                    self.iconCircleCreator:Destroy(BigMapModuleEnum.CircleIconType.Activity, activityId)
                   end
                 end
               end
@@ -705,35 +795,37 @@ function UMG_Minimap_C:UpdateNpcInfo()
       if npcList then
         for pieceId, npcInfos in pairs(npcList) do
           if npcInfos then
-            for npcId, npcInfo in pairs(npcInfos) do
-              if npcInfo.npc_pos then
-                local npcPosX = npcInfo.npc_pos.x
-                local npcPosY = npcInfo.npc_pos.y
-                local npcPosZ = npcInfo.npc_pos.z
-                local bShowNpc = self:CheckShowIcon(npcPosX, npcPosY, npcPosZ, npcInfo.worldMapConf)
-                local distance = self:GetDistance3D(npcPosX, npcPosY, npcPosZ)
-                local bTracing = self:CheckIsTracing(BigMapModuleEnum.TraceType.NPC, npcInfo)
-                local bShow = bShowNpc or bTracing
-                if bShow then
-                  if self.npcIconCreator:Get(npcInfo.entry_id) then
-                    if npcInfo.worldMapActivityConf then
-                      local radius = npcInfo.worldMapActivityConf.radius
-                      self.npcIconCreator:SetItemVisibility(self:CheckShowCircleActivityNpc(npcPosX, npcPosY, radius), BigMapModuleEnum.CreatorPriority.NpcIcons, npcInfo.entry_id)
+            for entryId, _npcInfo in pairs(npcInfos) do
+              for logicId, npcInfo in pairs(_npcInfo) do
+                if npcInfo.npc_pos then
+                  local npcPosX = npcInfo.npc_pos.x
+                  local npcPosY = npcInfo.npc_pos.y
+                  local npcPosZ = npcInfo.npc_pos.z
+                  local bShowNpc = self:CheckShowIcon(npcPosX, npcPosY, npcPosZ, npcInfo.worldMapConf)
+                  local distance = self:GetDistance3D(npcPosX, npcPosY, npcPosZ)
+                  local bTracing = self:CheckIsTracing(BigMapModuleEnum.TraceType.NPC, npcInfo) or self:CheckIsTracing(BigMapModuleEnum.TraceType.ForceTrace, npcInfo)
+                  local bShow = bShowNpc or bTracing
+                  if bShow then
+                    if self.npcIconCreator:Get(npcInfo.entry_id, logicId) then
+                      if npcInfo.worldMapActivityConf then
+                        local radius = npcInfo.worldMapActivityConf.radius
+                        self.npcIconCreator:SetItemVisibility(self:CheckShowCircleActivityNpc(npcPosX, npcPosY, radius), BigMapModuleEnum.CreatorPriority.NpcIcons, entryId, logicId)
+                      else
+                        self.npcIconCreator:SetItemVisibility(true, BigMapModuleEnum.CreatorPriority.NpcIcons, entryId, logicId)
+                      end
                     else
-                      self.npcIconCreator:SetItemVisibility(true, BigMapModuleEnum.CreatorPriority.NpcIcons, npcInfo.entry_id)
+                      local iconData = {}
+                      local posX, posY = BigMapUtils.ScenePosToImagePosF(SceneUtils.GetSceneResId(), npcPosX, npcPosY)
+                      iconData.iconImagePos = {x = posX, y = posY}
+                      iconData.curMapImageScale = 1 / self.iconScale * self.imageScale.X
+                      iconData.curMapSliderScale = 1
+                      self:CreateNpcIcon(iconData, npcInfo)
                     end
+                    table.insert(self.curShowNpc, logicId)
+                    self:ShowDirectionFlag(BigMapModuleEnum.CreatorPriority.NpcIcons, distance, npcInfo.entry_id, self:GetTempVector(npcPosX, npcPosY, npcPosZ), logicId)
                   else
-                    local iconData = {}
-                    local posX, posY = BigMapUtils.ScenePosToImagePosF(SceneUtils.GetSceneResId(), npcPosX, npcPosY)
-                    iconData.iconImagePos = {x = posX, y = posY}
-                    iconData.curMapImageScale = 1 / self.iconScale * self.imageScale.X
-                    iconData.curMapSliderScale = 1
-                    self:CreateNpcIcon(iconData, npcInfo)
+                    self.npcIconCreator:Recycle(npcInfo.entry_id, logicId)
                   end
-                  table.insert(self.curShowNpc, npcInfo.entry_id)
-                  self:ShowDirectionFlag(BigMapModuleEnum.CreatorPriority.NpcIcons, distance, npcInfo.entry_id, self:GetTempVector(npcPosX, npcPosY, npcPosZ))
-                else
-                  self.npcIconCreator:Recycle(npcInfo.entry_id)
                 end
               end
             end
@@ -744,6 +836,48 @@ function UMG_Minimap_C:UpdateNpcInfo()
   end
   if self.miniMapTraceInfo then
     NRCModuleManager:DoCmd(BigMapModuleCmd.StartOrCancelTempTrace, self.miniMapTraceInfo)
+  end
+end
+
+function UMG_Minimap_C:CheckIsShowDefaultNpc(trackType, logicId)
+  if self.defaultTrackNpcLogicIdList then
+    return self.defaultTrackNpcLogicIdList[trackType] and self.defaultTrackNpcLogicIdList[trackType][logicId]
+  end
+  return false
+end
+
+function UMG_Minimap_C:UpdateDefaultNpcInfo()
+  table.clear(self.defaultTrackNpcLogicIdList)
+  if not self.defaultTrackNpcList then
+    return
+  end
+  if self.defaultTrackNpcList then
+    for trackType, trackList in pairs(self.defaultTrackNpcList) do
+      for key, npcInfo in ipairs(trackList) do
+        if npcInfo.npc_pos then
+          local distance = self:GetDistance3D(npcInfo.npc_pos.x, npcInfo.npc_pos.y, npcInfo.npc_pos.z)
+          npcInfo.playerDis = distance
+        end
+      end
+    end
+    for trackType, trackList in pairs(self.defaultTrackNpcList) do
+      table.sort(trackList, function(leftNpcInfo, rightNpcInfo)
+        if leftNpcInfo.playerDis ~= rightNpcInfo.playerDis then
+          return leftNpcInfo.playerDis < rightNpcInfo.playerDis
+        end
+      end)
+      if self.defaultTrackNpcLogicIdList[trackType] == nil then
+        self.defaultTrackNpcLogicIdList[trackType] = {}
+      end
+      local limitNum = self.forceTraceLimit[trackType] and self.forceTraceLimit[trackType].showNum or 0
+      if limitNum > 0 then
+        for i = 1, limitNum - 1 do
+          if trackList[i] and trackList[i].logic_id then
+            self.defaultTrackNpcLogicIdList[trackType][trackList[i].logic_id] = true
+          end
+        end
+      end
+    end
   end
 end
 
@@ -758,16 +892,17 @@ function UMG_Minimap_C:UpdateHomePetInfo()
   if homePetInfos and #homePetInfos > 0 then
     for _, homePetInfo in ipairs(homePetInfos) do
       local entryId = homePetInfo.entry_id
-      table.insert(self.curShowNpc, entryId)
+      local logicId = homePetInfo.logic_id
+      table.insert(self.curShowNpc, logicId)
       if self.npcIconCreator then
         local npc = _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.GetNpcByServerID, entryId)
         local pos = npc and npc:GetActorLocation()
         if pos then
-          local iconWidget = self.npcIconCreator:Get(entryId)
+          local iconWidget = self.npcIconCreator:Get(entryId, logicId)
           if iconWidget and UE4.UObject.IsValid(iconWidget) then
             local posX, posY = BigMapUtils.ScenePosToImagePosF(SceneUtils.GetSceneResId(), pos.x, pos.y)
             local showPos = self:GetTempVector2(posX, posY)
-            self.npcIconCreator:SetIconPos(BigMapModuleEnum.CreatorPriority.NpcIcons, entryId, showPos)
+            self.npcIconCreator:SetIconPos(BigMapModuleEnum.CreatorPriority.NpcIcons, entryId, showPos, logicId)
           else
             local iconData = {}
             iconData.curMapImageScale = 1 / self.iconScale * self.imageScale.X
@@ -803,10 +938,10 @@ function UMG_Minimap_C:UpdateAreaNpcInfo()
           local npcPosZ = npcInfo.npc_pos.z
           local bShowNpc = self:CheckShowIcon(npcPosX, npcPosY, npcPosZ)
           local distance = self:GetDistance3D(npcPosX, npcPosY, npcPosZ)
-          local bTracing = self:CheckIsTracing(BigMapModuleEnum.TraceType.NPC, npcInfo)
+          local bTracing = self:CheckIsTracing(BigMapModuleEnum.TraceType.NPC, npcInfo) or self:CheckIsTracing(BigMapModuleEnum.TraceType.ForceTrace, npcInfo)
           local bShow = bShowNpc or bTracing
           if bShow then
-            table.insert(self.curShowNpc, npcInfo.entry_id)
+            table.insert(self.curShowNpc, npcInfo.logic_id)
             if self.npcIconCreator:Get(npcInfo.entry_id) then
               self.npcIconCreator:SetItemVisibility(true, BigMapModuleEnum.CreatorPriority.NpcIcons, npcInfo.entry_id)
             else
@@ -817,7 +952,7 @@ function UMG_Minimap_C:UpdateAreaNpcInfo()
               iconData.curMapSliderScale = 1
               self:CreateNpcIcon(iconData, npcInfo)
             end
-            self:ShowDirectionFlag(BigMapModuleEnum.CreatorPriority.NpcIcons, distance, npcInfo.entry_id, self:GetTempVector(npcPosX, npcPosY, npcPosZ))
+            self:ShowDirectionFlag(BigMapModuleEnum.CreatorPriority.NpcIcons, distance, npcInfo.entry_id, self:GetTempVector(npcPosX, npcPosY, npcPosZ), npcInfo.logic_id)
           else
             self.npcIconCreator:Recycle(npcInfo.entry_id)
           end
@@ -849,29 +984,29 @@ function UMG_Minimap_C:GetTempRotation()
   return self.TempRotation
 end
 
-function UMG_Minimap_C:ShowDirectionFlag(type, distance, key, iconWorldPos)
+function UMG_Minimap_C:ShowDirectionFlag(type, distance, key, iconWorldPos, extraKey)
   if distance > self.ShowHighDis then
     iconWorldPos:SubInto(self.playerPos, ComputeItemShowTempVector)
     local angleInZX = self:AngleWithUpIn3D(ComputeItemShowTempVector)
     if angleInZX <= 90 - self.ShowHighAngle or angleInZX >= 270 + self.ShowHighAngle then
       if type == BigMapModuleEnum.CreatorPriority.NpcIcons then
-        self.npcIconCreator:SetUpOrDown(type, BigMapModuleEnum.IconDirection.Up, key)
+        self.npcIconCreator:SetUpOrDown(type, BigMapModuleEnum.IconDirection.Up, key, extraKey)
       elseif type == BigMapModuleEnum.CreatorPriority.MarkerIcons then
         self.markerIconCreator:SetUpOrDown(type, BigMapModuleEnum.IconDirection.Up, key)
       end
     elseif angleInZX >= 90 + self.ShowHighAngle and angleInZX <= 270 - self.ShowHighAngle then
       if type == BigMapModuleEnum.CreatorPriority.NpcIcons then
-        self.npcIconCreator:SetUpOrDown(type, BigMapModuleEnum.IconDirection.Down, key)
+        self.npcIconCreator:SetUpOrDown(type, BigMapModuleEnum.IconDirection.Down, key, extraKey)
       elseif type == BigMapModuleEnum.CreatorPriority.MarkerIcons then
         self.markerIconCreator:SetUpOrDown(type, BigMapModuleEnum.IconDirection.Down, key)
       end
     elseif type == BigMapModuleEnum.CreatorPriority.NpcIcons then
-      self.npcIconCreator:SetUpOrDown(type, BigMapModuleEnum.IconDirection.None, key)
+      self.npcIconCreator:SetUpOrDown(type, BigMapModuleEnum.IconDirection.None, key, extraKey)
     elseif type == BigMapModuleEnum.CreatorPriority.MarkerIcons then
       self.markerIconCreator:SetUpOrDown(type, BigMapModuleEnum.IconDirection.None, key)
     end
   elseif type == BigMapModuleEnum.CreatorPriority.NpcIcons then
-    self.npcIconCreator:SetUpOrDown(type, BigMapModuleEnum.IconDirection.None, key)
+    self.npcIconCreator:SetUpOrDown(type, BigMapModuleEnum.IconDirection.None, key, extraKey)
   elseif type == BigMapModuleEnum.CreatorPriority.MarkerIcons then
     self.markerIconCreator:SetUpOrDown(type, BigMapModuleEnum.IconDirection.None, key)
   end
@@ -920,10 +1055,10 @@ function UMG_Minimap_C:CheckIsTracing(type, typeInfo)
     return false
   end
   if type == BigMapModuleEnum.TraceType.NPC then
-    if self.curTraceInfoList and self.curTraceInfoList[type] and self.curTraceInfoList[type].npcInfo.entry_id == typeInfo.entry_id then
+    if self.curTraceInfoList and self.curTraceInfoList[type] and self.curTraceInfoList[type].npcInfo.entry_id == typeInfo.entry_id and self.curTraceInfoList[type].npcInfo.logic_id == typeInfo.logic_id then
       return true
     end
-    if typeInfo.worldMapConf and typeInfo.worldMapConf.default_track and self:CheckDefaultTrackShow(typeInfo) then
+    if typeInfo.worldMapConf and typeInfo.worldMapConf.default_track_type == Enum.DefaultTrackType.DTT_NONE and typeInfo.worldMapConf.default_track and self:CheckDefaultTrackShow(typeInfo) then
       local hasSameNPC = false
       for _, traceInfo in pairs(self.miniMapTraceInfo) do
         if traceInfo.traceType == BigMapModuleEnum.TraceType.NPC and traceInfo.npcInfo.entry_id == typeInfo.entry_id then
@@ -960,13 +1095,22 @@ function UMG_Minimap_C:CheckIsTracing(type, typeInfo)
       return true
     end
     return false
+  elseif type == BigMapModuleEnum.TraceType.ForceTrace then
+    local trackType = typeInfo.worldMapConf and typeInfo.worldMapConf.default_track_type or 0
+    if self.curTraceInfoList and self.curTraceInfoList[type] and self.curTraceInfoList[type][trackType] and #self.curTraceInfoList[type][trackType] > 0 then
+      for k, traceInfo in ipairs(self.curTraceInfoList[type][trackType]) do
+        if traceInfo.npcInfo.logic_id == typeInfo.logic_id then
+          return true
+        end
+      end
+    end
   else
     return false
   end
 end
 
 function UMG_Minimap_C:CheckShowNpcTraceEffect(worldMapConf)
-  if worldMapConf and worldMapConf.default_track then
+  if worldMapConf and worldMapConf.default_track_type == Enum.DefaultTrackType.DTT_NONE and worldMapConf.default_track then
     return worldMapConf.default_track_loop
   end
   return true
@@ -1055,11 +1199,11 @@ end
 
 function UMG_Minimap_C:RecycleNpcIcon()
   if self.npcIconCreator then
-    local curNpcIconList = self.npcIconCreator:GetAllEntryId()
+    local curNpcIconList = self.npcIconCreator:GetAllLogicId()
     local list1, needDelList = table.diff(self.curShowNpc, curNpcIconList)
     if needDelList then
-      for k, entryId in pairs(needDelList) do
-        self.npcIconCreator:Recycle(entryId)
+      for k, logicId in pairs(needDelList) do
+        self.npcIconCreator:Recycle(self.npcIconCreator:GetEntryIdByLogicId(logicId), logicId)
       end
     end
   end
@@ -1099,8 +1243,11 @@ function UMG_Minimap_C:UpdateMarkInfo(markerInfo)
   if self.bigMapModule and self.data then
     local CustomPointInfo = self.data:GetNewCustomPointInfo()
     for k, point in ipairs(CustomPointInfo) do
-      local markerSceneResId = BigMapUtils.GetSceneResIdByPos(point.pos.x, point.pos.y)
-      local bInRange = self:CheckShowIcon(point.pos.x, point.pos.y, point.pos.z)
+      local pointX = point.pos.x
+      local pointY = point.pos.y
+      local pointZ = point.pos.z
+      local markerSceneResId = BigMapUtils.GetSceneResIdByPos(pointX, pointY)
+      local bInRange = self:CheckShowIcon(pointX, pointY, pointZ)
       local bTracing = self:CheckIsTracing(BigMapModuleEnum.TraceType.Marker, point)
       if markerSceneResId == SceneUtils.GetSceneResId() then
         if bInRange or bTracing then
@@ -1128,11 +1275,17 @@ function UMG_Minimap_C:UpdateMarkInfo(markerInfo)
               iconData.curMapImageScale = 1 / self.iconScale * self.imageScale.X
               iconData.curMapSliderScale = 1
               iconData.iconTemplateIndex = 1
-              iconData.layerIndex = 3
+              if bTracing then
+                iconData.layerIndex = 4
+              else
+                iconData.layerIndex = 3
+              end
               iconData.bTracing = bTracing
               self:CreateMarkerIcon(iconData, point)
             end
           end
+          local distance = self:GetDistance3D(pointX, pointY, pointZ)
+          self:ShowDirectionFlag(BigMapModuleEnum.CreatorPriority.MarkerIcons, distance, markId, self:GetTempVector(pointX, pointY, pointZ))
         else
           self.markerIconCreator:Recycle(point.mark_id)
         end
@@ -1245,12 +1398,24 @@ function UMG_Minimap_C:UpdateTraceIconPosition()
   self:UpdateTraceNpc()
   if self.curTraceInfoList then
     for traceType, traceInfo in pairs(self.curTraceInfoList) do
-      if traceType ~= BigMapModuleEnum.TraceType.Task and traceType ~= BigMapModuleEnum.TraceType.Visitor then
-        self:SetTraceIconPos(traceType, traceInfo, true)
-      elseif traceInfo then
-        for k, v in pairs(traceInfo) do
-          self:SetTraceIconPos(traceType, v, true)
+      if traceType == BigMapModuleEnum.TraceType.Task or traceType == BigMapModuleEnum.TraceType.Visitor then
+        if traceInfo then
+          for k, v in pairs(traceInfo) do
+            self:SetTraceIconPos(traceType, v, true)
+          end
         end
+      elseif traceType == BigMapModuleEnum.TraceType.ForceTrace then
+        if traceInfo then
+          for trackType, traceList in pairs(traceInfo) do
+            if traceList and #traceList > 0 then
+              for _, v in ipairs(traceList) do
+                self:SetTraceIconPos(traceType, v, true)
+              end
+            end
+          end
+        end
+      else
+        self:SetTraceIconPos(traceType, traceInfo, true)
       end
     end
   end
@@ -1355,7 +1520,7 @@ function UMG_Minimap_C:UpdateTraceTask()
             end
           end
           for Index, Value in ipairs(trackItem.TaskConfig.go_guide) do
-            if Value.type == _G.Enum.TaskGoActionType.TGAT_NPC_CIRCLE then
+            if Value.type == _G.Enum.TaskGoActionType.TGAT_NPC_CIRCLE and trackItem.HasArrived then
               local Finish = trackItem:IsCheckConditionDone(Index)
               if not Finish then
                 local IconCircle = self.iconCircleCreator:Get(BigMapModuleEnum.CircleIconType.Task, trackItem.TaskConfig.id, Index)
@@ -1453,19 +1618,21 @@ function UMG_Minimap_C:SetTraceIconPos(traceType, traceInfo, bShowEffect)
       return
     end
   end
-  if traceType == BigMapModuleEnum.TraceType.NPC or traceType == BigMapModuleEnum.TraceType.TempTrace then
+  if traceType == BigMapModuleEnum.TraceType.NPC or traceType == BigMapModuleEnum.TraceType.TempTrace or traceType == BigMapModuleEnum.TraceType.ForceTrace then
     if traceInfo.npcInfo then
       local entryId = traceInfo.npcInfo.entry_id
+      local logicId = traceInfo.npcInfo.logic_id
       if self.npcIconCreator and 0 ~= entryId then
-        table.insert(self.curShowNpc, entryId)
+        table.insert(self.curShowNpc, logicId)
         local npcImagePosX, npcImagePosY = BigMapUtils.ScenePosToImagePosF(SceneUtils.GetSceneResId(), traceInfo.npcInfo.npc_pos.x, traceInfo.npcInfo.npc_pos.y)
         local dis = self:GetImageDistance(npcImagePosX, npcImagePosY)
         local k = self:GetTraceK(dis)
         local showPos = FVector2DUtils.Lerp(UE4.FVector2D(self.centerPosX, self.centerPosY), UE4.FVector2D(npcImagePosX, npcImagePosY), k)
-        if self.npcIconCreator:Get(entryId) then
-          self.npcIconCreator:SetIconPos(BigMapModuleEnum.CreatorPriority.NpcIcons, entryId, showPos)
+        if self.npcIconCreator:Get(entryId, logicId) then
+          self.npcIconCreator:SetIconPos(BigMapModuleEnum.CreatorPriority.NpcIcons, entryId, showPos, logicId)
+          self.npcIconCreator:UpdateItemDataImagePos(entryId, logicId, showPos.X, showPos.Y)
           if bShowEffect then
-            self.npcIconCreator:SetTraceEffect(true, entryId)
+            self.npcIconCreator:SetTraceEffect(true, entryId, logicId)
           end
         else
           local iconData = {}
@@ -1478,7 +1645,7 @@ function UMG_Minimap_C:SetTraceIconPos(traceType, traceInfo, bShowEffect)
           iconData.layerIndex = 4
           self:CreateNpcIcon(iconData, traceInfo.npcInfo)
           if bShowEffect then
-            self.npcIconCreator:SetTraceEffect(true, entryId)
+            self.npcIconCreator:SetTraceEffect(true, entryId, logicId)
           end
         end
       end
@@ -1503,8 +1670,9 @@ function UMG_Minimap_C:SetTraceIconPos(traceType, traceInfo, bShowEffect)
           iconData.curMapImageScale = 1 / self.iconScale * self.imageScale.X
           iconData.curMapSliderScale = 1
           iconData.layerIndex = 3
+          iconData.iconTemplateIndex = 1
           self:CreateMarkerIcon(iconData, traceInfo.markInfo)
-          self.npcIconCreator:SetTraceEffect(true, markId)
+          self.markerIconCreator:SetTraceEffect(true, markId)
         end
       end
     end
@@ -1550,6 +1718,8 @@ function UMG_Minimap_C:SetTraceIconPos(traceType, traceInfo, bShowEffect)
           local showPos = FVector2DUtils.Lerp(UE4.FVector2D(self.centerPosX, self.centerPosY), UE4.FVector2D(visitorImagePosX, visitorImagePosY), k)
           if self.visitorIconCreator:Get(uin) then
             self.visitorIconCreator:SetIconPos(BigMapModuleEnum.CreatorPriority.VisitorIcons, uin, showPos)
+          else
+            self:UpdateVisitorInfo()
           end
         end
       end
@@ -1572,6 +1742,8 @@ function UMG_Minimap_C:UpdateIconScale()
   if self.markerIconCreator then
     self.markerIconCreator:UpdateIconScale(self:GetTempVector2(renderScale, renderScale))
   end
+  if self.mapLayerCreator then
+  end
 end
 
 function UMG_Minimap_C:ClearMapImage()
@@ -1589,14 +1761,10 @@ function UMG_Minimap_C:ClearMarkerIcon()
 end
 
 function UMG_Minimap_C:ClearIcons()
-  if self.npcIconCreator then
-    self.npcIconCreator:ClearAll()
-  end
-  if self.taskIconCreator then
-    self.taskIconCreator:ClearAll()
-  end
-  if self.visitorIconCreator then
-    self.visitorIconCreator:ClearAll()
+  for k, v in pairs(self.creatorList) do
+    if v.ClearAll then
+      v:ClearAll()
+    end
   end
 end
 
@@ -1605,6 +1773,7 @@ function UMG_Minimap_C:ClearCache()
   self:ClearIcons()
   self.lastShowPieceIdList = {}
   self.curShowPieceIdList = {}
+  self.lastShowLayerId = 0
 end
 
 function UMG_Minimap_C:GetTaskType(taskId)
@@ -1625,6 +1794,36 @@ function UMG_Minimap_C:CheckShowCircleActivityNpc(posX, posY, radius)
     return true
   else
     return false
+  end
+end
+
+function UMG_Minimap_C:ChangeMinimapState(state)
+  if state == MainUIModuleEnum.MinimapOrCompassState.Normal then
+    self:SetHiddenSwitcherVisible(false)
+    self:StopAnimation(self.Stealth)
+  elseif state == MainUIModuleEnum.MinimapOrCompassState.Hidden then
+    self:SetHiddenSwitcherVisible(true)
+    self.Switcher_Stealth:SetActiveWidgetIndex(2)
+    self:StopAnimation(self.Stealth)
+  elseif state == MainUIModuleEnum.MinimapOrCompassState.Hidden_Exposed then
+    self:SetHiddenSwitcherVisible(true)
+    self.Switcher_Stealth:SetActiveWidgetIndex(1)
+    self:PlayAnimation(self.Stealth, 0, 0)
+  elseif state == MainUIModuleEnum.MinimapOrCompassState.Hidden_Attacked then
+    self:SetHiddenSwitcherVisible(true)
+    self.Switcher_Stealth:SetActiveWidgetIndex(0)
+    self:PlayAnimation(self.Stealth, 0, 0)
+  else
+    self:SetHiddenSwitcherVisible(false)
+    self:StopAnimation(self.Stealth)
+  end
+end
+
+function UMG_Minimap_C:SetHiddenSwitcherVisible(bVisible)
+  if bVisible then
+    self.Switcher_Stealth:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  else
+    self.Switcher_Stealth:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
 end
 

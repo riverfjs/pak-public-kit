@@ -13,7 +13,7 @@ function TeachingManualModule:OnConstruct()
   _G.TeachingManualModuleCmd = reload("NewRoco.Modules.System.TeachingManual.TeachingManualModuleCmd")
   self.data = self:SetData("TeachingManualModuleData", "NewRoco.Modules.System.TeachingManual.TeachingManualModuleData")
   self:RegTeachManualPanel("TeachingManual", "UMG_TeachingManual", _G.Enum.UILayerType.UI_LAYER_FULLSCREEN, "Page_Out")
-  self:RegTeachManualPanel("TeachingUnlockTips", "UMG_TeachingUnlockTips", _G.Enum.UILayerType.UI_LAYER_POPUP, "Page_Out", true, true)
+  self:RegTeachManualPanel("TeachingUnlockTips", "UMG_TeachingUnlockTips", _G.Enum.UILayerType.UI_LAYER_POPUP, "Page_Out", true, true):SetEnableTouchMask(false)
   _G.ZoneServer:AddProtocolListener(self, _G.ProtoCMD.ZoneSvrCmd.ZONE_PLAYER_TEACH_UNLOCK_NOTIFY, self.OnPlayerTeachUnlockNotify)
   _G.NRCEventCenter:RegisterEvent("TeachingManualModule", self, SceneEvent.OnEnterSceneFinishNtyAck, self.OnEnterSceneFinishNtyAckCallBack)
   NRCEventCenter:RegisterEvent("TeachingManualModule", self, RedPointModuleEvent.RedPointChange, self.OnUpdateRedPointData)
@@ -206,6 +206,7 @@ function TeachingManualModule:RegTeachManualPanel(name, path, layer, closeAnimNa
   registerData.enablePcEsc = not disablePcEsc
   registerData.disableLoadBlock = disableLoadBlock
   self:RegisterPanel(registerData)
+  return registerData
 end
 
 function TeachingManualModule:ResetTeachId()

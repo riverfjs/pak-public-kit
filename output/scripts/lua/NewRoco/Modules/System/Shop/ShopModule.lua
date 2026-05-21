@@ -24,8 +24,6 @@ function ShopModule:OnConstruct()
   self:RegPanel("DiamondExchangePanel", "UMG_Shop_Exchange", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, "In", "Out")
   self:RegPanel("MonthlyCardCheckInProgress", "UMG_MonthlyCard_CheckInProgress", _G.Enum.UILayerType.UI_LAYER_POPUP, nil)
   self.ExChangeDiamondNum = nil
-  self.UpdateMonthTipsTime = 1
-  self.UpdateMonthTipsTimer = 0
 end
 
 function ShopModule:OnCmdOpenExchangePanel(ExchangeConf, maxItemCount, defaultItemCount)
@@ -60,6 +58,10 @@ function ShopModule:OnActive()
     reqTag = "ShopModule:GetMonthShopDataRspHandler"
   }
   _G.NRCModuleManager:DoCmd(_G.NPCShopUIModuleCmd.OnCmdReqGetShopData, reqShopData)
+  local monthCardTipsCache = _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TryGetCardTipsCache)
+  if monthCardTipsCache then
+    self:TryOpenMonthCardTips(monthCardTipsCache.reward, monthCardTipsCache.index)
+  end
 end
 
 function ShopModule:OnDeactive()
@@ -229,6 +231,10 @@ function ShopModule:OnCmdEnableOrDisableShopOnPopUpOpen(isEnable, bNeedClose)
 end
 
 function ShopModule:OpenExchangeDiamond()
+  local isBan = _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.CheckUIFunctionBan, _G.Enum.FunctionEntrance.FE_DIAMOND_EXCHANGE, true)
+  if isBan then
+    return
+  end
   local ExchangeIdConf = _G.DataConfigManager:GetPaymentGlobalConfig("EUT_DIAMOND_USE_COUPON")
   if not ExchangeIdConf then
     self:LogError("cannot found exchange id conf in payment global conf, key=EUT_DIAMOND_USE_COUPON")
@@ -633,28 +639,19 @@ function ShopModule:OnCmdSetShopSourceReturnFunc(func)
   self.data:SetShopSourceReturnFunc(func)
 end
 
-function ShopModule:OnTick(deltaTime)
-  if self.UpdateMonthTipsTimer and self.data and self.UpdateMonthTipsTimer + deltaTime > self.UpdateMonthTipsTime then
-    local MonthCardData = self.data:GetMonthCardData()
-    if MonthCardData and MonthCardData.continue_time then
-      self:CanOpenRepeatMonthlyCardTips(MonthCardData.continue_time)
-    end
-    self.UpdateMonthTipsTimer = 0
-  elseif self.UpdateMonthTipsTimer then
-    self.UpdateMonthTipsTimer = self.UpdateMonthTipsTimer + deltaTime
-  end
-end
-
 function ShopModule:InitMonthCardData()
   if not self.monthCardInit then
     self.monthCardInit = _G.ZoneServer:Send(_G.ProtoCMD.ZoneSvrCmd.ZONE_MONTH_CARD_GET_INFO_REQ, _G.ProtoMessage:newZoneMonthCardGetInfoReq())
   end
 end
 
-function ShopModule:CanOpenRepeatMonthlyCardTips(continue_time)
+function ShopModule:CanOpenRepeatMonthlyCardTips(continue_time, IsDailyTipsShow)
+  if IsDailyTipsShow and 0 ~= IsDailyTipsShow then
+    return
+  end
+  
   local function IsExactlyFourOClock(_timestamp)
     local timestamp = math.floor(_timestamp)
-    
     local hour = tonumber(os.date("%H", timestamp))
     local minute = tonumber(os.date("%M", timestamp))
     local second = tonumber(os.date("%S", timestamp))
@@ -664,32 +661,19 @@ function ShopModule:CanOpenRepeatMonthlyCardTips(continue_time)
   local RepeatDayNum = _G.DataConfigManager:GetGlobalConfigNumByKey("yueka_tips_param2", 1)
   local severTime = _G.ZoneServer:GetServerTime()
   severTime = math.floor(severTime / 1000)
-  local outOfDay = (severTime - continue_time) / 86400
+  local outOfDay = (severTime - (continue_time + 86400)) / 86400
   if outOfDay >= 0 and RepeatDayNum > outOfDay then
-    local MonthlyCardTipsFile = JsonUtils.LoadSaved(MonthlyCardTipsFilename, {})
-    if MonthlyCardTipsFile and MonthlyCardTipsFile.bDisplayTime then
-      Log.Debug(MonthlyCardTipsFile.bDisplayTime, severTime, "TipObject.CreateMonthlyCardDailyRewardTips")
-      if severTime > MonthlyCardTipsFile.bDisplayTime + 86400 then
-        local tip = TipObject.CreateMonthlyCardDailyRewardTips("NullType", "NullId")
-        _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.AddTip, tip)
-        MonthlyCardTipsFile.bDisplayTime = severTime
-        MonthlyCardTipsFile.IsReward = false
-        JsonUtils.DumpSaved(MonthlyCardTipsFilename, MonthlyCardTipsFile)
-      elseif IsExactlyFourOClock(severTime) and MonthlyCardTipsFile.IsReward then
-        local tip = TipObject.CreateMonthlyCardDailyRewardTips("NullType", "NullId")
-        _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.AddTip, tip)
-        MonthlyCardTipsFile.bDisplayTime = severTime
-        MonthlyCardTipsFile.IsReward = false
-        JsonUtils.DumpSaved(MonthlyCardTipsFilename, MonthlyCardTipsFile)
-      end
-    else
-      local tip = TipObject.CreateMonthlyCardDailyRewardTips("NullType", "NullId")
-      _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.AddTip, tip)
-      MonthlyCardTipsFile.bDisplayTime = severTime
-      MonthlyCardTipsFile.IsReward = false
-      JsonUtils.DumpSaved(MonthlyCardTipsFilename, MonthlyCardTipsFile)
-    end
+    self:SendZoneRptMonthCardTipsShowReq()
+    local tip = TipObject.CreateMonthlyCardDailyRewardTips("NullType", "NullId")
+    _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.AddTip, tip)
   end
+end
+
+function ShopModule:SendZoneRptMonthCardTipsShowReq()
+  if self.data.monthCardData then
+    self.data.monthCardData.daily_tips_show = 1
+  end
+  _G.ZoneServer:Send(_G.ProtoCMD.ZoneSvrCmd.ZONE_RPT_MONTH_CARD_TIPS_SHOW_REQ, _G.ProtoMessage:newZoneRptMonthCardTipsShowReq())
 end
 
 function ShopModule:OnZoneMonthCardGetInfoRsp(_protoData)
@@ -697,7 +681,7 @@ function ShopModule:OnZoneMonthCardGetInfoRsp(_protoData)
     self.monthCardBuyStatus = MonthlyCardBuyStatus.None
     self.data:UpdateMonthCardData(_protoData.month_data)
     if _protoData.month_data and _protoData.month_data.continue_time then
-      self:CanOpenRepeatMonthlyCardTips(_protoData.month_data.continue_time)
+      self:CanOpenRepeatMonthlyCardTips(_protoData.month_data.continue_time, _protoData.month_data.daily_tips_show)
     end
   end
 end
@@ -707,6 +691,34 @@ function ShopModule:OnZoneMonthCardGetInfoNty(_protoData)
     self.monthCardBuyStatus = MonthlyCardBuyStatus.None
     self.data:UpdateMonthCardData(_protoData.month_data)
   end
+end
+
+function ShopModule:TryOpenMonthCardTips(reward, order)
+  if not reward then
+    return
+  end
+  if self.data.monthCardData then
+    self:SendZoneRptMonthCardTipsShowReq()
+    _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.AddTip, TipObject.CreateMonthlyCardDailyRewardTips(reward.type, reward.id, reward.num, order))
+  else
+    self.monthCardTipsReward = reward
+    self.monthCardTipsOrder = order
+    self.monthCardInit = _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_MONTH_CARD_GET_INFO_REQ, _G.ProtoMessage:newZoneMonthCardGetInfoReq(), self, self.TryGetMonthCardGetInfoRsp, true, true)
+  end
+end
+
+function ShopModule:TryGetMonthCardGetInfoRsp(_protoData)
+  if _protoData and 0 == _protoData.ret_info.ret_code then
+    self.data:UpdateMonthCardData(_protoData.month_data)
+    if self.monthCardTipsReward then
+      self:SendZoneRptMonthCardTipsShowReq()
+      local reward = self.monthCardTipsReward
+      local order = self.monthCardTipsOrder or 0
+      _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.AddTip, TipObject.CreateMonthlyCardDailyRewardTips(reward.type, reward.id, reward.num, order))
+    end
+  end
+  self.monthCardTipsReward = nil
+  self.monthCardTipsOrder = nil
 end
 
 function ShopModule:OnCmdGetClientMonthCardConf()

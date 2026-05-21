@@ -19,7 +19,7 @@ function UMG_Magic_HiddenHybrid_Item_C:OnItemUpdate(_data, datalist, index)
   if _G.DataModelMgr.PlayerDataModel:IsVisitState() then
     local playerUin = _G.DataModelMgr.PlayerDataModel:GetPlayerUin()
     local VisIndex = _G.NRCModuleManager:DoCmd(_G.FriendModuleCmd.GetOnlineVisitorIndex, self.uiData.fruit_uin) or nil
-    if self.uiData.IsOwlSanctuary then
+    if self.uiData.bOwlSanctuary then
       self.Text_Sort:SetText(string.format("%sP", VisIndex))
     elseif 0 ~= self.uiData.isFruit then
       self.Text_Sort:SetText(string.format("%sP", VisIndex))
@@ -39,6 +39,10 @@ end
 function UMG_Magic_HiddenHybrid_Item_C:OnItemSelected(_bSelected)
   _G.NRCAudioManager:PlaySound2DAuto(1003, "UMG_Magic_HiddenHybrid_Item_C:OnItemSelected")
   self:StopAllAnimations()
+  if false == _bSelected and self.IsPlayClickOut then
+    self.IsPlayClickOut = false
+    return
+  end
   if _bSelected then
     local petBaseConfId
     if self.uiData.FirstStageBaseConf then
@@ -65,6 +69,7 @@ function UMG_Magic_HiddenHybrid_Item_C:ClearSelect()
   if not self or not UE4.UObject.IsValid(self) then
     return
   end
+  self.IsPlayClickOut = true
   self:PlayAnimation(self.Click_out)
 end
 
@@ -73,6 +78,12 @@ function UMG_Magic_HiddenHybrid_Item_C:SetIcon()
     self.ItemIcon:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.wenHao:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.Fruit:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    local cruTime = _G.ZoneServer:GetServerTime() / 1000
+    local slotstamp = self.uiData.slot_active_timestamp
+    if slotstamp and cruTime - slotstamp < 0 then
+      self.NRCSwitcher_40:SetActiveWidgetIndex(3)
+      return
+    end
     self.NRCSwitcher_40:SetActiveWidgetIndex(2)
     return
   end

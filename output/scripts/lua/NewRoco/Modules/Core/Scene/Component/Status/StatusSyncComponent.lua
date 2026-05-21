@@ -42,7 +42,11 @@ function StatusSyncComponent:OnReceiveSyncAction(act)
         if opCode == ProtoEnum.WPST_OpCode.WPST_OPCODE_RECOVER or opCode == ProtoEnum.WPST_OpCode.WPST_OPCODE_ADD or opCode == ProtoEnum.WPST_OpCode.WPST_OPCODE_SERVER_ADD then
           self:ApplyStatus(status, subStatus, opCode, params)
         elseif opCode == ProtoEnum.WPST_OpCode.WPST_OPCODE_REMOVE or opCode == ProtoEnum.WPST_OpCode.WPST_OPCODE_OVERRIDE or opCode == ProtoEnum.WPST_OpCode.WPST_OPCODE_SERVER_REMOVE then
-          self:RemoveStatus(status, subStatus, opCode, params)
+          if info.is_normal_remove then
+            self:RemoveStatus(status, subStatus, opCode, params)
+          else
+            self:ClearStatus(status, subStatus, opCode, params)
+          end
         elseif opCode == ProtoEnum.WPST_OpCode.WPST_OPCODE_REFRESH or opCode == ProtoEnum.WPST_OpCode.WPST_OPCODE_SERVER_REFRESH then
           self:RefreshStatus(status, subStatus, opCode, params)
         end
@@ -132,6 +136,18 @@ function StatusSyncComponent:RemoveStatus(status, subStatus, opCode, ...)
   end
   self._statusDic[status] = nil
   self.owner:SendEvent(PlayerModuleEvent.ON_REMOVE_STATUS, status, originStatusValue, opCode, ...)
+  self.owner:SendEvent(PlayerModuleEvent.ON_STATUS_CHANGED, status, originStatusValue, opCode, ...)
+  self:PrintStatus()
+end
+
+function StatusSyncComponent:ClearStatus(status, subStatus, opCode, ...)
+  opCode = opCode or ProtoEnum.WPST_OpCode.WPST_OPCODE_REMOVE
+  local originStatusValue = self._statusDic[status] or 0
+  if originStatusValue <= 0 then
+    return
+  end
+  self._statusDic[status] = nil
+  self.owner:SendEvent(PlayerModuleEvent.ON_CLEAR_STATUS, status, originStatusValue, opCode, ...)
   self.owner:SendEvent(PlayerModuleEvent.ON_STATUS_CHANGED, status, originStatusValue, opCode, ...)
   self:PrintStatus()
 end

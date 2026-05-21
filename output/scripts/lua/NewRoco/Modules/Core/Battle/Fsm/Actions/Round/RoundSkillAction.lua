@@ -381,6 +381,9 @@ function RoundSkillAction:IsSelectFullSkill()
   if not BattleUtils.IsWorldLeaderFight() then
     return false
   end
+  if not BattleUtils.IsWorldLeaderRewardRound() then
+    return false
+  end
   if not self.CurrentPlayer then
     Log.Error("RoundSkillAction Player is nil")
     return false

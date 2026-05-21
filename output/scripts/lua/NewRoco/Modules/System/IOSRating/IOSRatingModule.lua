@@ -46,29 +46,25 @@ function IOSRatingModule:TriggerRatingPopUp()
     local isLobbyMainEnable = NRCModuleManager:DoCmd(MainUIModuleCmd.GetLobbyMainEnableState)
     if isLobbyMainEnable then
       Log.Info("IOSRatingModule:TriggerRatingPopUp DRT_HOMEPAGE")
-      UE4.UNRCStatics.ShowRatingAlert()
-      self.data.cacheRatingPopupId = nil
+      self:ShowRatingAlert()
     end
   elseif conf.ios_rating == Enum.DialogRatingType.DRT_HATCH_EGG then
     local isPetHatchingEnable = NRCModuleManager:DoCmd(PetUIModuleCmd.GetPetHatchingEnableState)
     if isPetHatchingEnable then
       Log.Info("IOSRatingModule:TriggerRatingPopUp DRT_HATCH_EGG")
-      UE4.UNRCStatics.ShowRatingAlert()
-      self.data.cacheRatingPopupId = nil
+      self:ShowRatingAlert()
     end
   elseif conf.ios_rating == Enum.DialogRatingType.DRT_PVP_MATCH then
     local isPVPMatchEnable = NRCModuleManager:DoCmd(PVPRankedMatchModuleCmd.GetPvPQualifierEnableState)
     if isPVPMatchEnable then
       Log.Info("IOSRatingModule:TriggerRatingPopUp DRT_PVP_MATCH")
-      UE4.UNRCStatics.ShowRatingAlert()
-      self.data.cacheRatingPopupId = nil
+      self:ShowRatingAlert()
     end
   elseif conf.ios_rating == Enum.DialogRatingType.DRT_PET then
     local isPetInfoMainEnable = NRCModuleManager:DoCmd(PetUIModuleCmd.GetPetInfoMainEnableState)
     if isPetInfoMainEnable then
       Log.Info("IOSRatingModule:TriggerRatingPopUp DRT_PET")
-      UE4.UNRCStatics.ShowRatingAlert()
-      self.data.cacheRatingPopupId = nil
+      self:ShowRatingAlert()
     end
   end
 end
@@ -88,6 +84,25 @@ end
 
 function IOSRatingModule:GMOpenIOSRating()
   self.data.forbidRatingPopupUsingGM = false
+end
+
+function IOSRatingModule:ShowRatingAlert()
+  self.data.cacheRatingPopupId = nil
+  if RocoEnv.PLATFORM_IOS then
+    UE4.UNRCStatics.ShowRatingAlert()
+  elseif RocoEnv.PLATFORM_ANDROID then
+    local IsHide = true
+    local IsBan = true
+    if _G.Enum.FunctionEntrance.FE_TAPTAP_RATING then
+      IsHide = _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.CheckUIFunctionHide, _G.Enum.FunctionEntrance.FE_TAPTAP_RATING)
+      IsBan = _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.CheckUIFunctionBan, _G.Enum.FunctionEntrance.FE_TAPTAP_RATING, false)
+    end
+    Log.Debug("[IOSRatingModule:ShowRatingAlert] IsHide :", IsHide, ", IsBan:", IsBan)
+    if IsHide or IsBan then
+      return
+    end
+    _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.OpenTapTapTips)
+  end
 end
 
 return IOSRatingModule

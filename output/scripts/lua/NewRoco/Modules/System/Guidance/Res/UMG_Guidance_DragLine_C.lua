@@ -28,6 +28,16 @@ function UMG_Guidance_DragLine_C:OnActive(style, dragConf)
   if self.DragLine and self.loopAnim then
     self.DragLine:PlayAnimation(self.loopAnim, 0, 0)
   end
+  local panelWidget, panelData = GuideConfigTypes.GetTargetWidget({
+    dragConf.show_panel
+  }, nil, true)
+  if not panelWidget then
+    Log.Warning("UMG_Guidance_DragLine_C:OnActive: panelWidget is nil", dragConf.show_panel)
+    _G.NRCModuleManager:DoCmd(_G.GuidanceModuleCmd.SubGuideFocusTargetLost)
+    return
+  end
+  self.targetPanelWidget = panelWidget
+  self.targetPanelData = panelData
 end
 
 function UMG_Guidance_DragLine_C:OnDeactive()
@@ -212,7 +222,7 @@ function UMG_Guidance_DragLine_C:OnTick(deltaTime)
       self:UpdateDragLineDisplay()
       Log.Debug("UMG_Guidance_DragLine_C:OnTick update after resolution changed")
     end
-    self:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    self:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
   end
 end
 
@@ -222,7 +232,7 @@ function UMG_Guidance_DragLine_C:SimulateDrag()
   end
   local fakeTouchPosition
   if _G.UE4Helper.IsPCMode() then
-    fakeTouchPosition = UE4.UWidgetLayoutLibrary.GetMousePositionOnViewport(_G.UE4Helper.GetCurrentWorld())
+    fakeTouchPosition = UE4.UWidgetLayoutLibrary.GetMousePositionOnPlatform()
   else
     local localPlayer = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
     if localPlayer and localPlayer.viewObj and localPlayer.viewObj:IsValid() then
@@ -354,6 +364,21 @@ function UMG_Guidance_DragLine_C:OnFinishDragEnd(element)
   end
   if widget.OnFinishDragEnd then
     widget:OnFinishDragEnd()
+  end
+end
+
+function UMG_Guidance_DragLine_C:CheckPanelOnTop()
+  if not self.targetPanelData then
+    return
+  end
+  if GuideConfigTypes.CheckIsTopPanel(self.targetPanelData) then
+    if not self:IsVisible() then
+      Log.Debug("UMG_Guidance_DragLine_C:CheckPanelOnTop", "panel is on top")
+      self:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
+    end
+  elseif self:IsVisible() then
+    Log.Debug("UMG_Guidance_DragLine_C:CheckPanelOnTop", "panel is not on top")
+    self:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
 end
 

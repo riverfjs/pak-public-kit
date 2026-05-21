@@ -11,6 +11,7 @@ function UMG_Battle_RuntimeDebugPetSkills_C:OnConstruct()
   end
   self.ComboBoxStringSkills:ClearOptions()
   self.ComboBoxStringSkills.OnOpening:Add(self, self.FilterOptions)
+  self.EditableTextBoxAttackCount:SetText("1")
 end
 
 function UMG_Battle_RuntimeDebugPetSkills_C:OnDestruct()

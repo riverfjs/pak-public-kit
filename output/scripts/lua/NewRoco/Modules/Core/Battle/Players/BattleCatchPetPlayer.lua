@@ -48,10 +48,17 @@ function BattleCatchPetPlayer:Play(performNode)
   self.player = self.PawnManager:GetPlayerByGuid(self.catch_pet.player_id)
   self.target = self.PawnManager:GetPetByGuid(self.catch_pet.monster_id)
   self.ballId = self.catch_pet.ball_id
+  self.ballResGroup = nil
   self.catchType = BattleCatchPetPlayer.CatchState.FAILED
   self.IsMySelfCatch = self.player == BattleManager.battlePawnManager:GetPlayerMyTeam()
   if BattleUtils.IsWatchingBattle() then
     self.IsMySelfCatch = false
+  end
+  if self.catch_pet and self.catch_pet.glass_info and self.catch_pet.glass_info.glass_type == ProtoEnum.GlassType.GT_HIDDEN then
+    local hiddenGlass = DataConfigManager:GetHiddenGlassConf(self.catch_pet.glass_info.glass_value, true)
+    if hiddenGlass then
+      self.ballResGroup = hiddenGlass and hiddenGlass.ball_fx or ""
+    end
   end
   self.IsExecuteExit = false
   self.NeedWaitLoadPet = false
@@ -359,16 +366,7 @@ function BattleCatchPetPlayer:IsBattleOverAfterCatch()
   return result
 end
 
-function BattleCatchPetPlayer:GetBallPath(ballId, glass_info)
-  if glass_info and glass_info.glass_type == ProtoEnum.GlassType.GT_HIDDEN then
-    local hiddenGlass = DataConfigManager:GetHiddenGlassConf(glass_info.glass_value, true)
-    if hiddenGlass then
-      local ModelConfig = _G.DataConfigManager:GetModelConf(hiddenGlass.ball_fx_path)
-      if ModelConfig then
-        return ModelConfig.path
-      end
-    end
-  end
+function BattleCatchPetPlayer:GetBallPath(ballId)
   local BallConfig = _G.DataConfigManager:GetBallConf(ballId or 0)
   if BallConfig then
     local ModelConfig = _G.DataConfigManager:GetModelConf(BallConfig.fx_source)
@@ -414,8 +412,13 @@ function BattleCatchPetPlayer:PlaySuccess(Target, BallID, CallbackOwner, Callbac
     return
   end
   Skill:SetDynamicData({
-    BallPath = self:GetBallPath(BallID, self.catch_pet.glass_info)
+    BallPath = self:GetBallPath(BallID)
   })
+  if self.ballResGroup then
+    Skill:SetDynamicData({
+      BallResGroup = self.ballResGroup
+    })
+  end
   local blackboard = Skill:GetBlackboard()
   if blackboard then
     self:SetBlackBoardForCatch(-1, blackboard, _G.DataConfigManager:GetBallConf(BallID))
@@ -601,8 +604,13 @@ function BattleCatchPetPlayer:PlayTeamCatchSuccess()
     end
   end
   skill:SetDynamicData({
-    BallPath = self:GetBallPath(self.ballId or 0, self.catch_pet.glass_info)
+    BallPath = self:GetBallPath(self.ballId or 0)
   })
+  if self.ballResGroup then
+    skill:SetDynamicData({
+      BallResGroup = self.ballResGroup
+    })
+  end
   skill:SetCaster(player.model)
   skill:SetTargets({
     player.model
@@ -750,8 +758,13 @@ function BattleCatchPetPlayer:PlayFailed(Target, BallID, SuccessRate, CallbackOw
   local characters = self.PawnManager:GetAllPawnActorForSkill()
   characters[0] = self.player.model
   Skill:SetDynamicData({
-    BallPath = self:GetBallPath(BallID, self.catch_pet.glass_info)
+    BallPath = self:GetBallPath(BallID)
   })
+  if self.ballResGroup then
+    Skill:SetDynamicData({
+      BallResGroup = self.ballResGroup
+    })
+  end
   Skill:SetCaster(self.player.model)
   local targets = {}
   local pets = _G.BattleManager.battlePawnManager:GetInFieldAllPet(BattleEnum.Team.ENUM_TEAM)

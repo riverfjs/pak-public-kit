@@ -44,6 +44,7 @@ function NPCActionShowMagicMessage:OnGetFeedDetailRsp(rsp)
           musicToolbar:OnClickCloseBtn()
         end
       end
+      _G.NRCModuleManager:DoCmd(_G.MagicReplayModuleCmd.StopMagicReplay)
       _G.NRCModuleManager:DoCmd(_G.MagicReplayModuleCmd.SetReplayFeedDetail, rsp, self.actor_id)
       _G.NRCModuleManager:DoCmd(_G.MagicReplayModuleCmd.StartMagicReplay, MagicReplayModuleEnum.ModuleOpType.Replay)
       self:Finish(true, nil)

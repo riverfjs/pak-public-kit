@@ -9,6 +9,40 @@ end
 function UMG_Common_Title_C:OnAddEventListener()
 end
 
+function UMG_Common_Title_C:SetTitle(key, subtitleIndex)
+  local titleConf = _G.DataConfigManager:GetTitleConf(key)
+  if titleConf then
+    self:SetBg(titleConf.head_icon)
+    self:Set_MainTitle(titleConf.title)
+    self:SetSubtitleByConfIndex(subtitleIndex or 1)
+  end
+  self.titleConf = titleConf
+end
+
+function UMG_Common_Title_C:SetSubtitleByConfIndex(index)
+  local titleConf = self.titleConf
+  if titleConf and titleConf.subtitle then
+    local subtitle = titleConf.subtitle[index]
+    if subtitle then
+      self:SetSubtitle(subtitle.subtitle)
+      self.Subtitle:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    else
+      self.Subtitle:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    end
+  end
+end
+
+function UMG_Common_Title_C:GetSubtitleByConfIndex(index)
+  local titleConf = self.titleConf
+  if titleConf and titleConf.subtitle then
+    local subtitle = titleConf.subtitle[index]
+    if subtitle then
+      return subtitle.subtitle
+    end
+  end
+  return ""
+end
+
 function UMG_Common_Title_C:SetBaseInfo(_Title_bg, _Subtitle, _MainTitle)
   self:SetBg(_Title_bg)
   self:SetSubtitle(_Subtitle)

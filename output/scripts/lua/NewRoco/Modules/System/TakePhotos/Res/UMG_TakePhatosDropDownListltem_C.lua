@@ -18,7 +18,9 @@ function UMG_TakePhatosDropDownListltem_C:OnItemUpdate(_data, datalist, index)
 end
 
 function UMG_TakePhatosDropDownListltem_C:OnItemSelected(_bSelected)
-  self.SettingData.OnClicked()
+  if _bSelected then
+    self.SettingData.OnClicked()
+  end
 end
 
 function UMG_TakePhatosDropDownListltem_C:OnDeactive()

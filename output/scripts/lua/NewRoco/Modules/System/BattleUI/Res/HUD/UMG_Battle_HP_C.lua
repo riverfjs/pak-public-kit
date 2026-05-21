@@ -112,9 +112,9 @@ function UMG_Battle_HP_C:OnBattleEvent(eventName, ...)
     if self.battlePet and self.battlePet.guid == petId then
       local prevHaveNightMareShield = self.haveNightMareShield
       if self.battlePet.health then
-        self.haveNightMareShield = self.battlePet.health:GetShield() > 0
+        self.haveNightMareShield = self.battlePet.health:GetMaxShield() > 0
       else
-        self.haveNightMareShield = self.battlePet.card.shield > 0
+        self.haveNightMareShield = self.battlePet.card.max_shield > 0
       end
       if self.haveNightMareShield ~= prevHaveNightMareShield and self.haveNightMareShield == false then
         self:StartSetHpValue(self.battlePet.health:GetShield(), self.battlePet.health:GetMaxShield(), false, 0, false, true, isHeal)
@@ -136,6 +136,10 @@ function UMG_Battle_HP_C:OnBattleEvent(eventName, ...)
     self:OnRoundStart()
     return true
   elseif eventName == BattleEvent.DIRECT_UPDATE_UI then
+    local ignoreOptions = (...)
+    if ignoreOptions and ignoreOptions.ignoreHp and self.battlePet and self.battlePet.guid and ignoreOptions.ignoreHp[self.battlePet.guid] then
+      return true
+    end
     self:OnRoundStart()
     return true
   elseif eventName == BattleEvent.START_BATTLE_PERFORM then
@@ -299,6 +303,9 @@ function UMG_Battle_HP_C:InitView(battlePet)
     self:ClearTimer()
     if battlePet.health then
       if self.isNightMarePet and self.haveNightMareShield then
+        if self:IsAnimationPlaying(self.Red_Out) then
+          self:StopAnimation(self.Red_Out)
+        end
         self:StartSetHpValue(battlePet.health:GetShield(), battlePet.health:GetMaxShield(), true)
         if battlePet.health:GetShield() == battlePet.health:GetMaxShield() then
           self.shouldPlayNightMareAnim = true
@@ -344,7 +351,24 @@ function UMG_Battle_HP_C:InitWorldLeaderReward(IsPlayAnim)
   end
 end
 
+function UMG_Battle_HP_C:InitSurpriseBoxHPUI()
+  if self.HpBarSurprise then
+    self.HpBarSurprise:SetVisibility(UE4.ESlateVisibility.Visible)
+    self.HpBarSurprise:SetRenderOpacity(1)
+  end
+end
+
+function UMG_Battle_HP_C:ResetSurpriseBoxHPUI()
+  if self.HpBarSurprise then
+    self.HpBarSurprise:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  end
+end
+
 function UMG_Battle_HP_C:InitNightMareHPUI()
+  if self.isSurpriseBoxPet then
+    self:InitSurpriseBoxHPUI()
+    return
+  end
   if self.isNightMarePet and self.haveNightMareShield then
     if self.shouldPlayNightMareAnim then
       self.shouldPlayNightMareAnim = false
@@ -358,6 +382,7 @@ function UMG_Battle_HP_C:InitNightMareHPUI()
 end
 
 function UMG_Battle_HP_C:ResetNightMareHPUI()
+  self:ResetSurpriseBoxHPUI()
   if self.HpBarShield then
     self.HpBarShield:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
@@ -381,6 +406,7 @@ function UMG_Battle_HP_C:SetPetInfo(battlePet, card)
   local battlePetCard = battlePet and battlePet.card
   self.haveNightMareShield = shield > 0
   self.isNightMarePet = battlePetCard and battlePetCard.isNightMarePet
+  self.isSurpriseBoxPet = battlePetCard and battlePetCard.isSurpriseBoxPet
   self:InitFrozenState()
   if not self:IsShowHPValue(self.battlePet) and not self:IsShowHPPercent(self.battlePet) and self.TxtHp then
     self.TxtHp:SetText("")
@@ -905,8 +931,7 @@ function UMG_Battle_HP_C:HideHud(event, delayTime)
   if self.battlePet.teamEnm == BattleEnum.Team.ENUM_ENEMY then
     offset = 2
   end
-  local delay = _G.DelayManager
-  delay:DelaySeconds(delayTime, function()
+  self:DelaySeconds(delayTime, function()
     _G.BattleEventCenter:Dispatch(event, self.battlePet.index + offset)
   end)
 end
@@ -916,14 +941,34 @@ function UMG_Battle_HP_C:SetParent(Parent)
 end
 
 function UMG_Battle_HP_C:SetHPPercent(context, hpPercent)
-  if self.isNightMarePet and context.isSetNightmareHpBar then
+  if self.isSurpriseBoxPet then
+    self.HpBarShield:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.HpBarShield:SetRenderOpacity(0)
+    self.HpBarShieldMax:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.HpBarShieldMax:SetRenderOpacity(0)
+    if self.HpBarSurprise then
+      self.HpBarSurprise:SetVisibility(UE4.ESlateVisibility.Visible)
+      self.HpBarSurprise:SetRenderOpacity(1)
+      self.HpBarSurprise:SetPercent(hpPercent)
+    end
+    self.HpBarPink:SetPercent(0)
+    self.HpBarYellow:SetPercent(0)
+    self.HpBarGreen:SetPercent(0)
+    return
+  elseif self.isNightMarePet and context.isSetNightmareHpBar then
     if self.isPlayingShieldBreakAnim then
       return
     end
     self.HpBarShield:SetVisibility(UE4.ESlateVisibility.Visible)
+    self.HpBarShield:SetRenderOpacity(1)
     self.HpBarShield:SetPercent(hpPercent)
     self.HpBarShieldMax:SetVisibility(UE4.ESlateVisibility.Visible)
+    self.HpBarShieldMax:SetRenderOpacity(1)
     self.HpBarShieldMax:SetPercent(1)
+    if self.HpBarSurprise then
+      self.HpBarSurprise:SetVisibility(UE4.ESlateVisibility.Collapsed)
+      self.HpBarSurprise:SetRenderOpacity(0)
+    end
     self.HpBarPink:SetPercent(0)
     self.HpBarYellow:SetPercent(0)
     self.HpBarGreen:SetPercent(0)
@@ -932,6 +977,10 @@ function UMG_Battle_HP_C:SetHPPercent(context, hpPercent)
     end
     return
   elseif self.HpBarShield then
+  end
+  if self.HpBarSurprise then
+    self.HpBarSurprise:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.HpBarSurprise:SetRenderOpacity(0)
   end
   local subHpBarTintColor = UE4.FSlateColor()
   local hpLevelType = BattleUtils.EvaluateHpLevel(hpPercent)
@@ -979,6 +1028,12 @@ function UMG_Battle_HP_C:SetHPBackPercent(hpPercent, add)
     self.HpBarAdd:SetVisibility(UE4.ESlateVisibility.Collapsed)
     return
   else
+    if self.isSurpriseBoxPet then
+      self.HpBarSub:SetVisibility(UE4.ESlateVisibility.Collapsed)
+      self.HpBarAdd:SetVisibility(UE4.ESlateVisibility.Collapsed)
+      return
+    else
+    end
   end
   if add then
     self.HpBarAdd:SetPercent(hpPercent)
@@ -1082,7 +1137,20 @@ function UMG_Battle_HP_C.GetPercentForShow(percent)
   return value > 0 and math.max(1, math.ceil(value)) or 0
 end
 
+function UMG_Battle_HP_C:SurpriseBoxBreak()
+  if self.HpBarSurprise then
+    self.HpBarSurprise:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    if self.battlePet then
+      self:StartSetHpValue(self.battlePet.health:GetHp(), self.battlePet.health:GetMaxHp(), true)
+    end
+  end
+end
+
 function UMG_Battle_HP_C:NightmareShieldBreak()
+  if self.isSurpriseBoxPet then
+    self:SurpriseBoxBreak()
+    return
+  end
   if self.isNightMarePet then
     self:PlayAnimation(self.Red_Out)
     self.HpBarShield:SetVisibility(UE4.ESlateVisibility.Collapsed)
@@ -1095,7 +1163,7 @@ function UMG_Battle_HP_C:NightmareShieldBreak()
 end
 
 function UMG_Battle_HP_C:IsPerformingAnim()
-  return self.currentSetHpValueContext or #self.setHpValueQueue > 0 or self.IsPlayFrozen
+  return self.currentSetHpValueContext and not self:CheckSetHpContextCompleted(self.currentSetHpValueContext) or #self.setHpValueQueue > 0 or self.IsPlayFrozen
 end
 
 return UMG_Battle_HP_C

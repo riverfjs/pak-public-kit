@@ -366,15 +366,7 @@ function UMG_Pet_TeamReplace_PVP_C:SetPetInfoList()
           end
         end
         temp.is_trial_pet = true
-        local isTravel = _G.NRCModuleManager:DoCmd(_G.TravelModuleCmd.GetPetIsTravel, petinfo.gid)
-        petInfo = {
-          PetData = temp,
-          isHasPet = true,
-          IsTravel = isTravel,
-          IsFree = false,
-          banFree = petBaseConf.ban_free,
-          bFromShiningWeekend = true
-        }
+        petInfo = {PetData = temp}
       end
     end
     if petInfo then

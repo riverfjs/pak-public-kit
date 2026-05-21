@@ -1,4 +1,5 @@
 local Super = require("NewRoco/Modules/System/BigMap/Res/UMG_IconTempBasic_C")
+local BigMapUtils = require("NewRoco/Modules/System/BigMap/BigMapUtils")
 local UMG_IconNpcFunction_C = Super:Extend("UMG_IconNpcFunction_C")
 
 function UMG_IconNpcFunction_C:OnConstruct()
@@ -146,7 +147,7 @@ function UMG_IconNpcFunction_C:UpdateIcon()
     self.iconFlag:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
     if not self.WorldMapConfig.dungeon_id or self.WorldMapConfig.dungeon_id > 0 then
     end
-    if self.WorldMapConfig.map_show_type == Enum.MapIconShowType.MAP_SEASON_DAZZLING and self.uiData.glass_info and self.uiData.mutation_type then
+    if (self.WorldMapConfig.map_show_type == Enum.MapIconShowType.MAP_SEASON_DAZZLING or self.WorldMapConfig.map_show_type == Enum.MapIconShowType.MAP_SHINING_SEASON_DAZZLING) and self.uiData.glass_info and self.uiData.mutation_type then
       local path = self:GetHiddenGlassIcon()
       if "" ~= path then
         self:GetIconPath(path)
@@ -293,7 +294,15 @@ function UMG_IconNpcFunction_C:SetCathPet()
 end
 
 function UMG_IconNpcFunction_C:GetCathIconPath()
-  local path = self.WorldMapConfig and self.WorldMapConfig.world_map_NPCicon_des or G.NRCModuleManager:DoCmd(_G.BigMapModuleCmd.GetCatchPetIconPath, npcRefreshId)
+  if self.WorldMapConfig == nil then
+    return
+  end
+  local path = ""
+  if BigMapUtils.CheckShowRongDuanIcon(self.WorldMapConfig, self.uiData.mutation_type) then
+    path = self.WorldMapConfig.shine_rongduan_icon
+  else
+    path = self.WorldMapConfig.world_map_NPCicon_des
+  end
   self:SetFlagPath(path)
 end
 
@@ -301,16 +310,13 @@ function UMG_IconNpcFunction_C:ShowTravel(npcInfo)
   if npcInfo then
     local travelInfo = _G.NRCModuleManager:DoCmd(_G.TravelModuleCmd.GetTravelInfo, npcInfo.npc_refresh_id)
     if travelInfo then
-      self.Travel_DuringJourney:SetVisibility(UE4.ESlateVisibility.Visible)
       self.TravelInfo = travelInfo
       self.IsTravelInfo = true
       self.TravelContentId = travelInfo.camp_content_id
-      self.Travel_DuringJourney:OnActive(npcInfo)
     end
   else
     self.TravelContentId = 0
     self.IsTravelInfo = false
-    self.Travel_DuringJourney:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
 end
 
@@ -319,17 +325,15 @@ function UMG_IconNpcFunction_C:GetTravelDownTime()
     if self.TravelInfo and self.TravelInfo.travel_complete then
       return 0
     end
-    return self.Travel_DuringJourney:GetTravelDownTime()
+    return 0
   end
   return 0
 end
 
 function UMG_IconNpcFunction_C:PlayInTravel()
-  self.Travel_DuringJourney:PlayInAnim()
 end
 
 function UMG_IconNpcFunction_C:PlayOutTravel()
-  self.Travel_DuringJourney:PlayCloseAnim()
 end
 
 function UMG_IconNpcFunction_C:RandomAngle(bRandom)

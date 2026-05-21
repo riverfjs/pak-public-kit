@@ -2,6 +2,7 @@ require("UnLuaEx")
 local Base = require("NewRoco.TUI.BP_NRCItemBase_C")
 local DialogueModuleEvent = reload("NewRoco.Modules.System.Dialogue.DialogueModuleEvent")
 local ShowID = RocoEnv.IS_EDITOR or not RocoEnv.IS_SHIPPING and _G.AppMain:HasLaunchParams()
+local DialogueUtils = require("NewRoco.Modules.System.Dialogue.DialogueUtils")
 local UMG_DialogueSelectItemNew_C = Base:Extend("UMG_DialogueSelectItemNew_C")
 local TextStyle = {
   [0] = "Normal",
@@ -17,10 +18,13 @@ local TextStyleSelected = {
 function UMG_DialogueSelectItemNew_C:OnConstruct()
   self.option = nil
   self.SelectConf = nil
+  self.bIsHovered = false
   self:BindToAnimationStarted(self.Press, {
     self,
     function(caller)
-      self:SetTextContent(true)
+      if not self.bIsHovered then
+        self:PlayAnimation(self.Hover_In)
+      end
     end
   })
   self:BindToAnimationFinished(self.Press, {
@@ -35,8 +39,10 @@ function UMG_DialogueSelectItemNew_C:OnConstruct()
   self:BindToAnimationStarted(self.Up, {
     self,
     function(caller)
-      self:SetTextContent(false)
       self:OnItemPreSelected()
+      if not self:IsHovered() and self.bIsHovered then
+        self:PlayAnimation(self.Hover_Out)
+      end
     end
   })
   self:BindToAnimationFinished(self.Up, {
@@ -48,21 +54,28 @@ function UMG_DialogueSelectItemNew_C:OnConstruct()
       end
     end
   })
-  self:BindToAnimationStarted(self.Select, {
+  self:BindToAnimationStarted(self.Hover_In, {
     self,
     function(caller)
       self:SetTextContent(true)
-      self:OnItemPreSelected()
+      self.bIsHovered = true
     end
   })
-  self:BindToAnimationFinished(self.Select, {
+  self:BindToAnimationFinished(self.Hover_In, {
+    self,
+    function(caller)
+    end
+  })
+  self:BindToAnimationStarted(self.Hover_Out, {
     self,
     function(caller)
       self:SetTextContent(false)
-      if self.bClickedConfirm then
-        self.bClickedConfirm = false
-        self:OnSelected()
-      end
+    end
+  })
+  self:BindToAnimationFinished(self.Hover_Out, {
+    self,
+    function(caller)
+      self.bIsHovered = false
     end
   })
 end
@@ -161,6 +174,11 @@ function UMG_DialogueSelectItemNew_C:OnItemUpdate(Data, datalist, index)
     if redDotData and next(redDotData) then
       textLevel = 2
     end
+  elseif _data.select_mark == Enum.SelectMarkYellow.SMY_UNCLICKED then
+    local select_info = DialogueUtils.GetSelectInfoByID(self.option and self.option.CurrentAction and self.option.CurrentAction.Info, self.SelectConf.id)
+    if select_info and not select_info.has_been_selected then
+      textLevel = 2
+    end
   end
   if ShowID then
     content = string.format("%s(%d)", content, self.SelectConf.id)
@@ -177,6 +195,7 @@ function UMG_DialogueSelectItemNew_C:OnItemUpdate(Data, datalist, index)
 end
 
 function UMG_DialogueSelectItemNew_C:OnMouseEnter(MyGeometry, MouseEvent)
+  self:StopAnimation(self.Hover_Out)
   self:PlayAnimation(self.Hover_In)
 end
 
@@ -184,6 +203,7 @@ function UMG_DialogueSelectItemNew_C:OnPanelScrolled()
 end
 
 function UMG_DialogueSelectItemNew_C:OnMouseLeave(MouseEvent)
+  self:StopAnimation(self.Hover_In)
   self:PlayAnimation(self.Hover_Out)
 end
 
@@ -269,7 +289,7 @@ end
 
 function UMG_DialogueSelectItemNew_C:StartDefaultOptionTimer()
   self.ProgressBarBG:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
-  self.ProgressBar_0:SetPercent(1.0)
+  self.ProgressBar_0:SetFillAmount(1.0)
   self.ProgressBar_0:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
   self.DefaultOptionTime = math.max(_G.DataConfigManager:GetTaskGlobalConfig("dialogue_default_select_time", true).num, 1000.0) / 1000.0
   self.DefaultOptionTimeRemaining = self.DefaultOptionTime
@@ -289,7 +309,7 @@ end
 function UMG_DialogueSelectItemNew_C:OnDefaultOptionTimer()
   self.DefaultOptionTimeRemaining = self.DefaultOptionTimeRemaining - self.DefaultOptionTimerStep
   local Progress = math.clamp(self.DefaultOptionTimeRemaining / self.DefaultOptionTime, 0.0, 1.0)
-  self.ProgressBar_0:SetPercent(Progress)
+  self.ProgressBar_0:SetFillAmount(Progress)
   if self.DefaultOptionTimeRemaining < 0.0 then
     self:OnDefaultOptionTimeout()
   end
@@ -308,6 +328,11 @@ end
 
 function UMG_DialogueSelectItemNew_C:OnShownByScrollView()
   self:PlayAnimation(self.Hover_Out, self.Hover_Out:GetEndTime())
+end
+
+function UMG_DialogueSelectItemNew_C:PlaySelectAnimation()
+  self.bPendingUpAnim = true
+  self:PlayAnimation(self.Press)
 end
 
 return UMG_DialogueSelectItemNew_C

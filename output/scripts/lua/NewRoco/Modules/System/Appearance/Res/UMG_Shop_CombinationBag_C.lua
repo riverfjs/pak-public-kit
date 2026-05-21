@@ -775,6 +775,7 @@ function UMG_Shop_CombinationBag_C:DoCountDown(DontRequest, bServerDriven)
   if nil == endTimestamp or endTimestamp <= 0 then
     return
   end
+  endTimestamp = endTimestamp + 1
   if bServerDriven then
     self.ShopDataLifeTime[shopId] = endTimestamp
   end

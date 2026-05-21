@@ -8,6 +8,8 @@ local MagicReplayUtils = require("NewRoco.Modules.System.MagicReplay.MagicReplay
 local MagicReplayFsm = require("NewRoco.Modules.System.MagicReplay.MagicReplayFsm")
 local MagicSequenceMgr = require("NewRoco.Modules.System.MagicReplay.MagicSequence.MagicSequenceMgr")
 local MagicSeqForReplay = require("NewRoco.Modules.System.MagicReplay.MagicSequence.MagicSeqForReplay")
+local FriendModuleEvent = require("NewRoco.Modules.System.Friend.FriendModuleEvent")
+local MIN_RECORD_TIME = 2
 local MagicReplayModule = NRCModuleBase:Extend("MagicReplayModule")
 
 function MagicReplayModule:OnConstruct()
@@ -45,6 +47,8 @@ function MagicReplayModule:AddEventListener()
   _G.NRCEventCenter:RegisterEvent("MagicReplayModule", self, _G.SceneEvent.OnPlayerDead, self.OnPlayerDead)
   _G.FunctionBanManager:AddFunctionStateListener(Enum.PlayerFunctionBanType.PFBT_MARK_VIDEO_REC_BREAK_OFF, self, self.CheckShouldSwitchRecordState)
   _G.FunctionBanManager:AddFunctionStateListener(Enum.PlayerFunctionBanType.PFBT_MARK_VIDEO_WATCH_BREAK_OFF, self, self.CheckShouldSwitchReplayState)
+  _G.NRCEventCenter:RegisterEvent("MagicReplayModule", self, FriendModuleEvent.OnEnterVisit, self.OnEnterOrLeaveVisit)
+  _G.NRCEventCenter:RegisterEvent("MagicReplayModule", self, FriendModuleEvent.OnLeaveVisit, self.OnEnterOrLeaveVisit)
   _G.NRCEventCenter:RegisterEvent(self.name, self, MainUIModuleEvent.SetBagChangeInfoEvent, self.OnBagChange)
   self.magicSeqMgr:AddEventListener()
 end
@@ -57,6 +61,8 @@ function MagicReplayModule:RemoveEventListener()
   _G.NRCEventCenter:UnRegisterEvent(self, _G.SceneEvent.OnPlayerDead, self.OnPlayerDead)
   _G.FunctionBanManager:RemoveFunctionStateListener(Enum.PlayerFunctionBanType.PFBT_MARK_VIDEO_REC_BREAK_OFF, self, self.CheckShouldSwitchRecordState)
   _G.FunctionBanManager:RemoveFunctionStateListener(Enum.PlayerFunctionBanType.PFBT_MARK_VIDEO_WATCH_BREAK_OFF, self, self.CheckShouldSwitchReplayState)
+  _G.NRCEventCenter:UnRegisterEvent(self, FriendModuleEvent.OnEnterVisit, self.OnEnterOrLeaveVisit)
+  _G.NRCEventCenter:UnRegisterEvent(self, FriendModuleEvent.OnLeaveVisit, self.OnEnterOrLeaveVisit)
   _G.NRCEventCenter:UnRegisterEvent(self, MainUIModuleEvent.SetBagChangeInfoEvent, self.OnBagChange)
   self.magicSeqMgr:RemoveEventListener()
 end
@@ -171,8 +177,14 @@ function MagicReplayModule:OnEnterReplayState()
   self:DispatchEvent(MagicReplayModuleEvent.EnterReplayState)
 end
 
-function MagicReplayModule:OnEnterPreviewState()
+function MagicReplayModule:OnEnterPreviewState(strMessage)
   Log.Debug("MagicReplayModule:OnEnterPreviewState")
+  if not string.IsNilOrEmpty(strMessage) then
+    local param = _G.NRCModeManager:DoCmd(_G.MagicReplayModuleCmd.GetRecordFeedInitInfo)
+    if param then
+      param.strMessage = strMessage
+    end
+  end
   if self.Fsm then
     self.Fsm:SendEvent(MagicReplayModuleEvent.EnterPreviewState)
   end
@@ -187,10 +199,24 @@ function MagicReplayModule:OnEnterShareState()
   self:DispatchEvent(MagicReplayModuleEvent.EnterShareState)
 end
 
+function MagicReplayModule:OnEnterShareVideoState()
+  Log.Debug("MagicReplayModule:OnEnterShareVideoState")
+  if not self.magicSeqMgr or not self.magicSeqMgr:CanReplay() then
+    Log.Error("MagicReplayModule:OnEnterShareVideoState, magicSeqMgr is nil or can not replay during cd")
+    return
+  end
+  if self.Fsm then
+    self.Fsm:SendEvent(MagicReplayModuleEvent.EnterShareVideoState)
+  end
+  self:DispatchEvent(MagicReplayModuleEvent.EnterShareVideoState)
+end
+
 function MagicReplayModule:OnSwitchRecordState()
   if self.Fsm then
     if self.Fsm:GetActiveStateName() == "RecordProcessState" then
-      _G.NRCEventCenter:DispatchEvent(MagicReplayModuleEvent.OnManualStopRecord)
+      if self.recordingTime and self.recordingTime > MIN_RECORD_TIME then
+        _G.NRCEventCenter:DispatchEvent(MagicReplayModuleEvent.OnManualStopRecord)
+      end
     elseif self.Fsm:GetActiveStateName() == "RecordPrepareState" then
       self.Fsm:SendEvent(MagicReplayModuleEvent.EnterRecordProcessState)
     end
@@ -249,6 +275,7 @@ function MagicReplayModule:StartMagicReplay(opType)
     end
   end
   self:OnStartFsm(opType, nil)
+  self.Fsm:SetProperty("ReplayNpcId", self.data.replayNpcId or 0)
 end
 
 function MagicReplayModule:StopMagicReplay()
@@ -282,7 +309,11 @@ function MagicReplayModule:OnPlayerDead()
 end
 
 function MagicReplayModule:OnEnterOrLeaveVisit()
-  self:StopMagicReplay()
+  if self:GetCurrentOpType() == MagicReplayModuleEnum.ModuleOpType.Record then
+    local tipTxt = _G.DataConfigManager:GetLocalizationConf("mark_video_stop_tips")
+    _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, tipTxt and tipTxt.msg or "")
+  end
+  self:InterruptMagicReplay()
 end
 
 function MagicReplayModule:InterruptMagicReplay()
@@ -315,6 +346,7 @@ end
 function MagicReplayModule:OnReconnect()
   self.isNetRecording = false
   self:InterruptMagicReplay()
+  _G.NRCEventCenter:DispatchEvent(MainUIModuleEvent.RefreshJoystick)
 end
 
 function MagicReplayModule:OnRecordSeqInterrupt()
@@ -384,19 +416,19 @@ function MagicReplayModule:GetInteractNPC()
   return nil
 end
 
-function MagicReplayModule:PlaySeqTargetEmergeEffect(target, isPlayer, isRidePet)
+function MagicReplayModule:PlaySeqTargetEmergeEffect(target, isPlayer, isRidePet, isChangeSuit)
   local interactNpc = self:GetInteractNPC()
   if interactNpc then
-    interactNpc.viewObj:PlaySeqTargetEmergeEffect(target, isPlayer, isRidePet)
+    interactNpc.viewObj:PlaySeqTargetEmergeEffect(target, isPlayer, isRidePet, isChangeSuit)
   end
 end
 
 function MagicReplayModule:OnMagicSeqNpcSpawned(target, isRidePet)
-  self:PlaySeqTargetEmergeEffect(target, false, isRidePet)
+  self:PlaySeqTargetEmergeEffect(target, nil, isRidePet, nil)
 end
 
-function MagicReplayModule:OnMagicSeqPlayerSpawned(target)
-  self:PlaySeqTargetEmergeEffect(target, true)
+function MagicReplayModule:OnMagicSeqPlayerSpawned(target, isChangeSuit)
+  self:PlaySeqTargetEmergeEffect(target, true, nil, isChangeSuit)
 end
 
 function MagicReplayModule:SetReplayFeedDetail(param, recNpcId)
@@ -612,6 +644,10 @@ function MagicReplayModule:OpenToolExitButtonPopup(type)
   self.ToolUIExitPopupEnabled = true
   self.ToolUIExitPopupCloseTrigger = false
   _G.NRCModeManager:DoCmd(_G.CommonPopUpModuleCmd.OpenRemindPanel, CommonPopUpData)
+  local MainUIModule = NRCModuleManager:GetModule("MainUIModule")
+  if MainUIModule then
+    MainUIModule:SetJoystickEnabled(false)
+  end
 end
 
 function MagicReplayModule:CloseToolExitButtonPopup()
@@ -621,15 +657,18 @@ end
 function MagicReplayModule:OnToolExitButtonAffirm()
   self.ToolUIExitPopupEnabled = false
   self:InterruptMagicReplay()
+  _G.NRCEventCenter:DispatchEvent(MainUIModuleEvent.RefreshJoystick)
 end
 
 function MagicReplayModule:OnToolExitButtonCancel()
   self.ToolUIExitPopupEnabled = false
+  _G.NRCEventCenter:DispatchEvent(MainUIModuleEvent.RefreshJoystick)
 end
 
 function MagicReplayModule:OnToolExitButtonTick(CommonPopUpData, umg)
   if not self.ToolUIExitPopupEnabled and not self.ToolUIExitPopupCloseTrigger then
     self.ToolUIExitPopupCloseTrigger = true
+    _G.NRCEventCenter:DispatchEvent(MainUIModuleEvent.RefreshJoystick)
     umg:OnBtnClose()
   end
 end
@@ -650,6 +689,10 @@ function MagicReplayModule:OpenToolRestartButtonPopup()
   self.ToolUIRestartPopupEnabled = true
   self.ToolUIRestartPopupCloseTrigger = false
   _G.NRCModeManager:DoCmd(_G.CommonPopUpModuleCmd.OpenRemindPanel, CommonPopUpData)
+  local MainUIModule = NRCModuleManager:GetModule("MainUIModule")
+  if MainUIModule then
+    MainUIModule:SetJoystickEnabled(false)
+  end
 end
 
 function MagicReplayModule:CloseToolRestartButtonPopup()
@@ -659,15 +702,18 @@ end
 function MagicReplayModule:OnToolRestartButtonAffirm()
   self.ToolUIRestartPopupEnabled = false
   _G.NRCModeManager:DoCmd(_G.MagicReplayModuleCmd.OnEnterRecordState)
+  _G.NRCEventCenter:DispatchEvent(MainUIModuleEvent.RefreshJoystick)
 end
 
 function MagicReplayModule:OnToolRestartButtonCancel()
   self.ToolUIRestartPopupEnabled = false
+  _G.NRCEventCenter:DispatchEvent(MainUIModuleEvent.RefreshJoystick)
 end
 
 function MagicReplayModule:OnToolRestartButtonTick(CommonPopUpData, umg)
   if not self.ToolUIRestartPopupEnabled and not self.ToolUIRestartPopupCloseTrigger then
     self.ToolUIRestartPopupCloseTrigger = true
+    _G.NRCEventCenter:DispatchEvent(MainUIModuleEvent.RefreshJoystick)
     umg:OnBtnClose()
   end
 end
@@ -687,6 +733,8 @@ function MagicReplayModule:SyncUploadFileListRsp(rsp)
     Log.Error("MagicReplayModule:OnProcessFileListRsp failed with ret code error : ", rsp.ret_info.ret_code)
     return
   else
+    local info = rsp.data.video_upload_info
+    self:UpdateUploadFileList(info)
     if self.waitCreateList == nil then
       self.waitCreateList = {}
     end
@@ -696,13 +744,12 @@ function MagicReplayModule:SyncUploadFileListRsp(rsp)
         self.waitCreateList[fileInfo.file_name] = {
           file_name = fileInfo.file_name,
           content = fileInfo.content,
-          create_pos = fileInfo.create_pos
+          create_pos = fileInfo.create_pos,
+          sub_type = fileInfo.sub_type
         }
         self:ReqUploadReplay(fileInfo.upload_url, fileInfo.file_name, self, self.OnUploadComplete)
       end
     end
-    local info = rsp.data.video_upload_info
-    self:UpdateUploadFileList(info)
   end
 end
 
@@ -817,7 +864,7 @@ function MagicReplayModule:OnUploadComplete(file_name, bSuccess)
     return
   end
   local CurRecord = self:GetCurMagicSeqForRecord()
-  if CurRecord then
+  if CurRecord and CurRecord.fileName == file_name then
     local reqMsg = _G.ProtoMessage:newZoneFeedVideoCreateReq()
     reqMsg.content = self.waitCreateList[file_name].content
     reqMsg.create_pos = self.waitCreateList[file_name].create_pos
@@ -825,6 +872,7 @@ function MagicReplayModule:OnUploadComplete(file_name, bSuccess)
     reqMsg.file_md5 = CurRecord.fileMD5
     reqMsg.base_info = CurRecord.baseInfo
     reqMsg.base_info_md5 = CurRecord.baseInfoMD5
+    reqMsg.sub_type = self.waitCreateList[file_name].sub_type
     _G.ZoneServer:SendWithHandler(ProtoCMD.ZoneSvrCmd.ZONE_FEED_VIDEO_CREATE_REQ, reqMsg, self, self.OnFeedVideoCreateRsp, nil, false)
   elseif self.magicSeqMgr:IsSeqExists(file_name) then
     local seqForReplay = MagicSeqForReplay(file_name, self.waitCreateList[file_name].create_pos)
@@ -836,6 +884,7 @@ function MagicReplayModule:OnUploadComplete(file_name, bSuccess)
       reqMsg.file_md5 = seqForReplay.fileMD5
       reqMsg.base_info = seqForReplay.baseInfo
       reqMsg.base_info_md5 = seqForReplay.baseInfoMD5
+      reqMsg.sub_type = self.waitCreateList[file_name].sub_type
       _G.ZoneServer:SendWithHandler(ProtoCMD.ZoneSvrCmd.ZONE_FEED_VIDEO_CREATE_REQ, reqMsg, self, self.OnFeedVideoCreateRsp, nil, false)
     else
       Log.Error("[MagicSequence] OnUploadComplete but read from file failed, ", file_name)
@@ -863,7 +912,10 @@ function MagicReplayModule:OnFeedVideoCreateRsp(rsp)
   if 0 == rsp.ret_info.ret_code then
     local file_name = rsp.feed_video_info.file_name
     if self.waitCreateList[file_name] then
-      _G.NRCModuleManager:DoCmd(_G.MagicMessageModuleCmd.AddLocalNpcToList, rsp.feed_info, self.waitCreateList[file_name].npc_id)
+      if not self.waitCreateList[file_name].npc_id then
+        self.waitCreateList[file_name].npc_id = _G.NRCModuleManager:DoCmd(_G.MagicMessageModuleCmd.GetVideoByFileName, file_name)
+      end
+      _G.NRCModuleManager:DoCmd(_G.MagicMessageModuleCmd.AddLocalNpcToList, rsp.feed_info, self.waitCreateList[file_name].npc_id, file_name)
       self:UpdateUploadFileList(rsp.video_upload_info)
       self.waitCreateList[file_name] = nil
       Log.Debug("[MagicSequence] OnFeedVideoCreateRsp, ret_code = 0", file_name)
@@ -949,14 +1001,17 @@ function MagicReplayModule:GetCurSeqForRecord()
   return self.magicSeqMgr:GetCurSeqForRecord()
 end
 
-function MagicReplayModule:GetReplaySeqInfo()
-  local seqInfo = {}
+function MagicReplayModule:SetReplaySeqInfo()
+  self.data.replaySeqInfo = {}
   local seq = self:GetCurSeqForReplay()
   if seq then
-    seqInfo.seq = seq
-    seqInfo.time = seq:GetDuration()
+    self.data.replaySeqInfo.seq = seq
+    self.data.replaySeqInfo.time = seq:GetDuration()
   end
-  return seqInfo
+end
+
+function MagicReplayModule:GetReplaySeqInfo()
+  return self.data.replaySeqInfo
 end
 
 function MagicReplayModule:GetReplaySeqCurrentTime()
@@ -964,11 +1019,21 @@ function MagicReplayModule:GetReplaySeqCurrentTime()
   if seq then
     return seq:GetPlayProgress()
   end
-  return nil
+  return 0
 end
 
 function MagicReplayModule:HasFreeDiskSpace()
   return self.magicSeqMgr:HasFreeDiskSpace()
+end
+
+function MagicReplayModule:GetCurrentShareVideoName()
+  return "MRShareVideo"
+end
+
+function MagicReplayModule:GMSwitchDebugReplay(isDebugReplay, fileName)
+  if self.magicSeqMgr then
+    self.magicSeqMgr:GMSwitchDebugReplay(isDebugReplay, fileName)
+  end
 end
 
 return MagicReplayModule

@@ -23,8 +23,8 @@ end
 
 function CurveMissileComponent:Update(deltaTime)
   Base.Update(self, deltaTime)
-  if not self.missileAction then
-    Log.Debug("CurveMissileComponent:Update: missileAction is nil")
+  if not UE.UObject.IsValid(self.missileAction) then
+    Log.Debug("CurveMissileComponent:Update: missileAction is invalid")
     return
   end
   local alpha = 0 == self.totalDuration and 0 or self.launchedDuration / self.totalDuration

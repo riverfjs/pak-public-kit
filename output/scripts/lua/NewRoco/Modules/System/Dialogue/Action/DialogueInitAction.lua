@@ -10,10 +10,7 @@ local Base = DialogueActionBase
 local DialogueInitAction = Base:Extend("DialogueInitAction")
 FsmUtils.MergeMembers(Base, DialogueInitAction, {
   {name = "TargetNPC", type = "var"},
-  {
-    name = "DialogueConf",
-    type = "var"
-  }
+  {name = "ConfID", type = "var"}
 })
 
 function DialogueInitAction:Ctor(name, properties)
@@ -22,6 +19,7 @@ end
 
 function DialogueInitAction:OnEnter()
   self:InjectProperties()
+  self.DialogueConf = _G.DataConfigManager:GetDialogueConf(self.ConfID, true)
   local bInBattle = self.fsm:GetProperty("bInBattle", false)
   if bInBattle then
   else
@@ -46,11 +44,12 @@ function DialogueInitAction:OnEnter()
   if player and player:IsInTogetherMove() then
     local player_view = DialogueUtils.ExtraActorView(player)
     if player_view then
-      self.fsm:SetProperty("PlayerPosSyncBlocker", player_view:GetTransform())
+      self.fsm:SetProperty("PlayerPosSyncBlocker", player:GetActorTransform())
       if player.movementComponent and player.movementComponent.SetSyncMove then
         player.movementComponent:SetSyncMove(false)
       end
     end
+    DialogueUtils.SetAudioGender(DialogueUtils.GetHero())
   end
   DialogueUtils.ClearLookAt(player)
   self:Finish()

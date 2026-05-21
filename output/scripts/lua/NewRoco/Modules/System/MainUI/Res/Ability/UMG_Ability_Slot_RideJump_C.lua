@@ -164,7 +164,7 @@ function UMG_Ability_Slot_RideJump_C:InternalRefreshView()
   local buff = self.localPlayer.buffComponent:GetBuff("Transform_Buff")
   local hasStatus = self.localPlayer.statusComponent:HasStatus(ProtoEnum.WorldPlayerStatusType.WPST_TRANSFORM)
   local isInTransform = hasStatus or buff
-  local preSetVisible = not isInTransform and not self._showShortCut
+  local preSetVisible = not self._showShortCut
   if self._isVisible ~= preSetVisible then
     self._isVisible = preSetVisible
     self:BeforeSetVisible(self._isVisible)
@@ -247,6 +247,9 @@ function UMG_Ability_Slot_RideJump_C:OnCast(isPress)
   end
   if errorCode == AbilityErrorCode.VITALITY_NOT_ENOUGH and MainUIModuleCmd then
     NRCModuleManager:DoCmd(MainUIModuleCmd.UI_OnDashAbilityVitalityDeficiency)
+  end
+  if errorCode == AbilityErrorCode.TASK_AREA_BAN and self.localPlayer and self.localPlayer.ShowTaskAreaRideAllBanTips and isPress then
+    self.localPlayer:ShowTaskAreaRideAllBanTips()
   end
   if errorCode ~= AbilityErrorCode.NO_ERROR then
     Log.Debug(AbilityErrorCode.ToString(errorCode))

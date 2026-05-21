@@ -3,6 +3,7 @@ local BattleUtils = require("NewRoco.Modules.Core.Battle.Common.BattleUtils")
 local BattleExitHelper = require("NewRoco.Modules.Core.Battle.Players.BattleExitHelper")
 local BattleEvent = require("NewRoco.Modules.Core.Battle.Common.BattleEvent")
 local BattleConst = require("NewRoco.Modules.Core.Battle.Common.BattleConst")
+local BattleEnum = require("NewRoco.Modules.Core.Battle.Common.BattleEnum")
 local Base = BattleActionBase
 local LeaveBattleAction = Base:Extend("LeaveBattleAction")
 FsmUtils.MergeMembers(Base, LeaveBattleAction, nil)
@@ -19,7 +20,7 @@ function LeaveBattleAction:OnEnter()
   self.isSceneTreesShow = false
   self.needShowSceneTrees = false
   local battleExitParam = _G.BattleManager.battleRuntimeData.battleExitParam
-  if BattleUtils.IsPve() or BattleUtils.IsSkipRecycleBall() then
+  if BattleUtils.IsPve() or BattleUtils.IsSkipRecycleBall() or BattleUtils.EndBattleByNpc() then
     BattleExitHelper.ClearFinishSeamlessFlag()
     BattleExitHelper.SetFinishPveSeamless()
     self:Finish()
@@ -41,7 +42,7 @@ function LeaveBattleAction:OnEnter()
     local Caster = battleExitParam.lastHitKiller
     battleExitParam.lastHitPets = nil
     battleExitParam.lastHitKiller = nil
-    BattleExitHelper.PlayExitSkill(Caster, pets and pets[1], self, self.OnSkillFinish, self.SendRoundFlowFinish, self.OnSkillPostStart)
+    BattleExitHelper.PlayExitSkill(Caster, pets and pets[1], self, self.OnSkillFinish, self.SendRoundFlowFinish, self.OnSkillPostStart, BattleManager.EnterBattleStateBit ~= BattleEnum.EnterBattleState.Default)
   else
     self:Finish()
   end

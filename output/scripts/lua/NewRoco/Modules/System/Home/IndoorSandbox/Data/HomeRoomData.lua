@@ -285,6 +285,29 @@ end
 function HomeRoomData:OnTest()
 end
 
+function HomeRoomData:UpdatePropsBindingInfo(RoomInfo)
+  if not RoomInfo then
+    return
+  end
+  local RoomPlaneList = RoomInfo.room_plane_list
+  if RoomPlaneList then
+    for j, RoomPlane in pairs(RoomPlaneList) do
+      local FurnitureList = RoomPlane.furniture_list
+      if FurnitureList then
+        for k, Furniture in pairs(FurnitureList) do
+          local PropsData = HomeIndoorSandbox.Server.WorldData:GetFurnitureById(Furniture.furniture_guid)
+          if PropsData then
+            PropsData:UpdateDynamicNpc(Furniture.dynamic_npc_ids or {})
+            PropsData:UpdateNpc(Furniture.npc_id or 0)
+          else
+            HomeIndoorSandbox:Ensure(false, "Cannot found props data", Furniture.furniture_guid)
+          end
+        end
+      end
+    end
+  end
+end
+
 function HomeRoomData:CompareUpdateRoomInfo(RoomInfo)
   local RoomId = RoomInfo.room_id or 0
   if RoomId ~= self.RoomId then
@@ -293,7 +316,9 @@ function HomeRoomData:CompareUpdateRoomInfo(RoomInfo)
   end
   self.RoomId = RoomId
   local Serialized = self:Serialize()
-  local bPropsChanged = not HomeIndoorSandbox.Utils.DeepEquals(RoomInfo.room_plane_list, Serialized.room_plane_list)
+  local PropsFieldComparator = HomePropsData.GetSerializeComparatorTable()
+  local PropsFiledNilFields = HomePropsData.GetSerializeNilFields()
+  local bPropsChanged = not HomeIndoorSandbox.Utils.DeepEquals(RoomInfo.room_plane_list, Serialized.room_plane_list, nil, PropsFieldComparator, PropsFiledNilFields)
   local bDecosChanged = not HomeIndoorSandbox.Utils.DeepEquals(RoomInfo.decoration_list, Serialized.decoration_list)
   if bPropsChanged then
     self:InternalDeserializeProps(RoomInfo)

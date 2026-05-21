@@ -27,26 +27,21 @@ function UMG_Pass_AwardItem2_C:RefreshItem(_data)
   for i, v in pairs(data.freeItems) do
     table.insert(freeItemArray, {
       ItemData = v,
-      ItemID = data.level
+      ItemID = data.level,
+      isPremiumReward = false
     })
   end
   local paidItemArray = {}
   for i, v in pairs(data.paidItems) do
     table.insert(paidItemArray, {
       ItemData = v,
-      ItemID = data.level
+      ItemID = data.level,
+      isPremiumReward = true
     })
   end
   self.Icon:InitGridView(freeItemArray)
   self.Icon1:InitGridView(paidItemArray)
-  local newPath, themeId = _G.NRCModuleManager:DoCmd(_G.BattlePassModuleCmd.GetCurrentThemeImagePath, "img_kuililebiaodi_png.img_kuililebiaodi_png")
-  if 230011 == themeId then
-    self.Theme_Bg1:SetColorAndOpacity(UE4.UNRCStatics.HexToLinearColor("#9C9BDFFF"))
-    self.Theme_Bg2:SetColorAndOpacity(UE4.UNRCStatics.HexToLinearColor("#9190DCFF"))
-  else
-    self.Theme_Bg1:SetColorAndOpacity(UE4.UNRCStatics.HexToLinearColor("#F6C6D1FF"))
-    self.Theme_Bg2:SetColorAndOpacity(UE4.UNRCStatics.HexToLinearColor("#F4BBC8FF"))
-  end
+  _G.NRCModuleManager:DoCmd(_G.BattlePassModuleCmd.ChangeThemeColor, "UMG_Pass_AwardItem2", self)
 end
 
 function UMG_Pass_AwardItem2_C:SetupAwardFx(isOn)

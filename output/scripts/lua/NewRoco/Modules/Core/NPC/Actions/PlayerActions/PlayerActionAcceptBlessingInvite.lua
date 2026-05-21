@@ -1,10 +1,6 @@
 local ThrowSessionStatusEnum = require("NewRoco.Modules.Core.NPC.ThrowSessionStatusEnum")
-local PlayerActionAcceptBlessingInvite = Class("PlayerActionAcceptBlessingInvite")
-
-function PlayerActionAcceptBlessingInvite:Ctor(Owner, Config)
-  self.Owner = Owner
-  self.Config = Config
-end
+local Base = require("NewRoco.Modules.Core.NPC.Actions.PlayerActions.PlayerActionBase")
+local PlayerActionAcceptBlessingInvite = Base:Extend("PlayerActionAcceptBlessingInvite")
 
 function PlayerActionAcceptBlessingInvite:Execute()
   if not self.Owner then

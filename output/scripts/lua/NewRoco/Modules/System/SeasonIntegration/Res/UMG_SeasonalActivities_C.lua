@@ -1,11 +1,10 @@
 local UMG_SeasonalActivities_C = _G.NRCPanelBase:Extend("UMG_SeasonalActivities_C")
-local a = require("Common.Coroutine.async")
-local au = require("Common.Coroutine.async_util")
 
 function UMG_SeasonalActivities_C:OnActive(seasonId)
   self.seasonId = seasonId
   self.currentPageIndex = 1
   self.focusGroupData = {}
+  self.Loader_Activites.OnLoadPanelCallbackDelegate:Add(self, self.OnLoadWidgetCallback)
   if self.seasonId then
     local seasonConf = _G.DataConfigManager:GetSeasonConf(self.seasonId)
     if seasonConf and seasonConf.focus_group and #seasonConf.focus_group > 0 then
@@ -23,6 +22,7 @@ end
 
 function UMG_SeasonalActivities_C:OnDeactive()
   Log.Info("UMG_SeasonalActivities_C:OnDeactive")
+  self.Loader_Activites.OnLoadPanelCallbackDelegate:Remove(self, self.OnLoadWidgetCallback)
 end
 
 function UMG_SeasonalActivities_C:OnAddEventListener()
@@ -44,21 +44,56 @@ function UMG_SeasonalActivities_C:InitUI()
   self:UpdatePage()
 end
 
-function UMG_SeasonalActivities_C:UpdatePage()
+local SeasonalSubPanelTextMapping = {
+  TitleTxt = "title_txt",
+  SloganTxt1 = "slogan_txt_1",
+  SloganTxt2 = "slogan_txt_2",
+  AdditionalTxt1 = "additional_txt1",
+  AdditionalTxt2 = "additional_txt2"
+}
+
+function UMG_SeasonalActivities_C:OnLoadWidgetCallback(Panel)
+  local ActivitesPanel = self.Loader_Activites:GetPanel()
+  local CurrentPageData = self:GetCurrentPageData()
+  if Panel and ActivitesPanel and CurrentPageData then
+    local umg_id = CurrentPageData.focus_umg_id
+    local focusUMGTextConfig = umg_id and _G.DataConfigManager:GetSeasonFocusUmgConf(umg_id) or nil
+    if focusUMGTextConfig then
+      for key, value in pairs(SeasonalSubPanelTextMapping) do
+        local textWidget = ActivitesPanel[key]
+        local textValue = focusUMGTextConfig[value]
+        if textWidget and not string.IsNilOrEmpty(textValue) then
+          textWidget:SetText(textValue)
+        elseif textWidget then
+          textWidget:SetVisibility(UE4.ESlateVisibility.Collapsed)
+        end
+      end
+    end
+  end
+end
+
+function UMG_SeasonalActivities_C:GetCurrentPageData()
   if not self.focusGroupData or 0 == #self.focusGroupData then
-    Log.Error("UMG_SeasonalActivities_C:UpdatePage focusGroupData is empty")
-    return
+    Log.Error("UMG_SeasonalActivities_C:GetCurrentPageData focusGroupData is empty")
+    return nil
   end
   local currentPageData = self.focusGroupData[self.currentPageIndex]
   if not currentPageData then
-    Log.Error("UMG_SeasonalActivities_C:UpdatePage currentPageData is nil at index = ", self.currentPageIndex)
+    Log.Error("UMG_SeasonalActivities_C:GetCurrentPageData currentPageData is nil at index = ", self.currentPageIndex)
+    return nil
+  end
+  return currentPageData
+end
+
+function UMG_SeasonalActivities_C:UpdatePage()
+  local currentPageData = self:GetCurrentPageData()
+  if not currentPageData then
     return
   end
-  if currentPageData.focus_img_path and currentPageData.focus_img_path ~= "" then
-    self.NRCImage_Activities:SetPath(currentPageData.focus_img_path)
-    self.NRCImage_Activities:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-  else
-    self.NRCImage_Activities:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  if currentPageData.focus_umg and currentPageData.focus_umg ~= "" then
+    self.Loader_Activites:UnLoadPanel(true)
+    self.Loader_Activites:SetWidgetClass(UE4.UKismetSystemLibrary.MakeSoftClassPath(currentPageData.focus_umg))
+    self.Loader_Activites:LoadPanel(self)
   end
   if self.currentPageIndex > 1 then
     self.Btn2:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
@@ -94,9 +129,8 @@ end
 
 function UMG_SeasonalActivities_C:OnClickNextPageBtn()
   _G.NRCAudioManager:PlaySound2DAuto(40008006, "UMG_SeasonalActivities_C:OnClickNextPageBtn")
-  local currentPageData = self.focusGroupData[self.currentPageIndex]
+  local currentPageData = self:GetCurrentPageData()
   if not currentPageData then
-    Log.Error("UMG_SeasonalActivities_C:OnClickNextPageBtn currentPageData is nil at index = ", self.currentPageIndex)
     return
   end
   if 1 == currentPageData.option_skip_type then
@@ -111,9 +145,8 @@ end
 
 function UMG_SeasonalActivities_C:HandleGotoChoice()
   Log.Info("UMG_SeasonalActivities_C:HandleGotoChoice")
-  local currentPageData = self.focusGroupData[self.currentPageIndex]
+  local currentPageData = self:GetCurrentPageData()
   if not currentPageData then
-    Log.Error("UMG_SeasonalActivities_C:HandleGotoChoice currentPageData is nil")
     return
   end
   _G.NRCModuleManager:DoCmd(_G.SeasonIntegrationModuleCmd.SendZoneSetSeasonFirstPopReq, ProtoEnum.SeasonPagePlayType.SPPT_POP_WINDOWS)
@@ -136,12 +169,15 @@ function UMG_SeasonalActivities_C:HandleGotoChoice()
       Log.Error("UMG_SeasonalActivities_C:HandleGotoChoice currentPageData.jump_param is nil jump_param = ", currentPageData.jump_param)
     end
   end
-  local seasonInfo = table.deepCopy(_G.NRCModuleManager:DoCmd(_G.SeasonIntegrationModuleCmd.GetSeasonInfo))
-  if seasonInfo then
-    for i = 1, #seasonInfo.part_info do
-      if 101 == seasonInfo.part_info[i].part_id then
-        local item_id = seasonInfo.part_info[i].item_id
-        _G.NRCModuleManager:DoCmd(_G.RedPointModuleCmd.EraseRedPoint, 442, {101, item_id})
+  if currentPageData.finish_click_redpoint and 0 ~= currentPageData.finish_click_redpoint then
+    local part_id = currentPageData.finish_click_redpoint
+    local seasonInfo = _G.NRCModuleManager:DoCmd(_G.SeasonIntegrationModuleCmd.GetSeasonInfo)
+    if seasonInfo then
+      for i = 1, #seasonInfo.part_info do
+        if seasonInfo.part_info[i].part_id == part_id then
+          local item_id = seasonInfo.part_info[i].item_id
+          _G.NRCModuleManager:DoCmd(_G.RedPointModuleCmd.EraseRedPoint, 442, {part_id, item_id})
+        end
       end
     end
   end

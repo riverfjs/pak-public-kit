@@ -56,6 +56,7 @@ function UMG_Friend_C:OnDestruct()
   self:CancelDelay()
   if self.data then
     self.data:ClearQQArkJsonCache()
+    self.data:ClearRecommendFilter()
   end
 end
 
@@ -431,6 +432,21 @@ function UMG_Friend_C:UpdateStrangeFriendList(_IsShowSearchFriend)
     self.data:SetIsSearchSucceed(false)
   end
   self.ItemList_Friend_1:InitList(StrangerFriendList)
+  self:UpdateRecommendEmptyTips(StrangerFriendList)
+end
+
+function UMG_Friend_C:UpdateRecommendEmptyTips(strangerList)
+  if not self.CanvasPanel_Empty then
+    return
+  end
+  if not strangerList or 0 == #strangerList then
+    self.CanvasPanel_Empty:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    if self.NRCTextEmpty then
+      self.NRCTextEmpty:SetText(LuaText.filter_rule_none)
+    end
+  else
+    self.CanvasPanel_Empty:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  end
 end
 
 function UMG_Friend_C:PlayWegameFriendItemInAnimation()
@@ -502,6 +518,9 @@ function UMG_Friend_C:OnAddEventListener()
     self:AddButtonListener(self.Btn_ConfirmDeletion.btnLevelUp, self.OnConfirmBatchDelete)
   end
   self:AddButtonListener(self.KnowBtn.btnLevelUp, self.OnClickKnowBtn)
+  if self.ScreeningBtn then
+    self:AddButtonListener(self.ScreeningBtn.btnLevelUp, self.OnClickScreeningBtn)
+  end
   self.InputBox_1.OnTextChanged:Add(self, self.SearchTextChanged)
   self.InputBox_1.OnTextEndTransaction:Add(self, self.OnTextEndTransaction)
   self:RegisterEvent(self, FriendModuleEvent.IsSearchSucceed, self.SearchIsSucceed)
@@ -514,6 +533,7 @@ function UMG_Friend_C:OnAddEventListener()
   self:RegisterEvent(self, FriendModuleEvent.OnFriendDataUpdate, self.OnFriendDataUpdate)
   self:RegisterEvent(self, FriendModuleEvent.ModifyFriendTopUpdate, self.OnFriendDataUpdate)
   self:RegisterEvent(self, FriendModuleEvent.OnFriendRefreshRecommendSuccess, self.OnRecommendDataUpdate)
+  self:RegisterEvent(self, FriendModuleEvent.OnRecommendFilterConfirmed, self.OnRecommendFilterConfirmed)
   _G.DataModelMgr.PlayerDataModel:AddEventListener(self, PlayerDataEvent.VISIT_PERMISSION_CHANGED, self.SetVisitPermissionType)
   self:RegisterEvent(self, FriendModuleEvent.OnWeGameFriendInfoRefresh, self.UpdateWeGameFriendList)
   self:RegisterEvent(self, FriendModuleEvent.OnQQArkClientInviteInfoRsp, self.OnQQArkClientInviteInfoRsp)
@@ -530,6 +550,7 @@ function UMG_Friend_C:OnRemoveEventListener()
   self:UnRegisterEvent(self, FriendModuleEvent.OnFriendDataUpdate)
   self:UnRegisterEvent(self, FriendModuleEvent.ModifyFriendTopUpdate)
   self:UnRegisterEvent(self, FriendModuleEvent.OnFriendRefreshRecommendSuccess)
+  self:UnRegisterEvent(self, FriendModuleEvent.OnRecommendFilterConfirmed)
   _G.DataModelMgr.PlayerDataModel:RemoveEventListener(self, PlayerDataEvent.VISIT_PERMISSION_CHANGED, self.SetVisitPermissionType)
   self:UnRegisterEvent(self, FriendModuleEvent.OnQQArkClientInviteInfoRsp)
 end
@@ -676,8 +697,8 @@ function UMG_Friend_C:OnClickRefresh()
   _G.NRCAudioManager:PlaySound2DAuto(41401001, "UMG_Friend_Item_C:StartFriendVisit")
 end
 
-function UMG_Friend_C:RequestFriendRecommend()
-  local isSuccess, cdLeft = _G.NRCModuleManager:DoCmd(FriendModuleCmd.OnFriendRefreshRecommendReq)
+function UMG_Friend_C:RequestFriendRecommend(isResetCount)
+  local isSuccess, cdLeft = _G.NRCModuleManager:DoCmd(FriendModuleCmd.OnFriendRefreshRecommendReq, isResetCount)
   if not isSuccess then
     local Text = string.safeFormat(LuaText.friend_recommend_friend_tips, cdLeft)
     _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, Text)
@@ -1013,6 +1034,47 @@ function UMG_Friend_C:UpdateRecommendRefreshBtn()
       self.Btn_Refresh_GrayState:SetVisibility(UE4.ESlateVisibility.Collapsed)
     end
   end
+  self:UpdateScreeningBtnVisibility()
+end
+
+function UMG_Friend_C:UpdateScreeningBtnVisibility()
+  if self.ScreeningBtn then
+    local CurItemType = self:GetFriendTabSelectIndex()
+    if CurItemType == FriendEnum.FriendTab.SearchFriend then
+      self.ScreeningBtn:SetVisibility(UE4.ESlateVisibility.Visible)
+      local path
+      if self.data:HasRecommendFilter() then
+        path = "PaperSprite'/Game/NewRoco/Modules/System/Common/CommonStatic/Frames/img_Screen3_png.img_Screen3_png'"
+      else
+        path = "PaperSprite'/Game/NewRoco/Modules/System/Common/CommonStatic/Frames/img_Screen1_png.img_Screen1_png'"
+      end
+      self.ScreeningBtn:SetPath(path, path, path)
+    else
+      self.ScreeningBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    end
+  end
+end
+
+function UMG_Friend_C:OnClickScreeningBtn()
+  _G.NRCAudioManager:PlaySound2DAuto(41401001, "UMG_Friend_C:OnClickScreeningBtn")
+  _G.NRCModuleManager:DoCmd(FriendModuleCmd.OpenFriendRecommendFilter)
+end
+
+function UMG_Friend_C:OnRecommendFilterConfirmed()
+  self:RequestFriendRecommend(true)
+end
+
+function UMG_Friend_C:OnClickWeGameFriend()
+  self.ItemList_Friend:ClearSelection()
+  self.ItemList_Friend_1:ClearSelection()
+  if self.titleConf and self.titleConf.subtitle and self.titleConf.subtitle[4] then
+    self.Title1:SetSubtitle(self.titleConf.subtitle[4].subtitle)
+  end
+  self.Switcher:SetActiveWidgetIndex(1)
+  self:UpdateWeGameFriendList()
+  self:PlayWegameFriendItemInAnimation()
+  self:UpdateInviteBtn()
+  self:UpdateKnownBtn()
 end
 
 function UMG_Friend_C:OnClickKnowBtn()
@@ -1030,19 +1092,6 @@ function UMG_Friend_C:UpdateKnownBtn()
   else
     self.KnowBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
-end
-
-function UMG_Friend_C:OnClickWeGameFriend()
-  self.ItemList_Friend:ClearSelection()
-  self.ItemList_Friend_1:ClearSelection()
-  if self.titleConf and self.titleConf.subtitle and self.titleConf.subtitle[4] then
-    self.Title1:SetSubtitle(self.titleConf.subtitle[4].subtitle)
-  end
-  self.Switcher:SetActiveWidgetIndex(1)
-  self:UpdateWeGameFriendList()
-  self:PlayWegameFriendItemInAnimation()
-  self:UpdateInviteBtn()
-  self:UpdateKnownBtn()
 end
 
 function UMG_Friend_C:OnClickTabPlatformFriend()

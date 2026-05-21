@@ -8,6 +8,10 @@ function UMG_ScrapbookNameTag_C:OnConstruct()
 end
 
 function UMG_ScrapbookNameTag_C:OnDestruct()
+  if self.DelayId then
+    _G.DelayManager:CancelDelayById(self.DelayId)
+    self.DelayId = nil
+  end
 end
 
 function UMG_ScrapbookNameTag_C:OnActive()

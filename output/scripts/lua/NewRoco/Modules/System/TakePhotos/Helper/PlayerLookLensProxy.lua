@@ -127,7 +127,6 @@ function PlayerLookLens:RefreshViewTarget(bEnableLookLens)
             TargetLoc2p = TargetLoc
           end
         end
-        TargetLoc = TargetLoc and TargetLoc - UE4Helper.UpVector * 55
         self.ViewTarget:Abs_K2_SetActorLocation_WithoutHit(TargetLoc, false, nil, false)
         self.ViewTarget2p:Abs_K2_SetActorLocation_WithoutHit(TargetLoc2p, false, nil, false)
       end

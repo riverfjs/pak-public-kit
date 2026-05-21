@@ -3,6 +3,7 @@ local PetUIModuleEvent = require("NewRoco.Modules.System.PetUI.PetUIModuleEvent"
 local UIUtils = require("NewRoco.Modules.System.TipsModule.Utils.UIUtils")
 local PetMutationUtils = require("NewRoco.Utils.PetMutationUtils")
 local PetUtils = require("NewRoco.Utils.PetUtils")
+local BattleRogueModuleEvent = require("NewRoco.Modules.System.BattleRogue.BattleRogueModuleEvent")
 local UMG_PetItemTemplate_C = Base:Extend("UMG_PetItemTemplate_C")
 
 function UMG_PetItemTemplate_C:OnConstruct()
@@ -308,7 +309,7 @@ function UMG_PetItemTemplate_C:OnItemSelected(_bSelected, _bScrollSelected)
       end
     else
     end
-    _G.NRCModuleManager:DoCmd(PetUIModuleCmd.ShowPetWarehouseTips, self.PetList, self._index)
+    self:BroadcastMsg("OnItemSelected", self)
   elseif not self.PetList.IsbMultipleChoice and self.SelectPet and self.SelectPet.PetData.gid == self.PetList.PetData.gid and 4 == self.PetList.PetData.pet_status_flags then
     _G.NRCModuleManager:DoCmd(PetUIModuleCmd.SetPetNewStateInfo, self.PetList)
   end

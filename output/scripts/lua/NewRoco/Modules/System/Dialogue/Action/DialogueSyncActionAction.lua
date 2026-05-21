@@ -26,7 +26,7 @@ end
 
 function DialogueSyncActionAction:OnEnter()
   self:InjectProperties()
-  if not self.DialogueConf.action.action_type or self.DialogueConf.action.action_type == Enum.ActionType.ACT_NONE then
+  if not (self.DialogueConf and self.DialogueConf.action.action_type) or self.DialogueConf.action.action_type == Enum.ActionType.ACT_NONE then
     self:Finish()
     return
   end

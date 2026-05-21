@@ -148,6 +148,9 @@ function BP_ScrollView_C:HandleItemSelected(item, index)
   end
   self._selectedItem = item
   if self._selectedItem and self._selectedItem.OnSelectionChange then
+    if self._selectedItem.BroadcastOnClicked then
+      self._selectedItem:BroadcastOnClicked()
+    end
     self._selectedItem:OnSelectionChange(true)
   end
   if self.OnItemSelected then

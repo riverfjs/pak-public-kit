@@ -23,6 +23,10 @@ end
 
 function UMG_SystemSettingDropDownList_C:Destruct()
   self:OnRemoveEventListener()
+  if self.DelayId then
+    _G.DelayManager:CancelDelayById(self.DelayId)
+    self.DelayId = nil
+  end
   _G.NRCViewBase.Destruct(self)
 end
 
@@ -40,9 +44,6 @@ function UMG_SystemSettingDropDownList_C:InitUI(caller)
 end
 
 function UMG_SystemSettingDropDownList_C:OnItemSelected(optionData, index)
-  if self:IsAnimationPlaying(self.OpenUpAnim) or self:IsAnimationPlaying(self.OpenDownAnim) then
-    return
-  end
   self.IsOpenMenu = false
   self:SwitchState(false, true)
   self.caller:ShowDropDownListCallback(self)
@@ -204,7 +205,7 @@ function UMG_SystemSettingDropDownList_C:ScrollToSelectOption(selectValue)
   if self.CandidateListScroll:GetItemCount() > 5 then
     self.ScrollBox_3:EndInertialScrolling()
     self.ScrollBox_1:EndInertialScrolling()
-    _G.DelayManager:DelaySeconds(0.06, function()
+    self.DelayId = _G.DelayManager:DelaySeconds(0.06, function()
       if self then
         self.ScrollBox_3:ScrollWidgetIntoView(self.CandidateListScroll:GetItemByIndex(selectValue - 1), false, UE4.EDescendantScrollDestination.TopOrLeft)
         self.ScrollBox_1:ScrollWidgetIntoView(self.CandidateListScroll_1:GetItemByIndex(selectValue - 1), false, UE4.EDescendantScrollDestination.TopOrLeft)
@@ -275,6 +276,8 @@ function UMG_SystemSettingDropDownList_C:SwitchState(isOpen, needAnimation)
       else
         self:PlayAnimationReverse(self.OpenDownAnim)
       end
+      self.CandidateListScroll:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
+      self.CandidateListScroll_1:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
     else
       self.DropdownListOverlay:SetVisibility(UE4.ESlateVisibility.Collapsed)
       self.DropdownListOverlay_1:SetVisibility(UE4.ESlateVisibility.Collapsed)
@@ -339,9 +342,13 @@ function UMG_SystemSettingDropDownList_C:SetKeyAndOptions(key, options, extraKey
 end
 
 function UMG_SystemSettingDropDownList_C:OnAnimationFinished(Animation)
-  if (Animation == self.OpenUpAnim or Animation == self.OpenDownAnim) and self.IsOpenMenu == false then
-    self.DropdownListOverlay:SetVisibility(UE4.ESlateVisibility.Collapsed)
-    self.DropdownListOverlay_1:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  if Animation == self.OpenUpAnim or Animation == self.OpenDownAnim then
+    self.CandidateListScroll:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    self.CandidateListScroll_1:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    if self.IsOpenMenu == false then
+      self.DropdownListOverlay:SetVisibility(UE4.ESlateVisibility.Collapsed)
+      self.DropdownListOverlay_1:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    end
   end
 end
 

@@ -173,14 +173,18 @@ function InputComponent:SetIgnoreMoveInput(caller, ignore, flag)
     return
   end
   local label = flag or caller.name or StringCache.intern("default")
+  local res = false
   if ignore then
-    self._ignoreMoveInputSwitch:open(label)
+    res = self._ignoreMoveInputSwitch:open(label)
   else
-    self._ignoreMoveInputSwitch:close(label)
+    res = self._ignoreMoveInputSwitch:close(label)
   end
   local isIgnore = self._ignoreMoveInputSwitch:is_open()
   if UE.UObject.IsValid(self.playerController) then
-    self.playerController:SetIgnoreMoveInput(isIgnore)
+    self.playerController:ResetIgnoreMoveInput()
+    if isIgnore then
+      self.playerController:SetIgnoreMoveInput(isIgnore)
+    end
   end
 end
 
@@ -303,6 +307,9 @@ local dir2D = UE4.FVector2D(0, 0)
 
 function InputComponent:OnInputTurn(dir, isRate)
   if self._cameraControlSwitch:is_open() then
+    return
+  end
+  if not UE4.UObject.IsValid(self.playerController) or self.playerController.IsCameraControlDisabled and self.playerController:IsCameraControlDisabled() then
     return
   end
   local TurnAccRate = 1

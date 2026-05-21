@@ -25,6 +25,7 @@ function UMG_TakePhotos_Film_C:OnConstruct()
   self:RegisterEvent(self, TakePhotosModuleEvent.OnBeginRemovePhotos, self.OnBeginRemovePhotos)
   self:RegisterEvent(self, TakePhotosModuleEvent.OnPhotosRemoved, self.OnPhotosRemoved)
   self:RegisterEvent(self, TakePhotosModuleEvent.OnPhotoRemoved, self.OnPhotosRemoved)
+  self:RegisterEvent(self, TakePhotosModuleEvent.OnPhotoActivitySubmit, self.OnPhotoActivitySubmit)
   _G.NRCEventCenter:RegisterEvent("UMG_TakePhotos_Film_C", self, LoadingUIModuleEvent.LOADING_UI_OPENED, self.OnLoadingStarted)
   UE4Helper.SetDesiredShowCursor(true, "UMG_TakePhotos_Film_C")
   self:RegisterEvent(self, TakePhotosModuleEvent.OnThumbnailTextureGenerated, self.OnThumbnailTextureGenerated)
@@ -73,6 +74,23 @@ function UMG_TakePhotos_Film_C:OnActive(bFromTakingPhoto)
     Tab:SetVisibility(UE.ESlateVisibility.SelfHitTestInvisible)
   else
     Tab:SetVisibility(UE.ESlateVisibility.Collapsed)
+  end
+end
+
+function UMG_TakePhotos_Film_C:GetRemoteTab()
+  if not self.RemoteTab then
+    self.RemoteTab = self.Tab:GetItemByIndex(1)
+  end
+  return self.RemoteTab
+end
+
+function UMG_TakePhotos_Film_C:UpdateRemoteTab()
+  local RemoteTab = self:GetRemoteTab()
+  if self.CurrAlbumList == self.RemoteAlbumList then
+    RemoteTab:UpdateName("")
+  else
+    local Name = string.format("%s/%s", self.RemoteAlbumList:GetPhotoNum(), self.RemoteAlbumList:GetPhotoMaxNum())
+    RemoteTab:UpdateName(Name)
   end
 end
 
@@ -205,19 +223,26 @@ function UMG_TakePhotos_Film_C:OnPhotosRemoved()
 end
 
 function UMG_TakePhotos_Film_C:OnBeginUploadPhoto(PhotoData)
-  self:SetInputBlockEnabled(true, "UploadPhoto")
+  self.CurrAlbumList:RefreshByUploadRefresh(PhotoData)
 end
 
 function UMG_TakePhotos_Film_C:OnFinishUploadPhoto(PhotoData, RemotePhotoData)
-  self:SetInputBlockEnabled(false, "UploadPhoto")
+  self.CurrAlbumList:RefreshByUploadRefresh(PhotoData)
+  self:UpdateRemoteTab()
 end
 
 function UMG_TakePhotos_Film_C:RefreshModeView()
+  local PhotoManager = _G.NRCModuleManager:DoCmd(_G.TakePhotosModuleCmd.GetPhotoActivityManager)
+  local bInSubmitStatus = PhotoManager:InAlbumSubmitStatus()
   if self.CurrAlbumList:InDefaultMode() then
     self._PanelSelectAll:SetVisibility(UE.ESlateVisibility.Collapsed)
     self._BtnRemoveSelected:SetVisibility(UE.ESlateVisibility.Collapsed)
     self._BtnCancelRemove:SetVisibility(UE.ESlateVisibility.Collapsed)
-    self._BtnToggleDeleteMode:SetVisibility(UE.ESlateVisibility.Visible)
+    if bInSubmitStatus then
+      self._BtnToggleDeleteMode:SetVisibility(UE.ESlateVisibility.Collapsed)
+    else
+      self._BtnToggleDeleteMode:SetVisibility(UE.ESlateVisibility.SelfHitTestInvisible)
+    end
   elseif self.CurrAlbumList:InRemoveMode() then
     self._PanelSelectAll:SetVisibility(UE.ESlateVisibility.Visible)
     self._BtnRemoveSelected:SetVisibility(UE.ESlateVisibility.Visible)
@@ -239,6 +264,7 @@ function UMG_TakePhotos_Film_C:RefreshModeView()
       self.TakePhoto:SetVisibility(UE.ESlateVisibility.Collapsed)
     end
   end
+  self:UpdateRemoteTab()
 end
 
 function UMG_TakePhotos_Film_C:OnReqTakePhoto()
@@ -283,10 +309,18 @@ function UMG_TakePhotos_Film_C:OnItemSelected(SerialId)
     local PhotoPath = PhotoData:GetPhotoPath()
     self:Log("\230\159\165\231\156\139\229\164\167\229\155\190", SerialId, PhotoPath)
     if PhotoPath and UE4.UBlueprintPathsLibrary.FileExists(PhotoPath) then
-      self:GetModule():ClosePanel("PhotoFileViewUI")
-      self:GetModule():PopupPhotoFileView(PhotoData)
+      local PhotoManager = _G.NRCModuleManager:DoCmd(_G.TakePhotosModuleCmd.GetPhotoActivityManager)
+      local bInSubmitStatus = PhotoManager:InAlbumSubmitStatus()
+      local UiData = self.CurrAlbumList:GetDataBySerialId(SerialId)
+      if not bInSubmitStatus or UiData and UiData.bActivityRequiredPhoto then
+        self:GetModule():ClosePanel("PhotoFileViewUI")
+        self:GetModule():PopupPhotoFileView(PhotoData)
+      else
+        self:Log("Invalid activity require photo", PhotoData.PhotoInfo)
+        _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.pic_game_submit_illegal)
+      end
     else
-      self:LogWarning("Wait for downloading", PhotoPath)
+      self:LogWarning("Cannot found photo", PhotoPath)
     end
   end
   self:RefreshSelectAllView()
@@ -295,7 +329,7 @@ end
 
 function UMG_TakePhotos_Film_C:RefreshSelectAllView()
   local bHasNoSelect = self.CurrAlbumList:RefreshSelectAllView()
-  if bHasNoSelect then
+  if bHasNoSelect or 0 == self.CurrAlbumList:GetPhotoNum() then
     self._ImgSelectRemoveAll:SetVisibility(UE.ESlateVisibility.Collapsed)
   else
     self._ImgSelectRemoveAll:SetVisibility(UE.ESlateVisibility.SelfHitTestInvisible)
@@ -403,7 +437,9 @@ function UMG_TakePhotos_Film_C:OnBtnExitClicked()
 end
 
 function UMG_TakePhotos_Film_C:OnMouseButtonDown_ToggleSelectAll()
-  _G.NRCAudioManager:PlaySound2DAuto(41401003, "UMG_TakePhotos_Film_C:OnMouseButtonDown_ToggleSelectAll")
+  if self.CurrAlbumList:GetPhotoNum() > 0 then
+    _G.NRCAudioManager:PlaySound2DAuto(41401003, "UMG_TakePhotos_Film_C:OnMouseButtonDown_ToggleSelectAll")
+  end
   self:ToggleSelectAllWaitRemove()
   return UE4.UWidgetBlueprintLibrary.Unhandled()
 end
@@ -428,6 +464,12 @@ function UMG_TakePhotos_Film_C:OnBtnCancelRemoveClicked()
   _G.NRCAudioManager:PlaySound2DAuto(41401003, "UMG_TakePhotos_Film_C:OnBtnCancelRemoveClicked")
   self.CurrAlbumList:ToggleToDefault()
   self:RefreshModeView()
+end
+
+function UMG_TakePhotos_Film_C:OnPhotoActivitySubmit()
+  if self.CurrAlbumList then
+    self.CurrAlbumList:RefreshActivityReportedFlag()
+  end
 end
 
 return UMG_TakePhotos_Film_C

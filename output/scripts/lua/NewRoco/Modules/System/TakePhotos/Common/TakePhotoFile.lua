@@ -13,11 +13,14 @@ function TakePhotoFile:Ctor()
   self.HttpRetryCount = 0
   self.bNeedGenerateThumbnail = false
   self.OnValidDataLoaded = Delegate()
+  self.OnHeaderReceived = Delegate()
+  self.OnBytesChanged = Delegate()
 end
 
 function TakePhotoFile:DeleteFile()
   if self.Path then
     UE.UNRCStatics.DeleteToFile(self.Path)
+    UE.UNRCStatics.DeleteToFile(self.Path .. "x")
   end
   if self.ThumbnailPath then
     UE.UNRCStatics.DeleteToFile(self.ThumbnailPath)
@@ -43,6 +46,8 @@ function TakePhotoFile:OnCompleted(_, bSuccess)
   end
   if self.bValid then
     self.OnValidDataLoaded:Invoke(self)
+  elseif 0 ~= self.HttpRetryCount then
+    Log.Debug("[TakePhotoFile]", self.DesiredMd5, self.ReadonlyFileMd5)
   end
 end
 
@@ -81,6 +86,22 @@ function TakePhotoFile:InternalLoadFromUrl()
       self.HttpService:ResetHeaders()
       self.HttpService:ResetFields()
       self.HttpService:SetUrl(self.Url)
+      if self.OnHeaderReceived:HasAny() then
+        self.HttpService:SetHeaderReceivedDelegate({
+          self.HttpService,
+          function(_, Key, Value)
+            self.OnHeaderReceived:Invoke(Key, Value)
+          end
+        })
+      end
+      if self.OnBytesChanged:HasAny() then
+        self.HttpService:SetProgressUpdateDelegate({
+          self.HttpService,
+          function(_, Sent, Received)
+            self.OnBytesChanged:Invoke(Sent, Received)
+          end
+        })
+      end
       self.HttpService:SetVerb("GET")
       self.HttpService:Request({
         self.HttpService,
@@ -93,8 +114,11 @@ function TakePhotoFile:InternalLoadFromUrl()
                 UE.UNRCStatics.MakeDirectory(Directory)
               end
               Service:SaveToFile(self.Path)
+              Log.Debug("[TakePhotoFile] DownloadFile Success", self.Path, self.ReadonlyStatus)
+              if self.ReadonlyStatus ~= UE.ETakePhotoFileStatus.Loading then
+                self.ReadonlyStatus = UE.ETakePhotoFileStatus.None
+              end
               self:AsyncLoadResource()
-              Log.Debug("[TakePhotoFile] DownloadFile Success", self.Path)
             else
               Log.Debug("[TakePhotoFile] DownloadFile Failed", self.Path)
             end

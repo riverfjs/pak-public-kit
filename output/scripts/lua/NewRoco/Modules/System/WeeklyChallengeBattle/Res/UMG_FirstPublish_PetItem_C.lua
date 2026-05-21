@@ -42,7 +42,7 @@ function UMG_FirstPublish_PetItem_C:_InitPanel()
   else
     self.Switcher_gender:SetActiveWidgetIndex(1)
   end
-  self.HeadIcon:SetIconPathAndMaterial(self.uiData.base_conf_id, self.uiData.mutation_type, self.uiData.shine_color_id, self.uiData.glass_type)
+  self.HeadIcon:SetIconPathAndMaterial(self.uiData.base_conf_id, self.uiData.mutation_type, self.uiData.glass_info)
   local hpMax = self.uiData.attribute_new_info.addi_attr_data[_G.Enum.AttributeType.AT_HPMAX].addi_attr
   local hpCur = hpMax
   if self.uiData.attribute_new_info.addi_attr_data[_G.Enum.AttributeType.AT_HPCUR] then

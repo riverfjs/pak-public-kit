@@ -45,9 +45,7 @@ function BattleB1P3EnterPerformAction:OnEnter()
 end
 
 function BattleB1P3EnterPerformAction:OnActionStart()
-  _G.DelayManager:DelayFrames(2, function()
-    _G.NRCEventCenter:DispatchEvent(NRCGlobalEvent.CLOSE_BLACK_SCREEN)
-  end)
+  _G.NRCEventCenter:DispatchEvent(NRCGlobalEvent.CLOSE_BLACK_SCREEN)
   BattleManager:PlayBattleBGM()
 end
 

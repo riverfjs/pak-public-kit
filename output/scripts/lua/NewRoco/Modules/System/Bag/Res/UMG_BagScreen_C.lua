@@ -21,6 +21,7 @@ function UMG_BagScreen_C:OnActive(filterList, confName, filterCondition, LimitFi
   self.attributeList = {}
   self.talentList = {}
   self.natureList = {}
+  self.PetSeasonList = {}
   self.selfAttribute = {}
   self.filterTypeConditionDic = {}
   self.isShowReset = false
@@ -104,8 +105,12 @@ function UMG_BagScreen_C:InitPanel(confName)
       if self:IsLimit(_G.Enum.FilterRule.FIL_PET_MARK) then
         self:CreatePetMark(v, true)
       end
-    elseif v.filter_type == _G.Enum.FilterRule.FIL_SHINING and self:IsLimit(_G.Enum.FilterRule.FIL_SHINING) then
-      self.IsFilterShining = _G.Enum.FilterShining.FS_NONE
+    elseif v.filter_type == _G.Enum.FilterRule.FIL_SHINING then
+      if self:IsLimit(_G.Enum.FilterRule.FIL_SHINING) then
+        self.IsFilterShining = _G.Enum.FilterShining.FS_NONE
+      end
+    elseif v.filter_type == _G.Enum.FilterRule.FIL_SEASON and self:IsLimit(_G.Enum.FilterRule.FIL_SEASON) then
+      self:CreatePetSeason(v)
     end
   end
   self:ShowAllFilterList()
@@ -156,6 +161,9 @@ function UMG_BagScreen_C:ShowAllFilterList()
   local isShowPetMark = #self.PetMarkList > 0
   lastListIndex = isShowPetMark and 8 or lastListIndex
   local isShowDifferentColor = self.IsFilterShining ~= nil
+  lastListIndex = isShowDifferentColor and 9 or lastListIndex
+  local isShowSeason = #self.PetSeasonList > 0
+  lastListIndex = isShowSeason and 10 or lastListIndex
   self.NRCText_5:SetVisibility(isShowGender and UE4.ESlateVisibility.Visible or UE4.ESlateVisibility.Collapsed)
   self.Gender:SetVisibility(isShowGender and UE4.ESlateVisibility.Visible or UE4.ESlateVisibility.Collapsed)
   self.NRCImage_188:SetVisibility(isShowGender and 1 ~= lastListIndex and UE4.ESlateVisibility.Visible or UE4.ESlateVisibility.Collapsed)
@@ -182,6 +190,9 @@ function UMG_BagScreen_C:ShowAllFilterList()
   self.NRCText_7:SetVisibility(isShowPetMark and UE4.ESlateVisibility.Visible or UE4.ESlateVisibility.Collapsed)
   self.NRCImage:SetVisibility(isShowPetMark and 8 ~= lastListIndex and UE4.ESlateVisibility.Visible or UE4.ESlateVisibility.Collapsed)
   self.NRCImage_5:SetVisibility(isShowAttribute and UE4.ESlateVisibility.Visible or UE4.ESlateVisibility.Collapsed)
+  self.NRCImage_8:SetVisibility(isShowSeason and 9 ~= lastListIndex and UE4.ESlateVisibility.Visible or UE4.ESlateVisibility.Collapsed)
+  self.DifferentColorsList:SetVisibility(isShowSeason and UE4.ESlateVisibility.Visible or UE4.ESlateVisibility.Collapsed)
+  self.NRCText_9:SetVisibility(isShowSeason and UE4.ESlateVisibility.Visible or UE4.ESlateVisibility.Collapsed)
   if isShowGender then
     self.Gender:InitGridView(self.genderList)
   end
@@ -212,8 +223,10 @@ function UMG_BagScreen_C:ShowAllFilterList()
     self.PartnerMarker:InitGridView({})
   end
   self.DifferentColorScreening:SetVisibility(isShowDifferentColor and UE4.ESlateVisibility.Visible or UE4.ESlateVisibility.Collapsed)
-  self.NRCImage:SetVisibility(isShowDifferentColor and UE4.ESlateVisibility.Visible or UE4.ESlateVisibility.Collapsed)
   self.nrctext_8:SetVisibility(isShowDifferentColor and UE4.ESlateVisibility.Visible or UE4.ESlateVisibility.Collapsed)
+  if isShowSeason then
+    self.DifferentColorsList:InitGridView(self.PetSeasonList)
+  end
 end
 
 function UMG_BagScreen_C:CreatePetGender(conf)
@@ -232,6 +245,10 @@ function UMG_BagScreen_C:CreatePetMark(conf, isWhiteColor)
     NoEvent = true,
     isWhite = isWhiteColor
   })
+end
+
+function UMG_BagScreen_C:CreatePetSeason(conf)
+  table.insert(self.PetSeasonList, conf)
 end
 
 function UMG_BagScreen_C:CreatePetTeamFilter()
@@ -395,6 +412,20 @@ function UMG_BagScreen_C:RevertLastSelectList(filterCondition)
       self.Btnwitcher:SetActiveWidgetIndex(self.IsFilterShining)
       self:OnClickFilterItem(_G.Enum.FilterRule.FIL_SHINING, _G.Enum.FilterShining.FS_ALL_SHINING, self.IsFilterShining == _G.Enum.FilterShining.FS_ALL_SHINING)
     end
+    if filterCondition.FilterSeasonCondition and #filterCondition.FilterSeasonCondition > 0 then
+      for i = 1, self.DifferentColorsList:GetItemCount() do
+        local item = self.DifferentColorsList:GetItemByIndex(i - 1)
+        local conf = item.conf or item.data
+        if conf then
+          for j = 1, #filterCondition.FilterSeasonCondition do
+            local enum = _G.Enum[conf.filter_enum_name][conf.filter_enum_value]
+            if filterCondition.FilterSeasonCondition[j] == enum then
+              self.DifferentColorsList:SelectItemByIndex(i - 1)
+            end
+          end
+        end
+      end
+    end
   end
 end
 
@@ -467,6 +498,7 @@ function UMG_BagScreen_C:OnFilterPets()
   local filterNature = {}
   local filterPersonal = {}
   local filterStrong = {}
+  local filterSeason = {}
   for i = 1, self.Gender:GetItemCount() do
     local item = self.Gender:GetItemByIndex(i - 1)
     if item.clickToggle == true then
@@ -540,6 +572,15 @@ function UMG_BagScreen_C:OnFilterPets()
       table.insert(filterPersonal, enum_filter)
     end
   end
+  for i = 1, self.DifferentColorsList:GetItemCount() do
+    local item = self.DifferentColorsList:GetItemByIndex(i - 1)
+    if item.clickToggle == true then
+      local enum_type = item.conf.filter_enum_name
+      local enum_value = item.conf.filter_enum_value
+      local enum_filter = _G.Enum[enum_type][enum_value]
+      table.insert(filterSeason, enum_filter)
+    end
+  end
   local condition = {}
   if self.LimitTypes and #self.LimitTypes > 0 then
     for i = 1, #self.LimitTypes do
@@ -554,6 +595,8 @@ function UMG_BagScreen_C:OnFilterPets()
         condition.FilterPetMarkCondition = FilterPetMark
       elseif limitEnum == _G.Enum.FilterRule.FIL_PET_TALENT then
         condition.FilterStrongCondition = filterStrong
+      elseif limitEnum == _G.Enum.FilterRule.FIL_SEASON then
+        condition.FilterSeasonCondition = filterSeason
       end
     end
   else
@@ -567,6 +610,7 @@ function UMG_BagScreen_C:OnFilterPets()
     if nil ~= self.IsFilterShining then
       condition.FilterShiningCondition = self.IsFilterShining
     end
+    condition.FilterSeasonCondition = filterSeason
   end
   local filterList = {}
   filterList = self:FilterGender(filterGender, self.FilterItemList)
@@ -708,6 +752,12 @@ function UMG_BagScreen_C:OnBtn2()
   if self.IsFilterShining ~= nil then
     self.IsFilterShining = _G.Enum.FilterShining.FS_NONE
     self.Btnwitcher:SetActiveWidgetIndex(self.IsFilterShining)
+  end
+  if self.PetSeasonList and #self.PetSeasonList > 0 then
+    for i = 1, self.DifferentColorsList:GetItemCount() do
+      local item = self.DifferentColorsList:GetItemByIndex(i - 1)
+      item:ResetBg()
+    end
   end
 end
 

@@ -25,7 +25,7 @@ function DialogueResolveAction:OnEnter()
   local Conf = _G.DataConfigManager:GetDialogueConf(self.ConfID)
   if not Conf then
     Log.Error("\230\151\160\230\179\149\230\159\165\229\136\176\229\175\185\232\175\157\233\133\141\231\189\174", self.ConfID)
-    if not _G.AppMain:ShouldPopErrorWin() then
+    if RocoEnv.IS_SHIPPING then
       self.fsm:SendEvent(DialogueModuleEvent.EnterEndState, self)
     else
       local Ctx = _G.DialogContext()
@@ -47,6 +47,8 @@ function DialogueResolveAction:OnEnter()
     self.fsm:SendEvent(DialogueModuleEvent.EnterEndState, self)
     return
   end
+  local LastConf = self.fsm:GetProperty("CurrentDialogue", nil)
+  self.fsm:SetProperty("LastConfID", LastConf and LastConf.id or 0)
   self:SetProperty("DialogueConf", Conf)
   self:Finish()
 end

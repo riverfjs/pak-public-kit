@@ -39,6 +39,21 @@ function FlowerAppearHardActivityObject:GetActivityData()
   return self.activity_data
 end
 
+function FlowerAppearHardActivityObject:SyncActivityDataOnAvailable()
+  self:ReqGetPlayerActivityData()
+end
+
+function FlowerAppearHardActivityObject:GetTaskState(task_id)
+  if self.activity_data then
+    for _, reward_data in ipairs(self.activity_data) do
+      if reward_data.activity_part_id == task_id then
+        return reward_data.state == _G.ProtoEnum.PlayerActivityInfo.ActivityPartState.APS_DONE
+      end
+    end
+  end
+  return false
+end
+
 function FlowerAppearHardActivityObject:GetPetNatureId()
   return 0
 end

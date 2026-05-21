@@ -22,17 +22,25 @@ function UMG_Sanctuary_TipsItem2_C:OnItemUpdate(_data, datalist, index)
       self.OwlFactorTag = OwlSancConf.pet_form_factor_tag
     end
     local v = _data.fruit_id
+    local cruTime = _G.ZoneServer:GetServerTime() / 1000
     if 0 == v then
-      self.Switcher:SetActiveWidgetIndex(1)
+      if cruTime - _data.slot_active_timestamp < 0 then
+        self.Switcher:SetActiveWidgetIndex(3)
+      else
+        self.Switcher:SetActiveWidgetIndex(1)
+      end
     else
       local baseId = self:GetFristPetBaseId(v)
       self.PetbaseId = baseId
       if 0 == baseId then
-        self.Switcher:SetActiveWidgetIndex(1)
+        if cruTime - _data.slot_active_timestamp < 0 then
+          self.Switcher:SetActiveWidgetIndex(3)
+        else
+          self.Switcher:SetActiveWidgetIndex(1)
+        end
       else
         self.Switcher:SetActiveWidgetIndex(0)
         self.HeadIcon:SetIconPathAndMaterial(baseId)
-        local cruTime = _G.ZoneServer:GetServerTime() / 1000
         if cruTime - _data.fruit_active_timestamp < 0 or cruTime - _data.slot_active_timestamp < 0 then
           local petBaseConf = _G.DataConfigManager:GetPetbaseConf(baseId)
           local modelConf = _G.DataConfigManager:GetModelConf(petBaseConf.model_conf)

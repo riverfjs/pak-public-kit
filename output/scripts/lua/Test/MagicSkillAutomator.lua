@@ -19,7 +19,7 @@ function MagicSkillAutomator.Reset()
 end
 
 function MagicSkillAutomator.HasFinished()
-  if _G.AppMain:HasDebug() and MagicSkillAutomation:IsFinished() then
+  if MagicSkillAutomation:IsFinished() then
     local PerfChannelSubsystem = UE.USubsystemBlueprintLibrary.GetEngineSubsystem(UE.UPerfChannelSubsystem)
     if PerfChannelSubsystem:GetRunningStatus() == UE.EPerfEventProfilerRunningStatus.Stopped then
       MagicSkillAutomator.Reset()
@@ -30,9 +30,6 @@ function MagicSkillAutomator.HasFinished()
 end
 
 function MagicSkillAutomator.HasStarted()
-  if not _G.AppMain:HasDebug() then
-    return false
-  end
   return MagicSkillAutomation:IsStarted()
 end
 

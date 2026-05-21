@@ -9,6 +9,7 @@ local WorldCombatSkillComponent = require("NewRoco.Modules.Core.Scene.Component.
 local WorldCombatBuffComponent = require("NewRoco.Modules.Core.Scene.Component.WorldCombat.WorldCombatBuffComponent")
 local RocoSkillProxy = require("NewRoco.Utils.RocoSkillProxy")
 local NPCModuleEnum = require("NewRoco.Modules.Core.NPC.NPCModuleEnum")
+local BattleEvent = require("NewRoco.Modules.Core.Battle.Common.BattleEvent")
 local WorldCombatRecord = NRCClass()
 
 function WorldCombatRecord:Ctor()
@@ -210,6 +211,17 @@ function WorldCombatRecord:InternalBeginWorldCombat(npc_id, avatar_id_list, worl
   if Player then
     Player:SendEvent(PlayerModuleEvent.ON_PLAYER_PERCEPED_BY_NPC, self.baseInfo.BossActorID, true)
   end
+  Player:AddEventListener(self, PlayerModuleEvent.ON_PLAYER_STATUS_RECOVER_FINISH, self.OnPlayerRecover)
+end
+
+function WorldCombatRecord:OnPlayerRecover()
+  if not (self:IsSelfInWorldCombat() and self.baseInfo) or not self.baseInfo.BossActorID then
+    return
+  end
+  local Player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
+  if Player then
+    Player:SendEvent(PlayerModuleEvent.ON_PLAYER_PERCEPED_BY_NPC, self.baseInfo.BossActorID, true)
+  end
 end
 
 function WorldCombatRecord:InternalFinishWorldCombat()
@@ -219,9 +231,11 @@ function WorldCombatRecord:InternalFinishWorldCombat()
   self:TeardownAirWall(self.baseInfo.CombatConf)
   self:ResetBossSetting()
   _G.NRCEventCenter:DispatchEvent(WorldCombatModuleEvent.End, self.baseInfo.CombatID, self.baseInfo.BossActorID)
+  _G.NRCModuleManager:DoCmd(PlayerModuleCmd.HIDE_NOVISIT_PLAYER, false, UE.EPlayerForceHiddenType.WorldCombat)
   local Player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
   if Player then
     Player:SendEvent(PlayerModuleEvent.ON_PLAYER_LOST_PERCEPED_BY_NPC, self.baseInfo.BossActorID, true)
+    Player:RemoveEventListener(self, PlayerModuleEvent.ON_PLAYER_PERCEPED_BY_NPC, self.OnPlayerRecover)
   end
   if not self.resetting then
     self:Reset()
@@ -235,6 +249,7 @@ function WorldCombatRecord:InternalEnterWorldCombat()
     local Boss = _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.GetNpcByServerID, self.baseInfo.BossActorID)
     _G.NRCEventCenter:DispatchEvent(MainUIModuleEvent.OnUpdateBossInfo, Boss)
     _G.NRCEventCenter:DispatchEvent(WorldCombatModuleEvent.Enter, self.baseInfo.CombatID, self.baseInfo.BossActorID, self.baseInfo.CombatConfID)
+    _G.NRCModuleManager:DoCmd(PlayerModuleCmd.HIDE_NOVISIT_PLAYER, true, UE.EPlayerForceHiddenType.WorldCombat)
     local config = self.baseInfo.CombatConf
     if config and config.bgm_world_combat_state then
       local buff_component = Boss:GetComponent(WorldCombatBuffComponent)
@@ -384,6 +399,12 @@ function WorldCombatRecord:ResetBossSetting()
     boss:EnsureComponent(WorldCombatSkillComponent):ForceStopCurrentSkill()
     boss:SetCollisionDisable(false, NPCModuleEnum.NpcReasonFlags.AI)
     boss:SetCollisionDisable(false, NPCModuleEnum.NpcReasonFlags.WORLD_COMBAT_HIDDEN)
+    local isBattle = _G.NRCModuleManager:DoCmd(BattleModuleCmd.IsInBattle)
+    if isBattle then
+      _G.NRCEventCenter:RegisterEvent(self.name or "WorldCombatRecord", self, BattleEvent.LeaveBattle, self.ResetBossShow)
+    else
+      self:ResetBossShow()
+    end
     local bossBronPoint = boss.serverData.base.born_pt
     local teleportSkillId = self.baseInfo.CombatConf.teleport_skill
     local skillConf = _G.DataConfigManager:GetWorldCombatSkillConf(teleportSkillId, true)
@@ -427,6 +448,28 @@ function WorldCombatRecord:ResetBossSetting()
     Log.Debug("WorldCombatRecord:ResetBossSetting, Can't find boss")
   end
   self:RemoveBossListener(boss)
+end
+
+function WorldCombatRecord:ResetBossShow()
+  _G.NRCEventCenter:UnRegisterEvent(self, BattleEvent.LeaveBattle, self.ResetBossShow)
+  local boss = _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.GetNpcByServerID, self.baseInfo.BossActorID)
+  if not boss then
+    return
+  end
+  local bossViewObj = boss:GetViewObject()
+  if not UE.UObject.IsValid(bossViewObj) then
+    return
+  end
+  boss.hiddenFlag = 0
+  boss:SetVisibleInternal(true)
+  local meshComp = SceneUtils.GetActorMesh(bossViewObj)
+  if meshComp then
+    meshComp:SetVisibility(true, false)
+    local HiddenComponent = boss.HiddenComponent
+    if not HiddenComponent or not HiddenComponent:IsHidden() then
+      meshComp:SetHiddenInGame(false, false)
+    end
+  end
 end
 
 function WorldCombatRecord:OnBossViewLoaded(boss)

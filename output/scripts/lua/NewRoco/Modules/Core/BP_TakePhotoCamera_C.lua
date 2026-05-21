@@ -25,11 +25,17 @@ function BP_TakePhotoCamera_C:SetVisible(isVisible)
 end
 
 function BP_TakePhotoCamera_C:UpdateVisible()
-  if self.isVisible and 0 == self.alpha then
+  if self.isVisible and 0 == self.alpha and self.ownerVisible then
     self:SetActorHiddenInGame(false)
   else
     self:SetActorHiddenInGame(true)
   end
+  Log.Debug("[BP_TakePhotoCamera_C] ", self.isVisible, self.alpha, self.ownerVisible)
+end
+
+function BP_TakePhotoCamera_C:SetOwnerVisible(visible)
+  self.ownerVisible = visible
+  self:UpdateVisible()
 end
 
 return BP_TakePhotoCamera_C

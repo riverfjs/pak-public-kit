@@ -75,12 +75,35 @@ function DeviceUtils.RunCDNOperate()
     elseif string.find(cdnItem, "closecachepcenv", 1, true) then
       Log.Debug("closecachepcenv")
       UE4.UNRCQualityLibrary.SetDetailInfoNeedPCEnv(0)
+    elseif string.find(cdnItem, "cldncsis:", 1, true) then
+      local cpuBrand = UE4.UNRCQualityLibrary.GetCPUBrand()
+      local toFindStr = string.format("cldncsis:%s###", cpuBrand)
+      if string.find(cdnItem, toFindStr, 1, true) then
+        UE4.UNRCStatics.ExecConsoleCommand("g.GCloseInstanceByEnterQueue 1")
+      end
+    elseif string.find(cdnItem, "cldnalwaysbuffer:", 1, true) then
+      local cpuBrand = UE4.UNRCQualityLibrary.GetCPUBrand()
+      local toFindStr = string.format("cldnalwaysbuffer:%s###", cpuBrand)
+      if string.find(cdnItem, toFindStr, 1, true) then
+        UE4.UNRCStatics.ExecConsoleCommand("g.GCSISInsAlwaysBuffer 0")
+      end
+    elseif string.find(cdnItem, "opdnalwaysbuffer:", 1, true) then
+      local cpuBrand = UE4.UNRCQualityLibrary.GetCPUBrand()
+      local toFindStr = string.format("opdnalwaysbuffer:%s###", cpuBrand)
+      if string.find(cdnItem, toFindStr, 1, true) then
+        UE4.UNRCStatics.ExecConsoleCommand("g.GCSISInsAlwaysBuffer 1")
+      end
     end
   end
   DeviceUtils.bCDNOperated = true
+end
+
+function DeviceUtils.RunEnvConfig()
+  Log.Debug("DeviceUtils.RunEnvConfig")
   local bSimulator, simuName = _G.NRCSDKManager:IsSimulator()
   if bSimulator then
-    UE4.UKismetSystemLibrary.ExecuteConsoleCommand(nil, "r.CheckFramebufferFetchSupport 1")
+    UE4.UNRCSimulatorStatics.RunConfigQualityAll()
+    UE4.UNRCSimulatorStatics.RunConfigForCurrentQuality()
     if 2 == UE4.UNRCQualityLibrary.GetDeviceLevel() then
       local OriDefaultImageQuality = UE4.UNRCQualityLibrary.GetDefaultImageQuality()
       UE4.UNRCQualityLibrary.SetSimulateDeviceLevel(3)
@@ -260,6 +283,9 @@ end
 function DeviceUtils.IsDeviceInBlackList()
   if DeviceUtils.bSkipDeviceLimit or UE4.UNRCQualityLibrary.GetSkipDeviceLimitCache() then
     return false
+  end
+  if UE4.UNRCQualityLibrary.GetSimulateDeviceLevel() < -1 then
+    return true
   end
   local bSimulator, simuName = _G.NRCSDKManager:IsSimulator()
   if bSimulator and simuName then

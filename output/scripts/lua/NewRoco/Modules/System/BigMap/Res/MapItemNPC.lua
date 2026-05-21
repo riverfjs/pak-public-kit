@@ -1,6 +1,7 @@
 local MapItemBase = require("NewRoco.Modules.System.BigMap.Res.MapItemBase")
 local BigMapModuleEnum = require("NewRoco.Modules.System.BigMap.BigMapModuleEnum")
 local BigMapUtils = require("NewRoco/Modules/System/BigMap/BigMapUtils")
+local PetMutationUtils = require("NewRoco.Utils.PetMutationUtils")
 local MapItemNPC = MapItemBase:Extend("MapItemNPC")
 MapItemNPC.ItemData = {}
 
@@ -11,7 +12,8 @@ function MapItemNPC:Ctor(parentView, layerList, iconTemplateList)
   self.itemData = {}
   self.templateList = {}
   self.iconPoolRef = {}
-  self.allEntryIdList = {}
+  self.allLogicIdList = {}
+  self.logicIdToEntryIdMap = {}
 end
 
 function MapItemNPC:Create(itemData)
@@ -20,29 +22,32 @@ function MapItemNPC:Create(itemData)
     Log.Error("MapItemNPC:Create, entryId is nil or 0")
     return
   end
+  local logicId = itemData.npcInfo.logic_id or entryId
   local templateIndex = self:GetIconTemplate(itemData)
   local iconData = itemData.iconData
   iconData.iconTemplateIndex = templateIndex
   if nil == iconData.layerIndex or iconData.layerIndex <= 0 then
-    iconData.layerIndex = BigMapUtils.GetNpcIconLayer(itemData.npcInfo)
+    iconData.layerIndex = BigMapUtils.GetNpcIconLayer(itemData.npcInfo, iconData.bMiniMap)
   end
   iconData.ZOrder = self:GetZOrder(itemData.npcInfo.world_map_cfg_id)
   itemData.iconData = iconData
   if nil == self.iconList then
     self.iconList = {}
   end
-  if self.iconList[entryId] then
-    if (self.itemData and self.itemData[entryId] and self.itemData[entryId].iconData.layerIndex) ~= (itemData and itemData.iconData and itemData.iconData.layerIndex) then
-      self:Recycle(entryId)
+  if nil == self.iconList[entryId] then
+    self.iconList[entryId] = {}
+  end
+  if self.iconList[entryId][logicId] then
+    if (self.itemData and self.itemData[entryId] and self.itemData[entryId][logicId] and self.itemData[entryId][logicId].iconData.layerIndex) ~= (itemData and itemData.iconData and itemData.iconData.layerIndex) then
+      self:Recycle(entryId, logicId)
       local renderScale = 1.0 / (iconData.curMapImageScale or 1)
       local Widget = self:GetItemFromPool(templateIndex)
       MapItemBase.WidgetAddToViewPort(self, Widget, iconData, renderScale)
       Widget:SetVisibility(UE4.ESlateVisibility.Collapsed)
-      self.iconList[entryId] = Widget
+      self.iconList[entryId][logicId] = Widget
     end
     self:Refresh(itemData)
   else
-    self.iconList[entryId] = {}
     local renderScale = 1.0 / (iconData.curMapImageScale or 1)
     local Widget = self:GetItemFromPool(templateIndex)
     if nil == Widget or not UE4.UObject.IsValid(Widget) then
@@ -51,10 +56,13 @@ function MapItemNPC:Create(itemData)
       MapItemBase.WidgetAddToViewPort(self, Widget, iconData, renderScale)
       Widget:SetVisibility(UE4.ESlateVisibility.Collapsed)
     end
-    self.iconList[entryId] = Widget
+    self.iconList[entryId][logicId] = Widget
     self:Refresh(itemData)
   end
-  self.templateList[entryId] = templateIndex
+  if nil == self.templateList[entryId] then
+    self.templateList[entryId] = {}
+  end
+  self.templateList[entryId][logicId] = templateIndex
 end
 
 function MapItemNPC:Refresh(itemData)
@@ -63,18 +71,23 @@ function MapItemNPC:Refresh(itemData)
     Log.Error("MapItemNPC:Create, entryId is nil or 0")
     return
   end
+  local logicId = itemData.npcInfo.logic_id or entryId
   if nil == self.iconList then
     Log.Error("MapItemNPC:Refresh, iconList is nil")
     return
   end
-  if self.iconList[entryId] then
-    local iconData = itemData.iconData
+  if self.iconList[entryId] and self.iconList[entryId][logicId] then
     local _npcInfo = itemData.npcInfo
+    local iconData = itemData.iconData
     iconData.ZOrder = self:GetZOrder(_npcInfo.world_map_cfg_id)
-    local itemWidget = self.iconList[entryId]
+    local itemWidget = self.iconList[entryId][logicId]
     local worldMapConf = _G.DataConfigManager:GetWorldMapConf(_npcInfo.world_map_cfg_id)
     if itemWidget and UE4.UObject.IsValid(itemWidget) then
-      self.itemData[entryId] = itemData
+      if nil == self.itemData[entryId] then
+        self.itemData[entryId] = {}
+      end
+      self.logicIdToEntryIdMap[logicId] = entryId
+      self.itemData[entryId][logicId] = itemData
       itemWidget:SetData(_npcInfo, worldMapConf)
       itemWidget:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
       if iconData.bTracing and iconData.bTracing == true then
@@ -86,49 +99,17 @@ function MapItemNPC:Refresh(itemData)
       itemWidget:SetShowTime(_npcInfo)
       itemWidget:SetMapLayerIconVisible(BigMapModuleEnum.CreatorPriority.NpcIcons)
       itemWidget:SetPetOwnerVisible()
-      if itemWidget.mapLayerId == iconData.curShowLayerId then
+      local curShowLayerId = NRCModuleManager:DoCmd(BigMapModuleCmd.GetCurShowLayerId)
+      if itemWidget.mapLayerId == curShowLayerId then
         itemWidget:SetLayerMapIcon(true)
       else
         itemWidget:SetLayerMapIcon(false)
-      end
-      if self.bTravel and self.travelInfo and #self.travelInfo > 0 then
-        itemWidget:ShowTravel(_npcInfo)
-      else
-        itemWidget:ShowTravel(nil)
       end
       if _npcInfo.npcCfg and _npcInfo.npcCfg.genre == _G.Enum.ClientNpcType.CNT_HOME_NPC then
         itemWidget.Slot:SetPosition(UE4.FVector2D(itemData.iconData.iconImagePos.x, itemData.iconData.iconImagePos.y))
       end
     end
   end
-end
-
-function MapItemNPC:GetIconLayer(_npcInfo)
-  if nil == _npcInfo then
-    Log.Error("MapItemNPC:GetIconLayer, npcInfo is nil")
-    return nil
-  end
-  local layerIndex = 1
-  local worldMapCfg = _G.DataConfigManager:GetWorldMapConf(_npcInfo.world_map_cfg_id)
-  if nil == worldMapCfg then
-    return nil
-  end
-  if _npcInfo.status == _G.ProtoEnum.LockStatus.ENUM.LOCKED then
-    if 1 == worldMapCfg.lock_element_show_top then
-      layerIndex = 2
-    end
-  else
-    if 1 == worldMapCfg.unlock_element_show_top then
-      layerIndex = 2
-    end
-    if _npcInfo.status == _G.ProtoEnum.LockStatus.ENUM.DUNGEON_FINISH then
-      layerIndex = 2
-    end
-  end
-  if _npcInfo.npcCfg and _npcInfo.npcCfg.genre == Enum.ClientNpcType.CNT_CAMP then
-    layerIndex = 2
-  end
-  return layerIndex
 end
 
 function MapItemNPC:GetIconTemplate(itemData)
@@ -152,8 +133,20 @@ function MapItemNPC:GetIconTemplate(itemData)
       iconTemplateIndex = 1
     else
       local isShowCathPet = _G.NRCModuleManager:DoCmd(BigMapModuleCmd.IsShowCatchPet, _npcInfo.npc_refresh_id)
-      if worldMapCfg.map_func_icon_group and worldMapCfg.map_func_icon_group == _G.Enum.MapFuncIconGroup.MFIG_NPCFUNCTION or isShowCathPet then
+      if worldMapCfg.map_func_icon_group and worldMapCfg.map_func_icon_group == _G.Enum.MapFuncIconGroup.MFIG_NPCFUNCTION then
         iconTemplateIndex = 2
+      elseif isShowCathPet then
+        if worldMapCfg.map_func_icon_group and worldMapCfg.map_func_icon_group == _G.Enum.MapFuncIconGroup.MFIG_NPCROLE then
+          iconTemplateIndex = 3
+        elseif worldMapCfg.default_track_type == Enum.DefaultTrackType.DTT_SHINE then
+          if nil == _npcInfo.mutation_type or PetMutationUtils.GetMutationValue(_npcInfo.mutation_type, Enum.MutationDiffType.MDT_SHINING) then
+            iconTemplateIndex = 2
+          else
+            iconTemplateIndex = 3
+          end
+        else
+          iconTemplateIndex = 2
+        end
       elseif worldMapCfg.map_tips_show_type and worldMapCfg.map_tips_show_type == _G.ProtoEnum.MapTipsShowType.MAP_TIPS_DUNGEON then
         iconTemplateIndex = 2
       else
@@ -178,46 +171,79 @@ function MapItemNPC:GetZOrder(worldMapCfgId)
   return 0
 end
 
-function MapItemNPC:Get(entryId)
-  return self.iconList[entryId]
-end
-
-function MapItemNPC:GetItemData(entryId)
-  return self.itemData[entryId]
-end
-
-function MapItemNPC:GetAllEntryId()
-  table.clear(self.allEntryIdList)
-  for k, v in pairs(self.iconList) do
-    table.insert(self.allEntryIdList, k)
-  end
-  return self.allEntryIdList
-end
-
-function MapItemNPC:Destroy(entryId)
-  local itemWidget = self.iconList[entryId]
-  if itemWidget and UE4.UObject.IsValid(itemWidget) then
-    itemWidget:RemoveFromParent()
-    itemWidget:Destruct()
-    table.removeKey(self.iconList, entryId)
+function MapItemNPC:Get(entryId, logicId)
+  logicId = logicId or entryId
+  if self.iconList[entryId] then
+    return self.iconList[entryId][logicId]
   end
 end
 
-function MapItemNPC:Recycle(entryId)
-  local iconWidget = self.iconList[entryId]
-  if iconWidget and UE4.UObject.IsValid(iconWidget) then
-    iconWidget:RemoveFromParent()
-    table.removeKey(self.iconList, entryId)
-    local templateIndex = self.templateList[entryId]
-    if templateIndex and templateIndex > 0 then
-      if self.iconPool[templateIndex] == nil then
-        self.iconPool[templateIndex] = {}
+function MapItemNPC:GetItemData(entryId, logicId)
+  logicId = logicId or entryId
+  if self.itemData[entryId] then
+    return self.itemData[entryId][logicId]
+  end
+end
+
+function MapItemNPC:GetAllLogicId()
+  table.clear(self.allLogicIdList)
+  for entryId, icons in pairs(self.iconList) do
+    for logicId, icon in pairs(icons) do
+      if logicId then
+        table.insert(self.allLogicIdList, logicId)
       end
-      if nil == self.iconPoolRef[templateIndex] then
-        self.iconPoolRef[templateIndex] = {}
+    end
+  end
+  return self.allLogicIdList
+end
+
+function MapItemNPC:Destroy(entryId, logicId)
+  logicId = logicId or entryId
+  if self.iconList[entryId] then
+    local itemWidget = self.iconList[entryId][logicId]
+    if itemWidget and UE4.UObject.IsValid(itemWidget) then
+      itemWidget:RemoveFromParent()
+      itemWidget:Destruct()
+      self.logicIdToEntryIdMap[logicId] = nil
+      table.removeKey(self.iconList[entryId], logicId)
+      if table.isEmpty(self.iconList[entryId]) then
+        table.removeKey(self.iconList, entryId)
       end
-      table.insert(self.iconPool[templateIndex], iconWidget)
-      table.insert(self.iconPoolRef[templateIndex], UnLua.Ref(iconWidget))
+    end
+  end
+end
+
+function MapItemNPC:ClearAll()
+  if self.iconList then
+    for entryId, icons in pairs(self.iconList) do
+      for logicId, icon in pairs(icons) do
+        self:Destroy(entryId, logicId)
+      end
+    end
+  end
+end
+
+function MapItemNPC:Recycle(entryId, logicId)
+  logicId = logicId or entryId
+  if self.iconList and self.iconList[entryId] then
+    local iconWidget = self.iconList[entryId][logicId]
+    if iconWidget and UE4.UObject.IsValid(iconWidget) then
+      iconWidget:RemoveFromParent()
+      self.logicIdToEntryIdMap[logicId] = nil
+      table.removeKey(self.iconList[entryId], logicId)
+      if self.templateList and self.templateList[entryId] then
+        local templateIndex = self.templateList[entryId][logicId]
+        if templateIndex and templateIndex > 0 then
+          if nil == self.iconPool[templateIndex] then
+            self.iconPool[templateIndex] = {}
+          end
+          if nil == self.iconPoolRef[templateIndex] then
+            self.iconPoolRef[templateIndex] = {}
+          end
+          table.insert(self.iconPool[templateIndex], iconWidget)
+          table.insert(self.iconPoolRef[templateIndex], UnLua.Ref(iconWidget))
+        end
+      end
     end
   end
 end
@@ -234,25 +260,27 @@ end
 
 function MapItemNPC:OnTravelStateChanged(bTravel)
   MapItemBase.OnTravelStateChanged(self, bTravel)
-  for k, v in pairs(self.iconList) do
-    if v and UE.UObject.IsValid(v) then
-      local worldMapCfg
-      if bTravel then
-        if v.uiData and v.uiData.world_map_cfg_id then
-          worldMapCfg = _G.DataConfigManager:GetWorldMapConf(v.uiData.world_map_cfg_id)
-        end
-        if worldMapCfg and worldMapCfg.map_tips_show_type ~= Enum.MapTipsShowType.MAP_TIPS_CAMP then
-          self:SetItemVisibility(false, BigMapModuleEnum.CreatorPriority.NpcIcons, k)
-        else
-          v:ShowTravel(v.uiData)
-          if nil == _G.NRCModuleManager:DoCmd(_G.TravelModuleCmd.GetTravelInfo, v.uiData.npc_refresh_id) and UE4.UObject.IsValid(v.Travel_DuringJourney) then
-            v.Travel_DuringJourney:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  for entryId, icons in pairs(self.iconList) do
+    for logicId, icon in pairs(icons) do
+      if icon and UE.UObject.IsValid(icon) then
+        local worldMapCfg
+        if bTravel then
+          if icon.uiData and icon.uiData.world_map_cfg_id then
+            worldMapCfg = _G.DataConfigManager:GetWorldMapConf(icon.uiData.world_map_cfg_id)
           end
-        end
-      else
-        self:SetItemVisibility(true, BigMapModuleEnum.CreatorPriority.NpcIcons, k)
-        if UE4.UObject.IsValid(v.Travel_DuringJourney) then
-          v.Travel_DuringJourney:SetVisibility(UE4.ESlateVisibility.Collapsed)
+          if worldMapCfg and worldMapCfg.map_tips_show_type ~= Enum.MapTipsShowType.MAP_TIPS_CAMP then
+            self:SetItemVisibility(false, BigMapModuleEnum.CreatorPriority.NpcIcons, entryId)
+          else
+            icon:ShowTravel(icon.uiData)
+            if nil == _G.NRCModuleManager:DoCmd(_G.TravelModuleCmd.GetTravelInfo, icon.uiData.npc_refresh_id) and UE4.UObject.IsValid(icon.Travel_DuringJourney) then
+              icon.Travel_DuringJourney:SetVisibility(UE4.ESlateVisibility.Collapsed)
+            end
+          end
+        else
+          self:SetItemVisibility(true, BigMapModuleEnum.CreatorPriority.NpcIcons, entryId)
+          if UE4.UObject.IsValid(v.Travel_DuringJourney) then
+            icon.Travel_DuringJourney:SetVisibility(UE4.ESlateVisibility.Collapsed)
+          end
         end
       end
     end
@@ -260,15 +288,17 @@ function MapItemNPC:OnTravelStateChanged(bTravel)
 end
 
 function MapItemNPC:UpdateIconScale(_scaleParam)
-  for k, v in pairs(self.iconList) do
-    if v and UE4.UObject.IsValid(v) then
-      v:SetRenderScale(_scaleParam)
+  for entryId, iconList in pairs(self.iconList) do
+    for logicId, icon in pairs(iconList) do
+      if icon and UE4.UObject.IsValid(icon) then
+        icon:SetRenderScale(_scaleParam)
+      end
     end
   end
 end
 
-function MapItemNPC:UpdateIconScaleByEntryId(entryId, _scaleParam)
-  local icon = self:Get(entryId)
+function MapItemNPC:UpdateIconScaleById(entryId, logicId, _scaleParam)
+  local icon = self:Get(entryId, logicId)
   if icon and UE4.UObject.IsValid(icon) then
     icon:SetRenderScale(_scaleParam)
   end
@@ -276,37 +306,62 @@ end
 
 function MapItemNPC:UpdateMapShowLevel(_sliderScale, _scale, _scaleRatio)
   if self.iconList then
-    for k, v in pairs(self.iconList) do
-      if self.bTravel then
-        if v.uiData and v.uiData.world_map_cfg_id then
-          local worldMapCfg = _G.DataConfigManager:GetWorldMapConf(v.uiData.world_map_cfg_id)
-          if worldMapCfg and worldMapCfg.map_tips_show_type == Enum.MapTipsShowType.MAP_TIPS_CAMP and v and v.UpdateMapShowLevel then
-            v:UpdateMapShowLevel(_sliderScale, _scale, _scaleRatio)
+    for entryId, icons in pairs(self.iconList) do
+      for logicId, icon in pairs(icons) do
+        if self.bTravel then
+          if icon.uiData and icon.uiData.world_map_cfg_id then
+            local worldMapCfg = _G.DataConfigManager:GetWorldMapConf(icon.uiData.world_map_cfg_id)
+            if worldMapCfg and worldMapCfg.map_tips_show_type == Enum.MapTipsShowType.MAP_TIPS_CAMP and icon and icon.UpdateMapShowLevel then
+              icon:UpdateMapShowLevel(_sliderScale, _scale, _scaleRatio)
+            end
           end
+        elseif icon and icon.UpdateMapShowLevel then
+          icon:UpdateMapShowLevel(_sliderScale, _scale, _scaleRatio)
         end
-      elseif v and v.UpdateMapShowLevel then
-        v:UpdateMapShowLevel(_sliderScale, _scale, _scaleRatio)
       end
     end
   end
 end
 
-function MapItemNPC:SetTraceEffect(bTracing, entryId)
+function MapItemNPC:SetTraceEffect(bTracing, entryId, logicId)
   if self.iconList then
-    local widget = self.iconList[entryId]
-    if widget and UE4.UObject.IsValid(widget) then
-      widget:PlayTraceEffect(bTracing)
+    local icons = self.iconList[entryId]
+    if icons then
+      local icon = icons[logicId]
+      if icon and UE4.UObject.IsValid(icon) then
+        icon:PlayTraceEffect(bTracing)
+      end
     end
   end
 end
 
-function MapItemNPC:SetIconLayer(entryId, layerIndex)
-  self:Recycle(entryId)
-  local itemData = self.itemData[entryId]
-  if itemData then
+function MapItemNPC:SetIconLayer(entryId, logicId, layerIndex)
+  self:Recycle(entryId, logicId)
+  if self.itemData[entryId] and self.itemData[entryId][logicId] then
+    local itemData = self.itemData[entryId][logicId]
     itemData.iconData.layerIndex = layerIndex
-    self:Create(self.itemData[entryId])
+    self:Create(self.itemData[entryId][logicId])
   end
+end
+
+function MapItemNPC:SetIconTempFlag(entryId, logicId, bTemp)
+  if self.itemData[entryId] and self.itemData[entryId][logicId] then
+    self.itemData[entryId][logicId].iconData.bTemp = bTemp
+  end
+end
+
+function MapItemNPC:GetEntryIdByLogicId(logicId)
+  return self.logicIdToEntryIdMap[logicId]
+end
+
+function MapItemNPC:UpdateItemDataImagePos(entryId, logicId, posX, posY)
+  local itemData = self:GetItemData(entryId, logicId)
+  local iconImagePos = itemData and itemData.iconData and itemData.iconData.iconImagePos
+  if nil == iconImagePos then
+    return
+  end
+  iconImagePos.x = posX
+  iconImagePos.y = posY
 end
 
 return MapItemNPC

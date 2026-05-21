@@ -9,7 +9,8 @@ function UMG_PigmentAcquire_Item_C:OnDestruct()
 end
 
 function UMG_PigmentAcquire_Item_C:OnItemUpdate(_data, datalist, index)
-  self.data = _data
+  self.data = _data.data or {}
+  self.petData = _data.petData
   if self.data.glass then
     if self.data.glass.glass_type == _G.Enum.GlassType.GT_HIDDEN then
       self:ShowHiddenGlassInfo()
@@ -69,7 +70,14 @@ function UMG_PigmentAcquire_Item_C:GetHiddenGlassTipsPic()
 end
 
 function UMG_PigmentAcquire_Item_C:SetPetIcon()
-  if self.data.fashion_item_id then
+  if self.petData then
+    self.ColorfulHeadIcon:SetIconPathAndMaterial(self.petData.base_conf_id, self.petData.mutation_type, self.petData.glass_info)
+  elseif self.data.show_gid then
+    local PetData = _G.DataModelMgr.PlayerDataModel:GetPetDataByGid(self.data.show_gid)
+    if PetData then
+      self.ColorfulHeadIcon:SetIconPathAndMaterial(PetData.base_conf_id, PetData.mutation_type, PetData.glass_info)
+    end
+  else
     local itemConf = _G.DataConfigManager:GetFashionItemConf(self.data.fashion_item_id)
     if itemConf and itemConf.suits_id then
       local suitId = tonumber(itemConf.suits_id)

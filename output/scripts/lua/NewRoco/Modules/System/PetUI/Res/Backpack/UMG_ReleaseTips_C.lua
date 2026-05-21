@@ -1,9 +1,11 @@
 local PetUIModuleEnum = require("NewRoco.Modules.System.PetUI.PetUIModuleEnum")
 local UMG_ReleaseTips_C = _G.NRCPanelBase:Extend("UMG_ReleaseTips_C")
 
-function UMG_ReleaseTips_C:OnActive(PetData, _teamInfo, ParamCall, IsOpenInFreePanel, FreeReasonType)
+function UMG_ReleaseTips_C:OnActive(PetData, _teamInfo, ParamCall, IsOpenInFreePanel, FreeReasonType, OpenType)
   self:LoadAnimation(0)
+  self:BindInputAction()
   self.FreeReasonType = FreeReasonType or PetUIModuleEnum.PetFreeReasonType.None
+  self.OpenType = OpenType or PetUIModuleEnum.ReleaseTipsOpenType.None
   self.ParamCall = ParamCall
   local petInfos = {
     {
@@ -65,6 +67,9 @@ function UMG_ReleaseTips_C:OnActive(PetData, _teamInfo, ParamCall, IsOpenInFreeP
   else
     self.PopUp4:SetDescInfo(LuaText.participated_pet_free_tips2)
   end
+  if OpenType == PetUIModuleEnum.ReleaseTipsOpenType.TraceBack then
+    self.PopUp4:SetDescInfo(LuaText.pet_return_confiim_tip)
+  end
 end
 
 function UMG_ReleaseTips_C:GetTeamName(teamName, teamIndex)
@@ -77,6 +82,7 @@ function UMG_ReleaseTips_C:GetTeamName(teamName, teamIndex)
 end
 
 function UMG_ReleaseTips_C:OnDeactive()
+  self:UnBindInputAction()
 end
 
 function UMG_ReleaseTips_C:OnConstruct()
@@ -87,9 +93,14 @@ function UMG_ReleaseTips_C:OnAddEventListener()
   self:SetCommonPopUpInfo(self.PopUp4)
 end
 
+function UMG_ReleaseTips_C:OnAnimationFinished(anim)
+  if anim == self:GetAnimByIndex(2) then
+    self:DoClose()
+  end
+end
+
 function UMG_ReleaseTips_C:ClosePanel()
   self:LoadAnimation(2)
-  self:DoClose()
 end
 
 function UMG_ReleaseTips_C:OnBtnLeftClicked()
@@ -121,6 +132,25 @@ function UMG_ReleaseTips_C:SetCommonPopUpInfo(PopUp, TitleText, TitleIcon)
   CommonPopUpData.ClosePanelHandler = self.ClosePanel
   self.OnPcCloseHandler = CommonPopUpData.ClosePanelHandler
   PopUp:SetPanelInfo(CommonPopUpData)
+end
+
+function UMG_ReleaseTips_C:BindInputAction()
+  local mappingContext = self:AddInputMappingContext("IMC_CommonCloseUI")
+  if mappingContext then
+    mappingContext:BindAction("IA_CloseUI", self, "OnPcClose2")
+  end
+end
+
+function UMG_ReleaseTips_C:UnBindInputAction()
+  local mappingContext = self:GetInputMappingContext("IMC_CommonCloseUI")
+  if mappingContext then
+    mappingContext:UnBindAction("IA_CloseUI")
+  end
+  self:RemoveInputMappingContext("IMC_CommonCloseUI")
+end
+
+function UMG_ReleaseTips_C:OnPcClose2()
+  self:ClosePanel()
 end
 
 return UMG_ReleaseTips_C

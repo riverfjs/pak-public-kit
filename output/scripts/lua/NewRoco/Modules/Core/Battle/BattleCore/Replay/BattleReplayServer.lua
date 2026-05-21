@@ -17,7 +17,8 @@ function BattleReplayServer:Start()
     [ProtoCMD.ZoneSvrCmd.ZONE_BATTLE_CHANGE_AUTO_CMD_NOTIFY] = _G.BattleNetManager.BattleChangeAutoCmdNotify,
     [ProtoCMD.ZoneSvrCmd.ZONE_BATTLE_FINISH_NOTIFY] = _G.BattleNetManager.ZoneBattleFinishNotify,
     [ProtoCMD.ZoneSvrCmd.ZONE_BATTLE_AI_SELECT_SKILL_NOTIFY] = _G.BattleNetManager.ZoneBattleAiSelectSkillNotify,
-    [ProtoCMD.ZoneSvrCmd.ZONE_BATTLE_PVP_PERFORM_START_NOTIFY] = _G.BattleNetManager.ZoneBattlePvpPerformStartNotify
+    [ProtoCMD.ZoneSvrCmd.ZONE_BATTLE_PVP_PERFORM_START_NOTIFY] = _G.BattleNetManager.ZoneBattlePvpPerformStartNotify,
+    [ProtoCMD.ZoneSvrCmd.ZONE_BATTLE_ROLE_LEAVE_NOTIFY] = _G.BattleNetManager.BattlePlayerLeaveNotify
   }
   _G.BattleEventCenter:Bind(self, BattlePerformEvent.TurnPlayComplete, BattleEvent.Replay_Pause, BattleEvent.Replay_Resume, BattleEvent.Replay_Fast, BattleEvent.Replay_Slow, BattleEvent.Replay_Redo, BattleEvent.Replay_Undo, BattleEvent.Replay_RefreshRoundIdx, BattleEvent.Replay_Exit)
   self:ResetReplaySettings()
@@ -108,7 +109,7 @@ end
 
 function BattleReplayServer:OnReplayRoundRedo()
   local targetRound = _G.BattleReplayManager.replayTargetRound + 1
-  if targetRound > self.notifyRoundNum then
+  if not self.notifyRoundNum or targetRound > self.notifyRoundNum then
     return
   else
     _G.BattleReplayManager.replayTargetRound = targetRound
@@ -209,6 +210,10 @@ function BattleReplayServer:PlayNextNotify()
       _G.DelayManager:DelaySeconds(1, function()
         self:PlayNextNotify()
       end)
+      return
+    elseif struct.id == ProtoCMD.ZoneSvrCmd.ZONE_BATTLE_ROLE_LEAVE_NOTIFY then
+      _G.BattleNetManager:BattlePlayerLeaveNotify(struct.data)
+      self:PlayNextNotify()
       return
     else
       self:PlayNextNotify()

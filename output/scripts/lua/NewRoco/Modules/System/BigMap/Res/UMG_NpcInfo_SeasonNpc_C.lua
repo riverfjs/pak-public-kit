@@ -8,9 +8,6 @@ function UMG_NpcInfo_SeasonNpc_C:OnDeactive()
 end
 
 function UMG_NpcInfo_SeasonNpc_C:OnAddEventListener()
-  self:AddButtonListener(self.BtnTeleportationChamber.btnLevelUp, self.OnSpecialTransBtnClicked)
-  self:AddButtonListener(self.BtnTransfer.btnLevelUp, self.OnTransBtnClicked)
-  self:AddButtonListener(self.Prohibited_Btn.btnLevelUp, self.OnForbiddenBtnClicked)
 end
 
 function UMG_NpcInfo_SeasonNpc_C:OnRemoveEventListener()
@@ -32,16 +29,7 @@ function UMG_NpcInfo_SeasonNpc_C:OnEnable(entryId, worldMapConf)
   self.TaskDesc:SetText(self.worldMapConf.worldmap_npc_des)
   self.PetIcon:SetPath(self:GetMapIconPath(self.worldMapConf.world_map_NPCicon_des))
   self.NRCText_Hint:SetText(self.worldMapConf.dungeon_type_des)
-  local forbidText = self.worldMapConf.special_teleport_text
-  self.Prohibited_Btn:SetBtnText(forbidText)
-  self.BtnTeleportationChamber:SetBtnText(forbidText)
-  local flag = self.worldMapConf.special_teleport_flag
-  local hasStoryFlag = _G.DataModelMgr.PlayerDataModel:IsAssignStoryFlags(flag)
-  if hasStoryFlag then
-    self.BtnSwitcher1:SetActiveWidgetIndex(1)
-  else
-    self.BtnSwitcher1:SetActiveWidgetIndex(0)
-  end
+  self.CabinIcon:SetPath(self.worldMapConf.dungeon_title_bg)
   local seasonId = 0
   local seasonInfo = NRCModuleManager:DoCmd(SeasonIntegrationModuleCmd.GetSeasonInfo)
   if seasonInfo then
@@ -98,7 +86,7 @@ function UMG_NpcInfo_SeasonNpc_C:RefreshAwardList(rsp)
         end
       end
       if #awardList > 0 then
-        self.TaskAwardList:InitList(awardList)
+        self.TaskAwardList:InitGridView(awardList)
       else
         self.AwardCanvas:SetVisibility(UE4.ESlateVisibility.Collapsed)
       end

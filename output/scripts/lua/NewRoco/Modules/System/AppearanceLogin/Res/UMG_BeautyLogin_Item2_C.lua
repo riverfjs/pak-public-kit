@@ -61,7 +61,7 @@ function UMG_BeautyLogin_Item2_C:UpdateItemInfo()
     if textureObj then
       dynamicMaterial:SetTextureParameterValue("Pattern", textureObj)
       dynamicMaterial:SetVectorParameterValue("BGColor", UE4.UNRCStatics.HexToLinearColor(bgColor))
-      if salonItemConf.color_type ~= Enum.HairColours.HC_PURE then
+      if salonItemConf.colour_type ~= Enum.HairColours.HC_PURE then
         dynamicMaterial:SetVectorParameterValue("PartternColor", UE4.UNRCStatics.HexToLinearColor(PartternColor))
       end
     end

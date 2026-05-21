@@ -17,6 +17,10 @@ function UMG_PetCheer_Tips_C:OnActive(petData)
   self:_InitPanel()
 end
 
+function UMG_PetCheer_Tips_C:OnPcClose()
+  self:OnClickedShutdownBtn()
+end
+
 function UMG_PetCheer_Tips_C:OnDeactive()
 end
 

@@ -515,4 +515,28 @@ function SkillUtils.IsSkillIsAspiration(skill, pet)
   return false
 end
 
+function SkillUtils.SkillHasCameraAction(skillObj)
+  local actions = skillObj:GetAllActions()
+  for i = 1, actions:Length() do
+    local action = actions:Get(i)
+    if SkillUtils.IsACameraAction(action) then
+      return true
+    end
+  end
+  return false
+end
+
+function SkillUtils.IsACameraAction(skillAction)
+  if skillAction then
+    local actionClass = skillAction:GetClass()
+    if actionClass then
+      local actionClassName = actionClass:GetName()
+      if string.find(actionClassName, "Camera") then
+        return true
+      end
+    end
+  end
+  return false
+end
+
 return SkillUtils

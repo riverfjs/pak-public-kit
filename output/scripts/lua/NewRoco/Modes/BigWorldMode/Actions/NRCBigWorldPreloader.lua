@@ -1,5 +1,7 @@
 local StoryFlagPreloadLists = require("NewRoco.Modules.Core.Task.PreloadRes.StoryFlagPreloadLists")
 local PetMutationUtils = require("NewRoco.Utils.PetMutationUtils")
+local PVPRankedMatchModuleUtils = require("NewRoco.Modules.System.PVPQualifier.PVPRankedMatchModuleUtils")
+local PlayerToyComponent = require("NewRoco.Modules.Core.Scene.Component.Interaction.PlayerToyComponent")
 local NRCBigWorldPreloader = NRCClass("NRCBigWorldPreloader")
 
 function NRCBigWorldPreloader:Ctor()
@@ -20,6 +22,7 @@ function NRCBigWorldPreloader:Ctor()
     EQS_NavPoly = "/Game/NewRoco/Modules/Core/NPC/EQS/EQ_NavPoly.EQ_NavPoly",
     EQS_Spiral = "/Game/NewRoco/Modules/Core/NPC/EQS/EQ_Spiral.EQ_Spiral",
     EQS_SceneSeat = "/Game/NewRoco/Modules/Core/NPC/EQS/EQ_SceneSeat.EQ_SceneSeat",
+    EQS_PosForServer = "/Game/NewRoco/Modules/Core/NPC/EQS/EQ_PosForServer.EQ_PosForServer",
     Quality1 = "ParticleSystem'/Game/ArtRes/Effects/Particle/Res/Scene/NS_Item_Drop_White.NS_Item_Drop_White'",
     Quality2 = "ParticleSystem'/Game/ArtRes/Effects/Particle/Res/Scene/NS_Item_Drop_Green.NS_Item_Drop_Green'",
     Quality3 = "ParticleSystem'/Game/ArtRes/Effects/Particle/Res/Scene/NS_Item_Drop_Blue.NS_Item_Drop_Blue'",
@@ -95,6 +98,19 @@ function NRCBigWorldPreloader:Ctor()
   if petMutationList then
     for key, value in pairs(petMutationList) do
       self.PreloadAssetList[key] = value
+    end
+  end
+  local playerToyList = PlayerToyComponent.GetPreloadList()
+  if playerToyList then
+    for key, value in pairs(playerToyList) do
+      self.PreloadAssetList[key] = value
+    end
+  end
+  local PVPRankedMatchModulePreloadList = PVPRankedMatchModuleUtils.GetPreloadList()
+  if PVPRankedMatchModulePreloadList then
+    local PreloadAssetList = self.PreloadAssetList or {}
+    for key, value in pairs(PVPRankedMatchModulePreloadList) do
+      PreloadAssetList[key] = value
     end
   end
   self.Requests = {}

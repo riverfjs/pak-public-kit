@@ -13,6 +13,7 @@ function UMG_ItemAltar_C:OnActive(action)
   Log.Debug("UMG_ItemAltar_C:OnActive")
   local optionConf
   local items = {}
+  self:PlayAnimation(self.In)
   if action then
     self.optionId = action.Owner.config.id
     self.npcId = action.Owner.owner.serverData.base.actor_id
@@ -72,25 +73,31 @@ end
 function UMG_ItemAltar_C:OnClickCancel()
   Log.Debug("UMG_ItemAltar_C:OnClickCancel")
   _G.NRCAudioManager:PlaySound2DAuto(40008006, "UMG_ItemAltar_C:OnClickCancel")
+  self:PlayAnimation(self.Out)
   if self.action and self.action.Finish then
     self.action:Finish(false, nil)
     self.action = nil
   end
-  _G.NRCModuleManager:DoCmd(AltarModuleCmd.CloseItemAltarPanel)
 end
 
 function UMG_ItemAltar_C:OnClickConfirm()
   Log.Debug("UMG_ItemAltar_C:OnClickConfirm")
   _G.NRCAudioManager:PlaySound2DAuto(41401003, "UMG_ItemAltar_C:OnClickConfirm")
   if self.satisfy then
+    self:PlayAnimation(self.Out)
     if self.action then
       self.action:GiveFinish()
-      _G.NRCModuleManager:DoCmd(AltarModuleCmd.CloseItemAltarPanel)
       self.action = nil
     end
   else
     local tipTxt = _G.DataConfigManager:GetLocalizationConf("Error_Code_2055")
     _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, tipTxt.msg)
+  end
+end
+
+function UMG_ItemAltar_C:OnAnimationFinished(Anim)
+  if Anim == self.Out then
+    _G.NRCModuleManager:DoCmd(AltarModuleCmd.CloseItemAltarPanel)
   end
 end
 

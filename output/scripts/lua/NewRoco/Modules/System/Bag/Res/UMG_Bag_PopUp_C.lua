@@ -345,7 +345,7 @@ function UMG_Bag_PopUp_C:OnBtnOKClick()
         self.HeadCanvas.Slot:SetPosition(Pos)
         self.NormalBlood:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
         self.BossBlood:SetVisibility(UE4.ESlateVisibility.Collapsed)
-        local LevelSkillConf = _G.DataConfigManager:GetLevelSkillConf(PetSkillItemData[1].base_conf_id)
+        local LevelSkillConf = _G.NRCModeManager:DoCmd(_G.PetUIModuleCmd.GetLevelSkillConfByPetBaseId, PetSkillItemData[1].base_conf_id)
         local skillConf = self:GetSkillData(PetBloodConf.id, LevelSkillConf)
         if skillConf then
           self.SkillIcon:SetPath(skillConf.icon)
@@ -469,7 +469,7 @@ function UMG_Bag_PopUp_C:RefreshPopUpOnUseItemSuccess()
     if use_action then
       local PetBloodConf = _G.DataConfigManager:GetPetBloodConf(use_action)
       if PetBloodConf.blood ~= Enum.PetBloodType.PBT_BOSS then
-        local LevelSkillConf = _G.DataConfigManager:GetLevelSkillConf(PetSkillItemData[1].base_conf_id)
+        local LevelSkillConf = _G.NRCModeManager:DoCmd(_G.PetUIModuleCmd.GetLevelSkillConfByPetBaseId, PetSkillItemData[1].base_conf_id)
         local skillConf = self:GetSkillData(PetBloodConf.id, LevelSkillConf)
         local typeDic = _G.DataConfigManager:GetTypeDictionary(PetBloodConf.blood_type)
         if typeDic then

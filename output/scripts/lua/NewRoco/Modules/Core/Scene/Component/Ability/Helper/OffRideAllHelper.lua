@@ -2,6 +2,15 @@ local Base = require("NewRoco.Modules.Core.Scene.Component.Ability.AbilityHelper
 local AbilityErrorCode = require("NewRoco.Modules.Core.Scene.Component.Ability.AbilityErrorCode")
 local OffRideAllHelper = Base:Extend("OffRideAllHelper")
 
+function OffRideAllHelper:CanCastAbility(caster)
+  local buffComp = caster.buffComponent
+  local RideAllBuff = buffComp:GetBuff("RideAll_Main_Buff")
+  if RideAllBuff and RideAllBuff.CanOffPet and not RideAllBuff:CanOffPet() then
+    return AbilityErrorCode.HIGHER_PRIORITY_ABILITY_IS_CASTING
+  end
+  return Base.CanCastAbility(self, caster)
+end
+
 function OffRideAllHelper:GetIcon(caster, isBlock)
   if nil == isBlock then
     isBlock = self:IsBlock(caster)
@@ -11,6 +20,9 @@ function OffRideAllHelper:GetIcon(caster, isBlock)
     return Base.GetIcon(self, caster, isBlock)
   end
   local UIconf = DataConfigManager:GetAllRideUiConf(moveType)
+  if not UIconf then
+    return Base.GetIcon(self, caster, isBlock)
+  end
   if isBlock then
     local blockIcon = UIconf.off_button_block_icon
     if not string.IsNilOrEmpty(blockIcon) then
@@ -26,6 +38,9 @@ function OffRideAllHelper:GetPressIcon(caster)
     return Base.GetPressIcon(self, caster)
   end
   local UIconf = DataConfigManager:GetAllRideUiConf(moveType)
+  if not UIconf then
+    return Base.GetPressIcon(self, caster)
+  end
   return UIconf.off_button_press_icon
 end
 
@@ -51,15 +66,15 @@ function OffRideAllHelper:GetCachedMoveType(caster)
     if nil == RideConf then
       return self:ReturnFailedType()
     end
-    local SkillId = RideConf.active_skill_list[1]
-    if nil == SkillId then
+    local BasicId = RideConf.basic_movement_list[1]
+    if nil == BasicId then
       return self:ReturnFailedType()
     end
-    local SkillConf = DataConfigManager:GetRideBasicMovement(SkillId, true)
-    if nil == SkillConf then
+    local MoveConf = DataConfigManager:GetRideBasicMovement(BasicId, true)
+    if nil == MoveConf then
       return self:ReturnFailedType()
     end
-    self._lastMoveType = SkillConf.active_type
+    self._lastMoveType = MoveConf.move_type
     if self._lastMoveType == nil then
       return self:ReturnFailedType()
     end
@@ -81,6 +96,13 @@ function OffRideAllHelper:HandleStatus(caster, needReCall, ManualOff)
     end
   end
   Base.HandleStatus(self, caster, needReCall, ManualOff)
+end
+
+function OffRideAllHelper:IsBlock(caster)
+  if self:CanCastAbility(caster) ~= AbilityErrorCode.NO_ERROR then
+    return true
+  end
+  return Base.IsBlock(self, caster)
 end
 
 return OffRideAllHelper

@@ -14,12 +14,11 @@ function NRCEnterBigWorldAction:OnEnter()
   if SceneModule then
     SceneModule._isMainUIReady = false
   end
-  self.OpenPanelLobbyMain = _G.TimerManager:CreateTimer(self, "NRCEnterBigWorldAction.OpenPanelLobbyMain", 3, nil, self.OnBeginOpenPanelLobbyMain, 9999)
+  self:BeginOpenPanelLobbyMain()
 end
 
-function NRCEnterBigWorldAction:OnBeginOpenPanelLobbyMain()
-  Log.Debug("[NRCEnterBigWorldAction] OnBeginOpenPanelLobbyMain")
-  _G.TimerManager:RemoveTimer(self.OpenPanelLobbyMain)
+function NRCEnterBigWorldAction:BeginOpenPanelLobbyMain()
+  Log.Debug("[NRCEnterBigWorldAction] BeginOpenPanelLobbyMain")
   if not _G.GlobalConfig.DisableSystemModule then
     NRCModeManager:DoCmd(MainUIModuleCmd.OpenPanelLobbyMain)
   end
@@ -27,15 +26,10 @@ function NRCEnterBigWorldAction:OnBeginOpenPanelLobbyMain()
   local Pass = false
   local MainUIModule = _G.NRCModuleManager:GetModule("MainUIModule")
   if MainUIModule then
-    if MainUIModule:HasPanel("LobbyMain") then
-      local panel = MainUIModule:GetPanel("LobbyMain")
-      if panel and panel.enableView then
-        Pass = true
-      else
-        self:Log("\228\184\187\231\149\140\233\157\162\228\184\141\229\173\152\229\156\168\230\136\150\232\128\133\228\184\141\229\143\175\232\167\129")
-      end
+    if MainUIModule:HasAnyMainUIShowing() then
+      Pass = true
     else
-      self:Log("\228\184\187\231\149\140\233\157\162\228\184\141\229\173\152\229\156\168")
+      self:Log("\228\184\187\231\149\140\233\157\162\228\184\141\229\173\152\229\156\168\230\136\150\232\128\133\228\184\141\229\143\175\232\167\129")
     end
   else
     self:Log("\228\184\187\231\149\140\233\157\162\230\168\161\229\157\151\228\184\141\229\173\152\229\156\168")

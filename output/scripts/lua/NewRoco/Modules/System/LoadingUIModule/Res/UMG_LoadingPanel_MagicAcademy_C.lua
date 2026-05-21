@@ -5,8 +5,9 @@ local SceneUtils = require("NewRoco.Modules.Core.Scene.Common.SceneUtils")
 local ScenePlayerInputManager = require("NewRoco.Modules.Core.Scene.ScenePlayerInputManager")
 local UMG_LoadingPanel_MagicAcademy_C = Base:Extend("UMG_LoadingPanel_MagicAcademy_C")
 
-function UMG_LoadingPanel_MagicAcademy_C:OnConstruct()
-  Base.OnConstruct(self)
+function UMG_LoadingPanel_MagicAcademy_C:Ctor()
+  Base.Ctor(self)
+  self.bOutAnimationPlayed = false
 end
 
 function UMG_LoadingPanel_MagicAcademy_C:OnDestruct()
@@ -26,7 +27,7 @@ end
 
 function UMG_LoadingPanel_MagicAcademy_C:OnEnable()
   Base.OnEnable(self)
-  self.FxPlayed = false
+  self.bOutAnimationPlayed = false
   UE4Helper.SetDesiredShowCursor(true, "UMG_LoadingPanel_MagicAcademy_C")
   ScenePlayerInputManager.Pause()
   self:StopAllAnimations()
@@ -81,6 +82,8 @@ end
 
 function UMG_LoadingPanel_MagicAcademy_C:OnAnimationFinished(anim)
   if anim == self.Out then
+    self.FxFinished = true
+    self.bOutAnimationPlayed = true
     _G.NRCEventCenter:DispatchEvent(LoadingUIModuleEvent.LOADING_UI_PRECLOSED)
   end
 end

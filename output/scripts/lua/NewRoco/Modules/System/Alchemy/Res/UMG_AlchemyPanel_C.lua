@@ -252,6 +252,9 @@ function UMG_AlchemyPanel_C:UnBindInputAction()
 end
 
 function UMG_AlchemyPanel_C:OnPcClose()
+  if self.Visibility == UE.ESlateVisibility.Hidden or self.Visibility == UE.ESlateVisibility.Collapsed or self.Visibility == UE.ESlateVisibility.HitTestInvisible then
+    return
+  end
   self:OnClose()
 end
 
@@ -262,7 +265,8 @@ function UMG_AlchemyPanel_C:OnAddEventListener()
   self:AddButtonListener(self.ReturnButton, self.ReturnToNormal)
   self:AddButtonListener(self.IconButton, self.ClickInfoIcon)
   _G.NRCEventCenter:RegisterEvent("UMG_AlchemyPanel_C", self, _G.AlchemyModuleEvent.AlchemyItemChanged, self.AlchemyItemChanged)
-  _G.NRCEventCenter:RegisterEvent("UMG_AlchemyPanel_C", self, DialogueModuleEvent.DialogueEnded, self.OnClose)
+  _G.NRCEventCenter:RegisterEvent("UMG_AlchemyPanel_C", self, DialogueModuleEvent.DialogueEnded, self.ForceClose)
+  _G.NRCEventCenter:RegisterEvent("UMG_AlchemyPanel_C", self, _G.NRCGlobalEvent.ON_DISCONNECT, self.ForceClose)
   _G.NRCEventCenter:RegisterEvent("UMG_AlchemyPanel_C", self, _G.AlchemyModuleEvent.AlchemyPanelChanged, self.OnAlchemyPanelChanged)
 end
 
@@ -289,7 +293,8 @@ end
 function UMG_AlchemyPanel_C:OnRemoveEventListener()
   _G.NRCEventCenter:UnRegisterEvent(self, BagModuleEvent.OnFilter, self.OnFilter)
   _G.NRCEventCenter:UnRegisterEvent(self, _G.AlchemyModuleEvent.AlchemyItemChanged, self.AlchemyItemChanged)
-  _G.NRCEventCenter:UnRegisterEvent(self, DialogueModuleEvent.DialogueEnded, self.OnClose)
+  _G.NRCEventCenter:UnRegisterEvent(self, DialogueModuleEvent.DialogueEnded, self.ForceClose)
+  _G.NRCEventCenter:UnRegisterEvent(self, _G.NRCGlobalEvent.ON_DISCONNECT, self.ForceClose)
   _G.NRCEventCenter:UnRegisterEvent(self, _G.AlchemyModuleEvent.AlchemyPanelChanged, self.OnAlchemyPanelChanged)
 end
 
@@ -355,6 +360,7 @@ end
 
 function UMG_AlchemyPanel_C:OnFilter(FilterList, condition)
   self.condition = condition
+  table.sort(FilterList, _SortExchangesFunc)
   _G.NRCEventCenter:UnRegisterEvent(self, BagModuleEvent.OnFilter, self.OnFilter)
   self:AlchemyItemChanged(0, 0, 0)
   self.View_List:EndInertialScrolling()
@@ -644,6 +650,26 @@ function UMG_AlchemyPanel_C:OnClose()
     _G.DelayManager:CancelDelay(self.DelayHandler)
     self.DelayHandler = nil
   end
+end
+
+function UMG_AlchemyPanel_C:ForceClose()
+  self.finish = true
+  self.isClosing = true
+  self.normalMode = false
+  _G.NRCModuleManager:DoCmd(_G.AlchemyModuleCmd.CloseMaterialItems)
+  _G.NRCModuleManager:DoCmd(_G.AlchemyModuleCmd.ResetAlternateMaterials)
+  if self.DelayHandler then
+    _G.DelayManager:CancelDelay(self.DelayHandler)
+    self.DelayHandler = nil
+  end
+  if self.action then
+    self.action:EndAction()
+  end
+  if self.module and self.module.TestOpen then
+    self.module.TestOpen = false
+    _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.OpenPanelLobbyMain)
+  end
+  self:DoClose()
 end
 
 function UMG_AlchemyPanel_C:SetupSlier()

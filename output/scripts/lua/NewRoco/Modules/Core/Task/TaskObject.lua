@@ -292,13 +292,21 @@ function TaskObject:GetTracker(Index, bCheckValid)
     return nil
   end
   for _, Tracker in ipairs(self.Trackers) do
-    local GoalIndex = Tracker.TaskObject == self and Tracker.go_index or Tracker.TaskObject.ParentGoIndex
-    if bCheckValid then
-      if GoalIndex == Index and (Tracker.Valid or Tracker.MinimapValid) then
+    if Tracker.TaskObject:IsFinish() then
+    else
+      local GoalIndex
+      if Tracker.TaskObject == self then
+        GoalIndex = Tracker.go_index
+      else
+        GoalIndex = Tracker.TaskObject.ParentGoIndex
+      end
+      if bCheckValid then
+        if GoalIndex == Index and (Tracker.Valid or Tracker.MinimapValid) then
+          return Tracker
+        end
+      elseif GoalIndex == Index then
         return Tracker
       end
-    elseif GoalIndex == Index then
-      return Tracker
     end
   end
   return nil
@@ -1158,12 +1166,26 @@ function TaskObject:GetGoalDetail(Index)
   if GoGuides and Index <= #GoGuides then
     local GoGuide = GoGuides[Index]
     if GoGuide.type == ProtoEnum.TaskGoActionType.TGAT_TRACK_TASK and 2 == GoGuide.data1[1] then
+      local CurTracker = self:GetTracker(Index)
+      if CurTracker and CurTracker.TaskObject and CurTracker.TaskObject.Config and #CurTracker.TaskObject.Config.task_condition > 0 then
+        if 1 == #CurTracker.TaskObject.Config.task_condition then
+          desc = CurTracker.TaskObject.Config.task_condition[1].text or ""
+        elseif #CurTracker.TaskObject.Trackers > 0 then
+          for _, Tracker in ipairs(CurTracker.TaskObject.Trackers) do
+            if not Tracker.TaskObject:CheckConditionDone(Tracker.go_index) then
+              desc = Tracker.TaskObject.Config.task_condition[Tracker.go_index] and Tracker.TaskObject.Config.task_condition[Tracker.go_index].text or ""
+              break
+            end
+          end
+        end
+        return desc, data, need
+      end
       for i, sub_task_id in ipairs(GoGuide.data2) do
         if self.TrackSubTasks then
           for _, sub_task_obj in ipairs(self.TrackSubTasks) do
             if sub_task_obj.Config.id == sub_task_id and (not sub_task_obj.Info or not (sub_task_obj.Info.done_count >= #sub_task_obj.Info.task_target_list)) then
               desc = sub_task_obj.Config.task_condition[1].text
-              goto lbl_142
+              goto lbl_215
             end
           end
         end
@@ -1183,7 +1205,7 @@ function TaskObject:GetGoalDetail(Index)
       end
     end
   end
-  ::lbl_142::
+  ::lbl_215::
   return desc, data, need
 end
 

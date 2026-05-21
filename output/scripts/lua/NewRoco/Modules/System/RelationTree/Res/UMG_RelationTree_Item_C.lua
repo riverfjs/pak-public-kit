@@ -5,6 +5,7 @@ local FriendEnum = require("NewRoco.Modules.System.Friend.FriendEnum")
 local ProtoEnum = require("Data.PB.ProtoEnum")
 local relationtree_refresh_cd = _G.DataConfigManager:GetGlobalConfigByKeyType("relationtree_refresh_cd", _G.DataConfigManager.ConfigTableId.GLOBAL_CONFIG).num
 local CoinType = _G.Enum.VisualItem.VI_DIAMOND
+local StarLightType = _G.Enum.VisualItem.VI_STAR_LIGHT
 local EnumOpationState = {GetState = 1, Implement = 2}
 
 function UMG_RelationTree_Item_C:OnConstruct()
@@ -163,6 +164,16 @@ function UMG_RelationTree_Item_C:UpdateUI()
       self.ConstPanel:SetVisibility(UE4.ESlateVisibility.Collapsed)
       self.NameText:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
       self.NameText:SetText(self.ItemData.StateStruct[self.State].name)
+      if self.ItemData.bShowRecall then
+        self.ConstPanel:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+        self.NRCSwitcher_701:SetActiveWidgetIndex(1)
+        self.Text_Starlight:SetText(_G.LuaText.recall_haoyoushu_starbuff)
+        local iconPath = _G.DataConfigManager:GetVisualItemConf(StarLightType).iconPath
+        self.Icon:SetPath(iconPath)
+      end
+      if self.ItemData.bPlayRecallAnim then
+        self:PlayAnimation(self.WaitForResponse_In)
+      end
       self:RefreshNoteGaryMask()
     end
   end
@@ -196,7 +207,7 @@ function UMG_RelationTree_Item_C:UpdateCostPanel()
       else
         self.ConstPanel:SetVisibility(UE4.ESlateVisibility.Collapsed)
       end
-    else
+    elseif not self.ItemData.bShowRecall then
       self.ConstPanel:SetVisibility(UE4.ESlateVisibility.Collapsed)
     end
   end
@@ -643,7 +654,7 @@ function UMG_RelationTree_Item_C:SendPetEgg(actionId)
     return
   end
   local ordinaryEggNum = 0
-  local items = _G.NRCModuleManager:DoCmd(_G.BagModuleCmd.GetBagItemArrayByLableType, _G.Enum.ItemLableType.ILT_PET_EGG)
+  local items = _G.NRCModuleManager:DoCmd(_G.BagModuleCmd.GetBagEggItemWithoutHathcing)
   if items and #items > 0 then
     for i, bagItem in pairs(items) do
       if bagItem and bagItem.conf and bagItem.egg_data then
@@ -797,23 +808,25 @@ function UMG_RelationTree_Item_C:OnAnimationFinished(anim)
 end
 
 function UMG_RelationTree_Item_C:AnimationUnlockableToUnlockedAndFriendCut()
-  if 1 == self.ItemData.NodeType then
-    _G.NRCEventCenter:DispatchEvent(RelationTreeEvent.RELATION_LINE_UNLOCK_EFFECT, self.PlayerUid, self.ItemData.RelationTreeType)
-    local NextNode = self.module:GetNextNode(self.PlayerUid, self.ItemData.ID)
-    if NextNode then
-      _G.NRCEventCenter:DispatchEvent(RelationTreeEvent.RELATION_LINE_UNLOCK_EFFECT, self.PlayerUid, NextNode.RelationTreeType)
+  if self.ItemData then
+    if 1 == self.ItemData.NodeType then
+      _G.NRCEventCenter:DispatchEvent(RelationTreeEvent.RELATION_LINE_UNLOCK_EFFECT, self.PlayerUid, self.ItemData.RelationTreeType)
+      local NextNode = self.module:GetNextNode(self.PlayerUid, self.ItemData.ID)
+      if NextNode then
+        _G.NRCEventCenter:DispatchEvent(RelationTreeEvent.RELATION_LINE_UNLOCK_EFFECT, self.PlayerUid, NextNode.RelationTreeType)
+      end
+      local ItemData = _G.NRCModeManager:DoCmd(_G.RelationTreeCmd.GetCurrentNodeValueByType, self.PlayerUid, self.ItemData.RelationTreeType)
+      self:OnItemUpdate(ItemData)
+      _G.NRCEventCenter:DispatchEvent(RelationTreeEvent.UpdateCostPanel)
+    else
+      local NextNode = self.module:GetNextNode(self.PlayerUid, self.ItemData.ID)
+      if NextNode then
+        _G.NRCEventCenter:DispatchEvent(RelationTreeEvent.RELATION_LINE_UNLOCK_EFFECT, self.PlayerUid, NextNode.RelationTreeType)
+      end
+      local ItemData = _G.NRCModeManager:DoCmd(_G.RelationTreeCmd.GetCurrentNodeValueByType, self.PlayerUid, self.ItemData.RelationTreeType)
+      self:OnItemUpdate(ItemData)
+      _G.NRCEventCenter:DispatchEvent(RelationTreeEvent.UpdateCostPanel)
     end
-    local ItemData = _G.NRCModeManager:DoCmd(_G.RelationTreeCmd.GetCurrentNodeValueByType, self.PlayerUid, self.ItemData.RelationTreeType)
-    self:OnItemUpdate(ItemData)
-    _G.NRCEventCenter:DispatchEvent(RelationTreeEvent.UpdateCostPanel)
-  else
-    local NextNode = self.module:GetNextNode(self.PlayerUid, self.ItemData.ID)
-    if NextNode then
-      _G.NRCEventCenter:DispatchEvent(RelationTreeEvent.RELATION_LINE_UNLOCK_EFFECT, self.PlayerUid, NextNode.RelationTreeType)
-    end
-    local ItemData = _G.NRCModeManager:DoCmd(_G.RelationTreeCmd.GetCurrentNodeValueByType, self.PlayerUid, self.ItemData.RelationTreeType)
-    self:OnItemUpdate(ItemData)
-    _G.NRCEventCenter:DispatchEvent(RelationTreeEvent.UpdateCostPanel)
   end
 end
 

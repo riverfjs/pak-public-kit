@@ -250,7 +250,7 @@ function UMG_TryOn_C:OnClickedGorgeousMagicBtn()
       _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.OpenMagicVideoDetailsPanel, Enum.GoodsType.GT_FASHION_SUITS, self.curChooseSuitId)
     end
   elseif 1 == self.NRCSwitcher_1:GetActiveWidgetIndex() or 2 == self.NRCSwitcher_1:GetActiveWidgetIndex() then
-    local pendantaId = self:_GetPendantaIdFromStack()
+    local pendantaId = self:_GetItemIdFromStackByType(_G.Enum.FashionLabelType.FLT_PENDANTA)
     if not pendantaId or 0 == pendantaId then
       Log.Error("\229\176\157\232\175\149\229\156\168\229\140\133\230\140\130\228\184\141\229\173\152\229\156\168\231\154\132\230\151\182\229\128\153\230\137\147\229\188\128\229\140\133\230\140\130\232\175\166\230\131\133\229\188\185\231\170\151\239\188\140\232\191\153\230\156\137\233\151\174\233\162\152\239\188\129")
       return
@@ -260,10 +260,21 @@ function UMG_TryOn_C:OnClickedGorgeousMagicBtn()
     context.context = {}
     context.context.itemId = pendantaId
     _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.OpenMagicWandPopUp, context)
+  elseif 3 == self.NRCSwitcher_1:GetActiveWidgetIndex() then
+    local wandId = self:_GetItemIdFromStackByType(_G.Enum.FashionLabelType.FLT_WAND)
+    if not wandId or 0 == wandId then
+      Log.Error("\229\176\157\232\175\149\229\156\168\230\179\149\230\157\150\228\184\141\229\173\152\229\156\168\231\154\132\230\151\182\229\128\153\230\137\147\229\188\128\230\179\149\230\157\150\232\175\166\230\131\133\229\188\185\231\170\151\239\188\140\232\191\153\230\156\137\233\151\174\233\162\152\239\188\129")
+      return
+    end
+    local context = {}
+    context.bIsWand = true
+    context.context = {}
+    context.context.WandId = wandId
+    _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.OpenMagicWandPopUp, context)
   end
 end
 
-function UMG_TryOn_C:_GetPendantaIdFromStack()
+function UMG_TryOn_C:_GetItemIdFromStackByType(type)
   local topIndex = self.titleStack[#self.titleStack]
   if not topIndex then
     return nil
@@ -275,7 +286,7 @@ function UMG_TryOn_C:_GetPendantaIdFromStack()
   local detailContext = curShowItem.context
   if detailContext.context then
     local fashionConf = _G.DataConfigManager:GetFashionItemConf(detailContext.context.item_id, true)
-    if fashionConf and fashionConf.type == _G.Enum.FashionLabelType.FLT_PENDANTA then
+    if fashionConf and fashionConf.type == type then
       return detailContext.context.item_id
     end
   end
@@ -376,6 +387,12 @@ function UMG_TryOn_C:RefreshPanel(shopId, rsp)
     pkgId = self.uiData.FashionPackageId
     local fashionPackageConf = _G.DataConfigManager:GetFashionPackageConf(pkgId)
     local packageGoodsData = _G.NRCModuleManager:DoCmd(NPCShopUIModuleCmd.OnCmdGetGoodsSeverData, self.uiData.shopId, self.uiData.shopLibId)
+    if not packageGoodsData and not self.bPreviewMode then
+      Log.Error("UMG_TryOn_C:RefreshPanel InvalidGoodServerData when RefreshPanel", self.uiData.shopId, self.uiData.shopLibId)
+      _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.fashionmall_expired)
+      _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.CloseAppearanceTryOn)
+      return
+    end
     local packageNormalShopConf = _G.DataConfigManager:GetNormalShopConf(self.uiData.shopLibId)
     if fashionPackageConf and packageGoodsData and packageNormalShopConf and packageGoodsData.sub_goods then
       self.SuitTitle:SetText(fashionPackageConf.name)
@@ -613,8 +630,11 @@ function UMG_TryOn_C:OnClickUpgradeButton()
     local suitId = self.curChooseSuitId
     local packageId = self.uiData.FashionPackageId
     self.module:ClosePanel("SeasonalCombinationBagShop")
+    self.module.tempTryOnAvatar = self.TryOnImage.AvatarPlayer
+    self.module:InitAvatarRotationData(self.module.closetAvatarPlayer, nil, nil, "Closet")
     self:SetPanelReadyToClosed()
     self:Disable()
+    self.bPanelHiddenByUpgradeBtn = true
     if closetPanel then
       closetPanel:EnterSuitUpgradePanel(suitId, packageId)
     end
@@ -678,13 +698,19 @@ function UMG_TryOn_C:SetTitleAndGorgeousBtnState(petTitle, suitTitle, bShouldSho
     if context.bIsShopItem then
       self:StopAnimation(self.Privilege_loop)
       if context.gorgeousBtnType then
-        self.NRCSwitcher_1:SetActiveWidgetIndex(2)
+        self.NRCSwitcher_1:SetActiveWidgetIndex(context.gorgeousBtnType)
       else
         self.NRCSwitcher_1:SetActiveWidgetIndex(0)
       end
     else
       self.NRCSwitcher_1:SetActiveWidgetIndex(1)
       self:PlayAnimation(self.Privilege_loop, 0.0, 0, UE4.EUMGSequencePlayMode.Forward, 1.0, false)
+    end
+    if context.gorgeousBtnIconPath and not string.IsNilOrEmpty(context.gorgeousBtnIconPath) then
+      self.MagicIcon:SetPath(context.gorgeousBtnIconPath)
+    end
+    if context.gorgeousBtnText and not string.IsNilOrEmpty(context.gorgeousBtnText) then
+      self.NRCText_1:SetText(context.gorgeousBtnText)
     end
   else
     self:StopAnimation(self.Privilege_loop)
@@ -853,8 +879,12 @@ function UMG_TryOn_C:PushNewSelectedElementToStack(title, packageTitle, bShouldS
       self.nameCardTitleContext = nil
     elseif context.context.type ~= _G.Enum.GoodsType.GT_CARD_SKIN then
       local fashionItemConf = _G.DataConfigManager:GetFashionItemConf(itemId, true)
-      if fashionItemConf and fashionItemConf.type == _G.Enum.FashionLabelType.FLT_PENDANTA then
-        context.gorgeousBtnType = 2
+      if fashionItemConf then
+        if fashionItemConf.type == _G.Enum.FashionLabelType.FLT_PENDANTA then
+          context.gorgeousBtnType = 2
+        elseif fashionItemConf.type == _G.Enum.FashionLabelType.FLT_WAND then
+          context.gorgeousBtnType = 3
+        end
       end
       table.insert(self.selectedTitleContextStack, {
         title = title,
@@ -1277,6 +1307,14 @@ function UMG_TryOn_C:InitNormalMode()
     local fashionPackageConf = _G.DataConfigManager:GetFashionPackageConf(pkgId)
     local packageGoodsData = _G.NRCModuleManager:DoCmd(NPCShopUIModuleCmd.OnCmdGetGoodsSeverData, self.uiData.shopId, self.uiData.shopLibId)
     local packageNormalShopConf = _G.DataConfigManager:GetNormalShopConf(self.uiData.shopLibId)
+    if not packageGoodsData then
+      self:SetVisibility(UE4.ESlateVisibility.Collapsed)
+      self:DelaySeconds(0.1, function()
+        Log.Error("UMG_TryOn_C:InitNormalMode InvalidGoodServerData", self.uiData.shopId, self.uiData.shopLibId)
+        _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.fashionmall_expired)
+        self:DoClose()
+      end)
+    end
     if fashionPackageConf and packageGoodsData and packageNormalShopConf and packageGoodsData.sub_goods then
       self.SuitTitle:SetText(fashionPackageConf.name)
       local defaultSuitId = self.firstSuitId
@@ -1321,7 +1359,6 @@ function UMG_TryOn_C:InitNormalMode()
         self.Buy_List:SelectItemByIndex(defaultIndex)
       end)
       self.TryOnImage:SetFirstSuit(nil, self.originalSalon, defaultSuitId)
-      self.TryOnImage:DemountFashionById(32500101)
     end
     self.Btn_Combination:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     self.Btn_Combination:SetBtnText(LuaText.fashion_package)
@@ -1343,9 +1380,6 @@ function UMG_TryOn_C:InitNormalMode()
         table.insert(initTable, {data = v, parent = self})
       end
       self.Buy_List:InitGridView(initTable)
-      self:DelayFrames(1, function()
-        self.Buy_List:SelectItemByIndex(0)
-      end)
       if fashionGoodsConf.Type == _G.Enum.GoodsType.GT_FASHION_SUITS then
         self.TryOnImage:SetFirstSuit(nil, nil, showItem[1].item_id)
       elseif fashionGoodsConf.Type == _G.Enum.GoodsType.GT_FASHION then
@@ -1354,6 +1388,9 @@ function UMG_TryOn_C:InitNormalMode()
         self.TryOnImage:SetFirstSuit()
       end
       self.Btn_Combination:SetVisibility(UE4.ESlateVisibility.Collapsed)
+      self:DelayFrames(2, function()
+        self.Buy_List:SelectItemByIndex(0)
+      end)
     else
       Log.Error(self.uiData.shopItemId, "\230\178\161\230\137\190\229\136\176\229\175\185\229\186\148\231\154\132fashionGoodsConf\233\133\141\231\189\174")
     end
@@ -1465,7 +1502,6 @@ function UMG_TryOn_C:InitPreviewMode()
         self.Buy_List:SelectItemByIndex(defaultIndex)
       end)
       self.TryOnImage:SetFirstSuit(nil, self.originalSalon, defaultSuitId)
-      self.TryOnImage:DemountFashionById(32500101)
     end
   else
     local packageGoodsData = self:BuildGoodsDataFromSuitId(self.previewSuitIds)
@@ -1496,7 +1532,6 @@ function UMG_TryOn_C:InitPreviewMode()
         self.Buy_List:SelectItemByIndex(defaultIndex)
       end)
       self.TryOnImage:SetFirstSuit(nil, self.originalSalon, self.firstSuitId)
-      self.TryOnImage:DemountFashionById(32500101)
     end
   end
   self.Btn_Combination:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)

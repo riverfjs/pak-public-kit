@@ -175,7 +175,7 @@ function UMG_Home_Output_C:RefreshShowTimer()
     elseif remainHour >= 1 then
       remainTimeText = string.format(LuaText.home_pet_feed_time_h, remainHour, remainMinute)
     else
-      remainTimeText = string.format("%s:%s", remainMinute, remainSeconds)
+      remainTimeText = string.format("%02d:%02d", remainMinute, remainSeconds)
     end
   end
   if not string.IsNilOrEmpty(remainTimeText) then
@@ -354,7 +354,6 @@ function UMG_Home_Output_C:UpdateStatus(bInProduce, outputInfo)
       self.remainOutput = goodInfo.goods_num
       local totalOutput = goodInfo.goods_total_num
       if self.remainOutput and totalOutput then
-        Log.Debug("UMG_HomeInspiration_C UpdateStatus with remainOutput:" .. self.remainOutput .. ", and totalOutput:" .. totalOutput)
         local richTextStr = self.remainOutput .. "/" .. totalOutput
         if self.PetBuffColor then
           if self.remainOutput <= totalOutput * remainRatio then

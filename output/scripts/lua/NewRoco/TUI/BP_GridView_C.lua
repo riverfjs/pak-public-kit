@@ -40,6 +40,12 @@ function BP_GridView_C:GetSelectedIndex()
 end
 
 function BP_GridView_C:HandleItemSelected(item, index)
+  if self._itemCanSelectChecker then
+    local canClick = self._itemCanSelectChecker(item, index)
+    if not canClick then
+      return
+    end
+  end
   self._selectedItemIndex = index
   if item.clickable then
     if self._bMultipleChoice == false then
@@ -63,6 +69,10 @@ end
 
 function BP_GridView_C:GetMultipleChoice()
   return self._bMultipleChoice
+end
+
+function BP_GridView_C:SetItemCanSelectChecker(funChecker, funSelf)
+  self._itemCanSelectChecker = _G.MakeWeakFunctor(funSelf, funChecker)
 end
 
 function BP_GridView_C:SetItemCanClickChecker(funChecker, funSelf)
@@ -89,6 +99,9 @@ function BP_GridView_C:OnChildItemClick(item, index, userClick)
         end
         if self._selectedItem and self._selectedItem == item then
           item:SetSelectFalseItem(self._selectedItem)
+        end
+        if item.BroadcastOnClicked then
+          item:BroadcastOnClicked()
         end
         self._selectedItem = item
         self._selectedItemIndex = index
@@ -208,6 +221,20 @@ function BP_GridView_C:OpItemByIndex(index, opType, ...)
   self.tempOpItem = self:GetItemByIndex(index - 1)
   if self.tempOpItem then
     return self.tempOpItem:OpItem(opType, ...)
+  end
+end
+
+function BP_GridView_C:SetMsgHandler(handler)
+  self.msgHandler = handler
+end
+
+function BP_GridView_C:OnMsg(msg, ...)
+  local msgHandler = self.msgHandler
+  if msgHandler then
+    local handler = msgHandler[msg]
+    if handler then
+      handler(...)
+    end
   end
 end
 

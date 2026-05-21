@@ -1,6 +1,7 @@
 local BattleUtils = require("NewRoco.Modules.Core.Battle.Common.BattleUtils")
 local BattleEnum = require("NewRoco.Modules.Core.Battle.Common.BattleEnum")
 local BattleEvent = require("NewRoco.Modules.Core.Battle.Common.BattleEvent")
+local PetMutationUtils = require("NewRoco.Utils.PetMutationUtils")
 local BattleModuleCmd = require("NewRoco.Modules.Core.Battle.BattleModuleCmd")
 local CachedSkillObj = NRCClass()
 
@@ -74,10 +75,6 @@ end
 function BattleSkillManager:OnCurveLoaded(resPath)
 end
 
-function BattleSkillManager:OnResonanceLoaded(resPath)
-  Log.Info("OnResonanceLoaded:", resPath)
-end
-
 function BattleSkillManager:PreProcessPerformCMDToReslist(cmd, settle_info)
   local resList = {}
   local filterSet = {}
@@ -116,13 +113,6 @@ function BattleSkillManager:PreProcessPerformCMDToReslist(cmd, settle_info)
           TryAddLst(changeRes)
         end
         BattleResourceManager:LoadAssetAsync(self, BattleConst.AttackHitSpeedCurve, self.OnCurveLoaded)
-        if ProtoEnum.PET_SKILL_PERFORM_FLAG.PET_SKILL_PERFORM_FLAG_RESONANCE == performInfo.skill_cast.perform_flag and skillID > 0 then
-          TryAddLst(BattleConst.ResonanceSkillPath)
-          local skill_cfg = SkillUtils.GetSkillConf(skillID)
-          if skill_cfg.icon then
-            BattleResourceManager:LoadAssetAsync(self, skill_cfg.icon, self.OnResonanceLoaded)
-          end
-        end
       elseif performInfo.type == ProtoEnum.BattlePerformType.BPT_COMBO_SKILL then
         local skillID = performInfo.combo_skill_cast.skill_id
         local skillResPath, isExist = SkillUtils.GetSkillResID(skillID)
@@ -187,6 +177,14 @@ function BattleSkillManager:PreProcessPerformCMDToReslist(cmd, settle_info)
         TryAddLst(resPath)
       elseif performInfo.type == ProtoEnum.BattlePerformType.BPT_CHANGE_MODEL then
         TryAddLst(self:GetChangeModelRes())
+      elseif performInfo.type == ProtoEnum.BattlePerformType.BPT_BOX_SHIELD_BREAK then
+        local firstSkill, secondeSkill = self:GetSurpriseBoxShieldBreakRes(performInfo.box_shield_break)
+        if firstSkill then
+          TryAddLst(firstSkill)
+        end
+        if secondeSkill then
+          TryAddLst(secondeSkill)
+        end
       elseif performInfo.type == ProtoEnum.BattlePerformType.BPT_DEATH then
         local SkillResConf = DataConfigManager:GetSkillResConf(BattleConst.SkillID.PetDead)
         if SkillResConf then
@@ -263,9 +261,10 @@ end
 function BattleSkillManager:GetDepthSkillRes(dead_info)
   local target = BattleManager.battlePawnManager:GetCardByGuid(dead_info.target_id)
   local Player = target and target.owner
-  if BattleUtils.IsDeathExist(target) then
+  local deathExist = BattleUtils.IsDeathExist(target)
+  if deathExist then
     local value = target:GetMonsterConfigIsNightmareValue()
-    if value and 2 == value then
+    if value and 2 == value and 1 == deathExist then
       return BattleConst.NightmarePetDeadWithStun
     end
     if BattleUtils.IsSkipRecycleBall() then
@@ -280,7 +279,7 @@ function BattleSkillManager:GetDepthSkillRes(dead_info)
     return BattleConst.PetDeadBlowAway
   elseif BattleUtils.IsFinalBattleP1() then
     return BattleConst.PetDeadFinalBattle
-  elseif BattleUtils.IsSpecialNoPc() and Player and Player.teamEnm == BattleEnum.Team.ENUM_TEAM then
+  elseif Player and Player:IsSpecialNoPcSelfDead() then
     return BattleConst.PetDeadNoPc
   elseif Player and Player.teamEnm == BattleEnum.Team.ENUM_ENEMY then
     if BattleUtils.IsFinalBattleP2() then
@@ -377,6 +376,13 @@ function BattleSkillManager:GetChangeModelRes()
     local SkillResConf = DataConfigManager:GetSkillResConf(BattleConst.SkillID.PetChangeModel)
     return SkillResConf.res_id
   end
+end
+
+function BattleSkillManager:GetSurpriseBoxShieldBreakRes(BoxShieldBreak)
+  local firstSkillPath, secondSkillPath
+  firstSkillPath = _G.BattleConst.SurpriseBoxShieldBreak.MutationsSkillPath
+  secondSkillPath = _G.BattleConst.SurpriseBoxShieldBreak.NormalPetSkillPath
+  return firstSkillPath, secondSkillPath
 end
 
 function BattleSkillManager:IsSkillResLoaded(skillID)
@@ -639,15 +645,6 @@ function BattleSkillManager:PrepareSkillInternal(view, battlePet, skillComponent
         blackboard:SetValueAsString(i, v)
       end
     end
-    if CastParam.resonance_skill_id > 0 then
-      local skill_cfg = SkillUtils.GetSkillConf(CastParam.resonance_skill_id)
-      if skill_cfg.icon then
-        local texture = self:GetLoadedClass(skill_cfg.icon)
-        if texture then
-          blackboard:SetValueAsObject("Fxtex", texture)
-        end
-      end
-    end
   end
   if CastParam.ActorStringValue then
     for actor, v in pairs(CastParam.ActorStringValue) do
@@ -815,6 +812,7 @@ function BattleSkillManager:RegisterEventCallback(skillObj, CastParam, findFirst
   skillObj:RegisterEventCallback("HidePopUp", CastParam.CallbackOwner, CastParam.HidePopupCallback)
   skillObj:RegisterEventCallback("ShowPopUp", CastParam.CallbackOwner, CastParam.ShowPopupCallback)
   skillObj:RegisterEventCallback("OpenUI", CastParam.CallbackOwner, CastParam.OpenUICallback)
+  skillObj:RegisterEventCallback("CancelBeCountSkill", CastParam.CallbackOwner, CastParam.InterruptBeCounterSkill)
   skillObj:RegisterEventCallback("OtherPetPerform", CastParam.CallbackOwner, CastParam.OnOtherPetPerformCallback)
   skillObj:RegisterEventCallback("OnRemoveCutsceneBlackGround", CastParam.CallbackOwner, CastParam.OnRemoveCutsceneBlackGround)
   skillObj:RegisterEventCallback("SkillCounter", CastParam.CallbackOwner, CastParam.OnCounterCallback)
@@ -825,6 +823,11 @@ function BattleSkillManager:RegisterEventCallback(skillObj, CastParam, findFirst
     skillObj:RegisterEventCallback("Interrupt", CastParam.CallbackOwner, CastParam.OnSkillBreakCallback)
   else
     skillObj:RegisterEventCallback("Interrupt", CastParam.CallbackOwner, CastParam.CompleteCallback)
+  end
+  if CastParam.OnStartFailedCallback then
+    skillObj:RegisterEventCallback("StartFailed", CastParam.CallbackOwner, CastParam.OnStartFailedCallback)
+  else
+    skillObj:RegisterEventCallback("StartFailed", CastParam.CallbackOwner, CastParam.CompleteCallback)
   end
   skillObj:RegisterEventCallback("RoleMagicTrigger", CastParam.CallbackOwner, CastParam.OnRoleMagicChangeModelCallback)
   skillObj:RegisterEventCallback("BeingAttacked", CastParam.CallbackOwner, CastParam.OnBeingAttackedCallback)
@@ -864,7 +867,7 @@ function BattleSkillManager:PlaySkill(skillObj, notCancel)
     if not notCancel then
       rocoSkillComponent:CancelSkill(skillObj, UE4.ESkillActionResult.SkillActionResultSuccessful)
     end
-    rocoSkillComponent:PlaySkill(skillObj)
+    return rocoSkillComponent:PlaySkill(skillObj)
   end
 end
 

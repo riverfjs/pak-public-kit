@@ -6,6 +6,7 @@ local ENUM_PLAYER_DATA_EVENT = require("Data.Global.PlayerDataEvent")
 local HandbookModuleEnum = require("NewRoco.Modules.System.Handbook.HandbookModuleEnum")
 local ShareUIModuleEvent = reload("NewRoco.Modules.System.ShareUI.ShareUIModuleEvent")
 local UMG_PetRightPanel_C = _G.NRCPanelBase:Extend("UMG_PetRightPanel_C")
+local FULL_SCREEN_SHOW_TIME = 1
 
 function UMG_PetRightPanel_C:OnConstruct()
   self:SetChildViews(self.petBaseInfo, self.PetSkillMain, self.Impression, self.btnMenu1, self.btnMenu2, self.btnMenu3, self.btnMenu4, self.btnMenu5, self.PetGrowUp, self.UMG_MedalPanel)
@@ -126,6 +127,7 @@ function UMG_PetRightPanel_C:OnActive(petInfoMain, petData, bShowSendMark)
   self:InitAndShowRadarInfo()
   self:OnSelectPetChange(self.uiData.petData)
   self:CheckCanSendToFriend()
+  self:UpdateTimeRewindBtnVisibility()
   if 3 == GlobalConfig.OpenMainPanelFromDebugBtn then
     self:OnMenuButtonClick(2)
   else
@@ -158,11 +160,6 @@ function UMG_PetRightPanel_C:OnActive(petInfoMain, petData, bShowSendMark)
   end
   self.petBaseInfo:SetCulCanEvo(self.module.data.CulCanEvo, self.module.data.CulCanBreakThrough)
   self.petBaseInfo:RefreshEvoState()
-  if self.module.data.CulCanEvo then
-    self.btnMenu1.CultivateRed:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-  else
-    self.btnMenu1.CultivateRed:SetVisibility(UE4.ESlateVisibility.Collapsed)
-  end
   self.UMG_btnClose:SetStyle(1)
   if not _G.GlobalConfig.DebugOpenUI then
     local PetInfoMain = self.module:GetPanel("PetInfoMain")
@@ -186,19 +183,21 @@ function UMG_PetRightPanel_C:OnActive(petInfoMain, petData, bShowSendMark)
   if enterType == PetUIModuleEnum.EnterType.PetInheritance then
     self.buttons:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.SwitchButton:SetVisibility(UE4.ESlateVisibility.Collapsed)
-    self.GiftColleaguesBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
-    self.RecommendedBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
-    self.ShareBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.TopBtnPanel:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
   self:CheckShareIsOpen()
   self:PetFriendInterfaceDisplay()
   if self.ShareIsOpen then
     _G.NRCModuleManager:DoCmd(_G.ShareUIModuleCmd.CheckRewardStateEntrance, self.shareBaseId)
   end
+  self.bOpenNewPetBag = self.module:HasPanel("NewPetBag")
   local isFreeMode = _G.NRCModuleManager:DoCmd(PetUIModuleCmd.GetPetPortableBagReleaseLifeMode)
   local CacheFilter = self.module:GetCachePetBoxFilterData()
   local isScreen = self.module:IsFilteringCondition(CacheFilter.Condition)
   self:OnChangeCloseBtnStyle(isScreen, isFreeMode)
+  if self.petInfoMainCtrl then
+    self.petInfoMainCtrl:CheckCanSendToFriend()
+  end
 end
 
 function UMG_PetRightPanel_C:OnAttachToParent(petInfoMain, petData)
@@ -231,6 +230,7 @@ function UMG_PetRightPanel_C:OnDestruct()
   self.uiItem = nil
   _G.NRCModuleManager:DoCmd(PetUIModuleCmd.ClearModuleDescText)
   self:CancelDelay()
+  self:OnRemoveEventListener()
 end
 
 function UMG_PetRightPanel_C:OnPlayerDataUpdate(UpdateGoodType)
@@ -284,8 +284,10 @@ function UMG_PetRightPanel_C:OnAddEventListener()
   self:RegisterEvent(self, PetUIModuleEvent.ResetRightPanelDescText, self.ResetDescText)
   self:RegisterEvent(self, PetUIModuleEvent.SetAttributeState, self.CloseSwitchButton)
   self:RegisterEvent(self, PetUIModuleEvent.OnNewPetBagEnterScreenState, self.OnChangeCloseBtnStyle)
+  self:RegisterEvent(self, PetUIModuleEvent.OnOpenNewPetBag, self.OnOpenNewPetBag)
   self:AddButtonListener(self.ShareBtn.btnLevelUp, self.OnShareClick)
   self:AddButtonListener(self.GiftColleaguesBtn.btnLevelUp, self.OnGiftBtnClick)
+  self:AddButtonListener(self.TimeRewindBtn.btnLevelUp, self.OnTimeRewindBtnClicked)
   self:RegisterEvent(self, PetUIModuleEvent.OnSendPetFailed, self.OnSendPetFailed)
   _G.NRCEventCenter:RegisterEvent(self.name, self, ShareUIModuleEvent.SHOW_ENTRANCE_REWARD, self.CheckShowShareReward)
   _G.NRCEventCenter:RegisterEvent(self.name, self, PetUIModuleEvent.OnNewPetBagReleaseLifeModeChanged, self.OnNewPetBagReleaseLifeModeChanged)
@@ -293,7 +295,9 @@ end
 
 function UMG_PetRightPanel_C:OnRemoveEventListener()
   self:RemoveButtonListener(self.ShareBtn.btnLevelUp)
+  self:RemoveButtonListener(self.TimeRewindBtn.btnLevelUp)
   _G.NRCEventCenter:UnRegisterEvent(self, ShareUIModuleEvent.SHOW_ENTRANCE_REWARD, self.CheckShowShareReward)
+  _G.NRCEventCenter:UnRegisterEvent(self, PetUIModuleEvent.OnNewPetBagReleaseLifeModeChanged, self.OnNewPetBagReleaseLifeModeChanged)
 end
 
 function UMG_PetRightPanel_C:ShowSubPanel(_index, _subIndex, _isOpenPetBag)
@@ -493,11 +497,6 @@ end
 function UMG_PetRightPanel_C:RefreshRedPointWithOne(CanEvo, CanBreakThrough)
   self.petBaseInfo:SetCulCanEvo(CanEvo, CanBreakThrough)
   self.petBaseInfo:RefreshEvoState()
-  if CanEvo then
-    self.btnMenu1.CultivateRed:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-  else
-    self.btnMenu1.CultivateRed:SetVisibility(UE4.ESlateVisibility.Collapsed)
-  end
 end
 
 function UMG_PetRightPanel_C:OnAutoSupplyChangeSuccess(_changes)
@@ -545,6 +544,7 @@ function UMG_PetRightPanel_C:OnSelectPet(_petData, isCheck, bOnlyPetDataRefresh)
   self:SetShowPanel()
   self:SetButtonsVisibility(true)
   self:SetTopBtnPanelVisibility(true)
+  self:UpdateTimeRewindBtnVisibility()
   if not bOnlyPetDataRefresh then
     self:OnErasePetSkillRedPoint()
   end
@@ -558,7 +558,7 @@ function UMG_PetRightPanel_C:OnSelectPet(_petData, isCheck, bOnlyPetDataRefresh)
     self:DispatchEvent(PetUIModuleEvent.SetPetModelLocation, UE4.FVector(1000, 1000, 1000))
   end
   self.Impression:UpdatePetInfo(self.uiData.petData, self.petInfoMainCtrl)
-  if not isCheck and not bOnlyPetDataRefresh then
+  if not isCheck then
     self:ShowPetEggPanel(false)
   end
   if self.uiData.petData then
@@ -766,11 +766,16 @@ function UMG_PetRightPanel_C:CloseSwitchButton(_IsDisabled)
   end
 end
 
+function UMG_PetRightPanel_C:OnOpenNewPetBag(bOpen)
+  self.bOpenNewPetBag = bOpen
+  self:OnChangeCloseBtnStyle()
+end
+
 function UMG_PetRightPanel_C:OnChangeCloseBtnStyle(isEnterScreen, isEnterFree)
   if nil ~= isEnterFree then
     self.isEnterFree = isEnterFree
   end
-  if self.isEnterScreen or self.isEnterFree then
+  if self.isEnterScreen or self.isEnterFree or self.bOpenNewPetBag then
     self.BtnSwitcher:SetActiveWidgetIndex(1)
   else
     self.BtnSwitcher:SetActiveWidgetIndex(0)
@@ -827,6 +832,10 @@ function UMG_PetRightPanel_C:OnCloseButtonClicked()
   if self.module:GetData("PetUIModuleData"):GetEnterPetPanelType() == PetUIModuleEnum.EnterType.PvpPetTeamUmg then
     self:DispatchEvent(PetUIModuleEvent.PetEquipSkillFinished)
   end
+  if self.bOpenNewPetBag and UE4.UObject.IsValid(self.petLeftPanel) then
+    self.petLeftPanel.Attribute:SwitchVersion()
+    return
+  end
   if self.isEnterFree then
     self:DispatchEvent(PetUIModuleEvent.OnNewPetBagExitFree)
     return
@@ -878,22 +887,27 @@ end
 function UMG_PetRightPanel_C:OpenGrowUpSwitchCloseBtn()
   self.bOpenGrowUp = true
   self.SwitchButton:SetVisibility(UE4.ESlateVisibility.Collapsed)
-  self.UMG_btnClose:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self:ShowOrHideCloseBtn(false)
   self.GiftColleaguesBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
 end
 
 function UMG_PetRightPanel_C:CloseGrowUpSwitchCloseBtn()
   self.bOpenGrowUp = false
   self.SwitchButton:SetVisibility(UE4.ESlateVisibility.Visible)
-  self.UMG_btnClose:SetVisibility(UE4.ESlateVisibility.Visible)
+  self:ShowOrHideCloseBtn(true)
   self:CheckCanSendToFriend()
 end
 
-function UMG_PetRightPanel_C:OnHideCloseBtn(show)
-  if show then
-    self.UMG_btnClose:SetVisibility(UE4.ESlateVisibility.Collapsed)
+function UMG_PetRightPanel_C:OnHideCloseBtn(bHide)
+  self:ShowOrHideCloseBtn(not bHide)
+end
+
+function UMG_PetRightPanel_C:ShowOrHideCloseBtn(bShow)
+  local bOpenEvoPanel = _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.CheckIsOpenEvoPanel)
+  if bShow and not bOpenEvoPanel then
+    self.BtnSwitcher:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
   else
-    self.UMG_btnClose:SetVisibility(UE4.ESlateVisibility.Visible)
+    self.BtnSwitcher:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
 end
 
@@ -904,18 +918,37 @@ function UMG_PetRightPanel_C:OnErasePetSkillRedPoint()
 end
 
 function UMG_PetRightPanel_C:OnPcClose()
-  if self.isEnterFree then
-    if _G.NRCModuleManager:DoCmd(PetUIModuleCmd.GetPetPortableBagReleaseLifeMode) then
-      self.module:SwitchReleaseLifeModeInPortableBag()
-    end
-    self:DispatchEvent(PetUIModuleEvent.OnNewPetBagExitFree)
-    self.isEnterFree = false
-  elseif self.PetGrowUp:GetVisibility() == UE4.ESlateVisibility.SelfHitTestInvisible then
+  if self.PetGrowUp:GetVisibility() == UE4.ESlateVisibility.SelfHitTestInvisible then
     self.PetGrowUp:OnCloseBtnClick()
   elseif self.PetSkillMain:GetVisibility() == UE4.ESlateVisibility.SelfHitTestInvisible and self.PetSkillMain.backBtn:GetVisibility() == UE4.ESlateVisibility.SelfHitTestInvisible then
     self.PetSkillMain:OnBackBtnClick()
   else
     self:OnCloseButtonClicked()
+  end
+end
+
+function UMG_PetRightPanel_C:OnTimeRewindBtnClicked()
+  _G.NRCAudioManager:PlaySound2DAuto(40002003, "UMG_PetRightPanel_C:OnTimeRewindBtnClicked")
+  if self.uiData and self.uiData.petData and self.uiData.petData.gid then
+    _G.NRCModeManager:DoCmd(_G.PetUIModuleCmd.OpenPetTraceBackPopup, self.uiData.petData.gid)
+  end
+end
+
+function UMG_PetRightPanel_C:SetFullScreenMaskShow(bShow)
+  if self.FullScreenMask == nil then
+    return
+  end
+  if self.FullScreenCollapsedDelayId then
+    _G.DelayManager:CancelDelay(self.FullScreenCollapsedDelayId)
+    self.FullScreenCollapsedDelayId = nil
+  end
+  if bShow then
+    self.FullScreenMask:SetVisibility(UE4.ESlateVisibility.Visible)
+    self.FullScreenCollapsedDelayId = _G.DelayManager:DelaySeconds(FULL_SCREEN_SHOW_TIME, function()
+      self:SetFullScreenMaskShow(false)
+    end)
+  else
+    self.FullScreenMask:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
 end
 
@@ -971,7 +1004,8 @@ end
 function UMG_PetRightPanel_C:CheckCanSendToFriend()
   self.GiftColleaguesBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
   local canShow = _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.GetCanShowSendBtn)
-  if self.bShowSendMark and not self.bOpenGrowUp and canShow and self.uiData and self.uiData.petData and self.uiData.petData.together_catch_info and self.uiData.petData.together_catch_info.is_onwer_catch then
+  local bOpenEvoPanel = _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.CheckIsOpenEvoPanel)
+  if self.bShowSendMark and not self.bOpenGrowUp and canShow and not bOpenEvoPanel and self.uiData and self.uiData.petData and self.uiData.petData.together_catch_info and self.uiData.petData.together_catch_info.is_onwer_catch then
     local timeStamp = self.uiData.petData.together_catch_info.transfer_deadline
     if timeStamp then
       local currentTime = _G.ZoneServer:GetServerTime() / 1000
@@ -992,6 +1026,28 @@ end
 
 function UMG_PetRightPanel_C:OnSendPetFailed()
   self:CheckCanSendToFriend()
+end
+
+function UMG_PetRightPanel_C:UpdateTimeRewindBtnVisibility()
+  if self.uiData == nil then
+    Log.Error("UMG_PetRightPanel_C:UpdateTimeRewindBtnVisibility uiData is nil")
+    return
+  end
+  if nil == self.uiData.petData then
+    Log.Error("UMG_PetRightPanel_C:UpdateTimeRewindBtnVisibility petData is nil")
+    return
+  end
+  local bCanShow = true
+  local EnterType = _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.GetEnterPetPanelType)
+  if EnterType == PetUIModuleEnum.EnterType.PetInheritance or EnterType == PetUIModuleEnum.EnterType.PetAltar then
+    bCanShow = false
+  end
+  local friendInfo = _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.GetFriendInfoToPetMain)
+  if friendInfo and friendInfo.type ~= _G.ProtoEnum.PlayerRelationshipType.PRT_SELF then
+    bCanShow = false
+  end
+  local bCanTraceBack = PetUtils.CheckPetIsCanTraceBack(self.uiData.petData, true, true, true)
+  self.TimeRewindBtn:SetVisibility(bCanTraceBack and bCanShow and UE4.ESlateVisibility.Visible or UE4.ESlateVisibility.Collapsed)
 end
 
 function UMG_PetRightPanel_C:OnNewPetBagReleaseLifeModeChanged()

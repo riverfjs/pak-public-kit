@@ -16,7 +16,7 @@ function UMG_CompItem_Pet_C:SetNpcIconPath(IconPath)
         self.NRCIcon:SetIconPathAndMaterial(petData.base_conf_id, petData.mutation_type, petData.glass_info)
       end
     end
-    self.Switcher_Boss:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.Switcher_Boss:SetActiveWidgetIndex(2)
     self.Crown:SetVisibility(UE4.ESlateVisibility.Collapsed)
     if self.uiData.petInfo and self.uiData.petInfo.productionInfo then
       if HomeIndoorSandbox then

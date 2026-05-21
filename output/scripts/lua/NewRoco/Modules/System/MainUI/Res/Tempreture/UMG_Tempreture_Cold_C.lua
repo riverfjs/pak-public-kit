@@ -21,19 +21,30 @@ function UMG_Tempreture_Cold_C:OnDisable()
 end
 
 function UMG_Tempreture_Cold_C:DoCustomOpen()
+  Log.Debug("UMG_Tempreture_Cold_C:DoCustomOpen", self.bDoingClose)
+  _G.NRCAudioManager:PlaySound2DAuto(40008010, "UMG_Tempreture_Cold_C:DoCustomOpen")
+  self.bDoingClose = false
   self:StopAllAnimations()
   self:PlayAnimation(self.ColdOpen)
   self:PlayAnimation(self.ColdLoop, 0, 0)
   self:OnEnable()
 end
 
-function UMG_Tempreture_Cold_C:DoCustomClose()
+function UMG_Tempreture_Cold_C:DoCustomClose(bForce)
+  Log.Debug("UMG_Tempreture_Cold_C:DoCustomClose", self.bDoingClose, bForce)
+  self.bDoingClose = true
+  if bForce then
+    self:StopAllAnimations()
+    self:DoClose()
+    return
+  end
   self:StopAllAnimations()
   self:PlayAnimation(self.ColdClose)
 end
 
 function UMG_Tempreture_Cold_C:OnAnimationFinished(Animation)
-  if Animation == self.ColdClose then
+  if Animation == self.ColdClose and self.bDoingClose then
+    self.bDoingClose = false
     self:DoClose()
   end
 end

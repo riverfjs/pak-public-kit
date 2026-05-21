@@ -33,4 +33,5 @@ SceneEvent.AddStaticArea = "SceneEvent.AddStaticArea"
 SceneEvent.RemoveStaticArea = "SceneEvent.RemoveStaticArea"
 SceneEvent.EntranceVisibleZone = "SceneEvent.EntranceVisibleZone"
 SceneEvent.LeaveVisibleZone = "SceneEvent.LeaveVisibleZone"
+SceneEvent.OnRolePlayPropsBanStateChanged = "SceneEvent.OnRolePlayPropsBanStateChanged"
 return SceneEvent

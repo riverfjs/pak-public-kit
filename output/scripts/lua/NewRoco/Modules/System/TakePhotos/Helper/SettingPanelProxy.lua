@@ -72,10 +72,16 @@ function SettingPanelProxy:OnDestroy()
 end
 
 function SettingPanelProxy:OnReqOpen()
-  _G.NRCAudioManager:PlaySound2DAuto(40008005, "SettingPanelProxy")
+  if self.Adapter:IsOpened() then
+    return
+  end
+  if not self.MainPanel.Btn_Set:IsVisible() then
+    return
+  end
   if self.MainPanel:IsTakingPhotos() then
     return
   end
+  _G.NRCAudioManager:PlaySound2DAuto(40008005, "SettingPanelProxy")
   self.Adapter:Open()
 end
 
@@ -102,6 +108,10 @@ function SettingPanelProxy:OnPanelClosed()
   UE4Helper.ReleaseDesiredShowCursor("UMG_TakePhotos_Settings_C")
   self:SetShowHideMainUIControlEnabled(false)
   _G.NRCAudioManager:PlaySound2DAuto(40007009, "OnPanelClosed")
+  if self.bSkinListViewDirty then
+    self.Settings:RemoveCameraSkinRedDots()
+    self.bSkinListViewDirty = false
+  end
 end
 
 function SettingPanelProxy:ConditionInitTabList()
@@ -200,10 +210,29 @@ function SettingPanelProxy:ConditionInitTabList()
         TabData.NormalIconPath = "PaperSprite'/Game/NewRoco/Modules/System/TakePhotos/Raw/Frames/img_dongzuo3_png.img_dongzuo3_png'"
       end
     end
+    local CameraInfo = self.MainPanel.player.serverData.camera_info
+    local CameraSkins = CameraInfo and CameraInfo.unlock_skin_ids
+    local bHasCameraSkins = CameraSkins and #CameraSkins > 1
+    if bHasCameraSkins then
+      local DesiredIndex = #self.TabList + 1
+      local CameraSkinTabInfo = {
+        NormalIconPath = "PaperSprite'/Game/NewRoco/Modules/System/TakePhotos/Raw/Frames/img_xiangjiweiguang1_png.img_xiangjiweiguang1_png'",
+        BlackIconPath = "PaperSprite'/Game/NewRoco/Modules/System/TakePhotos/Raw/Frames/img_xiangjiweiguang2_png.img_xiangjiweiguang2_png'",
+        OnClicked = function()
+          self:ToggleTab(6, DesiredIndex)
+        end,
+        OnRefresh = function()
+          return self:OnRefreshCameraSkinList()
+        end,
+        RedDotKey = 495
+      }
+      table.insert(self.TabList, CameraSkinTabInfo)
+    end
     self:OnInitFilterViewList()
     self:OnInitActionList()
     self:OnInitEmojiList()
     self:OnInitFashionList()
+    self:OnInitCameraSkinList()
   end
   self.bDisableToggleTabAudio = true
   local Panel = self.Adapter:GetPanel()
@@ -239,6 +268,10 @@ end
 function SettingPanelProxy:ToggleTab(Index, TabIndex)
   if not self.bDisableToggleTabAudio then
     _G.NRCAudioManager:PlaySound2DAuto(40007003, "ToggleTab")
+  end
+  if not self.bDisableToggleTabAudio and self.bSkinListViewDirty then
+    self.Settings:RemoveCameraSkinRedDots()
+    self.bSkinListViewDirty = false
   end
   local Panel = self.Adapter:GetPanel()
   if Panel then
@@ -481,6 +514,19 @@ end
 function SettingPanelProxy:OnRefreshEmojiListView()
   self.EmojiListView:InitGridView(self.EmojiDataList)
   self.EmojiListView:SelectItemByIndex(self.Settings.EmojiGroup:GetSelectedIndex() - 1)
+end
+
+function SettingPanelProxy:OnInitCameraSkinList()
+  local Panel = self.Adapter:GetPanel()
+  self.SkinListView = Panel.CameraList
+  self.SkinDataList = self.Settings:CreateCameraSkinGroupUIDataList()
+  self.SkinListView:InitGridView(self.SkinDataList)
+end
+
+function SettingPanelProxy:OnRefreshCameraSkinList()
+  self.SkinListView:InitGridView(self.SkinDataList)
+  self.SkinListView:SelectItemByIndex(self.Settings.CameraSkinGroup:GetSelectedIndex() - 1)
+  self.bSkinListViewDirty = true
 end
 
 return SettingPanelProxy

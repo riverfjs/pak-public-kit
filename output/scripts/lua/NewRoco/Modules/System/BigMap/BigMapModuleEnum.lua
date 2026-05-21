@@ -43,7 +43,8 @@ BigMapModuleEnum.TraceType = {
   Visitor = 5,
   AutoTrace = 6,
   TempTrace = 7,
-  Travel = 8
+  ForceTrace = 8,
+  Travel = 9
 }
 BigMapModuleEnum.IconDirection = {
   None = 1,
@@ -51,4 +52,19 @@ BigMapModuleEnum.IconDirection = {
   Down = 3
 }
 BigMapModuleEnum.CircleIconType = {Task = 1, Activity = 2}
+BigMapModuleEnum.MapTileLoadStatus = {
+  Loading = 1,
+  Loaded = 2,
+  Failed = 3
+}
+BigMapModuleEnum.NpcInfoButtonType = {
+  Hidden = 0,
+  Trace = 1,
+  Teleport_1 = 2,
+  CancelTrace = 3,
+  WaitTime = 4,
+  Mark = 5,
+  View = 6,
+  Teleport_2 = 7
+}
 return BigMapModuleEnum

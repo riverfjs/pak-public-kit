@@ -18,6 +18,24 @@ function JsonUtils.LoadSaved(FileName, Default)
   end
 end
 
+function JsonUtils.LoadSpecifiedPath(Path, Default)
+  local File = UE4.UBlueprintPathsLibrary.ConvertRelativePathToFull(Path)
+  local Result, Success = UE4.UNRCStatics.LoadToString(File)
+  if Success then
+    return rapidjson.decode(Result) or Default
+  else
+    return Default
+  end
+end
+
+function JsonUtils.DumpSpecifiedPath(Path, Table, MaxiLimit)
+  local File = UE4.UBlueprintPathsLibrary.ConvertRelativePathToFull(Path)
+  Table = JsonUtils.ExtractTable(Table, nil, MaxiLimit)
+  local Content = rapidjson.encode(Table)
+  local Success = UE4.UNRCStatics.WriteToFile(File, Content)
+  return Success
+end
+
 function JsonUtils.LoadSavedFromAutoBattle(FileName, Default)
   local File = string.format("%sScript/Data/AutoBattle/%s.non", UE4.UBlueprintPathsLibrary.ProjectContentDir(), FileName)
   File = UE4.UBlueprintPathsLibrary.ConvertRelativePathToFull(File)

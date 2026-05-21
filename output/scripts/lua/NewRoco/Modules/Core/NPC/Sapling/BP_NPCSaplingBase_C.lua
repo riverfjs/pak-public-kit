@@ -9,6 +9,7 @@ function BP_NPCSaplingBase_C:Initialize(Initializer)
   self.CachedFruits = {}
   self.RandomLocations = {}
   self.UsedLocation = {}
+  self.GrowUpHandler = nil
 end
 
 function BP_NPCSaplingBase_C:LuaBeginPlay()
@@ -17,6 +18,7 @@ function BP_NPCSaplingBase_C:LuaBeginPlay()
   if self.bIsSeeding then
     self.RandomLocations = MathExtend.GetRandomSequence_TArray(self.FruitsLocations, self.FruitsLocations:Length())
   end
+  Log.Error("\233\166\150\229\133\136\239\188\140\233\156\128\232\166\129\229\133\136\231\161\174\232\174\164\228\184\139\228\184\186\229\149\165\229\174\131\228\188\154\232\162\171\229\164\141\230\180\187\239\188\140\232\191\153\229\183\178\231\187\143\230\152\175\229\155\155\229\185\180\229\137\141\231\154\132\228\184\156\232\165\191\228\186\134\239\188\140\229\164\141\230\180\187\232\191\152\230\152\175\230\143\144\233\156\128\230\177\130\229\144\167")
 end
 
 function BP_NPCSaplingBase_C:SetSaplingStatus()
@@ -31,10 +33,18 @@ function BP_NPCSaplingBase_C:GrowUp()
   local PlayTime = self.GeometryCache:GetDuration()
   self.GeometryCache:SetPlaybackSpeed(self.GrowUpSpeed)
   self.GeometryCache:Play()
-  _G.DelayManager:DelaySeconds(PlayTime / self.GrowUpSpeed, self.OnFinishGrow, self)
+  if self.GrowUpHandler then
+    _G.DelayManager:CancelDelayById(self.GrowUpHandler)
+    self.GrowUpHandler = nil
+  end
+  self.GrowUpHandler = _G.DelayManager:DelaySeconds(PlayTime / self.GrowUpSpeed, self.OnFinishGrow, self)
 end
 
 function BP_NPCSaplingBase_C:OnFinishGrow()
+  if self.GrowUpHandler then
+    _G.DelayManager:CancelDelayById(self.GrowUpHandler)
+    self.GrowUpHandler = nil
+  end
   self.bIsSeeding = false
   self:LoadAllFruits()
 end
@@ -74,6 +84,14 @@ function BP_NPCSaplingBase_C:GetNextFruitTransform()
   end
   self.UsedLocation[Index] = true
   return Index
+end
+
+function BP_NPCSaplingBase_C:ReceiveEndPlay(EndPlayReason)
+  if self.GrowUpHandler then
+    _G.DelayManager:CancelDelayById(self.GrowUpHandler)
+    self.GrowUpHandler = nil
+  end
+  Base.ReceiveEndPlay(self, EndPlayReason)
 end
 
 return BP_NPCSaplingBase_C

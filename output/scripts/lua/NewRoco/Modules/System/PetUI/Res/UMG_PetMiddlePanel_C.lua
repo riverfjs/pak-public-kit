@@ -510,19 +510,21 @@ function UMG_PetMiddlePanel_C:OnUpdateRedPointData(notify)
   end
 end
 
-function UMG_PetMiddlePanel_C:updateEggModelInfo(eggInfo, index)
+function UMG_PetMiddlePanel_C:updateEggModelInfo(eggInfo, index, bUpdateEggModel)
   if not self.petImage3D.IsOnActive then
     self:initEggModelInfo(eggInfo)
     return
   end
-  if nil == eggInfo or self.curEggGid == eggInfo.gid then
+  if not bUpdateEggModel and (nil == eggInfo or self.curEggGid == eggInfo.gid) then
     if nil == eggInfo then
       self.curEggGid = nil
       self.petImage3D:SetPath("", false, nil)
     end
     return
   end
-  self.curEggGid = eggInfo.gid
+  if eggInfo then
+    self.curEggGid = eggInfo.gid
+  end
   self:SetEggPetImage3DInfo(eggInfo)
 end
 

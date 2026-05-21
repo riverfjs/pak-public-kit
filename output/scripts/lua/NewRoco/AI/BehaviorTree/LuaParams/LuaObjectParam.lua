@@ -60,6 +60,23 @@ function LuaObjectParam:SetValue(AIController, Value)
   end
 end
 
+function LuaObjectParam:SetValueById(AIController, actorId)
+  if not self.useBlackboardKey then
+    local NpcName = "nil"
+    if AIController and AIController.Npc then
+      NpcName = AIController.Npc.config.name
+    end
+    Log.WarningFormat("LuaParam: Cant Set Value For Not BlackboardType, Name:%s, NpcName:%s", tostring(self.paramName), NpcName)
+    return
+  end
+  if not AIController then
+    return Log.Trace("LuaParam: Invalid ai controller")
+  end
+  if self.isMFBTEnable then
+    AIController:SetMfbbObjectId(self.key, actorId or 0)
+  end
+end
+
 function LuaObjectParam:GetType()
   return LuaParamType.Object
 end

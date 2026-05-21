@@ -81,6 +81,13 @@ function UMG_MagicMaunalBox_C:SetPopupVisible(bShow)
     self:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     self:PlayAnimation(self.In)
   else
+    if self:GetVisibility() == UE4.ESlateVisibility.Collapsed then
+      self.bShowList = bShow
+      if self.OnPopupVisibilityChanged then
+        self.OnPopupVisibilityChanged(bShow)
+      end
+      return
+    end
     _G.NRCAudioManager:PlaySound2DAuto(40004006, "UMG_MagicMaunalBox_C:SetPopupVisible")
     self:PlayAnimation(self.Out)
   end

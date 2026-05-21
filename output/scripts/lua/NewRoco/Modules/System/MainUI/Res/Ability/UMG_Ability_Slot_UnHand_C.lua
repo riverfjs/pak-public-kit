@@ -45,8 +45,8 @@ function UMG_Ability_Slot_UnHand_C:OnCast(isPress)
   end
   if self.inDoubleRide and self.is1p then
     local rideComp = player.viewObj.BP_RideComponent
-    if rideComp then
-      if rideComp.RideMoveComp.MovementMode == UE.EMovementMode.MOVE_Walking then
+    if rideComp and UE.UObject.IsValid(rideComp.RideMoveComp) then
+      if rideComp.RideMoveComp.MovementMode == UE.EMovementMode.MOVE_Walking or rideComp.RideMoveComp.MovementMode == UE.EMovementMode.MOVE_Custom and (rideComp.RideMoveComp.CustomMovementMode == UE.ERocoCustomMovementMode.MOVE_Gliding or rideComp.RideMoveComp.CustomMovementMode == UE.ERocoCustomMovementMode.MOVE_ClimbWater) then
         rideComp:TryChangeToLink()
       else
         rideComp:OnRideFailed()
@@ -81,7 +81,7 @@ end
 
 function UMG_Ability_Slot_UnHand_C:InternalRefreshView()
   local player = self.localPlayer
-  if not player then
+  if not player or not UE.UObject.IsValid(player.viewObj) then
     Log.Error("UMG_Ability_Slot_UnHand_C:InternalRefreshView local player is nil")
     return
   end

@@ -10,7 +10,8 @@ UMG_ListItem_Pet_C.OpType = {
   HasValidData = 4,
   IsSamePetGid = 5,
   SetCanPlayOutAnim = 6,
-  ReInit = 7
+  ReInit = 7,
+  UpdateDataAndReInit = 8
 }
 
 function UMG_ListItem_Pet_C:OnDestruct()
@@ -264,6 +265,11 @@ function UMG_ListItem_Pet_C:OpItem(opType, ...)
     local firstArg = select(1, ...)
     return self:SetCanPlayOutAnim(firstArg)
   elseif opType == UMG_ListItem_Pet_C.OpType.ReInit then
+    self:_InitItem()
+  elseif opType == UMG_ListItem_Pet_C.OpType.UpdateDataAndReInit then
+    local newPetData = select(1, ...)
+    self.uiData = newPetData or {}
+    self:ResetItem()
     self:_InitItem()
   end
 end

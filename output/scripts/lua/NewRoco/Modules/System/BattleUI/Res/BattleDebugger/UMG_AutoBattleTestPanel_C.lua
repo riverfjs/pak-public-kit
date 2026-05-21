@@ -149,13 +149,13 @@ function UMG_AutoBattleTestPanel_C:ShowTips(content, color, cb, time)
   self.Tip:SetText(content)
   self.Tip:SetColorAndOpacity(color)
   if cb then
-    self.DelayHandle = _G.DelayManager:DelaySeconds(time, cb, self)
+    self.DelayHandle = self:DelaySeconds(time, cb, self)
   end
 end
 
 function UMG_AutoBattleTestPanel_C:OnCancelDelayHandle()
   if self.DelayHandle then
-    _G.DelayManager:CancelDelayById(self.DelayHandle)
+    self:CancelDelayByID(self.DelayHandle)
     self.DelayHandle = nil
   end
 end

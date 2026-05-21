@@ -68,6 +68,8 @@ function UMG_PVP_Prepare_C:OnActive(arg)
   self.enemyPvpRankOrder = PlayerPkInfo.enemy_pvp_rank_order
   self.end_time = PlayerPkInfo.end_time or _G.ZoneServer:GetServerTime() / 1000 + 20
   self.countdown = self.end_time - _G.ZoneServer:GetServerTime() / 1000
+  local curSeasonId = _G.NRCModuleManager:DoCmd(_G.PVPRankedMatchModuleCmd.CmdGetCurSeasonId)
+  self.curSeasonId = curSeasonId
   self:UpdateUI()
   self.BackgroundBlur_49:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.UMG_PvPPrepareImage:SetVisibility(UE4.ESlateVisibility.Collapsed)
@@ -76,6 +78,7 @@ function UMG_PVP_Prepare_C:OnActive(arg)
   NRCModuleManager:DoCmd(BattleUIModuleCmd.SetPvpPlayerPkInfoStartTime, self.start_time)
   UE4Helper.SetDesiredShowCursor(true, "UMG_PVP_Prepare_C")
   BattleResourceManager:PreloadPvpAssetOutsideBattle()
+  self:TryStartBattleProfiler()
 end
 
 function UMG_PVP_Prepare_C:OnBattleEvent(eventName, ...)
@@ -110,6 +113,18 @@ function UMG_PVP_Prepare_C:UpdateUI()
   self:UpdatePvpRankInfo()
 end
 
+function UMG_PVP_Prepare_C:TryStartBattleProfiler()
+  if self.pvp_id == 1001 then
+  elseif self.pvp_id == 2001 then
+    BattleProfiler:CheckPoint(BattleProfilerCheckPoint.PVPFateDuel)
+  elseif self.pvp_id == 3001 then
+  elseif self.pvp_id == 4001 then
+  elseif self.pvp_id == 5001 then
+  elseif self.pvp_id == 6001 then
+    BattleProfiler:CheckPoint(BattleProfilerCheckPoint.PVPSpeedDuel)
+  end
+end
+
 function UMG_PVP_Prepare_C:PreBattleIsPvpRank()
   local pvpQualifierMatchPvpConfIdList = {}
   for _, battleType in pairs(BattleConst.PvpQualifierOpenRankCheckValueToBattleType) do
@@ -132,8 +147,9 @@ function UMG_PVP_Prepare_C:UpdatePvpRankInfo()
       Log.Error("UMG_PVP_Prepare_C enemyRankConf is nil RankStar=", RankStar)
       return
     end
-    self.ClassIcon_1:SetRankInfo(enemyRankConf, self.enemyPvpRankOrder)
-    self.ClassIcon:SetRankInfo(playerRankConf, playerRankOrder)
+    local curSeasonId = self.curSeasonId
+    self.ClassIcon_1:SetRankInfo(enemyRankConf, self.enemyPvpRankOrder, curSeasonId)
+    self.ClassIcon:SetRankInfo(playerRankConf, playerRankOrder, curSeasonId)
     self.ClassIcon:SetVisibility(UE4.ESlateVisibility.Visible)
     self.ClassIcon_1:SetVisibility(UE4.ESlateVisibility.Visible)
     self.Btn_Quit:SetVisibility(UE4.ESlateVisibility.Collapsed)
@@ -381,6 +397,16 @@ function UMG_PVP_Prepare_C:OpenPetInfoTips(index, isRight)
 end
 
 function UMG_PVP_Prepare_C:ShowPetInfoTips(bShow, bNotPlaySound, index, isRight)
+  local _, err, _ = tcall(self, self.NewShowPetInfoTips, bShow, bNotPlaySound, index, isRight)
+  if err then
+    Log.Error(err)
+    if not _G.RocoEnv.IS_EDITOR then
+      _G.NRCSDKManager:CrashSightReportExceptionWithReason("UMG_PVP_Prepare_C:ShowPetInfoTips", "Lua,ShowPetInfoTips,Exception", err)
+    end
+  end
+end
+
+function UMG_PVP_Prepare_C:NewShowPetInfoTips(bShow, bNotPlaySound, index, isRight)
   if bShow then
     if not bNotPlaySound then
       UE4.UNRCAudioManager.Get():PlaySound2DAuto(1083, "UMG_PVP_Prepare_C:ShowRightTips Show")

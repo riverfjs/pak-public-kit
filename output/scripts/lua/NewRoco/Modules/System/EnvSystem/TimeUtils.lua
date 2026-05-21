@@ -28,4 +28,14 @@ function TimeUtils.ParseTimeSpan(time_span)
   return tonumber(time_span) or 0
 end
 
+function TimeUtils.ToTimeStamp(dateTimeStr)
+  if not string.IsNilOrEmpty(dateTimeStr) then
+    local dateTime, success = UE4.UKismetMathLibrary.DateTimeFromString(dateTimeStr)
+    if success and dateTime then
+      return UE4.UNRCStatics.ToTimestamp(dateTime) - 28800
+    end
+  end
+  return 0
+end
+
 return TimeUtils

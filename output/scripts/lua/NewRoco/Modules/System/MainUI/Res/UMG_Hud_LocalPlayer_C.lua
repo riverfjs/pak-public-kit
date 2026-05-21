@@ -2,10 +2,11 @@ local BitMask = require("Utils.BitMask")
 local UMG_Hud_LocalPlayer_C = _G.NRCClass:Extend("UMG_Hud_LocalPlayer_C")
 local TypeEnum = {RoleRelationTree = 1, AFK = 2}
 
-function UMG_Hud_LocalPlayer_C:OnActive()
+function UMG_Hud_LocalPlayer_C:Construct()
+  self:DoCheckContentVisibleForChatBubble()
 end
 
-function UMG_Hud_LocalPlayer_C:OnDeactive()
+function UMG_Hud_LocalPlayer_C:Destruct()
 end
 
 function UMG_Hud_LocalPlayer_C:RefreshVisible()
@@ -17,6 +18,7 @@ function UMG_Hud_LocalPlayer_C:RefreshVisible()
   else
     self:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
+  self:DoCheckContentVisibleForChatBubble()
 end
 
 function UMG_Hud_LocalPlayer_C:ShowPanelByType(Type, Param)
@@ -63,6 +65,7 @@ function UMG_Hud_LocalPlayer_C:CloseType(Type)
     self.IdleState:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.IdleState:StopAnimation(self.IdleState.Loop)
   end
+  self:RefreshVisible()
 end
 
 function UMG_Hud_LocalPlayer_C:UnVisibileRelationTree()
@@ -75,10 +78,15 @@ end
 function UMG_Hud_LocalPlayer_C:ClearOldData()
   self.OldData = {}
   self:CloseType("RoleRelationTree")
-  self:RefreshVisible()
 end
 
 function UMG_Hud_LocalPlayer_C:OnAddEventListener()
+end
+
+function UMG_Hud_LocalPlayer_C:DoCheckContentVisibleForChatBubble()
+  local isShow = self.RelationTree_Interaction:IsVisible() or self.IdleState:IsVisible()
+  Log.Debug("UMG_Hud_LocalPlayer_C: DoCheckContentVisibleForChatBubble", isShow)
+  self:SetDetailedInfo(isShow and "" or "InVisible")
 end
 
 return UMG_Hud_LocalPlayer_C

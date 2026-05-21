@@ -22,7 +22,7 @@ function DialogueTimelineNPCEmojiEvent:OnEnter()
     self:Finish()
     return
   end
-  local actor = self:GetActor(self.OwnerActorID)
+  local actor = self:GetActor(self.OwnerActorID, self.NPCContentID)
   if actor then
     local Comp = actor:EnsureComponent(BubbleComponent)
     if self.Emotion then

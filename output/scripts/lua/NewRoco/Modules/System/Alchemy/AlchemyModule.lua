@@ -109,6 +109,7 @@ function AlchemyModule:OnConstruct()
   _G.NRCEventCenter:RegisterEvent("AlchemyModule", self, _G.NRCGlobalEvent.ON_RECONNECT_FINISH, self.OnReconnect)
   _G.NRCEventCenter:RegisterEvent("UMG_AlchemyPanel_C", self, SceneEvent.PreLoadMapStart, self.OnDialogueEnded)
   _G.NRCEventCenter:RegisterEvent("UMG_AlchemyPanel_C", self, DialogueModuleEvent.DialogueEnded, self.OnDialogueEnded)
+  _G.NRCEventCenter:RegisterEvent("UMG_AlchemyPanel_C", self, _G.NRCGlobalEvent.ON_DISCONNECT, self.OnDialogueEnded)
   _G.ZoneServer:AddProtocolListener(self, _G.ProtoCMD.ZoneSvrCmd.ZONE_UNLOCK_EXCHANGE_RECIPE_NOTIFY, self.OnZoneUnlockExchangeRecipeNotify)
   self:RegPanel("AlchemyPanel", "UMG_AlchemyPanel", _G.Enum.UILayerType.UI_LAYER_DIALOGUE, nil, nil, true, nil, true)
   self:RegPanel("ArdourUpPanel", "UMG_ArdourUpPanel", _G.Enum.UILayerType.UI_LAYER_DIALOGUE, nil, nil, true, nil, true)
@@ -135,6 +136,7 @@ function AlchemyModule:OnDestruct()
   _G.NRCEventCenter:UnRegisterEvent(self, _G.NRCGlobalEvent.ON_RECONNECT_FINISH, self.OnReconnect)
   _G.NRCEventCenter:UnRegisterEvent(self, SceneEvent.PreLoadMapStart, self.OnDialogueEnded)
   _G.NRCEventCenter:UnRegisterEvent(self, DialogueModuleEvent.DialogueEnded, self.OnDialogueEnded)
+  _G.NRCEventCenter:UnRegisterEvent(self, _G.NRCGlobalEvent.ON_DISCONNECT, self.OnDialogueEnded)
   self.waitingForRequestForUpgradeProtocol = nil
 end
 
@@ -235,10 +237,29 @@ function AlchemyModule:ShowReward()
   self:CloseSkipPanel()
   self:SetStatus(AlchemyShowStatusEnum.SHOW_REWARD)
   if 0 == self.upgrade_item_type then
+    local resListData = _G.NRCPanelResLoadData()
+    resListData.PreLoadResList = {}
+    local exchangeConf = _G.DataConfigManager:GetExchangeConf(self.exchange_id)
+    if #exchangeConf.get_item > 1 then
+      Log.Error("\230\137\147\233\128\160\229\135\186\228\186\134\229\164\154\228\184\170\239\188\140\232\191\153\228\184\170UI\231\187\147\230\158\132\228\184\141\230\148\175\230\140\129\239\188\140\232\175\183\230\143\144\228\191\174\230\148\185\233\156\128\230\177\130")
+    end
+    local get_goods_id = exchangeConf.get_item[1].get_goods_id
+    local get_goods_type = exchangeConf.get_item[1].get_goods_type
+    local big_icon
+    if get_goods_type == _G.Enum.GoodsType.GT_BAGITEM then
+      local BagItem = _G.DataConfigManager:GetBagItemConf(get_goods_id)
+      big_icon = BagItem and BagItem.big_icon
+    elseif get_goods_type == _G.Enum.GoodsType.GT_VITEM then
+      local vItemConf = _G.DataConfigManager:GetVisualItemConf(get_goods_id)
+      big_icon = vItemConf and vItemConf.bigIcon
+    else
+      Log.Error("\230\137\147\233\128\160\231\154\132\231\177\187\229\158\139\230\154\130\228\184\141\230\148\175\230\140\129")
+    end
+    table.insert(resListData.PreLoadResList, big_icon)
     self:OpenPanel("AlchemyItem_tips", {
       exchange_id = self.exchange_id,
       exchange_num = self.exchange_num
-    })
+    }, resListData)
   elseif self.upgrade_item_type == _G.Enum.VisualItem.VI_ROLE_HP_MAX then
     self:OpenPanel("ArdourUpTips", {
       origin_value = self.origin_value,

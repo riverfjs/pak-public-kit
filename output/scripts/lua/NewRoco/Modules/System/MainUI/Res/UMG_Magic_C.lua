@@ -37,6 +37,7 @@ function UMG_Magic_C:OnConstruct()
   self.bIsMoving = false
   self.bIsCastingMagic = false
   self.bIsThrowingBall = false
+  self.IsSelected = false
   self.bIsCurrentBannedOrNoMaterial = false
   self:OnAddEventListener()
   self.uiData = nil
@@ -168,25 +169,27 @@ function UMG_Magic_C:ShowSelected(show)
     self:SetMagicInfo(NewData, false)
   end
   if show then
-    self.SelectedAnim:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
-    local curSelectedPetGid = _G.NRCModuleManager:DoCmd(MainUIModuleCmd.GetSelectedPetGid)
-    if -1 ~= curSelectedPetGid then
-      if IsFirstAcquisitionMagic then
+    if not self.IsSelected then
+      self.IsSelected = true
+      self:StopAllAnimations()
+      local curSelectedPetGid = _G.NRCModuleManager:DoCmd(MainUIModuleCmd.GetSelectedPetGid)
+      if -1 ~= curSelectedPetGid then
+        if IsFirstAcquisitionMagic then
+          self:PlayAnimation(self.Appear)
+          _G.NRCModuleManager:DoCmd(MainUIModuleCmd.UI_RefreshMainPetSelectedState, -1)
+        else
+          self:PlayAnimation(self.change1)
+        end
+      elseif IsFirstAcquisitionMagic then
         self:PlayAnimation(self.Appear)
-        _G.NRCModuleManager:DoCmd(MainUIModuleCmd.UI_RefreshMainPetSelectedState, -1)
       else
-        self:PlayAnimation(self.change1)
+        self:PlayAnimation(self.select)
       end
-    elseif IsFirstAcquisitionMagic then
-      self:PlayAnimation(self.Appear)
-    else
-      self:PlayAnimation(self.select)
     end
-  else
-    if self.SelectedAnim:GetVisibility() == UE4.ESlateVisibility.Collapsed then
-      return
-    end
-    self.SelectedAnim:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  elseif self.IsSelected then
+    self.IsSelected = false
+    self:StopAllAnimations()
+    self:PlayAnimation(self.change2)
   end
 end
 
@@ -362,6 +365,7 @@ function UMG_Magic_C:_ChangeIconState(bShouldShowCorner, iconPath, bShowNum)
         self.CornerMark:SetPath(iconPath)
       end
       self.bIsCurrentBannedOrNoMaterial = true
+      _G.NRCEventCenter:DispatchEvent(_G.MainUIModuleEvent.MagicBanStateChanged)
     end
   elseif not bShouldShowCorner then
     if self.bIsCurrentBannedOrNoMaterial then
@@ -377,6 +381,9 @@ function UMG_Magic_C:_ChangeIconState(bShouldShowCorner, iconPath, bShowNum)
     self.bIsMoving = false
     self.bIsCastingMagic = false
     self.bIsThrowingBall = false
+    if self.bIsCurrentBannedOrNoMaterial then
+      _G.NRCEventCenter:DispatchEvent(_G.MainUIModuleEvent.MagicBanStateChanged)
+    end
     self.bIsCurrentBannedOrNoMaterial = false
   end
 end
@@ -389,12 +396,20 @@ function UMG_Magic_C:OnBagChange(GoodsChangeItems)
         self.targetItemID = numList[1]
       end
     end
+    local watchIDs = {}
     if self.targetItemID then
-      for _, v in ipairs(GoodsChangeItems) do
-        if v.bag_item and v.bag_item.id == self.targetItemID then
-          self:RefreshMagicInfo()
-          break
-        end
+      watchIDs[self.targetItemID] = true
+    end
+    if self.uiData and self.uiData.id then
+      watchIDs[self.uiData.id] = true
+    end
+    if self.magicBaseConf and self.magicBaseConf.cost_bag_item and self.magicBaseConf.cost_bag_item[1] then
+      watchIDs[self.magicBaseConf.cost_bag_item[1]] = true
+    end
+    for _, v in ipairs(GoodsChangeItems) do
+      if v.bag_item and watchIDs[v.bag_item.id] then
+        self:RefreshMagicInfo()
+        break
       end
     end
   end

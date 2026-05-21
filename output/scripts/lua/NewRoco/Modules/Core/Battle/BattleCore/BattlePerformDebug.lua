@@ -118,7 +118,7 @@ function BattlePerformDebug.ZGXDebugPerformDetail(performNode, performInfo)
         shield_change = petSyncInfo.shiled_change or -1
         damage_result = petSyncInfo.damage_result or -1
         damage_change = petSyncInfo.damage_change or -1
-        if petSyncInfo.attr_change and petSyncInfo.attr_type == _G.ProtoEnum.AttributeType.AT_NIGHTMARE_SHIELD then
+        if petSyncInfo.attr_change and (petSyncInfo.attr_type == _G.ProtoEnum.AttributeType.AT_NIGHTMARE_SHIELD or petSyncInfo.attr_type == _G.ProtoEnum.AttributeType.AI_BOX_SHIELD) then
           shield_change = petSyncInfo.attr_change
           shield_result = petSyncInfo.attr_result
         end

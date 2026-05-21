@@ -3,6 +3,7 @@ local RelationTreeEvent = reload("NewRoco.Modules.System.RelationTree.RelationTr
 local NPCModuleEvent = require("NewRoco.Modules.Core.NPC.NPCModuleEvent")
 local MainUIModuleEnum = require("NewRoco.Modules.System.MainUI.MainUIModuleEnum")
 local MagicReplayUtils = require("NewRoco.Modules.System.MagicReplay.MagicReplayUtils")
+local MainUIModuleEvent = reload("NewRoco.Modules.System.MainUI.MainUIModuleEvent")
 local Base = require("NewRoco.Modules.Core.Scene.Component.ActorComponent")
 local OnlineConf = _G.DataConfigManager:GetTable(_G.DataConfigManager.ConfigTableId.ONLINE_GLOBAL_CONFIG):GetAllDatas()
 local HUDComponent = Base:Extend("HUDComponent")
@@ -68,6 +69,16 @@ function HUDComponent:SetHudName(name)
       isShowName = true
     end
     self:SetNameVisible(isShowName)
+    local isShowRecallIcon = false
+    local player_tags = self.owner.serverData.avatar_status.player_tags
+    if player_tags then
+      for _, tag in ipairs(player_tags) do
+        if tag == _G.ProtoEnum.PlayerTag.PT_RECALL then
+          isShowRecallIcon = true
+        end
+      end
+    end
+    self._playerHeadHud:SetReturnIconVisible(isShowRecallIcon)
     local FriendModule = _G.NRCModuleManager:GetModule("FriendModule")
     if nil ~= FriendModule then
       local VisitList = _G.NRCModuleManager:DoCmd(_G.FriendModuleCmd.GetOnlineVisitorList)
@@ -224,6 +235,7 @@ function HUDComponent:Attach(owner)
   _G.NRCEventCenter:RegisterEvent("HUDComponent", self, RelationTreeEvent.UPDATE_RELATION_BUBBLE_BY_OPTION, self.OnRelationBubbleChangeYellow)
   _G.NRCEventCenter:RegisterEvent("HUDComponent", self, _G.NRCGlobalEvent.ADD_OR_REMOVE_BRIEF_FRIEND, self.OnUpdateFriendRelationship)
   _G.NRCEventCenter:RegisterEvent("HUDComponent", self, _G.NRCGlobalEvent.ON_FETCH_PLAYER_FRIEND, self.OnUpdateFriendRelationship)
+  _G.NRCEventCenter:RegisterEvent("HUDComponent", self, MainUIModuleEvent.OnPlayerTagsChange, self.OnPlayerTagsChange)
 end
 
 function HUDComponent:DeAttach()
@@ -234,6 +246,7 @@ function HUDComponent:DeAttach()
   _G.NRCEventCenter:UnRegisterEvent(self, RelationTreeEvent.UPDATE_RELATION_BUBBLE_BY_OPTION, self.OnRelationBubbleChangeYellow)
   _G.NRCEventCenter:UnRegisterEvent(self, _G.NRCGlobalEvent.ADD_OR_REMOVE_BRIEF_FRIEND, self.OnUpdateFriendRelationship)
   _G.NRCEventCenter:UnRegisterEvent(self, _G.NRCGlobalEvent.ON_FETCH_PLAYER_FRIEND, self.OnUpdateFriendRelationship)
+  _G.NRCEventCenter:UnRegisterEvent(self, MainUIModuleEvent.OnPlayerTagsChange, self.OnPlayerTagsChange)
   self.owner:RemoveEventListener(self, NPCModuleEvent.OnLogicStatusUpdated, self.OnLogicStatusUpdated)
 end
 
@@ -392,6 +405,21 @@ function HUDComponent:Update(deltaTime)
     if self.owner.AFKComponent then
       self.owner.AFKComponent:OnDistanceUpdate(squaredDis2Local <= NEW_PLAYER_STATE_SHOW_DISTANCE_SQR)
     end
+  end
+end
+
+function HUDComponent:OnPlayerTagsChange(actor_id, player_tags)
+  if self.owner.serverData.base.actor_id == actor_id then
+    self.owner.serverData.avatar_status.player_tags = player_tags
+    local isShowRecallIcon = false
+    if player_tags then
+      for _, tag in ipairs(player_tags) do
+        if tag == _G.ProtoEnum.PlayerTag.PT_RECALL then
+          isShowRecallIcon = true
+        end
+      end
+    end
+    self._playerHeadHud:SetReturnIconVisible(isShowRecallIcon)
   end
 end
 

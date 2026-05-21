@@ -54,7 +54,6 @@ function ScenePlayerThrowBuff:OnBegin(owner, SkillInfo)
   self.inThrow = false
   self._keepStill = true
   self:UpdateDirection()
-  self:GetController().PlayerCameraManager.BP_FadeComponent.BallMesh = self.SkillInfo.BallLua.viewObj:GetComponentByClass(UE4.USkeletalMeshComponent)
   if self.SkillInfo.ThrowStat == Enum.SceneThrowAbilityType.STAT_NORMAL then
     self.owner.viewObj.BP_ALSComponent:SetAimThrowState(true, self.isFast, self.FaceDirection, true)
     self:ClampViewYaw()

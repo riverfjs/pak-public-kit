@@ -17,31 +17,36 @@ end
 
 function UMG_Tempreture_Hot_C:OnEnable()
   self:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
-  local localPlayer = NRCModuleManager:DoCmd(PlayerModuleCmd.GET_LOCAL_PLAYER)
-  localPlayer:SendEvent(PlayerModuleEvent.ON_BODY_TEMP_STATE_CHANGED, TemperatureEnum.BodyState.HOT)
 end
 
 function UMG_Tempreture_Hot_C:OnDisable()
-  local localPlayer = NRCModuleManager:DoCmd(PlayerModuleCmd.GET_LOCAL_PLAYER)
-  if localPlayer then
-    localPlayer:SendEvent(PlayerModuleEvent.ON_BODY_TEMP_STATE_CHANGED, TemperatureEnum.BodyState.NORMAL)
-  end
 end
 
 function UMG_Tempreture_Hot_C:DoCustomOpen()
+  Log.Debug("UMG_Tempreture_Hot_C:DoCustomOpen", self.bDoingClose)
+  _G.NRCAudioManager:PlaySound2DAuto(40008012, "UMG_Tempreture_Hot_C:DoCustomOpen")
+  self.bDoingClose = false
   self:StopAllAnimations()
   self:PlayAnimation(self.HotOpen)
   self:PlayAnimation(self.HotLoop, 0, 0)
   self:OnEnable()
 end
 
-function UMG_Tempreture_Hot_C:DoCustomClose()
+function UMG_Tempreture_Hot_C:DoCustomClose(bForce)
+  Log.Debug("UMG_Tempreture_Hot_C:DoCustomClose", self.bDoingClose, bForce)
+  self.bDoingClose = true
+  if bForce then
+    self:StopAllAnimations()
+    self:DoClose()
+    return
+  end
   self:StopAllAnimations()
   self:PlayAnimation(self.HotClose)
 end
 
 function UMG_Tempreture_Hot_C:OnAnimationFinished(Animation)
-  if Animation == self.HotClose then
+  if Animation == self.HotClose and self.bDoingClose then
+    self.bDoingClose = false
     self:DoClose()
   end
 end

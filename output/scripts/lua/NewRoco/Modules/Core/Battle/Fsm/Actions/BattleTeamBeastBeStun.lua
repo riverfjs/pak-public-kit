@@ -86,11 +86,10 @@ function BattleTeamBeastBeStun:PlaySkill()
 end
 
 function BattleTeamBeastBeStun:SkillFinish()
-  if not self.IsFinish then
+  if not self.finished then
     if self.Boss then
       self.Boss.card.petState:SetCatchStun(true)
     end
-    self.IsFinish = true
     self.Boss = nil
     self:Finish()
   end

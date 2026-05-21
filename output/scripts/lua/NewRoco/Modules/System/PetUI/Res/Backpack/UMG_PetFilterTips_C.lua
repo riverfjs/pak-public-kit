@@ -127,6 +127,9 @@ function UMG_PetFilterTips_C:OnActive(OpenType, FilterHiddenParam)
   elseif OpenType == PetUIModuleEnum.OpenSortType.CertificationActivity then
     self:HiddenOrShowStrongPoint(true)
     self.OldFilter = self.data.chooseTypeListCertification
+  elseif OpenType == PetUIModuleEnum.OpenSortType.BattleRogue then
+    self:HiddenOrShowStrongPoint(true)
+    self.OldFilter = self.data.chooseTypeListBattleRogue
   end
   if OpenType == PetUIModuleEnum.OpenSortType.HomePetFeeding and self.OldFilter.GenderFilter then
     self.GenderFilter = table.deepCopy(self.OldFilter.GenderFilter, self.GenderFilter, false)
@@ -541,6 +544,8 @@ function UMG_PetFilterTips_C:ClosePanel()
     self.data.chooseTypeListPetPartnerActivity = self.OldFilter
   elseif self.OpenType == PetUIModuleEnum.OpenSortType.CertificationActivity then
     self.data.chooseTypeListCertification = self.OldFilter
+  elseif self.OpenType == PetUIModuleEnum.OpenSortType.BattleRogue then
+    self.data.chooseTypeListBattleRogue = self.OldFilter
   end
   self:LoadAnimation(2)
 end
@@ -747,6 +752,16 @@ function UMG_PetFilterTips_C:ApplyFilter()
       SpecialityFilter = self.SpecialityFilter
     }
     _G.NRCEventCenter:DispatchEvent(PetUIModuleEvent.FilterPet, self.data.chooseTypeListCertification)
+  elseif self.OpenType == PetUIModuleEnum.OpenSortType.BattleRogue then
+    self.data.chooseTypeListBattleRogue = {
+      DepartmentFilter = self.DepartmentFilter,
+      TalentFilter = self.TalentFilter,
+      NaturePositiveEffectFilter = self.NaturePositiveEffectFilter,
+      AttributeFilter = self.AttributeFilter,
+      PartnerMarkerFilter = self.PartnerMarkerFilter,
+      SpecialityFilter = self.SpecialityFilter
+    }
+    _G.NRCEventCenter:DispatchEvent(PetUIModuleEvent.FilterPet, self.data.chooseTypeListBattleRogue)
   end
   self:LoadAnimation(2)
 end

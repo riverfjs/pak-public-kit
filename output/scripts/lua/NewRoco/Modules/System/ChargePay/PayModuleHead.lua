@@ -16,6 +16,12 @@ function PayModuleHead:OnConstruct()
   self:BindCmd(PayModuleCmd.SetPayInfo, "SetPayInfo")
   self:BindCmd(PayModuleCmd.SetPayGoodsInfo, "SetPayGoodsInfo")
   self:BindCmd(PayModuleCmd.GetPayGoodsInfo, "GetPayGoodsInfo")
+  self:BindCmd(PayModuleCmd.ReportPayStatus, "ReportPayStatus")
+  self:BindCmd(PayModuleCmd.SetGoodsId, "SetGoodsId")
+  self:BindCmd(PayModuleCmd.GetGoodsId, "GetGoodsId")
+  self:BindCmd(PayModuleCmd.StartLimitPay, "StartLimitGoodsPurchase")
+  self:BindCmd(PayModuleCmd.EndLimitPay, "EndLimitGoodsPurchase")
+  self:BindCmd(PayModuleCmd.IfLimitPay, "IsLimitPay")
 end
 
 return PayModuleHead

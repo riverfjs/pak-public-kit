@@ -39,13 +39,20 @@ function UMG_TryOn_Item_C:OnItemSelected(_bSelected)
     local packageTitle = ""
     local bShouldShowDetailButton = false
     local bShouldShowGorgeousButton = false
+    local gorgeousButtonIconPath = ""
+    local gorgeousButtonText = ""
     self.parent:HandleMutualExclusiveChoice(true, self, self.uiData.Type, true)
     if self.uiData == nil then
       Log.Error("self.uiData is nil")
       return
     end
     if self.uiData.Type ~= _G.Enum.GoodsType.GT_CARD_SKIN then
-      self:PlayAnimation(self:_GetSelectAnimByQuality(self.itemQuality, self.hasGorgeous))
+      local fashionWandConf = _G.DataConfigManager:GetFashionWandConf(self.uiData.item_id, true)
+      local bIsWand = false
+      if fashionWandConf and not string.IsNilOrEmpty(fashionWandConf.magic_name) then
+        bIsWand = true
+      end
+      self:PlayAnimation(self:_GetSelectAnimByQuality(self.itemQuality, self.hasGorgeous, bIsWand))
     end
     if self.uiData.Type == _G.Enum.GoodsType.GT_FASHION_SUITS then
       local suitConf = _G.DataConfigManager:GetFashionSuitsConf(self.uiData.item_id)
@@ -82,8 +89,14 @@ function UMG_TryOn_Item_C:OnItemSelected(_bSelected)
       packageTitle = packageConf.name
       if packageConf then
         local itemConf = _G.DataConfigManager:GetFashionItemConf(self.uiData.item_id, true)
+        local wandConf = _G.DataConfigManager:GetFashionWandConf(self.uiData.item_id, true)
         if itemConf and itemConf.type == _G.Enum.FashionLabelType.FLT_WAND then
-          bShouldShowDetailButton = true
+          if wandConf and wandConf.magic_name and not string.IsNilOrEmpty(wandConf.magic_name) then
+            bShouldShowGorgeousButton = true
+            packageTitle = wandConf.magic_dress_text
+            gorgeousButtonIconPath = wandConf.magic_btn_icon
+            gorgeousButtonText = wandConf.magic_name
+          end
         else
           bShouldShowDetailButton = false
         end
@@ -94,6 +107,8 @@ function UMG_TryOn_Item_C:OnItemSelected(_bSelected)
     local detailContext = {}
     detailContext.bIsShopItem = true
     detailContext.context = self.uiData
+    detailContext.gorgeousBtnIconPath = gorgeousButtonIconPath
+    detailContext.gorgeousBtnText = gorgeousButtonText
     self.parent:PushNewSelectedElementToStack(title, packageTitle, bShouldShowDetailButton, bShouldShowGorgeousButton, detailContext, self.uiData.item_id)
     _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.SetCurTryOnItemInfo, self.uiData.Type, self.uiData.item_id, self.uiData.id, nil, nil, true)
   elseif self.uiData.Type and self.uiData.Type == _G.Enum.GoodsType.GT_CARD_SKIN then
@@ -106,7 +121,12 @@ function UMG_TryOn_Item_C:OnItemSelected(_bSelected)
     self.parent:HandleMutualExclusiveChoice(false, self, self.uiData.Type, true)
     self.parent:HandleSuitNameRecover(self.uiData.item_id)
     self.parent:DemountUpgradeComponent(self.uiData.Type, self.uiData.item_id)
-    self:PlayAnimation(self:_GetUnselectAnimByQuality(self.itemQuality, self.hasGorgeous))
+    local fashionWandConf = _G.DataConfigManager:GetFashionWandConf(self.uiData.item_id)
+    local bIsWand = false
+    if fashionWandConf and not string.IsNilOrEmpty(fashionWandConf.magic_name) then
+      bIsWand = true
+    end
+    self:PlayAnimation(self:_GetUnselectAnimByQuality(self.itemQuality, self.hasGorgeous, bIsWand))
   end
 end
 
@@ -127,6 +147,7 @@ function UMG_TryOn_Item_C:UpdateItemInfo()
   self.Btn_Suit:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.bOwned = false
   self.itemQuality = 1
+  local type
   if self.uiData.Type == _G.Enum.GoodsType.GT_FASHION_SUITS then
     local suitConf = _G.DataConfigManager:GetFashionSuitsConf(self.uiData.item_id)
     if suitConf then
@@ -147,6 +168,7 @@ function UMG_TryOn_Item_C:UpdateItemInfo()
     end
   elseif self.uiData.Type == _G.Enum.GoodsType.GT_FASHION then
     local fashionConf = _G.DataConfigManager:GetFashionItemConf(self.uiData.item_id)
+    type = fashionConf.type
     if fashionConf then
       self.itemQuality = fashionConf.item_quality
       self.Icon:SetPath(fashionConf.icon)
@@ -169,15 +191,24 @@ function UMG_TryOn_Item_C:UpdateItemInfo()
     end
     self:_SetShouldShowPetIcon(false)
   end
-  local sgSuitId = _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.CheckSGSuitId, self.uiData.item_id)
-  if sgSuitId then
-    self.itemQuality = 6
-    self.Bg:SetPath(AppearanceUtils:GetPIKABackgroundPath(true))
-    self:PlayAnimation(self.Orange_unselect_loop, 0.0, 0, UE4.EUMGSequencePlayMode.Forward, 1.0, false)
+  local fashionWandConf = _G.DataConfigManager:GetFashionWandConf(self.uiData.item_id)
+  local bIsWand = false
+  if fashionWandConf and not string.IsNilOrEmpty(fashionWandConf.magic_name) then
+    bIsWand = true
+  end
+  if bIsWand and type == _G.Enum.FashionLabelType.FLT_WAND then
+    self:PlayAnimation(self.FaZhang_unselect_loop, 0.0, 0, UE4.EUMGSequencePlayMode.Forward, 1.0, false)
   else
-    self.Bg:SetPath(AppearanceUtils:GetPIKABackgroundPath(false))
-    if 4 == itemQuality then
-      self:PlayAnimation(self.Purple_unselect_loop, 0.0, 0, UE4.EUMGSequencePlayMode.Forward, 1.0, false)
+    local sgSuitId = _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.CheckSGSuitId, self.uiData.item_id)
+    if sgSuitId then
+      self.itemQuality = 6
+      self.Bg:SetPath(AppearanceUtils:GetPIKABackgroundPath(true))
+      self:PlayAnimation(self.Orange_unselect_loop, 0.0, 0, UE4.EUMGSequencePlayMode.Forward, 1.0, false)
+    else
+      self.Bg:SetPath(AppearanceUtils:GetPIKABackgroundPath(false))
+      if 4 == itemQuality then
+        self:PlayAnimation(self.Purple_unselect_loop, 0.0, 0, UE4.EUMGSequencePlayMode.Forward, 1.0, false)
+      end
     end
   end
   if self.bOwned then
@@ -232,9 +263,18 @@ function UMG_TryOn_Item_C:OnAnimationFinished(Anim)
   if Anim == self.Purple_unselect then
     self:PlayAnimation(self.Purple_unselect_loop, 0.0, 0, UE4.EUMGSequencePlayMode.Forward, 1.0, false)
   end
+  if Anim == self.FaZhang_selcet then
+    self:PlayAnimation(self.FaZhang_selcet_loop, 0.0, 0, UE4.EUMGSequencePlayMode.Forward, 1.0, false)
+  end
+  if Anim == self.FaZhang_unselect then
+    self:PlayAnimation(self.FaZhang_unselect_loop, 0.0, 0, UE4.EUMGSequencePlayMode.Forward, 1.0, false)
+  end
 end
 
-function UMG_TryOn_Item_C:_GetSelectAnimByQuality(quality, hasGorgeous)
+function UMG_TryOn_Item_C:_GetSelectAnimByQuality(quality, hasGorgeous, bIsWand)
+  if bIsWand then
+    return self.FaZhang_selcet
+  end
   if hasGorgeous then
     if 4 == quality then
       return self.Purple_selcet
@@ -245,7 +285,10 @@ function UMG_TryOn_Item_C:_GetSelectAnimByQuality(quality, hasGorgeous)
   return self.change1
 end
 
-function UMG_TryOn_Item_C:_GetUnselectAnimByQuality(quality, hasGorgeous)
+function UMG_TryOn_Item_C:_GetUnselectAnimByQuality(quality, hasGorgeous, bIsWand)
+  if bIsWand then
+    return self.FaZhang_unselect
+  end
   if hasGorgeous then
     if 4 == quality then
       return self.Purple_unselect

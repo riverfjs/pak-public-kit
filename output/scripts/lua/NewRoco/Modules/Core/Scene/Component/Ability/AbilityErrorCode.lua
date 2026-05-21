@@ -23,6 +23,7 @@ local AbilityErrorCode = {
   CASTING_SCENE_MAGIC = 21,
   TASK_LOCK = 22,
   VIDEO_BAN = 23,
+  AREA_BAN = 24,
   ToString = function(errorCode)
     if 0 == errorCode then
       return "NO_ERROR"
@@ -70,6 +71,8 @@ local AbilityErrorCode = {
       return "TASK_LOCK"
     elseif 23 == errorCode then
       return "VIDEO_BAN"
+    elseif 24 == errorCode then
+      return "AREA_BAN"
     end
   end
 }

@@ -37,6 +37,11 @@ function UMG_PetCardShare_C:Init(petData, card_ids, unlockData)
   elseif mutation_type and glass_info and PetUtils.CheckIsHiddenShiningGlass(mutation_type, glass_info) then
     self.ColourIcon_1:SetActiveWidgetIndex(3)
     self.ColourIcon:SetActiveWidgetIndex(3)
+    local path = self:GetHiddenGlassIcon(true)
+    if "" ~= path then
+      self.ColourIcon_04:SetPath(path)
+      self.ColourIcon_5:SetPath(path)
+    end
   elseif mutation_type and PetUtils.CheckIsShiningGlass(mutation_type) then
     self.ColourIcon_1:SetActiveWidgetIndex(1)
     self.ColourIcon:SetActiveWidgetIndex(1)
@@ -46,6 +51,11 @@ function UMG_PetCardShare_C:Init(petData, card_ids, unlockData)
   elseif mutation_type and glass_info and PetUtils.CheckIsHiddenGlass(mutation_type, glass_info) then
     self.ColourIcon_1:SetActiveWidgetIndex(4)
     self.ColourIcon:SetActiveWidgetIndex(4)
+    local path = self:GetHiddenGlassIcon(false)
+    if "" ~= path then
+      self.ColourIcon_05:SetPath(path)
+      self.ColourIcon_6:SetPath(path)
+    end
   elseif mutation_type and PetMutationUtils.GetMutationValue(mutation_type, _G.Enum.MutationDiffType.MDT_GLASS) then
     self.ColourIcon_1:SetActiveWidgetIndex(2)
     self.ColourIcon:SetActiveWidgetIndex(2)
@@ -55,35 +65,40 @@ function UMG_PetCardShare_C:Init(petData, card_ids, unlockData)
   end
   local dateText = _G.DataConfigManager:GetLocalizationConf("medal_text_5").msg
   local Text, AddTime, Count
-  if petData.add_time then
-    AddTime = os.date(dateText, petData.add_time)
+  local add_time = petData.activity_partner_pet_data and petData.activity_partner_pet_data.add_time or petData.add_time
+  if add_time then
+    AddTime = os.date(dateText, add_time)
     Text = string.format(_G.DataConfigManager:GetLocalizationConf("pet_experience_text_9").msg, AddTime)
   end
-  local PetCatchWay = self:GetPetCatchWay(petData)
+  local catchData = petData.activity_partner_pet_data or petData
+  local PetCatchWay = self:GetPetCatchWay(catchData)
   Text = string.format("%s%s", Text, PetCatchWay)
-  if petData.catch_lv then
+  if catchData.catch_lv then
     Count = _G.DataConfigManager:GetLocalizationConf("pet_experience_text_8_card").msg
-    Count = string.format(Count, petData.catch_lv)
+    Count = string.format(Count, catchData.catch_lv)
     Text = string.format("%s%s", Text, Count)
   end
   self.Card2Text_1:SetText(Text)
   self.Card2Text_11:SetText(Text)
-  local natureDesc = PetUtils.GetNatureDes(petData)
+  local natureDesc = petData.activity_partner_pet_data and petData.activity_partner_pet_data.nature_desc or PetUtils.GetNatureDes(petData)
   if natureDesc then
     Text = natureDesc
     self.Card2Text_3:SetText(Text)
     self.Card2Text_13:SetText(Text)
   end
-  if petData.key_experience and petData.key_experience.evolute_info then
+  local partnerDataEvoluteInfo = petData.activity_partner_pet_data and petData.activity_partner_pet_data.key_experience and petData.activity_partner_pet_data.key_experience.evolute_info
+  local petDataEvoluteInfo = petData.key_experience and petData.key_experience.evolute_info
+  local evoluteInfo = partnerDataEvoluteInfo or petDataEvoluteInfo
+  if evoluteInfo then
     Text = ""
-    for i, Evolute in ipairs(petData.key_experience.evolute_info) do
+    for i, Evolute in ipairs(evoluteInfo) do
       AddTime = os.date(dateText, Evolute.evolute_time)
       local BeforePetBaseConf = _G.DataConfigManager:GetPetbaseConf(Evolute.before_base_conf_id)
       local AfterPetBaseConf = _G.DataConfigManager:GetPetbaseConf(Evolute.after_base_conf_id)
       local msg = _G.DataConfigManager:GetLocalizationConf("pet_experience_form_1_card").msg
       local Text_Info = string.format(msg, AddTime, BeforePetBaseConf.name, AfterPetBaseConf.name)
       Text = string.format("%s%s", Text, Text_Info)
-      if i ~= #petData.key_experience.evolute_info then
+      if i ~= #evoluteInfo then
         Text = string.format("%s%s", Text, "\n")
       end
     end
@@ -108,7 +123,55 @@ function UMG_PetCardShare_C:Init(petData, card_ids, unlockData)
     self.Card2Text_18
   }
   local card2Text_index = 1
-  if petData.key_experience and petData.key_experience.blessing_info then
+  local partnerBlessingInfo = petData.activity_partner_pet_data and petData.activity_partner_pet_data.key_experience and petData.activity_partner_pet_data.key_experience.blessing_info
+  if partnerBlessingInfo and card2Text_index <= 3 and partnerBlessingInfo.from_player_name and partnerBlessingInfo.from_pet_name then
+    Text = string.format(LuaText.interactiontree_cifu_text_1, partnerBlessingInfo.from_player_name, partnerBlessingInfo.from_pet_name)
+    card2Text_array2[card2Text_index]:SetText(Text)
+    card2Text_array[card2Text_index]:SetText(Text)
+    card2Text_array2[card2Text_index]:SetVisibility(UE4.ESlateVisibility.selfHitTestInvisible)
+    card2Text_array[card2Text_index]:SetVisibility(UE4.ESlateVisibility.selfHitTestInvisible)
+    card2Text_index = card2Text_index + 1
+    bExp = true
+  end
+  local partnerClosenessInfo = petData.activity_partner_pet_data and petData.activity_partner_pet_data.closeness_info
+  if partnerClosenessInfo and partnerClosenessInfo.closeness_lv and 0 ~= partnerClosenessInfo.closeness_lv and card2Text_index <= 3 then
+    Text = ""
+    local PetCloseLevelEffectConf = _G.DataConfigManager:GetPetCloseLevelEffectConf(partnerClosenessInfo.closeness_lv + 1)
+    if PetCloseLevelEffectConf.localization_id and "" ~= PetCloseLevelEffectConf.localization_id then
+      local LocalizationConf = _G.DataConfigManager:GetLocalizationConf(PetCloseLevelEffectConf.localization_id)
+      Text = string.format(LocalizationConf.msg, petData.activity_partner_pet_data.name)
+      card2Text_array2[card2Text_index]:SetText(Text)
+      card2Text_array[card2Text_index]:SetText(Text)
+      card2Text_array2[card2Text_index]:SetVisibility(UE4.ESlateVisibility.selfHitTestInvisible)
+      card2Text_array[card2Text_index]:SetVisibility(UE4.ESlateVisibility.selfHitTestInvisible)
+      card2Text_index = card2Text_index + 1
+      bExp = true
+    end
+  end
+  local partnerTextDesc = petData.activity_partner_pet_data and petData.activity_partner_pet_data.key_experience and petData.activity_partner_pet_data.key_experience.text_desc
+  if partnerTextDesc and card2Text_index <= 3 then
+    for _, ExperienceID in pairs(partnerTextDesc or {}) do
+      if ExperienceID then
+        local ExperienceConf = _G.DataConfigManager:GetTextExpConf(ExperienceID)
+        if ExperienceConf then
+          local ExperienceText = ""
+          if 1 == ExperienceID then
+            ExperienceText = string.format(LuaText[ExperienceConf.exp_localization_id], petData.name)
+          end
+          if "" ~= ExperienceText and nil ~= card2Text_array2[card2Text_index] and nil ~= card2Text_array[card2Text_index] then
+            card2Text_array2[card2Text_index]:SetText(ExperienceText)
+            card2Text_array[card2Text_index]:SetText(ExperienceText)
+            card2Text_array2[card2Text_index]:SetVisibility(UE4.ESlateVisibility.selfHitTestInvisible)
+            card2Text_array[card2Text_index]:SetVisibility(UE4.ESlateVisibility.selfHitTestInvisible)
+            card2Text_index = card2Text_index + 1
+            bExp = true
+          end
+        end
+      end
+    end
+    bExp = true
+  end
+  if petData.key_experience and petData.key_experience.blessing_info and card2Text_index <= 3 then
     local blessing_info = petData.key_experience.blessing_info
     if blessing_info.from_player_name and blessing_info.from_pet_name then
       Text = string.format(LuaText.interactiontree_cifu_text_1, blessing_info.from_player_name, blessing_info.from_pet_name)
@@ -119,19 +182,6 @@ function UMG_PetCardShare_C:Init(petData, card_ids, unlockData)
       card2Text_index = card2Text_index + 1
       bExp = true
     end
-  end
-  if petData.key_experience and petData.key_experience.pvp_first_win_info then
-    Text = ""
-    AddTime = os.date(dateText, petData.key_experience.pvp_first_win_info.win_time)
-    local msg = _G.DataConfigManager:GetLocalizationConf("pet_experience_form_2_card").msg
-    local Text_Info = string.format(msg, AddTime, petData.key_experience.pvp_first_win_info.enemy_name, petData.key_experience.pvp_first_win_info.last_killed_pet_name)
-    Text = string.format("%s%s", Text, Text_Info)
-    card2Text_array2[card2Text_index]:SetText(Text)
-    card2Text_array[card2Text_index]:SetText(Text)
-    card2Text_array2[card2Text_index]:SetVisibility(UE4.ESlateVisibility.selfHitTestInvisible)
-    card2Text_array[card2Text_index]:SetVisibility(UE4.ESlateVisibility.selfHitTestInvisible)
-    card2Text_index = card2Text_index + 1
-    bExp = true
   end
   if petData.closeness_info and petData.closeness_info.closeness_lv and 0 ~= petData.closeness_info.closeness_lv and card2Text_index <= 3 then
     Text = ""
@@ -252,6 +302,24 @@ function UMG_PetCardShare_C:Init(petData, card_ids, unlockData)
   end
 end
 
+function UMG_PetCardShare_C:GetHiddenGlassIcon(bShiningGlass)
+  local petData = self.petData
+  if petData and petData.glass_info then
+    local HiddenGlassID = petData.glass_info.glass_value
+    if HiddenGlassID then
+      local HiddenGlassConf = _G.DataConfigManager:GetHiddenGlassConf(HiddenGlassID)
+      if HiddenGlassConf then
+        if bShiningGlass and HiddenGlassConf.yise_icon then
+          return HiddenGlassConf.yise_icon
+        elseif HiddenGlassConf.icon then
+          return HiddenGlassConf.icon
+        end
+      end
+    end
+  end
+  return ""
+end
+
 function UMG_PetCardShare_C:ChangeCard(cardIndex)
   self.canChange = false
   self.cardIndex = cardIndex
@@ -265,6 +333,9 @@ function UMG_PetCardShare_C:ChangeCard(cardIndex)
 end
 
 function UMG_PetCardShare_C:InitCard(cardIndex)
+  if not cardIndex or not self.card_ids[cardIndex] then
+    return
+  end
   local cardConf = _G.DataConfigManager:GetPetShareItemConf(self.card_ids[cardIndex])
   local cardType = cardConf.share_pattern
   local petbaseConf = _G.DataConfigManager:GetPetbaseConf(self.petData.base_conf_id)

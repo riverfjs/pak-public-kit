@@ -1,4 +1,5 @@
 local Base = require("NewRoco.TUI.BP_NRCItemBase_C")
+local PetUtils = require("NewRoco.Utils.PetUtils")
 local UMG_FriendTeamItem_Details_C = Base:Extend("UMG_FriendTeamItem_Details_C")
 
 function UMG_FriendTeamItem_Details_C:OnConstruct()
@@ -152,6 +153,12 @@ function UMG_FriendTeamItem_Details_C:UpdateUIForCommonPet()
     for _, v in ipairs(petSkillEquipInfoList) do
       if v.skill_src == Enum.PetNewSkillSrc.PNSS_PET_BLOOD then
         v.bFantastic = true
+        local data = self.data
+        local skillId = v and v.id
+        local petData = data and data.PetData
+        local petGid = petData and petData.gid
+        local seasonId = PetUtils.TryGetPetSkillSeasonId(petGid, skillId)
+        v.fantasticSeasonId = seasonId
         break
       end
     end

@@ -62,10 +62,10 @@ function UMG_NPCShop_C:OnDestruct()
     end
   end
   self:UnRegisterEvent(self, NPCShopUIModuleEvent.NPCSHOPPURCHASE_CLOSE)
+  self:UnRegisterEvent(self, NPCShopUIModuleEvent.RefreshHasCountAfterClaimReward)
   _G.NRCEventCenter:UnRegisterEvent(self, DialogueModuleEvent.DialogueEnded, self.OnCloseVisit)
   _G.NRCEventCenter:UnRegisterEvent(self, _G.NRCGlobalEvent.ON_RECONNECT_FINISH, self._OnPreNtfEnterScene)
   self:StartCaptureTick(false)
-  self:UnBindInputAction()
   UE4Helper.SetEnableWorldRendering(nil, false, "UMG_NPCShop_C_Capture")
 end
 
@@ -75,17 +75,10 @@ function UMG_NPCShop_C:_OnPreNtfEnterScene()
 end
 
 function UMG_NPCShop_C:BindInputAction()
-  local imc = UE.UNRCEnhancedInputHelper.GetInputMappingContext("IMC_NpcShop")
-  _G.NRCModuleManager:DoCmd(_G.EnhancedInputModuleCmd.EnhancedInputHelperAddInputMappingContext, imc, self.depth)
-  local ia = UE.UNRCEnhancedInputHelper.GetInputAction("IA_CloseNpcShopUI")
-  UE.UNRCEnhancedInputHelper.BindAction(ia, UE.ETriggerEvent.Triggered, self, "OnPcClose")
-end
-
-function UMG_NPCShop_C:UnBindInputAction()
-  local ia = UE.UNRCEnhancedInputHelper.GetInputAction("IA_CloseNpcShopUI")
-  UE.UNRCEnhancedInputHelper.UnBindAction(ia)
-  local imc = UE.UNRCEnhancedInputHelper.GetInputMappingContext("IMC_NpcShop")
-  _G.NRCModuleManager:DoCmd(_G.EnhancedInputModuleCmd.EnhancedInputHelperRemoveInputMappingContext, imc)
+  local mappingContext = self:AddInputMappingContext("IMC_NpcShop")
+  if mappingContext then
+    mappingContext:BindAction("IA_CloseNpcShopUI", self, "OnPcClose")
+  end
 end
 
 function UMG_NPCShop_C:OnPcClose()
@@ -133,7 +126,12 @@ function UMG_NPCShop_C:SetItemList(List)
 end
 
 local function SortShopItem(a, b)
-  if a.can_buy and b.can_buy then
+  if a.AlreadyHasItem then
+    return false
+  elseif b.AlreadyHasItem then
+    return true
+  end
+  if a.can_buy == b.can_buy then
     return a.Pos < b.Pos
   elseif a.can_buy then
     return true
@@ -218,10 +216,19 @@ function UMG_NPCShop_C:OnActive(param0, param, param1, param2, bIsRefreshNPCShop
             end
             local can_buy = true
             local limitBuyType = -1
-            local SoldOut_goodsNameList
-            if goodsShopConf.buy_cond_type == _G.Enum.BuyLimited.BL_SOLDOUT then
+            local SoldOut_goodsNameList, limitBuyParam, buy_cond_param
+            if goodsShopConf.buy_cond_type == Enum.BuyLimited.BL_SOLDOUT then
               SoldOut_goodsNameList = self:GetUnsoldGoodsNameList(goodsShopConf, shopId, v.goods_id)
-              can_buy, limitBuyType = ShopModuleSortData:CheckBuyCondition(v, goodsShopConf, playerLevel, param1.shop_data.goods_data)
+              buy_cond_param = goodsShopConf.buy_cond_param
+            end
+            local goodsConf = NPCShopUtils:GetAdjustGoodConf(v.goods_id, shopId)
+            local AlreadyHasItem = false
+            can_buy, limitBuyType, limitBuyParam = ShopModuleSortData:CheckBuyCondition(v, goodsShopConf, playerLevel, param1.shop_data.goods_data)
+            if can_buy and 2 ~= limitBuyType then
+              AlreadyHasItem = self:CheckHasItem(goodsConf.Type, goodsConf.item_id)
+              if AlreadyHasItem then
+                can_buy = false
+              end
             end
             table.insert(_param, {
               shopItemId = v.goods_id,
@@ -247,7 +254,10 @@ function UMG_NPCShop_C:OnActive(param0, param, param1, param2, bIsRefreshNPCShop
               RefreshResetType = refreshResetType,
               can_buy = can_buy,
               limitBuyType = limitBuyType,
-              SoldOut_goodsNameList = SoldOut_goodsNameList
+              SoldOut_goodsNameList = SoldOut_goodsNameList,
+              limitBuyParam = limitBuyParam,
+              buy_cond_param = buy_cond_param,
+              AlreadyHasItem = AlreadyHasItem
             })
           end
         end
@@ -285,6 +295,16 @@ function UMG_NPCShop_C:OnActive(param0, param, param1, param2, bIsRefreshNPCShop
           end
         end
       end
+    else
+      Log.Debug("UMG_NPCShop_C", "param1.shop_data.goods_data is nil")
+      self:SetVisibility(UE4.ESlateVisibility.Collapsed)
+      self:DelaySeconds(0.1, function()
+        Log.Debug("UMG_NPCShop_C", "param1.shop_data.goods_data is nil,tryClose")
+        self:ReleaseCaptureResource()
+        self:ShopClose()
+        _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.shop_tips)
+      end)
+      return
     end
   end
   if not IsRefreshNPCShop then
@@ -364,6 +384,14 @@ function UMG_NPCShop_C:OnActive(param0, param, param1, param2, bIsRefreshNPCShop
   end
 end
 
+function UMG_NPCShop_C:CheckHasItem(ItemType, ItemId)
+  if ItemType == Enum.GoodsType.GT_FASHION_SUITS then
+    local hasSuit = _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.CheckHasSuit, ItemId)
+    return hasSuit
+  end
+  return false
+end
+
 function UMG_NPCShop_C:CaptureBackgroundAndNPC(bCaptureNPC)
   UE4Helper.SetEnableWorldRendering(true, false, "UMG_NPCShop_C_Capture")
   if bCaptureNPC then
@@ -423,8 +451,8 @@ function UMG_NPCShop_C:CaptureBackgroundAndNPC(bCaptureNPC)
     self.UMG_CaptureBackground:StartCapture()
     
     local function OnCaptureBackgroundDone()
-      UE4Helper.SetEnableWorldRendering(nil, nil, "UMG_NPCShop_C_Capture")
       self.UMG_CaptureBackground:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+      UE4Helper.SetEnableWorldRendering(nil, nil, "UMG_NPCShop_C_Capture")
     end
     
     self:DelayFrames(3, OnCaptureBackgroundDone, self)
@@ -800,8 +828,8 @@ function UMG_NPCShop_C:OnItemClick(index)
   elseif goodsConf.Type == Enum.GoodsType.GT_FASHION_SUITS then
     local fashionConf = _G.DataConfigManager:GetFashionSuitsConf(goodsConf.item_id)
     if fashionConf then
-      self.ItemProperty:SetText("")
-      self.ItemDesc:SetText("")
+      self.ItemProperty:SetText(fashionConf.grade_name or "")
+      self.ItemDesc:SetText(fashionConf.flavor_text or "")
       self.HeadIcon:SetPath(fashionConf.suits_icon)
       if self._itemId ~= _itemId then
         self.UMG_Common_BIconPar:CloseOpen()
@@ -897,12 +925,6 @@ function UMG_NPCShop_C:OnItemClick(index)
     self.ItemProperty:SetText("")
     self.ItemDesc:SetText("")
   end
-  local SoldOut_goodsNameList = self.uiData.itemList1[index].SoldOut_goodsNameList
-  if SoldOut_goodsNameList and #SoldOut_goodsNameList > 0 then
-    local text = self.ItemDesc:GetText()
-    local goodsNames = table.concat(SoldOut_goodsNameList, "\227\128\129")
-    self.ItemDesc:SetText(string.format("%s(%s)", text, string.format(LuaText.buy_cond_soldout_0, goodsNames)))
-  end
   self.ItemName:SetText(goodsConf.goods_name)
   if not self:IsAnimationPlaying(self.open) then
     self:PlayAnimation(self.change_icon)
@@ -910,6 +932,9 @@ function UMG_NPCShop_C:OnItemClick(index)
   if goodsConf.Type == Enum.GoodsType.GT_BAGITEM then
     local bagItemConf = _G.DataConfigManager:GetBagItemConf(goodsConf.item_id)
     if bagItemConf.type == Enum.BagItemType.BI_MUSIC then
+      self.NRCImage_193:SetVisibility(UE4.ESlateVisibility.Collapsed)
+      self.hasCount:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    elseif 0 == bagItemConf.can_see or bagItemConf.tips_not_show_inventory then
       self.NRCImage_193:SetVisibility(UE4.ESlateVisibility.Collapsed)
       self.hasCount:SetVisibility(UE4.ESlateVisibility.Collapsed)
     else
@@ -982,6 +1007,7 @@ function UMG_NPCShop_C:OnAddEventListener()
   self:RegisterEvent(self, NPCShopUIModuleEvent.SoldOutBtnState, self.SwitchBtnSoldOutState)
   self:RegisterEvent(self, StarChainModuleEvent.PurchaseSucceed, self.ShowMoney)
   self:RegisterEvent(self, NPCShopUIModuleEvent.NPCSHOPPURCHASE_CLOSE, self.OnBuySuccess)
+  self:RegisterEvent(self, NPCShopUIModuleEvent.RefreshHasCountAfterClaimReward, self.OnClaimSuccess)
   _G.NRCEventCenter:RegisterEvent("UMG_NPCShop_PlantAcquisition_C", self, _G.NRCGlobalEvent.ON_RECONNECT_FINISH, self._OnPreNtfEnterScene)
 end
 
@@ -1218,7 +1244,14 @@ function UMG_NPCShop_C:RefreshSumCost(cost)
 end
 
 function UMG_NPCShop_C:OnBuyBtnClick()
-  UE4.UNRCAudioManager.Get():PlaySound2DAuto(1002, "UMG_NPCShop_C:OnBuyBtnClick")
+  _G.NRCAudioManager:PlaySound2DAuto(41401003, "UMG_NPCShop_C:OnBuyBtnClick")
+  local npcShopUIModule = _G.NRCModuleManager:GetModule("NPCShopUIModule")
+  if npcShopUIModule:HasPanel("NPCShopConfirmNew") then
+    local panel = npcShopUIModule:GetPanel("NPCShopConfirmNew")
+    if panel then
+      panel:DoClose()
+    end
+  end
   local item = self.uiData.itemList1[self.curSelectedIndex]
   local index = self.curSelectedIndex
   local ShopConf = _G.DataConfigManager:GetShopConf(self.uiData.shopId)
@@ -1319,7 +1352,7 @@ function UMG_NPCShop_C:BtnInit()
   self.UMG_Btn2:SetPath("PaperSprite'/Game/NewRoco/Modules/System/CommonBtn/Raw/Frames/ui_combtn_cancel_png.ui_combtn_cancel_png'")
 end
 
-function UMG_NPCShop_C:SwitchBtnSoldOutState(_issoldout, isUnlock, SoldOut_goodsNameList)
+function UMG_NPCShop_C:SwitchBtnSoldOutState(_issoldout, isUnlock, SoldOut_goodsNameList, LockParam, AlreadyHasItem)
   if _issoldout then
     self.UMG_Btn2:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.UMG_Btn4:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
@@ -1329,16 +1362,41 @@ function UMG_NPCShop_C:SwitchBtnSoldOutState(_issoldout, isUnlock, SoldOut_goods
   elseif not isUnlock then
     self.UMG_Btn2:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.UMG_Btn4:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-    self.UMG_Btn4:SetShowLockIcon(true)
-    if SoldOut_goodsNameList then
-      local goodsNames = table.concat(SoldOut_goodsNameList, "\227\128\129")
-      local text = string.format(LuaText.buy_cond_soldout_0, goodsNames)
-      self.UMG_Btn4:SetTitleTextAndIcon(nil, nil, nil, nil)
+    if AlreadyHasItem then
+      self.UMG_Btn4:SetShowLockIcon(false)
+      self.UMG_Btn4:SetTitleTextAndIcon()
+      self.UMG_Btn4:SetBtnText(LuaText.tailor_owned_btn)
     else
-      self.UMG_Btn4:SetTitleTextAndIcon(nil, nil, nil, nil, LuaText.goods_unlock_des, nil)
+      self.UMG_Btn4:SetShowLockIcon(true)
+      if SoldOut_goodsNameList then
+        local goodsNames = table.concat(SoldOut_goodsNameList, "\227\128\129")
+        local text = string.format(LuaText.buy_cond_soldout_1, goodsNames)
+        if LockParam and 0 == LockParam.buy_cond_param then
+          text = LuaText.buy_cond_soldout_0
+        end
+        self.UMG_Btn4:SetTitleTextAndIcon(nil, nil, nil, nil, nil, text)
+      elseif LockParam then
+        local limitType = LockParam.limitType
+        local limitBuyParam = LockParam.limitBuyParam
+        local text = ""
+        if limitType and limitBuyParam then
+          if limitType == Enum.BuyLimited.BL_PLAYER_LEVEL then
+            text = string.format(LuaText.buy_cond_player_level, limitBuyParam)
+          elseif limitType == Enum.BuyLimited.BL_PLAYER_BP_LEVEL then
+            text = string.format(LuaText.buy_cond_player_bp_level, limitBuyParam)
+          elseif limitType == Enum.BuyLimited.BL_WORLD_LEVEL then
+            local limitWorldLevel = tonumber(limitBuyParam)
+            local WorldLevelConf = _G.DataConfigManager:GetWorldLevelConf(limitWorldLevel + 1)
+            text = string.format(LuaText.buy_cond_world_level, WorldLevelConf and WorldLevelConf.title)
+          end
+        end
+        self.UMG_Btn4:SetTitleTextAndIcon(nil, nil, nil, nil, nil, text)
+      else
+        self.UMG_Btn4:SetTitleTextAndIcon(nil, nil, nil, nil, LuaText.goods_unlock_des, nil)
+      end
+      self.UMG_Btn4:SetTitleTextColor("#c7494aFF")
+      self.UMG_Btn4:SetBtnText(LuaText.goods_unlock_tips)
     end
-    self.UMG_Btn4:SetTitleTextColor("#c7494aFF")
-    self.UMG_Btn4:SetBtnText(LuaText.goods_unlock_tips)
   else
     self.UMG_Btn2:SetVisibility(UE4.ESlateVisibility.Visible)
     self.UMG_Btn4:SetVisibility(UE4.ESlateVisibility.Collapsed)
@@ -1350,14 +1408,20 @@ end
 function UMG_NPCShop_C:SortSoldGoods(_goods)
   local soldOutGoods = {}
   local availableGoods = {}
+  local AlreadyHasItemGoods = {}
   for i, item in ipairs(_goods) do
-    if 0 ~= item.limitNum and item.boughtNum >= item.limitNum then
+    if item.AlreadyHasItem then
+      table.insert(AlreadyHasItemGoods, item)
+    elseif 0 ~= item.limitNum and item.boughtNum >= item.limitNum then
       table.insert(soldOutGoods, item)
     else
       table.insert(availableGoods, item)
     end
   end
   for i, item in ipairs(soldOutGoods) do
+    table.insert(availableGoods, item)
+  end
+  for i, item in ipairs(AlreadyHasItemGoods) do
     table.insert(availableGoods, item)
   end
   return availableGoods
@@ -1506,6 +1570,10 @@ function UMG_NPCShop_C:OnBuySuccess()
   end
 end
 
+function UMG_NPCShop_C:OnClaimSuccess()
+  self:OnBuySuccess()
+end
+
 function UMG_NPCShop_C:ReleaseCaptureResource()
   UE4Helper.SetEnableWorldRendering(nil, nil, "UMG_NPCShop_C_Capture")
   if not self.data then
@@ -1521,6 +1589,10 @@ function UMG_NPCShop_C:ReleaseCaptureResource()
   self:SetDialogueUICameraCullingMask(self.CachedCameraCullingMask)
   UE4.UKismetSystemLibrary.ExecuteConsoleCommand(nil, "r.Shadow.CSMCaching.ForceUpdate 10")
   self:SetActorCullingMask(self.CachedActorCullingMask)
+end
+
+function UMG_NPCShop_C:OnBringToFront()
+  self:HideOrShowMoneyBtn(true)
 end
 
 return UMG_NPCShop_C

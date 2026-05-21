@@ -6,6 +6,10 @@ function NRCHomePlacementActor_C:Ctor()
   self.PropsData = nil
   self.hasPoi = false
   self.bEnableOutlineMat = false
+  self:OnConstruct()
+end
+
+function NRCHomePlacementActor_C:OnConstruct()
 end
 
 function NRCHomePlacementActor_C:ReceiveBeginPlay()
@@ -338,6 +342,9 @@ function NRCHomePlacementActor_C:OnPostMove()
   if self.Box then
     self.Box.bUpdateNavigationData = false
   end
+end
+
+function NRCHomePlacementActor_C:OnNpcChanged(Npc, bReady)
 end
 
 function NRCHomePlacementActor_C:K2_SetActorRotation(NewRotation, bTeleportPhysics)

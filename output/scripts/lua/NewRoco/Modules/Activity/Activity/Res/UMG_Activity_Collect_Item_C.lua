@@ -80,6 +80,10 @@ function UMG_Activity_Collect_Item_C:OnDetailsBtnClick()
 end
 
 function UMG_Activity_Collect_Item_C:OnTraceBtnClick()
+  if _G.DataModelMgr.PlayerDataModel:IsVisitState() then
+    _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.activity_condition_visitor_error_tips)
+    return
+  end
   if self.go_guide then
     MagicManualUtils.TaskTraceByGoGuide(self.go_guide)
   end

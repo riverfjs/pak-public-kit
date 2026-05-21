@@ -8,8 +8,11 @@ local ProtocolStat = require("Core.Service.NetManager.ProtocolStat")
 local LuaSerialize = require("serialize")
 local Class = _G.MakeSimpleClass
 local LoginModuleEvent = reload("NewRoco.Modules.System.LoginModule.LoginModuleEvent")
+local TipsModuleEvent = require("NewRoco.Modules.System.TipsModule.TipsModuleEvent")
+local ProtoEnum = require("Data.PB.ProtoEnum")
 local PROTOCOL_TIMEOUT_TIME = 15000
 local ENABLE_NORMAL_PROTOCOL_TIMEOUT = false
+local GUARD_CHECK_INTERVAL = 3000
 local ProtocolEvent = Class("ProtocolEvent")
 ProtocolEvent:SetMemberCount(12)
 
@@ -43,7 +46,11 @@ function ZoneServer:Ctor()
   self.PostHandleDelegate = Delegate()
   self.IgnoreErrorCMDs = {
     [ProtoCMD.ZoneSvrCmd.ZONE_SCENE_SET_NPC_POS_RSP] = {50024, -1},
-    [ProtoCMD.ZoneSvrCmd.ZONE_SCENE_END_THROW_RSP] = {50104, 50079},
+    [ProtoCMD.ZoneSvrCmd.ZONE_SCENE_END_THROW_RSP] = {
+      50104,
+      50079,
+      ProtoEnum.MOBA_RET.SceneErr.ERR_SCENE_CATCH_FORBID
+    },
     [ProtoCMD.ZoneSvrCmd.ZONE_SCENE_CREATE_SCENE_PET_RSP] = {50104},
     [ProtoCMD.ZoneSvrCmd.ZONE_SCENE_NPC_NEXT_ACT_RSP] = {50104},
     [ProtoCMD.ZoneSvrCmd.ZONE_SCENE_NPCS_INTERACT_RSP] = {50104},
@@ -54,7 +61,6 @@ function ZoneServer:Ctor()
   }
   self.BlockCMD = {
     ProtoCMD.ZoneSvrCmd.ZONE_LOGIN_REQ,
-    ProtoCMD.ZoneSvrCmd.ZONE_JUDGE_PAY_REQ,
     ProtoCMD.ZoneSvrCmd.ZONE_EXCHANGE_REQ,
     ProtoCMD.ZoneSvrCmd.ZONE_BUY_GOODS_BY_MIDAS_REQ,
     ProtoCMD.ZoneSvrCmd.ZONE_QUERY_BALANCE_REQ,
@@ -150,6 +156,8 @@ function ZoneServer:Ctor()
   _G.NRCEventCenter:RegisterEvent(self.name, self, LoginModuleEvent.UpdateDone, self.OnUpdateDone)
   self.serverTimeZone = 0
   self.ProtocolStatDict = {}
+  self.lastGuardCheckTime = 0
+  self.bSendClientEnterSceneFinishNty = false
 end
 
 function ZoneServer:WillEnterBackground()
@@ -179,17 +187,26 @@ function ZoneServer:Init()
     Log.Debug("AppId : ", AppId)
     _G.NRCNetworkManager:SetAppId(self.connectID, AppId)
     self:AddProtocolListener(self, _G.ProtoCMD.ZoneSvrCmd.ZONE_LOCK_CLIENT_CMD_NOTIFY, self.OnZoneLockClientCmdNotify)
+    self.bSendClientEnterSceneFinishNty = false
     self.bInit = true
   end
+  _G.NRCEventCenter:RegisterEvent("ZoneServer", self, _G.NRCGlobalEvent.ON_DISCONNECT, self.OnDisconnect)
 end
 
 function ZoneServer:OnShutdown()
   Log.Debug("ZoneServer:OnShutdown")
   _G.NRCNetworkManager:RemoveAllProtocolListener(self.connectID, "ZoneServer")
+  _G.NRCNetworkManager:ClearValidServerIdAndTime(self.connectID)
   self:RemoveProtocolListener(self, _G.ProtoCMD.ZoneSvrCmd.ZONE_LOCK_CLIENT_CMD_NOTIFY, self.OnZoneLockClientCmdNotify)
+  self.bSendClientEnterSceneFinishNty = false
   self.ZoneServerKickOut:OnShutdown()
   self.ZoneServerGCloud:OnShutdown()
   _G.NRCNetworkManager:DestroyConnector(self.connectID)
+  _G.NRCEventCenter:UnRegisterEvent(self, _G.NRCGlobalEvent.ON_DISCONNECT, self.OnDisconnect)
+end
+
+function ZoneServer:OnDisconnect()
+  self.bSendClientEnterSceneFinishNty = false
 end
 
 function ZoneServer:SetOnlineState(newOnlineState)
@@ -395,6 +412,9 @@ function ZoneServer:Send(reqCmdID, reqMsg, needRespond)
   if not self:SkipPrintUnConcernProtocol(reqCmdID) then
     Log.DebugFormat("[ZoneServer][NetMsg] Send %s(%d), msgSize(%d), bBlock(%d), bUrgent(%d), UpStreamLocked(%d), GFrameNumber(%d)", messageName, reqCmdID, msgSize, 0, bUrgent and 1 or 0, self:IsUpstreamLocked() and 1 or 0, UE4.UNRCStatics.GetCurGFrameNumber())
   end
+  if reqCmdID == _G.ProtoCMD.ZoneSvrCmd.ZONE_SCENE_CLIENT_ENTER_SCENE_FINISH_NTY then
+    self.bSendClientEnterSceneFinishNty = true
+  end
   return true
 end
 
@@ -486,6 +506,12 @@ end
 function ZoneServer:ReceiveProtocolEvent(connectID, seqID, protocolID, bytes, msgSize, receiveTimeMS, bLocalMsg)
   local messageName = ProtoCMD:GetMessageName(protocolID)
   if messageName then
+    if self.bSendClientEnterSceneFinishNty and protocolID ~= _G.ProtoCMD.ZoneSvrCmd.ZONE_SCENE_CLIENT_ENTER_SCENE_FINISH_NTY_ACK then
+      if not _G.RocoEnv.IS_SHIPPING then
+        Log.Error("[ZoneServer][NetMsg] Must receive ZONE_SCENE_CLIENT_ENTER_SCENE_FINISH_NTY_ACK, but receive", messageName)
+      end
+      self.bSendClientEnterSceneFinishNty = false
+    end
     _G.NRCSDKManager:ReportExtraCrashData(UE4.ECrashDataReporterType.NetRecv, protocolID)
     local rspMsg
     if RocoEnv.DECODE_PB_MULTI_THREAD then
@@ -607,6 +633,9 @@ function ZoneServer:PreHandleMsg(rsp, CmdID)
   if GoodsChange and GoodsChange.pet_data_vesion and 0 ~= GoodsChange.pet_data_vesion and _G.DataModelMgr.PlayerDataModel then
     _G.DataModelMgr.PlayerDataModel:SetPetInfoVersion(GoodsChange.pet_data_vesion)
   end
+  if _G.DataModelMgr.PlayerDataModel and GoodsChange and GoodsChange.changes then
+    _G.NRCEventCenter:DispatchEvent(TipsModuleEvent.CheckMainPetTips, GoodsChange.changes)
+  end
   local GoodsChangeItems = GoodsChange and GoodsChange.changes
   if GoodsChangeItems then
     for _, GoodsChangeItem in ipairs(GoodsChangeItems) do
@@ -704,6 +733,9 @@ function ZoneServer:PostHandleMsg(showRetTips, rspMsg, CmdID, seqID)
         if reward.tag == Enum.RewardTag.RTA_ACTIVITY and reward.reward_reason == ProtoEnum.FlowReason.FLOW_REASON_ACTIVITY_DROP then
           Count = Count + 1
         end
+        if reward.tag == Enum.RewardTag.RTA_ACTIVITY_FLOWER_FIRST then
+          Count = Count + 1
+        end
       end
     end
   end
@@ -717,7 +749,7 @@ function ZoneServer:PostHandleMsg(showRetTips, rspMsg, CmdID, seqID)
     _G.DataModelMgr.PlayerDataModel:SetPlayerFashionOwnedTask(RewardList)
     if rspMsg and rspMsg.reward_source == _G.ProtoEnum.FlowModule.FLOW_MODULE_PET and rspMsg.flow_reason == _G.ProtoEnum.FlowReason.FLOW_REASON_GIFT_GIVING then
     else
-      _G.NRCModuleManager:DoCmd(TipsModuleCmd.Tips_ProcessRetInfo, CmdID, info, false)
+      _G.NRCModuleManager:DoCmd(TipsModuleCmd.Tips_ProcessRetInfo, CmdID, table.deepCopy(rspMsg.ret_info), false)
     end
   end
 end
@@ -742,6 +774,8 @@ function ZoneServer:IgnoreErrorCode(retCode)
     ret = ret or retCode == ProtoEnum.MOBA_RET.SceneErr.ERR_SCENE_AVATAR_BEHAVIOR_STATUS_NOT_EXIST
     ret = ret or retCode == ProtoEnum.MOBA_RET.SceneErr.ERR_SCENE_BUFF_BAN_SUB_ROLE
     ret = ret or retCode == ProtoEnum.MOBA_RET.SceneErr.ERR_SCENE_SYNC_PLAYER_BEHAVIOR_STATUS_INVALID
+    ret = ret or retCode == ProtoEnum.MOBA_RET.SceneErr.ERR_SCENE_INTERACT_FAIL_AVATAR_PRE_TELEPORT
+    ret = ret or retCode == ProtoEnum.MOBA_RET.SceneErr.ERR_SCENE_INTERACT_FAIL_AVATAR_TELEPORTING
   end
   if _G.GlobalConfig.bShouldShowRevivePointInfo then
     ret = ret or retCode == ProtoEnum.MOBA_RET.ErrorCode.ERR_COMMON_NOT_FOUND
@@ -785,20 +819,12 @@ function ZoneServer:OnNormalProtocolTimeOut(seqEvent)
   else
     content = string.format(LuaText.PROTOCOL_TIMEOUT, seqEvent.reqCmdID, _G.ProtoCMD:GetMessageName(seqEvent.reqCmdID))
   end
-  if _G.RocoEnv.IS_SHIPPING then
-    if ENABLE_NORMAL_PROTOCOL_TIMEOUT then
-      self:DisConnect(true, true)
-    end
-  else
-    self:DisConnect(true, false)
-    self:OpenDialog(LuaText.TIPS, content, LuaText.RETRY, LuaText.BACK, DialogContext.Mode.OK_CANCEL, self.OnDialogResult, _G.ProtoCMD:GetMessageName(seqEvent.reqCmdID))
+  if ENABLE_NORMAL_PROTOCOL_TIMEOUT then
+    self:DisConnect(true, true)
   end
   if seqEvent and not seqEvent.bLog then
     Log.Error("[ZoneServer][NetMsg] OnNormalProtocolTimeOut:", _G.ProtoCMD:GetMessageName(seqEvent.reqCmdID), seqEvent.reqCmdID, seqEvent.seqID)
     seqEvent.bLog = true
-  end
-  if not _G.RocoEnv.IS_EDITOR then
-    _G.NRCSDKManager:CrashSightReportExceptionWithReason(string.format("%s TimeOut", _G.ProtoCMD:GetMessageName(seqEvent.reqCmdID)), "Lua Exception", "")
   end
 end
 
@@ -926,6 +952,7 @@ function ZoneServer:OnTick(deltaTime)
   else
     self:CloseWaitingUI("Reconnecting")
   end
+  self:GuardCheck()
 end
 
 function ZoneServer:IsBlockCMD(InCMD)
@@ -1004,6 +1031,14 @@ end
 
 function ZoneServer:IsEnteringOrSwitchingCell()
   return self.onlineState == OnlineState.EnteringCell or self.onlineState == OnlineState.SwitchingCell
+end
+
+function ZoneServer:IsEnteringCell()
+  return self.onlineState == OnlineState.EnteringCell
+end
+
+function ZoneServer:IsSwitchingCell()
+  return self.onlineState == OnlineState.SwitchingCell
 end
 
 function ZoneServer:GetTConndRTT()
@@ -1152,6 +1187,20 @@ function ZoneServer:OnDebugWarnProtocolFreq(statKey, freq, maxWarnFreq, maxFreqR
   local content = string.format("%s high freq!", statKey)
   if not _G.RocoEnv.IS_EDITOR then
     _G.NRCSDKManager:CrashSightReportExceptionWithReason(content, "Lua Exception", "")
+  end
+end
+
+function ZoneServer:GuardCheck()
+  local elapsedTime = os.msTime() - self.lastGuardCheckTime
+  if elapsedTime > GUARD_CHECK_INTERVAL then
+    if self:IsEnteredCell() and self:IsUpstreamLocked() then
+      Log.Error("[ZoneServer][NetMsg] GuardCheck, Upstream locked when entered cell!")
+      self:LockUpstream(false)
+      if not _G.RocoEnv.IS_EDITOR then
+        _G.NRCSDKManager:CrashSightReportExceptionWithReason("Upstream locked when entered cell!", "Lua Exception", "")
+      end
+    end
+    self.lastGuardCheckTime = os.msTime()
   end
 end
 

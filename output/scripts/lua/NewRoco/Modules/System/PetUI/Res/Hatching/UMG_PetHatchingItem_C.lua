@@ -69,16 +69,20 @@ function UMG_PetHatchingItem_C:SetNeng(neng)
   end
 end
 
-function UMG_PetHatchingItem_C:UpdateIncubating()
+function UMG_PetHatchingItem_C:UpdateIncubating(redPointDatas)
   if self.itemInfo then
     local isEggUp = _G.NRCModuleManager:DoCmd(PetUIModuleCmd.GetEggSpeedActiveOpenState, self.itemInfo.gid)
     if false == isEggUp then
       self:StopAnimation(self.SpeedUp_loop)
     end
-    self.jiasuzhong:SetVisibility(isEggUp and UE4.ESlateVisibility.SelfHitTestInvisible or UE4.ESlateVisibility.Collapsed)
-    self.Arrow:SetVisibility(isEggUp and UE4.ESlateVisibility.SelfHitTestInvisible or UE4.ESlateVisibility.Collapsed)
-    self.Arrow_1:SetVisibility(isEggUp and UE4.ESlateVisibility.SelfHitTestInvisible or UE4.ESlateVisibility.Collapsed)
-    self.Arrow_2:SetVisibility(isEggUp and UE4.ESlateVisibility.SelfHitTestInvisible or UE4.ESlateVisibility.Collapsed)
+    local isFinishHatch = false
+    if redPointDatas and self.index and redPointDatas[self.index] and self.itemInfo and self.itemInfo.gid == tonumber(redPointDatas[self.index]) then
+      isFinishHatch = true
+    end
+    self.jiasuzhong:SetVisibility(not (not isEggUp or isFinishHatch) and UE4.ESlateVisibility.SelfHitTestInvisible or UE4.ESlateVisibility.Collapsed)
+    self.Arrow:SetVisibility(not (not isEggUp or isFinishHatch) and UE4.ESlateVisibility.SelfHitTestInvisible or UE4.ESlateVisibility.Collapsed)
+    self.Arrow_1:SetVisibility(not (not isEggUp or isFinishHatch) and UE4.ESlateVisibility.SelfHitTestInvisible or UE4.ESlateVisibility.Collapsed)
+    self.Arrow_2:SetVisibility(not (not isEggUp or isFinishHatch) and UE4.ESlateVisibility.SelfHitTestInvisible or UE4.ESlateVisibility.Collapsed)
   end
 end
 
@@ -87,7 +91,7 @@ function UMG_PetHatchingItem_C:OnItemUpdate(_data, datalist, index)
   self.index = index
   self.uiData = _data
   self.itemInfo = self.uiData.data
-  self.SelectedName_1:SetText(string.format("\229\173\181\229\140\150\232\163\133\231\189\174%d", self.uiData.positionIndex))
+  self.SelectedName_1:SetText(string.format(LuaText.umg_pethatching15, self.uiData.positionIndex))
   self.jiasuzhong:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.Arrow:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.Arrow_1:SetVisibility(UE4.ESlateVisibility.Collapsed)
@@ -127,8 +131,10 @@ function UMG_PetHatchingItem_C:OnItemUpdate(_data, datalist, index)
         self:SetNeng()
       end
     end
-    self.ICON:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-    self.ICON:SetEggIcon(self.eggInfo, itemConf.icon)
+    if itemConf and itemConf.icon then
+      self.ICON:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+      self.ICON:SetEggIcon(self.eggInfo, itemConf.icon)
+    end
     self:SetClickable(true)
     self.NotSelected:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     self.Select:SetVisibility(UE4.ESlateVisibility.Collapsed)
@@ -337,6 +343,13 @@ end
 function UMG_PetHatchingItem_C:OnItemClicked(bool)
 end
 
+function UMG_PetHatchingItem_C:ForceUpdateSelectPetEgg()
+  local bUpdateEggModel = true
+  if self.index and self.itemInfo then
+    _G.NRCModuleManager:GetModule("PetUIModule"):DispatchEvent(PetUIModuleEvent.SelectPetEgg, self.itemInfo, self.index, bUpdateEggModel)
+  end
+end
+
 function UMG_PetHatchingItem_C:OnAnimationFinished(aim)
   local eggType = self:GetEggType()
   if aim == self.Select_In or aim == self.Em_Select or aim == self.Xc_Select or aim == self.YS_Select or aim == self.Ysxc_Select then
@@ -430,6 +443,7 @@ function UMG_PetHatchingItem_C:OnUpdateHatchSecs(rsp)
   end
   targetProgerss = math.clamp(secs / eggMaxSeces * 100, 0, 100)
   targetProgerss = math.floor(targetProgerss)
+  self.TargetProgerss = targetProgerss
   if 100 == targetProgerss then
     self.UnSelectedTxtComplete:SetText(LuaText.umg_towermain_5)
     self.SelectedTxtComplete:SetText(LuaText.umg_towermain_5)
@@ -448,6 +462,63 @@ function UMG_PetHatchingItem_C:OnUpdateHatchSecs(rsp)
   self.SelectedCompleteProgress:SetPercent(targetProgerss / 100)
   self.UnSelectedCompleteProgress:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
   self.SelectedCompleteProgress:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+end
+
+function UMG_PetHatchingItem_C:RefreshUpdateHatchSecs(NewHatchSecs)
+  if self.eggInfo == nil then
+    return
+  end
+  local secs = NewHatchSecs
+  local targetProgerss = 0
+  local eggMaxSeces
+  if 0 == self.eggInfo.conf_id and self.eggInfo.random_egg_conf then
+    eggMaxSeces = self.eggInfo.max_hatched_secs
+  else
+    local eggConf = _G.DataConfigManager:GetPetEggConf(self.eggInfo.conf_id)
+    eggMaxSeces = eggConf.hatch_data
+  end
+  targetProgerss = math.clamp(secs / eggMaxSeces * 100, 0, 100)
+  targetProgerss = math.floor(targetProgerss)
+  self.TargetProgerss = targetProgerss
+  if 100 == targetProgerss then
+    self.UnSelectedTxtComplete:SetText(LuaText.umg_towermain_5)
+    self.SelectedTxtComplete:SetText(LuaText.umg_towermain_5)
+  else
+    self.UnSelectedTxtComplete:SetText(targetProgerss .. "%")
+    self.SelectedTxtComplete:SetText(targetProgerss .. "%")
+    self:UpdateIncubating()
+  end
+  self.UnSelectedTxtComplete:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  self.SelectedTxtComplete:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  self.HorizontalBox_Selected_Height:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  self.HorizontalBox_NotSelected_Height:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  self.HorizontalBox_Selected_Weight:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  self.HorizontalBox_NotSelected_Weight:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  self.UnSelectedCompleteProgress:SetPercent(targetProgerss / 100)
+  self.SelectedCompleteProgress:SetPercent(targetProgerss / 100)
+  self.UnSelectedCompleteProgress:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  self.SelectedCompleteProgress:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+end
+
+function UMG_PetHatchingItem_C:UpdateGreenProgressBar(PreviewProgress)
+  if nil == PreviewProgress then
+    Log.Debug("UMG_PetHatchingItem_C:UpdateGreenProgressBar PreviewProgress is nil")
+    return
+  end
+  if nil == self.TargetProgerss then
+    self.TargetProgerss = 0
+  end
+  self.UnSelectedCompleteProgress0:SetPercent((self.TargetProgerss + PreviewProgress) / 100)
+  self.SelectedCompleteProgress0:SetPercent((self.TargetProgerss + PreviewProgress) / 100)
+  self.UnSelectedCompleteProgress0:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  self.SelectedCompleteProgress0:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+end
+
+function UMG_PetHatchingItem_C:ClearGreenProgressBar()
+  self.UnSelectedCompleteProgress0:SetPercent(0)
+  self.SelectedCompleteProgress0:SetPercent(0)
+  self.UnSelectedCompleteProgress0:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self.SelectedCompleteProgress0:SetVisibility(UE4.ESlateVisibility.Collapsed)
 end
 
 function UMG_PetHatchingItem_C:OnDeactive()

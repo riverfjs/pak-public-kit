@@ -1,3 +1,11 @@
+local ActivityEnum = require("NewRoco.Modules.System.Activity.ActivityEnum")
+
+local function OnSvrRspHandle(_rspWrapper, _protoData)
+  if _rspWrapper and _rspWrapper.handler then
+    _rspWrapper.handler(_protoData, _rspWrapper.reqMsg, _rspWrapper.customData)
+  end
+end
+
 local ActivityUtils = {}
 local TimezoneOffset = -1
 
@@ -428,16 +436,9 @@ function ActivityUtils.SendMsgToSvr(_reqCmd, _reqMsg, _rspCaller, _rspHandler, _
     rspWrapper.handler = _G.MakeWeakFunctor(_rspCaller, _rspHandler)
     rspWrapper.reqMsg = _reqMsg
     rspWrapper.customData = _customData
-    
-    local function OnSvrRspHandle(_rspWrapper, _protoData)
-      if _rspWrapper then
-        _rspWrapper.handler(_protoData, _rspWrapper.reqMsg, _rspWrapper.customData)
-      end
-    end
-    
-    _G.ZoneServer:SendWithHandler(_reqCmd, _reqMsg, rspWrapper, OnSvrRspHandle, true)
+    return _G.ZoneServer:SendWithHandler(_reqCmd, _reqMsg, rspWrapper, OnSvrRspHandle, true)
   else
-    _G.ZoneServer:Send(_reqCmd, _reqMsg)
+    return _G.ZoneServer:Send(_reqCmd, _reqMsg)
   end
 end
 
@@ -453,19 +454,17 @@ function ActivityUtils.CreatePetDetailPanelShowData(petBaseId, includeEvolutions
     local showData = {}
     showData.petBaseId = petBaseId
     showData.petList = {}
-    if includeEvolutions then
-      local petBaseData = _G.DataConfigManager:GetPetbaseConf(petBaseId)
-      if petBaseData then
-        local petEvoID = tonumber(petBaseData.pet_evolution_id[1])
-        if petEvoID then
-          local petEvoConf = _G.DataConfigManager:GetPetEvolutionConf(petEvoID)
-          if petEvoConf then
-            for _, v in pairs(petEvoConf.evolution_chain) do
-              table.insert(showData.petList, {
-                base_conf_id = v.petbase_id,
-                mutation_type = mutationType
-              })
-            end
+    local petBaseData = _G.DataConfigManager:GetPetbaseConf(petBaseId)
+    if includeEvolutions and petBaseData then
+      local petEvoID = tonumber(petBaseData.pet_evolution_id[1])
+      if petEvoID then
+        local petEvoConf = _G.DataConfigManager:GetPetEvolutionConf(petEvoID)
+        if petEvoConf then
+          for _, v in pairs(petEvoConf.evolution_chain) do
+            table.insert(showData.petList, {
+              base_conf_id = v.petbase_id,
+              mutation_type = mutationType
+            })
           end
         end
       end
@@ -473,7 +472,7 @@ function ActivityUtils.CreatePetDetailPanelShowData(petBaseId, includeEvolutions
     if #showData.petList <= 0 then
       table.insert(showData.petList, {base_conf_id = petBaseId, mutation_type = mutationType})
     end
-    local skillConf = _G.DataConfigManager:GetLevelSkillConf(petBaseId)
+    local skillConf = _G.DataConfigManager:GetLevelSkillConf(petBaseData and petBaseData.level_skill_id or petBaseId)
     if skillConf then
       showData.skills = {}
       for _, val in pairs(skillConf.level) do
@@ -685,6 +684,16 @@ function ActivityUtils.SendTLogActivityAction(activityId, baseId, actionType, ac
   _G.GEMPostManager:SendNRCTLog(key, value)
 end
 
+function ActivityUtils.SendTLogActivityButtonAction(activityId, buttonId)
+  if not activityId or not buttonId then
+    return
+  end
+  local key = "ActivityButtonInteraction"
+  local roleDataStr = _G.GEMPostManager:GetRoleDataForTLog()
+  local value = string.format("%s|%s|%d|%d", key, roleDataStr, activityId, buttonId)
+  _G.GEMPostManager:SendNRCTLog(key, value)
+end
+
 ActivityUtils.SendTLogActivityInteractionHandles = {}
 ActivityUtils.SendTLogActivityInteractionActions = {}
 ActivityUtils.SendTLogActivityInteractionThreshold = 1
@@ -840,7 +849,8 @@ function ActivityUtils.OpenWorldMapByRefreshId(refreshIds, failedTips, scaleValu
   if refreshIds then
     for _, refreshId in pairs(refreshIds) do
       local npcData = 0 ~= refreshId and _G.NRCModuleManager:DoCmd(BigMapModuleCmd.GetNpcInfoByRefreshId, refreshId)
-      if npcData then
+      local ShouldShow = npcData and _G.NRCModuleManager:DoCmd(BigMapModuleCmd.OnCmdCheckShouldShowNpc, npcData)
+      if npcData and (ShouldShow or npcData.worldMapConf and npcData.worldMapConf.is_hide_init) then
         local scaleSlider
         if scaleValue then
           if type(scaleValue) == "string" and not string.IsNilOrEmpty(scaleValue) then
@@ -862,6 +872,29 @@ function ActivityUtils.OpenWorldMapByRefreshId(refreshIds, failedTips, scaleValu
       Log.Info("ActivityUtils.OpenWorldMapByRefreshId failed! refreshIds=", refreshIds and table.concat(refreshIds, ",") or "nil")
     end
   end
+end
+
+function ActivityUtils.IsWorldMapTargetExist(worldMapId)
+  if not worldMapId or 0 == worldMapId then
+    return false
+  end
+  local worldMapConf = _G.DataConfigManager:GetWorldMapConf(worldMapId)
+  if worldMapConf then
+    return ActivityUtils.IsWorldMapTargetExistByRefreshId(worldMapConf.npc_refresh_ids)
+  end
+  return false
+end
+
+function ActivityUtils.IsWorldMapTargetExistByRefreshId(refreshIds)
+  if refreshIds then
+    for _, refreshId in pairs(refreshIds) do
+      local npcData = 0 ~= refreshId and _G.NRCModuleManager:DoCmd(BigMapModuleCmd.GetNpcInfoByRefreshId, refreshId)
+      if npcData then
+        return true
+      end
+    end
+  end
+  return false
 end
 
 function ActivityUtils.OpenActivityRecommendTaskList(activityInst)
@@ -934,6 +967,7 @@ function ActivityUtils.DoActivityOptionCmd(id)
   local param2 = config.option_param2
   local param3 = config.option_param3
   local param4 = config.option_param4
+  local param5 = config.option_param5
   if optionType == Enum.ActivityOptionType.AOT_CMD then
     local function ParameterFormatter(_param)
       if not string.IsNilOrEmpty(_param) and string.find(_param, ";") then
@@ -947,13 +981,15 @@ function ActivityUtils.DoActivityOptionCmd(id)
     local param4_num = tonumber(param4)
     ActivityUtils.OpenUrl(param2, tonumber(param3), not param4_num or 0 == param4_num)
   elseif optionType == Enum.ActivityOptionType.AOT_WORLD_MAP then
-    ActivityUtils.OpenWorldMap(tonumber(param2), param3, param4)
+    local failedTips = _G.DataModelMgr.PlayerDataModel:IsVisitState() and param5 or param3
+    ActivityUtils.OpenWorldMap(tonumber(param2), failedTips, param4)
   elseif optionType == Enum.ActivityOptionType.AOT_WORLD_MAP_REFRESHID then
     local refreshIds = {}
     for str in string.gmatch(param2, "[^;]+") do
       table.insert(refreshIds, tonumber(str))
     end
-    ActivityUtils.OpenWorldMapByRefreshId(refreshIds, param3, param4)
+    local failedTips = _G.DataModelMgr.PlayerDataModel:IsVisitState() and param5 or param3
+    ActivityUtils.OpenWorldMapByRefreshId(refreshIds, failedTips, param4)
   elseif optionType == Enum.ActivityOptionType.AOT_RELAY_PAGE then
     _G.NRCModuleManager:DoCmd(_G.ActivityModuleCmd.OpenActivityRelayPage, tonumber(param2))
   end
@@ -987,6 +1023,78 @@ function ActivityUtils:SetQuality(widget, quality)
   elseif 5 == quality then
     widget:SetColorAndOpacity(UE4.UNRCStatics.HexToLinearColor(UEPath.Color_QUALITY_5))
   end
+end
+
+function ActivityUtils.GetCdnImageByActivityConf(activityConfId, callback)
+  local activityConf = _G.DataConfigManager:GetActivityConf(activityConfId)
+  if activityConf and not string.IsNilOrEmpty(activityConf.cdn_bg) then
+    local cdnLink = activityConf.cdn_bg
+    if string.IsNilOrEmpty(cdnLink) then
+      return
+    end
+    local fileName = "temp.png"
+    local lastSlashIndex = string.find(cdnLink, "/[^/]*$")
+    if lastSlashIndex then
+      fileName = string.sub(cdnLink, lastSlashIndex + 1)
+    end
+    if not string.EndsWith(fileName, ".png") then
+      fileName = fileName .. ".png"
+    end
+    local path = UE.UBlueprintPathsLibrary.Combine({
+      UE4.UBlueprintPathsLibrary.ProjectPersistentDownloadDir(),
+      "ActivityResource",
+      fileName
+    })
+    path = UE.UNRCStatics.ConvertToAbsolutePath(path, true)
+    if UE.UBlueprintPathsLibrary.FileExists(path) then
+      callback(true, path)
+      return
+    end
+    local dirPath = UE.UBlueprintPathsLibrary.Combine({
+      UE4.UBlueprintPathsLibrary.ProjectPersistentDownloadDir(),
+      "ActivityResource"
+    })
+    if not UE.UNRCStatics.DirectoryExists(dirPath) then
+      Log.Error("TempVideos not exits")
+      UE.UNRCStatics.MakeDirectory(dirPath)
+    end
+    local httpService = UE4.UMoreFunPlatformKits.CreateSimpleHttpService()
+    local httpServiceRef = UnLua.Ref(httpService)
+    if httpService then
+      httpService:ResetHeaders()
+      httpService:ResetFields()
+      httpService:SetUrl(cdnLink)
+      httpService:SetVerb("GET")
+      httpService:Request({
+        httpService,
+        function(service, status)
+          if status == UE.EHttpServiceStatus.RspSuccess then
+            Log.Debug("ActivityUtils.GetCdnImageByActivityConf success")
+            local contentType = httpService:GetResponseHeader("Content-Type")
+            if string.StartsWith(contentType, "image/") then
+              service:SaveToFile(path)
+              callback(true, path)
+            else
+              Log.Error("invalid Content-Type")
+              callback(false, nil)
+            end
+          else
+            Log.Error("ActivityUtils.GetCdnImageByActivityConf failed")
+            callback(false, nil)
+          end
+        end
+      })
+    end
+  end
+end
+
+function ActivityUtils.IsActivityMonitorEventOnline(targetMonitorEvent)
+  for i, onlineMonitorEventType in ipairs(ActivityEnum.OnlineActivityMonitorEvent) do
+    if targetMonitorEvent == onlineMonitorEventType then
+      return true
+    end
+  end
+  return false
 end
 
 return ActivityUtils

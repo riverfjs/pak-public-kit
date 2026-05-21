@@ -179,16 +179,20 @@ function SocketSnapComponent:SnapTo(TargetCharacter, SelfSocket, TargetSocket, S
     return false
   end
   if not TargetCharacter or TargetCharacter.isDestroy then
+    Log.Debug("SocketSnapComponent:SnapTo TargetCharacter is nil or isDestroy")
     return false
   end
   if not skipCheck and not self:StickToSocketValid(SelfSocket) then
+    Log.Debug("SocketSnapComponent:SnapTo SelfSocket is not valid")
     return false
   end
   local targetSnapComp = TargetCharacter:EnsureComponent(SocketSnapComponent)
   if not skipCheck and not targetSnapComp:StickedSocketValid(TargetSocket) then
+    Log.Debug("SocketSnapComponent:SnapTo TargetSocket is not valid")
     return false
   end
   if not skipCheck and table.contains(targetSnapComp.SnappedSocket, TargetSocket) then
+    Log.Debug("SocketSnapComponent:SnapTo TargetSocket is already snapped")
     return false
   end
   table.insert(targetSnapComp.SnappedSocket, TargetSocket)
@@ -266,7 +270,8 @@ function SocketSnapComponent:ClearAttachment()
   self:RemoveCallback()
   local originModel = self.owner.viewObj
   if UE.UObject.IsValid(originModel) and UE.UObject.IsA(originModel, UE.ACharacter) then
-    UE.URocoAIHelper.ClearAttachmentForSnapping(originModel)
+    local bIgnoreMoveAfterDetach = true
+    UE.URocoAIHelper.ClearAttachmentForSnapping(originModel, bIgnoreMoveAfterDetach)
     self.owner:SetCollisionDisable(false, NPCModuleEnum.NpcReasonFlags.ATTACHING)
     if self.SnappingAnimation then
       self.owner:StopAnim(self.SnappingAnimation, 0.1)

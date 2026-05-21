@@ -93,12 +93,21 @@ function ConditionRewardActivityObject:OnZoneReceivePlayerActivityConditionRewar
     Log.Error("parameter error!")
     return
   end
-  local itemObj = self:GetRewardItem(_req.activity_part_id)
-  if itemObj then
-    itemObj:SetRewardReceived(true)
+  if 0 == _req.activity_part_id then
+    for i, v in pairs(self.rewardItemMap) do
+      if v and v:GetRewardStatus() == ActivityEnum.RewardStatus.Available then
+        v:SetRewardReceived(true)
+      end
+    end
   else
-    Log.Error("Can not find reward item: part_id=", _req.activity_part_id)
+    local itemObj = self:GetRewardItem(_req.activity_part_id)
+    if itemObj then
+      itemObj:SetRewardReceived(true)
+    else
+      Log.Error("Can not find reward item: part_id=", _req.activity_part_id)
+    end
   end
+  _G.NRCEventCenter:DispatchEvent(ActivityModuleEvent.GetConditionRewardItemRewardSuccess, _protoData.ret_info.goods_reward)
 end
 
 function ConditionRewardActivityObject:SyncActivityDataOnAvailable()
@@ -139,13 +148,13 @@ function ConditionRewardActivityObject:OnSvrUpdateActivityData(_cmdId, _updateDa
   end
 end
 
-function ConditionRewardActivityObject:OnTryGetReward(_itemObj)
+function ConditionRewardActivityObject:OnTryGetReward(_itemObj, partId)
   if _itemObj then
     local rewardStatus = _itemObj:GetRewardStatus()
     if rewardStatus == ActivityEnum.RewardStatus.Available then
       local req = _G.ProtoMessage:newZoneReceivePlayerActivityConditionRewardReq()
       req.activity_id = self:GetActivityId()
-      req.activity_part_id = _itemObj:GetRewardItemId()
+      req.activity_part_id = partId or _itemObj:GetRewardItemId()
       ActivityUtils.SendMsgToSvr(_G.ProtoCMD.ZoneSvrCmd.ZONE_RECEIVE_PLAYER_ACTIVITY_CONDITION_REWARD_REQ, req, self, self.OnZoneReceivePlayerActivityConditionRewardRsp)
     end
     return rewardStatus
@@ -193,6 +202,19 @@ function ConditionRewardActivityObject:OnZoneReceivePlayerActivityPartRewardRsp(
     end
     _G.NRCModuleManager:DoCmd(_G.NPCShopUIModuleCmd.OpenNPCShopItemRewardsPanel, _protoData.ret_info.goods_reward.rewards, "", nil, nil, nil, nil, nil, CommonPopUpData)
   end
+end
+
+function ConditionRewardActivityObject:GetShowIllustration()
+  local baseIds = self:GetPartIds()
+  if baseIds then
+    for i, v in ipairs(baseIds) do
+      local conf = _G.DataConfigManager:GetActivityConditionRewardConf(v, true)
+      if conf and conf.is_show_item then
+        return conf.show_img
+      end
+    end
+  end
+  return ""
 end
 
 return ConditionRewardActivityObject

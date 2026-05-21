@@ -1,3 +1,4 @@
+local DefaultTargetPanel = "UMG_LobbyMain"
 local GuideConfigTypes = {}
 GuideConfigTypes.ConditionOperator = {
   None = -1,
@@ -15,7 +16,6 @@ GuideConfigTypes.ConditionType = {
   Panel = 5,
   PlayerStatus = 6,
   HomeFurniture = 7,
-  PetBag = 8,
   GuideSetting = 100,
   Locally = 1000
 }
@@ -67,8 +67,6 @@ function GuideConfigTypes.StringToConditionType(str)
     return GuideConfigTypes.ConditionType.PlayerStatus
   elseif "home_furniture" == str then
     return GuideConfigTypes.ConditionType.HomeFurniture
-  elseif "petbag" == str then
-    return GuideConfigTypes.ConditionType.PetBag
   elseif "none" == str then
     return GuideConfigTypes.ConditionType.Locally
   end
@@ -132,9 +130,14 @@ function GuideConfigTypes.GetWidgetNameFromPanelData(panelData)
   return nil
 end
 
-function GuideConfigTypes.GetTargetWidget(ui_path, ui_button_name)
+function GuideConfigTypes.GetTargetWidget(ui_path, ui_button_name, bUseLobbyMainAsDefault)
   if not ui_path or #ui_path <= 0 then
-    return nil
+    if bUseLobbyMainAsDefault then
+      ui_path = {DefaultTargetPanel}
+      ui_button_name = nil
+    else
+      return nil
+    end
   end
   local topWidgetName = ui_path[1]
   local panelDict = _G.NRCPanelManager:GetPanelDict()
@@ -170,6 +173,14 @@ function GuideConfigTypes.GetTargetWidget(ui_path, ui_button_name)
     if not nextWidget then
       Log.Debug("GuideConfigTypes.GetTargetWidget: cannot find widget", topWidgetName, ui_path[idx], idx)
       return nil
+    end
+    if nextWidget.name == "BP_NRCUmgLoader_C" and nextWidget.GetPanel then
+      local panel = nextWidget:GetPanel()
+      if not panel then
+        Log.Debug("GuideConfigTypes.GetTargetWidget: GetPanel is nil in UNRCWidgetLoader", topWidgetName, idx, ui_path[idx])
+        return nil
+      end
+      nextWidget = panel
     end
     if nextWidget.panelData then
       panelData = nextWidget.panelData
@@ -286,12 +297,24 @@ local LayerIgnoredPanels = {
   "MusicCollectTips",
   "UMG_TopHUD",
   "ZoneTip",
+  "UniversalTips",
   "Screenshotsharing",
   "MaterialItems"
 }
 local IgnoreCompareLayerPanelPairs = {
   NewPetBag = {
     "NewPetBagBox"
+  },
+  HandbookCover = {
+    "HandBook_RegionalSelection"
+  },
+  BattleMain = {
+    "BattleRunAwayTip",
+    "HudPerceptionPanel",
+    "BattlePopUpTips",
+    "BattleProcess_Visible",
+    "BattleRedPanel",
+    "PVPValueNumber"
   }
 }
 
@@ -342,6 +365,62 @@ function GuideConfigTypes.ComparePanelLayer(layerA, layerB)
     return true
   end
   return layerDepthA >= layerDepthB
+end
+
+function GuideConfigTypes.GetBlackBorderSize()
+  local borderWidth = UE4.USlateBlueprintLibrary.GetNRCBorderWidth()
+  local borderHeight = UE4.USlateBlueprintLibrary.GetNRCBorderHeight()
+  return UE4.FVector2D(borderWidth, borderHeight)
+end
+
+function GuideConfigTypes.GetTargetPanelName(panelName)
+  if panelName then
+    return panelName
+  end
+  return DefaultTargetPanel
+end
+
+function GuideConfigTypes.CheckIsTopPanel(targetPanelData)
+  if not targetPanelData then
+    return false
+  end
+  local panel = _G.NRCPanelManager:GetPanel(targetPanelData.moduleName, targetPanelData.panelName)
+  if not panel then
+    Log.Debug("GuideConfigTypes.CheckIsTopPanel panel is nil", targetPanelData.moduleName, targetPanelData.panelName)
+    return false
+  end
+  local targetPanelLayer = targetPanelData.panelLayer
+  local targetPanelModule = targetPanelData.moduleName
+  local targetPanelName = targetPanelData.panelName
+  local panelStack = _G.NRCPanelManager.PanelStack
+  local len = #panelStack
+  if len > 0 then
+    for idx = len, 1, -1 do
+      local moduleName = panelStack[idx].moduleName
+      local panelName = panelStack[idx].panelName
+      local panel = _G.NRCPanelManager:GetPanel(moduleName, panelName)
+      if panel and panel:IsVisible() then
+        local panelData = panel.panelData
+        if GuideConfigTypes.IsTopPanel(panelData, targetPanelData) and GuideConfigTypes.ComparePanelLayer(panelData.panelLayer, targetPanelLayer) then
+          if panelName ~= targetPanelName or moduleName ~= targetPanelModule then
+            return
+          else
+            break
+          end
+        end
+      end
+    end
+  end
+  return true
+end
+
+local KeyNamesConvertPair = {Escape = "Esc"}
+
+function GuideConfigTypes.GetRealMatchKeyName(keyName)
+  if KeyNamesConvertPair[keyName] then
+    return KeyNamesConvertPair[keyName]
+  end
+  return keyName
 end
 
 return GuideConfigTypes

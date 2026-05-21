@@ -95,9 +95,11 @@ function NRCBigWorldMode:OnConstruct()
     self:RegisterModule("IOSRatingModule", "Type_System", "NewRoco.Modules.System.IOSRating.IOSRatingModuleHead", "NewRoco.Modules.System.IOSRating.IOSRatingModule")
     self:RegisterModule("NewbieGuideModule", "Type_System", "NewRoco.Modules.System.NewbieGuide.NewbieGuideModuleHead", "NewRoco.Modules.System.NewbieGuide.NewbieGuideModule")
     self:RegisterModule("BattleTutorialGuideModule", "Type_System", "NewRoco.Modules.System.BattleTutorialGuide.BattleTutorialGuideModuleHead", "NewRoco.Modules.System.BattleTutorialGuide.BattleTutorialGuideModule")
+    self:RegisterModule("PVEModule", "Type_System", "NewRoco.Modules.System.PVE.PVEModuleHead", "NewRoco.Modules.System.PVE.PVEModule")
     self:RegisterModule("ShareUIModule", "Type_System", "NewRoco.Modules.System.ShareUI.ShareUIModuleHead", "NewRoco.Modules.System.ShareUI.ShareUIModule")
     self:RegisterModule("HeadIconModule", "Type_System", "NewRoco.Modules.System.HeadIcon.HeadIconModuleHead", "NewRoco.Modules.System.HeadIcon.HeadIconModule")
     self:RegisterModule("PGCModule", "Type_System", "NewRoco.Modules.System.PGC.PGCModuleHead", "NewRoco.Modules.System.PGC.PGCModule")
+    self:RegisterModule("AICoachModule", "Type_System", "NewRoco.Modules.System.AICoachModule.AICoachModuleHead", "NewRoco.Modules.System.AICoachModule.AICoachModule")
   end
 end
 

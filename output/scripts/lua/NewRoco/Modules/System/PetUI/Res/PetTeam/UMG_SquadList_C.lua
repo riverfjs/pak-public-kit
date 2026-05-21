@@ -73,6 +73,7 @@ function UMG_SquadList_C:RefreshForCommonPetData(_data, datalist, index)
   else
     self.petLost = false
   end
+  self.ExclamationMark:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.petDataInfo = _G.DataModelMgr.PlayerDataModel:GetPetDataByGid(self.data.petData.gid)
   if self.petDataInfo and (self.petDataInfo.blood_id == _G.Enum.PetBloodType.PBT_FANTASTIC or self.petDataInfo.blood_id == _G.Enum.PetBloodType.PBT_NIGHTMARE) then
     for _, skill in ipairs(self.petDataInfo.skill.skill_data) do
@@ -83,7 +84,7 @@ function UMG_SquadList_C:RefreshForCommonPetData(_data, datalist, index)
     end
   end
   self.sharedPetData = self.data.sharedPetData
-  if true == self.petData.AdjustCompleted then
+  if self.petData and true == self.petData.AdjustCompleted then
     self.petID = self.petDataInfo.base_conf_id
     self.bloodID = self.petDataInfo.blood_id
     self.natureID = self.petDataInfo.nature
@@ -95,17 +96,17 @@ function UMG_SquadList_C:RefreshForCommonPetData(_data, datalist, index)
     self.bloodID = self.sharedPetData.blood_id
     self.natureID = self.sharedPetData.nature
     if self.sharedPetData.blood_id == _G.Enum.PetBloodType.PBT_FANTASTIC or self.sharedPetData.blood_id == _G.Enum.PetBloodType.PBT_NIGHTMARE then
-      local levelSkillConf = _G.DataConfigManager:GetLevelSkillConf(self.sharedPetData.base_conf_id)
+      local levelSkillConf = _G.NRCModeManager:DoCmd(_G.PetUIModuleCmd.GetLevelSkillConfByPetBaseId, self.sharedPetData.base_conf_id)
       for _, skill in ipairs(self.sharedPetData.skills) do
         local skillId = skill.id
         for _, v in ipairs(levelSkillConf.level) do
           if v.param == skillId then
-            goto lbl_229
+            goto lbl_241
           end
         end
         for _, v in ipairs(levelSkillConf.machine_skill_group) do
           if v.machine_skill_id == skillId then
-            goto lbl_229
+            goto lbl_241
           end
         end
         if levelSkillConf.blood_skill_COMMON == skillId or levelSkillConf.blood_skill_GRASS == skillId or levelSkillConf.blood_skill_FIRE == skillId or levelSkillConf.blood_skill_WATER == skillId or levelSkillConf.blood_skill_LIGHT == skillId or levelSkillConf.blood_skill_STONE == skillId or levelSkillConf.blood_skill_ICE == skillId or levelSkillConf.blood_skill_DRAGON == skillId or levelSkillConf.blood_skill_ELECTRIC == skillId or levelSkillConf.blood_skill_TOXIC == skillId or levelSkillConf.blood_skill_INSECT == skillId or levelSkillConf.blood_skill_FIGHT == skillId or levelSkillConf.blood_skill_WING == skillId or levelSkillConf.blood_skill_MOE == skillId or levelSkillConf.blood_skill_GHOST == skillId or levelSkillConf.blood_skill_DEMON == skillId or levelSkillConf.blood_skill_MECHANIC == skillId or levelSkillConf.blood_skill_PHANTOM == skillId then
@@ -113,7 +114,7 @@ function UMG_SquadList_C:RefreshForCommonPetData(_data, datalist, index)
           self.shareFantasticId = skillId
           break
         end
-        ::lbl_229::
+        ::lbl_241::
       end
     end
     local fullSkillData = {}
@@ -162,6 +163,12 @@ function UMG_SquadList_C:UpdateUI()
     for _, skill in ipairs(self.skillData) do
       if skill.sharedPetSkillData and skill.sharedPetSkillData.id == self.shareFantasticId and 0 == skill.petSkillData.id or skill.petSkillData and skill.petSkillData.id == self.fantasticId or skill.id and skill.id == self.shareFantasticId and 0 == self.petData.gid then
         skill.bFantastic = true
+        local data = self.data
+        local skillId = skill and skill.id
+        local petData = self.petData
+        local petGid = petData and petData.gid
+        local seasonId = PetUtils.TryGetPetSkillSeasonId(petGid, skillId)
+        skill.fantasticSeasonId = seasonId
         break
       end
     end
@@ -391,6 +398,10 @@ function UMG_SquadList_C:ChangePetSkill(startIndex, skillIndex, skillID)
     self.skillData[skillIndex].petSkillData.pos = skillIndex
     if self.fantasticId and self.fantasticId == skillID then
       self.skillData[skillIndex].bFantastic = true
+      local petData = self.petData
+      local petGid = petData and petData.gid
+      local seasonId = PetUtils.TryGetPetSkillSeasonId(petGid, skillID)
+      self.skillData[skillIndex].fantasticSeasonId = seasonId
     else
       self.skillData[skillIndex].bFantastic = false
     end

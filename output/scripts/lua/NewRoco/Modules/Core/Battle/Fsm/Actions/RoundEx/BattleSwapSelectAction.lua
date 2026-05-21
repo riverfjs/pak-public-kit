@@ -398,6 +398,16 @@ function BattleSwapSelectAction:OnChangePet(card, pet)
   if not isCanClick then
     return
   end
+  if card then
+    local infieldPetCard = self:TryGetBeRidOfCard(card.posInField)
+    if infieldPetCard then
+      local isValidIfInfieldPetHasBuff145 = self:IsUpPetValidIfInfieldPetHasBuff145(card, infieldPetCard)
+      if not isValidIfInfieldPetHasBuff145 then
+        self:ShowBuff145NotMatchTips()
+        return
+      end
+    end
+  end
   self:ModifyPetPos()
   for _, v in pairs(self.transientPets) do
     v:HideClickTipUI()
@@ -742,6 +752,46 @@ function BattleSwapSelectAction:OnStepAwayDialogCallback(result)
     _G.NRCAudioManager:PlaySound2DAuto(1006, "UMG_BattleMainWindow_C:ClickNo")
   end
   _G.BattleEventCenter:Dispatch(BattleEvent.ON_CLICK_STEPAWAY, result)
+end
+
+function BattleSwapSelectAction:TryGetBeRidOfCard(posInField)
+  return self.cacheRidPet and self.cacheRidPet[posInField]
+end
+
+function BattleSwapSelectAction:IsUpPetValidIfInfieldPetHasBuff145(upPetCard, infieldPetCard)
+  local inFieldPetInfo = infieldPetCard and infieldPetCard.petInfo
+  local inFieldInsideInfo = inFieldPetInfo and inFieldPetInfo.battle_inside_pet_info
+  local buff145SourcePetId = inFieldInsideInfo and inFieldInsideInfo.buff145_source_pet
+  local isGenerateByBuff145 = buff145SourcePetId and buff145SourcePetId > 0
+  local upPetInfoId = upPetCard and upPetCard.guid
+  local isNotValid = isGenerateByBuff145 and buff145SourcePetId ~= upPetInfoId
+  local isValid = not isNotValid
+  if isValid then
+    local currMyPets = _G.BattleManager.battlePawnManager:GetInFieldAllPet(BattleEnum.Team.ENUM_TEAM, true) or {}
+    local currMyPetsCount = #currMyPets
+    if currMyPetsCount > 0 then
+      local upPetInfo = upPetCard and upPetCard.petInfo
+      local upInsideInfo = upPetInfo and upPetInfo.battle_inside_pet_info
+      local upBuff145SourcePetId = upInsideInfo and upInsideInfo.buff145_source_pet
+      local upIsGenerateByBuff145 = upBuff145SourcePetId and upBuff145SourcePetId > 0
+      local infieldPetInfoId = infieldPetCard and infieldPetCard.guid
+      isNotValid = upIsGenerateByBuff145 and upBuff145SourcePetId ~= infieldPetInfoId
+      isValid = not isNotValid
+    end
+  end
+  return isValid
+end
+
+function BattleSwapSelectAction:ShowBuff145NotMatchTips()
+  local currMyPets = _G.BattleManager.battlePawnManager:GetInFieldAllPet(BattleEnum.Team.ENUM_TEAM, true) or {}
+  local currMyPetsCount = #currMyPets
+  Log.Info("BattleSwapSelectAction:OnChangePet: The in field pet has buff145 and the up pet is not the source pet if it.")
+  local buff145SwapErrorTextConf = _G.DataConfigManager:GetLocalizationConf("buff _145_1", true)
+  if currMyPetsCount > 0 then
+    buff145SwapErrorTextConf = _G.DataConfigManager:GetLocalizationConf("buff _145_2", true)
+  end
+  local buff145SwapErrorText = buff145SwapErrorTextConf and buff145SwapErrorTextConf.msg
+  _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, buff145SwapErrorText)
 end
 
 return BattleSwapSelectAction

@@ -10,6 +10,7 @@ local RocoSkillProxy = require("NewRoco.Utils.RocoSkillProxy")
 local OnlineState = require("Core.Service.NetManager.OnlineState")
 local ActivityModuleEvent = require("NewRoco.Modules.System.Activity.ActivityModuleEvent")
 local ActivityUtils = require("NewRoco.Modules.System.Activity.ActivityUtils")
+local AbilityBanManager = require("NewRoco.Modules.Core.Scene.Map.AbilityBanManager")
 local AreaAndZoneModule = NRCModuleBase:Extend("AreaAndZoneModule")
 local SceneEvent = require("NewRoco.Modules.Core.Scene.Common.SceneEvent")
 
@@ -34,13 +35,16 @@ function AreaAndZoneModule:OnConstruct()
   self.CachedEffectType = Enum.SceneEffect.SE_CHANGE_TEMP
   self.CachedAreaID = -1
   self.CurrentWeather = Enum.WeatherType.WT_NONE
+  self.zoneInfoArrayNew = {}
+  self.activityInfoInitialized = false
   _G.NRCEventCenter:RegisterEvent("NPCModuelInterComp", self, MainUIModuleEvent.MAINUIOPEN, self.OnMainUIOpen)
   _G.NRCEventCenter:RegisterEvent("NPCModuelInterComp", self, MainUIModuleEvent.MAINUICLOSE, self.OnMainUIClose)
   _G.NRCEventCenter:RegisterEvent("AreaAndZoneModule", self, _G.TaskModuleEvent.TaskChangeNotify, self.OnTaskChangeNotify)
   _G.NRCEventCenter:RegisterEvent("AreaAndZoneModule", self, StoryFlagModuleEvent.OnStoryFlagChange, self.OnStoryFlagChange)
   _G.NRCEventCenter:RegisterEvent("AreaAndZoneModule", self, ActivityModuleEvent.OnDropNPCChange, self.OnFuncAreaUpdate)
   _G.NRCEventCenter:RegisterEvent("AreaAndZoneModule", self, ActivityModuleEvent.OnSpecificTimeActivityDropUpperLimit, self.ClearStarlightTimer)
-  _G.NRCEventCenter:RegisterEvent("AreaAndZoneModule", self, ActivityModuleEvent.OnActivityObjectsUpdateFinish, self.CheckStarPlay)
+  _G.NRCEventCenter:RegisterEvent("AreaAndZoneModule", self, ActivityModuleEvent.OnActivityObjectsUpdateFinish, self.OnActivityObjectsUpdateFinish)
+  _G.NRCEventCenter:RegisterEvent("AreaAndZoneModule", self, ActivityModuleEvent.ActivitySvrStateChanged, self.OnActivitySvrStateChanged)
   _G.NRCEventCenter:RegisterEvent("AreaAndZoneModule", self, _G.NRCGlobalEvent.OnOnlineStateChanged, self.OnOnlineStateChanged)
   _G.NRCEventCenter:RegisterEvent("AreaAndZoneModule", self, _G.NRCGlobalEvent.ON_RECONNECT_FINISH, self.OnReconnectFinish)
   self.alert_session = _G.NRCAudioManager:PlaySound2DAuto(3044, "AlertAmb")
@@ -49,6 +53,9 @@ function AreaAndZoneModule:OnConstruct()
   self.StoryBgm = "Task_Music;None"
   self.InfluencedAreaFuncId = {}
   self.StoryFlagBgm = nil
+  self.AbilityBanManager = AbilityBanManager()
+  self.nightActivityStartTime = DataConfigManager:GetActivityGlobalConfig("nighttime_activities_begintime").num
+  self.nightActivityEndTime = DataConfigManager:GetActivityGlobalConfig("nighttime_activities_endtime").num
 end
 
 function AreaAndZoneModule:OnDestruct()
@@ -76,15 +83,18 @@ function AreaAndZoneModule:OnDestruct()
   _G.NRCEventCenter:UnRegisterEvent(self, StoryFlagModuleEvent.OnStoryFlagChange, self.OnStoryFlagChange)
   _G.NRCEventCenter:UnRegisterEvent(self, ActivityModuleEvent.OnDropNPCChange, self.OnFuncAreaUpdate)
   _G.NRCEventCenter:UnRegisterEvent(self, ActivityModuleEvent.OnSpecificTimeActivityDropUpperLimit, self.ClearStarlightTimer)
-  _G.NRCEventCenter:UnRegisterEvent(self, ActivityModuleEvent.OnActivityObjectsUpdateFinish, self.CheckStarPlay)
+  _G.NRCEventCenter:UnRegisterEvent(self, ActivityModuleEvent.OnActivityObjectsUpdateFinish, self.OnActivityObjectsUpdateFinish)
+  _G.NRCEventCenter:UnRegisterEvent(self, ActivityModuleEvent.ActivitySvrStateChanged, self.OnActivitySvrStateChanged)
   _G.NRCEventCenter:UnRegisterEvent(self, _G.NRCGlobalEvent.OnOnlineStateChanged, self.OnOnlineStateChanged)
   _G.NRCEventCenter:UnRegisterEvent(self, _G.NRCGlobalEvent.ON_RECONNECT_FINISH, self.OnReconnectFinish)
+  self.AbilityBanManager:Destruct()
 end
 
 function AreaAndZoneModule:OnLogin(isRelogin)
   self.zoneInfoArray:Clear()
   self.bgmAreaStack:Clear()
   self.ambAreaStack:Clear()
+  self.zoneInfoArrayNew = {}
 end
 
 function AreaAndZoneModule:UpdateTrackTask()
@@ -113,12 +123,7 @@ function AreaAndZoneModule:OnTaskChangeNotify()
   self:UpdateStoryBgm()
 end
 
-function AreaAndZoneModule:UpdateStoryFlag()
-  self.StoryFlagBgm = _G.NRCModuleManager:DoCmd(_G.StoryFlagModuleCmd.GetCurrentStoryBgmState)
-end
-
 function AreaAndZoneModule:OnStoryFlagChange()
-  self:UpdateStoryFlag()
   self:UpdateStoryBgm()
 end
 
@@ -129,7 +134,9 @@ function AreaAndZoneModule:UpdateStoryBgm()
       return
     end
   end
-  if self.StoryFlagBgm then
+  local currentAreaFuncID = self:GetCurrentAreaFuncId()
+  self.StoryFlagBgm = _G.NRCModuleManager:DoCmd(_G.StoryFlagModuleCmd.GetCurrentStoryBgmState, currentAreaFuncID)
+  if not string.IsNilOrEmpty(self.StoryFlagBgm) then
     _G.NRCAudioManager:BatchSetState(self.StoryFlagBgm)
     return
   end
@@ -143,14 +150,18 @@ end
 function AreaAndZoneModule:OnReconnectFinish()
   Log.Debug("AreaAndZoneModule:OnReconnectFinish")
   self.playerZoneInfo = nil
+  self.zoneInfoArrayNew = {}
 end
 
 function AreaAndZoneModule:OnCatcherEnter(action)
+  self.AbilityBanManager:OnEnterArea(action and action.entered_area_id)
   local funcConf = _G.DataConfigManager:GetAreaFuncConf(action.area_func_conf_id)
   if not funcConf then
     Log.Error("AreaConf\228\184\141\229\173\152\229\156\168\239\188\140\232\175\183\230\163\128\230\159\165\233\133\141\231\189\174\227\128\130\227\128\130\227\128\130", action.area_func_conf_id)
     return
   end
+  local area_func_id = funcConf.id
+  self.zoneInfoArrayNew[area_func_id] = (self.zoneInfoArrayNew[area_func_id] or 0) + 1
   local index = 1
   local already_exist = false
   for i, info in ipairs(self.zoneInfoArray:Items()) do
@@ -203,7 +214,7 @@ function AreaAndZoneModule:OnCatcherEnter(action)
     if heightAreaInfo then
       newPlayerAreaInfo = heightAreaInfo
     end
-    if activityAreaInfo and self:CheckShowActivityName(activityAreaInfo.Conf.id) then
+    if activityAreaInfo and self:CheckShowActivityNameByNPCAndId(activityAreaInfo.Conf.id) then
       newPlayerAreaInfo = activityAreaInfo
     end
     local newPlayerZoneInfo = newPlayerAreaInfo.Conf
@@ -241,9 +252,6 @@ function AreaAndZoneModule:OnCatcherEnter(action)
   if areaVisibleConf then
     _G.NRCEventCenter:DispatchEvent(SceneEvent.EntranceVisibleZone, action.entered_area_id)
   end
-  if action.area_func_conf_id == 5000006 then
-    local test = 1
-  end
   if self:IsActivityDrop(action.area_func_conf_id) then
     self:CreateStarlightTimer(action.area_func_conf_id)
     Log.DebugFormat("StartDropStar:%d", action.area_func_conf_id)
@@ -257,11 +265,21 @@ end
 
 function AreaAndZoneModule:OnCatcherLeave(action)
   self:Log("OnCatcherLeave", action.area_func_conf_id)
+  self.AbilityBanManager:OnExitArea(action and action.left_area_id)
   local funcConf = _G.DataConfigManager:GetAreaFuncConf(action.area_func_conf_id)
   if not funcConf then
     Log.Error("\229\144\142\229\143\176\228\184\139\229\143\145\231\154\132area_func_conf_id\230\160\185\230\156\172\228\184\141\229\173\152\229\156\168\239\188\140\229\156\176\229\144\141\231\155\184\229\133\179\233\128\187\232\190\145\229\164\167\230\166\130\231\142\135\228\188\154\230\156\137\233\151\174\233\162\152\239\188\140\232\175\183\228\189\191\231\148\168\229\146\140\229\174\162\230\136\183\231\171\175\229\140\185\233\133\141\231\154\132\230\156\141\229\138\161\229\153\168", action.left_area_id, action.area_func_conf_id)
     return
   end
+  local area_func_id = funcConf.id
+  local ref_count = self.zoneInfoArrayNew[area_func_id] or 0
+  ref_count = ref_count - 1
+  if ref_count > 0 then
+    self.zoneInfoArrayNew[area_func_id] = ref_count
+    self:Log("OnCatcherLeave refCount still > 0, skip remove", area_func_id, ref_count)
+    return
+  end
+  self.zoneInfoArrayNew[area_func_id] = nil
   local index = 0
   for i, info in ipairs(self.zoneInfoArray:Items()) do
     local item = info.Conf
@@ -276,8 +294,10 @@ function AreaAndZoneModule:OnCatcherLeave(action)
       local playerAreaInfo = self.zoneInfoArray:Get(1)
       self.playerZoneInfo = playerAreaInfo.Conf
       self.currentPriorityChange = true
+    else
+      self.playerZoneInfo = nil
     end
-    if self.playerZoneInfo ~= nil then
+    if nil ~= self.playerZoneInfo then
       self:OnAreaChange(self.playerZoneInfo.id, false)
       local mainUIModule = _G.NRCModuleManager:GetModule("MainUIModule")
       if mainUIModule then
@@ -310,6 +330,7 @@ function AreaAndZoneModule:OnCatcherLeave(action)
 end
 
 function AreaAndZoneModule:OnTeleportClearAreaInfo()
+  self.zoneInfoArrayNew = {}
   for i, info in ipairs(self.zoneInfoArray:Items()) do
     if info:IsCave() then
       local funcConf = _G.DataConfigManager:GetAreaFuncConf(info.Conf.id)
@@ -341,6 +362,7 @@ function AreaAndZoneModule:OnTeleportClearAreaInfo()
   self:UpdateAbnormal()
   self:UpdateCave()
   self:UpdateCanMessage()
+  self.AbilityBanManager:OnPlayerTeleport()
 end
 
 function AreaAndZoneModule:OnWeatherChange(Action, Tag)
@@ -380,13 +402,6 @@ function AreaAndZoneModule:UpdateCave()
 end
 
 function AreaAndZoneModule:UpdateCanMessage()
-  self.CanMessage = true
-  for _, info in ipairs(self.zoneInfoArray:Items()) do
-    if not info:CanMessage() then
-      self.CanMessage = false
-      break
-    end
-  end
 end
 
 function AreaAndZoneModule:GetCaveInfo()
@@ -501,7 +516,7 @@ function AreaAndZoneModule:PlayPlaceName()
   for _, info in ipairs(self.zoneInfoArray:Items()) do
     if info.Conf.name and info.Conf.broadcast_type and info.Conf.broadcast_type ~= _G.Enum.AreaBroadcastType.ABT_NONE then
       if info.Conf.broadcast_type == Enum.AreaBroadcastType.ABT_ACTIVITY then
-        if self:CheckShowActivityName(info.Conf.id) then
+        if self:CheckShowActivityNameByNPCAndId(info.Conf.id) then
           playerZoneInfo = info.Conf
           self.action = info
           break
@@ -523,6 +538,35 @@ function AreaAndZoneModule:CheckShowActivityName(funcId)
     if npcInfo then
       return true
     end
+  end
+  return false
+end
+
+function AreaAndZoneModule:CheckShowActivityNameByNPCAndId(funcId)
+  local hasNpc = false
+  local hasActivity = false
+  local worldMapActivityConf = NRCModuleManager:DoCmd(BigMapModuleCmd.GetWorldMapActivityConfByAreaFuncId, funcId)
+  if worldMapActivityConf then
+    local npcInfo = NRCModuleManager:DoCmd(BigMapModuleCmd.GetNpcDataByWorldMapConfId, worldMapActivityConf.world_map_id)
+    if npcInfo then
+      hasNpc = true
+    end
+  end
+  local activityId = worldMapActivityConf.activity_id
+  if activityId and activityId > 0 then
+    local activityInst = NRCModuleManager:DoCmd(ActivityModuleCmd.GetActivityInstById, activityId, true)
+    if activityInst then
+      hasActivity = true
+    end
+  else
+    local timeStamp = ActivityUtils.GetSvrTimestamp()
+    local timeDetailData = ActivityUtils.ToTimeDetailData(timeStamp)
+    if timeDetailData.hour >= self.nightActivityStartTime or timeDetailData.hour < self.nightActivityEndTime then
+      hasActivity = true
+    end
+  end
+  if hasNpc and hasActivity then
+    return true
   end
   return false
 end
@@ -794,7 +838,7 @@ function AreaAndZoneModule:PlayStarlightG6()
     local caster = player.viewObj
     local skillComponent = caster.RocoSkill
     if skillComponent then
-      local skillProxy = RocoSkillProxy.Create("/Game/ArtRes/Effects/G6Skill/SceneEffect/Wish/G6_Wish_GetStar01.G6_Wish_GetStar01", skillComponent)
+      local skillProxy = RocoSkillProxy.Create("/Game/ArtRes/Effects/G6Skill/Activities/G6_Activities_guaji.G6_Activities_guaji", skillComponent)
       if skillProxy then
         skillProxy:SetCaster(caster)
         skillProxy:SetPassive(true)
@@ -873,6 +917,43 @@ function AreaAndZoneModule:CheckStarPlay()
       end
     end
   end
+end
+
+function AreaAndZoneModule:CheckRolePlayPropsIsBan(propId)
+  if self.AbilityBanManager then
+    return self.AbilityBanManager:GetRolePlayPropsIsBan(propId)
+  end
+  return false
+end
+
+function AreaAndZoneModule:GetAbilityBanManager()
+  return self.AbilityBanManager
+end
+
+function AreaAndZoneModule:GetCurrentAreaFuncId()
+  if self.bgmAreaStack and self.bgmAreaStack.ZoneInfoArray then
+    local firstItem = self.bgmAreaStack:GetFirstItem()
+    return firstItem and firstItem.area_func_id
+  end
+  return nil
+end
+
+function AreaAndZoneModule:OnActivityMapNpcDataChanged(npcInfo)
+  local worldMapConfId = npcInfo.world_map_cfg_id
+  self:PlayActivityAreaName()
+end
+
+function AreaAndZoneModule:OnActivityObjectsUpdateFinish()
+  if self.activityInfoInitialized == false then
+    self:PlayActivityAreaName()
+    self.activityInfoInitialized = true
+  end
+end
+
+function AreaAndZoneModule:OnActivitySvrStateChanged()
+end
+
+function AreaAndZoneModule:PlayActivityAreaName()
 end
 
 return AreaAndZoneModule

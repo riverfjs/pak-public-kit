@@ -13,6 +13,7 @@ function UMG_Battle_Evolution_Select_C:Construct()
   self.petBaseConfId = nil
   self.uiData = nil
   self.Gid = nil
+  self.battlePetId = nil
 end
 
 function UMG_Battle_Evolution_Select_C:Destruct()
@@ -48,7 +49,11 @@ function UMG_Battle_Evolution_Select_C:Show(petBaseConfId, petData)
     local ids = {}
     for i, data in ipairs(battleEvolutionData) do
       local pet = _G.BattleManager.battlePawnManager:GetPetByGuid(data.pet_id)
+      local card = pet and pet.card
+      local petInfo = card and card.petInfo
+      local insideInfo = petInfo and petInfo.battle_inside_pet_info
       self.Gid = pet.card.petInfo.battle_common_pet_info.gid
+      self.battlePetId = insideInfo and insideInfo.pet_id
       if pet then
         table.insert(ids, pet.card.petInfo.battle_common_pet_info.base_conf_id)
       end
@@ -121,7 +126,15 @@ function UMG_Battle_Evolution_Select_C:ConstructEvolutionText(petBaseConfId)
   if petBaseConfId then
     local petBaseConf = _G.DataConfigManager:GetPetbaseConf(petBaseConfId)
     local PetData = _G.DataModelMgr.PlayerDataModel:GetPetDataByGid(self.Gid)
-    if PetData then
+    local battleManager = _G.BattleManager
+    local battlePawnManager = battleManager and battleManager.battlePawnManager
+    local battlePetId = self.battlePetId
+    local battleCard = battlePawnManager and battlePawnManager:GetCardByGuid(battlePetId)
+    local petInfo = battleCard and battleCard.petInfo
+    local insidePetInfo = petInfo and petInfo.battle_inside_pet_info
+    if insidePetInfo then
+      petName = insidePetInfo and insidePetInfo.name
+    elseif PetData then
       petName = PetData.name
     else
       Log.Error("UMG_Battle_Evolution_Select_C:ConstructEvolutionText gid is nil")
@@ -138,6 +151,9 @@ function UMG_Battle_Evolution_Select_C:OnBtnConfirmClicked()
   local moduleName = "PetUIModule"
   local isSelectBtn = _G.NRCModuleManager:DoCmd(MultiTouchModuleCmd.GetIsSelectBtn, moduleName, panelName)
   if isSelectBtn then
+    return
+  end
+  if BattleUtils.IsWatchingBattle() then
     return
   end
   _G.NRCAudioManager:PlaySound2DAuto(41401004, "UMG_PetLeftPanelMenuButton_C:OnTouchEnded")

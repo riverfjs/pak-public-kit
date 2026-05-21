@@ -13,8 +13,10 @@ function UMG_Activity_TerritoryTrial_RewardPreviewItem_C:OnItemUpdate(_data, dat
   self.uiData = _data
   if _data.state == _G.ProtoEnum.PlayerActivityInfo.ActivityRewardState.ARS_UNFINISH then
     self.NRCSwitcher_1:SetActiveWidgetIndex(1)
+    self.Mask:SetVisibility(UE4.ESlateVisibility.Collapsed)
   elseif _data.state == _G.ProtoEnum.PlayerActivityInfo.ActivityRewardState.ARS_WAIT then
     self.NRCSwitcher_1:SetActiveWidgetIndex(0)
+    self.Mask:SetVisibility(UE4.ESlateVisibility.Collapsed)
   elseif _data.state == _G.ProtoEnum.PlayerActivityInfo.ActivityRewardState.ARS_DONE then
     self.NRCSwitcher_1:SetActiveWidgetIndex(2)
     self.Mask:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)

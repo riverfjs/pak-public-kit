@@ -11,6 +11,7 @@ local EnumMeta = {
   end
 }
 local ActivityEnum = {}
+ActivityEnum.MainPanelOpenSource = setmetatable({RecallActivity = 1, LobbyMainInner = 2}, EnumMeta)
 ActivityEnum.ActivityStatus = setmetatable({
   WaitingActive = 1,
   Active = 2,
@@ -89,5 +90,25 @@ ActivityEnum.SprintSubActivityState = {
   NotStarted = 1,
   InProgress = 2,
   Ended = 3
+}
+ActivityEnum.TakePhotoCompetitionStage = {
+  None = 0,
+  Preparation = 1,
+  PhotoCheck = 2,
+  Competition = 3,
+  CurPhaseEnd = 4
+}
+ActivityEnum.TakePhotoCompetitionBigPhotoType = {
+  None = 0,
+  MySubmission = 1,
+  HotPhoto = 2,
+  RankPhoto = 3,
+  VotePhoto = 4,
+  RewardPhoto = 5
+}
+ActivityEnum.OnlineActivityMonitorEvent = {
+  Enum.ActivityMonitorEvent.AME_PLAYER_ONLINE_TIME,
+  Enum.ActivityMonitorEvent.AME_PLAYER_TRANSFORM_ONLINE_TIME,
+  Enum.ActivityMonitorEvent.AME_PLAYER_TRANSFORM_EAGLE_CAPTURE
 }
 return ActivityEnum

@@ -23,9 +23,7 @@ function DialoguePrevTimelineBlackScreenOutAction:OnEnter()
   end
   if self.CurrentTimeline.black_switch_in then
     _G.NRCEventCenter:DispatchEvent(_G.NRCGlobalEvent.CLOSE_BLACK_SCREEN)
-    _G.DelayManager:DelayFrames(2, function()
-      NRCModuleManager:DoCmd(DialogueModuleCmd.FadeOutDialogueCameraBlack)
-    end)
+    NRCModuleManager:DoCmd(DialogueModuleCmd.FadeOutDialogueCameraBlack)
   end
   self:Finish()
 end

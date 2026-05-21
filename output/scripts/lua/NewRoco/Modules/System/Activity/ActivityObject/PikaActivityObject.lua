@@ -13,4 +13,12 @@ function PikaActivityObject:OnTryJoinActivity(...)
   _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.OpenSeasonalCombinationBagShop, fashionMallId, specificPackageId, CombinationBagShopOpenContext)
 end
 
+function PikaActivityObject:GetActivityShowStatus()
+  local bIsPikaBaned = _G.NRCModuleManager:DoCmd(_G.FunctionBanManager.CheckUIFunctionBan, Enum.FunctionEntrance.FE_FASHION_STORE)
+  if bIsPikaBaned then
+    return ActivityEnum.ActivityShowStatus.Disable_Shielding
+  end
+  return Base.GetActivityShowStatus(self)
+end
+
 return PikaActivityObject

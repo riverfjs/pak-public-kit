@@ -3,6 +3,7 @@ local MainUIModuleEvent = reload("NewRoco.Modules.System.MainUI.MainUIModuleEven
 local BagModuleEnum = reload("NewRoco.Modules.System.Bag.BagModuleEnum")
 local PetUIModuleEnum = require("NewRoco.Modules.System.PetUI.PetUIModuleEnum")
 local WeeklyChallengeBattleModuleEvent = require("NewRoco.Modules.System.WeeklyChallengeBattle.WeeklyChallengeBattleModuleEvent")
+local BattleRogueModuleEvent = require("NewRoco.Modules.System.BattleRogue.BattleRogueModuleEvent")
 local UMG_PetSkillMain_C = _G.NRCViewBase:Extend("UMG_PetSkillMain_C")
 
 function UMG_PetSkillMain_C:OnConstruct()
@@ -44,6 +45,8 @@ function UMG_PetSkillMain_C:InitUI()
   self:UpdateChangeBtn2Visibility()
   if self.data:GetEnterPetPanelType() == PetUIModuleEnum.EnterType.WeeklyChallengeBattle then
     self.CanvasPanel_UnlockPrompt:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  elseif self.data:GetEnterPetPanelType() == PetUIModuleEnum.EnterType.HerbologyBadge then
+    self.SelectionPrompt:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
   end
 end
 
@@ -79,7 +82,7 @@ function UMG_PetSkillMain_C:RefreshUI(bIsOpenByBag)
       self:InitFilterAndSort()
     end
     self.uiData.petData = petData
-  elseif friendInfo and friendInfo.petData then
+  elseif friendInfo and friendInfo.type ~= _G.ProtoEnum.PlayerRelationshipType.PRT_SELF then
     self.uiData.petData = friendInfo.petData
   end
   self:ShowPetFeature()
@@ -214,11 +217,9 @@ end
 function UMG_PetSkillMain_C:ShowPetSkill()
   local posToIdDic = {}
   local friendInfo = _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.GetFriendInfoToPetMain)
-  if friendInfo and friendInfo.type then
-    if friendInfo.type ~= _G.ProtoEnum.PlayerRelationshipType.PRT_SELF then
-      self.uiData.petData = friendInfo.petData
-      posToIdDic = _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.GetPetEquipSkillMap, friendInfo.petData.gid, nil, friendInfo.petData)
-    end
+  if friendInfo and friendInfo.type and friendInfo.type ~= _G.ProtoEnum.PlayerRelationshipType.PRT_SELF then
+    self.uiData.petData = friendInfo.petData
+    posToIdDic = _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.GetPetEquipSkillMap, friendInfo.petData.gid, nil, friendInfo.petData)
   else
     posToIdDic = _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.GetPetEquipSkillMap, self.uiData.petData.gid)
   end
@@ -343,12 +344,16 @@ function UMG_PetSkillMain_C:GetAllSkills(_petData)
           local _pos = self.cacheCurEquipSkillDic[skillData.id]
           _skillData.is_equipped = nil ~= _pos
           _skillData.pos = _pos
-          table.insert(skills, {
+          local itemData = {
             skillData = _skillData,
             mode = self.uiData.mode,
             petData = self.uiData.petData,
             delayPlayAnim = self.delayPlaySkillItemAnim
-          })
+          }
+          if self:IsHerbologySingleSelectMode() and self.herbologyBadgeLockedSkillId then
+            itemData.herbologyBadgeLockedSkillId = self.herbologyBadgeLockedSkillId
+          end
+          table.insert(skills, itemData)
           skillIds[skillId] = true
         end
       end
@@ -377,7 +382,7 @@ end
 
 function UMG_PetSkillMain_C:GetLockSkillList(base_conf_id)
   if self.showLockSkill then
-    local skillConf = _G.DataConfigManager:GetLevelSkillConf(base_conf_id)
+    local skillConf = _G.NRCModeManager:DoCmd(_G.PetUIModuleCmd.GetLevelSkillConfByPetBaseId, base_conf_id)
     if skillConf then
       local notUnLockSkillIds = {}
       for _, val in pairs(skillConf.machine_skill_group) do
@@ -515,6 +520,7 @@ function UMG_PetSkillMain_C:OnAddEventListener()
   _G.NRCEventCenter:RegisterEvent("UMG_PetSkillMain_C", self, PetUIModuleEvent.OnEquipAssumptionSkill, self.RefreshSkillListByAssumptionChange)
   _G.NRCEventCenter:RegisterEvent("UMG_PetSkillMain_C", self, PetUIModuleEvent.OnNewPetBagReleaseLifeModeChanged, self.OnNewPetBagReleaseLifeModeChanged)
   _G.NRCEventCenter:RegisterEvent("UMG_PetSkillMain_C", self, WeeklyChallengeBattleModuleEvent.OnPetSkillChanged, self.OnWeeklyChallengePetSkillChanged)
+  _G.NRCEventCenter:RegisterEvent("UMG_PetSkillMain_C", self, BattleRogueModuleEvent.OnPetSkillChanged, self.OnHerbologyPetSkillChanged)
   self:RegisterEvent(self, PetUIModuleEvent.SelectEmptySkill, self.OnSelectEmptySkill)
   if not self.petUIModule then
     self.petUIModule = _G.NRCModuleManager:GetModule("PetUIModule")
@@ -531,6 +537,7 @@ function UMG_PetSkillMain_C:OnRemoveEventListener()
   _G.NRCEventCenter:UnRegisterEvent(self, PetUIModuleEvent.EquipSkill, self.OnEquipSkill)
   _G.NRCEventCenter:UnRegisterEvent(self, PetUIModuleEvent.OnEquipAssumptionSkill, self.RefreshSkillListByAssumptionChange)
   _G.NRCEventCenter:UnRegisterEvent(self, WeeklyChallengeBattleModuleEvent.OnPetSkillChanged, self.OnWeeklyChallengePetSkillChanged)
+  _G.NRCEventCenter:UnRegisterEvent(self, BattleRogueModuleEvent.OnPetSkillChanged, self.OnHerbologyPetSkillChanged)
   self:UnRegisterEvent(self, PetUIModuleEvent.PvpPetTeamEquipPetSkills, self.OnPvpPetTeamEquipPetSkills)
   if not self.petUIModule then
     self.petUIModule = _G.NRCModuleManager:GetModule("PetUIModule")
@@ -573,6 +580,10 @@ function UMG_PetSkillMain_C:ChangeState(mode, ignoreAnim)
   end
 end
 
+function UMG_PetSkillMain_C:IsHerbologySingleSelectMode()
+  return self.data and self.data:GetEnterPetPanelType() == PetUIModuleEnum.EnterType.HerbologyBadge
+end
+
 function UMG_PetSkillMain_C:OnChangeButtonClick()
   local isBan = _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.CheckUIFunctionBan, _G.Enum.FunctionEntrance.FE_PET_EQUIP_SKILL, true)
   if isBan then
@@ -585,7 +596,15 @@ function UMG_PetSkillMain_C:OnChangeButtonClick()
     UE4.UNRCAudioManager.Get():PlaySound2DAuto(40002008, "UMG_PetBaseInfo_C:OnBtnLevelUpClick")
     self:SetViewMode(1)
     local posToIdDic = _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.GetPetEquipSkillMap, gid)
-    _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.SetAssumptionEquipSkill, gid, posToIdDic)
+    if self:IsHerbologySingleSelectMode() then
+      self.singleSelectedSkillId = nil
+      local herbologySkillMap = _G.NRCModuleManager:DoCmd(_G.BattleRogueModuleCmd.GetHerbologyPetSkillMapByGid, gid)
+      self.herbologyBadgeLockedSkillId = herbologySkillMap and herbologySkillMap[1] or nil
+      _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.SetAssumptionEquipSkill, gid, {})
+      self:SetChangeBtnState(false)
+    else
+      _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.SetAssumptionEquipSkill, gid, posToIdDic)
+    end
   else
     UE4.UNRCAudioManager.Get():PlaySound2DAuto(40002007, "UMG_PetBaseInfo_C:OnBtnLevelUpClick")
     local posToIdDic = _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.GetPetEquipSkillMap, gid)
@@ -597,6 +616,8 @@ function UMG_PetSkillMain_C:OnChangeButtonClick()
     _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.AutoCheckEnvironmentEquipPetSkill, gid, posToIdDic, saveDataType)
     _G.NRCModuleManager:DoCmd(PetUIModuleCmd.SetAssumptionEquipSkill, nil)
     self:SetViewMode(0)
+    self.singleSelectedSkillId = nil
+    self.herbologyBadgeLockedSkillId = nil
   end
   self:ChangeState(self.uiData.mode)
   self:ShowPetSkill()
@@ -633,6 +654,7 @@ function UMG_PetSkillMain_C:OnBackBtnClick()
   self:SetViewMode(0)
   self:ChangeState(self.uiData.mode)
   self:ShowPetSkill()
+  self.singleSelectedSkillId = nil
 end
 
 function UMG_PetSkillMain_C:SetViewMode(mode)
@@ -696,6 +718,20 @@ function UMG_PetSkillMain_C:OnEquipSkill(skillData, index)
     _G.NRCModuleManager:DoCmd(PetUIModuleCmd.OpenPetSKillTips, skillData.id, false, mode, self.uiData.petBaseConf.id, true, self.uiData.petData.gid)
     return
   end
+  if self:IsHerbologySingleSelectMode() then
+    if self.singleSelectedSkillId == skillData.id then
+      self.singleSelectedSkillId = nil
+    else
+      self.singleSelectedSkillId = skillData.id
+    end
+    local posToIdDic = {}
+    if self.singleSelectedSkillId then
+      posToIdDic[1] = self.singleSelectedSkillId
+    end
+    _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.SetAssumptionEquipSkill, self.uiData.petData.gid, posToIdDic, nil)
+    self:SetChangeBtnState(nil ~= self.singleSelectedSkillId)
+    return
+  end
   
   local function EquipCount(posToIdDic)
     local count = 0
@@ -750,6 +786,13 @@ function UMG_PetSkillMain_C:OnPvpPetTeamEquipPetSkills(_changes)
 end
 
 function UMG_PetSkillMain_C:OnWeeklyChallengePetSkillChanged()
+  self:ShowPetSkill()
+end
+
+function UMG_PetSkillMain_C:OnHerbologyPetSkillChanged()
+  if not self.uiData or not self.uiData.petData then
+    return
+  end
   self:ShowPetSkill()
 end
 
@@ -1086,7 +1129,7 @@ function UMG_PetSkillMain_C:GetDefaultSortWeighting(skillConf)
   local skillSourceList = _G.NRCModeManager:DoCmd(_G.PetUIModuleCmd.GetSkillSource, skillConf.id, self.uiData.petBaseConf.id)
   if #skillSourceList > 0 then
     if skillSourceList[1] == Enum.PetNewSkillSrc.PNSS_PET_LEVEL_UP then
-      local levelSkillConf = _G.DataConfigManager:GetLevelSkillConf(self.uiData.petBaseConf.id)
+      local levelSkillConf = _G.NRCModeManager:DoCmd(_G.PetUIModuleCmd.GetLevelSkillConfByPetBaseId, self.uiData.petBaseConf.id)
       if levelSkillConf then
         if self.skillSortReverse then
           for i, v in ipairs(levelSkillConf.level) do

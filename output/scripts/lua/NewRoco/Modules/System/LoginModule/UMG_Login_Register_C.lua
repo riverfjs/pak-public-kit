@@ -97,7 +97,8 @@ function UMG_Login_Register_C:RegisterNotificationBtnClickEvent()
 end
 
 function UMG_Login_Register_C:OnClickNotificationBtn()
-  self:DelaySeconds(0.1, function()
+  _G.NRCAudioManager:PlaySound2DAuto(41401002, "UMG_Login_Register_C:OnClickNotificationBtn")
+  self:DelaySeconds(0.3, function()
     UE.UNRCPermissionMgr.JumpToSysSetting()
     self.EnableNotification:CancelSelect()
   end)

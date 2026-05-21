@@ -73,6 +73,9 @@ function UpdateAppTask:OnDolphinVersionInfo(NewVersionInfo)
   Log.Debug(string.format("[UpdateAppTask:OnDolphinVersionInfo] NewVersion: %s, CurVersion: %s", Version, AppVersion))
   self.isAuditVersion = NewVersionInfo.isAuditVersion
   _G.AppMain:SetAuditVersion(self.isAuditVersion)
+  self.userDefineStr = NewVersionInfo:GetUserDefineString()
+  Log.Debug("UpdateAppTask NewVersionInfo.userDefineStr  :  ", self.userDefineStr)
+  _G.AppMain:SetUserDefineStr(self.userDefineStr)
   Log.Debug("UpdateAppTask NewVersionInfo.isAuditVersion  :  ", self.isAuditVersion)
   if self:CompareVersion(AppVersion, Version) then
     Log.Warning("\229\186\148\231\148\168\231\137\136\230\156\172\233\171\152\228\186\142Dolphin\228\184\139\229\143\145\231\154\132\231\137\136\230\156\172\239\188\140\232\183\179\232\191\135\230\155\180\230\150\176\233\152\182\230\174\181", AppVersion, Version)

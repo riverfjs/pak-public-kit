@@ -33,7 +33,7 @@ function UMG_PVP_DanGrading_C:OnActive(pvpRankSettleInfo)
   self.CanvasPanel_Plus:SetVisibility(UE4.ESlateVisibility.Visible)
   self.callbackChain = nil
   self.callbackChainEnable = false
-  self:TryDelayLogic(0, self.FirstPlay, self)
+  self:StartLoadSpineAsset()
 end
 
 function UMG_PVP_DanGrading_C:OnDeactive()
@@ -450,6 +450,67 @@ function UMG_PVP_DanGrading_C:_UpdateTextHint_Unchanged()
   local str = _G.DataConfigManager:GetBattleGlobalConfig("pvp_rank_character13").str
   self.TextHint:SetText(str)
   self:PlayAnimation(self.lowest)
+end
+
+function UMG_PVP_DanGrading_C:StartLoadSpineAsset()
+  local seasonId = _G.NRCModuleManager:DoCmd(_G.PVPRankedMatchModuleCmd.CmdGetCurSeasonId)
+  local curRankConf = PVPRankedMatchModuleUtils.GetSelfPVPRankConf()
+  local atlasPath, skeletonDataPath = PVPRankedMatchModuleUtils.GetSpineAssetPathsSeasonIdInRankConf(curRankConf, seasonId)
+  if atlasPath == self.atlasPath and skeletonDataPath == self.skeletonDataPath then
+    self:OnLoadSpineAssetComplete(false, "same path")
+    return
+  end
+  if atlasPath and skeletonDataPath then
+    local atlasAsset, skeletonAsset
+    local isReady = false
+    
+    local function checkAssetReady()
+      if isReady then
+        return
+      end
+      if UE.UObject.IsValid(atlasAsset) and UE.UObject.IsValid(skeletonAsset) then
+        isReady = true
+        self.atlasPath = atlasPath
+        self.skeletonDataPath = skeletonDataPath
+        self:OnLoadSpineAssetComplete(true, atlasAsset, skeletonAsset)
+      end
+    end
+    
+    self:LoadPanelRes(atlasPath, 255, function(caller, resRequest, asset)
+      atlasAsset = asset
+      checkAssetReady()
+    end, function()
+      self:OnLoadSpineAssetComplete(false, "failed to load atlas data")
+    end, nil)
+    self:LoadPanelRes(skeletonDataPath, 255, function(caller, resRequest, asset)
+      skeletonAsset = asset
+      checkAssetReady()
+    end, function()
+      self:OnLoadSpineAssetComplete(false, "failed to load skeleton data")
+    end, nil)
+  else
+    self:OnLoadSpineAssetComplete(false, "failed to fetch asset path")
+  end
+end
+
+function UMG_PVP_DanGrading_C:OnLoadSpineAssetComplete(ok, res1, res2)
+  if ok then
+    local atlasAsset = res1
+    local skeletonAsset = res2
+    self:SetupSpineWidget(atlasAsset, skeletonAsset)
+  else
+    local errorMessage = res1
+    Log.Error("[UMG_PVPQualifier_C]", errorMessage)
+  end
+  self:TryDelayLogic(0, self.FirstPlay, self)
+end
+
+function UMG_PVP_DanGrading_C:SetupSpineWidget(atlasAsset, skeletonAsset)
+  local spineWidget = self.SpineFlag
+  spineWidget:ClearTrack(0)
+  spineWidget.skeletondata = skeletonAsset
+  spineWidget.atlas = atlasAsset
+  spineWidget:LuaSynchronizeProperties()
 end
 
 return UMG_PVP_DanGrading_C

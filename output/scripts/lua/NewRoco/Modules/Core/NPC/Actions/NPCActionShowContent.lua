@@ -170,4 +170,49 @@ function NPCActionShowContent:UpdateInfo(Info, Reconnect, InteractingAvatarID)
   end
 end
 
+function NPCActionShowContent:ExecuteWhenSkipping()
+  if not self.Contents then
+    local NumberStrings = string.Split(self.Config.action_param1, ";")
+    NumberStrings = NumberStrings or {
+      self.Config.action_param1
+    }
+    for Index, Str in ipairs(NumberStrings) do
+      NumberStrings[Index] = tonumber(Str)
+    end
+    self.Contents = NumberStrings
+  end
+  if self.Contents then
+    for _, ContentID in ipairs(self.Contents) do
+      local NPC = _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.GetNpcByRefreshID, ContentID)
+      if NPC then
+        self:ShowNpcWhenSkipping(NPC)
+      end
+    end
+  end
+end
+
+function NPCActionShowContent:ShowNpcWhenSkipping(npc)
+  if not npc then
+    return false
+  end
+  npc:SetHidden(false, NPCModuleEnum.NpcReasonFlags.SERVER_TASK)
+  npc:SetCollisionDisable(false, NPCModuleEnum.NpcReasonFlags.SERVER_TASK)
+  local View = npc.viewObj
+  if not View or not UE.UObject.IsValid(View) then
+    return false
+  end
+  local AppearSkill = npc.config.emerge_skill
+  local AppearAni = npc.config.emerge_ani
+  if string.IsNilOrEmpty(AppearSkill) and string.IsNilOrEmpty(AppearAni) then
+    local Comps = View:K2_GetComponentsByClass(UE.UNiagaraComponent)
+    for _, Comp in tpairs(Comps) do
+      Comp:SetActive(false, true)
+      Comp:SetActive(true, true)
+    end
+    return false
+  end
+  local BornDieComp = npc:EnsureComponent(BornDieComponent)
+  BornDieComp:OnBornWhenSkipping()
+end
+
 return NPCActionShowContent

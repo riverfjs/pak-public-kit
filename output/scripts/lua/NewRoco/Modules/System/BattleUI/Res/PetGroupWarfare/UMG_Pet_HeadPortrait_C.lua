@@ -69,6 +69,7 @@ function UMG_Pet_HeadPortrait_C:SetPetPos(Skill)
   end
   self.data.Pos = Skill.Pos
   self.data.OpRecords = Skill.OpRecords
+  self.data.is_set_info = true
 end
 
 function UMG_Pet_HeadPortrait_C:SetIconShow(Skill)

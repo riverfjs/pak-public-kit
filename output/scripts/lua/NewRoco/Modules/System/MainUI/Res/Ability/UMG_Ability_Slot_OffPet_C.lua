@@ -27,6 +27,7 @@ function UMG_Ability_Slot_OffPet_C:OnInit(isNormalRide)
   self:SetPcText()
   _G.NRCEventCenter:RegisterEvent("UMG_Ability_Slot_OffPet_C", self, FunctionBanModuleEvent.OnUIFuncVisibilityChange, self.UIBan)
   self.localPlayer:AddEventListener(self, PlayerModuleEvent.ON_RIDEPET_CHANGE_MOVETYPE, self.OnRideMoveTypeChange)
+  FunctionBanManager:AddFunctionStateListener(Enum.PlayerFunctionBanType.PFBT_RIDE_OFF, self, self.RefreshView)
   _G.NRCEventCenter:RegisterEvent("UMG_Ability_Slot_OffPet_C", self, RelationTreeEvent.RELATION_TREE_OPENING_PANEL_TAG, self.RefreshView)
   if self:IsPCMode() then
     self:RegisterEvent(self, MainUIModuleEvent.ChangePCCancelChargeBtnVisibility, self.RideSkillAim)
@@ -43,6 +44,7 @@ function UMG_Ability_Slot_OffPet_C:OnUnInit()
     self.localPlayer:RemoveEventListener(self, PlayerModuleEvent.ON_RIDEPET_CHANGE_MOVETYPE, self.OnRideMoveTypeChange)
     self.localPlayer = nil
   end
+  FunctionBanManager:RemoveFunctionStateListener(Enum.PlayerFunctionBanType.PFBT_RIDE_OFF, self, self.RefreshView)
   if self:IsPCMode() then
     self:UnRegisterEvent(self, MainUIModuleEvent.ChangePCCancelChargeBtnVisibility, self.RideSkillAim)
   else
@@ -131,7 +133,7 @@ function UMG_Ability_Slot_OffPet_C:RefreshView()
     self._isVisible = false
     return
   end
-  local bHide = _G.NRCModuleManager:DoCmd(FunctionBanModuleCmd.CheckUIFunctionHide, Enum.FunctionEntrance.FE_RIDE) or self:GetRelationTreePanelShow()
+  local bHide = _G.NRCModuleManager:DoCmd(FunctionBanModuleCmd.CheckUIFunctionHide, Enum.FunctionEntrance.FE_RIDE) or self:GetRelationTreePanelShow() or _G.NRCModuleManager:DoCmd(FunctionBanModuleCmd.GetFunctionState, Enum.PlayerFunctionBanType.PFBT_RIDE_OFF)
   local isInAim = self.localPlayer.statusComponent:HasStatus(ProtoEnum.WorldPlayerStatusType.WPST_AIMTHROWING) or self.localPlayer.statusComponent:HasStatus(ProtoEnum.WorldPlayerStatusType.WPST_MAGIC)
   local isDoubleRide = self.localPlayer.viewObj.BP_RideComponent and self.localPlayer.viewObj.BP_RideComponent:IsInDoubleRide() or false
   if bHide or isInAim or self.rideSkillAim or isDoubleRide then

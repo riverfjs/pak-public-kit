@@ -1,5 +1,6 @@
 local BigMapModuleEvent = reload("NewRoco.Modules.System.BigMap.BigMapModuleEvent")
 local MainUIModuleEvent = require("NewRoco.Modules.System.MainUI.MainUIModuleEvent")
+local AppearanceUtils = require("NewRoco.Modules.System.Appearance.AppearanceUtils")
 local BigMapModuleEnum = require("NewRoco.Modules.System.BigMap.BigMapModuleEnum")
 local ActivityUtils = require("NewRoco.Modules.System.Activity.ActivityUtils")
 local RolePlayModuleDef = require("NewRoco.Modules.System.RolePlay.RolePlayModuleDef")
@@ -8,6 +9,7 @@ local MagicManualUtils = require("NewRoco/Modules/System/MagicManual/MagicManual
 local BigMapUtils = require("NewRoco/Modules/System/BigMap/BigMapUtils")
 local NPCShopUtils = require("NewRoco.Modules.System.NPCShopUI.NPCShopUtils")
 local SceneUtils = require("NewRoco.Modules.Core.Scene.Common.SceneUtils")
+local PetUtils = require("NewRoco.Utils.PetUtils")
 local UMG_NpcInfo_C = _G.NRCViewBase:Extend("UMG_NpcInfo_C")
 UMG_NpcInfo_C.TraceType = {NPC = 1, TASK = 2}
 
@@ -82,6 +84,8 @@ function UMG_NpcInfo_C:OnAddEventListener()
   self:AddButtonListener(self.Btn2.btnLevelUp, self.OnBtnTransferClick)
   self:AddButtonListener(self.Btn3.btnLevelUp, self.OnBtnCancelTraceClick)
   self:AddButtonListener(self.Btn4.btnLevelUp, self.OnMarkBtnClick)
+  self:AddButtonListener(self.BtnTeleportationChamber.btnLevelUp, self.OnSpecialTransBtnClicked)
+  self:AddButtonListener(self.BtnTransfer.btnLevelUp, self.OnTransBtnClicked)
   self:RegisterEvent(self, BigMapModuleEvent.StarNumChange, self.UpdateHealth)
   self:RegisterEvent(self, BigMapModuleEvent.NpcRefreshTimeChange, self.OnNpcRefreshTimeChange)
   self:RegisterEvent(self, MagicManualModuleEvent.UpdateShinyFlowerInfo, self.UpdateShinyFlowerInfo)
@@ -153,11 +157,10 @@ function UMG_NpcInfo_C:OnTick(deltaTime)
       end
     elseif 4 == self.btnState then
       if self._npcType == _G.Enum.ClientNpcType.CNT_PETBOSS and self.isUnLock then
-        self.btnSwitcher:SetActiveWidgetIndex(2)
-        self.btnState = 2
+        self:SetBtnSwitcherIndex(2)
+        _G.NRCModuleManager:DoCmd(BigMapModuleCmd.CloseMapRightPanel)
       else
-        self.btnSwitcher:SetActiveWidgetIndex(1)
-        self.btnState = 1
+        self:SetBtnSwitcherIndex(1)
         self:OnBtnCancelTraceClick()
       end
     end
@@ -192,6 +195,7 @@ function UMG_NpcInfo_C:UpdatePanel(_npcInfo)
     elseif self.worldMap then
       self:SelectPanel(_npcInfo)
       if self.worldMap.map_show_type == Enum.MapIconShowType.MAP_ONLINE_TEAM then
+        self:setActive(self.textMessage, false)
         self:UpdateButtonState(nil, nil, true)
       else
         if not _npcInfo.status == _G.ProtoEnum.LockStatus.ENUM.UNLOCKED then
@@ -220,7 +224,7 @@ function UMG_NpcInfo_C:UpdatePanel(_npcInfo)
     self.textMessage:SetText("")
     local unLockTips = ""
     self.textMessage:SetText(unLockTips)
-    self.btnSwitcher:SetActiveWidgetIndex(0)
+    self:SetBtnSwitcherIndex(0)
   end
   self:UpdateShinyFlowerInfo()
 end
@@ -280,7 +284,6 @@ function UMG_NpcInfo_C:SelectPanel(_npcInfo)
       elseif npcTipsShowType == Enum.MapTipsShowType.MAP_TIPS_ONLINE_TEAM then
         self:UpdatePanel14Info(_npcInfo)
       elseif npcTipsShowType == Enum.MapTipsShowType.MAP_TIPS_SEASON then
-        self.btnSwitcher:SetVisibility(UE4.ESlateVisibility.Collapsed)
         self:UpdatePanel15Info(_npcInfo)
       elseif npcTipsShowType == Enum.MapTipsShowType.MAP_TIPS_TERRITORY_TRIAL then
         self:UpdatePanel16Info(_npcInfo)
@@ -294,6 +297,33 @@ function UMG_NpcInfo_C:SelectPanel(_npcInfo)
     self:UpdatePanel8Info(_npcInfo)
     _G.NRCEventCenter:DispatchEvent(BigMapModuleEvent.ExcludeUmgPanelEvent, "NpcInfo")
   end
+end
+
+function UMG_NpcInfo_C:SetTransferBtn()
+  local transferBtnCnt = self.module:GetTransferBtnNum(self.worldMap)
+  if 0 == transferBtnCnt then
+  elseif 1 == transferBtnCnt then
+    self:SetBtnSwitcherIndex(BigMapModuleEnum.NpcInfoButtonType.Teleport_1)
+  elseif 2 == transferBtnCnt then
+    self:SetBtnSwitcherIndex(BigMapModuleEnum.NpcInfoButtonType.Teleport_2)
+  end
+  local transferBtnText = self.worldMap.teleport_text
+  if string.IsNilOrEmpty(transferBtnText) then
+    transferBtnText = LuaText.umg_npcinfo_2
+  end
+  local specialTransferBtnText = self.worldMap.special_teleport_text
+  if string.IsNilOrEmpty(specialTransferBtnText) then
+    specialTransferBtnText = LuaText.umg_npcinfo_9
+  end
+  if 1 == transferBtnCnt then
+    if self.worldMap.teleport_id > 0 or self.worldMap.teleport_rule_id > 0 then
+      self.Btn2:SetBtnText(transferBtnText)
+    else
+      self.Btn2:SetBtnText(specialTransferBtnText)
+    end
+  end
+  self.BtnTransfer:SetBtnText(transferBtnText)
+  self.BtnTeleportationChamber:SetBtnText(specialTransferBtnText)
 end
 
 function UMG_NpcInfo_C:UnloadLastPanel(panelType, curPanelType)
@@ -456,19 +486,37 @@ function UMG_NpcInfo_C:UpdatePanel1Info(_npcInfo)
       props.isHeadIcon = false
       props.headIconIndex = 1
     elseif self.worldMap.map_func_icon_group == Enum.MapFuncIconGroup.MFIG_NPCPET then
-      props.headIconPath = string.format("Texture2D'/Game/NewRoco/Modules/System/Common/Icon/HeadIcon/%s.%s'", _npcInfo.petBase_id, _npcInfo.petBase_id)
-      props.isHeadIcon = false
-      props.headIconIndex = 1
-      props.bShowCatchTime = true
-      if "" == props.desc then
-        local petBaseConf = _G.DataConfigManager:GetPetbaseConf(_npcInfo.petBase_id, false)
-        if petBaseConf then
-          props.petCircadian = petBaseConf.Pet_Circadian
-          props.desc = petBaseConf.description
+      if _npcInfo.petBase_id and 0 ~= _npcInfo.petBase_id then
+        props.headIconPath = string.format("Texture2D'/Game/NewRoco/Modules/System/Common/Icon/HeadIcon/%s.%s'", _npcInfo.petBase_id, _npcInfo.petBase_id)
+        props.isHeadIcon = false
+        props.headIconIndex = 1
+        props.bShowCatchTime = true
+        if "" == props.desc then
+          local petBaseConf = _G.DataConfigManager:GetPetbaseConf(_npcInfo.petBase_id, false)
+          if petBaseConf then
+            props.petCircadian = petBaseConf.Pet_Circadian
+            props.desc = petBaseConf.description
+            props.name = petBaseConf.name
+          end
         end
+        props.state = _npcInfo.state
+        props.isFound = _npcInfo.isFound
+      else
+        local model = _G.DataConfigManager:GetModelConf(_npcInfo.npcCfg and _npcInfo.npcCfg.model_conf)
+        props.headIconPath = model and (model.icon or model.ui_icon)
+        props.isHeadIcon = false
+        props.headIconIndex = 1
+        props.bShowCatchTime = false
+        if "" == props.desc and _npcInfo.npcCfg and _npcInfo.npcCfg.traverse_data_param and _npcInfo.npcCfg.traverse_data_type == Enum.Traverse_Data_Type.TDT_BAGITEM then
+          local bagItem_conf = _npcInfo.npcCfg and _G.DataConfigManager:GetBagItemConf(_npcInfo.npcCfg.traverse_data_param[1])
+          if bagItem_conf then
+            props.name = bagItem_conf.name
+            props.desc = bagItem_conf.description
+          end
+        end
+        props.state = 3
+        props.isFound = true
       end
-      props.state = _npcInfo.state
-      props.isFound = _npcInfo.isFound
     elseif self.worldMap.map_func_icon_group == Enum.MapFuncIconGroup.MFIG_NPCFUNCTION then
       props.headIconPath = SetHeadIconFunc(self)
       props.isHeadIcon = true
@@ -569,6 +617,7 @@ function UMG_NpcInfo_C:UpdatePanel3Info(_npcInfo)
   local rewardsList = {}
   local isDone = false
   local collectionInfoList = {}
+  local npcContentId
   if self.worldMap then
     if self.worldMap.element_text_name then
       name = self.worldMap.element_text_name
@@ -599,6 +648,7 @@ function UMG_NpcInfo_C:UpdatePanel3Info(_npcInfo)
       isDone = false
     end
     local dungeonConf = _G.DataConfigManager:GetDungeonConf(self.worldMap.dungeon_id)
+    npcContentId = dungeonConf and dungeonConf.enemy_id and dungeonConf.enemy_id[1]
     local rewardsTable = {}
     for k, v in ipairs(dungeonConf.show_reward) do
       local rewards = _G.NRCCommonItemIconData()
@@ -627,7 +677,7 @@ function UMG_NpcInfo_C:UpdatePanel3Info(_npcInfo)
     end
   end
   self.WidgetLoader:SetWidgetClass(self.EctypeNpcClassRef)
-  self.WidgetLoader:LoadPanelSync(self, name, desc, headIcon, isHeadIconActive, rewardsList, isDone, collectionInfoList)
+  self.WidgetLoader:LoadPanelSync(self, name, desc, headIcon, isHeadIconActive, rewardsList, isDone, collectionInfoList, npcContentId)
   self:OnPanelShow(true)
 end
 
@@ -840,6 +890,44 @@ function UMG_NpcInfo_C:UpdatePanel6Info(_npcInfo)
   props.starList = StarList
   props.star = teamBattleInfo.star
   local rewardsTable = {}
+  local activity_objects = _G.NRCModuleManager:DoCmd(_G.ActivityModuleCmd.GetActivityInstByType, _G.Enum.ActivityType.ATP_FLOWER_APPEAR_HARD)
+  for _, v in ipairs(activity_objects) do
+    if v:IsInProgress() then
+      local flower_group = _G.DataConfigManager:GetActivityFlowerAppearConf(v:GetSinglePartId()).flower_group
+      for _, seed in ipairs(flower_group) do
+        if seed.seed_id == teamBattleInfo.spec_flower_seed_id then
+          local bGetReward = v:GetTaskState(seed.appear_task_id[1])
+          local bGetMedal = v:GetTaskState(seed.appear_task_id[2])
+          if not bGetMedal then
+            local flowerTaskConf = _G.DataConfigManager:GetActivityFlowerTaskConf(seed.appear_task_id[2])
+            local rewards = _G.NRCCommonItemIconData()
+            rewards.itemType = flowerTaskConf.reward_type
+            rewards.itemId = flowerTaskConf.reward_id
+            rewards.itemNum = 1
+            rewards.bShowTip = true
+            rewards.tag = _G.Enum.RewardTag.RTA_ACTIVITY_FLOWER_MEDAL
+            table.insert(rewardsTable, rewards)
+          end
+          if not bGetReward then
+            local reward_id = _G.DataConfigManager:GetActivityFlowerTaskConf(seed.appear_task_id[1]).reward_id
+            local rewardItem = _G.DataConfigManager:GetRewardConf(reward_id).RewardItem
+            for _, item in ipairs(rewardItem) do
+              local rewards = _G.NRCCommonItemIconData()
+              rewards.itemType = item.Type
+              rewards.itemId = item.Id
+              rewards.itemNum = item.Count
+              rewards.bShowNum = true
+              rewards.bShowTip = true
+              rewards.tag = _G.Enum.RewardTag.RTA_ACTIVITY_FLOWER_FIRST
+              table.insert(rewardsTable, rewards)
+            end
+          end
+          goto lbl_376
+        end
+      end
+    end
+  end
+  ::lbl_376::
   local dropReward = _G.NRCModuleManager:DoCmd(_G.ActivityModuleCmd.GetSpecificTimeActivityReward, ProtoEnum.ActivityDropShowArea.ADSA_FLOWER)
   if dropReward then
     for k, v in ipairs(dropReward) do
@@ -970,7 +1058,7 @@ function UMG_NpcInfo_C:HandleBossEvoReward(RewardItem)
     Log.Error("UMG_NpcInfo_C:HandleBossEvoReward RewardItem is nil")
     return RetRewardItem
   end
-  if RewardItem.itemId ~= nil then
+  if RewardItem.itemId ~= nil and RewardItem.itemType and RewardItem.itemType == _G.Enum.GoodsType.GT_BAGITEM then
     local BagItemConf = _G.DataConfigManager:GetBagItemConf(RewardItem.itemId)
     local BagItemData = _G.NRCModeManager:DoCmd(BagModuleCmd.GetBagItemByID, RewardItem.itemId)
     if BagItemConf then
@@ -989,7 +1077,7 @@ function UMG_NpcInfo_C:CheckThisRewardShouldShow(RewardItem)
     Log.Error("UMG_NpcInfo_C:CheckThisRewardShouldShow RewardItem is nil")
     return bShow
   end
-  if RewardItem.itemId ~= nil then
+  if RewardItem.itemId ~= nil and RewardItem.itemType and RewardItem.itemType == _G.Enum.GoodsType.GT_BAGITEM then
     local BagItemConf = _G.DataConfigManager:GetBagItemConf(RewardItem.itemId)
     local BagItemData = _G.NRCModeManager:DoCmd(BagModuleCmd.GetBagItemByID, RewardItem.itemId)
     if BagItemData and BagItemConf then
@@ -1271,10 +1359,14 @@ function UMG_NpcInfo_C:GetStoreListRsp(_rsp)
   local numText = ""
   if _rsp.shop_data == nil then
     Log.Warning("UMG_NpcInfo_C:GetStoreListRsp _rsp.shop_data is nil")
+    self.WidgetLoader:GetPanel():ShowDefault()
+    self:OnPanelShow(true)
     return
   end
   if nil == _rsp.shop_data.goods_data then
     Log.Warning("UMG_NpcInfo_C:GetStoreListRsp _rsp.shop_data.goods_data is nil")
+    self.WidgetLoader:GetPanel():ShowDefault()
+    self:OnPanelShow(true)
     return
   end
   self.ShopID = _rsp.shop_data.id
@@ -1553,6 +1645,12 @@ function UMG_NpcInfo_C:AddMarkerForShopList(list)
               else
                 item.topLabelText = "\230\156\170\232\142\183\229\190\151"
               end
+            elseif rewardItem and rewardItem.Type == Enum.GoodsType.GT_SHARE_FORM then
+              item.topLabelText = "\230\156\170\232\142\183\229\190\151"
+              item.cardId = rewardItem.Id
+              local req = ProtoMessage:newZoneGetShareFormInfoReq()
+              req.pet_id = _G.DataConfigManager:GetPetShareItemConf(rewardItem.Id).allowed_petbase
+              _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_GET_SHARE_FORM_INFO_REQ, req, self, self.GetCardUnlockState, false, true)
             end
           end
         end
@@ -1598,7 +1696,20 @@ function UMG_NpcInfo_C:AddMarkerForShopList(list)
       else
         item.topLabelText = "\230\156\170\232\142\183\229\190\151"
       end
+    elseif item.itemType == Enum.GoodsType.GT_FASHION_SUITS then
+      local hasSuit = _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.CheckHasSuit, item.itemId)
+      if hasSuit then
+        item.topLabelText = LuaText.tailor_owned_btn
+      else
+        item.topLabelText = LuaText.map_shop_item_marker_text4
+      end
     end
+  end
+end
+
+function UMG_NpcInfo_C:GetCardUnlockState(rsp)
+  if 0 == rsp.ret_info.ret_code and self.WidgetLoader:GetPanel() and self.WidgetLoader:GetPanel().UpdateCardItem then
+    self.WidgetLoader:GetPanel():UpdateCardItem(rsp.share_form_item)
   end
 end
 
@@ -1911,11 +2022,27 @@ function UMG_NpcInfo_C:UpdatePanel16Info(_npcInfo)
   end
   if activityObject then
     activityObject:BindActivityTimeLeft(self.WidgetLoader:GetPanel().Text_Time)
-    local trial_info = activityObject:GetActivityData().trial_info
-    props.highest_score = trial_info.highest_score
-    props.least_finish_round = trial_info.least_finish_round
-    props.base_id = activityObject:GetSinglePartId()
+    local activityData = activityObject:GetActivityData()
+    if activityData and activityData.trial_info then
+      local trial_info = activityData.trial_info
+      props.highest_score = trial_info.highest_score
+      props.least_finish_round = trial_info.least_finish_round
+      props.base_id = activityObject:GetSinglePartId()
+      props.desc = _npcInfo.worldMapConf.worldmap_npc_des
+    end
+  else
+    local base_id, close_time
+    local activity_conf = _G.DataConfigManager:GetTable(_G.DataConfigManager.ConfigTableId.ACTIVITY_CONF):GetAllDatas()
+    for _, conf in pairs(activity_conf) do
+      if conf.activity_type == _G.Enum.ActivityType.ATP_TERRITORY_TRIAL and conf.refresh_event_group[1].refresh_content[1] == _npcInfo.npc_refresh_id then
+        base_id = conf.base_id[1]
+        close_time = conf.disappear_time
+        break
+      end
+    end
+    props.base_id = base_id
     props.desc = _npcInfo.worldMapConf.worldmap_npc_des
+    self.WidgetLoader:GetPanel():SetCloseTimestamp(ActivityUtils.ToTimestamp(close_time))
   end
   self.WidgetLoader:LoadPanelSync(self, props)
   self:OnPanelShow(true)
@@ -1930,13 +2057,27 @@ function UMG_NpcInfo_C:UpdatePanel17Info(_npcInfo)
     ownerName = "",
     isHeadIcon = true
   }
-  self.btnSwitcher:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  if self.module:CheckIsTracing(BigMapModuleEnum.TraceType.ForceTrace, _npcInfo.entry_id, _npcInfo.logic_id) then
+    self.btnSwitcher:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  else
+    self.btnSwitcher:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  end
   local worldMapConfId = _npcInfo.world_map_cfg_id
   if worldMapConfId and worldMapConfId > 0 then
     local worldMapConf = DataConfigManager:GetWorldMapConf(worldMapConfId)
     if worldMapConf then
       props.name = worldMapConf.element_text_name
-      props.headIconPath = self:GetDesIconPath(worldMapConf.world_map_NPCicon_des)
+      if BigMapUtils.CheckShowRongDuanIcon(worldMapConf, _npcInfo.mutation_type) then
+        props.headIconPath = self:GetDesIconPath(worldMapConf.shine_rongduan_icon)
+      else
+        props.headIconPath = self:GetDesIconPath(worldMapConf.world_map_NPCicon_des)
+      end
+      if (worldMapConf.map_show_type == Enum.MapIconShowType.MAP_SEASON_DAZZLING or worldMapConf.map_show_type == Enum.MapIconShowType.MAP_SHINING_SEASON_DAZZLING) and _npcInfo and _npcInfo.mutation_type and _npcInfo.glass_info and PetUtils.CheckIsHiddenGlass(_npcInfo.mutation_type, _npcInfo.glass_info) then
+        local iconPath = self:GetHiddenGlassIcon(_npcInfo.mutation_type, _npcInfo.glass_info)
+        if iconPath then
+          props.headIconPath = iconPath
+        end
+      end
       local localPlayer = NRCModuleManager:DoCmd(PlayerModuleCmd.GET_LOCAL_PLAYER)
       if localPlayer then
         local playerId = localPlayer:GetServerId()
@@ -1960,6 +2101,24 @@ function UMG_NpcInfo_C:UpdatePanel17Info(_npcInfo)
   self:OnPanelShow(true)
 end
 
+function UMG_NpcInfo_C:GetHiddenGlassIcon(mutation_type, glass_info)
+  if mutation_type and glass_info then
+    local isShining = 0 ~= mutation_type & _G.Enum.MutationDiffType.MDT_SHINING
+    local HiddenGlassID = glass_info.glass_value
+    if HiddenGlassID then
+      local HiddenGlassConf = _G.DataConfigManager:GetHiddenGlassConf(HiddenGlassID)
+      if HiddenGlassConf then
+        if not isShining and HiddenGlassConf.stroke_small_icon and not string.IsNilOrEmpty(HiddenGlassConf.stroke_small_icon) then
+          return HiddenGlassConf.stroke_small_icon
+        elseif isShining and HiddenGlassConf.yise_stroke_small_icon and not string.IsNilOrEmpty(HiddenGlassConf.yise_stroke_small_icon) then
+          return HiddenGlassConf.yise_stroke_small_icon
+        end
+      end
+    end
+  end
+  return nil
+end
+
 function UMG_NpcInfo_C:GetShowItemList(shopItemList, showItemList)
   for k, shopItem in ipairs(shopItemList) do
     local isItemExists = false
@@ -1978,8 +2137,8 @@ end
 
 function UMG_NpcInfo_C:SortShowItemList(list)
   table.sort(list, function(a, b)
-    local aIsFashion = a.itemType == _G.Enum.GoodsType.GT_FASHION
-    local bIsFashion = b.itemType == _G.Enum.GoodsType.GT_FASHION
+    local aIsFashion = a.itemType == _G.Enum.GoodsType.GT_FASHION or a.itemType == _G.Enum.GoodsType.GT_FASHION_SUITS
+    local bIsFashion = b.itemType == _G.Enum.GoodsType.GT_FASHION or b.itemType == _G.Enum.GoodsType.GT_FASHION_SUITS
     if aIsFashion and not bIsFashion then
       return true
     elseif not aIsFashion and bIsFashion then
@@ -2049,6 +2208,13 @@ function UMG_NpcInfo_C:SetShopList(itemInfo)
           local fashionItemConf = _G.DataConfigManager:GetFashionItemConf(goodsConf.item_id)
           rewards.itemQuantity = fashionItemConf.item_quality
           rewards.sortId = goodsConf.shop_pos
+        elseif goodsConf.Type == Enum.GoodsType.GT_FASHION_SUITS then
+          local fashionItemConf = _G.DataConfigManager:GetFashionSuitsConf(goodsConf.item_id)
+          rewards.itemQuantity = AppearanceUtils.GetSuitQuality(fashionItemConf.suit_grade)
+          rewards.sortId = goodsConf.shop_pos
+        else
+          rewards.itemQuantity = 1
+          rewards.sortId = goodsConf.shop_pos
         end
         rewards.itemType = goodsConf.Type
         rewards.itemId = goodsConf.item_id
@@ -2060,6 +2226,13 @@ function UMG_NpcInfo_C:SetShopList(itemInfo)
     end
   end
   return shopTable
+end
+
+function UMG_NpcInfo_C:SetBtnSwitcherIndex(index)
+  if index >= 0 then
+    self.btnSwitcher:SetActiveWidgetIndex(index)
+    self.btnState = index
+  end
 end
 
 function UMG_NpcInfo_C:UpdateMessage(_npcType)
@@ -2084,84 +2257,81 @@ function UMG_NpcInfo_C:UpdateButtonState(_npcType, _teleportId, _isUnLock)
     self.isUnLock = _isUnLock
     if _npcType == _G.Enum.ClientNpcType.CNT_PETBOSS and self.uiData.next_npc_refresh_time and self.uiData.next_npc_refresh_time - _G.ZoneServer:GetServerTime() / 1000 >= 0 then
       self._npcType = _npcType
-      self.btnSwitcher:SetActiveWidgetIndex(4)
-      self.btnState = 4
+      self:SetBtnSwitcherIndex(BigMapModuleEnum.NpcInfoButtonType.WaitTime)
       return
     end
-    if _teleportId > 0 then
+    if self.module:GetTransferBtnNum(self.worldMap) > 0 then
       local bNotInFogArea = true
       if self.uiData.npc_pos then
         bNotInFogArea = BigMapUtils.CheckInFogAreaByPos(self.uiData.npc_pos, self.data.curShowSceneResId)
       end
       if self.worldMap.map_tips_show_type == _G.Enum.MapTipsShowType.MAP_TIPS_OWL_SANCTUARY then
         if self.uiData.npc_level > 1 then
-          self.btnSwitcher:SetActiveWidgetIndex(2)
-          self.btnState = 2
+          self:SetTransferBtn()
         else
-          self.btnSwitcher:SetActiveWidgetIndex(1)
-          self.btnState = 1
+          self:SetBtnSwitcherIndex(BigMapModuleEnum.NpcInfoButtonType.Trace)
         end
       elseif _isUnLock then
         if 0 == self.worldMap.unlock_element_show_top and not bNotInFogArea then
-          self.btnSwitcher:SetActiveWidgetIndex(1)
-          self.btnState = 1
+          self:SetBtnSwitcherIndex(BigMapModuleEnum.NpcInfoButtonType.Trace)
         else
-          self.btnSwitcher:SetActiveWidgetIndex(2)
-          self.btnState = 2
+          self:SetTransferBtn()
         end
       else
-        self.btnSwitcher:SetActiveWidgetIndex(1)
-        self.btnState = 1
+        self:SetBtnSwitcherIndex(BigMapModuleEnum.NpcInfoButtonType.Trace)
       end
     elseif _npcType == _G.Enum.ClientNpcType.CNT_FLOWER_SEED or self.worldMap.map_show_type == _G.Enum.MapIconShowType.MAP_CREATE_MAGIC then
       if _isUnLock then
-        self.btnSwitcher:SetActiveWidgetIndex(2)
-        self.btnState = 2
+        self:SetBtnSwitcherIndex(BigMapModuleEnum.NpcInfoButtonType.Teleport_1)
       else
-        self.btnSwitcher:SetActiveWidgetIndex(1)
-        self.btnState = 1
+        self:SetBtnSwitcherIndex(BigMapModuleEnum.NpcInfoButtonType.Trace)
       end
     else
-      self.btnSwitcher:SetActiveWidgetIndex(1)
-      self.btnState = 1
+      self:SetBtnSwitcherIndex(BigMapModuleEnum.NpcInfoButtonType.Trace)
     end
     local npcId = self.uiData and self.uiData.entry_id or self.uiData.npcId
+    local logicId = self.uiData and self.uiData.logic_id or npcId
     local moduleData = self.module and self.module.data
     if moduleData then
-      local traceNpcId = moduleData:GetCurTraceNpcId()
-      if npcId and traceNpcId and traceNpcId == npcId then
+      local traceNpcInfo = moduleData:GetTraceInfoByType(BigMapModuleEnum.TraceType.NPC)
+      local traceEntryId = 0
+      local traceLogicId = 0
+      if traceNpcInfo then
+        traceEntryId = traceNpcInfo.npcInfo.entry_id
+        traceLogicId = traceNpcInfo.npcInfo.logic_id
+      end
+      if npcId and logicId and traceEntryId == npcId and traceLogicId == logicId then
         if _npcType == _G.Enum.ClientNpcType.CNT_UNLOCKPORT or _npcType == _G.Enum.ClientNpcType.CNT_TELEPORT then
           if _isUnLock then
-            self.btnSwitcher:SetActiveWidgetIndex(2)
+            self:SetTransferBtn()
           else
-            self.btnSwitcher:SetActiveWidgetIndex(3)
+            self:SetBtnSwitcherIndex(BigMapModuleEnum.NpcInfoButtonType.CancelTrace)
           end
         else
-          self.btnSwitcher:SetActiveWidgetIndex(3)
+          self:SetBtnSwitcherIndex(BigMapModuleEnum.NpcInfoButtonType.CancelTrace)
         end
       end
     end
   elseif self.worldMap and self.worldMap.map_show_type == _G.Enum.MapIconShowType.MAP_ONLINE_TEAM then
-    self.btnSwitcher:SetActiveWidgetIndex(2)
-    self.btnState = 2
+    self:SetTransferBtn()
   else
     self.traceType = UMG_NpcInfo_C.TraceType.TASK
     if self.uiData.TaskShowType == BigMapModuleEnum.TaskShowType.TRACING then
-      self.btnSwitcher:SetActiveWidgetIndex(3)
+      self:SetBtnSwitcherIndex(BigMapModuleEnum.NpcInfoButtonType.CancelTrace)
     elseif self.uiData.TaskShowType == BigMapModuleEnum.TaskShowType.UNDO then
       local moduleData = self.module and self.module.data
       if moduleData and self.uiData.TaskConf then
         local bIsTrack = moduleData:GetCurTraceAcceptableTask(self.uiData.TaskConf.id)
         if bIsTrack then
-          self.btnSwitcher:SetActiveWidgetIndex(3)
+          self:SetBtnSwitcherIndex(BigMapModuleEnum.NpcInfoButtonType.CancelTrace)
         else
-          self.btnSwitcher:SetActiveWidgetIndex(1)
+          self:SetBtnSwitcherIndex(BigMapModuleEnum.NpcInfoButtonType.Trace)
         end
         return
       end
-      self.btnSwitcher:SetActiveWidgetIndex(1)
+      self:SetBtnSwitcherIndex(BigMapModuleEnum.NpcInfoButtonType.Trace)
     elseif self.uiData.TaskShowType == BigMapModuleEnum.TaskShowType.ACCEPTED then
-      self.btnSwitcher:SetActiveWidgetIndex(1)
+      self:SetBtnSwitcherIndex(BigMapModuleEnum.NpcInfoButtonType.Trace)
     end
   end
 end
@@ -2200,7 +2370,7 @@ function UMG_NpcInfo_C:OnBtnTraceClick()
         traceInfo.taskInfo.go_index = 1
         moduleData:SetCurTraceAcceptTask(self.uiData.TaskConf.id, true)
         _G.NRCModuleManager:DoCmd(BigMapModuleCmd.StartOrCancelTrace, true, traceInfo)
-        self.btnSwitcher:SetActiveWidgetIndex(3)
+        self:SetBtnSwitcherIndex(BigMapModuleEnum.NpcInfoButtonType.CancelTrace)
       end
       _G.NRCModuleManager:DoCmd(_G.BigMapModuleCmd.CloseWorldMap)
       _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.CloseCompass)
@@ -2209,13 +2379,13 @@ function UMG_NpcInfo_C:OnBtnTraceClick()
     if self.NpcInfo and self.NpcInfo.SpecialTaskType and self.NpcInfo.SpecialTaskType == "TreasureDig" then
       _G.NRCModuleManager:DoCmd(_G.TaskModuleCmd.SwitchActivityTraceTask, true, self.uiData.TaskConf.id)
       self.uiData.TaskShowType = BigMapModuleEnum.TaskShowType.TRACING
-      self.btnSwitcher:SetActiveWidgetIndex(3)
+      self:SetBtnSwitcherIndex(BigMapModuleEnum.NpcInfoButtonType.CancelTrace)
       _G.NRCModuleManager:DoCmd(_G.BigMapModuleCmd.CloseWorldMap)
       _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.CloseCompass)
     else
       _G.NRCModuleManager:DoCmd(_G.TaskModuleCmd.setTrack, self.uiData.TaskConf.id, true)
       self.uiData.TaskShowType = BigMapModuleEnum.TaskShowType.TRACING
-      self.btnSwitcher:SetActiveWidgetIndex(3)
+      self:SetBtnSwitcherIndex(BigMapModuleEnum.NpcInfoButtonType.CancelTrace)
       _G.NRCModuleManager:DoCmd(_G.BigMapModuleCmd.CloseWorldMap)
       _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.CloseCompass)
     end
@@ -2226,25 +2396,22 @@ function UMG_NpcInfo_C:OnBtnTraceClick()
     else
       npcId = self.uiData.npcId
     end
+    local logicId = self.uiData.logic_id or npcId
     local moduleData = self.module and self.module.data
     if moduleData and npcId then
-      local traceNpcInfo = moduleData:GetNPCInfoByEntryId(npcId)
+      local traceNpcInfo = moduleData:GetNPCInfoByEntryId(npcId, logicId)
       if traceNpcInfo then
-        local traceInfo = {}
-        traceInfo.traceType = BigMapModuleEnum.TraceType.NPC
-        traceInfo.npcInfo = traceNpcInfo
         local posX = traceNpcInfo.npc_pos.x
         local posY = traceNpcInfo.npc_pos.y
         local sceneResId = BigMapUtils.GetSceneResIdByPos(posX, posY)
         if self.uiData.npc_refresh_id and self.uiData.npc_refresh_id > 0 then
-          sceneResId = moduleData:GetSceneResIdByRefreshId(self.uiData.npc_refresh_id)
+          sceneResId = BigMapUtils.GetSceneResIdByRefreshId(self.uiData.npc_refresh_id)
         end
-        local imagePosX, imagePosY = BigMapUtils.ScenePosToImagePos(sceneResId, posX, posY)
-        traceInfo.iconImagePos = {x = imagePosX, y = imagePosY}
-        traceInfo.sceneResId = sceneResId
-        moduleData:SetCurTraceNpc(npcId)
-        _G.NRCModuleManager:DoCmd(BigMapModuleCmd.StartOrCancelTrace, true, traceInfo)
-        self.btnSwitcher:SetActiveWidgetIndex(3)
+        if nil == sceneResId then
+          sceneResId = BigMapUtils.GetSceneResIdByPos(posX, posY)
+        end
+        moduleData:SetCurTraceNpc(npcId, logicId, sceneResId)
+        self:SetBtnSwitcherIndex(BigMapModuleEnum.NpcInfoButtonType.CancelTrace)
       end
     end
   end
@@ -2290,7 +2457,7 @@ function UMG_NpcInfo_C:OnBtnCancelTraceClick()
         _G.NRCModuleManager:DoCmd(_G.TaskModuleCmd.SwitchActivityTraceTask, false, self.uiData.TaskConf.id)
       end
     end
-    self.btnSwitcher:SetActiveWidgetIndex(1)
+    self:SetBtnSwitcherIndex(BigMapModuleEnum.NpcInfoButtonType.Trace)
     self.uiData.TaskShowType = BigMapModuleEnum.TaskShowType.ACCEPTED
     self:DispatchEvent(BigMapModuleEvent.UpdateTraceEffect, self.uiData.TaskConf.id)
   elseif self.traceType == UMG_NpcInfo_C.TraceType.NPC then
@@ -2305,7 +2472,7 @@ function UMG_NpcInfo_C:OnBtnCancelTraceClick()
       local traceNpcId = moduleData:GetCurTraceNpcId()
       if traceNpcId == npcId and -1 ~= npcId and 0 ~= npcId then
         moduleData:SetCurTraceNpc(-1)
-        self.btnSwitcher:SetActiveWidgetIndex(1)
+        self:SetBtnSwitcherIndex(BigMapModuleEnum.NpcInfoButtonType.Trace)
         local traceInfo = {}
         traceInfo.traceType = BigMapModuleEnum.TraceType.NPC
         traceInfo.npcInfo = {entry_id = npcId}
@@ -2322,16 +2489,35 @@ function UMG_NpcInfo_C:OnMarkBtnClick()
 end
 
 function UMG_NpcInfo_C:OnBtnTransferClick()
+  self:ClickTransferBtn()
+end
+
+function UMG_NpcInfo_C:OnSpecialTransBtnClicked()
+  self:ClickTransferBtn(true)
+end
+
+function UMG_NpcInfo_C:OnTransBtnClicked()
+  self:ClickTransferBtn(false)
+end
+
+function UMG_NpcInfo_C:ClickTransferBtn(bSpecial)
   local curSceneId = SceneUtils.GetSceneID()
   local bInHome = BigMapUtils.IsHomeScene(curSceneId)
+  if nil == bSpecial then
+    if self.worldMap.teleport_rule_id > 0 or self.worldMap.teleport_id > 0 then
+      bSpecial = false
+    elseif self.worldMap.special_teleport > 0 then
+      bSpecial = true
+    end
+  end
   if bInHome and BigMapUtils.IsBigWorldMap(self.data.curShowSceneResId) then
     self.module:DoLeaveHomeTransfer(self.uiData.entry_id, self.worldMap)
   else
-    self.module:DoCommonTransfer(self.uiData.entry_id, self.worldMap, self.uiData.visitorInfo)
+    self.module:DoCommonTransfer(self.uiData.entry_id, self.worldMap, self.uiData.visitorInfo, bSpecial)
   end
   if not BattleManager:IsInBattle() then
     local npcId = self.uiData and self.uiData.entry_id
-    if npcId and 0 ~= npcId and (self.worldMap.teleport_id > 0 or self.worldMap.teleport_rule_id and self.worldMap.teleport_rule_id > 0) and npcId > 0 and self.worldMap.map_show_location == Enum.MapIconShowLocation.MISL_BIGWORLD then
+    if npcId and 0 ~= npcId and self.module:GetTransferBtnNum(self.worldMap) > 0 and npcId > 0 and self.worldMap.map_show_location == Enum.MapIconShowLocation.MISL_BIGWORLD then
       self.Btn2:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
     end
     if self.worldMap.map_show_type == _G.Enum.MapIconShowType.MAP_ONLINE_TEAM then
@@ -2342,6 +2528,7 @@ function UMG_NpcInfo_C:OnBtnTransferClick()
 end
 
 function UMG_NpcInfo_C:OnPanelShow(_isShow)
+  UE4.UNRCTUIStatics.ReleaseAllCapture(0)
   self:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
   Log.Info("UMG_NpcInfo_C:OnPanelShow", _isShow)
   if _isShow then

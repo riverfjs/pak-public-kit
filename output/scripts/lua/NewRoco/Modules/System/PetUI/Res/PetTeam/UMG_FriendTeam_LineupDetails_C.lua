@@ -42,7 +42,7 @@ end
 function UMG_FriendTeam_LineupDetails_C:OnImPortBtn()
   _G.NRCAudioManager:PlaySound2DAuto(40008005, "UMG_FriendTeam_LineupDetails_C:OnImPortBtn")
   if self.FriendTeamDetailsParam.IsUnlockTeamShare and not self.FriendTeamDetailsParam.HasTrialPet then
-    _G.NRCModuleManager:DoCmd(PetUIModuleCmd.OpenFriendMirrorPetTeamCoverPanel, self.FriendTeamDetailsParam.TeamType, self.FriendTeamDetailsParam.PetTeam.team_idx, self.FriendTeamDetailsParam.FriendUin, self.FriendTeamDetailsParam.PetTeam.pet_infos)
+    _G.NRCModuleManager:DoCmd(PetUIModuleCmd.OpenFriendMirrorPetTeamCoverPanel, self.FriendTeamDetailsParam.TeamType, self.FriendTeamDetailsParam.PetTeam.team_idx, self.FriendTeamDetailsParam.FriendUin, self.FriendTeamDetailsParam.PetTeam)
   elseif self.FriendTeamDetailsParam.HasTrialPet then
     _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.share_pet_random_pet)
   else

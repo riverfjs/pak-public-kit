@@ -159,6 +159,7 @@ function UMG_AppearanceSuit_C:SetInfoByGrade(suitQuality)
     self.TimesText:SetText(self.data:GetCurSuitPvPInfo(self.suitId))
   end
   self.SuitQualityColor3_1:SetColorAndOpacity(UE4.UNRCStatics.HexToLinearColor(color))
+  self.SuitQualityColor3_2:SetColorAndOpacity(UE4.UNRCStatics.HexToLinearColor(color))
   self.SuitQualityColor2:SetColorAndOpacity(UE4.UNRCStatics.HexToLinearColor(color))
   self.SuitQualityColor:SetColorAndOpacity(UE4.UNRCStatics.HexToLinearColor(color))
   self.DescText:SetText(descText)

@@ -1,7 +1,6 @@
 local HomeTask = Class("HomeTask")
 
 function HomeTask:Ctor()
-  self.DebugInfo = debug.getinfo(5)
   self.bFinished = false
 end
 

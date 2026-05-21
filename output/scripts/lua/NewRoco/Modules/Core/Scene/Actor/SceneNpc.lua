@@ -47,6 +47,7 @@ local OverlapAwareVisibilityComponent = require("NewRoco.Modules.Core.Scene.Comp
 local NPCTrailComponent = require("NewRoco.Modules.Core.Scene.Component.Collision.NPCTrailComponent")
 local MagicReplayModuleEvent = require("NewRoco.Modules.System.MagicReplay.MagicReplayModuleEvent")
 local NPCLuaUtils = require("NewRoco.Modules.Core.NPC.NPCLuaUtils")
+local ScaleTransformComponent = require("NewRoco.Modules.Core.Scene.Component.Transform.ScaleTransformComponent")
 local NRCModeManager = _G.NRCModeManager
 local NPCBaseCommon = UE.NPCBaseCommon
 
@@ -96,7 +97,7 @@ local CollectTimeout = (CollectTimeConf and CollectTimeConf.num or 10) * 1000
 local NightmareScaleConf = _G.DataConfigManager:GetNpcGlobalConfig("random_nightmare_elite_scale_fix")
 local NightmareScale = (NightmareScaleConf and NightmareScaleConf.num or 100) / 100.0
 local Base = require("NewRoco.Modules.Core.Scene.Actor.SceneCharacter")
-local SceneNpc = Base:Extend("SceneNpc")
+local SceneNpc = Base:Extend("SceneNpc", 128)
 local VisualizeInteractionCheck = false
 SceneNpc:SetMemberCount(64)
 
@@ -249,8 +250,8 @@ function SceneNpc:InitData(config, serverData)
     return
   end
   local Pos = serverData.base.pt.pos
-  self.serverPos:Set(Pos.x, Pos.y, Pos.z + 0.001)
-  self.landPos:Set(Pos.x, Pos.y, Pos.z + 0.001)
+  self.serverPos:Set(Pos.x, Pos.y, (Pos.z or 0) + 0.001)
+  self.landPos:Set(Pos.x, Pos.y, (Pos.z or 0) + 0.001)
   local MiscInfo = serverData.misc_info
   if MiscInfo then
     self:BatchApplyFlags(MiscInfo.cannot_be_seen, MiscInfo.npc_hide_flag)
@@ -333,6 +334,20 @@ end
 function SceneNpc:UpdateHpMax(newHpMax)
   if self.serverData then
     self.serverData.attrs.hp_max = newHpMax
+  end
+end
+
+function SceneNpc:UpdateSizeScale(newSizeScale)
+  if not newSizeScale or newSizeScale <= 0 then
+    return
+  end
+  if self.serverData and self.serverData.misc_info then
+    self.serverData.misc_info.size_scale = newSizeScale
+  end
+  local finalScale = self:GetFinalScale()
+  local scaleTransformComponent = self:EnsureComponent(ScaleTransformComponent)
+  if scaleTransformComponent then
+    scaleTransformComponent:SetCustomScale(finalScale, 0.3, false, true)
   end
 end
 
@@ -427,9 +442,9 @@ function SceneNpc:InitComponent()
     self:EnsureComponent(PetHUDComponent)
   end
   self:EnsureComponent(AudioCustomSettingComponent)
-  local npc_trampling_lawn_comp = self.config.npc_trampling_lawn_comp
+  local npc_trampling_lawn_comp = NPCTrailComponent.GetTramplingLawnComp(self.config)
   if npc_trampling_lawn_comp and 0 ~= npc_trampling_lawn_comp then
-    self:EnsureComponent(NPCTrailComponent)
+    self:EnsureComponent(NPCTrailComponent, npc_trampling_lawn_comp)
   end
   Base.InitComponent(self)
   if not CharacterBaseNPC then
@@ -437,6 +452,9 @@ function SceneNpc:InitComponent()
     if Locked or ServerData.combine_lock then
       self:EnsureComponent(LockIndicatorComponent)
     end
+  end
+  if ServerData and HomeIndoorSandbox then
+    HomeIndoorSandbox.Utils.EnsureHomeNpcComponents(self)
   end
 end
 
@@ -640,6 +658,10 @@ function SceneNpc:IsPetEgg()
   return self.config.traverse_data_type and #self.config.traverse_data_param > 0 and self.config.traverse_data_type == _G.Enum.Traverse_Data_Type.TDT_EGGTOPETBASE
 end
 
+function SceneNpc:IsFakeMutation()
+  return self.config.traverse_data_type and self.config.traverse_data_type == _G.Enum.Traverse_Data_Type.TDT_FAKE_MUTATION
+end
+
 function SceneNpc:IsHuman()
   return self.luaObj:InstanceOf(Lua_PEO_Scene)
 end
@@ -705,6 +727,30 @@ function SceneNpc:GetConfigScale()
   local scale4 = self:GetNpcFarmScale()
   local scale = scale1 * scale2 * scale3 * scale4
   return scale
+end
+
+function SceneNpc:GetFinalScale()
+  local ConfigScale = self:GetConfigScale()
+  local heightModelScale = 1
+  local serverHeight = self.serverData and self.serverData.npc_base.height_scale
+  if serverHeight and serverHeight > 0 and serverHeight < 20 then
+    heightModelScale = serverHeight
+  elseif self:IsPet() then
+    heightModelScale = PetMutationUtils.GetNpcHeightModelScale(self.config, self.serverData.npc_base.height)
+  end
+  if self.LogicStatusComponent then
+    local IsElite, _, _ = self.LogicStatusComponent:GetStatus(Enum.SpaceActorLogicStatus.SALS_NIGHTMARE_ELITE)
+    if IsElite then
+      heightModelScale = heightModelScale * NightmareScale
+    end
+  end
+  local misc_info = self.serverData and self.serverData.misc_info
+  local size_scale_value = misc_info and misc_info.size_scale or 100
+  if size_scale_value <= 0 then
+    size_scale_value = 100
+  end
+  local server_size_scale = size_scale_value / 100
+  return ConfigScale * heightModelScale * server_size_scale
 end
 
 function SceneNpc:OnViewObjGetFromPool(viewObj)
@@ -829,6 +875,7 @@ function SceneNpc:OnViewObjGetFromPool(viewObj)
     SceneUtils.SetupSpotLight(self, self.contentConf.Light_BP)
   end
   self:SendEvent(NPCModuleEvent.VIEW_SHELL_LOADED, self)
+  _G.NRCEventCenter:DispatchEvent(NPCModuleEvent.VIEW_SHELL_LOADED, self)
   if self.viewObj and self.viewObj.OnFrameLoad and not SceneUtils.debugCloseNPCOnFrameLoad then
     self.viewObj:OnFrameLoad(self.distanceRatio)
   end
@@ -885,28 +932,12 @@ function SceneNpc:GetModelConfHalfHeight()
   return modelScale * modelHalfHeight
 end
 
-function SceneNpc:AdjustModelHeight()
-  local heightModelScale = 1
-  local serverHeight = self.serverData and self.serverData.npc_base.height_scale
-  if serverHeight and serverHeight > 0 and serverHeight < 20 then
-    heightModelScale = serverHeight
-  elseif self:IsPet() then
-    heightModelScale = PetMutationUtils.GetNpcHeightModelScale(self.config, self.serverData.npc_base.height)
-  end
-  if self.LogicStatusComponent then
-    local IsElite, _, _ = self.LogicStatusComponent:GetStatus(Enum.SpaceActorLogicStatus.SALS_NIGHTMARE_ELITE)
-    if IsElite then
-      heightModelScale = heightModelScale * NightmareScale
-    end
-  end
-  if self.viewObj and UE4.UObject.IsValid(self.viewObj) then
-    if self.viewObj:IsA(UE.ARocoCharacter) then
-      _G.NRCAudioManager:SetEmitterSwitch("Pet_Switch", "Pet_World", self.viewObj)
-      UE.UNRCCharacterUtils.SetCharacterMeshScale(self.viewObj, self:GetConfigScale() * heightModelScale)
-    else
-      self.viewObj:SetActorScale3D(_G.FVectorOne * self:GetConfigScale() * heightModelScale)
-    end
-  end
+function SceneNpc:AdjustModelHeight(UseBornPt, NeedFixPos)
+  local finalScale = self:GetFinalScale()
+  local scaleTransformComponent = self:EnsureComponent(ScaleTransformComponent)
+  UseBornPt = UseBornPt and true or false
+  NeedFixPos = NeedFixPos and true or false
+  scaleTransformComponent:SetCustomScale(finalScale, 0, UseBornPt, NeedFixPos)
   self:SendEvent(NPCModuleEvent.OnNpcMeshAdjusted, self)
 end
 
@@ -1159,7 +1190,8 @@ end
 
 function SceneNpc:CanRotation()
   if self.config then
-    return 1 ~= self.config.not_turn_face
+    local notTurnFace = self.config.not_turn_face
+    return 0 == notTurnFace
   end
   return true
 end
@@ -1329,6 +1361,10 @@ function SceneNpc:OnLeaveVisit()
   self.InteractionComponent:OnLeaveVisit()
 end
 
+function SceneNpc:OnHomeVisitChange()
+  self.InteractionComponent:OnHomeVisitChange()
+end
+
 function SceneNpc:PauseMove()
   if self.viewObj and self.viewObj.CharacterMovement then
     self.viewObj.CharacterMovement.GravityScale = 0
@@ -1446,9 +1482,6 @@ function SceneNpc:ApplyCollision(overrideProfile)
   local id = 0
   if self.npcEnableCollisionChannelPawn then
     id = id + 1
-  end
-  local needInteract = 0 == self.hiddenFlag
-  if needInteract then
     id = id + 2
   end
   if self.config.genre == _G.Enum.ClientNpcType.CNT_PETBOSS then
@@ -1462,10 +1495,14 @@ function SceneNpc:ApplyCollision(overrideProfile)
   local meshPresetFlag = 0
   local meshComp = self.viewObj:GetComponentByClass(UE.UMeshComponent)
   if meshComp then
-    if self.config.genre == _G.Enum.ClientNpcType.CNT_PETBOSS and self.collisionDisableFlag & ~(1 << NPCModuleEnum.NpcReasonFlags.HIDDEN) == self.collisionDisableFlag then
-      meshPresetFlag = meshPresetFlag | 2
-    end
-    if 0 == self.hiddenFlag then
+    if self.config.genre == _G.Enum.ClientNpcType.CNT_PETBOSS then
+      if self.collisionDisableFlag & ~(1 << NPCModuleEnum.NpcReasonFlags.HIDDEN) == self.collisionDisableFlag then
+        meshPresetFlag = meshPresetFlag | 2
+      end
+      if 0 == self.hiddenFlag then
+        meshPresetFlag = meshPresetFlag | 1
+      end
+    elseif self.npcEnableCollisionChannelPawn then
       meshPresetFlag = meshPresetFlag | 1
     end
     meshComp:SetCollisionProfileName(MeshCollisionPresets[meshPresetFlag])
@@ -1768,6 +1805,15 @@ function SceneNpc:IsVisibleForMagicReplayReason()
   return not self:IsHidden(NPCModuleEnum.NpcReasonFlags.MAGIC_REPLAY)
 end
 
+function SceneNpc:IsVisibleForBattleOutsideReason()
+  return not self:IsHidden(NPCModuleEnum.NpcReasonFlags.BattleOutside)
+end
+
+function SceneNpc:SetVisibleForBattleOutsideReason(Visible)
+  self:SetHidden(not Visible, NPCModuleEnum.NpcReasonFlags.BattleOutside)
+  self:SetCollisionDisable(not Visible, NPCModuleEnum.NpcReasonFlags.BattleOutside)
+end
+
 function SceneNpc:BatchApplyHiddenFlags(Flags, Masks)
   self.hiddenFlag = self.hiddenFlag & ~Masks | Flags & Masks
   self:SetVisibleInternal(0 == self.hiddenFlag)
@@ -1881,7 +1927,7 @@ end
 
 function SceneNpc:OnLoadResource()
   self:InvokeAllComponents("OnResourceLoaded")
-  if (self:IsPet() or self:IsPetEgg()) and self.serverData and self.serverData.npc_base then
+  if self:GetShouldDoMutation() and self.serverData and self.serverData.npc_base then
     local petData = {
       mutation_type = self.serverData.npc_base.mutation_type,
       nature = self.serverData.npc_base.nature,
@@ -1889,7 +1935,7 @@ function SceneNpc:OnLoadResource()
       base_conf_id = self:GetPetbaseId()
     }
     if self:IsPetEgg() then
-      petData.isNormalEgg = true
+      PetMutationUtils.SetPetDataGlassActorType(petData, PetMutationUtils.GlassActorType.NormalEgg)
     end
     PetMutationUtils.DoMutation(self.viewObj, petData)
   end
@@ -1904,6 +1950,10 @@ function SceneNpc:OnLoadResource()
       end)
     end
   end
+end
+
+function SceneNpc:GetShouldDoMutation()
+  return self:IsPet() or self:IsPetEgg() or self:IsFakeMutation()
 end
 
 function SceneNpc:GetSpeed()
@@ -2434,7 +2484,7 @@ function SceneNpc:UpdateData(ServerData, isReconnect)
   end
   if isReconnect and self.viewObj and not self.PlaceableId then
     self:SetActorScale3D(_G.FVectorOne)
-    self:AdjustModelHeight()
+    self:AdjustModelHeight(false, true)
     local MiscInfo = self.serverData.misc_info
     if MiscInfo then
       self:BatchApplyFlags(MiscInfo.cannot_be_seen, MiscInfo.npc_hide_flag)
@@ -2738,17 +2788,28 @@ function SceneNpc:CheckPlayerInSeat()
           if not Conf then
             return
           end
-          local SpecialG6 = Conf["special_pos_" .. i]
-          local Immediately = SpecialG6 or Conf["flash_sit_" .. i]
+          local SpecialG6 = Conf["special_start_" .. i]
           local SeatSlot = string.format("Seat_%s", i)
-          if Conf["flash_sit_specialeffect_" .. i] then
-            SceneUtils.PlayerFlashSkillForSceneSeat(Player, self.viewObj, SpecialG6, function()
-              SceneUtils.PlayerSitToSceneSeat(self, SeatSlot, Player, Immediately, SpecialG6)
-            end)
-          else
-            SceneUtils.PlayerSitToSceneSeat(self, SeatSlot, Player, Immediately, SpecialG6)
-          end
+          Player.playerToyComponent:PlayerSitToSceneSeat(self, SeatSlot, SpecialG6, nil, Conf.scene_sit_blur_type)
         end
+      end
+    end
+  end
+end
+
+function SceneNpc:CheckPlayerInBox()
+  if not self:IsLogicStatus(_G.Enum.SpaceActorLogicStatus.SALS_BLINDBOX_OCCUPIED) then
+    return
+  end
+  if not self.serverData or not self.serverData.npc_prop and not not self.serverData.npc_prop.npc_prop_slot_infos then
+    return
+  end
+  local PropInfo = self.serverData.npc_prop.npc_prop_slot_infos
+  if #PropInfo > 0 then
+    for i, Info in ipairs(PropInfo) do
+      local Player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GetPlayerByServerID, Info.holder_avatar_id)
+      if Player and Player.avatarLoaded then
+        Player:SetVisible(false)
       end
     end
   end
@@ -2890,6 +2951,20 @@ function SceneNpc:OnMissileReConnectCreate()
     Log.Debug("Reconnect launch missile", self.serverData.base.name, self:GetServerId())
     _G.NRCModeManager:DoCmd(_G.MissileModuleCmd.LaunchMissileByData, self.serverData.base.actor_id, nil, caster, target, targetPos, skillId, missileData)
   end
+end
+
+function SceneNpc:IsViewArtFurniture()
+  if self.InteractionComponent then
+    local Options = self.InteractionComponent:GetAllOptions()
+    if Options then
+      for _, v in pairs(Options) do
+        if v:IsHomeViewArtOption() then
+          return true
+        end
+      end
+    end
+  end
+  return false
 end
 
 return SceneNpc

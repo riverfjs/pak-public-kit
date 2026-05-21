@@ -298,6 +298,7 @@ function UMG_PetSkillMain_Tips_C:RefreshUI(skillId, _isBagItem, bagItemId, petBa
   self:RefreshQuickUnlockShow()
   if _G.NRCModuleManager:DoCmd(PetUIModuleCmd.GetPetPortableBagReleaseLifeMode) then
     self.Btn:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.PromptAcquisitionView:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
 end
 

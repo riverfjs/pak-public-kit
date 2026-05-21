@@ -32,7 +32,7 @@ function UMG_SkillLearning_C:OnActive(_data, autoLevel, autoUnLock)
   self.materialsList = {}
   self.curMaterialsIndex = 1
   self.showItemList = {}
-  self.curPetLevelSkillConf = _G.DataConfigManager:GetLevelSkillConf(self.petData.base_conf_id)
+  self.curPetLevelSkillConf = _G.NRCModeManager:DoCmd(_G.PetUIModuleCmd.GetLevelSkillConfByPetBaseId, self.petData.base_conf_id)
   if self.curPetLevelSkillConf then
     self.curPetBloodSkillConf = PetUtils.GetSkillBloodData(self.petData.blood_id, self.curPetLevelSkillConf) or PetUtils.GetPetCurBloodSkillConf(self.petData)
   end
@@ -76,6 +76,14 @@ function UMG_SkillLearning_C:OnDestruct()
   if self.DelayId then
     _G.DelayManager:CancelDelayById(self.DelayId)
     self.DelayId = nil
+  end
+  if self.ExDelayId then
+    _G.DelayManager:CancelDelayById(self.ExDelayId)
+    self.ExDelayId = nil
+  end
+  if self.SelectDelayId then
+    _G.DelayManager:CancelDelayById(self.SelectDelayId)
+    self.SelectDelayId = nil
   end
 end
 
@@ -265,7 +273,7 @@ function UMG_SkillLearning_C:OnChangeMaterialsClick()
 end
 
 function UMG_SkillLearning_C:SetExchangeMaterial()
-  _G.DelayManager:DelaySeconds(0.2, function()
+  self.ExDelayId = _G.DelayManager:DelaySeconds(0.2, function()
     self:LoadAnimation(0)
     self:PlayAnimation(self.open)
   end)
@@ -291,7 +299,7 @@ function UMG_SkillLearning_C:OnChangeFormulaClick()
 end
 
 function UMG_SkillLearning_C:OnSelectFormula(exchangeId)
-  _G.DelayManager:DelaySeconds(0.2, function()
+  self.SelectDelayId = _G.DelayManager:DelaySeconds(0.2, function()
     self:LoadAnimation(0)
     self:PlayAnimation(self.open)
   end)
@@ -424,8 +432,10 @@ function UMG_SkillLearning_C:AutoEquipSkillHandle()
   end
   local posToIdDic, _ = _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.GetPetEquipSkillMap, self.petData.gid)
   if posToIdDic then
-    if posToIdDic[self.unLockSkillAutoEquipPos] and posToIdDic[self.unLockSkillAutoEquipPos] == self.data.skillId then
-      return
+    for i, v in pairs(posToIdDic) do
+      if v == self.data.skillId then
+        return
+      end
     end
     posToIdDic[self.unLockSkillAutoEquipPos] = self.data.skillId
     _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.AutoCheckEnvironmentEquipPetSkill, self.petData.gid, posToIdDic)
@@ -519,6 +529,7 @@ function UMG_SkillLearning_C:OnConFirm(skipAudio)
       self:UseItemHandle(itemSynthesisInfo.id)
     end
   end
+  self.PopUp4.Btn_Right:SetIsEnabled(false)
 end
 
 function UMG_SkillLearning_C:GetItemByCostConfListIndex(ItemSynthesisInfo, itemId)
@@ -762,6 +773,8 @@ function UMG_SkillLearning_C:OnAnimationFinished(Anim)
     else
       self:DoClose()
     end
+  elseif Anim == self:GetAnimByIndex(0) then
+    self.PopUp4.Btn_Right:SetIsEnabled(true)
   end
 end
 

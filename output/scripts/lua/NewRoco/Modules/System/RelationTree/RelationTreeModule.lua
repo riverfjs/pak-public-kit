@@ -645,11 +645,22 @@ end
 function RelationTreeModule:RelationShipReqUnLockNotify(Rsp)
   if Rsp then
     local reqPlayerUid = Rsp.req_uin
-    local ReqRelationShipType = Rsp.relationship_type
-    if reqPlayerUid and ReqRelationShipType then
-      self.data:UpdateOtherRequestsData(reqPlayerUid, ReqRelationShipType, false)
+    local reqRelationShipType = Rsp.relationship_type
+    local resetUnlockedData = Rsp.reset_unlocked_data
+    if reqPlayerUid and reqRelationShipType then
+      self.data:UpdateOtherRequestsData(reqPlayerUid, reqRelationShipType, false)
       _G.NRCEventCenter:DispatchEvent(RelationTreeEvent.RELATION_UNLOCK_REQ_UPDATE_OPATION, reqPlayerUid)
       self:OnTipOtherRequestByUin(reqPlayerUid)
+      local ReqPlayerRelationTreeData = self.data:GetRelationTreePoolByUin(reqPlayerUid)
+      if resetUnlockedData and ReqPlayerRelationTreeData then
+        for floor, nodevalue in pairs(ReqPlayerRelationTreeData.RelationTree) do
+          for nodetype, value in pairs(nodevalue) do
+            if value.RelationTreeType == reqRelationShipType then
+              value.Unlock = false
+            end
+          end
+        end
+      end
     end
   end
 end
@@ -679,11 +690,12 @@ function RelationTreeModule:RelationShipCancelUnlockNotify(Rsp)
   end
 end
 
-function RelationTreeModule:OnZoneRelationShipTreeReq(PlayerUid)
+function RelationTreeModule:OnZoneRelationShipTreeReq(PlayerUid, Action)
   if PlayerUid then
     _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.AddInputBlockMappingContext, "RelationTreePanelOpen")
     local req = _G.ProtoMessage:newZoneOpenRelationshipTreeReq()
     req.peer_uin = PlayerUid
+    self.PlayerAction = Action
     _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_OPEN_RELATIONSHIP_TREE_REQ, req, self, self.OnZoneOpenRelationShipTreeRsp, true, true)
   end
 end
@@ -735,6 +747,10 @@ function RelationTreeModule:OnZoneOpenRelationShipTreeRsp(Rsp)
       if Text then
         _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, Text)
       end
+    end
+    if self.PlayerAction then
+      self.PlayerAction:Finish()
+      self.PlayerAction = nil
     end
   end
 end
@@ -908,6 +924,11 @@ function RelationTreeModule:OnZoneUnlockRelationShipNodeRsp(Rsp)
         local dialogContext = DialogContext()
         dialogContext:SetTitle(LuaText.TIPS):SetContent(contenText):SetMode(DialogContext.Mode.OK):SetCloseOnOK(true)
         _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.Dialog_OpenDialog, dialogContext)
+      else
+        local TextConf = _G.DataConfigManager:GetLocalizationConf(string.format("RLTT_Error_Code_%d", RetInfo.ret_code))
+        if TextConf then
+          Text = TextConf.msg
+        end
       end
       if Text then
         _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, Text)
@@ -986,6 +1007,11 @@ function RelationTreeModule:OnZoneConfirmUnlockRelationShipNodeRsp(Rsp)
       Text = _G.DataConfigManager:GetLocalizationConf("RLTT_Error_Code_2441").msg
     elseif RetInfo.ret_code == _G.ProtoEnum.MOBA_RET.ZoneErr.ERR_ZONE_RELATIONSHIP_SELF_FUNC_BANNED_UNLOCK then
       Text = _G.DataConfigManager:GetLocalizationConf("RLTT_Error_Code_2443").msg
+    else
+      local TextConf = _G.DataConfigManager:GetLocalizationConf(string.format("RLTT_Error_Code_%d", RetInfo.ret_code))
+      if TextConf then
+        Text = TextConf.msg
+      end
     end
     if Text then
       _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, Text)
@@ -1490,13 +1516,14 @@ function RelationTreeModule:UpdatePetInfoOnPanel(Rsp)
   end
 end
 
-function RelationTreeModule:OpenPetRelationCover(playeruin, arg)
+function RelationTreeModule:OpenPetRelationCover(playeruin, arg, Action)
   local req = _G.ProtoMessage:newZoneQueryNpcPetDataReq()
   req.target_uin = playeruin
   req.target_pet_gid = arg.PetInfo and arg.PetInfo.serverData and arg.PetInfo.serverData.pet_info and arg.PetInfo.serverData.pet_info.gid or 0
   req.target_pet_npc_id = arg.PetInfo.serverData and arg.PetInfo.serverData.base and arg.PetInfo.serverData.base.logic_id or 0
   self:SetPetRelationTreeUIData(arg)
   _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.AddInputBlockMappingContext, "RelationTreePanelOpen")
+  self.PlayerAction = Action
   _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_QUERY_NPC_PET_DATA_REQ, req, self, self.OpenPetRelationCoverRsp)
 end
 
@@ -1515,6 +1542,10 @@ function RelationTreeModule:OpenPetRelationCoverRsp(Rsp)
     self:OpenPetRelationPanel(Rsp.player_info.uin, Rsp.player_info.name)
   else
     _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.RemoveInputBlockMappingContext, "RelationTreePanelOpen")
+  end
+  if self.PlayerAction then
+    self.PlayerAction:Finish()
+    self.PlayerAction = nil
   end
 end
 

@@ -138,6 +138,14 @@ function UMG_DialogueVideo_C:OnActive(_param)
   self.IsRetrying = false
   NRCEventCenter:RegisterEvent("UMG_DialogueVideo_C", self, _G.NRCGlobalEvent.ON_CONNECTED, self.OnConnected)
   NRCEventCenter:RegisterEvent("UMG_DialogueVideo_C", self, _G.NRCGlobalEvent.ON_DISCONNECT, self.OnDisconnect)
+  if _param.From == "VideoShare" then
+    local viewport = UE4.UWidgetLayoutLibrary.GetViewportSize(UE4Helper.GetCurrentWorld())
+    self.UMG_NRCMedia:SetNRCMediaImageSize(viewport.X, viewport.Y)
+    NRCModuleManager:DoCmd(FunctionBanModuleCmd.AddCondition, Enum.PlayerConditionType.PCT_MARK_VIDEO_SOCIAL_SHARE)
+    self.IsVideoShare = true
+  else
+    NRCModuleManager:DoCmd(FunctionBanModuleCmd.AddCondition, Enum.PlayerConditionType.PCT_CG)
+  end
   self.Action = _param.Action
   self.Caller = _param.Caller
   self.Callback = _param.Callback
@@ -157,7 +165,6 @@ function UMG_DialogueVideo_C:OnActive(_param)
     else
       _G.NRCAudioManager:SetStateByName("Story_Movie", "Story", "UMG_DialogueVideo:OnActive")
     end
-    NRCModuleManager:DoCmd(FunctionBanModuleCmd.AddCondition, Enum.PlayerConditionType.PCT_CG)
     _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.PauseTip, TipEnum.TipsPauseReason.Video)
     if self.UMG_NRCMedia then
       self.UMG_NRCMedia:OnActive()
@@ -222,7 +229,7 @@ function UMG_DialogueVideo_C:PreStartMovie()
   UE4.UNRCStatics.ForceGarbageCollection(true)
   local player = _G.NRCModeManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
   local movie_id = self.Conf and self.Conf.id
-  if player and player:IsInTogetherMove() and not player:IsTogetherMove2P() and movie_id and movie_id > 0 then
+  if player and player:IsInTogetherMove() and not player:IsTogetherMove2P() and movie_id and movie_id > 0 and self.Conf and not self.Conf.not_project then
     local other_player = player:GetAnotherTogetherMovePlayer()
     if other_player then
       local other_player_id = other_player:GetServerId()
@@ -398,7 +405,9 @@ function UMG_DialogueVideo_C:WaitFadeOut(bForceStop)
   end
   _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.Dialog_CloseDialog)
   self.SkipMessageOn = nil
-  self.ButtonSkip:PlayAnimation(self.ButtonSkip.LightOut)
+  if self.ButtonSkip:GetVisibility() ~= UE4.ESlateVisibility.Collapsed then
+    self.ButtonSkip:PlayAnimation(self.ButtonSkip.LightOut)
+  end
   _G.DelayManager:CancelDelayById(self.WakeUpUITimer)
   self.WakeUpUITimer = nil
   Log.Debug("UMG_DialogueVideo_C:WaitFadeOut", self.VideoFilePath)
@@ -433,7 +442,12 @@ end
 
 function UMG_DialogueVideo_C:SendFinishEvent(bSuccess)
   Log.Debug("UMG_DialogueVideo_C:SendFinishEvent", bSuccess)
-  NRCModuleManager:DoCmd(FunctionBanModuleCmd.RemoveCondition, Enum.PlayerConditionType.PCT_CG)
+  if self.IsVideoShare then
+    NRCModuleManager:DoCmd(FunctionBanModuleCmd.RemoveCondition, Enum.PlayerConditionType.PCT_MARK_VIDEO_SOCIAL_SHARE)
+    self.IsVideoShare = nil
+  else
+    NRCModuleManager:DoCmd(FunctionBanModuleCmd.RemoveCondition, Enum.PlayerConditionType.PCT_CG)
+  end
   if self.Action then
     self.Action:EndAction()
   end
@@ -468,7 +482,7 @@ function UMG_DialogueVideo_C:PostDialogueVideoDone()
   Log.Debug("UMG_DialogueVideo_C:PostDialogueVideoDone", restart_bgm, mute_time)
   local player = _G.NRCModeManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
   local movie_id = self.Conf and self.Conf.id
-  if player and player:IsInTogetherMove() and not player:IsTogetherMove2P() and movie_id and movie_id > 0 then
+  if player and player:IsInTogetherMove() and not player:IsTogetherMove2P() and movie_id and movie_id > 0 and self.Conf and not self.Conf.not_project then
     local other_player = player:GetAnotherTogetherMovePlayer()
     if other_player then
       local other_player_id = other_player:GetServerId()

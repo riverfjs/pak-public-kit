@@ -231,6 +231,12 @@ function EmailModule:ZoneMailGetAttachmentRsp(rsp)
       else
         reward.id = v.id
       end
+      if v.gids and #v.gids > 0 then
+        reward.gid = v.gids[1]
+      end
+      if rsp.mail_brief and rsp.mail_brief[1] and rsp.mail_brief[1].reward and rsp.mail_brief[1].reward.rewards and rsp.mail_brief[1].reward.rewards[i] and rsp.mail_brief[1].reward.rewards[i].egg_info then
+        reward.eggInfo = rsp.mail_brief[1].reward.rewards[i].egg_info
+      end
       reward.reward_reason = v.reward_reason
       table.insert(rewards, reward)
     end
@@ -253,6 +259,10 @@ function EmailModule:GetItemNames(goods)
   local itemNameTable = {}
   local str = ""
   for i = 1, #goods do
+    if i > 10 then
+      table.insert(itemNameTable, "...")
+      break
+    end
     local id = goods[i].goods_id
     local type = goods[i].type
     if type == _G.Enum.GoodsType.GT_VITEM then
@@ -266,18 +276,25 @@ function EmailModule:GetItemNames(goods)
         table.insert(itemNameTable, bagItemConf.name)
       end
     elseif type == _G.Enum.GoodsType.GT_PET then
-      local petInfo = _G.DataConfigManager:GetPetConf(id, true)
-      if petInfo then
-        local petBaseConf = _G.DataConfigManager:GetPetbaseConf(petInfo.base_id)
+      if goods[i].pet_base_id and goods[i].pet_base_id > 0 then
+        local petBaseConf = _G.DataConfigManager:GetPetbaseConf(goods[i].pet_base_id)
         if nil ~= petBaseConf then
           table.insert(itemNameTable, petBaseConf.name)
         end
       else
-        local monsterConf = _G.DataConfigManager:GetMonsterConf(id)
-        if nil ~= monsterConf then
-          local petBaseConf = _G.DataConfigManager:GetPetbaseConf(monsterConf.base_id)
+        local petInfo = _G.DataConfigManager:GetPetConf(id, true)
+        if petInfo then
+          local petBaseConf = _G.DataConfigManager:GetPetbaseConf(petInfo.base_id)
           if nil ~= petBaseConf then
             table.insert(itemNameTable, petBaseConf.name)
+          end
+        else
+          local monsterConf = _G.DataConfigManager:GetMonsterConf(id)
+          if nil ~= monsterConf then
+            local petBaseConf = _G.DataConfigManager:GetPetbaseConf(monsterConf.base_id)
+            if nil ~= petBaseConf then
+              table.insert(itemNameTable, petBaseConf.name)
+            end
           end
         end
       end

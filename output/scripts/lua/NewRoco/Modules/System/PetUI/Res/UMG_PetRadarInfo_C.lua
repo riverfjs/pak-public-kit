@@ -211,19 +211,19 @@ end
 
 function UMG_PetRadarInfo_C:OnRadarShowContrastValues()
   local _petData = self.uiData.petData
-  local HP = PetUtils.GetPetAdditionalByType(_petData, Enum.AttributeType.AT_HPMAX) / self.uiData.maxValue.maxHP.num
-  local Atk = PetUtils.GetPetAdditionalByType(_petData, Enum.AttributeType.AT_PHYATK) / self.uiData.maxValue.maxAtk.num
-  local SpeAtk = PetUtils.GetPetAdditionalByType(_petData, Enum.AttributeType.AT_SPEATK) / self.uiData.maxValue.maxSpeAtk.num
-  local Def = PetUtils.GetPetAdditionalByType(_petData, Enum.AttributeType.AT_PHYDEF) / self.uiData.maxValue.maxDef.num
-  local SpeDef = PetUtils.GetPetAdditionalByType(_petData, Enum.AttributeType.AT_SPEDEF) / self.uiData.maxValue.maxSpeDef.num
-  local Speed = PetUtils.GetPetAdditionalByType(_petData, Enum.AttributeType.AT_SPEED) / self.uiData.maxValue.maxSpeed.num
+  local HP = math.min(PetUtils.GetPetAdditionalByType(_petData, Enum.AttributeType.AT_HPMAX) / self.uiData.maxValue.maxHP.num, 1)
+  local Atk = math.min(PetUtils.GetPetAdditionalByType(_petData, Enum.AttributeType.AT_PHYATK) / self.uiData.maxValue.maxAtk.num, 1)
+  local SpeAtk = math.min(PetUtils.GetPetAdditionalByType(_petData, Enum.AttributeType.AT_SPEATK) / self.uiData.maxValue.maxSpeAtk.num, 1)
+  local Def = math.min(PetUtils.GetPetAdditionalByType(_petData, Enum.AttributeType.AT_PHYDEF) / self.uiData.maxValue.maxDef.num, 1)
+  local SpeDef = math.min(PetUtils.GetPetAdditionalByType(_petData, Enum.AttributeType.AT_SPEDEF) / self.uiData.maxValue.maxSpeDef.num, 1)
+  local Speed = math.min(PetUtils.GetPetAdditionalByType(_petData, Enum.AttributeType.AT_SPEED) / self.uiData.maxValue.maxSpeed.num, 1)
   local _oldPetData = self.CacheOldPetData
-  local OldHP = PetUtils.GetPetAdditionalByType(_oldPetData, Enum.AttributeType.AT_HPMAX) / self.uiData.maxValue.maxHP.num
-  local OldAtk = PetUtils.GetPetAdditionalByType(_oldPetData, Enum.AttributeType.AT_PHYATK) / self.uiData.maxValue.maxAtk.num
-  local OldSpeAtk = PetUtils.GetPetAdditionalByType(_oldPetData, Enum.AttributeType.AT_SPEATK) / self.uiData.maxValue.maxSpeAtk.num
-  local OldDef = PetUtils.GetPetAdditionalByType(_oldPetData, Enum.AttributeType.AT_PHYDEF) / self.uiData.maxValue.maxDef.num
-  local OldSpeDef = PetUtils.GetPetAdditionalByType(_oldPetData, Enum.AttributeType.AT_SPEDEF) / self.uiData.maxValue.maxSpeDef.num
-  local OldSpeed = PetUtils.GetPetAdditionalByType(_oldPetData, Enum.AttributeType.AT_SPEED) / self.uiData.maxValue.maxSpeed.num
+  local OldHP = math.min(PetUtils.GetPetAdditionalByType(_oldPetData, Enum.AttributeType.AT_HPMAX) / self.uiData.maxValue.maxHP.num, 1)
+  local OldAtk = math.min(PetUtils.GetPetAdditionalByType(_oldPetData, Enum.AttributeType.AT_PHYATK) / self.uiData.maxValue.maxAtk.num, 1)
+  local OldSpeAtk = math.min(PetUtils.GetPetAdditionalByType(_oldPetData, Enum.AttributeType.AT_SPEATK) / self.uiData.maxValue.maxSpeAtk.num, 1)
+  local OldDef = math.min(PetUtils.GetPetAdditionalByType(_oldPetData, Enum.AttributeType.AT_PHYDEF) / self.uiData.maxValue.maxDef.num, 1)
+  local OldSpeDef = math.min(PetUtils.GetPetAdditionalByType(_oldPetData, Enum.AttributeType.AT_SPEDEF) / self.uiData.maxValue.maxSpeDef.num, 1)
+  local OldSpeed = math.min(PetUtils.GetPetAdditionalByType(_oldPetData, Enum.AttributeType.AT_SPEED) / self.uiData.maxValue.maxSpeed.num, 1)
   self.CacheAttri.Speed = math.min(OldSpeed, 1)
   self.CacheAttri.SpeDef = math.min(OldSpeDef, 1)
   self.CacheAttri.SpeAtk = math.min(OldSpeAtk, 1)

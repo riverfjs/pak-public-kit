@@ -117,11 +117,13 @@ function DebugRegionSocialComponent:GetDebugString()
   end
   local stringFormat = [[
 CurVitalityRecoverStage: %s
-IsMater %s
+IsMaster: %s
+TriggerFriendID: %s
+MateID: %s
 ]]
-  stringFormat = string.format(stringFormat, socialComp:GetCurVitalityRecoverStageName(), tostring(socialComp.IsMater))
+  stringFormat = string.format(stringFormat, socialComp:GetCurVitalityRecoverStageName(), socialComp.bIsMaster and "true" or "false", tostring(socialComp.triggerFriendID), tostring(socialComp.mateID))
   local friendCount = 0
-  for friendId, player in pairs(socialComp.FriendList) do
+  for friendId, player in pairs(socialComp.friendList) do
     if 0 == friendCount then
       stringFormat = stringFormat .. "Friends:\n"
     end
@@ -130,7 +132,7 @@ IsMater %s
     stringFormat = stringFormat .. string.format("  FriendId: %d, Name: %s\n", friendId, name)
   end
   local strangerCount = 0
-  for strangerId, player in pairs(socialComp.StrangerList) do
+  for strangerId, player in pairs(socialComp.strangerList) do
     if 0 == strangerCount then
       stringFormat = stringFormat .. "Strangers:\n"
     end
@@ -236,6 +238,17 @@ function SceneActorDebugInfo:GetDebugString()
     end
   end
   return result
+end
+
+function GetActorDebugInfoPannel(SceneActor)
+  if not (SceneActor and SceneActor.debugInfo) or not SceneActor.viewObj then
+    return nil
+  end
+  if SceneActor.debugInfoPanel then
+    return SceneActor.debugInfoPanel
+  end
+  local compPath = "/Game/NewRoco/Modules/System/Debug/Res/ActorDebugInfo/BP_ActorDebugInfoPannelComponent.BP_ActorDebugInfoPannelComponent"
+  return SceneActor.debugInfo:GetDebugString()
 end
 
 function SceneActorDebugInfo:DrawDebugInfo(DeltaTime)

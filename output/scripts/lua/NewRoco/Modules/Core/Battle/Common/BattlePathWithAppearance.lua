@@ -22,7 +22,7 @@ function BattlePathWithAppearance:ResetDefaultValue()
   self.DefaultWeeklyChallengeOver = BattleConst.LeaderChallengeWinOver
   if self.Owner and self.Owner.owner then
     local roleInfo = self.Owner.owner.roleInfo
-    if 0 == roleInfo.base.state_bit & 1 << ProtoEnum.BATTLER_BIT_TYPE.BT_BATTLER_HUMAN and 0 == roleInfo.base.state_bit & 1 << ProtoEnum.BATTLER_BIT_TYPE.BT_NPC_IS_USE_HUMAN then
+    if not BattleUtils.IsPlayerUseHumanResByBit(roleInfo.base.state_bit) then
       self.DefaultHuanChong = BattleConst.NPCHuanChong
     end
   end

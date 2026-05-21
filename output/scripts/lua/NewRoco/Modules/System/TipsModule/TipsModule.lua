@@ -3,6 +3,7 @@ local TipsModuleEvent = require("NewRoco.Modules.System.TipsModule.TipsModuleEve
 local TipsDisplayCoordinator = require("NewRoco.Modules.System.TipsModule.TipsDisplayCoordinator")
 local TipObject = require("NewRoco.Modules.System.TipsModule.Utils.TipObject")
 local TipEnum = require("NewRoco.Modules.System.TipsModule.Utils.TipEnum")
+local TipUtils = require("NewRoco.Modules.System.TipsModule.Utils.TipUtils")
 local MainUIModuleEvent = reload("NewRoco.Modules.System.MainUI.MainUIModuleEvent")
 local LoginModuleEvent = reload("NewRoco.Modules.System.LoginModule.LoginModuleEvent")
 local SceneEvent = require("NewRoco.Modules.Core.Scene.Common.SceneEvent")
@@ -48,6 +49,7 @@ function TipsModule:OnConstruct()
   if closeTabConf then
     self.CloseTabConfs = closeTabConf:GetAllDatas()
   end
+  TipUtils.CreteTipsDisplayController(TipEnum.TipObjectType.LeaderFight, self, self.DoCmdOpenLeaderFight)
   self.TipHandlers = {
     [TipEnum.TipObjectType.TopHudTips] = function(tip)
       self:DispatchEvent(TipsModuleEvent.TopHud_AddTips, tip)
@@ -81,7 +83,7 @@ function TipsModule:OnConstruct()
       self:DoCmdShowTips(tip:GetDescription())
     end,
     [TipEnum.TipObjectType.LeaderFight] = function(tip)
-      self:DoCmdOpenLeaderFight(tip)
+      self:SendTipToDisplayController(tip)
     end,
     [TipEnum.TipObjectType.StampsChange] = function(tip)
       _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.OpenUnlockGuidBook, tip)
@@ -99,13 +101,13 @@ function TipsModule:OnConstruct()
       _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.PlayRewardTips, tip)
     end,
     [TipEnum.TipObjectType.LobbyDownTips] = function(tip)
-      _G.NRCModeManager:DoCmd(_G.MainUIModuleCmd.MainUIDownTips, tip)
+      self:SendTipToDisplayController(tip)
+    end,
+    [TipEnum.TipObjectType.MainPetTips] = function(tip)
+      self:SendTipToDisplayController(tip)
     end,
     [TipEnum.TipObjectType.LobbyRegionPreUpdate] = function(tip)
       _G.NRCEventCenter:DispatchEvent(TipsModuleEvent.Tips_LobbyRegionPreUpdate, tip.customData, self.TipsCoordinator)
-    end,
-    [TipEnum.TipObjectType.MainPetExpOrLevelChange] = function(tip)
-      _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.ShowMainPetExpOrLevelChangeTip, tip)
     end,
     [TipEnum.TipObjectType.RolePlayGetTips] = function(tip)
       self:SendTipToDisplayController(tip)
@@ -146,6 +148,9 @@ function TipsModule:OnConstruct()
       else
         _G.NRCModuleManager:DoCmd(_G.SeasonIntegrationModuleCmd.ShowSeasonBeginsTips, tip)
       end
+    end,
+    [TipEnum.TipObjectType.ActivityCommonOpenTips] = function(tip)
+      _G.NRCModuleManager:DoCmd(_G.ActivityModuleCmd.TryShowActivityCommonOpenTips, tip.customData.activityId, tip)
     end
   }
 end
@@ -160,11 +165,12 @@ function TipsModule:OnDestruct()
   _G.NRCEventCenter:UnRegisterEvent(self, SceneEvent.OnPlayerDead, self.OnPlayerDead)
   _G.NRCEventCenter:UnRegisterEvent(self, TipsModuleEvent.FinishAntiAddictionTips, self.AntiAddictionFinish)
   _G.NRCEventCenter:UnRegisterEvent(self, _G.NRCGlobalEvent.OnApplicationWillEnterBackground, self.OnEnterBackground)
+  _G.NRCEventCenter:UnRegisterEvent(self, TipsModuleEvent.CheckMainPetTips, self.CheckMainPetTips)
   _G.FunctionBanManager:RemoveFunctionStateListener(Enum.PlayerFunctionBanType.PFBT_SEASON_AE_SHOW, self, self.CheckSeasonBeginTips)
 end
 
 function TipsModule:OnActive()
-  self:RegPanel("UMG_TopHUD", "UMG_TopHUD", Enum.UILayerType.UI_LAYER_TOP_MSG, nil, nil, true)
+  self:RegPanel("UMG_TopHUD", "UMG_TopHUD", Enum.UILayerType.UI_LAYER_TOP_MSG, nil, nil, true):SetEnableTouchMask(false)
   self:RegPanel("UMG_Dialog", "UMG_Dialog", Enum.UILayerType.UI_LAYER_TOP_MSG)
   self:RegPanel("UMG_Dialog_IdIp", "UMG_Dialog", Enum.UILayerType.UI_LAYER_TOP_MSG)
   self:RegPanel("UMG_Dialog_PopUp", "UMG_Dialog", Enum.UILayerType.UI_LAYER_POPUP)
@@ -179,16 +185,19 @@ function TipsModule:OnActive()
   self:RegPanel("UMG_PetFeatureTips", "Tips/UMG_PetFeatureTips", Enum.UILayerType.UI_LAYER_POPUP)
   local RegisterData = self:RegPanel("UMG_Input_Blocker", "UMG_Input_Blocker", Enum.UILayerType.UI_LAYER_TOP_MSG, _G.NRCPanelRegisterData.PanelCacheType.PreCache, nil, false)
   RegisterData.autoSetDesiredCursor = false
-  self:RegPanel("LeaderFightTips", "Tips/UMG_BossTips", Enum.UILayerType.UI_LAYER_POPUP, nil, nil, true)
+  self:RegPanel("LeaderFightTips", "Tips/UMG_BossTips", Enum.UILayerType.UI_LAYER_POPUP, nil, nil, true):SetEnableTouchMask(false)
   self:RegPanel("ConfirmTeleportTips", "Tips/UMG_ConfirmTeleportTip", Enum.UILayerType.UI_LAYER_TOP, nil, nil, true)
   self:RegPanel("BagChangeBall", "UMG_ChangeBall_Dialog", Enum.UILayerType.UI_LAYER_POPUP)
   self:RegPanel("ZoneTip", "Tips/UMG_ZoneTip", Enum.UILayerType.UI_LAYER_POPUP, nil, nil, true)
   self:RegPanel("AntiAddiction_PullDown", "UMG_AntiAddiction_PullDown", Enum.UILayerType.UI_LAYER_POPUP, nil, nil, true)
-  self:RegPanel("AntiAddiction", "UMG_AntiAddiction", Enum.UILayerType.UI_LAYER_TOP_MSG, nil, nil, true)
+  self:RegPanel("AntiAddiction", "UMG_AntiAddiction", Enum.UILayerType.UI_LAYER_TOP_MARK, nil, nil, false)
   self:RegPanel("LoadingProgressTip", "UMG_LoadingProgress", Enum.UILayerType.UI_LAYER_TOP_MSG, nil, nil, true)
-  self:RegPanel("MarqueePanel", "UMG_Marquee", Enum.UILayerType.UI_LAYER_TOP_MSG, nil, nil, true)
+  self:RegPanel("MarqueePanel", "UMG_Marquee", Enum.UILayerType.UI_LAYER_TOP_MSG, nil, nil, true):SetEnableTouchMask(false)
   self:RegPanel("MagicDetailTips", "UMG_Magic_DetailsTips", Enum.UILayerType.UI_LAYER_POPUP)
-  self:RegPanel("FruitTreeTips", "Tips/UMG_FruittreeTips", Enum.UILayerType.UI_LAYER_POPUP)
+  self:RegPanel("FruitTreeTips", "Tips/UMG_FruittreeTips", Enum.UILayerType.UI_LAYER_POPUP):SetEnableTouchMask(false)
+  local TapTapData = self:RegPanel("TapTapTips", "UMG_TapTap_PopUp", Enum.UILayerType.UI_LAYER_TOP_MSG)
+  TapTapData.openAnimName = "In"
+  TapTapData.closeAnimName = "Out"
   _G.ZoneServer:AddProtocolListener(self, ProtoCMD.ZoneSvrCmd.ZONE_HOPE_NOTIFY, self.OnScreenTimeNotify)
   _G.ZoneServer:AddProtocolListener(self, ProtoCMD.ZoneSvrCmd.ZONE_MARQUEE_PLAY_NOTIFY, self.OnZoneMarqueePlayNotify)
   _G.ZoneServer:AddProtocolListener(self, ProtoCMD.ZoneSvrCmd.ZONE_ERROR_TIPS_NOTIFY, self.OnZoneErrorCodeNotify)
@@ -200,6 +209,7 @@ function TipsModule:OnActive()
   _G.NRCSDKManager:AddEventListener(self, NRCSDKManagerEvent.OnWebViewOptNotify, self.OnWebViewOptNotify)
   _G.NRCEventCenter:RegisterEvent(self.name, self, _G.NRCGlobalEvent.OnApplicationWillEnterBackground, self.OnEnterBackground)
   _G.NRCEventCenter:RegisterEvent("TipsModule", self, BattleEvent.EnterBattle, self.OnEnterBattle)
+  _G.NRCEventCenter:RegisterEvent("TipsModule", self, TipsModuleEvent.CheckMainPetTips, self.CheckMainPetTips)
   _G.FunctionBanManager:AddFunctionStateListener(Enum.PlayerFunctionBanType.PFBT_SEASON_AE_SHOW, self, self.CheckSeasonBeginTips)
   local PetPropertyData = _G.NRCPanelRegisterData()
   PetPropertyData.panelName = "UMG_PetUIBackpackTips"
@@ -316,7 +326,10 @@ function TipsModule:SendTipToDisplayController(tip)
   end
   local displayController = self:GetDisplayController(tip.tipType)
   if displayController then
-    displayController:AddDisplayTip(tip)
+    if not displayController:AddDisplayTip(tip) then
+      tip:MarkFinished()
+      Log.ErrorFormat("[tipType=%d]\230\183\187\229\138\160\230\152\190\231\164\186tip\229\164\177\232\180\165!", tip.tipType)
+    end
   else
     tip:MarkFinished()
     Log.ErrorFormat("[tipType=%d]\230\156\170\230\179\168\229\134\140\230\142\167\229\136\182\229\153\168!", tip.tipType)
@@ -397,10 +410,10 @@ end
 
 function TipsModule:IsOpenAllTips(_IsShow)
   if _IsShow then
-    _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.IsShowDownTips, true)
+    _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.IsShowDownTips, true, "TipsModuleOpenAllTips")
     self:IsShowZoneTip(true)
   else
-    _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.IsShowDownTips, false)
+    _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.IsShowDownTips, false, "TipsModuleOpenAllTips")
     self:IsShowZoneTip(false)
   end
 end
@@ -672,8 +685,8 @@ function TipsModule:Dialog_CloseLongDialog()
   end
 end
 
-function TipsModule:DoCmdOpenLeaderFight(tip)
-  self:OpenPanel("LeaderFightTips", tip)
+function TipsModule:DoCmdOpenLeaderFight()
+  self:OpenPanel("LeaderFightTips")
 end
 
 function TipsModule:DoCmdCloseLeaderFight()
@@ -733,6 +746,12 @@ function TipsModule:PushRetInfo(RspCmdID, RetInfo, OverrideTag)
   }
   local Rewards = RetInfo.goods_reward and RetInfo.goods_reward.rewards
   if not table.contains(ValidCmd, RspCmdID) and not Rewards then
+    return
+  end
+  local IgnoreCmd = {
+    ProtoCMD.ZoneSvrCmd.ZONE_PLAYER_NPC_LOTTERY_GOODS_REWARD_NOTIFY
+  }
+  if table.contains(IgnoreCmd, RspCmdID) then
     return
   end
   if Rewards then
@@ -829,21 +848,28 @@ function TipsModule:PushRetInfo(RspCmdID, RetInfo, OverrideTag)
           _G.NRCModuleManager:DoCmd(_G.RolePlayModuleCmd.ShowGetNewRolePlayTips, reward.id)
         end
         if reward.reward_reason == _G.ProtoEnum.FlowReason.FLOW_REASON_MONTH_CARD_SIG then
-          local MonthlyCardTipsFilename = "MonthlyCardTipsFilename"
-          local severTime = _G.ZoneServer:GetServerTime() / 1000
-          local MonthlyCardTipsFile = JsonUtils.LoadSaved(MonthlyCardTipsFilename, {})
-          MonthlyCardTipsFile.bDisplayTime = severTime
-          MonthlyCardTipsFile.IsReward = true
-          JsonUtils.DumpSaved(MonthlyCardTipsFilename, MonthlyCardTipsFile)
-          self:AddTip(TipObject.CreateMonthlyCardDailyRewardTips(reward.type, reward.id, reward.num, k))
+          local ShopModule = _G.NRCModuleManager:GetModule("ShopModule")
+          if _G.ShopModuleCmd and ShopModule then
+            _G.NRCModuleManager:DoCmd(_G.ShopModuleCmd.TryOpenMonthCardTips, reward, k)
+          else
+            self.monthCardTipsCache = {reward = reward, index = k}
+          end
         end
         if reward.tag == Enum.RewardTag.RTA_ACTIVITY and reward.reward_reason == ProtoEnum.FlowReason.FLOW_REASON_ACTIVITY_DROP then
+          Log.Debug("TipsModule:PushRetInfo --- RspCmdID, ItemId, ItemNum, ItemType: ", RspCmdID, reward.id, reward.num, reward.type)
+          AddTips(reward)
+        end
+        if reward.tag == Enum.RewardTag.RTA_ACTIVITY_FLOWER_FIRST then
           AddTips(reward)
         end
       end
     end
   end
   self:AddTip(TipObject.CreateLobbyRegionPreUpdateTip(RspCmdID))
+end
+
+function TipsModule:TryGetCardTipsCache()
+  return self.monthCardTipsCache
 end
 
 function TipsModule:CardInfoPlayFirstGet(goods_reward)
@@ -942,7 +968,6 @@ function TipsModule:TogglePropTips(on)
   else
     self.TipsCoordinator:Pause()
   end
-  _G.NRCModeManager:DoCmd(MainUIModuleCmd.TipsDisplayTipShow, on)
 end
 
 function TipsModule:ShowGoodsReward(reward, CmdID)
@@ -1063,12 +1088,21 @@ function TipsModule:OpenItemTips(GoodsID, GoodsType, canCharge, remainCnt, maxCn
               local srcDes = string.format(LuaText.interactiontree_cifu_text_1, BagItemData.egg_data.from_player_name, BagItemData.egg_data.from_pet_name)
               contentText = string.format("%s%s", contentText, srcDes)
             end
+            if not isHaveBook and BagItemData.egg_data and BagItemData.egg_data.precious_egg_type and BagItemData.egg_data.precious_egg_type == Enum.PreciousEggType.PET_PRECIOUS and not BagItemData.egg_data.random_egg_conf then
+              itemName = LuaText.cifu_precious_petegg
+            end
             if BagItemData.egg_data and BagItemData.egg_data.precious_egg_type and BagItemData.egg_data.precious_egg_type ~= Enum.PreciousEggType.PET_NONE and nil == AssignQuality then
               AssignQuality = 5
             end
             eggData = BagItemData.egg_data
             updateTime = BagItemData.update_time
           end
+        end
+      end
+      if params and params.EggInfo then
+        eggData = params.EggInfo
+        if params.EggInfo.precious_egg_type and params.EggInfo.precious_egg_type ~= Enum.PreciousEggType.PET_NONE and nil == AssignQuality then
+          AssignQuality = 5
         end
       end
       if canCharge then
@@ -1143,13 +1177,13 @@ function TipsModule:OpenItemTips(GoodsID, GoodsType, canCharge, remainCnt, maxCn
       local count = #visualItem.acquire_struct
       for i = 1, count do
         if nil == visualItem.acquire_struct[i].acquire_way_text then
-          goto lbl_508
+          goto lbl_550
         elseif 0 == visualItem.acquire_struct[i].behavior_id then
           table.insert(real_acquire_struct, visualItem.acquire_struct[i])
         else
           table.insert(real_acquire_struct, visualItem.acquire_struct[i])
         end
-        ::lbl_508::
+        ::lbl_550::
       end
       local desc = visualItem.discription
       local hideBagIcon = true
@@ -1241,12 +1275,30 @@ function TipsModule:OpenItemTips(GoodsID, GoodsType, canCharge, remainCnt, maxCn
       local monsterConf = _G.DataConfigManager:GetMonsterConf(GoodsID)
       if monsterConf then
         baseId = monsterConf.base_id
+      else
+        local petbaseConf = _G.DataConfigManager:GetPetbaseConf(GoodsID)
+        if petbaseConf then
+          baseId = GoodsID
+        end
       end
     end
-    local petbaseConf = _G.DataConfigManager:GetPetbaseConf(baseId)
-    local path = _G.DataConfigManager:GetModelConf(petbaseConf.model_conf).icon
-    local name = petbaseConf.name
+    local path = ""
+    local name = ""
     local real_acquire_struct = {}
+    if baseId and 0 ~= baseId then
+      local petbaseConf = _G.DataConfigManager:GetPetbaseConf(baseId)
+      if petbaseConf and petbaseConf.model_conf then
+        local modelConf = _G.DataConfigManager:GetModelConf(petbaseConf.model_conf)
+        if modelConf then
+          if petbaseConf.have_shiny and 1 == petbaseConf.have_shiny and modelConf.shiny_icon then
+            path = modelConf.shiny_icon
+          else
+            path = modelConf.icon
+          end
+          name = petbaseConf.name
+        end
+      end
+    end
     data = {
       title = name,
       content = LuaText.reward_descripiton_pet,
@@ -1470,7 +1522,7 @@ function TipsModule:OpenItemTips(GoodsID, GoodsType, canCharge, remainCnt, maxCn
     }
   end
   if data then
-    self:OpenPanel("UMG_Common_Tips", data)
+    self:OpenPanel("UMG_Common_Tips", data, self:GetItemTipsPanelAdaptationLayer())
   else
     Log.Error("TipsModule:OpenItemTips Can't find item tips data, GoodsID:" .. tostring(GoodsID) .. " GoodsType:" .. tostring(GoodsType))
     if showErrorTipsWhenNotFound then
@@ -1478,6 +1530,17 @@ function TipsModule:OpenItemTips(GoodsID, GoodsType, canCharge, remainCnt, maxCn
       _G.NRCModeManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.Error_Code_2521)
     end
   end
+end
+
+function TipsModule:GetItemTipsPanelAdaptationLayer()
+  local panelDynamicData = NRCPanelDynamicData()
+  if _G.NRCModeManager:DoCmd(_G.BattleUIModuleCmd.CheckInFightingOrObserver) then
+    local isChatMainOpen = _G.NRCModuleManager:DoCmd(_G.FriendModuleCmd.CheckChatMainPanelIsOpen)
+    if isChatMainOpen then
+      panelDynamicData:SetModifiedPanelLayerType(Enum.UILayerType.UI_LAYER_TOP)
+    end
+  end
+  return panelDynamicData
 end
 
 function TipsModule:OpenItemTipsSimplify(params)
@@ -1499,7 +1562,13 @@ function TipsModule:OpenItemTipsSimplify(params)
     local data
     if GoodsType == _G.Enum.GoodsType.GT_PET then
       local petbaseConf = _G.DataConfigManager:GetPetbaseConf(GoodsID)
-      local path = _G.DataConfigManager:GetModelConf(petbaseConf.model_conf).icon
+      local modelConf = _G.DataConfigManager:GetModelConf(petbaseConf.model_conf)
+      local path
+      if petbaseConf.have_shiny and 1 == petbaseConf.have_shiny and modelConf.shiny_icon then
+        path = modelConf.shiny_icon
+      else
+        path = modelConf.icon
+      end
       local name = petbaseConf.name
       local real_acquire_struct = {}
       data = {
@@ -1522,7 +1591,7 @@ function TipsModule:OpenItemTipsSimplify(params)
       }
     end
     if data then
-      self:OpenPanel("UMG_Common_Tips", data)
+      self:OpenPanel("UMG_Common_Tips", data, self:GetItemTipsPanelAdaptationLayer())
     else
       Log.Error("TipsModule:OpenItemTips Can't find item tips data, GoodsID:" .. tostring(GoodsID) .. " GoodsType:" .. tostring(GoodsType))
       if showErrorTipsWhenNotFound then
@@ -1608,7 +1677,7 @@ function TipsModule:OpenItemTipsBrief(GoodsID, GoodsType, CustomParam)
     }
   end
   if data then
-    self:OpenPanel("UMG_Common_Tips", data)
+    self:OpenPanel("UMG_Common_Tips", data, self:GetItemTipsPanelAdaptationLayer())
   end
 end
 
@@ -1685,6 +1754,18 @@ function TipsModule:OpenFruitTreeTips(Params)
   self:OpenPanel("FruitTreeTips", Params)
 end
 
+function TipsModule:OpenTapTapTips(Params)
+  Log.Debug("TipsModule:OpenTapTapTips")
+  self:OpenPanel("TapTapTips", Params)
+end
+
+function TipsModule:CloseTapTapTips()
+  Log.Debug("TipsModule:CloseTapTapTips")
+  if self:HasPanel("TapTapTips") then
+    self:ClosePanel("TapTapTips")
+  end
+end
+
 function TipsModule:OnCmdShowExpUpTip(expTip)
   if expTip then
     self:AddTip(expTip)
@@ -1742,31 +1823,48 @@ function TipsModule:OnScreenTimeNotify(_Notify)
     self:OnOpenAntiAddiction(instruction)
   elseif 3 == instruction.type then
     self.URLModal = instruction.modal
-    local urlParams = {}
-    if 1 == instruction.modal or instruction.modal == "1" then
-      urlParams = {
-        url = instruction.url,
-        show_titlebar = 0,
-        show_title = 0,
-        buttons = {}
-      }
+    if RocoEnv.PLATFORM_WINDOWS then
+      local extraTable = {is_closable = false, webview_need_toolbar = false}
+      local extraJson = JsonUtils.EncodeTable(extraTable)
+      local urlStr = instruction.url
+      if string.IsNilOrEmpty(urlStr) then
+        Log.Error("instruction.url is empty")
+        return
+      end
+      UE4.UWebViewStatics.OpenUrl(instruction.url, 1, true, true, extraJson, false)
     else
-      urlParams = {
-        url = instruction.url,
-        show_titlebar = 0,
-        show_title = 0,
-        buttons = {
-          buttonId = 1,
-          name = LuaText.hope_notify_tips_return or "",
-          action = 0
+      local urlParams = {}
+      if 1 == instruction.modal or instruction.modal == "1" then
+        urlParams = {
+          url = instruction.url,
+          show_titlebar = 0,
+          show_title = 0,
+          buttons = {}
         }
-      }
-    end
-    if not table.isEmpty(urlParams) then
-      local urlJsonStr = JsonUtils.EncodeTable(urlParams)
-      UE4.UWebViewStatics.OpenPrajnaWebView(urlJsonStr)
-      if RocoEnv.PLATFORM_ANDROID then
-        self.bOpenPrajnaWebView = 1 == self.URLModal
+      else
+        urlParams = {
+          url = instruction.url,
+          show_titlebar = 0,
+          show_title = 0,
+          buttons = {
+            buttonId = 1,
+            name = LuaText.hope_notify_tips_return or "",
+            action = 0
+          }
+        }
+      end
+      if not table.isEmpty(urlParams) then
+        local urlJsonStr = JsonUtils.EncodeTable(urlParams)
+        local newUrlJsonStr = urlJsonStr
+        if 1 == instruction.modal or instruction.modal == "1" then
+          newUrlJsonStr = urlJsonStr:gsub("\"buttons\":{}", "\"buttons\":[]")
+        else
+          newUrlJsonStr = urlJsonStr:gsub("\"buttons\":({[^}]*})", "\"buttons\":[%1]")
+        end
+        UE4.UWebViewStatics.OpenPrajnaWebView(newUrlJsonStr)
+        if RocoEnv.PLATFORM_ANDROID then
+          self.bOpenPrajnaWebView = 1 == self.URLModal
+        end
       end
     end
   elseif 8 == instruction.type then
@@ -2011,6 +2109,185 @@ function TipsModule:AntiAddictionFinish(type)
   if type == self.instructionType then
     self.instructionType = nil
   end
+end
+
+function TipsModule:CheckMainPetTips(GoodsChangeItems)
+  local ExpLevelList = {}
+  local SkillList = {}
+  local EnergyList = {}
+  local MedalList = {}
+  for _, GoodsChangeItem in ipairs(GoodsChangeItems) do
+    if not GoodsChangeItem or GoodsChangeItem.op == ProtoEnum.OpType.OT_SUB then
+    else
+      local gid, subType, newPetData
+      local ItemType = GoodsChangeItem.type
+      if ItemType == ProtoEnum.GoodsType.GT_PET then
+        if not GoodsChangeItem.pet_data then
+        else
+          gid = GoodsChangeItem.pet_data.gid
+          newPetData = GoodsChangeItem.pet_data
+          elseif ItemType == ProtoEnum.GoodsType.GT_PETEXP then
+            gid = GoodsChangeItem.gid
+            subType = TipEnum.MainPetTipsType.Exp
+          elseif ItemType == ProtoEnum.GoodsType.GT_PET_EN then
+            gid = GoodsChangeItem.gid
+            subType = TipEnum.MainPetTipsType.Energy
+          else
+            if not (ItemType == ProtoEnum.GoodsType.GT_MEDAL and GoodsChangeItem.medal) or not GoodsChangeItem.medal.detail then
+              goto lbl_328
+            end
+            gid = GoodsChangeItem.medal.detail.obtain_pet_gid
+            if GoodsChangeItem.medal.trigger_pet_gid then
+              gid = GoodsChangeItem.medal.trigger_pet_gid
+            end
+            subType = TipEnum.MainPetTipsType.Medal
+            goto lbl_81
+            goto lbl_328
+          end
+          ::lbl_81::
+          local oldPetData = _G.DataModelMgr.PlayerDataModel:GetPetDataByGid(gid)
+          if not _G.DataModelMgr.PlayerDataModel:GetIsMainTeamPetByGid(gid) or not oldPetData then
+          elseif not subType then
+            local oldLV, newLV = oldPetData.level, newPetData.level
+            if oldLV < newLV then
+              ExpLevelList[gid] = {
+                subType = TipEnum.MainPetTipsType.Level,
+                subData = self:CreateLevelTipsData(oldPetData.exp, newPetData.exp, oldLV, newLV)
+              }
+            end
+            local newSkillData = newPetData.skill and newPetData.skill.skill_data
+            local oldSkillData = oldPetData.skill and oldPetData.skill.skill_data
+            if newSkillData and oldSkillData then
+              local skills = {}
+              local oldSkillMap = {}
+              for _, oldSkill in pairs(oldSkillData) do
+                oldSkillMap[oldSkill.id] = oldSkill.is_learned
+              end
+              for _, skill in pairs(newSkillData) do
+                if skill.unlock_need_lv and oldLV < skill.unlock_need_lv and newLV >= skill.unlock_need_lv and skill.is_learned and not oldSkillMap[skill.id] then
+                  table.insert(skills, skill)
+                end
+              end
+              if next(skills) then
+                SkillList[gid] = {
+                  subType = TipEnum.MainPetTipsType.Skill,
+                  subData = self:CreateSkillTipsData(skills)
+                }
+              end
+            end
+            local newEnergy = newPetData.energy
+            if newEnergy and oldPetData.energy then
+              EnergyList[gid] = {
+                subType = TipEnum.MainPetTipsType.Energy,
+                subData = self:CreateEnergyTipsData(oldPetData.energy, newEnergy, GoodsChangeItem.change_reason)
+              }
+            end
+          elseif subType == TipEnum.MainPetTipsType.Exp then
+            local newExp = GoodsChangeItem.num
+            if newExp > oldPetData.exp then
+              ExpLevelList[gid] = {
+                subType = TipEnum.MainPetTipsType.Exp,
+                subData = self:CreateExpTipsData(oldPetData.exp, newExp, oldPetData.level)
+              }
+            end
+          elseif subType == TipEnum.MainPetTipsType.Energy then
+            local newEnergy = GoodsChangeItem.num
+            EnergyList[gid] = {
+              subType = TipEnum.MainPetTipsType.Energy,
+              subData = self:CreateEnergyTipsData(oldPetData.energy, newEnergy, GoodsChangeItem.reason)
+            }
+          elseif subType == TipEnum.MainPetTipsType.Medal then
+            local medal = GoodsChangeItem.medal
+            local conf_id = GoodsChangeItem.medal.conf_id
+            local bFirstGot, old_complete_cnt = _G.DataModelMgr.PlayerDataModel:GetMedalInfoByItem(GoodsChangeItem)
+            local complete_cnt
+            if medal.detail.complete_cnt and old_complete_cnt then
+              local medalConf = _G.DataConfigManager:GetMedalConf(conf_id)
+              if medalConf and old_complete_cnt ~= medal.detail.complete_cnt then
+                for _, item in pairs(medalConf.repeat_get_award or {}) do
+                  if old_complete_cnt < item.count and item.count <= medal.detail.complete_cnt then
+                    complete_cnt = medal.detail.complete_cnt
+                    break
+                  end
+                end
+              end
+            end
+            if bFirstGot or complete_cnt then
+              if not MedalList[gid] then
+                MedalList[gid] = {
+                  subType = TipEnum.MainPetTipsType.Medal,
+                  subData = self:CreateMedalTipsData({}, conf_id, complete_cnt)
+                }
+              else
+                MedalList[gid].subData = self:CreateMedalTipsData(MedalList[gid].subData, conf_id, complete_cnt)
+              end
+            end
+          end
+        end
+    end
+    ::lbl_328::
+  end
+  if next(EnergyList) then
+    self:AddTip(TipObject.CreateMainPetTips(EnergyList))
+  end
+  if next(ExpLevelList) then
+    self:AddTip(TipObject.CreateMainPetTips(ExpLevelList))
+  end
+  if next(SkillList) then
+    self:AddTip(TipObject.CreateMainPetTips(SkillList))
+  end
+  if next(MedalList) then
+    self:AddTip(TipObject.CreateMainPetTips(MedalList))
+  end
+end
+
+function TipsModule:CreateEnergyTipsData(oldEnergy, newEnergy, reason)
+  local energyTipsData = {
+    oldEnergy = oldEnergy,
+    newEnergy = newEnergy,
+    reason = reason
+  }
+  return energyTipsData
+end
+
+function TipsModule:CreateExpTipsData(oldExp, newExp, curLevel)
+  local expTipsData = {
+    old_exp = oldExp or 0,
+    new_exp = newExp or 0,
+    level = curLevel or 1
+  }
+  return expTipsData
+end
+
+function TipsModule:CreateLevelTipsData(oldExp, newExp, oldLevel, newLevel)
+  local levelTipsData = {
+    old_exp = oldExp or 0,
+    new_exp = newExp or 0,
+    old_level = oldLevel or 1,
+    new_level = newLevel or 1
+  }
+  return levelTipsData
+end
+
+function TipsModule:CreateSkillTipsData(skills)
+  local skillTipsData = {skills = skills}
+  return skillTipsData
+end
+
+function TipsModule:CreateMedalTipsData(subData, conf_id, complete_cnt)
+  local resList = {}
+  for _, data in pairs(subData or {}) do
+    if data then
+      table.insert(resList, data)
+    end
+  end
+  local medalTipsData = {conf_id = conf_id, complete_cnt = complete_cnt}
+  table.insert(resList, medalTipsData)
+  return resList
+end
+
+function TipsModule:IsTipPaused()
+  return not self.TipsCoordinator:CanDisplay()
 end
 
 return TipsModule

@@ -105,17 +105,7 @@ function RoundItemAction:TryUsePlayerSkill(itemData)
                   end
                 end
               elseif PetBaseConf.bosspetbase_rule == BattleEnum.BloodItemRule.BossPet and IsBlood and PetBaseConf.bosspetbase_rule_param and #PetBaseConf.bosspetbase_rule_param > 0 then
-                if PetData.blood_id == Enum.PetBloodType.PBT_BOSS then
-                  local BagItem = _G.NRCModeManager:DoCmd(BagModuleCmd.GetBagItemByID, PetBaseConf.bosspetbase_rule_param[1])
-                  if BagItem and BagItem.type == Enum.BagItemType.BI_BOSS_EVO then
-                    return true
-                  else
-                    errorDesc = _G.DataConfigManager:GetLocalizationConf("Error_Code_30095")
-                    Text = errorDesc and errorDesc.msg or "Error"
-                  end
-                else
-                  return true
-                end
+                return true
               end
             end
           end
@@ -240,7 +230,7 @@ function RoundItemAction:OnClickedPlayerSkill(itemData)
     self:ShowFBEnemyHighlight(true)
     _G.BattleManager.vBattleField.battleCraneCamera:ChangeCameraTagDirect(UE4.EBattleCameraTags.A1FBSPlayerMagicYaSe, 0.3, true)
   else
-    self:PlayCurrentTeamPetsAnim(itemData, false)
+    self:PlayCurrentTeamPetsAnim(itemData, true)
     _G.BattleManager.vBattleField.battleCraneCamera:ChangeToPlayerMagic(0.3, true)
   end
   self.CurrentPlayer:ShowBag(false)
@@ -367,7 +357,7 @@ function RoundItemAction:OnCancelPlayerSkill(itemData)
       Log.Debug("\230\146\164\233\148\128\230\138\128\232\131\189\228\184\187\232\167\146\233\173\148\230\179\149")
     end
     Log.Dump(req, 6, "RoundItemAction:OnCancelPlayerSkill")
-    _G.BattleNetManager:SendBattleCmdPopbackReq(req, self, self.UndoBattleSelectRsp)
+    self:SendPopbackReq(req)
   else
     self.CurrentPlayer:SetPlayerSkill(BattleEnum.PlayerSkillPhase.NoSkill)
     _G.BattleManager.vBattleField.battleCameraManager:ChangeByOperateType(BattleEnum.Operation.ENUM_ITEM)
@@ -575,7 +565,6 @@ function RoundItemAction:ClearPlayerSkillState()
   self:ResetPetsLight()
   self:SetEnemyPetHighlight(false)
   self:SetTeamPetHighlight(false)
-  self:ToggleDarkScene(false)
 end
 
 function RoundItemAction:OnExit()
@@ -599,6 +588,7 @@ function RoundItemAction:OnBattleEvent(eventName, ...)
     self:OnClickedPlayerSkill(...)
     return true
   elseif eventName == BattleEvent.BATTLE_CLICKED_CANCELPLAYERSKILL then
+    self:ToggleDarkScene(false)
     self:OnCancelPlayerSkill(...)
     return true
   elseif eventName == BattleEvent.BATTLE_CLICKED_PET then

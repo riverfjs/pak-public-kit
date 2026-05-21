@@ -13,6 +13,7 @@ end
 function UMG_Email_ListItme_C:OnItemUpdate(_data, datalist, index)
   self:StopAllAnimations()
   self.CanvasPanel_3:SetVisibility(UE4.ESlateVisibility.Visible)
+  self.isSelect = false
   self:PlayAnimation(self.Get_normal)
   self:PlayAnimation(self.Unselect_normal0)
   self.isPlayingDeletAnim = false
@@ -56,7 +57,11 @@ function UMG_Email_ListItme_C:GetIconPath(itemId, itemType, IsShowPetbase)
       if nil ~= petBaseConf then
         self:SetQuality(7)
         local modelConf = _G.DataConfigManager:GetModelConf(petBaseConf.model_conf)
-        iconPath = modelConf.icon
+        if petBaseConf.have_shiny and 1 == petBaseConf.have_shiny and modelConf.shiny_icon then
+          iconPath = modelConf.shiny_icon
+        else
+          iconPath = modelConf.icon
+        end
       end
     else
       local petInfo = _G.DataConfigManager:GetPetConf(itemId, true)
@@ -65,7 +70,11 @@ function UMG_Email_ListItme_C:GetIconPath(itemId, itemType, IsShowPetbase)
         if nil ~= petBaseConf then
           self:SetQuality(7)
           local modelConf = _G.DataConfigManager:GetModelConf(petBaseConf.model_conf)
-          iconPath = modelConf.icon
+          if petBaseConf.have_shiny and 1 == petBaseConf.have_shiny and modelConf.shiny_icon then
+            iconPath = modelConf.shiny_icon
+          else
+            iconPath = modelConf.icon
+          end
         end
       else
         local monsterConf = _G.DataConfigManager:GetMonsterConf(itemId)
@@ -74,7 +83,11 @@ function UMG_Email_ListItme_C:GetIconPath(itemId, itemType, IsShowPetbase)
           if nil ~= petBaseConf then
             self:SetQuality(7)
             local modelConf = _G.DataConfigManager:GetModelConf(petBaseConf.model_conf)
-            iconPath = modelConf.icon
+            if petBaseConf.have_shiny and 1 == petBaseConf.have_shiny and modelConf.shiny_icon then
+              iconPath = modelConf.shiny_icon
+            else
+              iconPath = modelConf.icon
+            end
           end
         end
       end
@@ -164,14 +177,14 @@ function UMG_Email_ListItme_C:ShowIcon(reward)
         self.cachedItemIcon = self.PetIcon
         self.icon:SetVisibility(UE4.ESlateVisibility.Collapsed)
       else
-        local isRandomEgg
+        local isEgg
         if itemType and itemId and itemType == _G.Enum.GoodsType.GT_BAGITEM then
           local bagItemConf = _G.DataConfigManager:GetBagItemConf(itemId)
           if bagItemConf and bagItemConf.type == _G.Enum.BagItemType.BI_PET_EGG then
-            isRandomEgg = self:SetEggIcon(iconPath, bagItemConf)
+            isEgg = self:SetEggIcon(iconPath, bagItemConf)
           end
         end
-        if not isRandomEgg then
+        if not isEgg then
           self.cachedItemIcon = self.icon
           self.icon:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
         end
@@ -305,6 +318,9 @@ function UMG_Email_ListItme_C:OnItemSelected(_bSelected)
   if self.isPlayingDeletAnim then
     return
   end
+  if not UE4.UObject.IsValid(self) then
+    return
+  end
   self:StopAnimation(self.Unselect)
   self:StopAnimation(self.Unselect_1)
   self:StopAnimation(self.Unselect_normal0)
@@ -399,7 +415,7 @@ function UMG_Email_ListItme_C:OpItem(opType)
 end
 
 function UMG_Email_ListItme_C:OnAnimationFinished(anim)
-  if anim == self.Unselect or self.Unselect_1 == anim then
+  if anim == self.Unselect or self.Unselect_1 == anim or self.Unselect_normal0 then
     self:ChangeItemColor()
   elseif anim == self.Get then
     self.GetAnimFinishe = true
@@ -410,12 +426,22 @@ function UMG_Email_ListItme_C:OnLogin()
 end
 
 function UMG_Email_ListItme_C:SetEggIcon(iconPath, bagItemConf)
-  if bagItemConf and bagItemConf.type == _G.Enum.BagItemType.BI_PET_EGG and bagItemConf.item_behavior and bagItemConf.item_behavior[1] and bagItemConf.item_behavior[1].ratio2 and bagItemConf.item_behavior[1].ratio2[1] then
-    local eggInfo = {}
-    eggInfo.random_egg_conf = bagItemConf.item_behavior[1].ratio2[1]
-    self.IconSwitcher:SetActiveWidgetIndex(2)
-    self.PetEggIcon:SetEggIcon(eggInfo, iconPath)
-    return true
+  if bagItemConf and bagItemConf.type == _G.Enum.BagItemType.BI_PET_EGG then
+    if bagItemConf.item_behavior and bagItemConf.item_behavior[1] and bagItemConf.item_behavior[1].ratio2 and bagItemConf.item_behavior[1].ratio2[1] then
+      local eggInfo = {}
+      eggInfo.random_egg_conf = bagItemConf.item_behavior[1].ratio2[1]
+      self.IconSwitcher:SetActiveWidgetIndex(2)
+      self.PetEggIcon:SetEggIcon(eggInfo, iconPath)
+      return true
+    elseif self.data and self.data.reward and self.data.reward.rewards and self.data.reward.rewards[1] and self.data.reward.rewards[1].egg_info then
+      local eggInfo = self.data.reward.rewards[1].egg_info
+      if eggInfo.glass_info then
+        self:SetQuality(5)
+      end
+      self.IconSwitcher:SetActiveWidgetIndex(2)
+      self.PetEggIcon:SetEggIcon(eggInfo, iconPath)
+      return true
+    end
   end
   return false
 end

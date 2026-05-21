@@ -14,16 +14,6 @@ function BattleSpEnergyPlayer:Ctor(owner)
   self.Caster = nil
 end
 
-function BattleSpEnergyPlayer:MakeCallback(callback, param)
-  if callback then
-    return function()
-      callback(self, param)
-    end
-  else
-    return nil
-  end
-end
-
 function BattleSpEnergyPlayer:Reset()
   self.Caster = nil
   self.performNode = nil
@@ -47,7 +37,7 @@ function BattleSpEnergyPlayer:Play(performNode)
     return
   end
   local DontAcceptPreEnd = false
-  CastSkillParam:SetCaster(self.Caster.model):SetCompleteCallback(self.OnSkillComplete):SetOnHitCallback(self.OnHit):SetCallbackOwner(self):SetInterrupt(true):SetAcceptPreEnd(not DontAcceptPreEnd):SetTargetPets(self:GetTargetPets()):SetDamageType(Enum.DamageType.DT_NONE):SetIsPassive(false):SetSpType(self.SpEnergyInfo.dam_type)
+  CastSkillParam:SetCaster(self.Caster.model):SetCompleteCallback(self.OnSkillComplete):SetSkillBreakCallback(self.OnSkillComplete):SetStartFailedCallback(self.OnSkillComplete):SetOnHitCallback(self.OnHit):SetCallbackOwner(self):SetInterrupt(true):SetAcceptPreEnd(not DontAcceptPreEnd):SetTargetPets(self:GetTargetPets()):SetDamageType(Enum.DamageType.DT_NONE):SetIsPassive(false):SetSpType(self.SpEnergyInfo.dam_type)
   self.Target:CommonCast(CastSkillParam)
   self.CastSkillParam = CastSkillParam
   _G.BattleEventCenter:Dispatch(BattleEvent.SP_ENERGY_TRIGGER, self.SpEnergyInfo.dam_type)

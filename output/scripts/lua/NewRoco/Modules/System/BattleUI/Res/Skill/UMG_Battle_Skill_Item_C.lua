@@ -56,6 +56,7 @@ function UMG_Battle_Skill_Item_C:Construct()
   self.canCast = false
   self.CastPet = nil
   self.bFantastic = nil
+  self.fantasticBackgroundPath = ""
   self.restrainType = nil
   self.IsCancel = false
   self.StartTime = 0
@@ -240,6 +241,8 @@ function UMG_Battle_Skill_Item_C:OnAnimationStarted(Animation)
 end
 
 function UMG_Battle_Skill_Item_C:OnAnimationFinished(Animation)
+  if self.skill then
+  end
   if Animation == self.Btn_one_Click then
     self:PlayAnimation(self.Btn_one_Max)
   elseif Animation == self.open or Animation == self.Change_open then
@@ -249,8 +252,13 @@ function UMG_Battle_Skill_Item_C:OnAnimationFinished(Animation)
     self:SetWidgetVisibilityByName("Fx_icon_light", ESlateVisibility.Collapsed)
   elseif Animation == self.Skill_Change_In then
     self:PlayAnimation(self.Skill_Change_Out)
-  elseif Animation == self.Btn_one_Max and self.skill then
-    self:_Refresh(self.skill, self.currentStateName)
+  elseif Animation == self.Btn_one_Max then
+    if self.skill then
+      self:_Refresh(self.skill, self.currentStateName)
+    end
+  elseif Animation == self.Aspiration_loop then
+    self.normalBG:SetRenderOpacity(1)
+    self.normalBG_1:SetRenderOpacity(0)
   end
 end
 
@@ -377,7 +385,7 @@ function UMG_Battle_Skill_Item_C:SetIndex(Index)
   self.curIndex = Index
 end
 
-function UMG_Battle_Skill_Item_C:SetData(skillEntity, stateName, pet, father, showEmpty, bFantastic)
+function UMG_Battle_Skill_Item_C:SetData(skillEntity, stateName, pet, father, showEmpty, fantasticBackgroundPath)
   self:SetWidgetVisibilityByName("energyNormalBG", ESlateVisibility.Collapsed)
   self:SetWidgetVisibilityByName("BeastSkill", ESlateVisibility.Collapsed)
   self.CastPet = pet
@@ -385,7 +393,7 @@ function UMG_Battle_Skill_Item_C:SetData(skillEntity, stateName, pet, father, sh
   self.fatherList = father
   self.bRestrainEffectOpen = -1
   self.currentStateName = stateName
-  self.bFantastic = bFantastic
+  self.fantasticBackgroundPath = fantasticBackgroundPath
   self:SetVisibility(ESlateVisibility.Visible)
   self.newDataModel = {}
   local dataModelRound = _G.BattleManager:GetCurRound()
@@ -566,11 +574,12 @@ function UMG_Battle_Skill_Item_C:SetIconInfo(pet)
   self:SetWidgetVisibilityByName("Name", ESlateVisibility.Collapsed)
   self:SetWidgetVisibilityByName("normalBG_1", ESlateVisibility.Collapsed)
   local petEnergy = pet:GetEnergy()
+  local petMaxEnergy = pet:GetMaxEnergy()
   if BattleUtils.IsB1FinalBattleP2() then
     self.Txt:SetText(petEnergy)
   else
     local restEnergyTextTemplate = "%s/%s"
-    self.Txt:SetText(string.format(restEnergyTextTemplate, petEnergy, 10))
+    self.Txt:SetText(string.format(restEnergyTextTemplate, petEnergy, petMaxEnergy))
   end
   if self.skill then
     self.NRCText_78:SetText(self.skill.config.name)
@@ -735,11 +744,13 @@ function UMG_Battle_Skill_Item_C:_Refresh(skillEntity, roundStateType)
     self.newDataModel.skillName = self.skill.config.name
   end
   self.Icon:SetPath(self.newSkill.icon, nil)
-  if self.bFantastic then
-    self.Select_NM_3:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-  else
-    self.Select_NM_3:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  local fantasticBackgroundPath = self.fantasticBackgroundPath or ""
+  local selectNm3Visibility = UE4.ESlateVisibility.Collapsed
+  if not string.IsNilOrEmpty(fantasticBackgroundPath) then
+    selectNm3Visibility = UE4.ESlateVisibility.SelfHitTestInvisible
   end
+  self.Select_NM_3:SetPath(fantasticBackgroundPath)
+  self.Select_NM_3:SetVisibility(selectNm3Visibility)
   if self.newDataModel then
     self.newDataModel.iconPath = self.newSkill.icon
   end
@@ -1098,20 +1109,19 @@ function UMG_Battle_Skill_Item_C:CloseTips()
 end
 
 function UMG_Battle_Skill_Item_C:Tick(geometry, deltaTime)
+  if self.IsTimeLimit then
+    self.StartTime = self.StartTime + 1
+    if self.StartTime >= self.EndTime then
+      self.StartTime = 0
+      self.IsTimeLimit = false
+    end
+  end
   if not self._pressed then
     return
   end
   self._timer = self._timer - deltaTime
   if self._timer <= 0 then
     self:DoLongClick()
-  end
-  if self.IsTimeLimit then
-    Log.Debug(self.StartTime, "UMG_Battle_Skill_Item_C:Tick")
-    self.StartTime = self.StartTime + 1
-    if self.StartTime >= self.EndTime then
-      self.StartTime = 0
-      self.IsTimeLimit = false
-    end
   end
 end
 
@@ -1208,6 +1218,7 @@ function UMG_Battle_Skill_Item_C:PlayOpenAnimation(_IsOpen)
       local skillId = self:GetDataModelSkillId()
       if self.fatherList and self.fatherList:ShouldPlayChangeSkill2(petGuid, skillId) then
         self.CanvasPanel_0:SetRenderOpacity(1)
+        self.CanvasPanel_0:SetRenderScale(UE4.FVector2D(1, 1))
         self:PlayAnimation(self.Skill_change2)
         self:BindToAnimationFinished(self.Skill_change2, self.OnOpenAnimFinishedDelegate)
         self.delayHideRelativeChangeSkillPosItemHandler = _G.DelayManager:DelaySeconds(0.2, function()

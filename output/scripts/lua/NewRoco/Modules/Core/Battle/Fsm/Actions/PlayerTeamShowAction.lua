@@ -239,7 +239,10 @@ function PlayerTeamShowAction:OnSkillLoad(request, skillClass)
       local Skill = Player.model.RocoSkill:AddSkillObjFromClassAndReturn(skillClass)
       if Skill then
         local characters = _G.BattleManager.battlePawnManager:GetAllPawnActorForSkill()
-        local ballPath = BattleUtils.GetPetBallPath(self.targetPets[1].card.petInfo.battle_common_pet_info)
+        local ballPath = "None"
+        if self.targetPets and #self.targetPets >= 1 then
+          ballPath = BattleUtils.GetPetBallPath(self.targetPets[1].card.petInfo.battle_common_pet_info)
+        end
         local ballAddPath = {"None", "None"}
         for i = 2, #self.targetPets do
           ballAddPath[i - 1] = BattleUtils.GetPetBallPath(self.targetPets[i].card.petInfo.battle_common_pet_info)

@@ -6,7 +6,10 @@ function UMG_LiquefiedAiming_C:OnAppear()
   self:PlayAnimation(self.Loop, 0, 99999)
 end
 
-function UMG_LiquefiedAiming_C:OnCancel(cancelType)
+function UMG_LiquefiedAiming_C:OnCancel(bFromInit)
+  if bFromInit then
+    self:HideAll()
+  end
   self:StopAllAnim()
   self:PlayAnimation(self.Out)
 end
@@ -50,6 +53,10 @@ function UMG_LiquefiedAiming_C:OnDisable()
   self.OuterRing_2:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
   self.OuterRing_3:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
   self.OuterRing_4:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
+end
+
+function UMG_LiquefiedAiming_C:OnParentViewLoaded()
+  self:SetVisibility(UE4.ESlateVisibility.Collapsed)
 end
 
 return UMG_LiquefiedAiming_C

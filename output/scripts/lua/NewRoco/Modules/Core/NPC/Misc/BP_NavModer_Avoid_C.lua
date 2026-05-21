@@ -6,6 +6,7 @@ function BP_NavModer_Avoid_C:Ctor()
   self.can_disperse = false
   self.force_disperse = false
   self.cooldown_delay = nil
+  self.overlap_check_delay = nil
   self.owner_area = nil
 end
 
@@ -15,11 +16,27 @@ function BP_NavModer_Avoid_C:OnMeshOverlap(OtherActor)
     return
   end
   self:OnMeshOverlapImp(OtherActor)
+  if UE.UObject.IsA(OtherActor, UE.ARocoVehicleCharacter) then
+    self:ScheduleOverlapCheck()
+  end
+end
+
+function BP_NavModer_Avoid_C:MatchLocalPlayer(OtherActor)
+  local Player = SceneUtils.GetPlayer()
+  if Player and Player.viewObj then
+    if Player.viewObj == OtherActor then
+      return true
+    end
+    local playerViewObj = Player.viewObj
+    if UE.UObject.IsValid(playerViewObj) and playerViewObj.RidePet and UE.UObject.IsValid(playerViewObj.RidePet) and playerViewObj.RidePet == OtherActor then
+      return true
+    end
+  end
+  return false
 end
 
 function BP_NavModer_Avoid_C:OnMeshOverlapImp(OtherActor)
-  local Player = SceneUtils.GetPlayer()
-  if Player and Player.viewObj and Player.viewObj == OtherActor then
+  if self:MatchLocalPlayer(OtherActor) then
     self.can_disperse = true
     if not self.force_disperse then
       self:DisperseNpc()
@@ -33,16 +50,40 @@ function BP_NavModer_Avoid_C:OnMeshOverlapImp(OtherActor)
 end
 
 function BP_NavModer_Avoid_C:OnMeshUnoverlap(OtherActor)
-  local Player = SceneUtils.GetPlayer()
-  if not Player then
-    return
-  end
-  if not Player.viewObj then
-    return
-  end
-  if Player.viewObj == OtherActor then
+  if self:MatchLocalPlayer(OtherActor) then
     self.can_disperse = false
   end
+  if UE.UObject.IsA(OtherActor, UE.ARocoVehicleCharacter) then
+    self:ScheduleOverlapCheck()
+  end
+end
+
+local CachedOverlappingActors = UE.TArray(UE.ACharacter)
+
+function BP_NavModer_Avoid_C:ScheduleOverlapCheck()
+  if self.overlap_check_delay then
+    return
+  end
+  self.overlap_check_delay = DelayManager:DelayFrames(1, function()
+    self.overlap_check_delay = nil
+    if not self or not UE.UObject.IsValid(self) then
+      return
+    end
+    self:GetOverlappingActors(CachedOverlappingActors, UE.ACharacter)
+    local foundLocalPlayer = false
+    for _, actor in tpairs(CachedOverlappingActors) do
+      if self:MatchLocalPlayer(actor) then
+        foundLocalPlayer = true
+        break
+      end
+    end
+    if foundLocalPlayer ~= self.can_disperse then
+      self.can_disperse = foundLocalPlayer
+      if self.can_disperse and not self.force_disperse then
+        self:DisperseNpc()
+      end
+    end
+  end, self)
 end
 
 function BP_NavModer_Avoid_C:DisperseNpc()
@@ -72,6 +113,10 @@ function BP_NavModer_Avoid_C:ReceiveEndPlay(EndPlayReason)
   if self.cooldown_delay then
     DelayManager:CancelDelayById(self.cooldown_delay)
     self.cooldown_delay = nil
+  end
+  if self.overlap_check_delay then
+    DelayManager:CancelDelayById(self.overlap_check_delay)
+    self.overlap_check_delay = nil
   end
 end
 

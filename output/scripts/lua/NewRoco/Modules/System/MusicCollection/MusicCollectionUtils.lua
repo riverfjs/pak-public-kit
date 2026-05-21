@@ -6,12 +6,7 @@ function MusicCollectionUtils.GetBgmStateGroupByApplyType(ApplyTypeEnum, applyTy
   if applyType == Enum.InterfaceType.IT_PET then
     StateGroup = "UI_Music;UI_Music;UI_Type;Pet_Interface"
   end
-  if applyType == Enum.InterfaceType.IT_BP then
-    _G.NRCAudioManager:SetStateByName("UI_Type", "ShanYaoDaSai")
-    _G.NRCAudioManager:SetStateByName("UI_Music", "UI_Music")
-    return
-  end
-  if applyType == Enum.InterfaceType.IT_SEASON then
+  if applyType == Enum.InterfaceType.IT_SEASON or applyType == Enum.InterfaceType.IT_BP then
     local seasonInfo = _G.NRCModuleManager:DoCmd(_G.SeasonIntegrationModuleCmd.GetSeasonInfo)
     if seasonInfo then
       local seasonConf = _G.DataConfigManager:GetSeasonConf(seasonInfo.season_id)

@@ -39,6 +39,10 @@ function PetInteractOptionComponent:TryRecycle(player_id)
       local AIComp = self.owner:EnsureComponent(AIComponent)
       AIComp:ForceLockForReason(false, false, AIDefines.LockReason.INTERACT)
       view.sceneCharacter:EnsureComponent(PetHUDComponent):ForceUpdate()
+    elseif NRCModuleManager:DoCmd(FarmModuleCmd.OnCmdGetIsInFarm) then
+      local AIComp = self.owner:EnsureComponent(AIComponent)
+      AIComp:ForceLockForReason(false, false, AIDefines.LockReason.INTERACT)
+      view.sceneCharacter:EnsureComponent(PetHUDComponent):ForceUpdate()
     else
       view.ThrowSession:Recycle()
     end

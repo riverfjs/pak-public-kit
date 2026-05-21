@@ -21,6 +21,7 @@ local function InstantiateUpdateFsm()
   local UpdateFailedState = UpdateFsm:CreateBurstState(LoginEnum.StateNames.UpdateFailedState)
   local UpdateState = UpdateFsm:CreateComposedState(LoginEnum.StateNames.UpdateState)
   local CheckUpdateState = UpdateState:CreateChildBurstState(LoginEnum.StateNames.CheckUpdateState)
+  local CheckPreDownloadState = UpdateState:CreateChildBurstState(LoginEnum.StateNames.CheckPreDownloadState)
   local ResVerifyState = UpdateState:CreateChildBurstState(LoginEnum.StateNames.ResVerifyState)
   local CheckPatchUpdateState = UpdateState:CreateChildBurstState(LoginEnum.StateNames.CheckPatchUpdateState)
   local CheckIfDeviceBlockedState = UpdateState:CreateChildBurstState(LoginEnum.StateNames.CheckIfDeviceBlockedState)
@@ -147,8 +148,14 @@ local function InstantiateUpdateFsm()
     FinishEvent = LoginModuleEvent.UpdateDone
   }))
   CheckUpdateState:AddTransitionToState(LoginModuleEvent.SkipUpdate, PCCheckIfDeviceBlockedState)
-  CheckUpdateState:AddTransitionToState(FINISHED, ResVerifyState)
+  CheckUpdateState:AddTransitionToState(FINISHED, CheckPreDownloadState)
   CheckUpdateState:AddTransitionToState(LoginModuleEvent.AppNeedUpdate, UpdateAppState)
+  CheckPreDownloadState:AddAction(DoCmdAction("CheckLocalPreDownloadConfig", {
+    Cmd = UpdateUIModuleCmd.CheckLocalPreDownloadConfig,
+    FinishEvent = LoginModuleEvent.LocalPreDownloadConfigCheckDone
+  }))
+  CheckPreDownloadState:AddTransitionToState(FINISHED, ResVerifyState)
+  CheckPreDownloadState:AddTransitionToState(LoginModuleEvent.LocalPreDownloadConfigCheckFailed, ResVerifyState)
   ResVerifyState:AddAction(DoCmdAction("ResHashCheck", {
     Cmd = UpdateUIModuleCmd.ResHashCheck
   }))
@@ -212,6 +219,14 @@ local function InstantiateUpdateFsm()
   WaitForAllProgressEndState:AddAction(DoCmdAction("CheckIfNeedRestratApp", {
     Cmd = UpdateUIModuleCmd.CheckIfNeedRestratApp,
     FinishEvent = UpdateUIModuleEvent.NoNeedToRestartApp
+  }))
+  WaitForAllProgressEndState:AddAction(DoCmdAction("DownloadPreDownloadConfig", {
+    Cmd = UpdateUIModuleCmd.DownloadPreDownloadConfig,
+    FinishEvent = LoginModuleEvent.DownloadPreDownloadConfigDone
+  }))
+  WaitForAllProgressEndState:AddAction(DoCmdAction("InitPreDownloadPufferTask", {
+    Cmd = UpdateUIModuleCmd.InitPreDownloadPufferTask,
+    FinishEvent = LoginModuleEvent.DownloadPreDownloadConfigDone
   }))
   WaitForAllProgressEndState:AddTransitionToState(FINISHED, EndState)
   UpdateAppState:AddAction(CheckConditionAction("CheckIOSSystem", {

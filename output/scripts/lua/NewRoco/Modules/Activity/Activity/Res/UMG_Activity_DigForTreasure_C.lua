@@ -51,7 +51,6 @@ function UMG_Activity_DigForTreasure_C:OnAddEventListener()
   end
   local isTaskFinished = _activityInst.isPrepareTaskFinished
   if _activityInst:IsInProgress() then
-    self.RewardBtn.RedDot:SetVisibility(UE4.ESlateVisibility.Hidden)
     if not isTaskFinished then
       self.Switcher_Btn.ActiveWidgetIndex = 0
       BtnText = _G.LuaText.treasure_hunt_tips
@@ -63,7 +62,7 @@ function UMG_Activity_DigForTreasure_C:OnAddEventListener()
       if self.activityInst.treasureHuntDataSRV then
         for i, v in pairs(self.activityInst.treasureHuntDataSRV.treasure_data) do
           if v.reward_state == _G.ProtoEnum.PlayerActivityInfo.ActivityRewardState.ARS_WAIT then
-            self.RewardBtn.RedDot:SetupKey(383, self.activityInst:GetActivityId())
+            self.RewardBtn.RedDot:SetupKey(492, self.activityInst:GetActivityId())
             break
           end
         end
@@ -80,7 +79,7 @@ end
 
 function UMG_Activity_DigForTreasure_C:OnClickHomeBtn()
   _G.NRCAudioManager:PlaySound2DAuto(1077, "UMG_Activity_DigForTreasure_C:OnClickHomeBtn")
-  if self.prepareTask ~= nil then
+  if self.activityInst and self.activityInst:IsInProgress() and self.prepareTask ~= nil then
     _G.NRCModeManager:DoCmd(_G.TaskModuleCmd.setTrack, self.prepareTask.id, true)
     if self.prepareTask then
       _G.NRCModuleManager:DoCmd(BigMapModuleCmd.OpenWorldMap, {
@@ -93,10 +92,12 @@ end
 
 function UMG_Activity_DigForTreasure_C:OnClickRewardBtn()
   _G.NRCAudioManager:PlaySound2DAuto(1077, "UMG_Activity_DigForTreasure_C:OnClickHomeBtn")
-  if self.RewardBtn.RedDot:IsRed() then
+  if self.RewardBtn.RedDot:IsRed() and self.RewardBtn.RedDot:GetKey() == 384 then
     self.RewardBtn.RedDot:EraseRedPoint()
   end
-  _G.NRCModuleManager:DoCmd(ActivityModuleCmd.OpenActivityTreasureSpot, self.activityInst)
+  if self.activityInst and self.activityInst:IsInProgress() then
+    _G.NRCModuleManager:DoCmd(ActivityModuleCmd.OpenActivityTreasureSpot, self.activityInst)
+  end
 end
 
 function UMG_Activity_DigForTreasure_C:OpenPhotographPanel()

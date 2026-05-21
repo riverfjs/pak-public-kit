@@ -16,6 +16,7 @@ local FunctionBanModuleCmd = require("NewRoco.Modules.System.FunctionBan.Functio
 local SleepingOwlModuleCmd = require("NewRoco.Modules.System.SleepingOwl.SleepingOwlModuleCmd")
 local MarkerModuleCmd = require("NewRoco.Modules.Core.Marker.MarkerModuleCmd")
 local WorldCombatModuleCmd = require("NewRoco.Modules.System.WorldCombat.WorldCombatModuleCmd")
+local SeasonIntegrationModuleCmd = require("NewRoco.Modules.System.SeasonIntegration.SeasonIntegrationModuleCmd")
 local DebugModuleCmd
 if _G.AppMain:HasDebug() then
   DebugModuleCmd = require("NewRoco.Modules.System.Debug.DebugModuleCmd")
@@ -34,6 +35,7 @@ local BattleSpectatorModuleCmd = require("NewRoco.Modules.System.BattleSpectator
 local MagicReplayModuleCmd = require("NewRoco.Modules.System.MagicReplay.MagicReplayModuleCmd")
 local LoadingUIModuleEvent = require("NewRoco.Modules.System.LoadingUIModule.LoadingUIModuleEvent")
 local TakePhotosModuleCmd = reload("NewRoco.Modules.System.TakePhotos.TakePhotosModuleCmd")
+local RolePlayModuleCmd = require("NewRoco.Modules.System.RolePlay.RolePlayModuleCmd")
 local MAX_SPACE_ACT_CACHE_TIME = 300000
 local SceneModule = NRCModuleBase:Extend("SceneModule")
 
@@ -513,6 +515,12 @@ function SceneModule:OnConstruct()
       NPCModuleCmd.StunServerNty,
       ""
     },
+    play_chat_buble = {
+      "",
+      "actor_id",
+      NPCModuleCmd.ActorPlayChatBubble,
+      ""
+    },
     inform_client_switch_ai = {
       "",
       self.AlwaysToFirst,
@@ -541,6 +549,12 @@ function SceneModule:OnConstruct()
       "",
       self.AlwaysToFirst,
       NPCModuleCmd.AllHabitatNeighborInfoChange,
+      ""
+    },
+    mutual_perform_state_changed = {
+      "",
+      self.AlwaysToFirst,
+      PlayerModuleCmd.OnAIMutualPerformStateChanged,
       ""
     },
     mfbt_debug = {
@@ -1184,6 +1198,64 @@ function SceneModule:OnConstruct()
       self.AlwaysToFirst,
       TakePhotosModuleCmd.OnSyncPhotoToken,
       ""
+    },
+    llm_pets_query_pets = {
+      "",
+      self.AlwaysToFirst,
+      NPCModuleCmd.OnLLMPETSQueryPets,
+      ""
+    },
+    llm_pets_behavior_notify = {
+      "",
+      self.AlwaysToFirst,
+      NPCModuleCmd.OnLLMPETSBehaviorNotify,
+      ""
+    },
+    llm_debug = {
+      "",
+      self.AlwaysToFirst,
+      NPCModuleCmd.OnLLMPETSDebug,
+      ""
+    },
+    npc_size_scale_change = {
+      "",
+      "npc_id",
+      NPCModuleCmd.NpcSizeScaleChange,
+      ""
+    },
+    roleplay_hold_info_chg_ntf = {
+      "",
+      self.AlwaysToFirst,
+      RolePlayModuleCmd.OnRolePlayHoldInfoChange,
+      ""
+    },
+    option_b_or_w_list_uins_chg_ntf = {
+      "",
+      self.AlwaysToFirst,
+      NPCModuleCmd.OnOptionBlacklistAndWhitelist,
+      ""
+    },
+    player_tags_change = {
+      "",
+      self.AlwaysToFirst,
+      MainUIModuleCmd.ChangePlayerTags,
+      ""
+    },
+    abnormal_status_change_ntf = {
+      "",
+      self.AlwaysToFirst,
+      PlayerModuleCmd.OnAbnormalStatusChange
+    },
+    camera_skin_change = {
+      "",
+      self.AlwaysToFirst,
+      TakePhotosModuleCmd.OnSyncCameraTextureChanged
+    },
+    bonus_catch_limit_tips = {
+      "",
+      self.AlwaysToFirst,
+      SeasonIntegrationModuleCmd.OnBonusCatchLimitTips,
+      ""
     }
   }
   self.bNoLoadingTeleport = false
@@ -1259,14 +1331,14 @@ function SceneModule:OnPreTeleportNotify(notify)
     if self.mapID == notify.to_scene_cfg_id and notify.from_scene_res_cfg_id == notify.to_scene_res_cfg_id then
       isSame = true
     end
+    _G.NRCEventCenter:DispatchEvent(SceneEvent.OnPreTeleportNotify, isSame, false)
+    _G.NRCEventCenter:DispatchEvent(_G.NRCGlobalEvent.NetBeforeLockUpstream, isSame, false)
+    _G.NRCNetworkManager:FlushSendMessage(_G.ZoneServer.connectID)
     local localPlayer = NRCModuleManager:DoCmd(PlayerModuleCmd.GET_LOCAL_PLAYER)
     if localPlayer then
       localPlayer.serverData.base.platform_actor_id = 0
       localPlayer:ForceSendMoveReq(true)
     end
-    _G.NRCEventCenter:DispatchEvent(SceneEvent.OnPreTeleportNotify, isSame, false)
-    _G.NRCEventCenter:DispatchEvent(_G.NRCGlobalEvent.NetBeforeLockUpstream, isSame, false)
-    _G.NRCNetworkManager:FlushSendMessage(_G.ZoneServer.connectID)
     local ret = _G.ZoneServer:Send(ProtoCMD.ZoneSvrCmd.ZONE_SCENE_PRE_TELEPORT_NOTIFY_ACK, req, false, true)
     if ret then
       _G.ZoneServer:LockUpstream(true, true)
@@ -1280,12 +1352,13 @@ end
 function SceneModule:OnCancelPreTeleportNotify(notify)
   self:Log("SceneModule:OnCancelPreTeleportNotify[PlayerAOI][NpcAOI]")
   local teleport_stub = notify.teleport_stub
-  if teleport_stub == self.CurTeleportStub then
-    _G.ZoneServer:LockUpstream(false)
-    self.CurTeleportStub = nil
-    _G.ZoneServer:SetOnlineState(OnlineState.EnteredCell)
-    self:Log("SceneModule:OnCancelPreTeleportNotify unlock upstream")
+  if teleport_stub ~= self.CurTeleportStub then
+    Log.Error("SceneModule:OnCancelPreTeleportNotify[PlayerAOI][NpcAOI] teleport stub not match, cur stub=", self.CurTeleportStub, "notify stub=", teleport_stub)
   end
+  _G.ZoneServer:LockUpstream(false)
+  self.CurTeleportStub = nil
+  _G.ZoneServer:SetOnlineState(OnlineState.EnteredCell)
+  self:Log("SceneModule:OnCancelPreTeleportNotify unlock upstream")
   if notify.err_code and type(notify.err_code) == "number" and notify.err_code > 0 then
     _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, _G.LuaText[string.format("Error_Code_%d", notify.err_code)])
   end
@@ -1316,7 +1389,8 @@ function SceneModule:OnTeleportNotify(notify)
       if notify.teleport_reason and (0 == notify.teleport_reason or 3 == notify.teleport_reason) then
         clientReadyMsg.feature_data = _G.NRCSDKManager:GetLightFeaturePacket()
       end
-      ZoneServer:Send(ProtoCMD.ZoneSvrCmd.ZONE_SCENE_CLIENT_ENTER_SCENE_FINISH_NTY, clientReadyMsg)
+      _G.NRCNetworkManager:FlushRecvMessage(_G.ZoneServer.connectID)
+      _G.ZoneServer:Send(ProtoCMD.ZoneSvrCmd.ZONE_SCENE_CLIENT_ENTER_SCENE_FINISH_NTY, clientReadyMsg)
     end
     if not self.bAllowCliCachePkg then
       self.teleport_to_pt = notify.to_pt
@@ -1329,7 +1403,11 @@ function SceneModule:OnTeleportNotify(notify)
   UE.UNRCStatics.ExecConsoleCommand(string.format("NRCCustomPlayerStartY %d", AvatarInfo.base.pt.pos.y))
   UE.UNRCStatics.ExecConsoleCommand(string.format("NRCCustomPlayerStartZ %d", AvatarInfo.base.pt.pos.z + 90))
   if not self.bNoLoadingTeleport and LoadingUIModuleCmd then
-    NRCModuleManager:DoCmd(LoadingUIModuleCmd.OpenLoadingUI, LuaText.Loading, 0.8, nil, nil, notify.teleport_reason, notify.teleport_id, self.mapResId, notify.to_scene_res_cfg_id, false, notify.teleport_rule_id)
+    NRCModuleManager:DoCmd(LoadingUIModuleCmd.OpenLoadingUI, LuaText.Loading, 0.4, nil, nil, notify.teleport_reason, notify.teleport_id, self.mapResId, notify.to_scene_res_cfg_id, false, notify.teleport_rule_id)
+    local AreaQueryManager = UE4.UAreaQueryManager.Get(_G.UE4Helper.GetCurrentWorld())
+    if AreaQueryManager then
+      AreaQueryManager:ResetCurrentSceneResId()
+    end
   end
   _G.NRCEventCenter:DispatchEvent(SceneEvent.OnTeleportNotify, notify, false)
   local bIsSkip = false
@@ -1381,7 +1459,8 @@ function SceneModule:OnZoneSceneWorldMapEntryInfoIncrNty(notify)
   if notify.batch_id == notify.total_batch - 1 then
     self:Log("SceneModule:OnZoneSceneWorldMapEntryInfoIncrNty [PlayerAOI][NpcAOI] over, send ClientEnterSceneFinishNty!", notify.batch_id, notify.total_batch)
     local clientReadyMsg = ProtoMessage:newZoneSceneClientEnterSceneFinishNty()
-    ZoneServer:Send(ProtoCMD.ZoneSvrCmd.ZONE_SCENE_CLIENT_ENTER_SCENE_FINISH_NTY, clientReadyMsg)
+    _G.NRCNetworkManager:FlushRecvMessage(_G.ZoneServer.connectID)
+    _G.ZoneServer:Send(ProtoCMD.ZoneSvrCmd.ZONE_SCENE_CLIENT_ENTER_SCENE_FINISH_NTY, clientReadyMsg)
   end
 end
 
@@ -1392,12 +1471,12 @@ function SceneModule:OnEnterSceneFinishNtyAck(notify)
     local player = _G.NRCModeManager:DoCmd(PlayerModuleCmd.GET_LOCAL_PLAYER)
     if not self.bAllowCliCachePkg and self.teleport_to_pt then
       local toPos = self.teleport_to_pt.pos
-      local serverPos = UE4.FVector(toPos.x, toPos.y, toPos.z)
-      local serverRot = UE4.FRotator(0, (self.teleport_to_pt.dir.z or 0.0) / 10.0, 0)
+      local playerPos = SceneUtils.ServerPos2PlayerPos(toPos)
+      local playerRot = UE4.FRotator(0, (self.teleport_to_pt.dir.z or 0.0) / 10.0, 0)
       if player then
         if not player:IsTogetherMove2P() then
-          player:SetActorLocation(serverPos)
-          player:SetActorRotation(serverRot)
+          player:SetActorLocation(playerPos)
+          player:SetActorRotation(playerRot)
         end
         local bForMiniGame = _G.NRCModuleManager:DoCmd(_G.MiniGameModuleCmd.IsOpenCamera) or _G.NRCModuleManager:DoCmd(_G.MiniGameModuleCmd.IsInNightmare)
         if not bForMiniGame then
@@ -1411,9 +1490,7 @@ function SceneModule:OnEnterSceneFinishNtyAck(notify)
     end
     if not notify.add_or_update_other_actors_total_batch or 0 == notify.add_or_update_other_actors_total_batch then
       _G.ZoneServer:LockUpstream(false)
-      if not self.bAllowCliCachePkg then
-        _G.ZoneServer:SetOnlineState(OnlineState.EnteredCell)
-      end
+      _G.ZoneServer:SetOnlineState(OnlineState.EnteredCell)
       self.bNoLoadingTeleport = false
       self.bAllowCliCachePkg = false
       self.CurTeleportStub = nil
@@ -1526,9 +1603,7 @@ function SceneModule:OnZoneSceneClientInitAOIIncrUpdateNty(notify)
   if notify.batch_id == notify.total_batch - 1 then
     _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.ActorEnterFinishAction)
     _G.ZoneServer:LockUpstream(false)
-    if not self.bAllowCliCachePkg then
-      _G.ZoneServer:SetOnlineState(OnlineState.EnteredCell)
-    end
+    _G.ZoneServer:SetOnlineState(OnlineState.EnteredCell)
     self.bNoLoadingTeleport = false
     self.bAllowCliCachePkg = false
     self.CurTeleportStub = nil
@@ -1537,14 +1612,14 @@ end
 
 function SceneModule:OnEnterSceneFinishNtyAckEnd()
   if _G.GlobalConfig.DisableNPCModule then
-    _G.NRCModuleManager:DoCmd(_G.LoadingUIModuleCmd.CloseLoadingUI, 2)
+    _G.NRCModuleManager:DoCmd(_G.LoadingUIModuleCmd.CloseLoadingUI, 0)
   elseif self.bWaitingForAckEnd and self.WaitingForAckEndParam then
     self:Log("[ZoneServer][NetMsg] SceneModule:OnEnterSceneFinishNtyAckEnd [PlayerAOI][NpcAOI]")
     _G.DelayManager:DelaySeconds(2, function()
       _G.NRCModuleManager:DoCmd(_G.LoadingUIModuleCmd.SetFastLoadingUIHeadLineText, nil)
     end)
     _G.NRCEventCenter:DispatchEvent(SceneEvent.OnEnterSceneFinishNtyAckEnd, self.WaitingForAckEndParam.notify, self.WaitingForAckEndParam.isReconnecting, self.WaitingForAckEndParam.isEnteringCell, self.WaitingForAckEndParam.preMapId, self.WaitingForAckEndParam.mapID)
-    _G.NRCModuleManager:DoCmd(_G.LoadingUIModuleCmd.CloseLoadingUI, 2)
+    _G.NRCModuleManager:DoCmd(_G.LoadingUIModuleCmd.CloseLoadingUI, 0)
   else
     Log.Error("[ZoneServer][NetMsg] SceneModule:OnEnterSceneFinishNtyAckEnd do nothing [PlayerAOI][NpcAOI], self.bWaitingForAckEnd", self.bWaitingForAckEnd, ", self.WaitingForAckEndParam", self.WaitingForAckEndParam)
   end
@@ -1577,6 +1652,8 @@ function SceneModule:OnEnterRsp(rsp)
     _G.ZoneServer:LockUpstream(true, true)
     self:Log("SceneModule:OnEnterRsp lock upstream.")
     _G.ZoneServer:SetOnlineState(OnlineState.EnteringCell)
+    _G.DataModelMgr.PlayerDataModel.playerInfo.common_info.online_visit_owner = rsp.online_visiting_owner
+    _G.DataModelMgr.PlayerDataModel:RefreshPlayerOnlineVisitState()
   else
     _G.ZoneServer:SetOnlineState(OnlineState.Logouted)
     self:Log("SceneModule:OnEnterRsp ignore, waiting for KickOut, ret_code=", rsp.ret_info.ret_code)
@@ -2000,7 +2077,7 @@ function SceneModule:EnterMap(notify)
     Log.Debug("\232\183\168\229\155\190\228\188\160\233\128\129\239\188\140\228\191\157\229\186\149\229\188\186\229\136\182\229\188\128\229\144\175\229\138\160\232\189\189\231\149\140\233\157\162...")
     _G.GlobalConfig.SetFastLoadingWorldRendering = false
     if LoadingUIModuleCmd then
-      NRCModuleManager:DoCmd(LoadingUIModuleCmd.OpenLoadingUI, LuaText.Loading, 0.8, nil, nil, switch_reason)
+      NRCModuleManager:DoCmd(LoadingUIModuleCmd.OpenLoadingUI, LuaText.Loading, 0.4, nil, nil, switch_reason)
     end
   end
   if switch_reason == _G.ProtoEnum.TeleportReason.ENUM.LEAVE_ONLINE_VISIT then
@@ -2041,7 +2118,7 @@ function SceneModule:EnterMap(notify)
       BattleField.ChangeScene(self.config.scene_res_id)
       self:Log("OpenLevel", curLevelName, nameTable[#nameTable])
       local serverPos = notify.to_pt.pos
-      local beginWorldOrigin = UE4.FVector(serverPos.x, serverPos.y, serverPos.z)
+      local beginWorldOrigin = SceneUtils.ServerPos2PlayerPos(serverPos)
       if SameSceneRes then
         self:Log("curLevelName == nameTable[#nameTable]")
         _G.DelayManager:DelayFrames(1, self.OnMapLoaded, self)
@@ -2070,6 +2147,10 @@ function SceneModule:EnterMap(notify)
         self:Log("SceneModule LevelHelper OpenLevel _isLoading load succ")
         _G.DelayManager:DelayFrames(1, self.OnMapLoaded, self)
       end
+    end
+    local AreaQueryManager = UE4.UAreaQueryManager.Get(_G.UE4Helper.GetCurrentWorld())
+    if AreaQueryManager then
+      AreaQueryManager:SetCurrentSceneResID(self.mapResId)
     end
   end)
 end
@@ -2177,6 +2258,7 @@ function SceneModule:OnMapLoaded()
   if self.triggerEnterScene and _G.ZoneServer:IsEnteringOrSwitchingCell() then
     local clientReadyMsg = ProtoMessage:newZoneSceneClientEnterSceneFinishNty()
     clientReadyMsg.feature_data = _G.NRCSDKManager:GetLightFeaturePacket()
+    _G.NRCNetworkManager:FlushRecvMessage(_G.ZoneServer.connectID)
     _G.ZoneServer:Send(ProtoCMD.ZoneSvrCmd.ZONE_SCENE_CLIENT_ENTER_SCENE_FINISH_NTY, clientReadyMsg)
   end
   if _G.NRCEnv:IsLocalMode() then
@@ -2304,6 +2386,7 @@ function SceneModule:CheckSceneBan()
       Log.DebugFormat("[CheckSceneBan]\231\167\187\233\153\164\230\151\167\229\156\186\230\153\175\228\189\147\229\138\155\233\153\144\229\136\182    \230\151\167\229\156\186\230\153\175\239\188\154%s;    \230\151\167\229\156\186\230\153\175FreeVitality\239\188\154%s ", PreSceneResConf.editor_name, tostring(BanVitality))
     end
     self.BanMagicTypes = nil
+    self.BanRolePlayProps = nil
   end
   if 0 ~= CurSceneResID and CurSceneResConf then
     if CurSceneResConf.function_ban_id and 0 ~= CurSceneResConf.function_ban_id then
@@ -2314,11 +2397,16 @@ function SceneModule:CheckSceneBan()
     _G.GlobalConfig.FreeVitality = not not BanVitality
     Log.DebugFormat("[CheckSceneBan]\230\183\187\229\138\160\229\189\147\229\137\141\229\156\186\230\153\175\228\189\147\229\138\155\233\153\144\229\136\182    \229\189\147\229\137\141\229\156\186\230\153\175\239\188\154%s;    \229\189\147\229\137\141\229\156\186\230\153\175FreeVitality\239\188\154%s ", CurSceneResConf.editor_name, tostring(BanVitality))
     self.BanMagicTypes = CurSceneResConf.ban_magic
+    self.BanRolePlayProps = CurSceneResConf.ban_roleplay_tools
   end
 end
 
 function SceneModule:IsMagicBanned(MagicType)
   return self.BanMagicTypes and table.contains(self.BanMagicTypes, MagicType)
+end
+
+function SceneModule:IsRolePlayPropBanned(PropId)
+  return self.BanRolePlayProps and table.contains(self.BanRolePlayProps, PropId)
 end
 
 function SceneModule:CheckSpecialScene()

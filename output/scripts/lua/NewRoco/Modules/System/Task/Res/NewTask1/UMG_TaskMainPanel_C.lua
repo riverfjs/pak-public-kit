@@ -200,7 +200,7 @@ function UMG_TaskMainPanel_C:SetExpireTime(taskId)
     if conf and conf.expire_time_type and conf.expire_time_type == _G.Enum.TaskExpireTimeType.TETT_BAGITEM then
       local bagItemId = conf.expire_time_param
       local bagItemInfo = _G.NRCModuleManager:DoCmd(_G.BagModuleCmd.GetBagItemByID, bagItemId)
-      if UE4.UObject.IsValid(self.CanvasTime) then
+      if bagItemInfo and UE4.UObject.IsValid(self.CanvasTime) then
         self.CanvasTime:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
         local currentTimestamp = math.floor(_G.ZoneServer:GetServerTime() / 1000)
         if currentTimestamp > bagItemInfo.expire_time then
@@ -577,9 +577,11 @@ function UMG_TaskMainPanel_C:SetTaskTabSelectIndex(TaskTab, TabWidgetList)
       end
     end
     ParagraphOffset = 0
+    local itemHeight = 0
     if TabWidgetList and TabWidgetList[1] and TabWidgetList[1].TaskTabWidget then
-      ParagraphOffset = TabWidgetList[1].TaskTabWidget:GetItemSizeY() * (ParagraphIndex - 1)
+      itemHeight = TabWidgetList[1].TaskTabWidget:GetItemSizeY() * (ParagraphIndex - 2)
     end
+    ParagraphOffset = math.max(0, itemHeight)
     Offset = TaskTabOffset + ParagraphOffset + TitleOffset
     self.TaskTypeScroll:SetScrollOffset(Offset)
   end)
@@ -1245,7 +1247,7 @@ function UMG_TaskMainPanel_C:SetTraceInfo(TaskConf, TraceText, TraceBtn, MapBtn)
     MapBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
     return
   end
-  TraceText:SetText("\229\175\187\230\137\190\231\186\191\231\180\162\228\184\173...")
+  TraceText:SetText(LuaText.clue_text)
   if TaskConf and TaskConf.is_break_task then
     TraceText:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     TraceBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)

@@ -20,14 +20,17 @@ function UMG_Battle_Popup_DamageNumber_base:SetupText(text, content, color, Outl
   if not text then
     return
   end
-  if content then
-    text:SetText(content)
-  end
   if color then
     text:SetColorAndOpacity(color)
   end
   if OutlineColor then
-    text.Font.OutlineSettings.OutlineColor = OutlineColor
+    local font = text.Font
+    font.OutlineSettings.OutlineColor = OutlineColor
+    text:SetFont(font)
+    text:SetFont(text.Font)
+  end
+  if content then
+    text:SetText(content)
   end
 end
 

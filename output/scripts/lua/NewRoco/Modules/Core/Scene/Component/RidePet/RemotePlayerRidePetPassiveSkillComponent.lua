@@ -98,4 +98,12 @@ function RemotePlayerRidePetPassiveSkillComponent:DeAttach()
   Base.DeAttach(self)
 end
 
+function RemotePlayerRidePetPassiveSkillComponent:OnSetDoubleRide2P(isOnPet, player2P)
+  for _, v in ipairs(self._passive_skills) do
+    if v.OnSetDoubleRide2P then
+      v:OnSetDoubleRide2P(isOnPet, player2P)
+    end
+  end
+end
+
 return RemotePlayerRidePetPassiveSkillComponent

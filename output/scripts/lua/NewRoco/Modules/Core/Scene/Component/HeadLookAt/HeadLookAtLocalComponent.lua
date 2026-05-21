@@ -36,8 +36,6 @@ function HeadLookAtLocalComponent:ReceiveBeginPlay()
 end
 
 function HeadLookAtLocalComponent:SetPlayer(LocalPlayer)
-  self.npcModule = NRCModuleManager:GetModule("NPCModule")
-  self.sceneModule = NRCModuleManager:GetModule("SceneModule")
   if LocalPlayer then
     self.player = LocalPlayer
     LocalPlayer:AddEventListener(self, PlayerModuleEvent.ON_STATUS_CHANGED, self.OnPlayerStatusChanged)
@@ -138,7 +136,8 @@ function HeadLookAtLocalComponent:LuaGetSeatInfo()
         end
       end
     end
-    local SeatNPC = self.npcModule:GetNpcByServerID(SeatID)
+    local npcModule = NRCModuleManager:GetModule("NPCModule")
+    local SeatNPC = npcModule and npcModule:GetNpcByServerID(SeatID)
     Result.bInSeat = nil ~= SeatNPC
     Result.SeatID = SeatID or 0
     if SeatNPC then
@@ -153,6 +152,9 @@ function HeadLookAtLocalComponent:LuaFindNearByPlayersWithSameSeat(SeatID, Radiu
   local Result = UE4.TArray(UE4.AActor)
   local localUin = NRCModuleManager:DoCmd(PlayerModuleCmd.GET_LOCAL_UIN)
   local allPlayers = NRCModuleManager:DoCmd(PlayerModuleCmd.GET_ALL_PLAYER)
+  if not allPlayers then
+    return Result
+  end
   for _, v in pairs(allPlayers) do
     local player = v
     if not player or player:GetServerId() == localUin then
@@ -169,6 +171,9 @@ function HeadLookAtLocalComponent:LuaFindNearByPlayers(RadiusSquared)
   local Result = UE4.TArray(UE.AActor)
   local localUin = NRCModuleManager:DoCmd(PlayerModuleCmd.GET_LOCAL_UIN)
   local allPlayers = NRCModuleManager:DoCmd(PlayerModuleCmd.GET_ALL_PLAYER)
+  if not allPlayers then
+    return Result
+  end
   for _, v in pairs(allPlayers) do
     local player = v
     if not player or player:GetServerId() == localUin then
@@ -229,7 +234,8 @@ function HeadLookAtLocalComponent:LuaSendSwitchLookAtTargetSyncData(bForce, bMan
   if currentTarget then
     local id = currentTarget:GetServerId()
     req.target_actor_id = id
-    req.enable = self.sceneModule:CheckIsPlayer(id)
+    local sceneModule = NRCModuleManager:GetModule("SceneModule")
+    req.enable = sceneModule and sceneModule:CheckIsPlayer(id)
   else
     req.enable = false
   end

@@ -9,7 +9,7 @@ function TipUtils.SetDebugLogEnable(enable)
 end
 
 function TipUtils.DebugTipFlow(tag, tip)
-  Log.DebugFormat("[TipTrace] %s tip=%s", tag, tip)
+  Log.DebugFormat("[TipTrace] %s tip=%s", tag, tip or "nil")
 end
 
 function TipUtils.DebugLog(format, ...)
@@ -30,6 +30,11 @@ end
 function TipUtils.GetNextTipSeq()
   TipUtils.TipSeqNum = TipUtils.TipSeqNum + 1
   return TipUtils.TipSeqNum
+end
+
+function TipUtils.CreteTipsDisplayController(tipType, caller, initTipsView)
+  local TipsDisplayController = require("NewRoco.Modules.System.TipsModule.TipsDisplayController")
+  return TipsDisplayController(tipType, caller, initTipsView)
 end
 
 local function FindConfigByTip(container, tip)
@@ -55,7 +60,8 @@ local TipDisplayRegionConf = {
     TipUtils.MakeUniqueKey(TipEnum.TipObjectType.DungeonCompleted),
     TipUtils.MakeUniqueKey(TipEnum.TipObjectType.TaskSummary),
     TipUtils.MakeUniqueKey(TipEnum.TipObjectType.TaskReturnReward),
-    TipUtils.MakeUniqueKey(TipEnum.TipObjectType.SeasonBeginsTips)
+    TipUtils.MakeUniqueKey(TipEnum.TipObjectType.SeasonBeginsTips),
+    TipUtils.MakeUniqueKey(TipEnum.TipObjectType.ActivityCommonOpenTips)
   },
   [TipEnum.TipDisplayArea.Bottom] = {
     TipUtils.MakeUniqueKey(TipEnum.TipObjectType.LobbyDownTips),
@@ -70,7 +76,7 @@ local TipDisplayRegionConf = {
     TipUtils.MakeUniqueKey(TipEnum.TipObjectType.ReceiveBPGiftTips)
   },
   [TipEnum.TipDisplayArea.Left] = {
-    TipUtils.MakeUniqueKey(TipEnum.TipObjectType.MainPetExpOrLevelChange)
+    TipUtils.MakeUniqueKey(TipEnum.TipObjectType.MainPetTips)
   },
   [TipEnum.TipDisplayArea.Right] = {
     TipUtils.MakeUniqueKey(TipEnum.TipObjectType.HandbookTopic),
@@ -115,7 +121,7 @@ end
 local DefaultTipDistributionConf = CreateTipDistributionConf(TipUtils.FlexibleDispatchPass, true)
 local TipDistributionConfInCacheMode = {
   [TipUtils.MakeUniqueKey(TipEnum.TipObjectType.LobbyDownTips, TipEnum.LobbyDownTipsType.BookPrompt)] = CreateTipDistributionConf(10),
-  [TipUtils.MakeUniqueKey(TipEnum.TipObjectType.MainPetExpOrLevelChange)] = CreateTipDistributionConf(10),
+  [TipUtils.MakeUniqueKey(TipEnum.TipObjectType.MainPetTips)] = CreateTipDistributionConf(10),
   [TipUtils.MakeUniqueKey(TipEnum.TipObjectType.HandbookTopic)] = CreateTipDistributionConf(20),
   [TipUtils.MakeUniqueKey(TipEnum.TipObjectType.Reward)] = CreateTipDistributionConf(30, false, true),
   [TipUtils.MakeUniqueKey(TipEnum.TipObjectType.TopHudTips, TipEnum.TopHudTipsType.ExpTips)] = CreateTipDistributionConf(40),
@@ -145,7 +151,9 @@ function TipUtils.IsMutexRequiredTipPass(tipPass)
 end
 
 local TipPriorityConf = {
-  [TipUtils.MakeUniqueKey(TipEnum.TipObjectType.MonthlyCardDailyRewardTips)] = 0
+  [TipUtils.MakeUniqueKey(TipEnum.TipObjectType.MonthlyCardDailyRewardTips)] = 0,
+  [TipUtils.MakeUniqueKey(TipEnum.TipObjectType.SeasonBeginsTips)] = 1,
+  [TipUtils.MakeUniqueKey(TipEnum.TipObjectType.ActivityCommonOpenTips)] = 2
 }
 
 function TipUtils.GetTipPriority(tip, distributionConf)
@@ -230,10 +238,6 @@ local TipMergeHandlers = {
     end
     return true
   end,
-  [TipUtils.MakeUniqueKey(TipEnum.TipObjectType.MainPetExpOrLevelChange)] = function(dstOld, srcNew)
-    dstOld.customData = srcNew.customData
-    return true
-  end,
   [TipUtils.MakeUniqueKey(TipEnum.TipObjectType.TopHudTips, TipEnum.TopHudTipsType.ZoneTips)] = function(dstOld, srcNew)
     dstOld.customData = srcNew.customData
     return true
@@ -264,6 +268,42 @@ local TipMergeHandlers = {
   end,
   [TipUtils.MakeUniqueKey(TipEnum.TipObjectType.TaskReturnReward)] = function(dstOld, srcNew)
     dstOld.customData = srcNew.customData
+    return true
+  end,
+  [TipUtils.MakeUniqueKey(TipEnum.TipObjectType.MainPetTips)] = function(dstOld, srcNew)
+    local dstOldData = dstOld.customData
+    local srcNewData = srcNew.customData
+    local _, dstFirstItem = next(dstOldData)
+    local _, srcFirstItem = next(srcNewData)
+    if not dstFirstItem or not srcFirstItem then
+      return false
+    end
+    if dstFirstItem.subType ~= srcFirstItem.subType then
+      return false
+    end
+    local subType = dstFirstItem.subType
+    for _gid, _srcItem in pairs(srcNewData) do
+      local _dstItem = dstOldData[_gid]
+      if not _dstItem then
+        dstOldData[_gid] = _srcItem
+      elseif subType == TipEnum.MainPetTipsType.Energy then
+        _dstItem.subData.newEnergy = _srcItem.subData.newEnergy
+        _dstItem.subData.reason = _srcItem.subData.reason
+      elseif subType == TipEnum.MainPetTipsType.Exp then
+        _dstItem.subData.new_exp = _srcItem.subData.new_exp
+      elseif subType == TipEnum.MainPetTipsType.Level then
+        _dstItem.subData.new_exp = _srcItem.subData.new_exp
+        _dstItem.subData.new_level = _srcItem.subData.new_level
+      elseif subType == TipEnum.MainPetTipsType.Skill then
+        for _, _skill in ipairs(_srcItem.subData.skills) do
+          table.insert(_dstItem.subData.skills, _skill)
+        end
+      elseif subType == TipEnum.MainPetTipsType.Medal then
+        for _, _medal in ipairs(_srcItem.subData) do
+          table.insert(_dstItem.subData, _medal)
+        end
+      end
+    end
     return true
   end
 }

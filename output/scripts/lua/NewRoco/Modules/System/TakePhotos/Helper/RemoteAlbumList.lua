@@ -17,11 +17,25 @@ end
 function RemoteAlbumList:ReloadConditionally()
 end
 
+function RemoteAlbumList:GetDataBySerialId(SerialId)
+  assert(self.SerialIndicesMapping)
+  local UIIndex = self.SerialIndicesMapping[SerialId]
+  return UIIndex and self.CurrDataList[UIIndex]
+end
+
+function RemoteAlbumList:GetViewBySerialId(SerialId)
+  assert(self.SerialIndicesMapping)
+  local UIIndex = self.SerialIndicesMapping[SerialId]
+  return UIIndex > 0 and self.List:GetItemByIndex(UIIndex - 1)
+end
+
 function RemoteAlbumList:BuildDataList()
   local Num = self:GetPhotoNum()
+  self.SerialIndicesMapping = {}
   local SerialList = {}
   for i = 1, Num do
     local SerialId = i
+    local DataText, CreateTimestamp = self:InternalBuildCreateDateText(SerialId)
     table.insert(SerialList, {
       SerialId = SerialId,
       bSelected = false,
@@ -30,39 +44,25 @@ function RemoteAlbumList:BuildDataList()
       DoSelectDelegate = function()
         return self:OnItemSelected(SerialId)
       end,
-      CreateDateText = self:InternalBuildCreateDateText(SerialId),
+      CreateDateText = DataText,
+      CreateTimestamp = CreateTimestamp or SerialId,
       GetDesiredThumbnailSize = function()
         return self.FilmView.ThumbnailDesiredWidth, self.FilmView.ThumbnailDesiredHeight
-      end
+      end,
+      bRemoteData = true
     })
+  end
+  table.sort(SerialList, function(a, b)
+    return a.CreateTimestamp < b.CreateTimestamp
+  end)
+  for UIIndex, UIData in pairs(SerialList) do
+    self.SerialIndicesMapping[UIData.SerialId] = UIIndex
   end
   for i = Num + 1, self:GetPhotoMaxNum() do
     table.insert(SerialList, {})
   end
   self.CurrDataList = SerialList
-end
-
-function RemoteAlbumList:InternalBuildCreateDateText(SerialId)
-  local Data = self:GetPhotoBySerialId(SerialId)
-  if not Data then
-    return ""
-  end
-  local Name = Data:UnpackPhotoName()
-  if not Name then
-    return ""
-  end
-  local EndIdx = string.find(Name, "%.") or #Name + 1
-  local Len = 13
-  local J = EndIdx - 1
-  local I = J - Len + 1
-  local Timestamp = math.tointeger(string.sub(Name, I, J))
-  if Timestamp then
-    local Date = os.date("*t", math.floor(Timestamp / 1000))
-    if Date then
-      return string.format("%s/%s/%s", Date.year, Date.month, Date.day)
-    end
-  end
-  return ""
+  self:RefreshActivityData()
 end
 
 function RemoteAlbumList:GetPhotoNum()

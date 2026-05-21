@@ -19,12 +19,13 @@ function BattlePiecesNpcAIPerform:Play()
     return
   end
   self.isRunning = true
+  self.ai_perform = self.pieceData.performInfo.ai_perform
   if _G.BattleManager.battleRuntimeData:IsJumpAiPerform() or _G.BattleManager.battleRuntimeData:IsOnBattleTest() then
+    Log.Warning("BattlePiecesNpcAIPerform:Play \232\182\133\230\151\182\232\183\179\232\191\135\232\138\130\231\130\185", self.ai_perform.type, self.ai_perform.str_param)
     self.node:DispatchPerformCallback(ProtoEnum.Buffbasetrigger_type.OnHit)
     self.node:PerformComplete()
     return
   end
-  self.ai_perform = self.pieceData.performInfo.ai_perform
   _G.BattleEventCenter:Dispatch(BattlePerformEvent.AiPerformStart, self.ai_perform)
   if self.ai_perform.type == ProtoEnum.AIPerformType.AI_PERFORM_CG then
     self.isPausePerformPlayer = true
@@ -186,6 +187,10 @@ function BattlePiecesNpcAIPerform:HandlePerformCam()
     self:Complete()
     return
   end
+  if self.performPlayer and self.performPlayer.turnPlayer and self.performPlayer.turnPlayer:GetArriveTimeOut() then
+    self:Complete()
+    return
+  end
   if BattleUtils.IsWatchingBattle() and BattleManager:IsReceiveNextProcessSeq() then
     self:Complete()
     return
@@ -203,7 +208,7 @@ function BattlePiecesNpcAIPerform:HandlePerformCam()
   end
   self.isPausePerformPlayer = true
   self.performPlayer:Pause()
-  _G.BattleEventCenter:Bind(self, BattleEvent.WAIT_PERFORM_END, BattleEvent.RECEIVE_SERVER_SEQ)
+  _G.BattleEventCenter:Bind(self, BattleEvent.WAIT_PERFORM_END, BattleEvent.RECEIVE_SERVER_SEQ, BattleEvent.WILL_ARRIVE_PERFORM_TIMEOUT)
   if player and player.model then
     _G.NRCModuleManager:DoCmd(DialogueModuleCmd.StartDialogueInBattle, player, self.ai_perform.param, self, self.DelayComplete, EnemyPet and EnemyPet)
     if BattleUtils.IsFinalBattleP1() then
@@ -229,7 +234,7 @@ function BattlePiecesNpcAIPerform:OnBattleEvent(eventName, ...)
       self:Complete()
       return true
     end
-  elseif eventName == BattleEvent.WAIT_PERFORM_END then
+  elseif eventName == BattleEvent.WAIT_PERFORM_END or eventName == BattleEvent.WILL_ARRIVE_PERFORM_TIMEOUT then
     self:OnDialogTimeOut()
     return true
   elseif eventName == BattleEvent.RECEIVE_SERVER_SEQ then

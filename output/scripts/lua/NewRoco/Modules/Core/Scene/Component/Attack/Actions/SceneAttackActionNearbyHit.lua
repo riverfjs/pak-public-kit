@@ -17,7 +17,10 @@ function SceneAttackActionNearbyHit:Ctor()
   self.prevEnableCanStandOnWaterSurface = false
   self.prevEnableCanStandUnderWater = false
   self.prevEnableMovementTick = false
+  self.prevMovementMode = nil
+  self.prevCustomMovementMode = nil
   self.preProcessed = false
+  self.wasInterrupted = false
 end
 
 function SceneAttackActionNearbyHit:Init(inComp)
@@ -65,20 +68,6 @@ function SceneAttackActionNearbyHit:OnStart(target, hitbox)
   local fixdir = dir * 35
   dir = dir * math.clamp(dist, 10, 600)
   local targetPos = selfPos + dir
-  local Controller = view:GetInstigatorController()
-  if Controller then
-    local ResultTargetPinnedPos, bPinSuccess = UE.UNavigationSystemV1.K2_ProjectPointToNavigation(Controller, targetPos, nil, nil, UE.UNRCNavFilter, UE.FVector(50, 50, 250))
-    local ResultTargetPos, bCastSuccess = UE.UNavigationSystemV1.NavigationRaycast(Controller, selfPos, bPinSuccess and ResultTargetPinnedPos or targetPos, nil, UE.UNRCNavFilter, Controller)
-    if bCastSuccess then
-      return false
-    elseif bPinSuccess then
-      local OriginZ = targetPos.Z
-      targetPos = ResultTargetPinnedPos
-      targetPos.Z = OriginZ
-    else
-      targetPos = selfPos + fixdir
-    end
-  end
   hitbox:K2_SetActorLocation(targetPos, false, nil, false)
   table.clear(self.hitActors)
   local curr_hitboxPos = hitbox:K2_GetActorLocation()
@@ -119,10 +108,13 @@ function SceneAttackActionNearbyHit:PreProcess()
   if view:IsA(UE.ANPCBaseCharacter) then
     self.prevEnableCanStandOnWaterSurface = view:GetCanStandOnWaterSurface()
     self.prevEnableCanStandUnderWater = view:GetCanStandUnderWater()
-    self.prevEnableMovementTick = view:GetMovementComponent():IsComponentTickEnabled()
+    local moveComp = view:GetMovementComponent()
+    self.prevEnableMovementTick = moveComp:IsComponentTickEnabled()
+    self.prevMovementMode = moveComp.MovementMode
+    self.prevCustomMovementMode = moveComp.CustomMovementMode
     view:EnableCanStandOnWaterSurface(true)
     view:EnableCanStandUnderWater(true)
-    view:GetMovementComponent():SetComponentTickEnabled(false)
+    moveComp:SetComponentTickEnabled(false)
     self.preProcessed = true
   end
   if self.owner.SetCollisionDisable then
@@ -138,8 +130,22 @@ function SceneAttackActionNearbyHit:PostProcess()
   if view and view:IsA(UE.ANPCBaseCharacter) then
     view:EnableCanStandOnWaterSurface(self.prevEnableCanStandOnWaterSurface or false)
     view:EnableCanStandUnderWater(self.prevEnableCanStandUnderWater or false)
-    view:GetMovementComponent():SetComponentTickEnabled(self.prevEnableMovementTick or false)
+    local moveComp = view:GetMovementComponent()
+    moveComp:SetComponentTickEnabled(self.prevEnableMovementTick or false)
+    if self.wasInterrupted then
+      moveComp:SetMovementMode(UE.EMovementMode.MOVE_Walking, UE.ERocoCustomMovementMode.MOVE_N)
+    elseif self.prevMovementMode ~= nil then
+      local prevMode = self.prevMovementMode
+      local prevCustom = self.prevCustomMovementMode or UE.ERocoCustomMovementMode.MOVE_N
+      local isFlying = prevMode == UE.EMovementMode.MOVE_Flying or prevMode == UE.EMovementMode.MOVE_Custom and prevCustom == UE.ERocoCustomMovementMode.MOVE_Hovering
+      if isFlying then
+        moveComp:SetMovementMode(prevMode, prevCustom)
+      end
+    end
   end
+  self.wasInterrupted = false
+  self.prevMovementMode = nil
+  self.prevCustomMovementMode = nil
   self.preProcessed = false
 end
 
@@ -241,6 +247,7 @@ function SceneAttackActionNearbyHit:OnEnd()
 end
 
 function SceneAttackActionNearbyHit:OnInterrupt()
+  self.wasInterrupted = true
   if self.attackSkillClassRequest and not self.owner.isDestroy and UE.UObject.IsValid(self.owner.viewObj) then
     local RocoSkill = self.owner.viewObj.RocoSkill
     local skillObj = RocoSkill:FindSkillObj(self.attackSkillClassRequest.asset)

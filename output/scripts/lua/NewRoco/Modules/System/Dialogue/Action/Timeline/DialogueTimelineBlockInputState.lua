@@ -8,6 +8,12 @@ FsmUtils.MergeMembers(Base, DialogueTimelineBlockInputState, {
     type = "SheetRef.NPC_CONF",
     default = -100,
     display_name = "\230\137\128\229\177\158\232\167\146\232\137\178ID"
+  },
+  {
+    name = "NPCContentID",
+    type = "SheetRef.NPC_REFRESH_CONTENT_CONF",
+    default = -1,
+    display_name = "\230\137\128\229\177\158\232\167\146\232\137\178ContentID"
   }
 })
 

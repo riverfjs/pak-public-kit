@@ -115,17 +115,16 @@ end
 
 function ClimbComponent:CanClimb()
   if self:IsInCD() then
-    Log.DebugFormat("Climb in cd")
-    return false
+    return false, "In CD"
   end
   if self.basic_movement_conf then
     local minStartVitality = self.basic_movement_conf.vitality_cost.min_start or 0
     if not self.owner.vitalityComponent:IsVitalityEnough(minStartVitality) then
-      return false
+      return false, "Less Vitality"
     end
   end
   if self.owner.viewObj.AimState then
-    return false
+    return false, "AimState"
   end
   if self.climb_disable_env_config then
     local disable_env = 0
@@ -134,12 +133,15 @@ function ClimbComponent:CanClimb()
     end
     local isEnvMask = DataModelMgr.PlayerDataModel.envMask & disable_env
     if isEnvMask > 0 then
-      return false
+      return false, "EnvMask"
     end
   end
   local player = self.owner
   local success, overrideValues, opCode = player.statusComponent:PreApplyStatus(ProtoEnum.WorldPlayerStatusType.WPST_CLIMB)
-  return success
+  if not success then
+    return false, "Status Conflict"
+  end
+  return success, ""
 end
 
 function ClimbComponent:AdjustCamera()

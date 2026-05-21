@@ -5,10 +5,13 @@ local MusicCollectionModuleEvent = require("NewRoco.Modules.System.MusicCollecti
 
 function UMG_CreateMagicMessage_C:OnActive(param)
   self.markType = param.markType
+  self.childConf = param.ChildConf
   self.create_pos = param.create_pos
   self.npc_id = param.npc_id
   self.valid = param.valid
+  self.strMessage = param.strMessage
   self.bReqPlace = false
+  self.bOperate = false
   self.MusicId = 0
   self.SoundSession = -1
   if self.markType == ProtoEnum.MarkGameplay.MK_MAGIC_MESSAGE then
@@ -16,6 +19,7 @@ function UMG_CreateMagicMessage_C:OnActive(param)
     if MainUIModule then
       MainUIModule:SetJoystickEnabled(false)
     end
+    _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.AddCondition, Enum.PlayerConditionType.PCT_MARK_MESSAGE_SHARE, "CreateMagicMessage")
   end
   self:PlayAnimation(self.In)
   self:InitUI()
@@ -29,6 +33,7 @@ function UMG_CreateMagicMessage_C:OnConstruct()
 end
 
 function UMG_CreateMagicMessage_C:OnDestruct()
+  self.BtnClose:SetKeyboardFocus()
   self.InputBox_Content.OnTextChanged:Remove(self, self.OnTextChanged)
   self.InputBox_Content.OnTextCommitted:Remove(self, self.OnTextCommitted)
   _G.NRCEventCenter:UnRegisterEvent(self, MusicCollectionModuleEvent.SelectedMusicEvent, self.OnSelectedMusicEvent)
@@ -41,11 +46,19 @@ function UMG_CreateMagicMessage_C:OnDestruct()
     if MainUIModule then
       MainUIModule:SetJoystickEnabled(true)
     end
+    _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.RemoveCondition, Enum.PlayerConditionType.PCT_MARK_MESSAGE_SHARE, "CreateMagicMessage")
+  end
+  if -1 ~= self.SoundSession then
+    self:DoStopMusic()
+  end
+  if not self.bOperate then
+    _G.NRCModuleManager:DoCmd(_G.MagicMessageModuleCmd.DeleteNpcBeforeEnsure, self.npc_id, self.markType)
   end
   self.markType = nil
   self.create_pos = nil
   self.npc_id = nil
   self.valid = nil
+  self.strMessage = nil
   self.bReqPlace = false
   self.MusicId = 0
 end
@@ -73,7 +86,8 @@ end
 
 function UMG_CreateMagicMessage_C:OnAnimationFinished(anim)
   if anim == self.Out then
-    self:CloseUI()
+    self.bOperate = true
+    self:DoClose()
   end
 end
 
@@ -82,15 +96,7 @@ function UMG_CreateMagicMessage_C:CancelMagicMessage()
     _G.NRCModuleManager:DoCmd(_G.MagicReplayModuleCmd.StopMagicReplay)
   end
   _G.NRCModuleManager:DoCmd(_G.MagicMessageModuleCmd.DeleteNpcBeforeEnsure, self.npc_id, self.markType)
-  self:CloseUI()
-end
-
-function UMG_CreateMagicMessage_C:CloseUI()
-  if -1 ~= self.SoundSession then
-    self:DoStopMusic()
-  end
-  self.BtnClose:SetKeyboardFocus()
-  self:DoClose()
+  self:PlayAnimation(self.Out)
 end
 
 function UMG_CreateMagicMessage_C:OnPcClose()
@@ -98,12 +104,21 @@ function UMG_CreateMagicMessage_C:OnPcClose()
 end
 
 function UMG_CreateMagicMessage_C:InitUI()
+  local hintText = LuaText.message_wand_null_remind_text
+  if self.childConf then
+    hintText = self.childConf.remind_text
+  end
+  self.InputBox_Content:SetHintText(hintText)
+  self.InputBox_Content:SetText("")
+  self.Text_InputLen:SetText("0")
+  local Conf = _G.DataConfigManager:GetGlobalConfig("magic_message_word_count")
+  self.maxCharacterCount = Conf.num / 3 * 2
+  self.Text_InputLen_1:SetText("/" .. string.format("%d", self.maxCharacterCount / 2))
   if self.markType == ProtoEnum.MarkGameplay.MK_MAGIC_MESSAGE then
     self.Title:SetText(LuaText.magic_message_share_title)
     self.WidgetSwitcher_Media:SetActiveWidgetIndex(0)
     self.WidgetSwitcher_Music:SetActiveWidgetIndex(0)
     self.WidgetSwitcher_Place:SetActiveWidgetIndex(0)
-    self.WidgetSwitcher_PlaceMessage:SetActiveWidgetIndex(0)
     self.todayRemainCount = -1
     self:ReqGetFeedCtrlData()
   elseif self.markType == ProtoEnum.MarkGameplay.MK_MAGIC_VIDEO then
@@ -121,6 +136,16 @@ function UMG_CreateMagicMessage_C:InitUI()
         self.BtnPlaceVideo:SetTitleTextAndIcon(itemConf.icon, needNum .. "/" .. bagNum)
       end
     end
+    if not string.IsNilOrEmpty(self.strMessage) then
+      self.InputBox_Content:SetText(self.strMessage)
+      local characterCount = string.StringGetTotalNum(self.strMessage)
+      if characterCount > self.maxCharacterCount then
+        self.Text_InputLen:SetColorAndOpacity(UE4.UNRCStatics.HexToSlateColor("AF3D3EFF"))
+      else
+        self.Text_InputLen:SetColorAndOpacity(UE4.UNRCStatics.HexToSlateColor("605E5AFF"))
+      end
+      self.Text_InputLen:SetText(math.ceil(characterCount / 2))
+    end
   end
   local card_brief_info = _G.DataModelMgr.PlayerDataModel:GetCardBriefInfo()
   if card_brief_info then
@@ -134,11 +159,7 @@ function UMG_CreateMagicMessage_C:InitUI()
     end
   end
   self.Text_RoleName:SetText(_G.DataModelMgr.PlayerDataModel:GetPlayerName())
-  self.InputBox_Content:SetText("")
-  local Conf = _G.DataConfigManager:GetGlobalConfig("magic_message_word_count")
-  self.Text_InputLen:SetText("0")
-  self.Text_InputLen_1:SetText("/" .. math.floor(Conf.num / 3))
-  self.Text_RemainCnt:SetText("")
+  self.RemainCnt:SetVisibility(UE4.ESlateVisibility.Collapsed)
 end
 
 function UMG_CreateMagicMessage_C:ReqGetFeedCtrlData()
@@ -154,17 +175,18 @@ function UMG_CreateMagicMessage_C:OnGetCtrlRsp(rsp)
       self.todayRemainCount = feedCtrlData.daily_magic_feed_count - feedCtrlData.today_magic_feed_count
       local Conf = _G.DataConfigManager:GetGlobalConfig("mk_magic_message_remain_count_tips")
       if self.todayRemainCount <= Conf.num then
+        self.RemainCnt:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
         if 0 == self.todayRemainCount then
           self.Text_RemainCnt:SetColorAndOpacity(UE4.UNRCStatics.HexToSlateColor("FF0000FF"))
         else
           self.Text_RemainCnt:SetColorAndOpacity(UE4.UNRCStatics.HexToSlateColor("F5EEE0FF"))
         end
-        self.Text_RemainCnt:SetText(string.format(LuaText.umg_mark_magic_message_count_today, self.todayRemainCount, feedCtrlData.daily_magic_feed_count))
+        self.Text_RemainCnt:SetText(self.todayRemainCount .. "/" .. feedCtrlData.daily_magic_feed_count)
       else
-        self.Text_RemainCnt:SetText("")
+        self.RemainCnt:SetVisibility(UE4.ESlateVisibility.Collapsed)
       end
     else
-      self.Text_RemainCnt:SetText("")
+      self.RemainCnt:SetVisibility(UE4.ESlateVisibility.Collapsed)
     end
   end
 end
@@ -179,24 +201,41 @@ function UMG_CreateMagicMessage_C:OnClickPlaceBtn()
     return
   end
   local content = self.InputBox_Content:GetText()
-  local Conf = _G.DataConfigManager:GetGlobalConfig("magic_message_word_count")
-  if string.len(content) > Conf.num then
+  local plainText = ""
+  if self.childConf then
+    plainText = string.ExtractColorCodes(content)
+  else
+    plainText = content
+  end
+  local characterCount = string.StringGetTotalNum(plainText)
+  if characterCount > self.maxCharacterCount then
     _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.Error_Code_18303)
     return
   end
-  if "" == content then
+  local validContent
+  if self.childConf then
+    validContent = string.ExtractInvalidColorCodes(content)
+  else
+    validContent = content
+  end
+  if "" == validContent and 0 ~= self.MusicId and "" == validContent then
     local strConf = _G.DataConfigManager:GetGlobalConfig("mark_music_random_message").str
     local strList = string.Split(strConf, ";")
     local randomIndex = math.random(1, #strList)
-    content = LuaText[strList[randomIndex]]
+    validContent = LuaText[strList[randomIndex]]
   end
   self.bReqPlace = true
   local reqMsg = _G.ProtoMessage:newZoneFeedMagicCreateReq()
   reqMsg.uin = _G.DataModelMgr.PlayerDataModel:GetPlayerUin()
-  reqMsg.content = content
+  reqMsg.content = validContent
   reqMsg.create_pos = self.create_pos
   reqMsg.ext_info = tostring(self.valid)
   reqMsg.music_id = self.MusicId
+  if self.childConf then
+    reqMsg.sub_type = self.childConf.child_type
+  else
+    reqMsg.sub_type = 0
+  end
   _G.ZoneServer:SendWithHandler(ProtoCMD.ZoneSvrCmd.ZONE_FEED_MAGIC_CREATE_REQ, reqMsg, self, self.OnFeedMagicCreateRsp, nil, false)
   self:DelaySeconds(2, function()
     self.bReqPlace = false
@@ -206,7 +245,13 @@ end
 function UMG_CreateMagicMessage_C:OnClickPlaceGreyBtn()
   _G.NRCAudioManager:PlaySound2DAuto(40008006, "UMG_CreateMagicMessage_C:OnClickPlaceGreyBtn")
   local content = self.InputBox_Content:GetText()
-  if "" == content then
+  local validContent
+  if self.childConf then
+    validContent = string.ExtractInvalidColorCodes(content)
+  else
+    validContent = content
+  end
+  if "" == validContent then
     _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.Error_Code_18300)
   end
 end
@@ -262,11 +307,13 @@ end
 
 function UMG_CreateMagicMessage_C:OnClickBackVideoBtn()
   _G.NRCAudioManager:PlaySound2DAuto(40008006, "UMG_CreateMagicMessage_C:OnClickBackVideoBtn")
-  _G.NRCModuleManager:DoCmd(_G.MagicReplayModuleCmd.OnEnterPreviewState)
+  local content = self.InputBox_Content:GetText()
+  _G.NRCModuleManager:DoCmd(_G.MagicReplayModuleCmd.OnEnterPreviewState, content)
   self:PlayAnimation(self.Out)
 end
 
 function UMG_CreateMagicMessage_C:OnClickPlaceVideoBtn()
+  _G.NRCAudioManager:PlaySound2DAuto(40008006, "UMG_CreateMagicMessage_C:OnClickPlaceVideoBtn")
   if self.bReqPlace then
     return
   end
@@ -365,12 +412,7 @@ function UMG_CreateMagicMessage_C:OnClickDeleteMusicBtn()
     self:DoStopMusic()
     self.MusicId = 0
     self.WidgetSwitcher_Music:SetActiveWidgetIndex(0)
-    local content = self.InputBox_Content:GetText()
-    if "" == content then
-      self.WidgetSwitcher_PlaceMessage:SetActiveWidgetIndex(0)
-    else
-      self.WidgetSwitcher_PlaceMessage:SetActiveWidgetIndex(1)
-    end
+    self:SetPlaceMessageSwitcherState()
   end
   
   local popUpData = _G.NRCCommonPopUpData()
@@ -390,7 +432,7 @@ function UMG_CreateMagicMessage_C:OnSelectedMusicEvent(MusicId)
     self.MusicId = MusicId
     self.WidgetSwitcher_Music:SetActiveWidgetIndex(1)
     self.Text_MusicName:SetText(musicConf.music_name)
-    self.WidgetSwitcher_PlaceMessage:SetActiveWidgetIndex(1)
+    self:SetPlaceMessageSwitcherState()
   end
   self:DelaySeconds(0.5, function()
     self:DoPlayMusic()
@@ -442,24 +484,50 @@ function UMG_CreateMagicMessage_C:OnTextChanged()
     self.InputBox_Content:SetText(newContent)
     return
   end
-  self.Text_InputLen:SetText(math.ceil(string.len(content) / 3))
-  local Conf = _G.DataConfigManager:GetGlobalConfig("magic_message_word_count")
-  if string.len(content) > Conf.num then
+  local plainText, colorList
+  if self.childConf then
+    plainText, colorList = string.ExtractColorCodes(content)
+  else
+    plainText = content
+  end
+  local curCharacterCount = string.StringGetTotalNum(plainText)
+  local limitCharacterCount = 999
+  if curCharacterCount > limitCharacterCount then
+    plainText = string.GetSubStr(plainText, limitCharacterCount)
+    local finalText = plainText
+    if self.markType == ProtoEnum.MarkGameplay.MK_MAGIC_MESSAGE and self.childConf then
+      finalText = string.RebuildTextWithColorCodes(plainText, colorList)
+    end
+    self.InputBox_Content:SetText(finalText)
+    return
+  end
+  if curCharacterCount > self.maxCharacterCount then
     self.Text_InputLen:SetColorAndOpacity(UE4.UNRCStatics.HexToSlateColor("AF3D3EFF"))
   else
     self.Text_InputLen:SetColorAndOpacity(UE4.UNRCStatics.HexToSlateColor("605E5AFF"))
   end
+  self.Text_InputLen:SetText(math.ceil(curCharacterCount / 2))
+  self:SetPlaceMessageSwitcherState()
+end
+
+function UMG_CreateMagicMessage_C:SetPlaceMessageSwitcherState()
   if self.markType == Enum.MarkGameplay.MK_MAGIC_MESSAGE then
-    if "" ~= content or 0 ~= self.MusicId then
+    if 0 ~= self.MusicId then
       self.WidgetSwitcher_PlaceMessage:SetActiveWidgetIndex(1)
     else
-      self.WidgetSwitcher_PlaceMessage:SetActiveWidgetIndex(0)
+      local content = self.InputBox_Content:GetText()
+      local validContent
+      if self.childConf then
+        validContent = string.ExtractInvalidColorCodes(content)
+      else
+        validContent = content
+      end
+      if "" ~= validContent then
+        self.WidgetSwitcher_PlaceMessage:SetActiveWidgetIndex(1)
+      else
+        self.WidgetSwitcher_PlaceMessage:SetActiveWidgetIndex(0)
+      end
     end
-  end
-  content = self.InputBox_Content:GetText()
-  local limitWordCount = 999
-  if limitWordCount < string.len(content) then
-    self.InputBox_Content:SetText(string.sub(content, 1, limitWordCount))
   end
 end
 

@@ -69,12 +69,14 @@ function PlayerHomeInteractionComponent:Update(deltaTime)
   end
 end
 
-function PlayerHomeInteractionComponent:StartSit(Position, Direction, FloorHeight, Immediately)
+function PlayerHomeInteractionComponent:StartSit(Position, Direction, FloorHeight, Immediately, FadeType)
   Log.Debug("PlayerHomeInteractionComponent StartSit")
+  FadeType = FadeType or ProtoEnum.SceneSitBlurType.SSBT_CLOSED
   if not self.owner or not UE.UObject.IsValid(self.player) then
     Log.Error("PlayerHomeInteractionComponent Player is nil")
     return
   end
+  self.player.SitFadeType = FadeType
   if self.owner.isLocal then
     _G.FunctionBanManager:AddPlayerConditionType(Enum.PlayerConditionType.PCT_SITDOWN)
   end
@@ -420,9 +422,13 @@ end
 function PlayerHomeInteractionComponent:SetCollisionEnable(Enable)
   self.owner:SetCollisionDisable(not Enable)
   if not self.owner.isLocal then
-    self.player.Mesh:K2_SetRelativeTransform(self.PlayerMeshTrans, false, nil, false)
-    self.player:SetNetRole(Enable and UE4.ENetRole.ROLE_SimulatedProxy or UE4.ENetRole.ROLE_NONE)
-    self.player.CharacterMovement.bForceClientNetMode = Enable
+    if UE.UObject.IsValid(self.player) and self.player.Mesh then
+      self.player.Mesh:K2_SetRelativeTransform(self.PlayerMeshTrans, false, nil, false)
+    end
+    if UE.UObject.IsValid(self.player) then
+      self.player:SetNetRole(Enable and UE4.ENetRole.ROLE_SimulatedProxy or UE4.ENetRole.ROLE_NONE)
+      self.player.CharacterMovement.bForceClientNetMode = Enable
+    end
   end
 end
 

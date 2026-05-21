@@ -11,6 +11,11 @@ function UMG_FashionMallPopup_C:OnActive(param)
   self:OnAddEventListener()
   self:PlayAnimation(self.In)
   self:UpdatePanelInfo()
+  if param and param.hideBtn2 then
+    self.Btn2:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  else
+    self.Btn2:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  end
 end
 
 function UMG_FashionMallPopup_C:OnDeactive()
@@ -19,6 +24,7 @@ end
 function UMG_FashionMallPopup_C:OnAddEventListener()
   self:AddButtonListener(self.BtnClose.btnClose, self.OnCloseBtnClicked)
   self:AddButtonListener(self.Btn2.btnLevelUp, self.OnGotoBtnClicked)
+  self:AddButtonListener(self.NRCButton_0, self.OnCloseBtnClicked)
 end
 
 function UMG_FashionMallPopup_C:OnRemoveEventListener()
@@ -27,6 +33,9 @@ end
 function UMG_FashionMallPopup_C:OnDestruct()
   self:OnRemoveEventListener()
   self.module:OnCmdOpenFashionMallPopup()
+  if self.uiData and self.uiData.closeCallback then
+    self.uiData.closeCallback()
+  end
   UE4Helper.ReleaseDesiredShowCursor("UMG_FashionMallPopup_C")
 end
 

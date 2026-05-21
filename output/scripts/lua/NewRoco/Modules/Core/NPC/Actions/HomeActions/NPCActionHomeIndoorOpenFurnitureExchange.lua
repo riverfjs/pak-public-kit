@@ -32,6 +32,9 @@ function M:Execute()
     local Box = self.SkillSeqProxy:GetActor("BOX_NPC")
     local Light = self.SkillSeqProxy:GetActor("Light1")
     Light:K2_AttachToActor(Box, "", UE.EAttachmentRule.KeepRelative, UE.EAttachmentRule.KeepRelative, UE.EAttachmentRule.KeepRelative)
+    if Light and UE.UObject.IsValid(Light) then
+      Light:SetShadowVisibility(false)
+    end
   end)
   StartConf:SetSkillEvent("End", function(Elem)
     if not self.bSkillFinish then
@@ -43,6 +46,10 @@ function M:Execute()
   StartConf:SetSkillEvent("EnterBox", function()
     if not self.bSkillFinish then
       self.bSkillFinish = true
+      local Light = self.SkillSeqProxy:GetActor("Light1", true)
+      if Light and UE.UObject.IsValid(Light) then
+        Light:SetShadowVisibility(true)
+      end
       self:TryOpenFurniturePanel()
     end
   end)

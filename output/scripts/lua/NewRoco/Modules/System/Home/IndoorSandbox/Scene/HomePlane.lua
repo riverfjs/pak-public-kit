@@ -281,7 +281,13 @@ function HomePlane:InternalUpdatePropsAttachParent(PropsActor, ParentActor, Desi
   local Transform = self:Abs_GetTransform()
   local TargetWorldRotation = Transform:TransformRotation(HomeIndoorSandbox.Utils.GetRotationByFlag(PropsData.RotFlag))
   local ChildPropsRelativeRotation = ParentActor:Abs_GetTransform():InverseTransformRotation(TargetWorldRotation)
+  if PropsActor.OnPreMove then
+    PropsActor:OnPreMove()
+  end
   PropsActor:K2_SetActorRelativeRotation(ChildPropsRelativeRotation:ToRotator(), false, nil, false)
+  if PropsActor.OnPostMove then
+    PropsActor:OnPostMove()
+  end
 end
 
 function HomePlane:InternalUpdateProps(PropsActor, DesiredWorldLocation, HeightOffset, bIgnoreInvalidArea)
@@ -295,7 +301,13 @@ function HomePlane:InternalUpdateProps(PropsActor, DesiredWorldLocation, HeightO
   NewLocalLocation.Z = HeightOffset or 0
   local TargetWorldLocation = Transform:TransformPosition(NewLocalLocation)
   local TargetWorldRotation = Transform:TransformRotation(HomeIndoorSandbox.Utils.GetRotationByFlag(PropsData.RotFlag))
+  if PropsActor.OnPreMove then
+    PropsActor:OnPreMove()
+  end
   PropsActor:Abs_K2_SetActorLocationAndRotation_WithoutHit(TargetWorldLocation, TargetWorldRotation:ToRotator())
+  if PropsActor.OnPostMove then
+    PropsActor:OnPostMove()
+  end
   PropsActor.RealtimeLocalLocation = NewLocalLocation
   return true
 end

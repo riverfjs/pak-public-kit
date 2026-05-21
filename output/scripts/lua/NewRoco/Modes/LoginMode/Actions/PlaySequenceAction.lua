@@ -24,6 +24,20 @@ function PlaySequenceAction:OnEnter()
   self.playerActor = NRCModuleManager:DoCmd(CreatePlayerModuleCmd.GetPlayerActor)
   self:CheckShouldStopDimoMove()
   self.ActorHolder = LoginUtils.GetUObjectHolder()
+  if self.SequenceProperties.path == UEPath.LOGIN_ENTER then
+    local localPlayer = NRCModuleManager:DoCmd(PlayerModuleCmd.GET_LOCAL_PLAYER)
+    local mesh = localPlayer.viewObj.Mesh.SkeletalMesh
+    UE4.UNRCStatics.ForceUpdateStreamingAssets(mesh, 20)
+  end
+  if not self.ActorHolder.LevelSequenceActor or not UE4.UObject.IsValid(self.ActorHolder.LevelSequenceActor) then
+    Log.Warning("LevelSequenceActor\228\184\141\229\173\152\229\156\168\230\136\150\230\151\160\230\149\136\239\188\140\232\183\179\232\191\135Sequence\230\146\173\230\148\190\239\188\140\232\183\175\229\190\132:", self.SequenceProperties.path)
+    if self.SequenceProperties.path == UEPath.CREATEPLAYER_ENTER then
+      NRCModuleManager:DoCmd(CreatePlayerModuleCmd.UploadLevelInfo, 1, 0, 0, 0, 0, 0)
+      NRCModuleManager:DoCmd(CreatePlayerModuleCmd.RevertCameraToPlayer)
+    end
+    self:OnSequenceComplete()
+    return
+  end
   if self.SequenceProperties.PlayRate then
     self.ActorHolder.LevelSequenceActor:SetPlayRate(self.SequenceProperties.PlayRate)
   else
@@ -131,7 +145,9 @@ function PlaySequenceAction:StopSequence(inEvent)
   if self.SequenceProperties.blockEndEvent ~= nil and inEvent == self.SequenceProperties.blockEndEvent then
     return
   end
-  self.ActorHolder.LevelSequenceActor.SequencePlayer:GoToEndAndStop()
+  if self.ActorHolder and self.ActorHolder.LevelSequenceActor and UE4.UObject.IsValid(self.ActorHolder.LevelSequenceActor) and self.ActorHolder.LevelSequenceActor.SequencePlayer then
+    self.ActorHolder.LevelSequenceActor.SequencePlayer:GoToEndAndStop()
+  end
   UE4Helper.ReleaseDesiredShowCursor("PlaySequenceAction")
   if nil ~= inEvent then
     self.fsm:SendEvent(inEvent, self)
@@ -143,7 +159,9 @@ end
 function PlaySequenceAction:OnSequenceComplete()
   Log.Debug("PlaySequenceAction OnSequenceComplete")
   UE4Helper.ReleaseDesiredShowCursor("PlaySequenceAction")
-  self.ActorHolder.LevelSequenceActor:UnbindDelegateToSequence(self, self.OnSequenceComplete)
+  if self.ActorHolder and self.ActorHolder.LevelSequenceActor and UE4.UObject.IsValid(self.ActorHolder.LevelSequenceActor) then
+    self.ActorHolder.LevelSequenceActor:UnbindDelegateToSequence(self, self.OnSequenceComplete)
+  end
   if self.SequenceProperties.path == UEPath.CREATEPLAYER_ENTER then
     NRCModuleManager:DoCmd(CreatePlayerModuleCmd.UploadLevelInfo, 1, 0, 0, 0, 0, 0)
     NRCModuleManager:DoCmd(CreatePlayerModuleCmd.RevertCameraToPlayer)

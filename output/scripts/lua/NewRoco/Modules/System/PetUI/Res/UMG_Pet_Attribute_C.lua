@@ -226,7 +226,7 @@ end
 
 function UMG_Pet_Attribute_C:HideThumbDetail()
   self.DetailPanel:SetVisibility(UE4.ESlateVisibility.Hidden)
-  _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.OpenRightPanel, self.owner.petInfoMainCtrl, self.petData, self.bShowSendMark)
+  _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.OpenRightPanel, self.owner.petInfoMainCtrl, nil, self.bShowSendMark)
   self.owner:SwitchToDetailVersion()
   self.owner:PlayAniMationOpenXqAni()
 end

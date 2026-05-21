@@ -4,6 +4,7 @@ local SceneAttackRegistry = require("NewRoco.Modules.Core.Scene.Component.Attack
 local DialogueModuleEvent = require("NewRoco.Modules.System.Dialogue.DialogueModuleEvent")
 local HomePetAttributeComponent = require("NewRoco.Modules.System.Home.HomePetFeed.HomePetAttributeComponent")
 local Delegate = require("Utils.Delegate")
+local AbnormalStatusComponent = require("NewRoco.Modules.Core.Scene.Component.Status.AbnormalStatus.AbnormalStatusComponent")
 local ActorComponent = require("NewRoco.Modules.Core.Scene.Component.ActorComponent")
 local Base = ActorComponent
 local Hitbox_Path = "Blueprint'/Game/NewRoco/Modules/Core/Scene/WorldBattle/BP_WorldBattleHitBox.BP_WorldBattleHitBox_C'"
@@ -27,7 +28,9 @@ function AttackComponent.CreateParam()
     Predict = 0,
     Damage = 100,
     HitStrength = 100,
-    PlayerHitType = 1
+    PlayerHitType = 1,
+    AbnormalStatus = 0,
+    AbnormalDuration = 0
   }
 end
 
@@ -166,6 +169,8 @@ function AttackComponent:ActEnd()
   end
 end
 
+local a = require("Common.Coroutine.async")
+local au = require("Common.Coroutine.async_util")
 local LocalAttackParam = {}
 
 function AttackComponent:OnHit(HitItem)
@@ -185,28 +190,57 @@ function AttackComponent:OnHit(HitItem)
       LocalAttackParam[1] = false
       LocalAttackParam[2] = nil
       local HitType = self.AttackParam.PlayerHitType
-      if self.owner:IsLogicStatus(Enum.SpaceActorLogicStatus.SALS_HOME_PET_GUARD) then
-        LocalAttackParam[2] = ProtoEnum.RoleHpReduceReason.HP_REDUCE_REASON_STEAL_PREVENT
-        HitType = ProtoEnum.PlayerAttackPerformType.PAPT_Heavy
-      elseif self.owner.config.npc_role_type == Enum.PetRoleTypeInNPCConf.PRTINC_HOME then
-        local AttrComp = self.owner:EnsureComponent(HomePetAttributeComponent)
-        local playerId = player:GetServerId()
-        if AttrComp:IsJustTriedAttack(playerId) then
-          LocalAttackParam[2] = ProtoEnum.RoleHpReduceReason.HP_REDUCE_REASON_STEAL_INSPIRATION
-          AttrComp:ClearJustTriedAttack(playerId)
-          Log.Debug("\231\178\190\231\129\181\229\176\157\232\175\149\229\129\183\231\170\131\229\143\141\229\135\187", self.owner.config.name)
+      local HitDamage = self.AttackParam.Damage
+      if HitType == ProtoEnum.PlayerAttackPerformType.PAPT_None and 0 == HitDamage then
+      else
+        if self.owner:IsLogicStatus(Enum.SpaceActorLogicStatus.SALS_HOME_PET_GUARD) then
+          LocalAttackParam[2] = ProtoEnum.RoleHpReduceReason.HP_REDUCE_REASON_STEAL_PREVENT
+          HitType = ProtoEnum.PlayerAttackPerformType.PAPT_Heavy
+        elseif self.owner.config.npc_role_type == Enum.PetRoleTypeInNPCConf.PRTINC_HOME then
+          local AttrComp = self.owner:EnsureComponent(HomePetAttributeComponent)
+          local playerId = player:GetServerId()
+          if AttrComp:IsJustTriedAttack(playerId) then
+            LocalAttackParam[2] = ProtoEnum.RoleHpReduceReason.HP_REDUCE_REASON_STEAL_INSPIRATION
+            AttrComp:ClearJustTriedAttack(playerId)
+            Log.Debug("\231\178\190\231\129\181\229\176\157\232\175\149\229\129\183\231\170\131\229\143\141\229\135\187", self.owner.config.name)
+          end
+        end
+        if (HitType == ProtoEnum.PlayerAttackPerformType.PAPT_Heavy or HitType == ProtoEnum.PlayerAttackPerformType.PAPT_Normal) and player.statusComponent:HasStatus(Enum.WorldPlayerStatusType.WPST_TAKE_PHOTO) then
+          HitType = ProtoEnum.PlayerAttackPerformType.PAPT_Light
+        end
+        local RealDamage = math.floor(self.AttackParam.Damage / 2)
+        local HasInjure = 0 ~= self.AttackParam.Damage % 2
+        LocalAttackParam[1] = HasInjure
+        player:SendEvent(PlayerModuleEvent.ON_PLAYER_ATTACKED_BY_NPC, RealDamage, hurtDir, false, false, HitType, LocalAttackParam)
+        Log.DebugFormat("[AttackComponent] OnHit triggered by %s dam=%d inj=%d type=%d", self.owner.config.name, RealDamage, HasInjure and 1 or 0, HitType)
+        if HitType == ProtoEnum.PlayerAttackPerformType.PAPT_Heavy then
+          _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.SendSenseEvent, playerLocation, Enum.DotsAIWorldEventType.DAWET_PLAYER_FALL)
         end
       end
-      if (HitType == ProtoEnum.PlayerAttackPerformType.PAPT_Heavy or HitType == ProtoEnum.PlayerAttackPerformType.PAPT_Normal) and player.statusComponent:HasStatus(Enum.WorldPlayerStatusType.WPST_TAKE_PHOTO) then
-        HitType = ProtoEnum.PlayerAttackPerformType.PAPT_Light
-      end
-      local RealDamage = math.floor(self.AttackParam.Damage / 2)
-      local HasInjure = 0 ~= self.AttackParam.Damage % 2
-      LocalAttackParam[1] = HasInjure
-      player:SendEvent(PlayerModuleEvent.ON_PLAYER_ATTACKED_BY_NPC, RealDamage, hurtDir, false, false, HitType, LocalAttackParam)
-      Log.DebugFormat("[AttackComponent] OnHit triggered by %s dam=%d inj=%d type=%d", self.owner.config.name, RealDamage, HasInjure and 1 or 0, HitType)
-      if self.AttackParam.PlayerHitType == ProtoEnum.PlayerAttackPerformType.PAPT_Heavy then
-        _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.SendSenseEvent, playerLocation, Enum.DotsAIWorldEventType.DAWET_PLAYER_FALL)
+      local AbnormalType = self.AttackParam.AbnormalStatus or 0
+      local AbnormalDuration = self.AttackParam.AbnormalDuration or 0
+      if AbnormalType > 0 then
+        local abnormalComp = player:EnsureComponent(AbnormalStatusComponent)
+        if abnormalComp and not abnormalComp:IsStatusActive(AbnormalType) then
+          local abnormalConf = DataConfigManager:GetAbnormalStatusConf(AbnormalType)
+          if abnormalConf then
+            local selfPetBaseId = self.owner.GetPetbaseId and self.owner:GetPetbaseId() or 0
+            if 0 ~= selfPetBaseId and table.contains(abnormalConf.whitelist_source_pet, selfPetBaseId) then
+              local req = ProtoMessage:newZoneAiAttackAbnormalStatusReq()
+              req.actor_id = self.owner:GetServerId()
+              req.abnormal_status_info.abnormal_status_id = AbnormalType
+              req.abnormal_status_info.abnormal_status_duration = math.floor(AbnormalDuration * 1000)
+              Log.DebugFormat("[AttackComponent] try append abnormal status: %d, from %d.%s", AbnormalType, self.owner.config.id, self.owner.config.name)
+              _G.ZoneServer:Send(_G.ProtoCMD.ZoneSvrCmd.ZONE_AI_ATTACK_ABNORMAL_STATUS_REQ, req, false, false, true)
+            else
+              Log.PrintScreenMsg("[AttackComponent] abnormal status not in whitelist: %d, from %d.%s", AbnormalType, self.owner.config.id, self.owner.config.name)
+            end
+          else
+            Log.PrintScreenMsg("[AttackComponent] abnormal status component not found: %d, from %d.%s", AbnormalType, self.owner.config.id, self.owner.config.name)
+          end
+        else
+          Log.PrintScreenMsg("[AttackComponent] abnormal status already active: %d, from %d.%s", AbnormalType, self.owner.config.id, self.owner.config.name)
+        end
       end
     end
     return true

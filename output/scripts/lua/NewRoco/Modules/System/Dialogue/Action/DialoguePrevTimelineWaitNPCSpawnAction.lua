@@ -36,9 +36,9 @@ end
 function DialoguePrevTimelineWaitNPCSpawnAction:Check(ThrowError)
   if self.CurrentTimeline and self.CurrentTimeline.actions then
     for _, action in ipairs(self.CurrentTimeline.actions) do
-      if action.OwnerActorID == nil or 0 == action.OwnerActorID or -100 == action.OwnerActorID or -101 == action.OwnerActorID then
+      if action.OwnerActorID == nil or 0 == action.OwnerActorID and 0 == self.NPCContentID or -100 == action.OwnerActorID or -101 == action.OwnerActorID then
       else
-        local Actor = self:GetActor(action.OwnerActorID)
+        local Actor = self:GetActor(action.OwnerActorID, action.NPCContentID)
         if not Actor then
           if ThrowError then
             Log.Error("\231\173\137\229\190\133\232\161\168\230\188\148\232\128\133\231\148\159\230\136\144", action.OwnerActorID, DialogueUtils.ActorToString(Actor))
@@ -89,18 +89,27 @@ function DialoguePrevTimelineWaitNPCSpawnAction:OnExit()
 end
 
 function DialoguePrevTimelineWaitNPCSpawnAction:OnFinish()
-  local NpcIDs = {-1, -2}
+  local NpcIDs = {
+    {-1, 0},
+    {-2, 0}
+  }
   if self.CurrentTimeline.actions then
     for _, action in ipairs(self.CurrentTimeline.actions) do
-      if action.OwnerActorID == nil or 0 == action.OwnerActorID or -100 == action.OwnerActorID or -101 == action.OwnerActorID then
-      elseif not table.contains(NpcIDs, action.OwnerActorID) then
-        table.insert(NpcIDs, action.OwnerActorID)
+      if action.OwnerActorID == nil or 0 == action.OwnerActorID and 0 == action.NPCContentID or -100 == action.OwnerActorID or -101 == action.OwnerActorID then
+      else
+        table.insert(NpcIDs, {
+          action.OwnerActorID,
+          action.NPCContentID
+        })
       end
     end
   end
-  for _, ActorID in ipairs(NpcIDs) do
-    local Actor = self:GetActor(ActorID)
-    if Actor then
+  local ActorSet = {}
+  for _, IDPair in ipairs(NpcIDs) do
+    local Actor = self:GetActor(IDPair[1], IDPair[2])
+    if not Actor or table.contains(ActorSet, Actor) then
+    else
+      table.insert(ActorSet, Actor)
       local ServerID = Actor:GetServerId()
       if not table.contains(self.NpcIDs, ServerID) then
         table.insert(self.NpcIDs, ServerID)
@@ -109,7 +118,7 @@ function DialoguePrevTimelineWaitNPCSpawnAction:OnFinish()
       DialogueUtils.ToggleLOD(Actor, true)
       DialogueUtils.ToggleSignificance(Actor, true)
       DialogueUtils.StopTurn(Actor)
-      if self:IsEntryDialogue() then
+      if DialogueUtils.IsEntryDialogue(self.fsm) then
         DialogueUtils.ClearLookAt(Actor)
       end
       local LastTimeline = self.fsm:GetProperty("LastTimeline")
@@ -122,19 +131,6 @@ function DialoguePrevTimelineWaitNPCSpawnAction:OnFinish()
       DialogueUtils.ToggleMovement(Actor, false)
     end
   end
-end
-
-function DialoguePrevTimelineWaitNPCSpawnAction:IsEntryDialogue()
-  local CurrentOption = self.fsm:GetProperty("CurrentOption")
-  local OptionConf = CurrentOption and CurrentOption.config
-  OptionConf = OptionConf or self.fsm:GetProperty("OptionConf")
-  if not OptionConf then
-    return false
-  end
-  if OptionConf.action.action_type ~= Enum.ActionType.ACT_DIALOG then
-    return false
-  end
-  return tonumber(OptionConf.action.action_param1) == self.DialogueConf.id
 end
 
 return DialoguePrevTimelineWaitNPCSpawnAction

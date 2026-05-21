@@ -6,17 +6,24 @@ local TipsViewStatus = {
   Initialized = 3,
   Deinitializing = 4
 }
+local TipsDisplayControllerId = 0
+
+local function GetTipsDisplayControllerTag()
+  TipsDisplayControllerId = TipsDisplayControllerId + 1
+  return "TipsDisplayController" .. TipsDisplayControllerId
+end
+
 local TipsDisplayController = NRCClass()
 
 function TipsDisplayController:Ctor(tipType, caller, initTipsView)
   assert(nil ~= tipType, "tipType can not be nil")
-  assert(nil ~= caller, "caller can not be nil")
-  assert(nil ~= initTipsView and type(initTipsView) == "function", "initTipsView must be a function")
+  assert(not initTipsView or type(initTipsView) == "function", "initTipsView must be a function")
+  self.logTag = GetTipsDisplayControllerTag()
   self.tipType = tipType
   self.executor = TipsDisplayExecutor():Attach(self, self.OnTipDisplayStartHandler, self.OnTipTipTickHandler, self.OnTipDisplayEndHandler, self.OnTipDisplayStatusChange)
   self.executor:SetPauseReasonChangeCallback(self, self.OnExecutorPauseReasonChangeHandler)
   self.pendingTips = {}
-  self.initTipsView = _G.MakeWeakFunctor(caller, initTipsView)
+  self.initTipsView = initTipsView and _G.MakeWeakFunctor(caller, initTipsView)
   self.tipsViewStatus = TipsViewStatus.Uninitialized
   _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.RegisterDisplayController, self)
 end
@@ -26,24 +33,30 @@ function TipsDisplayController:__Dctor()
 end
 
 function TipsDisplayController:Free()
+  Log.Debug(self.logTag, "Free")
   for _, _tip in ipairs(self.pendingTips) do
     _tip:MarkFinished()
   end
+  self.pendingTips = {}
   self.executor:Free()
   self:CancelDelayInitTipsView()
   _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.UnRegisterDisplayController, self)
 end
 
 function TipsDisplayController:BindView(viewInst)
+  Log.Debug(self.logTag, "BindView", self.tipsViewStatus)
+  if self.tipsViewStatus == TipsViewStatus.Initialized then
+    return
+  end
   self.tipsViewStatus = TipsViewStatus.Initialized
   if not viewInst then
-    Log.Error("viewInst can not be nil")
+    Log.Error(self.logTag, "viewInst can not be nil")
     return
   end
   if viewInst.OnPlayTips and type(viewInst.OnPlayTips) == "function" then
     self.onTipDisplayStart = _G.MakeWeakFunctor(viewInst, viewInst.OnPlayTips)
   else
-    Log.Error("\230\156\170\229\174\154\228\185\137OnPlayTips\229\135\189\230\149\176!!")
+    Log.Error(self.logTag, "\230\156\170\229\174\154\228\185\137OnPlayTips\229\135\189\230\149\176!!")
   end
   if viewInst.OnUpdateTips and "function" == type(viewInst.OnUpdateTips) then
     self.onTipTick = _G.MakeWeakFunctor(viewInst, viewInst.OnUpdateTips)
@@ -51,7 +64,7 @@ function TipsDisplayController:BindView(viewInst)
   if viewInst.OnAllTipsFinished and "function" == type(viewInst.OnAllTipsFinished) then
     self.onTipDisplayEnd = _G.MakeWeakFunctor(viewInst, viewInst.OnAllTipsFinished)
   else
-    Log.Error("\230\156\170\229\174\154\228\185\137OnAllTipsFinished\229\135\189\230\149\176!!")
+    Log.Error(self.logTag, "\230\156\170\229\174\154\228\185\137OnAllTipsFinished\229\135\189\230\149\176!!")
   end
   if viewInst.OnPlayTipStatusChange and "function" == type(viewInst.OnPlayTipStatusChange) then
     self.onTipDisplayStatusChange = _G.MakeWeakFunctor(viewInst, viewInst.OnPlayTipStatusChange)
@@ -64,6 +77,10 @@ function TipsDisplayController:BindView(viewInst)
 end
 
 function TipsDisplayController:UnBindView()
+  Log.Debug(self.logTag, "UnBindView", self.tipsViewStatus)
+  if self.tipsViewStatus == TipsViewStatus.Uninitialized then
+    return
+  end
   self.tipsViewStatus = TipsViewStatus.Uninitialized
   self.onTipDisplayStart = nil
   self.onTipTick = nil
@@ -85,7 +102,7 @@ end
 
 function TipsDisplayController:AddDisplayTip(tip)
   if not tip or tip.tipType ~= self.tipType then
-    return
+    return false
   end
   if self.tipsViewStatus == TipsViewStatus.Initializing or self.tipsViewStatus == TipsViewStatus.Deinitializing then
     TipUtils.DebugTipFlow("[wait initialize or uninitialize view...]", tip)
@@ -97,8 +114,19 @@ function TipsDisplayController:AddDisplayTip(tip)
     table.insert(self.pendingTips, tip)
   else
     tip:MarkFinished()
-    Log.Error("\230\156\170\229\174\154\228\185\137initTipsView\229\135\189\230\149\176!!")
+    Log.Error(self.logTag, "\230\156\170\229\174\154\228\185\137initTipsView\229\135\189\230\149\176!!")
   end
+  return true
+end
+
+function TipsDisplayController:GetDebugInfo()
+  return {
+    logTag = self.logTag,
+    tipType = self.tipType,
+    tipsViewStatus = self.tipsViewStatus,
+    pendingTips = self.pendingTips,
+    executor = self.executor:GetDebugInfo()
+  }
 end
 
 function TipsDisplayController:HasAnyPendingTip()
@@ -111,12 +139,20 @@ function TipsDisplayController:HasAnyPendingTip()
 end
 
 function TipsDisplayController:DelayInitTipsView()
+  Log.Debug(self.logTag, "DelayInitTipsView")
   self:CancelDelayInitTipsView()
-  self.delayInitTipsViewId = _G.DelayManager:DelaySeconds(1, self.DoInitTipsView, self)
+  self.delayInitTipsViewId = _G.DelayManager:DelaySeconds(1, self.DoDelayInitTipsView, self)
+end
+
+function TipsDisplayController:DoDelayInitTipsView()
+  Log.Debug(self.logTag, "DoDelayInitTipsView")
+  self.delayInitTipsViewId = nil
+  self:DoInitTipsView()
 end
 
 function TipsDisplayController:CancelDelayInitTipsView()
   if self.delayInitTipsViewId then
+    Log.Debug(self.logTag, "CancelDelayInitTipsView")
     _G.DelayManager:CancelDelayById(self.delayInitTipsViewId)
     self.delayInitTipsViewId = nil
     return true
@@ -124,13 +160,15 @@ function TipsDisplayController:CancelDelayInitTipsView()
 end
 
 function TipsDisplayController:DoInitTipsView()
+  Log.Debug(self.logTag, "DoInitTipsView")
   if self.executor:IsPausedExcept("ViewChange") then
     return false
   end
-  self.delayInitTipsViewId = nil
-  if self.tipsViewStatus == TipsViewStatus.Uninitialized and self.initTipsView then
+  if self.tipsViewStatus == TipsViewStatus.Uninitialized then
     self.tipsViewStatus = TipsViewStatus.Initializing
-    self.initTipsView()
+    if self.initTipsView then
+      self.initTipsView()
+    end
     return true
   end
   return false
@@ -151,6 +189,12 @@ function TipsDisplayController:OnTipTipTickHandler(tip, interval)
 end
 
 function TipsDisplayController:OnTipDisplayEndHandler()
+  if not self.initTipsView then
+    if self.onTipDisplayEnd then
+      return self.onTipDisplayEnd()
+    end
+    return false
+  end
   self.tipsViewStatus = TipsViewStatus.Deinitializing
   if self.onTipDisplayEnd then
     return self.onTipDisplayEnd()

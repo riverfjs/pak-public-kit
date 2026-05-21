@@ -34,4 +34,16 @@ function UMG_CulturalActivities_SharePhoto_C:OnActive(data)
   self.PhotoSub:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
 end
 
+function UMG_CulturalActivities_SharePhoto_C:ShowPlayerInfoPanel(isShow)
+  if isShow then
+    self.PhotoSub.HeadPortrait:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    self.PhotoSub.TextName:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    self.PhotoSub.NRCText_Uid:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  else
+    self.PhotoSub.HeadPortrait:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.PhotoSub.TextName:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.PhotoSub.NRCText_Uid:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  end
+end
+
 return UMG_CulturalActivities_SharePhoto_C

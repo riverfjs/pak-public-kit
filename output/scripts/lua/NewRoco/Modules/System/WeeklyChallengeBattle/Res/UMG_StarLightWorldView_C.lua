@@ -124,7 +124,7 @@ function UMG_StarLightWorldView_C:UpdatePetModel(petFullIDData, ShowSkillPetInde
   self:HideCaptureImage()
   self.petFullIDData = petFullIDData
   self:UpdateNumberUIVisibility()
-  self:UpdateSlotActors(ShowSkillPetIndexList)
+  self:UpdateSlotActors(ShowSkillPetIndexList, false)
 end
 
 function UMG_StarLightWorldView_C:HideCaptureImage()
@@ -318,6 +318,10 @@ end
 function UMG_StarLightWorldView_C:OnDestruct()
   self.Overridden.Destruct(self)
   self:CancelDelay()
+  if self.captureDelayId then
+    _G.DelayManager:CancelDelayById(self.captureDelayId)
+    self.captureDelayId = nil
+  end
   self:UnRegisterEvent(self, PetUIModuleEvent.PetTeamTouchStarted, self.OnPetTeamTouchStarted)
   self:UnRegisterEvent(self, PetUIModuleEvent.PetTeamTouchMoved, self.OnPetTeamTouchMoved)
   self:UnRegisterEvent(self, PetUIModuleEvent.PetTeamTouchEnded, self.OnPetTeamTouchEnded)
@@ -438,7 +442,8 @@ function UMG_StarLightWorldView_C:InitSceneCapture()
   local viewInfo = self.cameraComponent:GetCameraView(0)
 end
 
-function UMG_StarLightWorldView_C:UpdateSlotActors(ShowSkillPetIndexList)
+function UMG_StarLightWorldView_C:UpdateSlotActors(ShowSkillPetIndexList, IsInNPCMode)
+  self.IsInNPCMode = IsInNPCMode
   local bPlayedSound = false
   local petFullIDData = self.petFullIDData
   self.PetCount = 0
@@ -501,12 +506,27 @@ function UMG_StarLightWorldView_C:CheckAllPetLoaded()
     Log.Error("[UMG_StarLightWorldView_C] CheckAllPetLoaded: \229\133\168\233\131\168\228\186\186\231\137\169\229\146\140\231\178\190\231\129\181\229\138\160\232\189\189\229\174\140\230\175\149")
     if self and self.Parent then
       self.Parent:SetHasLoadedAllPet()
-      DelayManager:DelaySeconds(0.8, function()
+      local delayTime = self:GetCaptureDelayByDeviceLevel()
+      self.captureDelayId = DelayManager:DelaySeconds(delayTime, function()
+        self.captureDelayId = nil
         if self and self.Parent then
           self.Parent.CaptureImageOnce = true
         end
       end)
     end
+  end
+end
+
+function UMG_StarLightWorldView_C:GetCaptureDelayByDeviceLevel()
+  local deviceLevel = UE4.UNRCQualityLibrary.GetDeviceLevel()
+  if deviceLevel <= 2 then
+    return 1.5
+  elseif 3 == deviceLevel then
+    return 1.2
+  elseif 4 == deviceLevel then
+    return 1.0
+  else
+    return 0.8
   end
 end
 
@@ -571,7 +591,7 @@ function UMG_StarLightWorldView_C:OnActorLoaded(actor, index, showPlayStartSkill
   actor.IkOverride = false
   actor:SetSelfControlSignificance(true, UE.ESignificanceValue.Highest)
   if 7 ~= index then
-    PetMutationUtils.DoMutation(actor, self.petDataInfoList[index])
+    PetMutationUtils.DoMutation(actor, self.petMutationDatas[index])
   end
   local petAnim = self:CheckIsSky(index, actor)
   if self.PhotoMode == WeeklyChallengeBattleModuleEnum.PhotoMode.PlayAtStart then
@@ -639,9 +659,15 @@ end
 
 function UMG_StarLightWorldView_C:AddPetToScene(petId, slotActor, slotId, petGid, showPlayStartSkill, bPlayedSound)
   local petbaseConf = _G.DataConfigManager:GetPetbaseConf(petId)
+  if self.IsInNPCMode == true then
+  elseif petGid then
+    self.petMutationDatas[slotId] = _G.DataModelMgr.PlayerDataModel:GetPetDataByGid(petGid)
+  else
+    self.petMutationDatas[slotId] = nil
+  end
   local petMutationData = self.petMutationDatas[slotId]
-  local useShiningModel = petMutationData and PetMutationUtils.GetMutationValue(petMutationData.mutation_type, _G.Enum.MutationDiffType.MDT_SHINING)
   local modelConfId = petbaseConf.model_conf
+  local useShiningModel = petMutationData and PetMutationUtils.GetMutationValue(petMutationData.mutation_type, _G.Enum.MutationDiffType.MDT_SHINING)
   if useShiningModel and petbaseConf.shining_model_conf and petbaseConf.shining_model_conf > 0 then
     modelConfId = petbaseConf.shining_model_conf
   end
@@ -667,21 +693,17 @@ function UMG_StarLightWorldView_C:AddPetToScene(petId, slotActor, slotId, petGid
   actor.petIndex = slotId
   local mesh = actor:GetComponentByClass(UE4.USkeletalMeshComponent)
   mesh.bForceMipStreaming = true
-  if petGid and _G.DataModelMgr.PlayerDataModel:GetPetDataByGid(petGid) then
-    self.petDataInfoList[slotId] = _G.DataModelMgr.PlayerDataModel:GetPetDataByGid(petGid)
+  if self.IsInNPCMode == true then
+    actor.scale = modelScale * mesh.RelativeScale3D.Z * (modelCfg.model_scale / 100)
+  elseif petGid then
     local heightModelScale = PetMutationUtils.GetHeightModelScaleByPetData(self.petDataInfoList[slotId])
     actor.scale = modelScale * mesh.RelativeScale3D.Z * heightModelScale * (modelCfg.model_scale / 100)
-    actor:SetLoadPriority(PriorityEnum.UI_Pet_Mutation)
-    PetMutationUtils.PrepareMutationAssets(actor, self.petDataInfoList[slotId])
-    actor.petDataInfo = self.petDataInfoList[slotId]
-  elseif petMutationData then
-    self.petDataInfoList[slotId] = petMutationData
-    actor.scale = modelScale * mesh.RelativeScale3D.Z * (modelCfg.model_scale / 100)
-    actor:SetLoadPriority(PriorityEnum.UI_Pet_Mutation)
-    PetMutationUtils.PrepareMutationAssets(actor, petMutationData)
-    actor.petDataInfo = petMutationData
   else
     actor.scale = modelScale * mesh.RelativeScale3D.Z * (modelCfg.model_scale / 100)
+  end
+  if self.petMutationDatas[slotId] then
+    actor:SetLoadPriority(PriorityEnum.UI_Pet_Mutation)
+    PetMutationUtils.PrepareMutationAssets(actor, self.petMutationDatas[slotId])
   end
   actor.mesh = mesh
   actor:InitOutSceneAsync(nil, function(actor)
@@ -776,7 +798,12 @@ function UMG_StarLightWorldView_C:RecalcActorRealLocation(slotIndex)
   local halfHeight = self.petHalfHeight[slotIndex] or 0
   local actor = self.slotActors[slotIndex]
   local Transform = actor:GetTransform()
-  local newLocation = UE4.FVector(Transform.Translation.X, Transform.Translation.Y, Transform.Translation.Z + halfHeight)
+  local newLocation
+  if self.IsInNPCMode == true then
+    newLocation = UE4.FVector(Transform.Translation.X, Transform.Translation.Y, Transform.Translation.Z + halfHeight)
+  else
+    newLocation = UE4.FVector(Transform.Translation.X, Transform.Translation.Y, math.max(0, Transform.Translation.Z) + halfHeight)
+  end
   self.PetRealPos[slotIndex] = newLocation
   Transform.Translation = newLocation
   return Transform
@@ -1273,7 +1300,7 @@ function UMG_StarLightWorldView_C:LoadBattleConf(battleID)
       self.petMutationDatas[i] = self:BuildMutationDataFromMonsterConf(monsterConf, petBaseID)
     end
   end
-  self:UpdateSlotActors()
+  self:UpdateSlotActors(nil, true)
 end
 
 function UMG_StarLightWorldView_C:GetPetAnimFrame()

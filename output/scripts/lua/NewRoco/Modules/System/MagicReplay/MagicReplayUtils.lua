@@ -68,4 +68,21 @@ function MagicReplayUtils.isMagicReplayActivated()
   return MagicReplayUtils.IsOpActivated(MagicReplayModuleEnum.ModuleOpType.Record) or MagicReplayUtils.IsOpActivated(MagicReplayModuleEnum.ModuleOpType.Preview) or MagicReplayUtils.IsOpActivated(MagicReplayModuleEnum.ModuleOpType.Replay) or MagicReplayUtils.IsOpActivated(MagicReplayModuleEnum.ModuleOpType.Share)
 end
 
+function MagicReplayUtils.ClearThrowBalls()
+  local main_actor_id = _G.NRCModuleManager:DoCmd(_G.MagicReplayModuleCmd.GetMainMagicActorId)
+  if main_actor_id then
+    local NPCModule = _G.NRCModuleManager:GetModule("NPCModule")
+    if NPCModule and NPCModule.ThrowSessionManager then
+      local throwSessionManager = NPCModule.ThrowSessionManager
+      local BallMap = throwSessionManager:GetBallMap(main_actor_id)
+      for Ball, _ in pairs(BallMap) do
+        local Session = Ball.ThrowSession
+        if Session then
+          _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.DeleteThrowBallById, main_actor_id, Session:GetThrowID())
+        end
+      end
+    end
+  end
+end
+
 return MagicReplayUtils

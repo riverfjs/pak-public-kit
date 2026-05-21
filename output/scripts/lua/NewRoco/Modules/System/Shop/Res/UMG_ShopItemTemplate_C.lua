@@ -426,6 +426,9 @@ function UMG_ShopItemTemplate_C:updateTimeCountDown(svr_time)
       if days > 0 then
         self.TitleText:SetText(days .. LuaText.umg_shopitemtemplate_5 .. hours .. LuaText.umg_shopitemtemplate_7)
       else
+        if 0 == hours and 0 == minutes then
+          minutes = 1
+        end
         self.TitleText:SetText(hours .. LuaText.umg_shopitemtemplate_7 .. minutes .. LuaText.umg_shopitemtemplate_8)
       end
     else
@@ -438,6 +441,7 @@ function UMG_ShopItemTemplate_C:updateTimeCountDown(svr_time)
 end
 
 function UMG_ShopItemTemplate_C:timeOutGetStoreListReq()
+  Log.Debug("UMG_ShopItemTemplate_C:timeOutGetStoreListReq", self.deltaTime, self.uiData.disable_time, self.uiData.next_refresh_time, self.uiData.shopItemId)
   _G.NRCModuleManager:DoCmd(_G.ShopModuleCmd.OnCmdSetUpdateTimeOut)
 end
 

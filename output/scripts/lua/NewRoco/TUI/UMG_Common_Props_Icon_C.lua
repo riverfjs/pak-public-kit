@@ -6,9 +6,7 @@ local UMG_Common_Props_Icon_C = Base:Extend("UMG_Common_Props_Icon_C")
 function UMG_Common_Props_Icon_C:OnConstruct()
   self.Num:SetVisibility(UE4.ESlateVisibility.Hidden)
   self.Rim:SetIsEnabled(false)
-  self.Star:SetIsEnabled(false)
   self.Rim:ActivateParticles(false)
-  self.Star:ActivateParticles(false)
 end
 
 function UMG_Common_Props_Icon_C:OnDestruct()
@@ -76,7 +74,6 @@ function UMG_Common_Props_Icon_C:SetTip(tip, EnableTips, NewFlag, FrameStyle)
   end
   self:StopAllAnimations()
   self.Rim:ActivateParticles(false)
-  self.Star:ActivateParticles(false)
   if 1 == self.FrameStyle then
     self:SetQuality(0)
     self.Mask:SetRetainRendering(true)
@@ -89,12 +86,8 @@ function UMG_Common_Props_Icon_C:TriggerFrameAnimation()
   if 1 == self.FrameStyle then
     self.Rim:SetIsEnabled(true)
     self.Rim:ActivateParticles(true, true)
-  else
-    self.Star:SetIsEnabled(true)
-    self.Star:ActivateParticles(true, false)
-    if self.tip.tipType == TipEnum.TipObjectType.NewPet then
-      self:PlayAnimation(self.Show)
-    end
+  elseif self.tip.tipType == TipEnum.TipObjectType.NewPet then
+    self:PlayAnimation(self.Show)
   end
 end
 

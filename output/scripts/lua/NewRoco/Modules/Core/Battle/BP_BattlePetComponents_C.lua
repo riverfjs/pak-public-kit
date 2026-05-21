@@ -7,6 +7,10 @@ function BP_BattlePetComponents_C:Initialize(Initializer)
   self.pet = Initializer and Initializer.pet
   self.buff_offset_z = 0
   self.botton_offset_z = 0
+  local initState = {}
+  initState.isDifferentColorsPet = false
+  initState.isBuffShow = false
+  self:SetState(initState)
 end
 
 function BP_BattlePetComponents_C:ReceiveBeginPlay()
@@ -26,6 +30,9 @@ function BP_BattlePetComponents_C:ReceiveBeginPlay()
   self.CatchConsumeWidget:SetEffectVisible(false)
   self:HideCatchConsume(false)
   self:IsShowPetEvolutionBubbleUI(false)
+  self.resonance_widget = self.ResonanceUI:GetUserWidgetObject()
+  self.resonance_widget:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self.DifferentColorsWidget = self.DifferentColorsUI:GetUserWidgetObject()
   local halfHeight = self.pet:GetHalfHeight()
   
   local function PutToBottom(target)
@@ -53,8 +60,6 @@ function BP_BattlePetComponents_C:InitBuff()
   self.BuffBoxWidget:BindPet(self.pet)
   self.BuffBox2DWidget:BindPet(self.pet)
   self:ShowBuffBoxMaterial()
-  self.BuffBox:SetVisibility(true)
-  self.BuffBox2D:SetVisibility(true)
 end
 
 function BP_BattlePetComponents_C:ShowBuffBoxMaterial()
@@ -69,6 +74,7 @@ function BP_BattlePetComponents_C:ShowBuffBoxMaterial()
       end
     end
   end
+  self.is3dBuff = isBattleType3d
   self:UpdateCapsuleInfo()
   self.BuffBoxWidget = self.BuffBox:GetUserWidgetObject()
   self.BuffBox2DWidget = self.BuffBox2D:GetUserWidgetObject()
@@ -121,10 +127,12 @@ end
 function BP_BattlePetComponents_C:UpdateCapsuleInfo()
   local radius = 50
   local areaRadius = 50
+  local capsuleHalfHeight = 100
   if self.pet and self.pet.model then
     local CapsuleComponent = self.pet.model:GetComponentByClass(UE4.UCapsuleComponent)
     if CapsuleComponent then
       radius = CapsuleComponent:GetScaledCapsuleRadius()
+      capsuleHalfHeight = CapsuleComponent:GetScaledCapsuleHalfHeight()
     end
     areaRadius = self:GetSafeWidgetHeight()
     if radius > areaRadius then
@@ -167,6 +175,13 @@ function BP_BattlePetComponents_C:UpdateCapsuleInfo()
   self.botton_offset_z = -20 - halfHeight
   self.buff_offset_z = math.min(-55 + OffsetZ, self.botton_offset_z)
   self:SetCatchConsumeUIPos(0, 0, self.botton_offset_z)
+  self:SetCapsuleHalfHeight(capsuleHalfHeight)
+  local transform = self.ResonanceUI:GetRelativeTransform()
+  local translation = transform.Translation
+  translation.Z = areaRadius
+  transform.Translation = translation
+  self.ResonanceUI:K2_SetRelativeTransform(transform, false, nil, false)
+  self.DifferentColorsUI:K2_SetRelativeTransform(transform, false, nil, false)
 end
 
 function BP_BattlePetComponents_C:ShowActiveState(bShow)
@@ -178,7 +193,7 @@ function BP_BattlePetComponents_C:ShowActiveState(bShow)
 end
 
 function BP_BattlePetComponents_C:ShowOperation(bShow)
-  if self.OperationIcon then
+  if self.OperationIcon and UE4.UObject.IsValid(self.OperationIcon) then
     if bShow then
       self.OperationIcon:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
     else
@@ -208,7 +223,7 @@ function BP_BattlePetComponents_C:ShowSelectMarker3dPC(bShow)
 end
 
 function BP_BattlePetComponents_C:ChangeOperation(Path)
-  if self.OperationIcon then
+  if self.OperationIcon and UE4.UObject.IsValid(self.OperationIcon) then
     self.OperationIcon:SetPath(Path)
   end
 end
@@ -316,7 +331,7 @@ function BP_BattlePetComponents_C:ShowTipTime(time, operateType, params)
 end
 
 function BP_BattlePetComponents_C:HideTipTime()
-  if not BattleUtils.IsBloodTeam() then
+  if self.CatchConsumeWidget and UE4.UObject.IsValid(self.CatchConsumeWidget) and not BattleUtils.IsBloodTeam() then
     self.CatchConsumeWidget:SetCatchTipTimeVisible(false)
   end
 end
@@ -344,6 +359,9 @@ function BP_BattlePetComponents_C:HideBuffs()
   else
     Log.Error("\229\143\145\231\148\159\233\148\153\232\175\175 BuffBox is nil")
   end
+  local _, nextState = self:GetCurrAndNextState()
+  nextState.isBuffShow = false
+  self:SetState(nextState)
 end
 
 function BP_BattlePetComponents_C:ShowBuffs()
@@ -369,6 +387,9 @@ function BP_BattlePetComponents_C:ShowBuffs()
   else
     Log.Error("\229\143\145\231\148\159\233\148\153\232\175\175 BuffBox is nil")
   end
+  local _, nextState = self:GetCurrAndNextState()
+  nextState.isBuffShow = true
+  self:SetState(nextState)
 end
 
 function BP_BattlePetComponents_C:SetBuffsRenderOpacity(Num)
@@ -447,6 +468,8 @@ function BP_BattlePetComponents_C:Reset()
   self.BuffBox2DWidget = nil
   self.OperationIcon = nil
   self.pet = nil
+  self.resonance_widget = nil
+  self.DifferentColorsWidget = nil
 end
 
 function BP_BattlePetComponents_C:PreAddPopupDamageChildPanel()
@@ -490,6 +513,7 @@ function BP_BattlePetComponents_C:SetPopupWidgetVisibility(isShow)
       end
     end
   end
+  self.PopupDamage:SetVisibility(false)
 end
 
 function BP_BattlePetComponents_C:GetValidPopupNormalPos(initPos)
@@ -553,7 +577,9 @@ end
 function BP_BattlePetComponents_C:PreAddBuffVisible()
   local buffCount = self.BuffBoxWidget:GetBuffInfos()
   if 0 == buffCount then
-    self.BuffBox:SetVisibility(true)
+    if self.is3dBuff then
+      self.BuffBox:SetVisibility(true)
+    end
     self.BuffBox2D:SetVisibility(true)
     return true
   end
@@ -561,6 +587,102 @@ function BP_BattlePetComponents_C:PreAddBuffVisible()
 end
 
 function BP_BattlePetComponents_C:AfterRemoveBuffVisible()
+  if not UE.UObject.IsValid(self) then
+    return
+  end
+  local buffCount = self.BuffBoxWidget:GetBuffInfos()
+  if 0 == buffCount then
+    self.BuffBox:SetVisibility(false)
+    self.BuffBox2D:SetVisibility(false)
+  end
+end
+
+function BP_BattlePetComponents_C:ShowResonance(skill_id)
+  local player = BattleUtils.GetPlayerModel()
+  if player then
+    local controller = player:GetController()
+    if controller and controller.PlayerCameraManager then
+      local camera_location = controller.PlayerCameraManager:GetCameraLocation()
+      local ui_location = self.ResonanceUI:K2_GetComponentLocation()
+      local to_camera_vec = camera_location - ui_location
+      to_camera_vec:Normalize()
+      local look_at_rotation = UE.UKismetMathLibrary.MakeRotFromX(to_camera_vec)
+      self.ResonanceUI:K2_SetWorldRotation(look_at_rotation, false, nil, false)
+    end
+  end
+  self.resonance_widget:BindPet(self.pet)
+  self.resonance_widget:Show(skill_id)
+end
+
+function BP_BattlePetComponents_C:ShowDifferentColors(isShow)
+  local DifferentColorsWidget = self.DifferentColorsWidget
+  if UE.UObject.IsValid(DifferentColorsWidget) then
+    local props = {}
+    props.isShow = isShow
+    DifferentColorsWidget:SetProps(props)
+  end
+end
+
+function BP_BattlePetComponents_C:SetIsDifferentColorsPet(isDifferentColorsPet)
+  local _, nextState = self:GetCurrAndNextState()
+  nextState.isDifferentColorsPet = isDifferentColorsPet
+  self:SetState(nextState)
+end
+
+function BP_BattlePetComponents_C:OnComponentStateChanged(prevState, currState)
+  local prevIsDifferentColorsPet = prevState and prevState.isDifferentColorsPet or false
+  local currIsDifferentColorsPet = currState and currState.isDifferentColorsPet or false
+  local prevIsBuffShow = prevState and prevState.isBuffShow or false
+  local currIsBuffShow = currState and currState.isBuffShow or false
+  local prevIsShowDifferentColors = prevIsDifferentColorsPet and prevIsBuffShow
+  local currIsShowDifferentColors = currIsBuffShow and currIsDifferentColorsPet
+  if prevIsShowDifferentColors ~= currIsShowDifferentColors then
+    local isShowDifferentColors = currIsShowDifferentColors
+    self:ShowDifferentColors(isShowDifferentColors)
+    self:UpdateCapsuleInfo()
+  end
+end
+
+function BP_BattlePetComponents_C:GetState()
+  return self.state
+end
+
+function BP_BattlePetComponents_C:SetState(nextState)
+  local currState = self:GetState() or {}
+  self.state = nextState
+  self:OnComponentStateChanged(currState, nextState)
+end
+
+function BP_BattlePetComponents_C:GetCurrAndNextState()
+  local currState = self.state or {}
+  local nextState = {}
+  table.copy(currState, nextState)
+  return currState, nextState
+end
+
+function BP_BattlePetComponents_C:IsFacingScreen()
+  local player = BattleUtils.GetPlayerModel()
+  if not player then
+    return true
+  end
+  local controller = player:GetController()
+  if not controller then
+    return true
+  end
+  local camera_mgr = controller.PlayerCameraManager
+  if not camera_mgr then
+    return true
+  end
+  local camera_location = camera_mgr:GetCameraLocation()
+  local actor_rotation = self:K2_GetActorRotation()
+  local actor_forward_vec = actor_rotation:GetForwardVector()
+  local actor_forward = UE4.FVector(actor_forward_vec.X, actor_forward_vec.Y, 0)
+  actor_forward:Normalize()
+  local to_camera_vec = camera_location - self:K2_GetActorLocation()
+  local to_camera = UE4.FVector(to_camera_vec.X, to_camera_vec.Y, 0)
+  to_camera:Normalize()
+  local dot = UE.UKismetMathLibrary.Dot_VectorVector(actor_forward, to_camera)
+  return dot > 0
 end
 
 return BP_BattlePetComponents_C

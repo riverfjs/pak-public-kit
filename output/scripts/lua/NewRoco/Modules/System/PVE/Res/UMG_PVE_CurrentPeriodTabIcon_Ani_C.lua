@@ -26,6 +26,12 @@ function UMG_PVE_CurrentPeriodTabIcon_Ani_C:OnItemSelected(_bSelected)
   end
 end
 
+function UMG_PVE_CurrentPeriodTabIcon_Ani_C:OnTouchEnded(MyGeometry, InTouchEvent)
+  Base.OnTouchEnded(self, MyGeometry, InTouchEvent)
+  _G.NRCAudioManager:PlaySound2DAuto(40004006, "UMG_PVE_CurrentPeriodTabIcon_Ani_C:OnTouchEnded")
+  return UE4.UWidgetBlueprintLibrary.Unhandled()
+end
+
 function UMG_PVE_CurrentPeriodTabIcon_Ani_C:OnAnimationFinished(anim)
   if self.bSelected then
     if anim == self.select_in then

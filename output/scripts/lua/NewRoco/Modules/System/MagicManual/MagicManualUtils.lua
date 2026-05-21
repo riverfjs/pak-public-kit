@@ -158,12 +158,9 @@ end
 function MagicManualUtils.RefreshCueBubbleNature(CueBubble, BossInfo, NatureText)
   CueBubble.NRCSwitcher_67:SetActiveWidgetIndex(1)
   if not NatureText and BossInfo.activity_id then
-    local ActivityObj = NRCModuleManager:DoCmd(ActivityModuleCmd.GetActivityInstById, BossInfo.activity_id)
-    if ActivityObj then
-      local petNatureId = ActivityUtils.GetPetNatureIdBySeedId(BossInfo.spec_flower_seed_id)
-      local petNatureConf = petNatureId and _G.DataConfigManager:GetNatureConf(petNatureId)
-      NatureText = petNatureConf and petNatureConf.name or ""
-    end
+    local petNatureId = ActivityUtils.GetPetNatureIdBySeedId(BossInfo.spec_flower_seed_id)
+    local petNatureConf = petNatureId and _G.DataConfigManager:GetNatureConf(petNatureId)
+    NatureText = petNatureConf and petNatureConf.name or ""
   end
   CueBubble.textPetNature:SetText(NatureText or "")
 end

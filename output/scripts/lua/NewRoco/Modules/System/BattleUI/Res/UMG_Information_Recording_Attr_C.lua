@@ -1,6 +1,8 @@
 local Base = require("NewRoco.TUI.BP_NRCItemBase_C")
 local UIUtils = require("NewRoco.Modules.System.TipsModule.Utils.UIUtils")
 local SkillUtils = require("NewRoco.Modules.Core.Battle.BattleCore.Skill.SkillUtils")
+local BattleUtils = require("NewRoco.Modules.Core.Battle.Common.BattleUtils")
+local BattleConst = require("NewRoco.Modules.Core.Battle.Common.BattleConst")
 local BattleEnum = require("NewRoco.Modules.Core.Battle.Common.BattleEnum")
 local UMG_Information_Recording_Attr_C = Base:Extend("UMG_Information_Recording_Attr_C")
 
@@ -68,11 +70,23 @@ function UMG_Information_Recording_Attr_C:OnItemUpdate(itemData, datalist, index
       end
       if skillConf then
         self.SkillIcon:SetPath(NRCUtils:FormatConfIconPath(skillConf.icon, _G.UIIconPath.SkillIconPath))
-        if _data.skill_op.perform_flag == _G.ProtoEnum.PET_SKILL_PERFORM_FLAG.PET_SKILL_PERFORM_FLAG_FANTASTIC then
-          self.Select_NM_3:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-        else
-          self.Select_NM_3:SetVisibility(UE4.ESlateVisibility.Collapsed)
+        local fantasticBackgroundPath = ""
+        local skillOp = _data and _data.skill_op
+        local performFlag = skillOp and skillOp.perform_flag
+        local skillOpSkillId = skillOp and skillOp.skill_id
+        local petId = battleCard and battleCard.guid
+        local seasonId = skillOp and skillOp.season_id
+        if performFlag == _G.ProtoEnum.PET_SKILL_PERFORM_FLAG.PET_SKILL_PERFORM_FLAG_FANTASTIC then
+          local skillId = skillOpSkillId and _G.SkillUtils.CheckSkillId(skillOpSkillId)
+          local paths = BattleUtils.GetFantasticBackgroundPathWithSkillAndSeason(skillId, seasonId)
+          fantasticBackgroundPath = paths and paths.squareNm3 or fantasticBackgroundPath
         end
+        local selectNm3Visibility = UE4.ESlateVisibility.Collapsed
+        if not string.IsNilOrEmpty(fantasticBackgroundPath) then
+          selectNm3Visibility = UE4.ESlateVisibility.SelfHitTestInvisible
+        end
+        self.Select_NM_3:SetPath(fantasticBackgroundPath)
+        self.Select_NM_3:SetVisibility(selectNm3Visibility)
         self.TxtSkillName:SetText(skillConf.name)
         self.descText = skillConf.desc
         self.Desc:SetText(skillConf.desc)
@@ -136,19 +150,27 @@ function UMG_Information_Recording_Attr_C:OnItemUpdate(itemData, datalist, index
           Name = "-"
           self.NRCButton_85:SetVisibility(UE4.ESlateVisibility.Collapsed)
         end
-        local typeList = {
-          {
-            Name = Name,
-            Path = typeDic.tips_res
+        local tipsRes = typeDic and typeDic.tips_res
+        if Enum.SkillDamType.SDT_RELAX ~= skillType and tipsRes then
+          local typeList = {
+            {Name = Name, Path = tipsRes}
           }
-        }
-        self.Attr1:InitGridView(typeList)
+          self.Attr1:InitGridView(typeList)
+          self.Attr1:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+        else
+          self.Attr1:SetVisibility(UE4.ESlateVisibility.Collapsed)
+        end
       end
       local damageType = skillData.adapt_damage_type or skillConf.damage_type
       if skillConf then
-        local text, ImagePath = BattleUtils.GetSkillTypePath(skillConf.Skill_Type, damageType)
-        self.DepartmentText:SetText(text)
-        self.SkillTypeIcon1:SetPath(ImagePath)
+        if string.IsNilOrEmpty(skillConf.Skill_Type) or skillConf.Skill_Type == ProtoEnum.SkillType.ST_NONE then
+          self.SkillTypeParent:SetVisibility(UE4.ESlateVisibility.Collapsed)
+        else
+          self.SkillTypeParent:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+          local text, ImagePath = BattleUtils.GetSkillTypePath(skillConf.Skill_Type, damageType)
+          self.DepartmentText:SetText(text)
+          self.SkillTypeIcon1:SetPath(ImagePath)
+        end
       end
       if petCard and petCard.petState:GetMimic() then
         self.HeadIcon:SetVisibility(UE4.ESlateVisibility.Collapsed)

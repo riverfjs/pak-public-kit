@@ -6,14 +6,17 @@ function NRCPanelDynamicData:Ctor()
 end
 
 function NRCPanelDynamicData:SetOpenCallback(caller, func, ...)
-  OnOpenCallback = _G.MakeWeakFunctor(caller, func, ...)
+  self.OnOpenCallback = _G.MakeWeakFunctor(caller, func, ...)
+  return self
 end
 
 function NRCPanelDynamicData:SetCloseCallback(caller, func, ...)
-  OnCloseCallback = _G.MakeWeakFunctor(caller, func, ...)
+  self.OnCloseCallback = _G.MakeWeakFunctor(caller, func, ...)
+  return self
 end
 
 function NRCPanelDynamicData:TriggerOpen(panelData)
+  local OnOpenCallback = self.OnOpenCallback
   if OnOpenCallback then
     local ok, msg = pcall(OnOpenCallback, panelData)
     if not ok then
@@ -24,6 +27,7 @@ function NRCPanelDynamicData:TriggerOpen(panelData)
 end
 
 function NRCPanelDynamicData:TriggerClose(panelData)
+  local OnCloseCallback = self.OnCloseCallback
   if OnCloseCallback then
     local ok, msg = pcall(OnCloseCallback, panelData)
     if not ok then
@@ -39,6 +43,7 @@ end
 
 function NRCPanelDynamicData:SetModifiedPanelLayerType(modifiedLayerType)
   self.modifiedPanelLayerType = modifiedLayerType
+  return self
 end
 
 return NRCPanelDynamicData

@@ -11,6 +11,14 @@ function UMG_TakePhotosTabBtn_C:OnItemUpdate(_data, datalist, index)
   self.Data = _data
   self.Suit_Ordinary:SetPath(_data.NormalIconPath or "")
   self.Suit_Selected:SetPath(_data.BlackIconPath or "")
+  if self.RedDot then
+    if _data.RedDotKey then
+      self.RedDot:SetVisibility(UE.ESlateVisibility.SelfHitTestInvisible)
+      self.RedDot:SetupKey(_data.RedDotKey, _data.RedDotExtraKey)
+    else
+      self.RedDot:SetVisibility(UE.ESlateVisibility.Collapsed)
+    end
+  end
 end
 
 function UMG_TakePhotosTabBtn_C:OnItemSelected(_bSelected)

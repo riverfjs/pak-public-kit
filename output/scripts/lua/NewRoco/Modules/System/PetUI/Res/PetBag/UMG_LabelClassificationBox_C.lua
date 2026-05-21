@@ -2,7 +2,6 @@ local PetUIModuleEvent = require("NewRoco.Modules.System.PetUI.PetUIModuleEvent"
 local Base = require("NewRoco.TUI.BP_NRCItemBase_C")
 local UMG_LabelClassificationBox_C = Base:Extend("UMG_LabelClassificationBox_C")
 local NPCShopUtils = require("NewRoco.Modules.System.NPCShopUI.NPCShopUtils")
-local DialogContext = require("NewRoco.Modules.System.TipsModule.DialogContext")
 UMG_LabelClassificationBox_C.LineType = {
   None = 0,
   FrontLine = 1,
@@ -10,7 +9,7 @@ UMG_LabelClassificationBox_C.LineType = {
 }
 
 function UMG_LabelClassificationBox_C:OnConstruct()
-  self.ModifyBtn.btnLevelUp.OnClicked:Add(self, self.OnRenameBtnClick)
+  self.SettingsBtn.btnLevelUp.OnClicked:Add(self, self.OnRenameBtnClick)
   if self and self.AddButton then
     self.AddButton.OnClicked:Add(self, self.OnClickedAddButton)
   end
@@ -24,7 +23,7 @@ function UMG_LabelClassificationBox_C:OnConstruct()
 end
 
 function UMG_LabelClassificationBox_C:OnDestruct()
-  self.ModifyBtn.btnLevelUp.OnClicked:Remove(self, self.OnRenameBtnClick)
+  self.SettingsBtn.btnLevelUp.OnClicked:Remove(self, self.OnRenameBtnClick)
   if self and self.AddButton then
     self.AddButton.OnClicked:Remove(self, self.OnClickedAddButton)
   end
@@ -81,7 +80,7 @@ function UMG_LabelClassificationBox_C:OnItemUpdate(_data, datalist, index)
   self.MarkIcon:SetPath(self.collectConf.mark_flat_icon)
   self.QuantityText:SetText(string.format("%d/%d", self.petCellNumber, self.petCellMaxNumber))
   self.Mask:SetVisibility(UE4.ESlateVisibility.Collapsed)
-  self.ModifyBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self.SettingsBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.BoxText_1:SetText(LuaText.warehouse_unlock_new_one)
   self.BoxText:SetColorAndOpacity(UE4.UNRCStatics.HexToSlateColor("#F4EEE1FF"))
   self.QuantityText_1:SetColorAndOpacity(UE4.UNRCStatics.HexToSlateColor("#F4EEE0FF"))
@@ -89,24 +88,10 @@ function UMG_LabelClassificationBox_C:OnItemUpdate(_data, datalist, index)
     self.NRCImage:SetColorAndOpacity(UE4.UNRCStatics.HexToLinearColor("#FFFFFF05"))
     self.NRCImage_30:SetColorAndOpacity(UE4.UNRCStatics.HexToLinearColor("#1F1F1FFF"))
   end
-  self:UpdateFreeInfoView()
+  self:UpdateTopRightMark()
   if self.data.isLock then
     self:SetClickable(false)
-    self.CanvasPanel_Money:SetVisibility(UE4.ESlateVisibility.Collapsed)
-    local rules = self.warehouseConf.unlock_rule
-    for i = 1, #rules do
-      local rule = rules[i]
-      if rule.unlockcondition == _G.Enum.WarehouseUnlockCondition.WUC_EXPEND_MONEY then
-        self.CanvasPanel_Money:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-        self.unlockCurrencyNum = rule.value
-        self.CurrencyQuantityText:SetText(rule.value)
-        local iconPath, _ = NPCShopUtils:GetGoodsCurrencyIconByType(_G.Enum.GoodsType.GT_VITEM, rule.unlock_vitem_type)
-        if iconPath then
-          self.CurrencyIcon:SetPath(iconPath)
-        end
-        break
-      end
-    end
+    self:ShowUnlockRule()
   else
     self:SetClickable(true)
   end
@@ -115,9 +100,9 @@ function UMG_LabelClassificationBox_C:OnItemUpdate(_data, datalist, index)
       self.Mask:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     end
     self.BtnSwitcher:SetActiveWidgetIndex(1)
-    self.ModifyBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.SettingsBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
   else
-    self.BtnSwitcher:SetActiveWidgetIndex(0)
+    self.BtnSwitcher:SetActiveWidgetIndex(2)
     if 0 == self.petCellNumber then
       if self.mark_type == _G.Enum.WarehouseMarkType.WMT_DEFAULT then
         self.BoxText:SetColorAndOpacity(UE4.UNRCStatics.HexToSlateColor("#605E5CFF"))
@@ -132,6 +117,38 @@ function UMG_LabelClassificationBox_C:OnItemUpdate(_data, datalist, index)
   if self.Line and self.Line2 then
     self.Line:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.Line2:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  end
+end
+
+function UMG_LabelClassificationBox_C:ShowUnlockRule()
+  self.CanvasPanel_Money:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self.Box:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  local rules = self.warehouseConf.unlock_rule
+  for i = 1, #rules do
+    local rule = rules[i]
+    if rule.unlockcondition == _G.Enum.WarehouseUnlockCondition.WUC_EXPEND_MONEY then
+      self.CanvasPanel_Money:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+      self.CurrencyQuantityText:SetText(rule.value)
+      local iconPath, _ = NPCShopUtils:GetGoodsCurrencyIconByType(_G.Enum.GoodsType.GT_VITEM, rule.unlock_id)
+      if iconPath then
+        self.CurrencyIcon:SetPath(iconPath)
+      end
+    elseif rule.unlockcondition == _G.Enum.WarehouseUnlockCondition.WUC_USE_BAGITEM then
+      local item = _G.NRCModuleManager:DoCmd(_G.BagModuleCmd.GetBagItemByID, rule.unlock_id)
+      if item then
+        local itemNum = item.num or 0
+        if itemNum > 0 then
+          self.CanvasPanel_Money:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+          self.Box:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+          self.CurrencyQuantityText_1:SetText(rule.value)
+          local BagItemConf = _G.DataConfigManager:GetBagItemConf(rule.unlock_id)
+          local iconPath = BagItemConf.icon
+          if iconPath then
+            self.CurrencyIcon_1:SetPath(iconPath)
+          end
+        end
+      end
+    end
   end
 end
 
@@ -159,7 +176,7 @@ function UMG_LabelClassificationBox_C:OnItemSelected(_bSelected)
         petUIModule:DispatchEvent(PetUIModuleEvent.OnClickSelectPetBagBoxItem, self.data, self.index)
       end
     end
-    self.ModifyBtn:SetVisibility(UE4.ESlateVisibility.Visible)
+    self.SettingsBtn:SetVisibility(UE4.ESlateVisibility.Visible)
   else
     if self.NRCImage and self.NRCImage_30 then
       self.NRCImage:SetColorAndOpacity(UE4.UNRCStatics.HexToLinearColor("#FFFFFF05"))
@@ -170,7 +187,7 @@ function UMG_LabelClassificationBox_C:OnItemSelected(_bSelected)
     else
       self.BoxText:SetColorAndOpacity(UE4.UNRCStatics.HexToSlateColor("#F4EEE1FF"))
     end
-    self.ModifyBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.SettingsBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
     if not self.data.isLock then
       if self.mark_type and self.mark_type == _G.Enum.WarehouseMarkType.WMT_DEFAULT then
         if 0 == self.petCellNumber then
@@ -192,28 +209,35 @@ function UMG_LabelClassificationBox_C:OnAnimationFinished(Anim)
   end
 end
 
-function UMG_LabelClassificationBox_C:UpdateFreeInfoView()
-  if self.data then
+function UMG_LabelClassificationBox_C:UpdateTopRightMark()
+  if self.data and self.boxInfo then
     local FreeNum = _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.GetBoxFreePetNumInPortableBag, self.data.id)
     if self.CurrencyQuantityText_2 then
       self.CurrencyQuantityText_2:SetText("x" .. tostring(FreeNum))
     end
-    if self.CanvasPanel_ReleaseLife then
-      self.CanvasPanel_ReleaseLife:SetVisibility(FreeNum > 0 and UE4.ESlateVisibility.SelfHitTestInvisible or UE4.ESlateVisibility.Collapsed)
+    if self.SuperscriptSwitcher then
+      local canShow = FreeNum > 0 or self.boxInfo.lock
+      self.SuperscriptSwitcher:SetVisibility(canShow and UE4.ESlateVisibility.SelfHitTestInvisible or UE4.ESlateVisibility.Collapsed)
+      if FreeNum > 0 then
+        self.CanvasPanel_ReleaseLife:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+        self.SuperscriptSwitcher:SetActiveWidgetIndex(0)
+      elseif self.boxInfo.lock then
+        self.SuperscriptSwitcher:SetActiveWidgetIndex(1)
+      end
     end
   end
 end
 
 function UMG_LabelClassificationBox_C:OnAddOrRemoveItemFromFreeList(isAdd, petData)
-  self:UpdateFreeInfoView()
+  self:UpdateTopRightMark()
 end
 
 function UMG_LabelClassificationBox_C:OnFreeListClear()
-  self:UpdateFreeInfoView()
+  self:UpdateTopRightMark()
 end
 
 function UMG_LabelClassificationBox_C:OnAllBoxFreeNumListUpdate()
-  self:UpdateFreeInfoView()
+  self:UpdateTopRightMark()
 end
 
 function UMG_LabelClassificationBox_C:GetCollectMarkConfigByType(type)
@@ -227,12 +251,13 @@ function UMG_LabelClassificationBox_C:GetCollectMarkConfigByType(type)
 end
 
 function UMG_LabelClassificationBox_C:OnRenameBtnClick()
-  if self.data then
+  if self.data and self.boxInfo then
     _G.NRCAudioManager:PlaySound2DAuto(40002003, "UMG_LabelClassificationBox_C:OnRenameBtnClick")
     _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.OpenNetPetBagMarkWarehousePanel, {
       id = self.data.id,
       mark_type = self.mark_type,
-      box_name = self.box_name
+      box_name = self.box_name,
+      lock = self.boxInfo.lock
     })
   end
 end
@@ -254,13 +279,14 @@ function UMG_LabelClassificationBox_C:OnClickedAddButton()
   end
 end
 
-function UMG_LabelClassificationBox_C:UpdateMarkIconAndName(mark_type, box_name)
+function UMG_LabelClassificationBox_C:UpdateMarkIconAndName(mark_type, box_name, lock)
   if mark_type then
     self.mark_type = mark_type
     self.box_name = box_name
     if self.boxInfo then
       self.boxInfo.mark_type = mark_type
       self.boxInfo.box_name = box_name
+      self.boxInfo.lock = lock
     end
     self:SetBoxName(self.box_name)
     local conf = self:GetCollectMarkConfigByType(mark_type)
@@ -274,156 +300,18 @@ function UMG_LabelClassificationBox_C:UpdateMarkIconAndName(mark_type, box_name)
         self.MarkIcon:SetPath(icon)
       end
     end
+    self:UpdateTopRightMark()
   end
 end
 
 function UMG_LabelClassificationBox_C:OpenRemindPanel()
-  local checkPass, _ = self:CheckCanUnlock()
-  local iconPath, coinNum, coinType = self:GetCoinInfo()
-  local popUpData = _G.NRCCommonPopUpData()
-  if checkPass then
-    if iconPath and coinNum then
-      popUpData.Btn_RightTitle = {MoneyIcon = iconPath, QuantityText = coinNum}
-    end
-    popUpData.Btn_RightText = LuaText.umg_bag_11
-    popUpData.Btn_RightHandler = self.UnlockBox
-  elseif iconPath and coinNum then
-    if coinType == _G.Enum.VisualItem.VI_COUPON then
-      popUpData.Btn_RightTitle = {
-        MoneyIcon = iconPath,
-        QuantityText = coinNum,
-        Color = "#C7494AFF"
-      }
-      popUpData.Btn_RightText = LuaText.umg_bag_11
-      popUpData.Btn_RightHandler = self.OpenPopUpTips
-    else
-      popUpData.Btn_GrayStateTitle = {
-        MoneyIcon = iconPath,
-        QuantityText = coinNum,
-        Color = "#C7494AFF"
-      }
-      popUpData.Btn_GrayStateText = LuaText.umg_bag_11
-      popUpData.Btn_GrayStateHandler = self.UnlockBox
-    end
-  end
-  if coinType then
-    local IsShowBuyIcon = false
-    if coinType == _G.Enum.VisualItem.VI_COUPON or coinType == _G.Enum.VisualItem.VI_DIAMOND then
-      IsShowBuyIcon = true
-    end
-    local totalNum = self:GetCoinNum(coinType)
-    local moneyInfo = {
-      {
-        moneyType = coinType,
-        sum = totalNum,
-        IsShowBuyIcon = IsShowBuyIcon,
-        currencyId = coinType
-      }
+  if self.data and self.data.isLock then
+    local data = {
+      id = self.data.id,
+      conf = self.warehouseConf
     }
-    popUpData.MoneyInfo = moneyInfo
+    _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.OpenPurchaseBoxPanel, data)
   end
-  popUpData.Call = self
-  popUpData.Btn_LeftText = LuaText.CANCEL
-  popUpData.TitleText = LuaText.warehouse_buy_new_one
-  popUpData.ContentText = self:GetRemindDesc()
-  _G.NRCModuleManager:DoCmd(_G.CommonPopUpModuleCmd.OpenRemindPanel, popUpData)
-end
-
-function UMG_LabelClassificationBox_C:OpenPopUpTips()
-  local Ctx = DialogContext()
-  local _, coinNum, coinType = self:GetCoinInfo()
-  if coinNum and coinType then
-    local itemConf = _G.DataConfigManager:GetVisualItemConf(coinType)
-    if itemConf and itemConf.displayName then
-      Ctx:SetTitle(LuaText.TIPS)
-      Ctx:SetContent(string.format(LuaText.Recharge_Tips3, coinNum, itemConf.displayName))
-      Ctx:SetMode(DialogContext.Mode.OK_CANCEL)
-      Ctx:SetCallbackOkOnly(self, self.OpenTopUpShop)
-      Ctx:SetCloseOnCancel(true)
-      Ctx:SetButtonText(LuaText.YES, LuaText.NO)
-      _G.NRCModuleManager:DoCmd(TipsModuleCmd.Dialog_OpenDialog, Ctx)
-    end
-  end
-end
-
-function UMG_LabelClassificationBox_C:OpenTopUpShop()
-  _G.NRCModuleManager:DoCmd(_G.ShopModuleCmd.OnCmdOpenTopUpShop, true)
-end
-
-function UMG_LabelClassificationBox_C:GetCoinNum(VItemType)
-  local coin_num = _G.DataModelMgr.PlayerDataModel:GetVItemCount(VItemType) or 0
-  return coin_num
-end
-
-function UMG_LabelClassificationBox_C:GetRemindDesc()
-  if self.warehouseConf then
-    local rules = self.warehouseConf.unlock_rule
-    local Desc = string.format("%s\n", LuaText.warehouse_unlock_condition)
-    for _, rule in pairs(rules or {}) do
-      if rule and rule.unlock_rule_text and rule.value then
-        if not Desc then
-          Desc = string.format(rule.unlock_rule_text, rule.value)
-        else
-          local str = string.format(rule.unlock_rule_text, rule.value)
-          Desc = string.format([[
-%s
-%s]], Desc, str)
-        end
-      end
-    end
-    return Desc
-  end
-  return ""
-end
-
-function UMG_LabelClassificationBox_C:UnlockBox()
-  local checkPass, reason = self:CheckCanUnlock()
-  if checkPass then
-    if self.data and self.data.id then
-      _G.NRCModuleManager:DoCmd(PetUIModuleCmd.OnCmdZonePetBoxUnlockReq, self.data.id)
-    end
-  elseif reason then
-    if reason == _G.Enum.WarehouseUnlockCondition.WUC_EXPEND_MONEY then
-      _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.umg_npcshopitem_1_1)
-    elseif reason == _G.Enum.WarehouseUnlockCondition.WUC_RECORD_PET then
-      _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.warehouse_unlock_not_enough_pet)
-    end
-  end
-end
-
-function UMG_LabelClassificationBox_C:CheckCanUnlock()
-  if self.data and self.data.isLock then
-    local rules = self.warehouseConf.unlock_rule
-    for _, rule in pairs(rules or {}) do
-      if rule.unlockcondition == _G.Enum.WarehouseUnlockCondition.WUC_EXPEND_MONEY then
-        local coinNum = self:GetCoinNum(rule.unlock_vitem_type)
-        if coinNum < rule.value then
-          return false, _G.Enum.WarehouseUnlockCondition.WUC_EXPEND_MONEY
-        end
-      elseif rule.unlockcondition == _G.Enum.WarehouseUnlockCondition.WUC_RECORD_PET then
-        local collectedPetsNum = _G.NRCModuleManager:DoCmd(_G.HandbookModuleCmd.GetHandbookCollectedPetsNum)
-        if collectedPetsNum < rule.value then
-          return false, _G.Enum.WarehouseUnlockCondition.WUC_RECORD_PET
-        end
-      end
-    end
-    return true
-  end
-  return false
-end
-
-function UMG_LabelClassificationBox_C:GetCoinInfo()
-  if self.data and self.data.isLock then
-    local rules = self.warehouseConf.unlock_rule
-    for _, rule in pairs(rules or {}) do
-      if rule.unlockcondition == _G.Enum.WarehouseUnlockCondition.WUC_EXPEND_MONEY then
-        local coinNum = rule.value
-        local iconPath, _ = NPCShopUtils:GetGoodsCurrencyIconByType(_G.Enum.GoodsType.GT_VITEM, rule.unlock_vitem_type)
-        return iconPath, coinNum, rule.unlock_vitem_type
-      end
-    end
-  end
-  return nil, nil, nil
 end
 
 function UMG_LabelClassificationBox_C:ReadyDragPetToBox(bDrag)

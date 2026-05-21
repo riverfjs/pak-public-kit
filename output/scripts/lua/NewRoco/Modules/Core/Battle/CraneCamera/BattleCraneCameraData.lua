@@ -168,6 +168,20 @@ function BattleCraneCameraData:LoadGlobalConf()
     Min = math.min(globalConf.DirectPitchAngle.X, globalConf.DirectPitchAngle.Y),
     Max = math.max(globalConf.DirectPitchAngle.X, globalConf.DirectPitchAngle.Y)
   }
+  if not globalConf.Slope2 then
+    globalConf.Slope2 = {X = -20, Y = 20}
+  end
+  self.GlobalConf[InputParam.Slope2] = {
+    Min = math.min(globalConf.Slope2.X, globalConf.Slope2.Y),
+    Max = math.max(globalConf.Slope2.X, globalConf.Slope2.Y)
+  }
+  if not globalConf.TeamPet1Pet2HeightRatio then
+    globalConf.TeamPet1Pet2HeightRatio = {X = 0.1, Y = 2}
+  end
+  self.GlobalConf[InputParam.TeamPet1Pet2HeightRatio] = {
+    Min = math.min(globalConf.TeamPet1Pet2HeightRatio.X, globalConf.TeamPet1Pet2HeightRatio.Y),
+    Max = math.max(globalConf.TeamPet1Pet2HeightRatio.X, globalConf.TeamPet1Pet2HeightRatio.Y)
+  }
   self.GlobalConf.DepthOfFieldScale = globalConf.DepthOfFieldScale
   self.GlobalConf.DepthOfFieldNear = globalConf.DepthOfFieldNear
   self.GlobalConf.DepthOfFieldFar = globalConf.DepthOfFieldFar
@@ -735,20 +749,77 @@ function BattleCraneCameraData:IsStandInLeaf(Pet)
   return false
 end
 
+function BattleCraneCameraData:GetSlopeByPos(pos1, pos2)
+  if nil == pos1 or nil == pos2 then
+    return 0
+  end
+  local teamPetPos2D = UE.FVector2D(pos1.X, pos1.Y)
+  local enemyPetPos2D = UE.FVector2D(pos2.X, pos2.Y)
+  local distance2d = UE4.UKismetMathLibrary.Distance2D(teamPetPos2D, enemyPetPos2D)
+  local Height = pos1.Z - pos2.Z
+  if 0 == distance2d then
+    return 0
+  end
+  return math.atan(Height, distance2d) * (180 / math.pi)
+end
+
 function BattleCraneCameraData:CalcSlope()
   local teamPetPos = self:GetTeamPetPos(BattleEnum.Team.ENUM_TEAM, 1)
   local enemyPetPos = self:GetTeamPetPos(BattleEnum.Team.ENUM_ENEMY, 1)
   if nil == teamPetPos or nil == enemyPetPos then
     return 0
   end
-  local teamPetPos2D = UE.FVector2D(teamPetPos.X, teamPetPos.Y)
-  local enemyPetPos2D = UE.FVector2D(enemyPetPos.X, enemyPetPos.Y)
-  local distance2d = UE4.UKismetMathLibrary.Distance2D(teamPetPos2D, enemyPetPos2D)
-  local Height = teamPetPos.Z - enemyPetPos.Z
-  if 0 == distance2d then
+  return self:GetSlopeByPos(teamPetPos, enemyPetPos)
+end
+
+function BattleCraneCameraData:CalcSlope2()
+  local pos1, pos2
+  if _G.NRCEditorEntranceEnable then
+    pos1 = self.G6Actors.PreviewCameraActor:K2_GetActorLocation()
+    pos2 = self.CurLookPos
+  else
+    pos1, pos2 = _G.BattleManager.vBattleField.battleCraneCamera:GetCameraComponentAndActorPos()
+  end
+  if not pos1 or not pos2 then
     return 0
   end
-  return math.atan(Height, distance2d) * (180 / math.pi)
+  return self:GetSlopeByPos(pos1, pos2)
+end
+
+function BattleCraneCameraData:GetTeamPet1Pet2HeightRatioInG6Editor(Team)
+  local pets
+  if Team == BattleEnum.Team.ENUM_TEAM then
+    pets = self.G6Actors.TeamPets
+  else
+    pets = self.G6Actors.EnemyPets
+  end
+  if pets[1] and pets[2] then
+    local height1 = pets[1]:GetHalfHeight()
+    local height2 = pets[2]:GetHalfHeight()
+    return height1 / height2
+  end
+  return 1
+end
+
+function BattleCraneCameraData:GetTeamPet1Pet2HeightRatio()
+  local Team = BattleEnum.Team.ENUM_TEAM
+  if _G.NRCEditorEntranceEnable then
+    local ans = self:GetTeamPet1Pet2HeightRatioInG6Editor(Team)
+    return ans
+  end
+  local PawnManager = _G.BattleManager.battlePawnManager
+  local pets = {}
+  if Team == BattleEnum.Team.ENUM_TEAM then
+    pets = PawnManager:GetTeamAllPets()
+  else
+    pets = PawnManager:GetEnemyAllPets()
+  end
+  if pets[1] and pets[2] then
+    local height1 = pets[1]:GetHalfHeight()
+    local height2 = pets[2]:GetHalfHeight()
+    return height1 / height2
+  end
+  return 1
 end
 
 function BattleCraneCameraData:GetPetHeightByTypeInG6Editor(Type)
@@ -840,6 +911,12 @@ function BattleCraneCameraData:InitGetValueFuncMap()
     end,
     [controllerInputType.DirectPitchAngle] = function()
       return self:GetDirectPitchAngle()
+    end,
+    [controllerInputType.Slope2] = function()
+      return self:CalcSlope2()
+    end,
+    [controllerInputType.TeamPet1Pet2HeightRatio] = function()
+      return self:GetTeamPet1Pet2HeightRatio()
     end
   }
 end
@@ -893,6 +970,18 @@ function BattleCraneCameraData:GetEnvParam()
   info.EnemyPetHeightClamp = checkFunc(globalConf[InputParam.EnemyPetHeight], info.EnemyPetHeight)
   info.TeamEnemyRatioClamp = checkFunc(globalConf[InputParam.PetHeightRatio], info.TeamEnemyRatio)
   info.DirectPitchAngleClamp = checkFunc(globalConf[InputParam.DirectPitchAngle], info.DirectPitchAngle)
+  info.slope2 = self:CalcSlope2()
+  if globalConf[InputParam.Slope2] then
+    info.slope2Clamp = checkFunc(globalConf[InputParam.Slope2], info.slope2)
+  else
+    info.slope2Clamp = 0
+  end
+  info.TeamPet1Pet2HeightRatio = self:GetTeamPet1Pet2HeightRatio()
+  if globalConf[InputParam.TeamPet1Pet2HeightRatio] then
+    info.TeamPet1Pet2HeightRatioClamp = checkFunc(globalConf[InputParam.TeamPet1Pet2HeightRatio], info.TeamPet1Pet2HeightRatio)
+  else
+    info.TeamPet1Pet2HeightRatioClamp = 0
+  end
   return info
 end
 
@@ -914,7 +1003,6 @@ function BattleCraneCameraData:ResetCameraBaseInfo(TargetA, TargetB, SpringArmOf
 end
 
 function BattleCraneCameraData:ResetGlobalInfo(SlopeX, SlopeY, TeamPetHeightX, TeamPetHeightY, EnemyPetHeightX, EnemyPetHeightY, HeightRatioX, HeightRatioY, PitchX, PitchY, YawX, YawY, XSpeed, YSpeed, PitchAngleX, PitchAngleY)
-  self.GlobalConf = {}
   local InputParam = BattleCraneCameraDefine.InputParam
   self.GlobalConf[InputParam.Slope] = {
     Min = math.min(SlopeX, SlopeY),
@@ -946,6 +1034,18 @@ function BattleCraneCameraData:ResetGlobalInfo(SlopeX, SlopeY, TeamPetHeightX, T
   if YSpeed then
     self.CameraFreedom.YSpeed = YSpeed
   end
+end
+
+function BattleCraneCameraData:ResetGlobalInfoTwo(Slope2X, Slope2Y, MyPet1Pet2HeightRatioX, MyPet1Pet2HeightRatioY)
+  local InputParam = BattleCraneCameraDefine.InputParam
+  self.GlobalConf[InputParam.Slope2] = {
+    Min = math.min(Slope2X, Slope2Y),
+    Max = math.max(Slope2X, Slope2Y)
+  }
+  self.GlobalConf[InputParam.TeamPet1Pet2HeightRatio] = {
+    Min = math.min(MyPet1Pet2HeightRatioX, MyPet1Pet2HeightRatioY),
+    Max = math.max(MyPet1Pet2HeightRatioX, MyPet1Pet2HeightRatioY)
+  }
 end
 
 function BattleCraneCameraData:ResetControlArray(controllerCfg)

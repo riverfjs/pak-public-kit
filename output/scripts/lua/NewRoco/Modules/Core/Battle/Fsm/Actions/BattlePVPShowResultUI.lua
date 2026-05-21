@@ -4,17 +4,24 @@ local BattleUIModuleCmd = require("NewRoco.Modules.System.BattleUI.BattleUIModul
 local BattleUtils = require("NewRoco.Modules.Core.Battle.Common.BattleUtils")
 local a = require("Common.Coroutine.async")
 local au = require("Common.Coroutine.async_util")
+local NPCLuaUtils = require("NewRoco.Modules.Core.NPC.NPCLuaUtils")
 local BattleClientBranchActionBase = require("NewRoco.Modules.Core.Battle.Fsm.Actions.Base.BattleClientBranchActionBase")
 local FsmUtils = require("NewRoco.Modules.Core.Fsm.FsmUtils")
 local LineTraceUtils = require("NewRoco.Modules.Core.Battle.Common.LineTraceUtils")
 local Base = BattleClientBranchActionBase
 local BattlePVPShowResultUI = Base:Extend("BattlePVPShowResultUI")
 
+function BattlePVPShowResultUI:Ctor(...)
+  Base.Ctor(self, ...)
+  self.module = _G.NRCModuleManager:GetModule("BattleUIModule")
+end
+
 function BattlePVPShowResultUI:OnEnter()
   if BattleUtils.IsLeaderChallenge() or BattleUtils.IsNpcChallenge() then
     self:Finish()
     return
   end
+  self.LoadSkillOver = nil
   self.skillOver = false
   self.BattleManager = _G.BattleManager
   self.fsm:Pause()
@@ -36,14 +43,10 @@ function BattlePVPShowResultUI:OnEnter()
     self:CloseResult()
     return
   end
-  local createCameraResult, createCameraErrorMessage = self:CreateCharacterMaskCamera()
-  if not createCameraResult then
-    Log.Error("BattlePVPShowResultUI:OnEnter", createCameraErrorMessage)
-  end
   _G.NRCModeManager:DoCmd(BattleUIModuleCmd.CloseBuffInfo)
   _G.NRCModeManager:DoCmd(BattleUIModuleCmd.ClosePVPValueNumberPanel)
   _G.NRCModeManager:DoCmd(BattleUIModuleCmd.OnShowBatleResult)
-  _G.BattleEventCenter:Bind(self, BattleEvent.CLICKED_Result_Close, BattleEvent.OnSkillResLoaded, BattleEvent.PET_SPAWNED)
+  _G.BattleEventCenter:Bind(self, BattleEvent.CLICKED_Result_Close, BattleEvent.PET_SPAWNED)
   self.SkillComponent = self.BattleManager.vBattleField.battleFieldActor.Skill
   local LastHitBaseId = self.WinPlayer.FashionData.LastHitPetBaseId
   local LastHitGID = self.WinPlayer.FashionData.LastHitGID
@@ -92,7 +95,7 @@ function BattlePVPShowResultUI:OnEnter()
       self.winPet = BattleManager.battlePawnManager:PawnPet(self.WinPlayer.teamEnm, self.WinPlayer.team, winCard, self.WinPlayer, nil, true)
     end
   end
-  self.skillResList = {skillPath}
+  self.skillResPath = skillPath
   self.loadedSkillResCount = 0
   self:LaunchAsyncTask(function(noUncheckedError, msgOrResult)
   end)
@@ -120,7 +123,7 @@ end
 
 local function LoadSkillTask(self, callback)
   self.loadSkillTaskCallback = callback
-  _G.BattleSkillManager:PreLoadRes(self.skillResList, true)
+  BattleResourceManager:LoadClassAsync(self, self.skillResPath, self.OnSkillResLoaded, self.OnSkillFinish)
 end
 
 BattlePVPShowResultUI.LoadSkillTask = a.wrap(LoadSkillTask)
@@ -131,7 +134,7 @@ function BattlePVPShowResultUI:OnPawnNewPetFinish(pet)
     self.winPet:HidePet()
     self.winPet:PinOnTheGround()
     self.NeedWaitLoadPet = false
-    if self.loadedSkillResCount == #self.skillResList and not self.NeedWaitLoadPet and self.loadSkillTaskCallback then
+    if self.LoadSkillClass and not self.NeedWaitLoadPet and self.loadSkillTaskCallback then
       self.loadSkillTaskCallback()
     end
   end
@@ -146,10 +149,9 @@ local function PlayOverSkillTask(self, callback)
     callback(false, "SkillComponent is nil")
     return
   end
-  local skillPath = self.skillResList[1]
-  local skillClass = BattleSkillManager:GetLoadedClass(skillPath)
+  local skillClass = self.LoadSkillClass
   if not skillClass then
-    callback(false, string.format("Failed to load skill class %s", skillPath))
+    callback(false, string.format("Failed to load skill class %s", self.skillResPath))
     return
   end
   self.WinPlayer:ShowPlayer()
@@ -204,7 +206,7 @@ local function PlayOverSkillTask(self, callback)
       self.LosePlayer.model
     })
   end
-  self.SkillComponent:PlaySkill(skill)
+  self.SkillComponent:LoadAndPlaySkill(skill)
 end
 
 function BattlePVPShowResultUI:OpenUI()
@@ -229,7 +231,7 @@ function BattlePVPShowResultUI:SkillStart(Event, Skill)
   end
   self:AdjustPlayer()
   self:SafeDelayFrames("d_AdjustPlayer", 2, self.AdjustPlayer, self)
-  self:SafeDelayFrames("d_InitCharacterMaskCamera", 2, self.InitCharacterMaskCamera, self, Skill)
+  self:SafeDelayFrames("d_InitCharacterMaskCamera", 2, self.InitUiMaskActors, self, Skill)
 end
 
 function BattlePVPShowResultUI:AdjustPlayer()
@@ -258,43 +260,41 @@ function BattlePVPShowResultUI:AdjustPlayer()
   end
 end
 
-function BattlePVPShowResultUI:CreateCharacterMaskCamera()
-  local asset = _G.BattleResourceManager:GetCacheAssetDirect(BattleConst.BattleCharacterMaskCamera)
-  local BattleCharacterMaskCameraClass = asset
-  if not UE.UObject.IsValid(BattleCharacterMaskCameraClass) then
-    return false, "BattlePVPShowResultUI:CreateCharacterMaskCamera BattleCharacterMaskCameraClass is not valid"
-  end
-  local world = _G.UE4Helper.GetCurrentWorld()
-  local cameraTransform = UE.FTransform()
-  local battleCharacterMaskCamera = world:Abs_SpawnActor(BattleCharacterMaskCameraClass, cameraTransform, UE4.ESpawnActorCollisionHandlingMethod.AlwaysSpawn, nil)
-  _G.BattleManager.vBattleField.battleCharacterMaskCamera = battleCharacterMaskCamera
-  if not UE.UObject.IsValid(battleCharacterMaskCamera) then
-    return false
-  end
-  return true
-end
-
-function BattlePVPShowResultUI:InitCharacterMaskCamera(skill)
+function BattlePVPShowResultUI:InitUiMaskActors(skill)
   local Blackboard = UE.UObject.IsValid(skill) and skill:GetBlackboard()
-  local cameraActor = Blackboard and Blackboard:GetValueAsObject("camActor_0001")
-  local vBattleField = _G.BattleManager and _G.BattleManager.vBattleField
-  local battleCharacterMaskCamera = vBattleField and vBattleField.battleCharacterMaskCamera
-  if UE.UObject.IsValid(battleCharacterMaskCamera) then
-    local winPlayer = self.WinPlayer
-    local winPlayerModel = winPlayer and winPlayer.model
-    local winPet = self.winPet
-    local winPetModel = winPet and winPet.model
-    local actorList = {}
-    if UE.UObject.IsValid(winPlayerModel) then
-      table.insert(actorList, winPlayerModel)
+  local winPlayer = self.WinPlayer
+  local winPlayerModel = winPlayer and winPlayer.model
+  local winPet = self.winPet
+  local winPetModel = winPet and winPet.model
+  local actorList = {}
+  if UE.UObject.IsValid(winPlayerModel) then
+    table.insert(actorList, winPlayerModel)
+    local AvatarDecorator = winPlayerModel and winPlayerModel.AvatarDecorator
+    if UE.UObject.IsValid(AvatarDecorator) then
+      local decoratorArray = AvatarDecorator:GetDecorators()
+      local decoratorList = decoratorArray:ToTable()
+      for j, decorator in ipairs(decoratorList) do
+        if UE.UObject.IsValid(decorator) then
+          table.insert(actorList, decorator)
+        end
+      end
     end
-    if UE.UObject.IsValid(winPetModel) then
-      table.insert(actorList, winPetModel)
-    end
-    battleCharacterMaskCamera:SetShowOnlyActorList(actorList)
   end
-  if UE.UObject.IsValid(battleCharacterMaskCamera) and UE.UObject.IsValid(cameraActor) then
-    battleCharacterMaskCamera:SetFollowTarget(cameraActor)
+  if UE.UObject.IsValid(winPetModel) then
+    table.insert(actorList, winPetModel)
+  end
+  if UE.UObject.IsValid(Blackboard) then
+    local pvpShowResultUiSkillActorBlackboardKeyList = BattleConst and BattleConst.PvpShowResultUiSkillActorBlackboardKeyList or {}
+    for i, key in ipairs(pvpShowResultUiSkillActorBlackboardKeyList) do
+      local object = Blackboard:GetValueAsObject(key)
+      if UE.UObject.IsValid(object) and object:IsA(UE.AActor) then
+        local actor = object
+        table.insert(actorList, actor)
+      end
+    end
+  end
+  for i, actor in ipairs(actorList) do
+    NPCLuaUtils.SetCustomDepth(actor, BattleConst.BattleVictoryUiMaskStencilValue)
   end
 end
 
@@ -333,13 +333,9 @@ function BattlePVPShowResultUI:OnFinish()
   self.loadSkillTaskCallback = nil
 end
 
-function BattlePVPShowResultUI:OnSkillResLoaded(eventName, resPath)
-  for i = 1, #self.skillResList do
-    if resPath == self.skillResList[i] then
-      self.loadedSkillResCount = self.loadedSkillResCount + 1
-    end
-  end
-  if self.loadedSkillResCount == #self.skillResList and not self.NeedWaitLoadPet and self.loadSkillTaskCallback then
+function BattlePVPShowResultUI:OnSkillResLoaded(modelClass)
+  self.LoadSkillClass = modelClass
+  if not self.NeedWaitLoadPet and self.loadSkillTaskCallback then
     self.loadSkillTaskCallback()
   end
 end
@@ -347,10 +343,6 @@ end
 function BattlePVPShowResultUI:OnBattleEvent(eventName, ...)
   if eventName == BattleEvent.CLICKED_Result_Close then
     self:CloseResult()
-    return true
-  end
-  if eventName == BattleEvent.OnSkillResLoaded then
-    self:OnSkillResLoaded(eventName, ...)
     return true
   end
   if eventName == BattleEvent.PET_SPAWNED then

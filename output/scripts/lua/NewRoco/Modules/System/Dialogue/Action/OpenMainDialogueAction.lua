@@ -18,6 +18,7 @@ FsmUtils.MergeMembers(Base, OpenMainDialogueAction, {
 function OpenMainDialogueAction:Ctor(name, properties)
   Base.Ctor(self, name, properties)
   self.Request = nil
+  self.DelayHandler = -1
 end
 
 function OpenMainDialogueAction:OnPreload()
@@ -81,6 +82,10 @@ function OpenMainDialogueAction:PlayAudioAnim()
     Log.Error("\230\151\160\230\179\149\230\137\190\229\136\176\232\167\146\232\137\178\232\186\171\228\184\138\231\154\132AnimInstance", View and UE.UObject.GetName(View) or "\230\178\161\230\156\137ViewObject")
     return
   end
+  if not AnimInstance.PlayEmotion then
+    Log.Error("\232\167\146\232\137\178\232\186\171\228\184\138\231\154\132AnimInstance\230\151\160\230\179\149\230\146\173\230\148\190\232\161\168\230\131\133", View and UE.UObject.GetName(View) or "\230\178\161\230\156\137ViewObject")
+    return
+  end
   Log.Debug(UE.UObject.GetName(View), "\232\166\129\229\188\128\229\167\139\232\174\178\232\175\157\228\186\134", UE.UObject.GetName(self.AudioData))
   AnimInstance:PlayEmotion(self.AudioData, 0.1)
   self.fsm:SetProperty("LastSpeaker", Speaker)
@@ -120,7 +125,11 @@ end
 
 function OpenMainDialogueAction:AutoSkipCallback()
   if self.DialogueConf.select_ids and 0 ~= #self.DialogueConf.select_ids then
-    _G.DelayManager:DelayFrames(1, self.OnDialogueFinish, self)
+    if self.DelayHandler and self.DelayHandler > 0 then
+      _G.DelayManager:CancelDelayById(self.DelayHandler)
+      self.DelayHandler = -1
+    end
+    self.DelayHandler = _G.DelayManager:DelayFrames(1, self.OnDialogueFinish, self)
   else
     self:OnDialogueFinish()
   end
@@ -128,6 +137,9 @@ function OpenMainDialogueAction:AutoSkipCallback()
 end
 
 function OpenMainDialogueAction:OnDialogueFinish(Dialogue)
+  if self.DelayHandler and self.DelayHandler > 0 then
+    self.DelayHandler = -1
+  end
   Log.Debug("OpenMainDialogueAction:OnDialogueFinish", self.DialogueConf.id, Dialogue and Dialogue.id or "\230\178\161\230\156\137Dialogue")
   if Dialogue and self.DialogueConf.id ~= Dialogue.id then
     return
@@ -174,7 +186,10 @@ function OpenMainDialogueAction:OnFinish()
     _G.NRCResourceManager:UnLoadRes(self.Request)
     self.Request = nil
   end
-  local DialogueID = self.DialogueConf and self.DialogueConf.id or 0
+  if self.DelayHandler and self.DelayHandler > 0 then
+    _G.DelayManager:CancelDelayById(self.DelayHandler)
+    self.DelayHandler = -1
+  end
   _G.NRCEventCenter:DispatchEvent(NRCGlobalEvent.CLOSE_BLACK_SCREEN)
 end
 

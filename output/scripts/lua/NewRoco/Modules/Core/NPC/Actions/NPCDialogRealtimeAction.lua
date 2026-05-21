@@ -26,7 +26,7 @@ function NPCDialogRealtimeAction:OnNpcAction()
     return false
   end
   if _G.DialogueModuleCmd and _G.NRCModuleManager:DoCmd(_G.DialogueModuleCmd.HasDialogue) then
-    Log.Warning("NPCDialogRealtimeAction:OnNpcAction, \229\183\178\231\187\143\229\156\168\229\175\185\232\175\157\228\184\173!")
+    Log.Debug("NPCDialogRealtimeAction:OnNpcAction, \229\183\178\231\187\143\229\156\168\229\175\185\232\175\157\228\184\173!")
     return false
   end
   local Player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
@@ -55,6 +55,7 @@ end
 function NPCDialogRealtimeAction:OnSubmit(rsp)
   _G.NRCModuleManager:DoCmd(RealtimeDialogModuleCmd.StartRealtimeDialogByOption, self.Owner, self.DialogConf)
   NPCActionBase.OnSubmit(self, rsp)
+  self:Finish(true)
 end
 
 function NPCDialogRealtimeAction:GetLayerVisiblePanelCount(panelLayer)

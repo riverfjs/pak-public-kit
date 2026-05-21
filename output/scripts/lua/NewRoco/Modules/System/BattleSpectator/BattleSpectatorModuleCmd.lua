@@ -10,6 +10,7 @@ BattleSpectatorModuleCmd.OnInnerBattleNotify = "BattleSpectatorModuleCmd.OnInner
 BattleSpectatorModuleCmd.RemoveRecord = "BattleSpectatorModuleCmd.RemoveRecord"
 BattleSpectatorModuleCmd.OnInnerBattleShieldBroken = "BattleSpectatorModuleCmd.OnInnerBattleShieldBroken"
 BattleSpectatorModuleCmd.OnInnerBattleChangePet = "BattleSpectatorModuleCmd.OnInnerBattleChangePet"
+BattleSpectatorModuleCmd.TryKeepWatchNpcIfPlayerLogOut = "BattleSpectatorModuleCmd.TryKeepWatchNpcIfPlayerLogOut"
 BattleSpectatorModuleCmd.GetCanDrawDebug = "BattleSpectatorModuleCmd.GetCanDrawDebug"
 BattleSpectatorModuleCmd.SetCanDrawDebug = "BattleSpectatorModuleCmd.SetCanDrawDebug"
 return BattleSpectatorModuleCmd

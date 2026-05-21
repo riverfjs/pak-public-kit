@@ -273,7 +273,7 @@ function DialoguePanelBase:WriteWithAcceleratingSpeed(WordPerType, InitTypeInter
   end
   self._textIndexSinglePage = self._textIndexSinglePage + 1
   if self.TypeWritter then
-    self.TypeWritter:WriteOnSamePageWithTranslation(self._textsPerClick[self._textIndexSinglePage - 1], self.DialogueConf.translate_interval or self.DialogueConf.Column1, self.DialogueConf.TranslationStartPosition, self.DialogueConf.translate_end_string)
+    self.TypeWritter:WriteOnSamePageWithTranslation(self._textsPerClick[self._textIndexSinglePage - 1], nil, nil, self.DialogueConf.translate_end_string)
   end
 end
 
@@ -377,7 +377,7 @@ function DialoguePanelBase:CheckAutoPlay(bTypeFinishCallback)
   if self.AutoPlayDelayID and self.AutoPlayDelayID > 0 then
     return
   end
-  local isInBattle = self.module.DialogueFsm and self.module.DialogueFsm:GetProperty("bInBattle", false)
+  local isInBattle = self.module and self.module.DialogueFsm and self.module.DialogueFsm:GetProperty("bInBattle", false)
   if _G.UserSettingManager:IsDialogueAutoPlayOn() and not isInBattle then
     if self.TypeDone then
       if self._textIndexSinglePage > #self._textsPerClick and self._textIndex > #self._texts then

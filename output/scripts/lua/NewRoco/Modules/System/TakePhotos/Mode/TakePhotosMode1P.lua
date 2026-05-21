@@ -84,6 +84,18 @@ function TakePhotosMode1P:OnEnter()
   end
   
   player.avatarSystem.OnSwitchAvatarSuitComplete:Add(player.avatarSystem, self.OnAvatarReadyHandle)
+  if player:IsTogetherMove2P() then
+    local OtherPlayer = player:GetAnotherTogetherMovePlayer()
+    if OtherPlayer and OtherPlayer:GetAnimComponent() then
+      local OtherPlayerABP = OtherPlayer:GetAnimComponent():GetAnimInstance("RideAll")
+      if OtherPlayerABP then
+        OtherPlayerABP.bEnableTransformFilter = true
+        Log.Debug("TakePhotosMode1P OtherPlayerABP bEnableTransformFilter = true", OtherPlayer.uin)
+      end
+      self.OtherPlayer = OtherPlayer
+    end
+  end
+  _G.NRCAudioManager:SetEmitterSwitch("Mute_Switch", "Unmute", player.viewObj)
 end
 
 function TakePhotosMode1P:OnExit(bExitTakePhoto)
@@ -98,6 +110,17 @@ function TakePhotosMode1P:OnExit(bExitTakePhoto)
   local player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
   player.avatarSystem.OnSwitchAvatarSuitComplete:Remove(player.avatarSystem, self.OnAvatarReadyHandle)
   self:ResetOverlaps()
+  if self.OtherPlayer then
+    if self.OtherPlayer and self.OtherPlayer:GetAnimComponent() then
+      local OtherPlayerABP = self.OtherPlayer:GetAnimComponent():GetAnimInstance("RideAll")
+      if OtherPlayerABP then
+        OtherPlayerABP.bEnableTransformFilter = false
+        Log.Debug("TakePhotosMode1P OtherPlayerABP bEnableTransformFilter = false", self.OtherPlayer.uin)
+      end
+    end
+    self.OtherPlayer = nil
+  end
+  _G.NRCAudioManager:SetEmitterSwitch("Mute_Switch", "Mute", player.viewObj)
 end
 
 function TakePhotosMode1P:OnAvatarReady()

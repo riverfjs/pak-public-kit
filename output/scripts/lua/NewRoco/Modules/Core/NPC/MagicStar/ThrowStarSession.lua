@@ -3,6 +3,7 @@ local Base = require("NewRoco.Modules.Core.NPC.ThrowSessionBase")
 local ThrowSessionStatusEnum = require("NewRoco.Modules.Core.NPC.ThrowSessionStatusEnum")
 local NPCModuleEnum = require("NewRoco.Modules.Core.NPC.NPCModuleEnum")
 local SceneUtils = require("NewRoco.Modules.Core.Scene.Common.SceneUtils")
+local DummyTable = require("Common.DummyTable")
 local ThrowStarSession = Base:Extend("ThrowStarSession")
 ThrowStarSession.ShowTrajectory = false
 ThrowStarSession.ActiveStarSessions = {}
@@ -94,7 +95,7 @@ function ThrowStarSession:OnBeginThrow()
   local minSeqID
   local minStar = 0
   local InAirNum = 0
-  for index, star in ipairs(ThrowStarSession.ActiveStarSessions) do
+  for index, star in ipairs(ThrowStarSession.ActiveStarSessions or DummyTable) do
     InAirNum = InAirNum + 1
     Log.Debug("Active star session with status ", star.SeqID, star.status)
     if nil == minSeqID or minSeqID > star.SeqID then
@@ -164,8 +165,8 @@ function ThrowStarSession:OnEndThrow(hitActor, hitBone)
   local RelativeLocation = StarNpcView:K2_GetActorLocation()
   local TreePosArray = UE.TArray(UE.FVector)
   ThrowUtils.ShakeTrees(RelativeLocation, StarNpcView.BoomRange, TreePosArray)
-  local Actions, TargetInfos
-  Actions, TargetInfos = ThrowUtils.GatherMagicActions(self.StarNPC, RelativeLocation, 1, ChargeLevel, Range, StarMagicNpcFilter, hitActor, hitBone)
+  local Actions, TargetInfos, Players
+  Actions, TargetInfos, Players = ThrowUtils.GatherMagicActions(self.StarNPC, RelativeLocation, 1, ChargeLevel, Range, StarMagicNpcFilter, hitActor, hitBone)
   if Actions and TargetInfos then
     req.throw_effect = ProtoEnum.ThrowEffect.TRIG_MAGIC_INTERACT
     req.throw_magic_info.strength_level = ChargeLevel
@@ -204,10 +205,22 @@ function ThrowStarSession:OnEndThrow(hitActor, hitBone)
   else
     req.throw_magic_info.charge_percentage = 0
   end
+  if Players then
+    req.throw_magic_info.target_avatar_uins = Players
+  end
+  local Character = hitActor and hitActor.sceneCharacter
+  if Character and hitActor:Cast(UE4.ARocoPlayerBase) then
+    self.hitPlayerUin = Character.serverData.base.logic_id
+  end
   local starSource = StarNpcView:Abs_K2_GetActorLocation()
-  _NRCModuleManager:DoCmd(_NPCModuleCmd.SendSenseEvent, starSource, Enum.DotsAIWorldEventType.DAWET_STAR_DROP, nil, ChargeLevel)
+  local player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GetPlayerByServerID, self.owner_id)
+  if player and player.IsMagicReplayActor and player:IsMagicReplayActor() then
+  else
+    _NRCModuleManager:DoCmd(_NPCModuleCmd.SendSenseEvent, starSource, Enum.DotsAIWorldEventType.DAWET_STAR_DROP, nil, ChargeLevel)
+  end
   local SpecificEvent = StarChargeLevelEventMap[ChargeLevel]
-  if SpecificEvent then
+  if not SpecificEvent or player.IsMagicReplayActor and player:IsMagicReplayActor() then
+  else
     _NRCModuleManager:DoCmd(_NPCModuleCmd.SendSenseEvent, starSource, SpecificEvent, 0, ChargeLevel)
   end
   _NRCModuleManager:DoCmd(_NPCModuleCmd.CacheLastThrowStarInfo, starSource, ChargeLevel, StarNpcView and StarNpcView.charge_percent or 0)
@@ -219,10 +232,19 @@ function ThrowStarSession:OnEndThrowRsp(rsp)
   if 0 ~= rsp.ret_info.ret_code then
     Log.Error("ThrowStarSession:OnEndThrowRsp", rsp.ret_info.ret_code)
   end
-  for _, action in ipairs(self.actionToInteract) do
+  for _, action in ipairs(self.actionToInteract or DummyTable) do
     action:OnSubmit(rsp)
   end
   table.clear(self.actionToInteract)
+  if self.hitPlayerUin and rsp.throw_star_magic_result then
+    for _, uin in ipairs(rsp.throw_star_magic_result.star_magic_fail_avatar_uins or DummyTable) do
+      if uin == self.hitPlayerUin then
+        _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, _G.LuaText.abnormal_status_fobid_tips)
+        break
+      end
+    end
+    self.hitPlayerUin = nil
+  end
 end
 
 function ThrowStarSession:SetStatus(Status)

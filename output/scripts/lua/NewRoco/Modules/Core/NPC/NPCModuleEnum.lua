@@ -4,6 +4,9 @@ NPCModuleEnum.InteractType = {
   PET_BULL_RUSH = 2,
   STAR_HIT = 3
 }
+NPCModuleEnum.HudPoolType = {
+  PetHud = "UMG_Hud_Pet"
+}
 local SkillDamType = Enum.SkillDamType
 NPCModuleEnum.UnLockSkillPathMap = {
   [SkillDamType.SDT_NONE] = "",
@@ -88,7 +91,9 @@ NPCModuleEnum.NpcReasonFlags = {
   GUARD_SPHERE = 32,
   TAKE_PHOTO = 33,
   MAGIC_REPLAY = 34,
-  EDITOR_DEFAULT = 35
+  EDITOR_DEFAULT = 35,
+  ROLEPLAY_FREE_PLACE = 36,
+  SUIT_PERFORM = 37
 }
 NPCModuleEnum.ServerNpcReasonMasks = 1 << NPCModuleEnum.NpcReasonFlags.SERVER | 1 << NPCModuleEnum.NpcReasonFlags.SERVER_TASK | 1 << NPCModuleEnum.NpcReasonFlags.SERVER_DIALOGUE | 1 << NPCModuleEnum.NpcReasonFlags.SERVER_OTHER
 NPCModuleEnum.NpcInteractDisableFlag = {
@@ -102,7 +107,8 @@ NPCModuleEnum.NpcInteractDisableFlag = {
   MESSAGE_BAN = 7,
   WORLD_COMBAT = 8,
   HIDDEN_COMP = 9,
-  ROLEPLAY = 10
+  ROLEPLAY = 10,
+  NPC_IS_BUSY = 11
 }
 NPCModuleEnum.PetBondActiveReason = {
   ANY = 0,

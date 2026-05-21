@@ -105,7 +105,7 @@ function UMG_CharacterPick_C:InitView()
       initName = ""
     end
   end
-  self:SetPlayerName(initName or "")
+  self:SetPlayerName(initName or "", true)
   self.TriggerInput:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.ConfirmCanvas:SetVisibility(UE4.ESlateVisibility.Hidden)
   self.NameCanvas:SetVisibility(UE4.ESlateVisibility.Collapsed)
@@ -140,7 +140,7 @@ function UMG_CharacterPick_C:OnCharacterSelected(inEvent)
 end
 
 function UMG_CharacterPick_C:ShowConfirmPanel()
-  _G.DelayManager:DelaySeconds(0.3, function()
+  self:DelaySeconds(0.3, function()
     self.allowClick = true
     if self.ConfirmCanvas:GetVisibility() ~= UE4.ESlateVisibility.Visible then
       self.ConfirmCanvas:SetVisibility(UE4.ESlateVisibility.Visible)
@@ -188,7 +188,7 @@ function UMG_CharacterPick_C:OnClickPickConfirm()
   self.ButtonConfirm:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
   self:PlayAnimation(self.ConfirmOut, 0, 1, UE4.EUMGSequencePlayMode.Forward, 1.0, false)
   UE4.UNRCAudioManager.Get():PlaySound2DAuto(1091, "UMG_CharacterPick_C:OnClickPickConfirm")
-  _G.DelayManager:DelaySeconds(0.5, function()
+  self:DelaySeconds(0.5, function()
     self.ConfirmCanvas:SetVisibility(UE4.ESlateVisibility.Hidden)
   end)
   if not self.USE_NEW then
@@ -204,7 +204,7 @@ function UMG_CharacterPick_C:BackToConfirm()
   UE4.UNRCAudioManager.Get():PlaySound2DAuto(1092, "UMG_CharacterPick_C:BackToConfirm")
   self.ButtonBackName:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
   self:PlayAnimation(self.NameOut, 0, 1, UE4.EUMGSequencePlayMode.Forward, 1.0, false)
-  _G.DelayManager:DelaySeconds(0.3, function()
+  self:DelaySeconds(0.3, function()
     self.NameCanvas:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.FinishCanvas:SetVisibility(UE4.ESlateVisibility.Hidden)
     self.ButtonConfirm:SetVisibility(UE4.ESlateVisibility.Visible)
@@ -331,7 +331,7 @@ function UMG_CharacterPick_C:BackToName()
   UE4.UNRCAudioManager.Get():PlaySound2DAuto(1092, "UMG_CharacterPick_C:BackToConfirm")
   self:PlayAnimation(self.FinishOut, 0, 1, UE4.EUMGSequencePlayMode.Forward, 1.0, false)
   self.ButtonBackFinish:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-  _G.DelayManager:DelaySeconds(0.3, function()
+  self:DelaySeconds(0.3, function()
     self.NameCanvas:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     self.FinishCanvas:SetVisibility(UE4.ESlateVisibility.Hidden)
     self:PlayAnimation(self.NameIn, 0, 1, UE4.EUMGSequencePlayMode.Forward, 1.0, false)
@@ -351,14 +351,12 @@ end
 function UMG_CharacterPick_C:OnTextChanged()
   UE4.UNRCAudioManager.Get():PlaySound2DAuto(1089, "UMG_CharacterPick_C:OnTextChanged")
   local playerName = self.InputTextName:GetText()
-  self:SetPlayerName(playerName, not RocoEnv.PLATFORM_WINDOWS)
-  if string.SubStringGetTotalIndex(self:GetPlayerName()) > 0 then
-  end
+  self:SetPlayerName(playerName)
 end
 
 function UMG_CharacterPick_C:OnTextCommitted(text, type)
   if type == UE4.ETextCommit.OnEnter then
-    self:SetPlayerName(text, not RocoEnv.PLATFORM_WINDOWS)
+    self:SetPlayerName(text)
   end
 end
 
@@ -366,21 +364,36 @@ function UMG_CharacterPick_C:OnTick(deltaTime)
   if self.bStartRot == true then
     local actorHolder = LoginUtils.GetUObjectHolder()
     local curRot = UE4.FRotator(0, 0, 0)
+    local rotateAmount = self.deltaRot * deltaTime
+    if rotateAmount > 0 then
+      rotateAmount = math.min(7, rotateAmount)
+    else
+      rotateAmount = math.max(-7, rotateAmount)
+    end
     if self.data.curRegisterGender == Enum.ESexValue.SEX_MALE then
       curRot = actorHolder.Player1:K2_GetActorRotation()
       if math.abs(curRot.Yaw - actorHolder.player1StartRotation.Yaw) > 3.5 then
-        actorHolder.Player1:K2_SetActorRotation(curRot + UE4.FRotator(0, self.deltaRot * deltaTime, 0), false)
+        actorHolder.Player1:K2_SetActorRotation(curRot + UE4.FRotator(0, rotateAmount, 0), false)
       else
         self.bStartRot = false
       end
     elseif self.data.curRegisterGender == Enum.ESexValue.SEX_FEMALE then
       curRot = actorHolder.Player2:K2_GetActorRotation()
       if math.abs(curRot.Yaw - actorHolder.player2StartRotation.Yaw) > 3.5 then
-        actorHolder.Player2:K2_SetActorRotation(curRot + UE4.FRotator(0, self.deltaRot * deltaTime, 0), false)
+        actorHolder.Player2:K2_SetActorRotation(curRot + UE4.FRotator(0, rotateAmount, 0), false)
       else
         self.bStartRot = false
       end
     end
+  end
+  if self.enterComposing then
+    if not self:IsComposing() then
+      self.enterComposing = false
+      local playerName = self.InputTextName:GetText()
+      self:SetPlayerName(playerName)
+    end
+  elseif self:IsComposing() then
+    self.enterComposing = true
   end
 end
 
@@ -448,6 +461,7 @@ function UMG_CharacterPick_C:CheckName(rsp)
 end
 
 function UMG_CharacterPick_C:OnVirtualKeyboardShowOrHide(bShow)
+  self.bCurVirtualKeyboardIsShow = bShow
   self:StartBlur(bShow)
 end
 
@@ -502,23 +516,23 @@ function UMG_CharacterPick_C:SubStr(str, byte_count)
   return string.sub(str, 1, index - 1)
 end
 
-function UMG_CharacterPick_C:SetPlayerName(text, showTip)
-  local orgText = text
-  text = self:SubStr(text, 21)
-  text = string.GetSubStr(text, 12)
-  local bIsExceed = string.SubStringGetTotalIndex(text) > 12
-  if bIsExceed then
-    text = string.GetSubStr(text, 12)
+function UMG_CharacterPick_C:SetPlayerName(text, bNotShowTip)
+  if self:IsComposing() then
+    return
+  end
+  if string.SubStringGetTotalIndex(text) > 12 then
     self.InputTextName:SetJustification(UE4.ETextJustify.Left)
     self.NameShow:SetJustification(UE4.ETextJustify.Left)
   else
     self.InputTextName:SetJustification(UE4.ETextJustify.Center)
     self.NameShow:SetJustification(UE4.ETextJustify.Center)
   end
-  if showTip and bIsExceed then
+  local oldText = text
+  text = self:SubStr(text, 21)
+  text = string.GetSubStr(text, 12)
+  if oldText ~= text and not bNotShowTip then
     _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, _G.LuaText.max_name_tip)
   end
-  self:Log("setusername:", text)
   local finalText = UIUtils.RemoveEmoji(text)
   finalText = UIUtils.RemoveInvalidCharsByFont(finalText, self.InputTextName.WidgetStyle.Font.FontObject)
   local bIsLegal = UIUtils.CheckNameIsLegal(finalText)
@@ -587,6 +601,10 @@ function UMG_CharacterPick_C:OnBtnConfirmClicked()
   else
     _G.NRCModuleManager:DoCmd(_G.LoginModuleCmd.CheckNameUsable)
   end
+end
+
+function UMG_CharacterPick_C:IsComposing()
+  return UE4.UNRCStatics.IsComposing(self.InputTextName)
 end
 
 return UMG_CharacterPick_C

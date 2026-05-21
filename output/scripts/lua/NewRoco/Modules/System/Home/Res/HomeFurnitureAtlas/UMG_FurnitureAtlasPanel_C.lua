@@ -1,5 +1,6 @@
 local HomeModuleEvent = require("NewRoco.Modules.System.Home.HomeModuleEvent")
 local CommonBtnEnum = require("NewRoco.Modules.System.CommonBtn.CommonBtnEnum")
+local HomeEnum = require("NewRoco/Modules/System/Home/HomeEnum")
 local UMG_FurnitureAtlasPanel_C = _G.NRCPanelBase:Extend("UMG_FurnitureAtlasPanel_C")
 local NumberFurniturePng = "PaperSprite'/Game/NewRoco/Modules/System/Home/Raw/HomeFurnitureAtlas/Frames/img_NumberFurniture_png.img_NumberFurniture_png'"
 
@@ -15,6 +16,8 @@ function UMG_FurnitureAtlasPanel_C:OnConstruct()
   self.furnitureData = nil
   self.bShowTestUMG = false
   self.bWaitReward = false
+  self.tabFilterTable = {}
+  self.workingListData = {}
   self:BindInputAction()
   _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.SetLockOpenSubUI, false)
 end
@@ -49,6 +52,7 @@ function UMG_FurnitureAtlasPanel_C:OnActive(listInfo)
   end
   self.DropDownListData = CommonDropDownListData.DropDownListInfo
   CommonDropDownListData.DropDownListText = localStrings[1]
+  CommonDropDownListData.Btn_LeftHandler = self.OpenFilterPanel
   CommonDropDownListData.Btn_RightHandler = self.OnClickReverse
   CommonDropDownListData.Call = self
   self.ComboBox_White:SetPanelInfo(CommonDropDownListData)
@@ -66,17 +70,40 @@ function UMG_FurnitureAtlasPanel_C:InitPanel(listInfo)
     limitNum = limitNum + 1
   end
   self.seedListDatas = table.new(limitNum, 0)
+  self.workingListData = self.seedListDatas
+  self.DisplayNumInTab = {}
   local weakTable = {}
   weakTable.__mode = "v"
   for i, v in pairs(listInfo) do
     table.insert(self.seedListDatas, v)
   end
   self:SortSeedList(self.seedListDatas)
+  local HomeModuleData = HomeIndoorSandbox.Module:GetData()
   for i = 1, #self.seedListDatas do
     self.seedListDatas[i].parent = self
     setmetatable(self.seedListDatas[i], weakTable)
+    local handbookConf = _G.DataConfigManager:GetFurnitureHandbookConf(self.seedListDatas[i].id)
+    if handbookConf and handbookConf.furniture_id and HomeModuleData then
+      local furnitureItemConf = _G.DataConfigManager:GetFurnitureItemConf(handbookConf.furniture_id)
+      if furnitureItemConf and furnitureItemConf.classification then
+        local tabId = furnitureItemConf.classification
+        local firstTabId = HomeModuleData:GetFirstTabId(tabId)
+        if tabId and firstTabId then
+          if self.DisplayNumInTab[tabId] == nil then
+            self.DisplayNumInTab[tabId] = 0
+          end
+          if self.DisplayNumInTab[firstTabId] == nil then
+            self.DisplayNumInTab[firstTabId] = 0
+          end
+          self.DisplayNumInTab[tabId] = self.DisplayNumInTab[tabId] + 1
+          if firstTabId ~= tabId then
+            self.DisplayNumInTab[firstTabId] = self.DisplayNumInTab[firstTabId] + 1
+          end
+        end
+      end
+    end
   end
-  self.SeedList:InitList(self.seedListDatas)
+  self.SeedList:InitList(self.workingListData)
   self.SeedList:SelectItemByIndex(0)
   self.UpperLimit:InitNum(num, limitNum, nil, true, NumberFurniturePng, nil, nil, true)
   self.DetailPanel:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
@@ -90,6 +117,7 @@ function UMG_FurnitureAtlasPanel_C:OnAddEventListener()
   _G.NRCEventCenter:RegisterEvent("UMG_FurnitureAtlasPanel_C", self, HomeModuleEvent.OnComboBoxSelectChanged, self.OnComboBoxSelectChanged)
   _G.NRCEventCenter:RegisterEvent("UMG_FurnitureAtlasPanel_C", self, HomeModuleEvent.GetMoreFriendDataByFurnitureId, self.GetMoreFriendData)
   _G.NRCEventCenter:RegisterEvent("UMG_FurnitureAtlasPanel_C", self, _G.NRCGlobalEvent.ON_RECONNECT_FINISH, self.OnReconnectFinish)
+  self:RegisterEvent(self, HomeModuleEvent.UpdateFurnitureFilter, self.OnFilterUpdate)
   self:AddButtonListener(self.CloseBtn.btnClose, self.OnCloseButtonClicked)
   self:AddButtonListener(self.AwardBtn, self.OnAwardBtnClicked)
   self:AddButtonListener(self.SynthesisBtn.btnLevelUp, self.OnSynthesisBtnClicked)
@@ -109,6 +137,7 @@ function UMG_FurnitureAtlasPanel_C:OnRemoveEventListener()
   _G.NRCEventCenter:UnRegisterEvent(self, HomeModuleEvent.OnComboBoxSelectChanged, self.OnComboBoxSelectChanged)
   _G.NRCEventCenter:UnRegisterEvent(self, HomeModuleEvent.GetMoreFriendDataByFurnitureId, self.GetMoreFriendData)
   _G.NRCEventCenter:UnRegisterEvent(self, _G.NRCGlobalEvent.ON_RECONNECT_FINISH, self.OnReconnectFinish)
+  self:UnRegisterEvent(self, HomeModuleEvent.UpdateFurnitureFilter, self.OnFilterUpdate)
   self:RemoveButtonListener(self.CloseBtn.btnClose)
   self:RemoveButtonListener(self.AwardBtn)
   self:RemoveButtonListener(self.SynthesisBtn.btnLevelUp)
@@ -252,8 +281,8 @@ end
 function UMG_FurnitureAtlasPanel_C:OnClickReverse()
   self.IsReversalSort = not self.IsReversalSort
   self:SetReverse()
-  self:SortSeedList(self.seedListDatas)
-  self.SeedList:InitList(self.seedListDatas)
+  self:SortSeedList(self.workingListData)
+  self.SeedList:InitList(self.workingListData)
   self.SeedList:SelectItemByIndex(0)
   if self.ComboBox_White.bShowList then
     self:OnCloseComboBox()
@@ -273,14 +302,18 @@ function UMG_FurnitureAtlasPanel_C:OnComboBoxSelectChanged(selectIndex)
     return
   end
   self.curSortId = selectIndex
-  self:SortSeedList(self.seedListDatas)
-  self.SeedList:InitList(self.seedListDatas)
+  self:SortSeedList(self.workingListData)
+  self.SeedList:InitList(self.workingListData)
   self.SeedList:SelectItemByIndex(0)
   self.ComboBox_White:SelectItem(selectIndex, self.DropDownListData)
 end
 
 function UMG_FurnitureAtlasPanel_C:UpdateDetailPanel(itemData)
   local furnitureHandbookConf = _G.DataConfigManager:GetFurnitureHandbookConf(itemData.id)
+  if not furnitureHandbookConf then
+    Log.ErrorFormat("\228\184\186\228\187\128\228\185\136\230\178\161\230\156\137FurnitureHandbookConf%d\231\154\132\233\133\141\231\189\174", itemData.id)
+    return
+  end
   local furniture_id = furnitureHandbookConf.furniture_id
   self.furniture_id = furniture_id
   local furnitureItemConf = _G.DataConfigManager:GetFurnitureItemConf(furniture_id)
@@ -439,8 +472,8 @@ function UMG_FurnitureAtlasPanel_C:OnAwardBtnClicked()
     self:CloseRewardPreview()
     return
   end
-  if self.bSelectItemAward or 1 == self.seedListDatas[self.selectedIndex].reward_status then
-    local rewardData = _G.DataConfigManager:GetRewardConf(_G.DataConfigManager:GetFurnitureHandbookConf(self.seedListDatas[self.selectedIndex].id).reward_id).RewardItem
+  if self.bSelectItemAward or 1 == self.workingListData[self.selectedIndex].reward_status then
+    local rewardData = _G.DataConfigManager:GetRewardConf(_G.DataConfigManager:GetFurnitureHandbookConf(self.workingListData[self.selectedIndex].id).reward_id).RewardItem
     local initRewardData = {}
     for i = 1, #rewardData do
       local data = {
@@ -462,8 +495,9 @@ function UMG_FurnitureAtlasPanel_C:OnAwardBtnClicked()
       return
     end
     local req = _G.ProtoMessage:newZoneHomeClaimUnlockedFurnitureRewardReq()
-    req.handbook_id = self.seedListDatas[self.selectedIndex].id
+    req.handbook_id = self.workingListData[self.selectedIndex].id
     self.bWaitReward = true
+    self.waitRewardItemData = self.workingListData[self.selectedIndex]
     _G.ZoneServer:SendWithHandler(ProtoCMD.ZoneSvrCmd.ZONE_HOME_CLAIM_UNLOCKED_FURNITURE_REWARD_REQ, req, self, self.OnRewardReceived, false, true)
     UE4.UNRCAudioManager.Get():PlaySound2DAuto(40008040, "UMG_FurnitureAtlasPanel_C:OnAwardBtnClicked")
   end
@@ -477,20 +511,28 @@ end
 function UMG_FurnitureAtlasPanel_C:OnRewardReceived(_rsp)
   self.bWaitReward = false
   if _rsp.ret_info and 0 == _rsp.ret_info.ret_code then
-    self:SetRewardIcon(true)
-    self:PlayAnimation(self.Get)
-    self.seedListDatas[self.selectedIndex].reward_status = 3
-    self.bSelectItemAward = true
-    local rewardData = _G.DataConfigManager:GetRewardConf(_G.DataConfigManager:GetFurnitureHandbookConf(self.seedListDatas[self.selectedIndex].id).reward_id).RewardItem
-    local popupInitData = {}
-    for i = 1, #rewardData do
-      local popupData = _G.ProtoMessage:newGoodsItem()
-      popupData.id = rewardData[i].Id
-      popupData.num = rewardData[i].Count
-      popupData.type = rewardData[i].Type
-      table.insert(popupInitData, popupData)
+    local itemData = self.waitRewardItemData
+    if itemData then
+      itemData.reward_status = 3
+      if self.handbook_id == itemData.id then
+        self:SetRewardIcon(true)
+        self:PlayAnimation(self.Get)
+        self.bSelectItemAward = true
+      end
+      local conf = _G.DataConfigManager:GetFurnitureHandbookConf(itemData.id)
+      if conf and conf.reward_id then
+        local rewardData = (_G.DataConfigManager:GetRewardConf(conf.reward_id) or {}).RewardItem
+        local popupInitData = {}
+        for i = 1, #rewardData do
+          local popupData = _G.ProtoMessage:newGoodsItem()
+          popupData.id = rewardData[i].Id
+          popupData.num = rewardData[i].Count
+          popupData.type = rewardData[i].Type
+          table.insert(popupInitData, popupData)
+        end
+        _G.NRCModuleManager:DoCmd(_G.CommonPopUpModuleCmd.OpenNPCShopItemRewardsPanel, popupInitData)
+      end
     end
-    _G.NRCModuleManager:DoCmd(_G.CommonPopUpModuleCmd.OpenNPCShopItemRewardsPanel, popupInitData)
     local coinNum = _G.DataModelMgr.PlayerDataModel:GetVItemCount(_G.Enum.VisualItem.VI_FURNITURE_COIN)
     local moneyBtnData = {
       {
@@ -582,7 +624,8 @@ function UMG_FurnitureAtlasPanel_C:GetMoreFriendData()
       end
     end
     self.furnitureIdToPageAndFriendNum[self.furniture_id][1] = nextPage
-    local bFinish = totalFriendNum <= nextPage * 50
+    local numPerPage = _G.DataConfigManager:GetHomeGlobalConfig("furniture_handbook_friendinformation_num").num
+    local bFinish = totalFriendNum <= nextPage * numPerPage
     if totalFriendNum ~= self.totalFriendNum then
       self.bNeedNewFriendData = true
     end
@@ -596,6 +639,66 @@ function UMG_FurnitureAtlasPanel_C:GetMoreFriendData()
     end
     self.waitNewFriendData = false
   end)
+end
+
+function UMG_FurnitureAtlasPanel_C:OpenFilterPanel()
+  if _G.HomeModuleCmd then
+    _G.NRCModuleManager:DoCmd(_G.HomeModuleCmd.OpenFurnitureFilterPanel, self.tabFilterTable, HomeEnum.FurnitureFilterMode.Atlas, nil, self.DisplayNumInTab)
+  end
+end
+
+function UMG_FurnitureAtlasPanel_C:OnFilterUpdate()
+  local bDoFilter = self:IsApplyFilter()
+  if bDoFilter then
+    self.ComboBox_White.ScreeningBtn:ChangeIconSelectState(2)
+  else
+    self.ComboBox_White.ScreeningBtn:ChangeIconSelectState(1)
+  end
+  self:FilterSeedList(self.workingListData)
+  self:SetReverse()
+  self:SortSeedList(self.workingListData)
+  self.SeedList:InitList(self.workingListData)
+  self.SeedList:SelectItemByIndex(0)
+  if self.ComboBox_White.bShowList then
+    self:OnCloseComboBox()
+  end
+end
+
+function UMG_FurnitureAtlasPanel_C:FilterSeedList(listInfo)
+  if self:IsApplyFilter() then
+    self.workingListData = {}
+    local HomeModuleData = HomeIndoorSandbox.Module:GetData()
+    if not HomeModuleData then
+      return
+    end
+    for idx, itemData in ipairs(self.seedListDatas) do
+      if itemData then
+        local furnitureHandBookConf = _G.DataConfigManager:GetFurnitureHandbookConf(itemData.id)
+        if furnitureHandBookConf and furnitureHandBookConf.furniture_id then
+          local furnitureItemConf = _G.DataConfigManager:GetFurnitureItemConf(furnitureHandBookConf.furniture_id)
+          if furnitureItemConf and furnitureItemConf.classification then
+            local tabId = furnitureItemConf.classification
+            local bFilterToShow = self.tabFilterTable[tabId]
+            if not bFilterToShow then
+              local firstTabId = HomeModuleData:GetFirstTabId(tabId)
+              if firstTabId then
+                bFilterToShow = self.tabFilterTable[firstTabId]
+              end
+            end
+            if bFilterToShow then
+              table.insert(self.workingListData, itemData)
+            end
+          end
+        end
+      end
+    end
+  else
+    self.workingListData = self.seedListDatas
+  end
+end
+
+function UMG_FurnitureAtlasPanel_C:IsApplyFilter()
+  return self.tabFilterTable and not not next(self.tabFilterTable)
 end
 
 return UMG_FurnitureAtlasPanel_C

@@ -6,6 +6,7 @@ local UMG_SelectBallEgg_C = Base:Extend("UMG_SelectBallEgg_C")
 
 function UMG_SelectBallEgg_C:OnConstruct()
   Log.Debug("UMG_SelectBallEgg_C:OnConstruct")
+  NRCEventCenter:RegisterEvent("UMG_SelectBallEgg_C", self, PetUIModuleEvent.OnHatchingRightPanelScrollViewScrolled, self.OnHatchingRightPanelScrollViewScrolled)
 end
 
 function UMG_SelectBallEgg_C:OnTick(InDeltaTime)
@@ -76,7 +77,7 @@ function UMG_SelectBallEgg_C:OnTouchEnded(MyGeometry, InTouchEvent)
   return UE4.UWidgetBlueprintLibrary.Unhandled()
 end
 
-function UMG_SelectBallEgg_C:OnScrollViewScrolled()
+function UMG_SelectBallEgg_C:OnHatchingRightPanelScrollViewScrolled()
   self.Pressed = false
   self.LongPressTimer = nil
   _G.UpdateManager:UnRegister(self)
@@ -98,6 +99,7 @@ function UMG_SelectBallEgg_C:OnItemBeLongClicked()
         elseif self.DisplayMode == PetUIModuleEnum.PetHatchingRightPanelDisplayMode.SelectEgg then
           _G.NRCModeManager:DoCmd(TipsModuleCmd.Tips_OpenItemTips, self.ItemData.id, _G.Enum.GoodsType.GT_BAGITEM, false, remainCnt, maxCnt, isBattleState, Position, overrideNum, Caller, CallBack, OpenCallBack, showErrorTipsWhenNotFound, showDefaultIconWhenNotFound, self.ItemData.gid)
         end
+        self.ItemData.parentView:OnItemBeLongClicked()
       end
     end
     self.Pressed = false
@@ -119,22 +121,18 @@ function UMG_SelectBallEgg_C:OnItemUpdate(Data, Datalist, Index)
   self.ItemData = Data
   self.Index = Index
   self.DisplayMode = _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.GetHatchingRightPanelDisplayMode)
-  if self.ItemData and self.ItemData.bEnableLongClick then
-    self.LongPressTimer = nil
-    self.Pressed = nil
-    self.StartPressPos = nil
-    _G.UpdateManager:UnRegister(self)
-  end
+  self.LongPressTimer = nil
+  self.Pressed = nil
+  self.StartPressPos = nil
+  _G.UpdateManager:UnRegister(self)
   self:UpdateItemView()
 end
 
 function UMG_SelectBallEgg_C:OnDespawn()
-  if self.ItemData and self.ItemData.bEnableLongClick then
-    self.LongPressTimer = nil
-    self.Pressed = nil
-    self.StartPressPos = nil
-    _G.UpdateManager:UnRegister(self)
-  end
+  self.LongPressTimer = nil
+  self.Pressed = nil
+  self.StartPressPos = nil
+  _G.UpdateManager:UnRegister(self)
 end
 
 function UMG_SelectBallEgg_C:UpdateItemView()
@@ -186,14 +184,21 @@ function UMG_SelectBallEgg_C:UpdateItemView()
     self.PetBallNum:SetText(ItemData.itemNum)
     self.PetBallName:SetRenderOpacity(0 ~= ItemData.itemNum and 1 or 0.35)
     self.BagIcon:SetRenderOpacity(0 ~= ItemData.itemNum and 1 or 0.35)
+  elseif self.DisplayMode == PetUIModuleEnum.PetHatchingRightPanelDisplayMode.IncubationProgress then
+    self.NumSwitcher:SetActiveWidgetIndex(0 ~= ItemData.itemNum and 0 or 1)
+    self:SetClickable(0 ~= ItemData.itemNum and true or false)
+    self.PetBallName:SetText(ItemData.conf.name)
+    self.PetBallNum:SetText(ItemData.itemNum)
   end
   self:SetItemIcon()
 end
 
 function UMG_SelectBallEgg_C:SetPetEggItemView(ItemData, ItemBagConf)
   local ItemName = ItemBagConf.name
+  local isHaveBook = false
+  local haveName, des
   if ItemData.egg_data and 0 ~= ItemData.egg_data.conf_id then
-    local isHaveBook, haveName, des = _G.NRCModeManager:DoCmd(_G.HandbookModuleCmd.OnCmdCheckItemInHandbook, ItemBagConf.id)
+    isHaveBook, haveName, des = _G.NRCModeManager:DoCmd(_G.HandbookModuleCmd.OnCmdCheckItemInHandbook, ItemBagConf.id)
     if isHaveBook then
       ItemName = haveName
     end
@@ -209,7 +214,7 @@ function UMG_SelectBallEgg_C:SetPetEggItemView(ItemData, ItemBagConf)
   end
   if PetEggConf and PetEggConf.precious_egg_type == _G.Enum.PreciousEggType.PET_PRECIOUS then
   else
-    if ItemData.egg_data and ItemData.egg_data.precious_egg_type == _G.Enum.PreciousEggType.PET_PRECIOUS and not isRandomEgg then
+    if ItemData.egg_data and ItemData.egg_data.precious_egg_type == _G.Enum.PreciousEggType.PET_PRECIOUS and not isRandomEgg and not isHaveBook then
       ItemName = LuaText.cifu_precious_petegg
     else
     end
@@ -288,6 +293,8 @@ function UMG_SelectBallEgg_C:SetItemIcon()
   elseif self.DisplayMode == PetUIModuleEnum.PetHatchingRightPanelDisplayMode.SelectPetBall then
     self.PetBallIcon:SetPath(IconPath)
     self.PetBallMask:SetPath(IconPath)
+  elseif self.DisplayMode == PetUIModuleEnum.PetHatchingRightPanelDisplayMode.IncubationProgress then
+    self.PetBallIcon:SetPath(IconPath)
   end
 end
 
@@ -335,6 +342,7 @@ function UMG_SelectBallEgg_C:SetParentViewClickable(bClickable)
 end
 
 function UMG_SelectBallEgg_C:OnDestruct()
+  NRCEventCenter:UnRegisterEvent(self, PetUIModuleEvent.OnHatchingRightPanelScrollViewScrolled, self.OnHatchingRightPanelScrollViewScrolled)
 end
 
 function UMG_SelectBallEgg_C:OnDeactive()

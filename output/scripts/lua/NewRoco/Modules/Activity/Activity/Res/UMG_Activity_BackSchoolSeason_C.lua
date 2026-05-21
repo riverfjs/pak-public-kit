@@ -101,7 +101,7 @@ function UMG_Activity_BackSchoolSeason_C:SetSlotData(slot, slotData)
     iconDescCtrl:SetText("")
   end
   if slotData.slot_function_type == Enum.ActiviyMixSlotFunciton.AMSF_ACTIVITY then
-    local slotActivityInst = _G.NRCModuleManager:DoCmd(_G.ActivityModuleCmd.GetActivityInstById, slotData.param, true)
+    local slotActivityInst = _G.NRCModuleManager:DoCmd(_G.ActivityModuleCmd.GetActivityInstById, slotData.params[1], true)
     if slotActivityInst then
       if iconCtrl and slotActivityInst:GetActivityType() == Enum.ActivityType.ATP_DROP then
         local specificTimeActivityInst = slotActivityInst

@@ -68,6 +68,10 @@ function PetHUDComponent:Attach(owner)
   _G.DataModelMgr.PlayerDataModel:AddEventListener(self, PlayerDataEvent.UPDATE_DATA, self.OnPlayerDataChange)
   self.owner:AddEventListener(self, NPCModuleEvent.OnLogicStatusUpdated, self.OnLogicStatusUpdated)
   self.HidePerceptionForBattle = owner:IsLogicStatus(Enum.SpaceActorLogicStatus.SALS_FIGHTING) and true or false
+  if self.config and self.config.show_name_type == LocalNpcNameType.NNT_INTERACTIVE then
+    self:InitVisibleWithInteraction()
+    self.owner:AddEventListener(self, NPCModuleEvent.OnInteractingChanged, self.OnInteractingChanged)
+  end
   SceneUtils.RegisterNPCVisibilityNotify(self, true)
 end
 
@@ -86,6 +90,9 @@ function PetHUDComponent:DeAttach()
   self:SetListenNpcCreation(false)
   if self.PetBondOption then
     self.PetBondOption:RemoveEventListener(self, NpcOptionEvent.Destroy, self.OnPetBondOptionDestroy)
+  end
+  if self.config and self.config.show_name_type == LocalNpcNameType.NNT_INTERACTIVE then
+    self.owner:RemoveEventListener(self, NPCModuleEvent.OnInteractingChanged, self.OnInteractingChanged)
   end
 end
 
@@ -228,8 +235,8 @@ function PetHUDComponent:SetOwnerName(bVisible)
         end
         local mutationType = self.owner.serverData.npc_base.mutation_type
         local ownerId = self.owner.serverData.npc_base.create_avatar_id
-        if ownerId and ownerId ~= playerId and (UIUtils.CheckIsHighValuePet(self.owner.serverData) or self.owner.serverData.is_magic_replay and MagicReplayUtils.IsMarkVideoNameShowEnabled()) then
-          local ownerName = self.owner.serverData.npc_base.create_avatar_name
+        if ownerId and ownerId ~= playerId and UIUtils.CheckIsHighValuePet(self.owner) and not self.owner.serverData.is_magic_replay then
+          local _, ownerName = UIUtils.GetHighValuePetTipsAndOwnerName(self.owner.serverData)
           self._headHud:SetOwnerName(ownerName)
         else
           self._headHud:SetOwnerName("")
@@ -401,7 +408,7 @@ function PetHUDComponent:OnDistanceOptimize(distanceIgnoreZ, viewDotValue, dista
     end
   end
   if self.hasTitleInfo and UE.UObject.IsValid(self._headHud) then
-    local titleVisible = distance < self.npcTitleIconShowDistanceSqr and not self.bTrackedByTask
+    local titleVisible = distance < self.npcTitleIconShowDistanceSqr and not self.bTrackedByTask and self.isHudShow
     self._headHud:SetTitleVisible(titleVisible)
     local widgetComp = self.owner.viewObj.HeadWidget
     if UE4.UObject.IsValid(widgetComp) then
@@ -899,6 +906,20 @@ function PetHUDComponent:CheckDungeonPetMimic()
   local bInDungeon = _G.DataModelMgr.PlayerDataModel:IsInDungeon()
   local bMimic = self.owner:IsLogicStatus(Enum.SpaceActorLogicStatus.SALS_MIMIC) or self.owner:IsLogicStatus(Enum.SpaceActorLogicStatus.SALS_MIMIC_OPTION)
   return bInDungeon and bMimic
+end
+
+function PetHUDComponent:InitVisibleWithInteraction()
+  self.isHudShow = self.owner.InteractionComponent:HasAnyInteractingOption()
+  if not self.isHudShow then
+    Log.Debug("PetHUDComponent: SetHudHide By Interaction")
+  end
+end
+
+function PetHUDComponent:OnInteractingChanged(HasAnyInteractingOption)
+  self.isHudShow = HasAnyInteractingOption
+  if not self.isHudShow then
+    Log.Debug("PetHUDComponent: SetHudHide By Interaction")
+  end
 end
 
 return PetHUDComponent

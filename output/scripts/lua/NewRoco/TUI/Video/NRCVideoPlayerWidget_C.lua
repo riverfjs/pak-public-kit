@@ -41,6 +41,9 @@ end
 function NRCVideoPlayerWidget_C:SetNextVideo(isFile, strNextUrl, bLoop)
 end
 
+function NRCVideoPlayerWidget_C:SetDecryptionKey(decryptionKey)
+end
+
 function NRCVideoPlayerWidget_C:SetAutoPlay(bAutoPlay)
   self._bAutoPlay = bAutoPlay
   if self.MediaPlayer then

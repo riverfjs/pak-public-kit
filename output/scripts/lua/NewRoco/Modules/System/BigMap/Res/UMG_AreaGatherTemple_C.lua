@@ -108,7 +108,7 @@ function UMG_AreaGatherTemple_C:UpdateMapShowLevel(_level, _scale, _scaleRatio)
   self.curMapShowLevel = _level
   local uiData = self.uiData
   if uiData.config.element_show_scale and self.maxScale and self.minScale then
-    if _level < self.maxScale and _level >= self.minScale or 1 == _level and 100 == self.maxScale then
+    if _level < self.maxScale and _level >= self.minScale or 1 == _level and 1.0 == self.maxScale then
       self.TextWidgetRangeScalers:ChangeScale(uiData.config.element_show_scale, _scale, _scaleRatio)
       self:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     else
@@ -137,7 +137,7 @@ function UMG_AreaGatherTemple_C:RefreshGatherInfo()
     local x, y = _G.NRCModuleManager:DoCmd(_G.BigMapModuleCmd.GetPetGatherRate, campRefreshId)
     local text = string.format(_G.DataConfigManager:GetLocalizationConf("worldmap_area_exploration").msg, x, y)
     if x == y then
-      self.RocoText_2:SetColorAndOpacity(UE4.UNRCStatics.HexToSlateColor("D56C1FFF"))
+      self.RocoText_5:SetColorAndOpacity(UE4.UNRCStatics.HexToSlateColor("D56C1FFF"))
     end
     self:SetGatherVisible()
     local isTravel = _G.NRCModuleManager:DoCmd(_G.BigMapModuleCmd.GetIsTravelMap)

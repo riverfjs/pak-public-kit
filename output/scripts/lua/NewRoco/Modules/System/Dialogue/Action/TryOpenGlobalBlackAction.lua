@@ -36,6 +36,7 @@ function TryOpenGlobalBlackAction:OnEnter()
             if OptionConfID then
               local bOpenGlobalBlack = NRCModuleManager:DoCmd(BlackScreenModuleCmd.OpenGlobalBlackScreenIfNeed, TaskID, bShouldGlobalBlackScreenBlendIn, self, self.OnGlobalBlackBlendInFinish, {OptionID = OptionConfID})
               if bOpenGlobalBlack then
+                self.ParentModule:CloseButtonSkip()
                 return
               end
             end

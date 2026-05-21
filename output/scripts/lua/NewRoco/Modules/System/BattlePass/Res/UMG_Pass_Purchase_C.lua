@@ -12,6 +12,7 @@ local GiftType = {
 }
 
 function UMG_Pass_Purchase_C:OnActive()
+  _G.NRCModuleManager:DoCmd(_G.BattlePassModuleCmd.ReqBattlePassShopData)
   if _G.GlobalConfig.DebugOpenUI then
     self:OnAddEventListener()
     self.SpineWidget_Blue:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
@@ -21,7 +22,6 @@ function UMG_Pass_Purchase_C:OnActive()
     self:OnSwitcherSwitcher_bg(1)
     return
   end
-  self:SetCommonTitle()
   self:InitBtn()
   self:InitUIData()
   local player = NRCModuleManager:DoCmd(PlayerModuleCmd.GET_LOCAL_PLAYER)
@@ -33,6 +33,7 @@ function UMG_Pass_Purchase_C:OnActive()
   self.NRCSwitcher_1:SetActiveWidgetIndex(0)
   self.NRCSwitcher:SetActiveWidgetIndex(0)
   self.NRCSwitcher_2:SetActiveWidgetIndex(0)
+  self:InitSpineWidget()
   _G.NRCAudioManager:PlaySound2DAuto(1220002005, "UMG_Pass_Purchase_C:OnActive")
   self:ShowPanel(true)
   self:UnlockIsSelectBtn()
@@ -40,6 +41,10 @@ function UMG_Pass_Purchase_C:OnActive()
   self.CurIsUpdateStateAim = false
   self.disableTimer = _G.TimerManager:CreateTimer(self, "UMG_Pass_Purchase_C:OnUpdateDisableTime", math.maxinteger, self.OnUpdateDisableTime, nil, 1)
   self:OnUpdateDisableTime()
+end
+
+function UMG_Pass_Purchase_C:InitSpineWidget()
+  self.module:InitSpineWidgetForPanel(self, "BattlePurchasePanel", "UMG_Pass_Purchase")
 end
 
 function UMG_Pass_Purchase_C:OnUpdateDisableTime()
@@ -74,7 +79,9 @@ function UMG_Pass_Purchase_C:OnDeactive()
   _G.NRCEventCenter:UnRegisterEvent(self, BagModuleEvent.RefreshBagInfo, self.OnRefreshBagInfo)
   _G.NRCEventCenter:UnRegisterEvent(self, BagModuleEvent.GlobalRefreshBagInfo, self.OnGlobalRefreshBagInfo)
   self:UnBindInputAction()
-  _G.DataModelMgr.PlayerDataModel:RemovePanelMusic(_G.Enum.MusicApplyType.MAT_UI, _G.Enum.InterfaceType.IT_BP, self.module.ActivityPassBgmState)
+  if not self.module:HasPanel("BattlePassAwardMain") then
+    _G.DataModelMgr.PlayerDataModel:RemovePanelMusic(_G.Enum.MusicApplyType.MAT_UI, _G.Enum.InterfaceType.IT_BP, self.module.ActivityPassBgmState)
+  end
   if self.disableTimer then
     _G.TimerManager:RemoveTimer(self.disableTimer)
     self.disableTimer = nil
@@ -97,13 +104,18 @@ end
 
 function UMG_Pass_Purchase_C:SetCommonTitle()
   self.titleConf = _G.DataConfigManager:GetTitleConf(self:GetPanelName())
+  local battleThemConf = _G.DataConfigManager:GetBattlePassThemeConf(self.theme_id)
+  if nil == battleThemConf then
+    Log.Error("UMG_Pass_Purchase_C:SetCommonTitle battleThemConf is nil", self.theme_id)
+    return
+  end
   if self.Title1 then
-    self.Title1:Set_MainTitle(self.titleConf.title)
+    self.Title1:Set_MainTitle(battleThemConf.theme_name)
     self.Title1:SetBg(self.titleConf.head_icon)
     self.Title1:SetSubtitle(self.titleConf.subtitle[1].subtitle)
   end
   if self.Title1_1 then
-    self.Title1_1:Set_MainTitle(self.titleConf.title)
+    self.Title1_1:Set_MainTitle(battleThemConf.theme_name)
     self.Title1_1:SetBg(self.titleConf.head_icon)
     self.Title1_1:SetSubtitle(self.titleConf.subtitle[1].subtitle)
   end
@@ -117,6 +129,7 @@ function UMG_Pass_Purchase_C:OnPcClose()
 end
 
 function UMG_Pass_Purchase_C:OnAddEventListener()
+  self:AddButtonListener(self.Department, self.OnDepartmentClick)
   self:AddButtonListener(self.UMG_Details.btnLevelUp, self.OnOpenPetPanel)
   self:AddButtonListener(self.backBtn.btnClose, self.OnClickbackBtn)
   self:AddButtonListener(self.Particulars.btnLevelUp, self.OnOpenTips)
@@ -165,6 +178,7 @@ function UMG_Pass_Purchase_C:ShowPanel(isUpdateStateAim)
   self.NRCText_73:SetText(_G.DataConfigManager:GetLocalizationConf("battlepass_package_des01").msg)
   self:ShowPetName()
   self:SetThemeRes()
+  self:SetCommonTitle()
 end
 
 function UMG_Pass_Purchase_C:OnEndOfCollection()
@@ -173,24 +187,15 @@ function UMG_Pass_Purchase_C:OnEndOfCollection()
 end
 
 function UMG_Pass_Purchase_C:SetThemeRes()
-  local path = _G.NRCModuleManager:DoCmd(_G.BattlePassModuleCmd.GetThemeResPath)
-  local backgroundPath = path .. "/img_goumaidi_png.img_goumaidi_png"
-  local backgroundPath1 = path .. "/img_goumai1_png.img_goumai1_png"
-  local backgroundPath2 = path .. "/img_goumai2_png.img_goumai2_png"
-  local buttonPath = path .. "/img_anniu_png.img_anniu_png"
-  local iconPath = path .. "/img_jingling_png.img_jingling_png"
-  local logoIconPath = path .. "/img_logo2_png.img_logo2_png"
-  self.NRCImage_314:SetPath(backgroundPath)
-  self.NRCImage_11:SetPath(backgroundPath)
-  local themeId1 = self.passConf.theme_id[1]
-  local themeId2 = self.passConf.theme_id[2]
-  if self.theme_id == themeId1 then
+  _G.NRCModuleManager:DoCmd(_G.BattlePassModuleCmd.ChangeThemeColor, "UMG_Pass_Purchase", self)
+  local isThemeA = _G.NRCModuleManager:DoCmd(_G.BattlePassModuleCmd.IsThemeA, self.theme_id)
+  if isThemeA then
     self.SpineWidget_Blue:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
     self.SpineWidget_Pink:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.SpineWidget_Pink:ClearTrack(0)
     self.SpineWidget_Blue:SetAnimation(0, "Idle", true)
     self:OnSwitcherSwitcher_bg(1)
-  elseif self.theme_id == themeId2 then
+  else
     self.SpineWidget_Blue:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.SpineWidget_Pink:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
     self.SpineWidget_Blue:ClearTrack(0)
@@ -416,19 +421,19 @@ function UMG_Pass_Purchase_C:SetCoupleBtn(giftConf, giftGrade)
         self.NRCSwitcher_2:SetActiveWidgetIndex(1)
       end
     end
-  elseif giftGrade == _G.Enum.BattlePassGiftGrade.BPGG_NORMAL then
-    self.NRCSwitcher_0:SetActiveWidgetIndex(0)
+  else
     local _, isDisable = self:GetGoodsPrice(goodsSubConf)
-    if isDisable then
-      self.NRCSwitcher_0:SetActiveWidgetIndex(1)
-      self.Btn2_1.Title_1:SetText(LuaText.button_goods_expired)
-    end
-  elseif giftGrade == _G.Enum.BattlePassGiftGrade.BPGG_COLLECTION or giftGrade == _G.Enum.BattlePassGiftGrade.BPGG_SPREAD then
-    self.NRCSwitcher_2:SetActiveWidgetIndex(0)
-    local _, isDisable = self:GetGoodsPrice(goodsSubConf)
-    if isDisable then
-      self.NRCSwitcher_2:SetActiveWidgetIndex(1)
-      self.Btn2_3.Title_1:SetText(LuaText.button_goods_expired)
+    local targetIndex = isDisable and 1 or 0
+    if giftGrade == _G.Enum.BattlePassGiftGrade.BPGG_NORMAL then
+      self.NRCSwitcher_0:SetActiveWidgetIndex(targetIndex)
+      if isDisable then
+        self.Btn2_1.Title_1:SetText(LuaText.button_goods_expired)
+      end
+    elseif giftGrade == _G.Enum.BattlePassGiftGrade.BPGG_COLLECTION or giftGrade == _G.Enum.BattlePassGiftGrade.BPGG_SPREAD then
+      self.NRCSwitcher_2:SetActiveWidgetIndex(targetIndex)
+      if isDisable then
+        self.Btn2_3.Title_1:SetText(LuaText.button_goods_expired)
+      end
     end
   end
   self:SetDoubleCorner(giftGrade, hasBought)
@@ -633,12 +638,12 @@ function UMG_Pass_Purchase_C:SetNormalGradeButton(bagItemNum, NumText, goodsSubC
   if self.curGrade >= _G.Enum.BattlePassGiftGrade.BPGG_NORMAL then
     self.NRCSwitcher_1:SetActiveWidgetIndex(1)
   else
-    self.NRCSwitcher_1:SetActiveWidgetIndex(0)
     local price, isDisable = self:GetGoodsPrice(goodsSubConf)
+    local targetIndex = 0 == bagItemNum and isDisable and 1 or 0
+    self.NRCSwitcher_1:SetActiveWidgetIndex(targetIndex)
     if 0 == bagItemNum then
       NumText = string.format("\239\191\165%d", price)
       if isDisable then
-        self.NRCSwitcher_1:SetActiveWidgetIndex(1)
         self.Btn2.Title_1:SetText(LuaText.button_goods_expired)
       end
     end
@@ -654,7 +659,6 @@ function UMG_Pass_Purchase_C:SetCollectionGradeButton(bagItemNum, NumText, goods
     self.NRCSwitcher:SetActiveWidgetIndex(1)
     UIUtils.SafeSetVisibility(self.CornerMarker2, UE4.ESlateVisibility.Collapsed)
   else
-    self.NRCSwitcher:SetActiveWidgetIndex(0)
     UIUtils.SafeSetVisibility(self.CornerMarker2, UE4.ESlateVisibility.Visible)
     if fixGrade == _G.Enum.BattlePassGiftGrade.BPGG_SPREAD then
       UIUtils.SafeSetText(self.CornerMarkerText_1, LuaText.bp_umg_text04)
@@ -662,10 +666,11 @@ function UMG_Pass_Purchase_C:SetCollectionGradeButton(bagItemNum, NumText, goods
       UIUtils.SafeSetText(self.CornerMarkerText_1, LuaText.bp_umg_text03)
     end
     local price, isDisable = self:GetGoodsPrice(goodsSubConf)
+    local targetIndex = 0 == bagItemNum and isDisable and 1 or 0
+    self.NRCSwitcher:SetActiveWidgetIndex(targetIndex)
     if 0 == bagItemNum then
       NumText = string.format("\239\191\165%d", price)
       if isDisable then
-        self.NRCSwitcher:SetActiveWidgetIndex(1)
         self.Btn2_2.Title_1:SetText(LuaText.button_goods_expired)
       end
     end
@@ -1036,6 +1041,17 @@ function UMG_Pass_Purchase_C:OnRefreshBagInfo(rsp)
       end
     end
   end
+end
+
+function UMG_Pass_Purchase_C:OnDepartmentClick()
+  if not self.themeConf then
+    return
+  end
+  local uiData = {}
+  local petData = {}
+  petData.base_conf_id = self.themeConf.theme_petbase_id
+  uiData.petData = petData
+  _G.NRCModeManager:DoCmd(_G.TipsModuleCmd.Tips_OpenPetTips, uiData, _G.Enum.GoodsType.GT_PET)
 end
 
 return UMG_Pass_Purchase_C

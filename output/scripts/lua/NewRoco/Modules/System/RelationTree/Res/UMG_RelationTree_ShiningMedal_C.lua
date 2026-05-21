@@ -219,9 +219,9 @@ function UMG_RelationTree_ShiningMedal_C:OnPopUpRightBtnClicked()
       end
     end
     if defaultIndex >= 0 then
-      _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.OpenAppearanceClosetPanel, nil, true, true, suitId, defaultIndex)
+      _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.OpenAppearanceClosetPanel, nil, true, true, suitId, defaultIndex, nil, nil, true)
     else
-      _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.OpenAppearanceClosetPanel, nil, true, true, suitId)
+      _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.OpenAppearanceClosetPanel, nil, true, true, suitId, nil, nil, nil, true)
     end
     self:DoClose()
   else
@@ -231,7 +231,7 @@ function UMG_RelationTree_ShiningMedal_C:OnPopUpRightBtnClicked()
       local suitConf = _G.DataConfigManager:GetFashionSuitsConf(suitId)
       if suitConf then
         local packageId = suitConf and suitConf.package_id
-        _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.OpenSeasonalCombinationBagShop, AppearanceModuleEnum.FashionMallShopId.SEASONAL_COMBINATION_BAG, packageId, nil, true, suitId)
+        _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.OpenTryOnByPackageId, packageId, suitId)
       end
     elseif bCanBuyInExchangeShop then
       _G.NRCModuleManager:DoCmd(_G.ShopModuleCmd.OpenMainPanel, 3)
@@ -383,12 +383,17 @@ function UMG_RelationTree_ShiningMedal_C:GetPetPageMapper(bondConf, mutationType
         end
       end
     end
-    table.insert(result, {
-      switcherIndex = 2,
-      desc = self.bondConf.popup_text_color,
-      bShowLabel = false,
-      suitId = heteroChromeSuitId
-    })
+    if heteroChromeSuitId then
+      local bShowHeterochrome = _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.CheckSuitTime, heteroChromeSuitId)
+      if bShowHeterochrome then
+        table.insert(result, {
+          switcherIndex = 2,
+          desc = self.bondConf.popup_text_color,
+          bShowLabel = false,
+          suitId = heteroChromeSuitId
+        })
+      end
+    end
   end
   if bIsGlassy then
     table.insert(result, {

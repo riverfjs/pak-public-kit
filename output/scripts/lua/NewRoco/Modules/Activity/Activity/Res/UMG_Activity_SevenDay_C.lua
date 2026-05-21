@@ -90,7 +90,6 @@ function UMG_Activity_SevenDay_C:OnItemUpdate(_itemInst, _index, _stage)
     _itemInst:SetQuality(rewardData.itemQuality)
     _itemInst:SetSignStage(_stage)
     _itemInst:SetupRedPoint(_itemObject:GetRewardRedPointData(_stage))
-    _itemInst:PlayRewardUnAvailableAnimation()
   end
   self:OnItemRefreshView(_itemInst, _index, _stage)
 end

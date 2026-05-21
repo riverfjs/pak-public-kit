@@ -112,6 +112,11 @@ function UMG_Lineup_Share_C:UpdateUI()
         for _, v in ipairs(self.petData[i].skills) do
           if v.id == fantasticID then
             v.bFantastic = true
+            local petData = teamData and teamData[i]
+            local petGid = petData and petData.gid
+            local skillId = v and v.id
+            local seasonId = PetUtils.TryGetPetSkillSeasonId(petGid, skillId)
+            v.fantasticSeasonId = seasonId
             break
           end
         end

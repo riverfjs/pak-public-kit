@@ -28,6 +28,7 @@ function RolePlayModuleHead:OnConstruct()
   self:BindCmd(_G.RolePlayModuleCmd.CreateLockedRoleplayAction, "CreateLockedRoleplayAction")
   self:BindCmd(_G.RolePlayModuleCmd.AddHiddenSuitTipsId, "AddHiddenSuitTipsId")
   self:BindCmd(_G.RolePlayModuleCmd.RemoveHiddenSuitTipsId, "RemoveHiddenSuitTipsId")
+  self:BindCmd(_G.RolePlayModuleCmd.OnRolePlayHoldInfoChange, "OnRolePlayHoldInfoChange")
 end
 
 return RolePlayModuleHead

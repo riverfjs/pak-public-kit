@@ -93,6 +93,10 @@ function PVPRankedMatchModuleData:DebugDumpPvpInfoQueryData(bEnable)
   self.__debugDumpPvpInfoQueryData = bEnable
 end
 
+function PVPRankedMatchModuleData:DebugSeasonId(id)
+  self.__debugSeasonId = id
+end
+
 function PVPRankedMatchModuleData:SetPvpInfoQueryData(rsp)
   if self.__debugDumpPvpInfoQueryData then
     Log.Dump(rsp, 10, "xxxxx:ZonePvpInfoQueryRsp")
@@ -101,6 +105,7 @@ function PVPRankedMatchModuleData:SetPvpInfoQueryData(rsp)
   self.pvpSeasonData = {}
   local seasonData = self.pvpSeasonData
   seasonData.seasonId = rsp.season_id
+  self.pvpSeasonId = rsp.season_id
   seasonData.seasonStep = rsp.step
   seasonData.stepFinishTime = rsp.step_finish_ut
   seasonData.pvpRankStar = PVPRankedMatchModuleUtils.CorrectionRankStar(rsp.pvp_rank_star)
@@ -147,10 +152,19 @@ function PVPRankedMatchModuleData:IsZonePvpInfoQueryRspExceed()
 end
 
 function PVPRankedMatchModuleData:GetCurSeasonId()
-  if not self.pvpSeasonData or not self.pvpSeasonData.seasonId then
-    return nil
+  local seasonId
+  local __debugSeasonId = self.__debugSeasonId
+  local pvpSeasonData = self.pvpSeasonData
+  local pvpSeasonDataSeasonId = pvpSeasonData and pvpSeasonData.seasonId
+  local pvpSeasonId = self.pvpSeasonId
+  if __debugSeasonId and __debugSeasonId > 0 then
+    seasonId = __debugSeasonId
+  elseif pvpSeasonDataSeasonId then
+    seasonId = pvpSeasonDataSeasonId
+  elseif pvpSeasonId then
+    seasonId = pvpSeasonId
   end
-  return self.pvpSeasonData.seasonId
+  return seasonId
 end
 
 function PVPRankedMatchModuleData:GetCurSeasonStep()
@@ -221,7 +235,7 @@ end
 
 function PVPRankedMatchModuleData:GetCurWeekWinCount()
   if not self:CheckPvpSeasonData() then
-    return
+    return 0, 0
   end
   return self.pvpSeasonData.weekWinCount, self.pvpSeasonData.weekWinCountRequired
 end
@@ -376,13 +390,25 @@ function PVPRankedMatchModuleData:GetRandomPets(option)
     randomPets = randomPetsRemoveInTeamGid
   end
   if option.removeSameBloodPetData then
+    local bPreferNonTeam = option.preferNonTeamPetInSameBlood
     local uniqueSkillDamTypeMap = {}
     for i, petData in ipairs(randomPets) do
       local typeInfo = petData and petData.type
       local typeInfoParam = typeInfo and typeInfo.param
       local skillDamType = typeInfoParam
       if skillDamType then
-        uniqueSkillDamTypeMap[skillDamType] = petData
+        local existing = uniqueSkillDamTypeMap[skillDamType]
+        if not existing then
+          uniqueSkillDamTypeMap[skillDamType] = petData
+        elseif bPreferNonTeam then
+          local existingGid = existing and existing.gid
+          local petDataGid = petData and petData.gid
+          local existingInTeam = existingGid and nil ~= inTeamGidDic[existingGid]
+          local currentInTeam = petDataGid and nil ~= inTeamGidDic[petDataGid]
+          if existingInTeam and not currentInTeam then
+            uniqueSkillDamTypeMap[skillDamType] = petData
+          end
+        end
       end
     end
     local uniqueBloodList = {}
@@ -427,6 +453,9 @@ function PVPRankedMatchModuleData:InitRandomPetMap()
   }
   self.RandomPetMap = {}
   local randomPetGuid = BattleConst.RandomPetGidStart
+  local commonRandomPetBaseConfId = PetUtils.GetRandomPetBaseConfIdFromSkillDamType(ProtoEnum.SkillDamType.SDT_COMMON)
+  local commonRandomPetBaseConf = _G.DataConfigManager:GetPetbaseConf(commonRandomPetBaseConfId, true)
+  local commonRandomPetBaseConfPetName = commonRandomPetBaseConf and commonRandomPetBaseConf.name or ""
   for skillDamType, count in pairs(randomPetSkillDamTypeCountList) do
     for i = 1, count do
       randomPetGuid = randomPetGuid + 1
@@ -434,7 +463,7 @@ function PVPRankedMatchModuleData:InitRandomPetMap()
       randomPetData.type.type = ProtoEnum.PetTypeInfo.ENUM.PET_TYPE_RANDOM
       randomPetData.type.param = skillDamType
       randomPetData.gid = randomPetGuid
-      randomPetData.name = "\233\154\143\230\156\186\231\178\190\231\129\181"
+      randomPetData.name = commonRandomPetBaseConfPetName
       self.RandomPetMap[randomPetGuid] = randomPetData
     end
   end
@@ -640,18 +669,21 @@ function PVPRankedMatchModuleData:InitSeasonRecordData()
   local all_data = season_table:GetAllDatas()
   local valid_seasons = {}
   local begin_season_start_time = 0
+  local begin_season_id = 0
   for id, season_data in pairs(all_data) do
     local timestamp = PVPRankedMatchModuleUtils.GetTimestampFromTimeStr(season_data.start_time)
     if timestamp > 0 then
       table.insert(valid_seasons, {id = id, timestamp = timestamp})
       if season_data.begin_season then
         begin_season_start_time = timestamp
+        begin_season_id = id
       end
     else
       Log.Info("PVP\233\133\141\231\189\174\232\181\155\229\173\163\230\149\176\230\141\174\229\188\130\229\184\184\239\188\140\230\163\128\230\159\165id\228\184\186", id, "\231\154\132\232\181\155\229\173\163\229\188\128\229\167\139\230\151\182\233\151\180\233\133\141\231\189\174")
     end
   end
   self.first_season_start_time = begin_season_start_time
+  self.first_season_id = begin_season_id
   table.sort(valid_seasons, function(a, b)
     return a.timestamp > b.timestamp
   end)
@@ -689,7 +721,19 @@ function PVPRankedMatchModuleData:GetSortSeasonDatas()
 end
 
 function PVPRankedMatchModuleData:GetFirstSeasonId()
-  return #self.sort_seasons > 0 and self.sort_seasons[#self.sort_seasons] or 0
+  return self.first_season_id
+end
+
+function PVPRankedMatchModuleData:GetPrevSeasonId(seasonId)
+  local prev_id = self.first_season_id
+  for i = 1, #self.sort_seasons do
+    local id = self.sort_seasons[i]
+    if id == seasonId then
+      break
+    end
+    prev_id = id
+  end
+  return prev_id
 end
 
 function PVPRankedMatchModuleData:ClearRankMatchData()

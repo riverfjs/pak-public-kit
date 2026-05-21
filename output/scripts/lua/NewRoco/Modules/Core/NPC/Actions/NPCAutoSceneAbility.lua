@@ -5,9 +5,17 @@ local NPCAutoSceneAbility = Base:Extend("NPCAutoSceneAbility")
 
 function NPCAutoSceneAbility:Ctor(Owner, Config, Info)
   Base.Ctor(self, Owner, Config, Info)
-  self.Param1 = tonumber(self.Config.action_param1)
-  self.Param2 = tonumber(self.Config.action_param2)
+  self.petBaseId = tonumber(self.Config.action_param1)
+  self.vitality = tonumber(self.Config.action_param2)
   self.bIsWild = self.Config.action_type == Enum.ActionType.ACT_WILD_RIDING
+  self.bIsTempRide = self.Config.action_type == Enum.ActionType.ACT_TEMP_RIDING
+  if self.bIsWild then
+    self.rideAllCustomGid = _G.ProtoEnum.SceneRideAllCustomGid.SRCG_Wild
+  elseif self.bIsTempRide then
+    self.rideAllCustomGid = _G.ProtoEnum.SceneRideAllCustomGid.SRCG_Interact
+  else
+    self.rideAllCustomGid = _G.ProtoEnum.SceneRideAllCustomGid.SRCG_MiniGame
+  end
 end
 
 function NPCAutoSceneAbility:OnNpcAction()
@@ -22,6 +30,14 @@ function NPCAutoSceneAbility:OnNpcAction()
         end
         return false
       end
+    end
+  end
+  if self.bIsTempRide then
+    local player = self:GetPlayer()
+    local rideComponent = player and player:GetRideComponent()
+    local petBaseId = rideComponent and rideComponent:GetPetBaseID() or 0
+    if petBaseId == self.petBaseId then
+      return false
     end
   end
   return Base.OnNpcAction(self)
@@ -40,14 +56,15 @@ function NPCAutoSceneAbility:DoExecute(...)
     self.DelayId = _G.DelayManager:DelaySeconds(3, self.OnRide, self)
   end
   _G.NRCAudioManager:PlaySound2DAuto(1220002023, self.name)
-  _G.NRCEventCenter:DispatchEvent(SceneEvent.OnMiniGameRide, self.Param1, self.Param2, self.bIsWild, self:GetOwnerNPC():GetServerId())
+  _G.NRCEventCenter:DispatchEvent(SceneEvent.OnMiniGameRide, self.petBaseId, self.vitality, self.rideAllCustomGid, self:GetOwnerNPC():GetServerId(), self:GetOwnerConfig().id)
   self:Finish(true, nil, nil)
 end
 
 function NPCAutoSceneAbility:OnSubmit(rsp)
   Base.OnSubmit(self, rsp)
   if 0 ~= rsp.ret_info.ret_code then
-    Log.Error("NPCAutoSceneAbility OnSubmit ret_code ~= 0")
+    Log.Error("NPCAutoSceneAbility OnSubmit ret_code ~= 0", rsp.ret_info.ret_code)
+    self:Finish(false)
     return
   end
   self:DoExecute()

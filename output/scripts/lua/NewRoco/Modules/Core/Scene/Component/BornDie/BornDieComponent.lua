@@ -133,6 +133,11 @@ function BornDieComponent:OnBeginBorn()
       end
       return true
     end
+  elseif born_die_info.born_reason == _G.ProtoEnum.ClientCreatePetReason.CCPR_THROW or born_die_info.born_reason == _G.ProtoEnum.ClientCreatePetReason.CCPR_PERCEPTION or born_die_info.born_reason == _G.ProtoEnum.ClientCreatePetReason.CCPR_RIDE then
+    Log.Debug("\230\156\172\229\156\176\229\143\172\229\148\164\231\154\132\231\178\190\231\129\181\228\184\141\232\131\189\230\146\173\230\138\128\232\131\189\239\188\140\228\188\154\229\134\178\231\170\129\227\128\130\227\128\130\227\128\130\229\175\188\232\135\180End\228\186\139\228\187\182\230\156\137\229\143\175\232\131\189\231\155\145\229\144\172\228\184\141\229\136\176\227\128\130\227\128\130\227\128\130")
+    self.performing = true
+    self:PerformEnd()
+    return
   end
   local playPosition = born_die_info.start_play_time - _G.ZoneServer:GetServerTime()
   playPosition = math.clamp(playPosition / 1000.0, 0, 10)
@@ -432,6 +437,40 @@ end
 
 function BornDieComponent:IsPerforming()
   return self.performing
+end
+
+function BornDieComponent:OnBornWhenSkipping()
+  if self.owner.AIComponent then
+    self.owner.AIComponent:ForceLockForReason(true, true, AIDefines.LockReason.BORN_DIE)
+  end
+  if self.owner.InteractionComponent then
+    self.owner.InteractionComponent:SetInteractionEnable(false, NPCModuleEnum.NpcInteractDisableFlag.BORN_DIE)
+  end
+  if self.owner:IsHidden(NPCModuleEnum.NpcReasonFlags.SERVER_TASK) then
+    Log.Debug("[TaskFlow] NPC hidden by task, skip born die", self.owner:DebugNPCNameAndID())
+    self.PostponedByTask = true
+    return false
+  end
+  self.PostponedByTask = false
+  self.owner:SetNotDestroyFlag(true)
+  self.aoi_state = NpcAoiStateEnum.Spawning
+  self.performing = true
+  self:PerformEnd()
+end
+
+function BornDieComponent:OnDieWhenSkipping()
+  if self.owner.AIComponent then
+    self.owner.AIComponent:ForceLockForReason(true, false, AIDefines.LockReason.BORN_DIE)
+  end
+  if self.owner and self.owner.InteractionComponent then
+    self.owner.InteractionComponent:SetInteractionEnable(false, NPCModuleEnum.NpcInteractDisableFlag.BORN_DIE)
+  end
+  self.aoi_state = NpcAoiStateEnum.PreDying
+  self.owner:SetNotDestroyFlag(true)
+  self.owner.bDisappearPerform = false
+  self.owner.DisappearSkillPath = nil
+  self.performing = true
+  self:PerformEnd()
 end
 
 return BornDieComponent

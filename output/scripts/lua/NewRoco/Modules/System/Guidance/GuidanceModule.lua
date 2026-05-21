@@ -69,6 +69,7 @@ function GuidanceModule:OnActive()
   self:RegPanel("DragPanel", "UMG_Guidance_DragLine", _G.Enum.UILayerType.UI_LAYER_GUIDANCE)
   self.bIsBaned = _G.FunctionBanManager:GetFunctionState(_G.Enum.PlayerFunctionBanType.PFBT_NEWPLAYER_GUIDE, false, false)
   _G.FunctionBanManager:AddFunctionStateListener(_G.Enum.PlayerFunctionBanType.PFBT_NEWPLAYER_GUIDE, self, self.OnFunctionStateChanged)
+  _G.FunctionBanManager:AddRawFunctionStateListener(_G.Enum.PlayerFunctionBanType.PFBT_NEWPLAYER_GUIDE, self, self.OnRawFunctionStateChanged)
   Log.Debug("GuidanceModule:OnActive function state", self.bIsBaned)
   _G.ZoneServer:AddProtocolListener(self, _G.ProtoCMD.ZoneSvrCmd.ZONE_GUIDE_INFO_NOTIFY, self.OnReceiveGuideInfoNotify)
   _G.NRCEventCenter:RegisterEvent(self.name, self, _G.NRCGlobalEvent.ON_RECONNECT_FINISH, self.OnReconnectFinish)
@@ -80,7 +81,6 @@ function GuidanceModule:OnActive()
   _G.NRCEventCenter:RegisterEvent(self.name, self, TaskModuleEvent.OnHiddenTaskUpdated, self.OnHiddenTaskUpdated)
   _G.NRCEventCenter:RegisterEvent(self.name, self, NPCModuleEvent.NpcActionExecute, self.OnNpcActionExecute)
   _G.NRCEventCenter:RegisterEvent(self.name, self, NPCModuleEvent.NpcActionFinish, self.OnNpcActionFinish)
-  _G.NRCEventCenter:RegisterEvent(self.name, self, BagModuleEvent.GoodChangeTypeEnum.GT_BACKPACK, self.OnPetBackpackChange)
   local dialogueModule = _G.NRCModuleManager:GetModule("DialogueModule")
   if dialogueModule then
     dialogueModule:RegisterEvent(self, DialogueModuleEvent.ForwardOptionChange, self.OnDialogueOptionChanged)
@@ -93,6 +93,7 @@ function GuidanceModule:OnActive()
   end
   _G.NRCEventCenter:RegisterEvent(self.name, self, _G.NRCPanelEvent.LoadPanelSucc, self.OnLoadPanel)
   _G.NRCEventCenter:RegisterEvent(self.name, self, _G.NRCPanelEvent.ClosePanel, self.OnClosePanel)
+  _G.NRCEventCenter:RegisterEvent(self.name, self, _G.GuidanceModuleEvent.OnPanelAllReady, self.OnGuideEventPanelAllReady)
   _G.NRCEventCenter:RegisterEvent(self.name, self, _G.GuidanceModuleEvent.OnPanelLoaded, self.OnGuideEventPanelLoaded)
   _G.NRCEventCenter:RegisterEvent(self.name, self, _G.GuidanceModuleEvent.OnPanelClosed, self.OnGuideEventPanelClosed)
   local playerModule = _G.NRCModuleManager:GetModule("PlayerModule")
@@ -104,6 +105,7 @@ end
 
 function GuidanceModule:OnDeactive()
   _G.FunctionBanManager:RemoveFunctionStateListener(_G.Enum.PlayerFunctionBanType.PFBT_NEWPLAYER_GUIDE, self, self.OnFunctionStateChanged)
+  _G.FunctionBanManager:RemoveRawFunctionStateListener(_G.Enum.PlayerFunctionBanType.PFBT_NEWPLAYER_GUIDE, self, self.OnRawFunctionStateChanged)
   _G.ZoneServer:RemoveProtocolListener(self, _G.ProtoCMD.ZoneSvrCmd.ZONE_GUIDE_INFO_NOTIFY, self.OnReceiveGuideInfoNotify)
   _G.NRCEventCenter:UnRegisterEvent(self, _G.NRCGlobalEvent.ON_RECONNECT_FINISH, self.OnReconnectFinish)
   _G.NRCEventCenter:UnRegisterEvent(self, SceneEvent.LoadMapFinish, self.LoadMapFinish)
@@ -126,6 +128,7 @@ function GuidanceModule:OnDeactive()
   end
   _G.NRCEventCenter:UnRegisterEvent(self, _G.NRCPanelEvent.LoadPanelSucc, self.OnLoadPanel)
   _G.NRCEventCenter:UnRegisterEvent(self, _G.NRCPanelEvent.ClosePanel, self.OnClosePanel)
+  _G.NRCEventCenter:UnRegisterEvent(self, _G.GuidanceModuleEvent.OnPanelAllReady, self.OnGuideEventPanelAllReady)
   _G.NRCEventCenter:UnRegisterEvent(self, _G.GuidanceModuleEvent.OnPanelLoaded, self.OnGuideEventPanelLoaded)
   _G.NRCEventCenter:UnRegisterEvent(self, _G.GuidanceModuleEvent.OnPanelClosed, self.OnGuideEventPanelClosed)
   local playerModule = _G.NRCModuleManager:GetModule("PlayerModule")
@@ -224,6 +227,10 @@ function GuidanceModule:OnFunctionStateChanged(newBanState, functionType)
   end
 end
 
+function GuidanceModule:OnRawFunctionStateChanged(newState, functionType, Reason)
+  Log.Debug("GuidanceModule:OnRawFunctionStateChanged", newState, functionType, Reason)
+end
+
 function GuidanceModule:OnReceiveGuideInfoNotify(notify)
   if not notify or not notify.guide_info then
     return
@@ -274,12 +281,9 @@ function GuidanceModule:OnReconnectFinish()
     if self.currentGuideGroupId and self.currentGuideGroupId == guideGroup.guide_group_id then
       Log.Debug("GuidanceModule:OnReconnect still currentGuideGroupId, recover. ", self.currentGuideGroupId)
       guideGroup:OnRecover()
+      self:CheckGuideSettingMode()
       self:TryDisplayCandidateStyle()
     end
-  end
-  local petInfoList = _G.DataModelMgr.PlayerDataModel:GetPlayerPetInfo()
-  if petInfoList then
-    self:OnPetBackpackChange(petInfoList.backpack_info)
   end
 end
 
@@ -299,10 +303,6 @@ function GuidanceModule:OnLoadingUIClose()
     localPlayer:AddEventListener(self, PlayerModuleEvent.ON_STATUS_CHANGED, self.OnStatusChanged)
   end
   self:CheckCondition()
-  local petInfoList = _G.DataModelMgr.PlayerDataModel:GetPlayerPetInfo()
-  if petInfoList then
-    self:OnPetBackpackChange(petInfoList.backpack_info)
-  end
   self:CheckGuideSettingMode()
   self:TryDisplayCandidateStyle()
 end
@@ -452,16 +452,6 @@ function GuidanceModule:OnNpcActionFinish(action)
   self:CheckCondition(GuideConfigTypes.ConditionType.Option, action.Owner.optionInfo.option_id, 1)
 end
 
-function GuidanceModule:OnPetBackpackChange(backpack_info)
-  if not backpack_info then
-    return
-  end
-  if backpack_info.pet_gid then
-    Log.Debug("GuidanceModule:OnPetBackpackChange pet", #backpack_info.pet_gid)
-    self:CheckCondition(GuideConfigTypes.ConditionType.PetBag, 0, #backpack_info.pet_gid)
-  end
-end
-
 function GuidanceModule:OnDialogueOptionChanged(option)
   local dialogueModule = _G.NRCModuleManager:GetModule("DialogueModule")
   if not dialogueModule then
@@ -523,17 +513,11 @@ end
 
 function GuidanceModule:OnLoadPanel(panelData)
   if panelData.moduleName == self.name then
-    if panelData.panelName == "BannerPanel" then
-      Log.Debug("GuidanceModule:OnLoadPanel BannerPanel check if need hide")
-      self:HideGuideIfNotOnTop()
-    end
     return
   end
   Log.Debug("GuidanceModule:OnPanelLoaded", panelData.panelName, panelData.panelPath, panelData.panelLayer, panelData.openAnimName, panelData.closeAnimName)
   self:CheckCondition(GuideConfigTypes.ConditionType.Panel, panelData, 0)
-  self:HideGuideIfNotOnTop()
-  self:TryWatchLobbyMain(panelData)
-  self:CheckFocusTargetOnTop()
+  self:CheckPanelOnTop(panelData)
 end
 
 function GuidanceModule:OnClosePanel(panelData)
@@ -549,8 +533,17 @@ function GuidanceModule:OnClosePanel(panelData)
   end
   Log.Debug("GuidanceModule:OnPanelClose", panelData.panelName, panelData.panelPath, panelData.panelLayer, panelData.openAnimName, panelData.closeAnimName)
   self:CheckCondition(GuideConfigTypes.ConditionType.Panel, panelData, 1)
-  self:RecoverGuideIfOnTop()
-  self:CheckFocusTargetOnTop(panelData)
+  self:CheckPanelOnTop(panelData)
+  self:CheckIfTargetPanelClosed(panelData)
+end
+
+function GuidanceModule:OnGuideEventPanelAllReady(panelData)
+  if not panelData then
+    return
+  end
+  Log.Debug("GuidanceModule:OnGuideEventPanelAllReady", panelData.panelName, panelData.panelPath, panelData.panelLayer)
+  self:CheckCondition(GuideConfigTypes.ConditionType.Panel, panelData, 2)
+  self:CheckPanelOnTop(panelData)
 end
 
 function GuidanceModule:OnGuideEventPanelLoaded(panelData)
@@ -657,6 +650,7 @@ function GuidanceModule:OnOpenGuideStyle(config)
     self.targetPanelData = targetPanelData
     Log.Debug("GuidanceModule:OnOpenGuideStyle Focus", config.unique_id, config.group_id, config.sub_guide_id, typeId)
     self:OpenPanel("FocusPanel", config, styleConfig, targetWidget, targetPanelData, pathWidgets)
+    _G.NRCEventCenter:DispatchEvent(_G.GuidanceModuleEvent.CloseBlockMask)
   end
   
   local function openBanner()
@@ -690,9 +684,7 @@ function GuidanceModule:OnOpenGuideStyle(config)
       return
     end
     if styleConfig.delay_time and styleConfig.delay_time > 0 then
-      NRCEventCenter:DispatchEvent(GuidanceModuleEvent.OpenBlockMask)
       return _G.DelayManager:DelaySeconds(styleConfig.delay_time / 1000.0, function()
-        NRCEventCenter:DispatchEvent(GuidanceModuleEvent.CloseBlockMask)
         if self:HasPanel(panelName) or self:IsPanelInOpening(panelName) then
           Log.Debug("GuidanceModule:OnOpenGuideStyle panel is already open after delay", panelName, config.unique_id, config.group_id, config.sub_guide_id)
           return
@@ -710,6 +702,7 @@ function GuidanceModule:OnOpenGuideStyle(config)
     return
   end
   if styleConfig.style_type == GuideConfigTypes.GuideStyleType.Focus then
+    _G.NRCEventCenter:DispatchEvent(_G.GuidanceModuleEvent.OpenBlockMask)
     self.focusDelayHandle = tryDelayOpen(openFocus, "FocusPanel")
   elseif styleConfig.style_type == GuideConfigTypes.GuideStyleType.Banner then
     self.bannerDelayHandle = tryDelayOpen(openBanner, "BannerPanel")
@@ -801,20 +794,26 @@ function GuidanceModule:OnGuideComplete(guideSubConfig)
 end
 
 function GuidanceModule:OnFocusPanelTargetLost(subConfig)
-  local guideGroup = self.guideGroups[subConfig.group_id]
+  local guideGroupId = self.currentGuideGroupId
+  if subConfig then
+    Log.Debug("GuidanceModule:OnFocusPanelTargetLost with subConfig", subConfig.unique_id, subConfig.group_id, subConfig.sub_guide_id)
+    guideGroupId = subConfig.group_id
+  end
+  local guideGroup = self.guideGroups[guideGroupId]
   if guideGroup then
     if guideGroup:CheckIsPreviousSkipped() then
-      self:GMCompleteGuideGroup(subConfig.group_id)
+      self:GMCompleteGuideGroup(guideGroupId)
     else
       guideGroup:FocusTargetLostOnce()
       if guideGroup:HasReachedMaxFocusTargetLostTimes() then
-        Log.Debug("GuidanceModule:OnFocusPanelTargetLost HasReachedMaxFocusTargetLostTimes", subConfig.unique_id, subConfig.group_id, subConfig.sub_guide_id)
-        self:GMCompleteGuideGroup(subConfig.group_id)
+        Log.Debug("GuidanceModule:OnFocusPanelTargetLost HasReachedMaxFocusTargetLostTimes", guideGroupId)
+        self:GMCompleteGuideGroup(guideGroupId)
       else
-        Log.Debug("GuidanceModule:OnFocusPanelTargetLost not ReachedMaxFocusTargetLostTimes", subConfig.unique_id, subConfig.group_id, subConfig.sub_guide_id)
+        Log.Debug("GuidanceModule:OnFocusPanelTargetLost not ReachedMaxFocusTargetLostTimes", guideGroupId)
         self:ResetGuideEffect()
-        guideGroup:OnReconnect()
+        guideGroup:OnReconnect(true)
         guideGroup:OnRecover()
+        self:CheckGuideSettingMode()
         self:TryDisplayCandidateStyle()
       end
     end
@@ -927,6 +926,7 @@ function GuidanceModule:OnFinishGuideRsp(rsp)
 end
 
 function GuidanceModule:OnSubGuideFinished()
+  Log.Debug("GuidanceModule:OnSubGuideFinished", self.currentGuideGroupId)
   if self.currentGuideGroupId then
     local currentGuideGroup = self.guideGroups[self.currentGuideGroupId]
     if currentGuideGroup and currentGuideGroup:HasCompleted() then
@@ -1060,101 +1060,38 @@ function GuidanceModule:OnLogicStatusRemove(rsp)
   Log.Debug("GuidanceModule:OnLogicStatusRemove", rsp.ret_info.ret_code, rsp.ret_info.ret_msg)
 end
 
-function GuidanceModule:CheckMainUIOnTop()
-  local panelStack = _G.NRCPanelManager.PanelStack
-  local len = #panelStack
-  if len > 0 then
-    for i = len, 1, -1 do
-      local moduleName = panelStack[i].moduleName
-      local panelName = panelStack[i].panelName
-      local panel = _G.NRCPanelManager:GetPanel(moduleName, panelName)
-      if panel and UE4.UObject.IsValid(panel) and panel:IsVisible() then
-        local panelData = panel.panelData
-        if GuideConfigTypes.IsTopPanel(panelData) then
-          if panelData.moduleName == "MainUIModule" and panelData.panelName == "LobbyMain" then
-            return true
-          else
-            return false
-          end
-        end
-      end
-    end
+function GuidanceModule:CheckIfTargetPanelClosed(panelData)
+  local currentGuideGroup = self.guideGroups[self.currentGuideGroupId]
+  if not currentGuideGroup then
+    return
   end
-  return false
+  local subGuides = currentGuideGroup:GetSubGuideWithState(GuideConfigTypes.SubConfigState.Triggered)
+  if not subGuides then
+    return
+  end
+  for _, guide in pairs(subGuides) do
+    guide:CheckIfTargetPanelClosed(panelData)
+  end
 end
 
-function GuidanceModule:CheckFocusTargetOnTop(panelData)
+function GuidanceModule:CheckPanelOnTop(panelData)
   if self:HasPanel("FocusPanel") then
     local focusPanel = self:GetPanel("FocusPanel")
     if focusPanel then
       focusPanel:CheckPanelOnTop()
     end
-  else
-    local currentGuideGroup = self.guideGroups[self.currentGuideGroupId]
-    if not currentGuideGroup then
-      return
-    end
-    local subGuides = currentGuideGroup:GetSubGuideWithState(GuideConfigTypes.SubConfigState.Triggered)
-    if not subGuides then
-      return
-    end
-    for _, guide in pairs(subGuides) do
-      guide:CheckIfTargetPanelClosed(panelData)
-    end
   end
-end
-
-function GuidanceModule:HideGuideIfNotOnTop()
-  if self:CheckMainUIOnTop() then
-    return
-  end
-  Log.Debug("GuidanceModule:HideGuideIfNotOnTop")
   if self:HasPanel("BannerPanel") then
     local bannerPanel = self:GetPanel("BannerPanel")
     if bannerPanel then
-      bannerPanel:SetVisibility(UE4.ESlateVisibility.Collapsed)
+      bannerPanel:CheckPanelOnTop()
     end
   end
-  if self.bPlayerHighlighted then
-    self:UpdateHighlightEffect(false)
-  end
-end
-
-function GuidanceModule:RecoverGuideIfOnTop()
-  if not self:CheckMainUIOnTop() then
-    return
-  end
-  Log.Debug("GuidanceModule:RecoverGuideIfOnTop")
-  if self:HasPanel("BannerPanel") then
-    local bannerPanel = self:GetPanel("BannerPanel")
-    if bannerPanel then
-      bannerPanel:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  if self:HasPanel("DragPanel") then
+    local dragPanel = self:GetPanel("DragPanel")
+    if dragPanel then
+      dragPanel:CheckPanelOnTop()
     end
-  end
-  if self.bPlayerHighlighted then
-    self:UpdateHighlightEffect(true)
-  end
-end
-
-function GuidanceModule:TryWatchLobbyMain(panelData)
-  if panelData.moduleName ~= "MainUIModule" or panelData.panelName ~= "LobbyMain" then
-    return
-  end
-  local lobbyMain = _G.NRCPanelManager:GetPanel(panelData.moduleName, panelData.panelName)
-  if lobbyMain then
-    lobbyMain.OnVisibilityChanged:Add(lobbyMain, function()
-      if not lobbyMain or not UE4.UObject.IsValid(lobbyMain) then
-        return
-      end
-      if lobbyMain:IsVisible() then
-        Log.Debug("GuidanceModule:TryWatchLobbyMain Lobby main visible")
-        self:RecoverGuideIfOnTop()
-      else
-        Log.Debug("GuidanceModule:TryWatchLobbyMain Lobby main invisible")
-        self:HideGuideIfNotOnTop()
-      end
-      self:CheckFocusTargetOnTop()
-    end)
   end
 end
 
@@ -1455,8 +1392,7 @@ function GuidanceModule:GMCompleteGuideGroup(group_id)
   local serverData = self.guideServerData[group_id]
   if serverData then
     if serverData.finish_all then
-      Log.Debug("GuidanceModule:GMCompleteGuideGroup \229\188\149\229\175\188\231\187\132\229\183\178\229\133\168\233\131\168\229\174\140\230\136\144", group_id)
-      self:ResetGuideEffect()
+      Log.Debug("GuidanceModule:GMCompleteGuideGroup \229\188\149\229\175\188\231\187\132\229\183\178\229\133\168\233\131\168\229\174\140\230\136\144 finish_all", group_id)
       return
     end
     if serverData.finish_index then
@@ -1464,6 +1400,10 @@ function GuidanceModule:GMCompleteGuideGroup(group_id)
         if table.contains(subIds, idx) then
           table.removeValue(subIds, idx)
         end
+      end
+      if not subIds or 0 == #subIds then
+        Log.Debug("GuidanceModule:GMCompleteGuideGroup \229\188\149\229\175\188\231\187\132\229\183\178\229\133\168\233\131\168\229\174\140\230\136\144 not subIds or #subIds == 0", group_id)
+        return
       end
     end
   end

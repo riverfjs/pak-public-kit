@@ -18,6 +18,7 @@ function RocoSkillObject:Ctor()
   self.isCounter = false
   self.isInBulletTime = false
   self.GetActorCacheDict = {}
+  self.jumpErrorLog = false
   WeakTable(self.GetActorCacheDict)
   BattleEventCenter:Bind(self, BattleEvent.SKillEvent_TriggerBeHit, BattleEvent.SKillEvent_EnterBulletTime, BattleEvent.SKillEvent_LeaveBulletTime, BattleEvent.SKillEvent_OnCounterEnd)
 end
@@ -486,6 +487,23 @@ function RocoSkillObject:OnSkillActionStart()
   self:SendLuaEvent("ActionStart")
 end
 
+function RocoSkillObject:OnSkillStartFailed(Result)
+  if not self.IsObjValid or not self:IsObjValid() then
+    Log.Error("RocoSkillObject OnSkillStartFailed obj is invalid")
+    return
+  end
+  local Dlg = self:GetEventCallBack("StartFailed")
+  if Dlg then
+    Dlg:Invoke("StartFailed", self, Result)
+    self:ClearDelegates()
+    if not self.jumpErrorLog then
+      Log.Warning("\230\138\128\232\131\189\229\188\128\229\167\139\229\164\177\232\180\165\239\188\129\239\188\129\239\188\129\239\188\129\239\188\129\239\188\129:", self:GetName(), Result)
+    end
+  elseif not self.jumpErrorLog then
+    Log.Error("\230\138\128\232\131\189\229\188\128\229\167\139\229\164\177\232\180\165: \230\178\161\230\156\137\231\155\145\229\144\172\229\164\177\232\180\165\228\186\139\228\187\182\239\188\129\239\188\129\239\188\129\239\188\129\239\188\129\239\188\129", self:GetName(), Result)
+  end
+end
+
 function RocoSkillObject:AddSkillEvent(eventName)
   if string.IsNilOrEmpty(eventName) then
     return
@@ -499,12 +517,23 @@ function RocoSkillObject:OnSkillBranch()
   self:SendLuaEvent("Branch")
 end
 
+function RocoSkillObject:SetJumpErrorLog()
+  self.jumpErrorLog = true
+end
+
 function RocoSkillObject:OnSkillInterrupt()
   if not self.IsObjValid or not self:IsObjValid() then
     Log.Error("RocoSkillObject OnSkillInterrupt obj is invalid")
     return
   end
-  Log.Debug("\230\138\128\232\131\189\232\162\171\230\137\147\230\150\173\239\188\129\239\188\129\239\188\129\239\188\129\239\188\129\239\188\129:", self:GetName())
+  if not self.jumpErrorLog then
+    local Dlg = self:GetEventCallBack("Interrupt")
+    if Dlg then
+      Log.Warning("\230\138\128\232\131\189\232\162\171\230\137\147\230\150\173\239\188\129\239\188\129\239\188\129\239\188\129\239\188\129\239\188\129:", self:GetName())
+    else
+      Log.Error("\230\138\128\232\131\189\232\162\171\230\137\147\230\150\173: \230\178\161\230\156\137\231\155\145\229\144\172\230\137\147\230\150\173\228\186\139\228\187\182\239\188\129\239\188\129\239\188\129\239\188\129\239\188\129\239\188\129", self:GetName())
+    end
+  end
   self:SendLuaEvent("Interrupt")
 end
 
@@ -626,14 +655,18 @@ function RocoSkillObject:SendAndClearDelegates(event)
   self:ClearDelegates()
 end
 
+function RocoSkillObject:GetEventCallBack(event, Callbacks)
+  Callbacks = Callbacks or self.Callbacks
+  return Callbacks[event]
+end
+
 function RocoSkillObject:SendLuaEvent(event, Callbacks, RawCallback)
   if not self.IsObjValid or not self:IsObjValid() then
     Log.Error("RocoSkillObject SendLuaEvent obj is invalid")
     return
   end
-  Callbacks = Callbacks or self.Callbacks
   RawCallback = RawCallback or self.RawCallback
-  local Dlg = Callbacks[event]
+  local Dlg = self:GetEventCallBack(event, Callbacks)
   if Dlg then
     Dlg:Invoke(event, self)
   end
@@ -643,7 +676,7 @@ function RocoSkillObject:SendLuaEvent(event, Callbacks, RawCallback)
   if RawCallback then
     RawCallback:Invoke(event, self)
   end
-  if "PreEnd" == event or "PreEndAnim" == event or "Interrupt" == event then
+  if "PreEnd" == event or "PreEndAnim" == event or "Interrupt" == event or "StartFailed" == event then
     self:ClearDelegates()
   end
 end

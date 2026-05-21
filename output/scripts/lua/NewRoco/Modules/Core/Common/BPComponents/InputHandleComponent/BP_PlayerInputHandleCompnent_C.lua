@@ -32,14 +32,20 @@ end
 function BP_PlayerInputHandleCompnent_C:TouchMove(dir, value)
   local ueCtrl = self.playerController
   if ueCtrl then
+    local x = dir.X
+    local y = ueCtrl:IsSideView() and 0 or dir.Y
     self:UpdateDirection()
-    local direction = -self.forward * dir.Y + self.right * dir.X
+    local direction = -self.forward * y + self.right * x
     self:Move(direction, value)
   end
   return true
 end
 
 function BP_PlayerInputHandleCompnent_C:MoveForward(value)
+  local ueCtrl = self.playerController
+  if not ueCtrl or ueCtrl:IsSideView() then
+    return false
+  end
   if 0 ~= value then
     self:UpdateDirection()
     local direction = self.forward

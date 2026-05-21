@@ -9,13 +9,16 @@ function UMG_PetUpgradePanel_C:OnConstruct()
   self.Icon = "PaperSprite'/Game/NewRoco/Modules/System/PetUI/Raw/Atlas/PetUI/Frames/btn_jineng_png.btn_jineng_png'"
   self.Icon1 = "PaperSprite'/Game/NewRoco/Modules/System/PetUI/Raw/Having/Frames/img_suo_png.img_suo_png'"
   self.name = LuaText.umg_petupgradepanel_1
+  _G.NRCEventCenter:RegisterEvent("UMG_PetUpgradePanel_C", self, NRCGlobalEvent.OnApplicationHasEnteredForeground, self.OnApplicationActive)
 end
 
 function UMG_PetUpgradePanel_C:OnDestruct()
   self:CancelDelay()
+  _G.NRCEventCenter:UnRegisterEvent(self, NRCGlobalEvent.OnApplicationHasEnteredForeground, self.OnApplicationActive)
 end
 
 function UMG_PetUpgradePanel_C:OnActive(before_data, _data, _petInfoMainCtrl, beforelevel)
+  Log.Debug("UMG_PetUpgradePanel_C:OnActive")
   UE4.UNRCAudioManager.Get():PlaySound2DAuto(40002022, "UMG_PetUpgradePanel_C:OnActive")
   local PetbeforeInfo = before_data
   self.beforelevel = beforelevel
@@ -31,6 +34,12 @@ function UMG_PetUpgradePanel_C:OnActive(before_data, _data, _petInfoMainCtrl, be
   if PetUIModule:HasPanel("PetLevelUp") then
     local panel = PetUIModule:GetPanel("PetLevelUp")
     panel:DoClose()
+  end
+end
+
+function UMG_PetUpgradePanel_C:OnApplicationActive()
+  if self.SkillList then
+    self.SkillList:SetRenderOpacity(1)
   end
 end
 

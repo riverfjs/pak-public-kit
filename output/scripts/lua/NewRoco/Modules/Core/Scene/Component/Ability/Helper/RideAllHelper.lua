@@ -7,6 +7,11 @@ function RideAllHelper:CanCastAbility(caster, pet)
   if not pet or not pet.config then
     return AbilityErrorCode.CAN_NOT_FIND_ABILITY
   end
+  local buffComp = caster.buffComponent
+  local RideAllBuff = buffComp:GetBuff("RideAll_Main_Buff")
+  if RideAllBuff and RideAllBuff.CanOffPet and not RideAllBuff:CanOffPet() then
+    return AbilityErrorCode.HIGHER_PRIORITY_ABILITY_IS_CASTING
+  end
   local petID = pet.config.id
   local RideConf = DataConfigManager:GetAllRidePet(petID)
   local AllowRideType, AllowMovementId = self:GetRideMoveType(caster, pet)
@@ -83,6 +88,7 @@ function RideAllHelper:HandleStatus(caster, pet, ...)
     ridePetParam.relative_emotion = 0
     ridePetParam.ride_load_finish = false
     ridePetParam.ride_pet_gid = pet.gid
+    ridePetParam.option_id = pet.optionId or nil
     local petNpc = pet.npcId and _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.GetNpcByServerID, pet.npcId)
     if petNpc then
       ridePetParam.owner_id = petNpc:GetOwnerId()
@@ -97,12 +103,13 @@ function RideAllHelper:HandleStatus(caster, pet, ...)
       ridePetParam.pet_voice = petData.voice
       ridePetParam.pet_gid = petData.gid
     end
+    local cachedHandInHandParam, player2P
     if rideComponent:ScenePetIsDoubleRide(pet) then
       ridePetParam.double_ride_1p_id = caster.serverData.base.actor_id
       local HandInHandParam = caster.statusComponent:GetCustomParams(ProtoEnum.WorldPlayerStatusType.WPST_HAND_IN_HAND)
+      cachedHandInHandParam = HandInHandParam
       if HandInHandParam then
         local uin2p = HandInHandParam.player_interact_param.player_uin2
-        local player2P
         if uin2p then
           player2P = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GetPlayerByUin, uin2p)
         end
@@ -126,7 +133,7 @@ function RideAllHelper:HandleStatus(caster, pet, ...)
     local customParams = {ride_param = ridePetParam}
     caster.statusComponent:RemoveStatus(ProtoEnum.WorldPlayerStatusType.WPST_HAND_IN_HAND)
     caster.statusComponent:RemoveStatus(ProtoEnum.WorldPlayerStatusType.WPST_HAND_IN_HAND_2P)
-    if pet.gid == -ProtoEnum.SceneRideAllCustomGid.SRCG_Friend or pet.gid == -ProtoEnum.SceneRideAllCustomGid.SRCG_Wild then
+    if pet.gid == -ProtoEnum.SceneRideAllCustomGid.SRCG_Friend or pet.gid == -ProtoEnum.SceneRideAllCustomGid.SRCG_Wild or pet.gid == -ProtoEnum.SceneRideAllCustomGid.SRCG_Interact then
       ridePetParam.ride_npc_id = pet.npcId
     end
     statusComponent:ApplyStatus(ProtoEnum.WorldPlayerStatusType.WPST_RIDEALL, nil, nil, customParams, pet, AllowRideType, AllowMovementId, ...)
@@ -134,7 +141,23 @@ function RideAllHelper:HandleStatus(caster, pet, ...)
       caster.InviteComponent:EndChangeTogether()
     end
     if not statusComponent:HasStatus(ProtoEnum.WorldPlayerStatusType.WPST_RIDEALL) and caster and caster.InviteComponent then
-      caster.InviteComponent:InteractCancel()
+      if cachedHandInHandParam then
+        _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.SyncStatusImmediately)
+      end
+      if cachedHandInHandParam and caster.InviteComponent:PreChangeTogether(ProtoEnum.RelationInteractSubType.RIST_HOLD_HANDS) then
+        local HandStatus = ProtoEnum.WorldPlayerStatusType.WPST_HAND_IN_HAND
+        caster.InviteComponent.CurStatus = HandStatus
+        player2P.statusComponent:PreChangeStatus(ProtoEnum.WorldPlayerStatusType.WPST_RIDEALL, 1, ProtoEnum.WPST_OpCode.WPST_OPCODE_REMOVE)
+        local handSuccess = caster.InviteComponent:HandInHandLink(cachedHandInHandParam, HandStatus)
+        caster.InviteComponent:EndChangeTogether()
+        if not handSuccess then
+          caster.InviteComponent:InteractCancel()
+        else
+          player2P.statusComponent:PreChangeStatus(ProtoEnum.WorldPlayerStatusType.WPST_HAND_IN_HAND_2P, 1, ProtoEnum.WPST_OpCode.WPST_OPCODE_ADD, cachedHandInHandParam)
+        end
+      else
+        caster.InviteComponent:InteractCancel()
+      end
     end
     caster:SendEvent(PlayerModuleEvent.ON_UPDATE_TOGETHER)
   end
@@ -171,7 +194,13 @@ function RideAllHelper:GetRideMoveType(caster, scenePet)
   if curPet then
     CharMoveComp = curPet.CharacterMovement
   end
-  local MovementList = DataConfigManager:GetAllRidePet(petID).basic_movement_list
+  local AllRideConf = DataConfigManager:GetAllRidePet(petID)
+  local MovementList = {}
+  if AllRideConf.basic_movement_list then
+    MovementList = AllRideConf.basic_movement_list
+  else
+    Log.Error("RideAllHelper:\230\156\170\230\137\190\229\136\176\233\170\145\228\185\152\233\133\141\231\189\174, petID")
+  end
   self._cacheRideTypeBase = nil
   local FlyMovementId = 0
   for _, MovementId in pairs(MovementList) do
@@ -193,6 +222,8 @@ function RideAllHelper:GetRideMoveType(caster, scenePet)
         hasBlock = CharMoveComp.MovementMode ~= UE.EMovementMode.MOVE_Custom or CharMoveComp.CustomMovementMode ~= UE.ERocoCustomMovementMode.MOVE_Climbing
       elseif SubRideType == ProtoEnum.SceneRideAllType.SRAT_CLIMB_WATER then
         hasBlock = CharMoveComp.MovementMode ~= UE.EMovementMode.MOVE_Custom or CharMoveComp.CustomMovementMode ~= UE.ERocoCustomMovementMode.MOVE_ClimbWater
+      elseif SubRideType == ProtoEnum.SceneRideAllType.SRAT_KEEP_BALANCE then
+        hasBlock = CharMoveComp.MovementMode ~= UE.EMovementMode.MOVE_Custom or CharMoveComp.CustomMovementMode ~= UE.ERocoCustomMovementMode.MOVE_KeepBalance or nil == curPet and caster.viewObj.CurWaterState >= UE.EWaterState.EWS_DeepWater
       end
       if not hasBlock then
         AllowRideType = SubRideType

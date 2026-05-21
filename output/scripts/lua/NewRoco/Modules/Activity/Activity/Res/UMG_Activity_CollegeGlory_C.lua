@@ -85,6 +85,7 @@ function UMG_Activity_CollegeGlory_C:OnConstruct()
     end, nil, self.OnClassScheduleCountDown, self)
   end
   local recommendTaskQuery = activityInst:GetRecommendTaskQueryHandler()
+  self.RecommendedTasksBtn:SetVisibility(recommendTaskQuery and UE4.ESlateVisibility.Visible or UE4.ESlateVisibility.Collapsed)
   self:OnRecommendTaskStatusChanged(recommendTaskQuery and recommendTaskQuery:CheckAllTaskDone() or false)
   self:OnMixActivitySvrDataChanged(activityInst)
   self:OnSelectFactionChanged()
@@ -171,9 +172,9 @@ function UMG_Activity_CollegeGlory_C:SetSlotData(index, slotData)
       }
     })
   elseif 4 == index then
-    if slotData.slot_function_type == Enum.ActiviyMixSlotFunciton.AMSF_CHECK_VITEM and slotData.param and 0 ~= slotData.param then
-      local iconPath = ActivityUtils.GetItemIconAndQuality(_G.Enum.GoodsType.GT_VITEM, slotData.param)
-      local vItemCnt = _G.DataModelMgr.PlayerDataModel:GetVItemCount(slotData.param)
+    if slotData.slot_function_type == Enum.ActiviyMixSlotFunciton.AMSF_CHECK_VITEM and slotData.params and 0 ~= slotData.params[1] then
+      local iconPath = ActivityUtils.GetItemIconAndQuality(_G.Enum.GoodsType.GT_VITEM, slotData.params[1])
+      local vItemCnt = _G.DataModelMgr.PlayerDataModel:GetVItemCount(slotData.params[1])
       self.CurrencyIcon:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
       self.CurrencyIcon:SetPath(iconPath)
       self.CurrencyText:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
@@ -403,8 +404,8 @@ function UMG_Activity_CollegeGlory_C:OnProgressVItemChanged()
   local mixCfg = activityInst and activityInst:GetMixConf()
   if mixCfg then
     for _, slotData in ipairs(mixCfg.slot_group or {}) do
-      if slotData.slot_function_type == Enum.ActiviyMixSlotFunciton.AMSF_CHECK_VITEM and slotData.param and 0 ~= slotData.param then
-        local vItemCnt = _G.DataModelMgr.PlayerDataModel:GetVItemCount(slotData.param)
+      if slotData.slot_function_type == Enum.ActiviyMixSlotFunciton.AMSF_CHECK_VITEM and slotData.params and 0 ~= slotData.params[1] then
+        local vItemCnt = _G.DataModelMgr.PlayerDataModel:GetVItemCount(slotData.params[1])
         self.CurrencyText:SetText(vItemCnt)
         break
       end

@@ -1,4 +1,7 @@
 local TakePhotosModuleEvent = require("NewRoco/Modules/System/TakePhotos/TakePhotosModuleEvent")
+local PhotoDisplayProxy = require("NewRoco.Modules.System.TakePhotos.Common.PhotoDisplayProxy")
+local PhotoDisplayUtils = require("NewRoco.Modules.System.TakePhotos.Common.PhotoDisplayUtils")
+local ENUM_PLAYER_DATA_EVENT = require("Data.Global.PlayerDataEvent")
 local FriendModuleEvent = reload("NewRoco.Modules.System.Friend.FriendModuleEvent")
 local FriendEnum = require("NewRoco.Modules.System.Friend.FriendEnum")
 local CommonBtnEnum = require("NewRoco.Modules.System.CommonBtn.CommonBtnEnum")
@@ -25,6 +28,8 @@ function UMG_StudentCard_C:OnConstruct()
   if self.UMG_CardImage then
     self.UMG_CardImage:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
+  self.CardPhotoDisplayProxy = PhotoDisplayProxy(self, nil, PhotoDisplayUtils.PhotoCacheDefine.Tags.CardPhotos)
+  self.CardPhotoDisplayProxy.OnReadyDelegate:Add(self, self.OnInitCardPhoto)
   self.data = self.module:GetData("FriendModuleData")
   self.BaseData = {}
   self.IsFrontPanel = true
@@ -229,6 +234,7 @@ function UMG_StudentCard_C:OnAddEventListener()
   _G.NRCEventCenter:RegisterEvent(self.name, self, ShareUIModuleEvent.SHOW_ENTRANCE_REWARD, self.CheckShowShareReward)
   self:RegisterEvent(self, FriendModuleEvent.AddFriendOrRemoveFriendSucceed, self.OnFriendRelationChanged)
   self:RegisterEvent(self, FriendModuleEvent.AddOrRemoveBlackListUpdate, self.OnBlackListChanged)
+  _G.DataModelMgr.PlayerDataModel:AddEventListener(self, ENUM_PLAYER_DATA_EVENT.ON_CARD_INFO_CHANGED, self.OnCardInfoChanged)
 end
 
 function UMG_StudentCard_C:OnRemoveEventListener()
@@ -247,6 +253,7 @@ function UMG_StudentCard_C:OnRemoveEventListener()
   _G.NRCEventCenter:UnRegisterEvent(self, ShareUIModuleEvent.SHOW_ENTRANCE_REWARD, self.CheckShowShareReward)
   self:UnRegisterEvent(self, FriendModuleEvent.AddFriendOrRemoveFriendSucceed)
   self:UnRegisterEvent(self, FriendModuleEvent.AddOrRemoveBlackListUpdate)
+  _G.DataModelMgr.PlayerDataModel:RemoveEventListener(self, ENUM_PLAYER_DATA_EVENT.ON_CARD_INFO_CHANGED, self.OnCardInfoChanged)
 end
 
 function UMG_StudentCard_C:OnEnterSceneFinishNtyAck()
@@ -295,7 +302,7 @@ function UMG_StudentCard_C:OnUpdateCardComponentEdit(scrollPageIndex)
   else
     UIUtils.SafeSetVisibility(self.Overturn, UE4.ESlateVisibility.Visible)
   end
-  if self.BaseData.isSelf then
+  if self.BaseData.isSelf or self.BaseData.isFriend then
     UIUtils.SafeSetVisibility(self.ChangeNumber, UE4.ESlateVisibility.Visible)
     UIUtils.SafeSetVisibility(self.ChangeNumber_1, UE4.ESlateVisibility.Visible)
   else
@@ -379,6 +386,7 @@ function UMG_StudentCard_C:SetBaseData()
   local PlayerCardBriefInfo = self.data:GetPlayerCardBriefInfo()
   local CardSelectTab = self.data:GetCardSelectTab()
   local PlayerCardPhotoUrl = ""
+  local PlayerCardPhotoMd5 = ""
   local Name, Level, note, uin, regist_date
   local isFriend = false
   local friendType = ProtoEnum.FriendType.FRIEND_TYPE_NONE
@@ -404,7 +412,9 @@ function UMG_StudentCard_C:SetBaseData()
       regist_date = CardFriendInfo.regist_date
       WorldLevel = CardFriendInfo.world_level or 0
     end
-    PlayerCardPhotoUrl = (PlayerCardBriefInfo and PlayerCardBriefInfo.player_card_brief_info and PlayerCardBriefInfo.player_card_brief_info.business_card_info or {}).cur_card_url or ""
+    local PhotoInfo = PlayerCardBriefInfo and PlayerCardBriefInfo.player_card_brief_info and PlayerCardBriefInfo.player_card_brief_info.business_card_info or {}
+    PlayerCardPhotoUrl = PhotoInfo.cur_card_url or ""
+    PlayerCardPhotoMd5 = PhotoInfo.cur_card_md5 or ""
     self.Empty:SetVisibility(UE.ESlateVisibility.SelfHitTestInvisible)
     self.UploadBtn1:SetVisibility(UE.ESlateVisibility.Collapsed)
     isFriend = PlayerCardBriefInfo.is_friend
@@ -424,7 +434,9 @@ function UMG_StudentCard_C:SetBaseData()
     WorldLevel = _G.DataModelMgr.PlayerDataModel:GetPlayerWorldLevel()
     regist_date = self.PlayerInfo.register_time
     local CardBriefInfo = _G.DataModelMgr.PlayerDataModel:GetCardBriefInfo()
-    PlayerCardPhotoUrl = (CardBriefInfo and CardBriefInfo.business_card_info or {}).cur_card_url or ""
+    local PhotoInfo = CardBriefInfo and CardBriefInfo.business_card_info or {}
+    PlayerCardPhotoUrl = PhotoInfo.cur_card_url or ""
+    PlayerCardPhotoMd5 = PhotoInfo.cur_card_md5 or ""
     local ban = _G.NRCModuleManager:DoCmd(FunctionBanModuleCmd.CheckUIFunctionBan, Enum.FunctionEntrance.FE_CLOUD_BACKGROUND_IMAGE, true)
     ban = ban or _G.NRCModuleManager:DoCmd(FunctionBanModuleCmd.CheckUIFunctionBan, Enum.FunctionEntrance.FE_BACKGROUND_IMAGE, true)
     if ban then
@@ -434,6 +446,9 @@ function UMG_StudentCard_C:SetBaseData()
       self.Empty:SetVisibility(UE.ESlateVisibility.SelfHitTestInvisible)
     else
       self.Empty:SetVisibility(UE.ESlateVisibility.Collapsed)
+    end
+    if self.data:IsStudentCardForbidEdit() then
+      self.UploadBtn1:SetVisibility(UE.ESlateVisibility.Collapsed)
     end
     isOnline = true
   end
@@ -454,6 +469,7 @@ function UMG_StudentCard_C:SetBaseData()
   self.UploadedPhotoTex = nil
   if "" ~= PlayerCardPhotoUrl and self.CurPlayerCardPhotoUrl ~= PlayerCardPhotoUrl then
     self.CurPlayerCardPhotoUrl = PlayerCardPhotoUrl
+    self.CurPlayerCardPhotoMd5 = PlayerCardPhotoMd5
     self:LoadPlayerCardPhoto()
   end
   self.EmptyBg:SetVisibility("" == PlayerCardPhotoUrl and UE.ESlateVisibility.SelfHitTestInvisible or UE.ESlateVisibility.Collapsed)
@@ -497,7 +513,7 @@ end
 
 function UMG_StudentCard_C:UpdateMenuBtn()
   local AdminFriendType = self.data:GetCardAdminFriendType()
-  if AdminFriendType == FriendEnum.AdminFriendType.Own and not self.data:GetIsEditingComponent() then
+  if AdminFriendType == FriendEnum.AdminFriendType.Own and not self.data:GetIsEditingComponent() and not self.data:IsStudentCardForbidEdit() then
     self.MenuBtn:SetVisibility(UE4.ESlateVisibility.Visible)
     self.MenuText:SetVisibility(UE4.ESlateVisibility.Visible)
     if self.ShareIsOpen then
@@ -514,6 +530,8 @@ end
 
 function UMG_StudentCard_C:SetPanelReverseSideInfo()
   local cardRecordConfs = self.module:GetAllCardAdventureRecordConfs()
+  local info = self.data:GetPlayerCardBriefInfo()
+  local AdminFriendType = self.data:GetCardAdminFriendType()
   if nil ~= cardRecordConfs then
     local recordDatas = {}
     for k, v in pairs(cardRecordConfs) do
@@ -533,10 +551,20 @@ function UMG_StudentCard_C:SetPanelReverseSideInfo()
           context = 0
         end
       elseif v.adventure_record == _G.Enum.AdventureRecord.AR_COLLECTED_VISUAL_ITEM then
-        local id = v.record_param
-        if id then
-          local count = _G.DataModelMgr.PlayerDataModel:GetVItemCount(id) or 0
-          context = count
+        if AdminFriendType ~= FriendEnum.AdminFriendType.Own and info and info.is_friend then
+          context = info.topic_point or 0
+        else
+          local id = v.record_param
+          if id then
+            local count = _G.DataModelMgr.PlayerDataModel:GetVItemCount(id) or 0
+            context = count
+          end
+        end
+      elseif v.adventure_record == _G.Enum.AdventureRecord.AR_COLLECTED_MUTATION_PET_NUM and self.CardInfo.card_pet_info then
+        if v.record_param == _G.Enum.MutationDiffType.MDT_GLASS then
+          context = self.CardInfo.card_pet_info.collected_glass_pet_count or 0
+        elseif v.record_param == _G.Enum.MutationDiffType.MDT_SHINING then
+          context = self.CardInfo.card_pet_info.collected_shining_pet_count or 0
         end
       end
       local data = {
@@ -546,7 +574,7 @@ function UMG_StudentCard_C:SetPanelReverseSideInfo()
       }
       table.insert(recordDatas, data)
     end
-    local nilItemDataCount = 3 - #cardRecordConfs % 3
+    local nilItemDataCount = 0 == #cardRecordConfs % 3 and 0 or 3 - #cardRecordConfs % 3
     for i = 1, nilItemDataCount do
       table.insert(recordDatas, {isNil = 1})
     end
@@ -587,7 +615,7 @@ function UMG_StudentCard_C:SetPanelReverseSideInfo()
   if not self.IsFrontPanel then
     self:SetCardFavoriteList(0)
   end
-  if self.BaseData.isSelf then
+  if self.BaseData.isSelf or self.BaseData.isFriend then
     UIUtils.SafeSetVisibility(self.ChangeNumber_1, UE4.ESlateVisibility.Visible)
     UIUtils.SafeSetVisibility(self.ChangeNumber, UE4.ESlateVisibility.Visible)
   else
@@ -1036,7 +1064,12 @@ function UMG_StudentCard_C:CloseStudentCardPanel(isForceClose)
   if self.data:GetIsEditingComponent() and not isForceClose then
     return
   end
+  if self.isClosing then
+    return
+  end
+  self.isClosing = true
   Log.Debug("UMG_StudentCard_C:CloseStudentCardPanel")
+  self:StopAllAnimations()
   self:PlayAnimation(self.Out)
   UE4Helper.SetEnableWorldRendering(true, false)
   self.btnCloseStudentCardPanel:SetIsEnabled(false)
@@ -1050,6 +1083,7 @@ function UMG_StudentCard_C:OnAnimationFinished(Animation)
     Log.Debug("UMG_StudentCard_C:OnAnimationFinished Out DoClose")
     self:DoClose()
     self.btnCloseStudentCardPanel:SetIsEnabled(true)
+    self.isClosing = false
   elseif Animation == self.TurnOver then
     self:SetLock(false)
     self:SetPanelReverseSideInfo()
@@ -1291,7 +1325,7 @@ function UMG_StudentCard_C:GetPlayerOperationEntryInfo(isFriend, friendType, isT
   if isFriend then
     table.insert(entryInfo, {
       menuType = FriendEnum.PlayerOperationEntrance.ChangeNickname,
-      menuName = LuaText.edit_personal_information_name
+      menuName = LuaText.umg_friend_function1_2
     })
     if not isTop then
       table.insert(entryInfo, {
@@ -1440,7 +1474,20 @@ end
 
 function UMG_StudentCard_C:LoadPlayerCardPhoto()
   self:ToggleUploadProgressMask(true)
-  NRCModuleManager:DoCmd(TakePhotosModuleCmd.DownloadCard, self.CurPlayerCardPhotoUrl, not DISABLE_CARD_PHOTO_CACHE, FPartial(self.OnInitCardPhoto, self))
+  local CardName = PhotoDisplayUtils.ParseUrlFileName(self.CurPlayerCardPhotoUrl)
+  self:Log("LoadPlayerCardPhoto", self.CurPlayerCardPhotoUrl, self.CurPlayerCardPhotoMd5, CardName)
+  if self.CurPlayerCardPhotoMd5 ~= "" then
+    self.CardPhotoDisplayProxy:DisplayUrl(self.CurPlayerCardPhotoUrl, self.CurPlayerCardPhotoMd5, CardName)
+  else
+    NRCModuleManager:DoCmd(TakePhotosModuleCmd.DownloadCard, self.CurPlayerCardPhotoUrl, FPartial(self.OnDownloadCard, self))
+  end
+end
+
+function UMG_StudentCard_C:OnDownloadCard(bSuccess, PhotoFilePath)
+  if bSuccess then
+    local Texture = UE.UKismetRenderingLibrary.ImportFileAsTexture2D(UE4Helper.GetCurrentWorld(), PhotoFilePath)
+    self:OnInitCardPhoto(Texture)
+  end
 end
 
 function UMG_StudentCard_C:ToggleUploadProgressMask(bEnabled)
@@ -1478,21 +1525,25 @@ function UMG_StudentCard_C:OnUploadMaskLoaded(bSuccess)
   end
 end
 
-function UMG_StudentCard_C:OnInitCardPhoto(bSuccess, FilePath)
+function UMG_StudentCard_C:OnInitCardPhoto(Texture)
   if not self.enableView then
     return
   end
-  self:ToggleUploadProgressMask(false)
-  if not bSuccess then
+  if not Texture then
     return
   end
+  self:ToggleUploadProgressMask(false)
   self.UploadedPhoto:SetVisibility(UE.ESlateVisibility.SelfHitTestInvisible)
-  self.UploadedPhotoTex = UE.UKismetRenderingLibrary.ImportFileAsTexture2D(self, FilePath)
+  self.UploadedPhotoTex = Texture
+  self.UploadedPhotoTexRef = UnLua.Ref(Texture)
   self.UploadedPhoto:SetBrushFromTexture(self.UploadedPhotoTex)
   self.Empty:SetVisibility(UE.ESlateVisibility.Collapsed)
 end
 
 function UMG_StudentCard_C:OnBeginCroppingCard(PhotoTexture)
+  if not PhotoTexture or not UE.UObject.IsValid(PhotoTexture) then
+    return
+  end
   self.bNeedRecoverPhotoPopup = true
   NRCModuleManager:GetModule("TakePhotosModule"):DisablePanel("PhotoHistoryUI")
   NRCModuleManager:GetModule("TakePhotosModule"):DisablePanel("PhotoFileViewUI")
@@ -1515,7 +1566,7 @@ end
 
 function UMG_StudentCard_C:InitCardInteractionEntryList()
   local AdminFriendType = self.data:GetCardAdminFriendType()
-  if AdminFriendType == FriendEnum.AdminFriendType.Own then
+  if AdminFriendType == FriendEnum.AdminFriendType.Own or self.data:IsStudentCardForbidEdit() then
     self.List:SetVisibility(UE4.ESlateVisibility.Collapsed)
     return
   end
@@ -1629,6 +1680,13 @@ function UMG_StudentCard_C:CheckShareIsOpen()
     self.ShareBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.ShareText:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
+end
+
+function UMG_StudentCard_C:OnCardInfoChanged()
+  local PlayerInfo = _G.DataModelMgr.PlayerDataModel:GetPlayerInfo().brief_info
+  self.PlayerInfo = PlayerInfo
+  self.CardInfo = self.PlayerInfo.additional_data.card_brief_info
+  self:SetPanelReverseSideInfo()
 end
 
 return UMG_StudentCard_C

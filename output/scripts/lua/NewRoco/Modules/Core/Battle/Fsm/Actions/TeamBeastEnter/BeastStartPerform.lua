@@ -48,6 +48,7 @@ function BeastBeforeBattlePerform:PlaySKill(skillPath)
   end
   local MyCastObject = CastSkillObject.FromSkillResID(skillPath)
   if MyCastObject then
+    local battleConf = BattleUtils.GetBattleConfig()
     MyCastObject:SetCallbackOwner(self)
     MyCastObject:SetCaster(BeastBoss.viewObj)
     MyCastObject:SetIsPassive(true)
@@ -56,6 +57,9 @@ function BeastBeforeBattlePerform:PlaySKill(skillPath)
     MyCastObject:SetExtraEvents({
       SaveCamera = self.SaveCamera
     })
+    if battleConf and not string.IsNilOrEmpty(battleConf.transiton_blackboard) then
+      MyCastObject:AddBlackStringValue(battleConf.transiton_blackboard, battleConf.transiton_blackboard)
+    end
     self.skillComponent = skillComponent
     self:PlaySkill(localPlayer, skillComponent, MyCastObject)
   else

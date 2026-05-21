@@ -18,6 +18,10 @@ function RepairToolsUtils.CleanPlatformCache()
     UE4.UBlueprintPathsLibrary.ProjectPersistentDownloadDir(),
     "RemotePhotos"
   })) or bHasContents
+  bHasContents = RepairToolsUtils.CleanFolder(UE.UBlueprintPathsLibrary.Combine({
+    UE4.UBlueprintPathsLibrary.ProjectPersistentDownloadDir(),
+    "CommonUrlImages"
+  })) or bHasContents
   if RocoEnv.PLATFORM_WINDOWS then
     if RocoEnv.IS_EDITOR then
       bHasContents = RepairToolsUtils.CleanFolder(UE.UBlueprintPathsLibrary.Combine({

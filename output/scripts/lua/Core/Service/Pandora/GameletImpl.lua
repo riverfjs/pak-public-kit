@@ -52,7 +52,18 @@ end
 function GameletImpl:OnGameViewCreated(widget, appInfo)
   Log.Debug("OnGameViewCreated invoked with appInfo: ", appInfo)
   if not string.IsNilOrEmpty(appInfo) then
-    _G.NRCEventCenter:DispatchEvent(NRCSDKManagerEvent.OnGameletViewCreated, widget, appInfo)
+    local msgTable = JsonUtils.StringToJson(appInfo)
+    if not table.isEmpty(msgTable) then
+      local activityId = msgTable.appId
+      local activityObj = _G.NRCModuleManager:DoCmd(_G.ActivityModuleCmd.GetActivityInstById, activityId)
+      if UE4.UObject.IsValid(widget) and activityObj and activityObj.SetPandoraViewClass then
+        if widget:GetClass() then
+          activityObj:SetPandoraViewClass(widget:GetClass())
+        else
+          Log.Error("widget class is nil")
+        end
+      end
+    end
   end
   Log.Error("not add to activity module")
 end
@@ -60,9 +71,19 @@ end
 function GameletImpl:OnGameletViewDestroyed(widget, appInfo)
   Log.Debug("OnGameletViewDestroyed invoked with appInfo: ", appInfo)
   if not string.IsNilOrEmpty(appInfo) then
-    _G.NRCEventCenter:DispatchEvent(NRCSDKManagerEvent.OnGameletViewDestroyed, widget, appInfo)
+    local msgTable = JsonUtils.StringToJson(appInfo)
+    if not table.isEmpty(msgTable) and msgTable.appId then
+      local activityId = msgTable.appId
+      if _G.NRCModuleManager:GetModule("ActivityModule") then
+        local activityObj = _G.NRCModuleManager:DoCmd(_G.ActivityModuleCmd.GetActivityInstById, activityId)
+        if activityObj and activityObj.SetActivityCompleted then
+          activityObj:SetActivityCompleted()
+        end
+      end
+    end
+  else
+    Log.Error("OnGameletViewDestroyed - appInfo is nil or empty")
   end
-  Log.Error("not destroy activity")
 end
 
 function GameletImpl:OnGameletSDKMessage(Msg)

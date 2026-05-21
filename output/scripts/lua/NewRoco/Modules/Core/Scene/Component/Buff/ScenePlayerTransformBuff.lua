@@ -8,10 +8,20 @@ local ScenePlayerTransformBuff = Base:Extend("ScenePlayerTransformBuff")
 
 function ScenePlayerTransformBuff:Ctor(owner, ridePet)
   Base.Ctor(self, owner)
+  self._overlapComponent = nil
+  self._hasRegisteredOverlap = false
+  self._dizzyMontage = nil
+  self._onDizzyMontageEnded = nil
+  self._isExitingTransform = false
+  self._activeInputLockFlag = nil
 end
 
 function ScenePlayerTransformBuff:OnBegin(owner, customParams)
   Log.Debug("ScenePlayerTransformBuff:OnBegin")
+  if self._isExitingTransform then
+    Log.Warning("ScenePlayerTransformBuff:OnBegin \230\173\163\229\156\168\233\128\128\229\135\186\229\143\152\229\189\162\228\184\173\239\188\140\229\191\189\231\149\165\233\135\141\230\150\176\232\191\155\229\133\165")
+    return
+  end
   self.owner = owner
   local LoadPriorityLogic = PriorityEnum.Other_Player_Logic
   local LoadPriorityPerform = PriorityEnum.Other_Player_Perform
@@ -23,7 +33,7 @@ function ScenePlayerTransformBuff:OnBegin(owner, customParams)
   local player = owner
   self.TransformID = customParams.transform_param.transform_cfg_id
   self._isInEndPerform = false
-  self._isInStartPerform = false
+  self._isInStartPerform = true
   self.MagicTransformConf = DataConfigManager:GetMagicTransformConf(self.TransformID)
   self.isCustomPerform = self.MagicTransformConf.use_lique_fx
   self.owner:AddEventListener(self, PlayerModuleEvent.ON_STATUS_REFRESH, self.OnStatusRefresh)
@@ -193,6 +203,13 @@ function ScenePlayerTransformBuff:OnUpdate(deltaTime)
     self.SimRideScenePet = self.owner.viewObj.BP_RideComponent.ScenePet
   end
   if self.SimRideScenePet then
+    if self.owner.isLocal and not self._hasRegisteredOverlap then
+      local petViewObj = self:GetPetViewobj()
+      if petViewObj and UE4.UObject.IsValid(petViewObj) then
+        self:RegisterTransformOverlapEvent()
+        self._hasRegisteredOverlap = true
+      end
+    end
     self.SimRideScenePet:Update(deltaTime)
     if self.SimRideScenePet:GetStatus() ~= ProtoEnum.WorldPlayerPetStatusType.WPPST_IN_RIDE then
       self:OnLocalTrasnformFailed()
@@ -221,10 +238,18 @@ function ScenePlayerTransformBuff:OnUpdate(deltaTime)
       end
     end
   end
-  if self.MagicTransformConf.is_pet and self.owner.viewObj.AvatarComponent.ForceHideAvatarFlag then
-    local Mesh = self.owner.viewObj.Mesh
-    if Mesh:IsVisible() then
-      Mesh:SetVisibility(false, false)
+  if self.MagicTransformConf.is_pet then
+    if self.owner.viewObj.AvatarComponent.ForceHideAvatarFlag then
+      local Mesh = self.owner.viewObj.Mesh
+      if Mesh:IsVisible() then
+        Mesh:SetVisibility(false, false)
+      end
+    end
+  elseif self._NewMesh and self._NewAnimClass then
+    local Mesh = self.owner.viewObj.Mesh.SkeletalMesh
+    if self._NewMesh ~= Mesh then
+      Log.Error("\229\143\152\229\189\162NPC\230\156\159\233\151\180\239\188\140\230\168\161\229\158\139\232\162\171\230\155\191\230\141\162\239\188\129\239\188\129\239\188\129\229\188\186\229\136\182\232\167\163\233\153\164\229\143\152\229\189\162")
+      self:OnLocalTrasnformFailed()
     end
   end
 end
@@ -274,6 +299,7 @@ end
 function ScenePlayerTransformBuff:OnLocalTrasnformFailed(FailedReason)
   if self.owner.isLocal and not self._isInEndPerform then
     Log.Debug("ScenePlayerTransformBuff:OnLocalTrasnformFailed")
+    self._isExitingTransform = true
     self.owner.statusComponent:RemoveStatus(ProtoEnum.WorldPlayerStatusType.WPST_TRANSFORM, ProtoEnum.WPST_OpCode.WPST_OPCODE_REMOVE, 1)
     local req = _G.ProtoMessage:newZoneSceneCancelPlayerTransformReq()
     req.cancel_reason = FailedReason or ProtoEnum.PlayerTransformCancelReason.PTCR_STATUS_BAN
@@ -284,10 +310,121 @@ function ScenePlayerTransformBuff:OnLocalTrasnformFailed(FailedReason)
   end
 end
 
+function ScenePlayerTransformBuff:CancelTransformByOverlap(FailedReason, transformAvatar, eagle_uin)
+  if self.owner.isLocal then
+    self._isExitingTransform = true
+    if 0 == transformAvatar then
+    else
+    end
+    local req = _G.ProtoMessage:newZoneSceneCancelPlayerTransformReq()
+    req.cancel_reason = FailedReason or ProtoEnum.PlayerTransformCancelReason.PTCR_STATUS_BAN
+    req.transform_avatar = transformAvatar or 0
+    req.eagle_uin = eagle_uin or 0
+    _G.ZoneServer:SendWithHandler(ProtoCMD.ZoneSvrCmd.ZONE_SCENE_CANCEL_PLAYER_TRANSFORM_REQ, req, self, self.OnLocaleCancelPlayerTransformRSP, false, true)
+  end
+end
+
+function ScenePlayerTransformBuff:PlayDizzyAnimBeforeExit()
+  if self.owner.isLocal and self.owner.inputComponent then
+    self._activeInputLockFlag = "PlayDizzyAnim"
+    self.owner.inputComponent:SetInputEnable(self, false, self._activeInputLockFlag)
+  end
+  local Pet = self:GetPetViewobj()
+  if not Pet then
+    if self.owner and self.owner.buffComponent:HasBuff("Transform_Buff") then
+      self.owner.buffComponent:RemoveBuff("Transform_Buff")
+    end
+    return
+  end
+  local AnimInstance = Pet.Mesh:GetAnimInstance()
+  if not AnimInstance then
+    if self.owner and self.owner.buffComponent:HasBuff("Transform_Buff") then
+      self.owner.buffComponent:RemoveBuff("Transform_Buff")
+    end
+    return
+  end
+  local DizzyAnimPath = "AnimSequence'/Game/ArtRes/AnimSequence/Pets/Fir_KeLeJi1_001/Animation/Common_Stun.Common_Stun'"
+  _G.NRCResourceManager:LoadResAsync(self, DizzyAnimPath, self.owner.isLocal and _G.PriorityEnum.Local_Player_Logic or _G.PriorityEnum.Other_Player_Logic, 10, self.OnDizzyAnimLoadSuccess, self.OnDizzyAnimLoadFailed)
+end
+
+function ScenePlayerTransformBuff:OnDizzyAnimLoadSuccess(req, Anim)
+  if not Anim or not UE.UObject.IsValid(Anim) then
+    self:FinishTransformExit()
+    return
+  end
+  local Pet = self:GetPetViewobj()
+  if not Pet then
+    self:FinishTransformExit()
+    return
+  end
+  local AnimInstance = Pet.Mesh:GetAnimInstance()
+  if not AnimInstance then
+    self:FinishTransformExit()
+    return
+  end
+  self._dizzyMontage = AnimInstance:PlaySlotAnimationAsDynamicMontage(Anim, "DefaultSlot", 0.1, 0.1, 1.0, 1, -1, 0)
+  local This = self
+  
+  function self._onDizzyMontageEnded(_, montage, bInterrupted)
+    if montage == This._dizzyMontage then
+      This:OnDizzyAnimFinished()
+    end
+  end
+  
+  AnimInstance.OnMontageEnded:Add(Pet, self._onDizzyMontageEnded)
+end
+
+function ScenePlayerTransformBuff:OnDizzyAnimLoadFailed()
+  if self.owner.isLocal then
+    self._activeInputLockFlag = nil
+    self.owner.inputComponent:SetInputEnable(self, true, "PlayDizzyAnim")
+  end
+  self:FinishTransformExit()
+end
+
+function ScenePlayerTransformBuff:OnDizzyAnimFinished()
+  local Pet = self:GetPetViewobj()
+  if Pet and Pet.Mesh then
+    local AnimInstance = Pet.Mesh:GetAnimInstance()
+    if AnimInstance and self._onDizzyMontageEnded then
+      AnimInstance.OnMontageEnded:Remove(Pet, self._onDizzyMontageEnded)
+    end
+  end
+  if self.owner.isLocal then
+    self._activeInputLockFlag = nil
+    self.owner.inputComponent:SetInputEnable(self, true, "PlayDizzyAnim")
+  end
+  self:LiquefyPerformEnd()
+end
+
+function ScenePlayerTransformBuff:FinishTransformExit()
+  if self.owner and self.owner.buffComponent:HasBuff("Transform_Buff") then
+    self.owner.buffComponent:RemoveBuff("Transform_Buff")
+  end
+end
+
 function ScenePlayerTransformBuff:OnLocaleCancelPlayerTransformRSP(rsp)
 end
 
 function ScenePlayerTransformBuff:OnFinish(isForce)
+  if self.owner.isLocal and self.owner.inputComponent and self._activeInputLockFlag then
+    Log.Warning("ScenePlayerTransformBuff:OnFinish \230\163\128\230\181\139\229\136\176\230\156\170\233\135\138\230\148\190\231\154\132\232\190\147\229\133\165\233\148\129(", self._activeInputLockFlag, ")\239\188\140\229\188\186\229\136\182\233\135\138\230\148\190")
+    local flagToRelease = self._activeInputLockFlag
+    self._activeInputLockFlag = nil
+    self.owner.inputComponent:SetInputEnable(self, true, flagToRelease)
+  end
+  self:UnregisterTransformOverlapEvent()
+  if self._dizzyMontage then
+    local Pet = self:GetPetViewobj()
+    if Pet and Pet.Mesh then
+      local AnimInstance = Pet.Mesh:GetAnimInstance()
+      if AnimInstance and self._onDizzyMontageEnded then
+        AnimInstance.OnMontageEnded:Remove(Pet, self._onDizzyMontageEnded)
+      end
+    end
+    self._dizzyMontage = nil
+    self._onDizzyMontageEnded = nil
+  end
   local player = self.owner
   if not UE.UObject.IsValid(self.owner.viewObj) then
     return
@@ -295,9 +432,6 @@ function ScenePlayerTransformBuff:OnFinish(isForce)
   self:PlaySkill()
   player.viewObj.CharacterMovement.bEnableMantle = true
   player.viewObj.BP_RideComponent.bStartAfterLoad = true
-  if player.isLocal then
-    player.inputComponent:SetInputEnable(self, true, "LiquefyPerform")
-  end
   if self.MagicTransformConf.is_pet then
     if player.statusComponent:HasStatus(ProtoEnum.WorldPlayerStatusType.WPST_RIDEALL) then
       player.statusComponent:RemoveStatus(ProtoEnum.WorldPlayerStatusType.WPST_RIDEALL, ProtoEnum.WPST_OpCode.WPST_OPCODE_REMOVE)
@@ -367,12 +501,20 @@ function ScenePlayerTransformBuff:OnStatusRefresh(status, subStatus, opCode, cus
   if self.owner.isLocal or status ~= ProtoEnum.WorldPlayerStatusType.WPST_TRANSFORM then
     return
   end
+  if customParams and customParams.transform_param then
+    self.cancel_reason = customParams.transform_param.cancel_reason
+  end
+  if self.cancel_reason then
+    return
+  end
   local Pet = self:GetPetViewobj()
-  local EmoteKey = customParams.transform_param.emote_id
-  if 0 == EmoteKey then
-    Pet.RocoAnim:StopAllMontage()
-  else
-    Pet.RocoAnim:PlayAnimByName(self.emoteList[EmoteKey])
+  if Pet then
+    local EmoteKey = customParams.transform_param.emote_id
+    if 0 == EmoteKey then
+      Pet.RocoAnim:StopAllMontage()
+    else
+      Pet.RocoAnim:PlayAnimByName(self.emoteList[EmoteKey])
+    end
   end
 end
 
@@ -383,7 +525,8 @@ function ScenePlayerTransformBuff:LiquefyPerformStart()
     return
   end
   if self.owner.isLocal then
-    self.owner.inputComponent:SetInputEnable(self, false, "LiquefyPerform")
+    self._activeInputLockFlag = "LiquefyPerform"
+    self.owner.inputComponent:SetInputEnable(self, false, self._activeInputLockFlag)
     _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.CloseCompass)
   end
   local skillComponent = self.owner.viewObj.RocoSkill
@@ -401,6 +544,7 @@ function ScenePlayerTransformBuff:LiquefyPerformStart()
     skillObj:RegisterRawCallback(self, self.OnStartSkillEvent)
     local Success = skillComponent:PlaySkill(skillObj)
     self._isInStartPerform = true
+    Log.Debug("ScenePlayerTransformBuff: \231\142\169\229\174\182\232\191\155\229\133\165\229\143\152\229\189\162\229\133\165\229\156\186\232\161\168\230\188\148, _isInStartPerform=", self._isInStartPerform)
     if 0 ~= Success then
       Log.Error("\230\182\178\229\140\150\229\164\177\232\180\165")
       self:OnLocalTrasnformFailed()
@@ -435,8 +579,10 @@ end
 
 function ScenePlayerTransformBuff:LiquefyPerformStartFinish()
   self._isInStartPerform = false
+  Log.Debug("ScenePlayerTransformBuff: \231\142\169\229\174\182\231\187\147\230\157\159\229\143\152\229\189\162\229\133\165\229\156\186\232\161\168\230\188\148, _isInStartPerform=", self._isInStartPerform)
   self.owner.viewObj:SetActorScale3D(FVectorOne)
   if self.owner.isLocal then
+    self._activeInputLockFlag = nil
     self.owner.inputComponent:SetInputEnable(self, true, "LiquefyPerform")
     NRCModuleManager:DoCmd(PlayerModuleCmd.MarkSendMoveReq)
   end
@@ -444,6 +590,7 @@ end
 
 function ScenePlayerTransformBuff:EnableInput()
   if self.owner.isLocal then
+    self._activeInputLockFlag = nil
     self.owner.inputComponent:SetInputEnable(self, true, "LiquefyPerform")
   end
 end
@@ -465,6 +612,7 @@ end
 
 function ScenePlayerTransformBuff:LiquefyPerformEnd()
   self._isInEndPerform = true
+  Log.Debug("ScenePlayerTransformBuff: \231\142\169\229\174\182\232\191\155\229\133\165\229\143\152\229\189\162\233\128\128\229\156\186\232\161\168\230\188\148, _isInEndPerform=", self._isInEndPerform)
   local skillComponent = self.owner.viewObj.RocoSkill
   local Pet = self:GetPetViewobj()
   if not (self._EndFxClass and Pet) or not Pet:IsValid() then
@@ -475,7 +623,8 @@ function ScenePlayerTransformBuff:LiquefyPerformEnd()
     return
   end
   if self.owner.isLocal then
-    self.owner.inputComponent:SetInputEnable(self, false, "LiquefyPerform")
+    self._activeInputLockFlag = nil
+    self.owner.inputComponent:SetInputEnable(self, true, "LiquefyPerform")
   end
   local skillObj = skillComponent:FindOrAddSkillObj(self._EndFxClass)
   if _G.bShutDownSafeReload and not skillObj then
@@ -525,7 +674,7 @@ function ScenePlayerTransformBuff:EndLiquefyPerformChangeTarget()
     player.buffComponent:RemoveBuff(buffName)
   end
   player.viewObj.Mesh:SetVisibility(true, false)
-  self.owner.viewObj.AvatarComponent.ForceHideAvatarFlag = true
+  self.owner.viewObj.AvatarComponent.ForceHideAvatarFlag = false
   player.viewObj.AvatarComponent:SetDecoratorVisible(true)
   player.viewObj:SetActorScale3D(FVectorOne)
   if self._endCachePet:IsValid() then
@@ -540,10 +689,114 @@ function ScenePlayerTransformBuff:EndLiquefyPerformChangeTarget()
 end
 
 function ScenePlayerTransformBuff:EndLiquefyPerformStartFinish()
+  Log.Debug("ScenePlayerTransformBuff: \231\142\169\229\174\182\231\187\147\230\157\159\229\143\152\229\189\162\233\128\128\229\156\186\232\161\168\230\188\148, _isInEndPerform=", self._isInEndPerform)
+  self._isInEndPerform = false
   self.owner.buffComponent:RemoveBuff("Transform_Buff")
   if self.owner.isLocal then
     NRCModuleManager:DoCmd(PlayerModuleCmd.MarkSendMoveReq)
   end
+end
+
+function ScenePlayerTransformBuff:RegisterTransformOverlapEvent()
+  if not self.owner or not self.owner.isLocal then
+    return
+  end
+  local petViewObj = self:GetPetViewobj()
+  if not petViewObj then
+    return
+  end
+  local primComp = petViewObj.RootComponent
+  if not primComp then
+    return
+  end
+  self._overlapComponent = primComp
+  primComp.OnComponentBeginOverlap:Add(self.owner.viewObj, self.OnTransformPlayerBeginOverlap)
+  primComp:SetGenerateOverlapEvents(true)
+  primComp:SetCollisionEnabled(UE.ECollisionEnabled.QueryAndPhysics)
+end
+
+function ScenePlayerTransformBuff:UnregisterTransformOverlapEvent()
+  if not self._overlapComponent or not UE.UObject.IsValid(self._overlapComponent) then
+    self._hasRegisteredOverlap = false
+    return
+  end
+  self._overlapComponent.OnComponentBeginOverlap:Remove(self.owner.viewObj, self.OnTransformPlayerBeginOverlap)
+  self._overlapComponent = nil
+  self._hasRegisteredOverlap = false
+end
+
+function ScenePlayerTransformBuff:OnTransformPlayerBeginOverlap(selfComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult)
+  if self._isInStartPerform then
+    return
+  end
+  local buff
+  if self and self.sceneCharacter and self.sceneCharacter.buffComponent then
+    buff = self.sceneCharacter.buffComponent:GetBuff("Transform_Buff")
+  end
+  if not buff then
+    return
+  end
+  self = buff
+  if not OtherActor or not UE.UObject.IsValid(OtherActor) then
+    return
+  end
+  local otherPlayer = OtherActor.sceneCharacter
+  if not otherPlayer or not otherPlayer.buffComponent then
+    return
+  end
+  if not otherPlayer.buffComponent:HasBuff("Transform_Buff") then
+    return
+  end
+  local otherPlayerBuff = otherPlayer.buffComponent:GetBuff("Transform_Buff")
+  if otherPlayerBuff._isInStartPerform then
+    return
+  end
+  local myTransformType = self:GetTransformType(self.owner)
+  local otherTransformType = self:GetTransformType(otherPlayer)
+  local otherPlayerUIN = otherPlayer.serverData and otherPlayer.serverData.base and otherPlayer.serverData.base.logic_id
+  if myTransformType == Enum.PlayerTransformType.PTT_EAGLE and otherTransformType == Enum.PlayerTransformType.PTT_CHICKEN then
+    if otherPlayerUIN then
+      self:CancelTransformByOverlap(ProtoEnum.PlayerTransformCancelReason.PTCR_EAGLE_HIT_CHICKEN, otherPlayerUIN)
+    end
+  elseif myTransformType == Enum.PlayerTransformType.PTT_CHICKEN and otherTransformType == Enum.PlayerTransformType.PTT_EAGLE then
+    self:CancelTransformByOverlap(ProtoEnum.PlayerTransformCancelReason.PTCR_EAGLE_HIT_CHICKEN, 0, otherPlayerUIN)
+  end
+end
+
+function ScenePlayerTransformBuff:GetTransformType(player)
+  local transformBuff = player.buffComponent:GetBuff("Transform_Buff")
+  if not transformBuff then
+    return Enum.PlayerTransformType.PTT_OTHER
+  end
+  local transformID = transformBuff.TransformID
+  if not transformID then
+    return Enum.PlayerTransformType.PTT_OTHER
+  end
+  if 3118 == transformID then
+    return Enum.PlayerTransformType.PTT_BUDING
+  elseif 19000004 == transformID then
+    return Enum.PlayerTransformType.PTT_EAGLE
+  elseif 19000005 == transformID then
+    return Enum.PlayerTransformType.PTT_CHICKEN
+  end
+  return Enum.PlayerTransformType.PTT_OTHER
+end
+
+function ScenePlayerTransformBuff:ShowTransformOverlapTip(otherPlayer)
+  if not self.owner.isLocal then
+    return
+  end
+  local otherPlayerName = otherPlayer.serverData and otherPlayer.serverData.base and otherPlayer.serverData.base.name or "Unknown"
+  local tip = string.format("\228\184\142%s\229\143\145\231\148\159\233\135\141\229\143\160\239\188\140\229\143\152\229\189\162\232\167\163\233\153\164\239\188\129", otherPlayerName)
+  _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, tip, 2)
+end
+
+function ScenePlayerTransformBuff:IsInPerform()
+  return self._isInStartPerform or self._isInEndPerform
+end
+
+function ScenePlayerTransformBuff:IsInEndPerform()
+  return self._isInEndPerform
 end
 
 return ScenePlayerTransformBuff

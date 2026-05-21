@@ -61,9 +61,9 @@ function SystemSettingModule:OnActive()
   self:RegisterCmd(_G.SystemSettingModuleCmd.OpenCloudMessageManagementPopUp, self.OnOpenCloudMessageManagementPopUp)
   self:RegisterCmd(_G.SystemSettingModuleCmd.CloseCloudMessageManagementPopUp, self.OnCloseCloudMessageManagementPopUp)
   self:RegisterCmd(_G.SystemSettingModuleCmd.CheckSecondaryPassword, self.CheckSecondaryPassword)
+  self:RegisterCmd(_G.SystemSettingModuleCmd.ReqSecondaryPasswordGetInfo, self.ReqSecondaryPasswordGetInfo)
   self:RegisterCmd(_G.SystemSettingModuleCmd.GetSecondaryPasswordInfo, self.GetSecondaryPasswordInfo)
   self:RegisterCmd(_G.SystemSettingModuleCmd.OnSecondaryPasswordStatusChange, self.OnSecondaryPasswordStatusChange)
-  self:RegisterCmd(_G.SystemSettingModuleCmd.OnSecondaryDefaultFreeChange, self.OnSecondaryDefaultFreeChange)
   self:RegisterCmd(_G.SystemSettingModuleCmd.OpenSecondaryPasswordSet, self.OpenSecondaryPasswordSet)
   self:RegisterCmd(_G.SystemSettingModuleCmd.OpenSecondaryPasswordModify, self.OpenSecondaryPasswordModify)
   self:RegisterCmd(_G.SystemSettingModuleCmd.OpenSecondaryPasswordVerify, self.OpenSecondaryPasswordVerify)
@@ -75,6 +75,7 @@ function SystemSettingModule:OnActive()
   self:RegisterCmd(_G.SystemSettingModuleCmd.SwitchSleepMode, self.SwitchSleepMode)
   self:RegisterCmd(_G.SystemSettingModuleCmd.QuitSleepMode, self.QuitSleepMode)
   self:RegisterCmd(_G.SystemSettingModuleCmd.EnterSleepModeOnDebug, self.EnterSleepModeOnDebug)
+  self:RegisterCmd(_G.SystemSettingModuleCmd.ChangePlayerName, self.ChangePlayerName)
   _G.NRCEventCenter:RegisterEvent("SystemSettingModule", self, _G.NRCGlobalEvent.OnRocoTouchEnd, self.OnScreenTouchEnd)
   _G.NRCEventCenter:RegisterEvent("SystemSettingModule", self, _G.NRCGlobalEvent.OnRocoTouchStart, self.OnScreenTouchStart)
   self.data:BuildButtonTypeToButtonSettingConfMap()
@@ -145,7 +146,13 @@ function SystemSettingModule:InitAudioConfig()
 end
 
 function SystemSettingModule:OnOpenMainPanel()
-  self:OpenPanel("SystemSettingMain")
+  local reqParamList = _G.NRCPanelOpenReqData()
+  reqParamList.cmdId = _G.ProtoCMD.ZoneSvrCmd.ZONE_QUERY_PLAYER_SETTINGS_REQ
+  reqParamList.reqClass = _G.ProtoMessage:newZoneQueryPlayerSettingsReq()
+  reqParamList.ignoreErrorTip = false
+  reqParamList.needModal = false
+  reqParamList.Caller = self
+  self:OpenPanel("SystemSettingMain", 0, reqParamList)
 end
 
 function SystemSettingModule:EnableMainPanel()
@@ -171,8 +178,8 @@ function SystemSettingModule:OnCloseCloudMessageManagementPopUp()
   self:ClosePanel("UMG_CloudMessageManagementPopUp")
 end
 
-function SystemSettingModule:OnApplyConfig(key, value, extraKey, bBanSetToCustom)
-  Log.Debug("SystemSettingModule:OnApplyConfig", key, value, extraKey, bBanSetToCustom)
+function SystemSettingModule:OnApplyConfig(key, value, extraKey)
+  Log.Debug("SystemSettingModule:OnApplyConfig", key, value, extraKey)
   _G.NRCEventCenter:DispatchEvent(SystemSettingModuleEvent.ConfigApplied, key, value)
   if "Resoluction" == key then
     UE4.UNRCQualityLibrary.SetPCResolutionByIndex(value)
@@ -218,7 +225,7 @@ function SystemSettingModule:OnApplyConfig(key, value, extraKey, bBanSetToCustom
       _G.DelayManager:CancelDelayById(self._imageQualityTimerId)
       self._imageQualityTimerId = nil
     end
-    self._imageQualityTimerId = _G.DelayManager:DelaySeconds(0.25, function()
+    self._imageQualityTimerId = _G.DelayManager:DelaySeconds(0.26, function()
       self._imageQualityTimerId = nil
       local panel = self:GetPanel("SystemSettingMain")
       if panel then
@@ -263,11 +270,13 @@ function SystemSettingModule:OnApplyConfig(key, value, extraKey, bBanSetToCustom
           DLSSConfig.Graphic = 1
         end
         if 2 == value then
+          UE4.UNRCStatics.ExecConsoleCommand("r.MobileMSAA 1")
           DLSSConfig.AntiAliasing = 1
         end
         if 2 == DLSSConfig.Type and 0 == value then
           DLSSConfig.AntiAliasing = 0
           local antiAliasLevel = UE4.UNRCQualityLibrary.GetGroupQualityLevel("AntiAliasingQuality")
+          UE4.UNRCQualityLibrary.SetImageQuality(UE4.ENRCImageQuality.Custom)
           UE4.UNRCQualityLibrary.SetGroupQualityLevel("AntiAliasingQuality", antiAliasLevel)
         end
         DLSSConfig.Type = value
@@ -286,10 +295,9 @@ function SystemSettingModule:OnApplyConfig(key, value, extraKey, bBanSetToCustom
       end
     end
   elseif "joystickMode" == key then
+  elseif "propPlaceMode" == key then
   else
-    if not bBanSetToCustom then
-      UE4.UNRCQualityLibrary.SetImageQuality(UE4.ENRCImageQuality.Custom)
-    end
+    UE4.UNRCQualityLibrary.SetImageQuality(UE4.ENRCImageQuality.Custom)
     UE4.UNRCQualityLibrary.SetGroupQualityLevel(key, value)
   end
   if "ImageQuality" ~= key and "PlayerSettings" ~= key then
@@ -930,6 +938,7 @@ function SystemSettingModule:EnterSleepMode()
   sleepConfig.targetFrameQuality = targetFrameQuality
   sleepConfig.targetBrightness = targetBrightness
   JsonUtils.DumpSaved(_SleepConfigFilename, sleepConfig)
+  _G.NRCEventCenter:DispatchEvent(SystemSettingModuleEvent.EnterSleepMode)
 end
 
 function SystemSettingModule:QuitSleepMode()
@@ -982,6 +991,7 @@ function SystemSettingModule:QuitSleepMode()
   if needSave then
     JsonUtils.DumpSaved(_SleepConfigFilename, sleepConfig)
   end
+  _G.NRCEventCenter:DispatchEvent(SystemSettingModuleEvent.QuitSleepMode)
 end
 
 function SystemSettingModule:SwitchSleepModeOnEditor()
@@ -1076,6 +1086,13 @@ function SystemSettingModule:EnterSleepModeOnDebug()
   JsonUtils.DumpSaved(_SleepConfigFilename, sleepConfig)
 end
 
+function SystemSettingModule:ChangePlayerName()
+  local panel = self:GetPanel("UMG_PersonalInformationManagement")
+  if panel then
+    panel:ChangePlayerName()
+  end
+end
+
 function SystemSettingModule:ReqSecondaryPasswordGetInfo()
   local reqMsg = _G.ProtoMessage:newZoneSecondaryPasswordGetInfoReq()
   _G.ZoneServer:SendWithHandler(ProtoCMD.ZoneSvrCmd.ZONE_SECONDARY_PASSWORD_GET_INFO_REQ, reqMsg, self, self.OnSecondaryPasswordGetInfoRsp, nil, false)
@@ -1083,8 +1100,12 @@ end
 
 function SystemSettingModule:OnSecondaryPasswordGetInfoRsp(rsp)
   if 0 == rsp.ret_info.ret_code then
+    Log.Info("SystemSettingModule:OnSecondaryPasswordGetInfoRsp new", rsp.status, rsp.status_timestamp, rsp.default_free)
+    if self.passwordInfo then
+      Log.Info("SystemSettingModule:OnSecondaryPasswordGetInfoRsp old", self.passwordInfo.status, self.passwordInfo.status_timestamp, self.passwordInfo.default_free)
+      _G.NRCEventCenter:DispatchEvent(SystemSettingModuleEvent.SecondPasswordStatusChangeEvent, self.passwordInfo.status, rsp.status)
+    end
     self.passwordInfo = rsp
-    self.passwordInfo.default_free = 0
   end
 end
 
@@ -1092,25 +1113,15 @@ function SystemSettingModule:GetSecondaryPasswordInfo()
   return self.passwordInfo
 end
 
-function SystemSettingModule:OnSecondaryPasswordStatusChange(newStatus)
+function SystemSettingModule:OnSecondaryPasswordStatusChange(status, status_timestamp, default_free)
+  Log.Info("SystemSettingModule:OnSecondaryPasswordStatusChange new", status, status_timestamp, default_free)
   if self.passwordInfo then
-    local oldStatus = self.passwordInfo.status
-    self.passwordInfo.status = newStatus
-    Log.Info("SystemSettingModule:OnSecondaryPasswordStatusChange oldStatus, newStatus", oldStatus, newStatus)
-    if newStatus == ProtoEnum.SecondaryPasswordStatus.SPS_Unset then
-      self.passwordInfo.status_timestamp = 0
-    end
-    if newStatus == ProtoEnum.SecondaryPasswordStatus.SPS_Disable then
-      self.passwordInfo.status_timestamp = _G.ZoneServer:GetServerTime() / 1000
-    end
-    _G.NRCEventCenter:DispatchEvent(SystemSettingModuleEvent.SecondPasswordStatusChangeEvent, oldStatus, newStatus)
+    Log.Info("SystemSettingModule:OnSecondaryPasswordStatusChange old", self.passwordInfo.status, self.passwordInfo.status_timestamp, self.passwordInfo.default_free)
+    _G.NRCEventCenter:DispatchEvent(SystemSettingModuleEvent.SecondPasswordStatusChangeEvent, self.passwordInfo.status, status)
   end
-end
-
-function SystemSettingModule:OnSecondaryDefaultFreeChange(default_free)
-  if self.passwordInfo then
-    self.passwordInfo.default_free = default_free
-  end
+  self.passwordInfo.status = status
+  self.passwordInfo.status_timestamp = status_timestamp
+  self.passwordInfo.default_free = default_free
 end
 
 function SystemSettingModule:OnSecondaryPasswordUnsetNotify(rsp)
@@ -1128,7 +1139,7 @@ function SystemSettingModule:CheckSecondaryPassword()
     return true
   end
   if self.passwordInfo then
-    if 0 == self.passwordInfo.default_free then
+    if self.passwordInfo.status ~= ProtoEnum.SecondaryPasswordStatus.SPS_Free then
       self:OpenPanel("SecondaryPasswordVerify")
       return false
     else
@@ -1193,16 +1204,29 @@ end
 function SystemSettingModule:OnSecondaryPasswordForceDisableRsp(rsp)
   if 0 == rsp.ret_info.ret_code and rsp.action_type == ProtoEnum.ZoneSecondaryPasswordForceDisable.SPFD_DISABLE then
     _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.secondary_pwd_toast_force_close_success)
-    self:OnSecondaryPasswordStatusChange(ProtoEnum.SecondaryPasswordStatus.SPS_Disable)
+    self:OnSecondaryPasswordStatusChange(rsp.status, rsp.status_timestamp, rsp.default_free)
     if not self:HasPanel("SystemSettingMain") and not self:IsPanelInOpening("SystemSettingMain") then
-      self:OpenPanel("SystemSettingMain", 5)
+      local reqParamList = _G.NRCPanelOpenReqData()
+      reqParamList.cmdId = _G.ProtoCMD.ZoneSvrCmd.ZONE_QUERY_PLAYER_SETTINGS_REQ
+      reqParamList.reqClass = _G.ProtoMessage:newZoneQueryPlayerSettingsReq()
+      reqParamList.ignoreErrorTip = false
+      reqParamList.needModal = false
+      reqParamList.Caller = self
+      self:OpenPanel("SystemSettingMain", 5, reqParamList)
     end
   end
 end
 
 function SystemSettingModule:OpenSecondaryPasswordGoSettingPopUp()
   local function OpenSystemSetting()
-    self:OpenPanel("SystemSettingMain", 5)
+    local reqParamList = _G.NRCPanelOpenReqData()
+    
+    reqParamList.cmdId = _G.ProtoCMD.ZoneSvrCmd.ZONE_QUERY_PLAYER_SETTINGS_REQ
+    reqParamList.reqClass = _G.ProtoMessage:newZoneQueryPlayerSettingsReq()
+    reqParamList.ignoreErrorTip = false
+    reqParamList.needModal = false
+    reqParamList.Caller = self
+    self:OpenPanel("SystemSettingMain", 5, reqParamList)
   end
   
   local popUpData = _G.NRCCommonPopUpData()

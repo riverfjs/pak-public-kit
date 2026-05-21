@@ -38,8 +38,20 @@ function UMG_Activity_TerritoryTrial_LevelInformationTabItem_C:OnItemSelected(_b
   self._bSelected = _bSelected
   self:StopAllAnimations()
   if _bSelected then
-    self:PlayAnimation(self.change1)
     self.uiData.selectedCallback(self.uiData.caller, self.index)
+    if 1 == self.index and not self.uiData.caller.bNotFirst then
+      self.uiData.caller.bNotFirst = true
+      self.circle_1:SetRenderOpacity(0)
+      self.circle_2:SetRenderOpacity(0)
+      self.circle_3:SetRenderOpacity(0)
+      self.Bg:SetRenderOpacity(0)
+      self.BgLight:SetRenderOpacity(1)
+      self.icon_1:SetRenderOpacity(0)
+      self.icon_2:SetRenderOpacity(1)
+      self.Title:SetColorAndOpacity(UE4.UNRCStatics.HexToSlateColor("#1F1F1FFF"))
+      return
+    end
+    self:PlayAnimation(self.change1)
   else
     self:PlayAnimation(self.change2)
   end

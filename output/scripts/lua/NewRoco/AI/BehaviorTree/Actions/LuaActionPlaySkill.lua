@@ -29,19 +29,11 @@ function LuaActionPlaySkill:OnStart(AIController, ...)
   self:PlaySkillByPath(owner.Npc, skillConf.skill_ref, InterruptOther)
 end
 
-function LuaActionPlaySkill:OnInterrupt(AIController, Finalizing)
-  local owner = AIController
+function LuaActionPlaySkill:OnInterrupt(owner, Finalizing)
   self.interrupted = true
   self._npc = nil
-  if Finalizing then
-    self.skillObj = nil
-    if UE.UObject.IsValid(self.skillObj_ref) then
-      UnLua.Unref(self.skillObj_ref)
-    end
-    self.skillObj_ref = nil
-  else
-    self:StopSkill(owner)
-  end
+  self:StopSkill(owner)
+  self:CleanUp(false)
   self:ReleaseRes()
 end
 
@@ -86,9 +78,14 @@ function LuaActionPlaySkill:SkillLoadSucc(req, skillClass)
       view.RocoSkill:ClearNotworkingSkillObj()
       local skillObj = view.RocoSkill:FindOrAddSkillObj(skillClass)
       if skillObj and skillObj.SetCaster then
+        if skillObj:IsWorking() then
+          skillObj:ClearDelegates()
+          skillComp:CancelSkill(skillObj, UE4.ESkillActionResult.SkillActionResultInterrupted)
+        end
         skillObj:SetPassive(self.isPassive)
         skillObj:SetCaster(view)
         skillObj:SetPriority(PriorityEnum.Passive_World_AI_SkillRes)
+        skillObj:SetJumpErrorLog()
         if UE.UObject.IsValid(self.owner) then
           if self.UseTarget and self.UseTarget:GetValue(self.owner) then
             local targetCharacter = self.SkillTarget and self.SkillTarget:GetValue(self.owner)
@@ -109,7 +106,7 @@ function LuaActionPlaySkill:SkillLoadSucc(req, skillClass)
           end
         end
         skillObj:ClearDelegates()
-        skillObj:RegisterEventCallback("End", self, self.OnSkillEnd):RegisterEventCallback("PreEnd", self, self.OnSkillEnd):RegisterEventCallback("Interrupt", self, self.OnSkillEnd):RegisterEventCallback("ActivateFailed", self, self.PlayFailed)
+        skillObj:RegisterEventCallback("End", self, self.OnSkillEnd):RegisterEventCallback("StartFailed", self, self.PlayFailed):RegisterEventCallback("PreEnd", self, self.OnSkillEnd):RegisterEventCallback("Interrupt", self, self.OnSkillEnd):RegisterEventCallback("ActivateFailed", self, self.PlayFailed)
         local Result = skillComp:LoadAndPlaySkill(skillObj)
         if Result == UE.ESkillStartResult.Success then
           self.skillObj = skillObj
@@ -135,19 +132,26 @@ function LuaActionPlaySkill:SkillLoadFail(req, msg)
 end
 
 function LuaActionPlaySkill:StopSkill(owner)
-  owner = owner or self.owner
-  if not owner then
-    return true
-  end
-  local view = owner.Npc and owner.Npc.viewObj
-  if view and self.skillObj then
-    local skillObj = self.skillObj
+  if not self.skillObj or not UE.UObject.IsValid(self.skillObj) then
     self.skillObj = nil
-    if UE.UObject.IsValid(self.skillObj_ref) then
-      UnLua.Unref(self.skillObj_ref)
-    end
     self.skillObj_ref = nil
-    view.RocoSkill:CancelSkill(skillObj, UE4.ESkillActionResult.SkillActionResultInterrupted)
+    return
+  end
+  local skillObj = self.skillObj
+  self.skillObj = nil
+  if UE.UObject.IsValid(self.skillObj_ref) then
+    UnLua.Unref(self.skillObj_ref)
+    self.skillObj_ref = nil
+  end
+  owner = owner or self.owner
+  if owner then
+    local view = owner.Npc.viewObj
+    if view and UE.UObject.IsValid(view) then
+      local rocoSkill = view.RocoSkill
+      if rocoSkill then
+        rocoSkill:CancelSkill(skillObj, UE4.ESkillActionResult.SkillActionResultInterrupted)
+      end
+    end
   end
 end
 
@@ -176,7 +180,7 @@ function LuaActionPlaySkill:CleanUp(stopMontage)
   if self.owner then
     local Npc = self.owner.Npc
     if Npc then
-      if stopMontage and not Npc.AIComponent:IsLocked() then
+      if stopMontage and Npc.AIComponent and not Npc.AIComponent:IsLocked() then
         Npc:StopAllMontage(0.1)
       end
       if Npc.AIComponent and self.interrupt_when_lock then

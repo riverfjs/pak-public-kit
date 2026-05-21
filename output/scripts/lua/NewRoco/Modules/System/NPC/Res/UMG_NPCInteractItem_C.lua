@@ -11,19 +11,16 @@ local ENUM_PLAYER_DATA_EVENT = require("Data.Global.PlayerDataEvent")
 local HomeModuleEvent = require("NewRoco.Modules.System.Home.HomeModuleEvent")
 local RelationTreeEvent = reload("NewRoco.Modules.System.RelationTree.RelationTreeEvent")
 local PlayerModuleEvent = require("NewRoco.Modules.Core.PlayerModule.PlayerModuleEvent")
+local HomeNpcInfoComponent = require("NewRoco.Modules.System.Home.Components.HomeNpcInfoComponent")
 local UMG_NPCInteractItem_C = Base:Extend("UMG_NPCInteractItem_C")
 
 function UMG_NPCInteractItem_C:SetBackGround(bIsPress)
-  if not (self.option and self.Background) or not self.Background_Selected then
-    Log.DebugFormat("[NPCInteractMainUI] SetBackGround %s", self.GetOptionID and self:GetOptionID() or "\231\130\184\231\154\132\229\190\136\228\184\165\233\135\141\228\186\134")
-    return
-  end
-  if self.option.bFake or self.bIsPress == bIsPress then
+  if self.option and self.option.bFake or self.bIsPress == bIsPress then
     return
   end
   self.bIsPress = bIsPress
   if bIsPress then
-    self.Background_Selected:SetVisibility(UE4.ESlateVisibility.Visible)
+    self.Background_Selected:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     self.Background:SetVisibility(UE4.ESlateVisibility.Collapsed)
     if SystemSettingModuleCmd and self.FKey then
       local text, image = _G.NRCModuleManager:DoCmd(SystemSettingModuleCmd.GetMappingKeyUIName, "IA_InteractionStart")
@@ -34,7 +31,7 @@ function UMG_NPCInteractItem_C:SetBackGround(bIsPress)
       end
       self.FKey:SetKeyVisibility(true)
     end
-    UIUtils.SetTextWithQuality(self.ItemDesc, self.content, self.item_quality, self.bIsPress)
+    UIUtils.SetTextWithQuality(self.ItemDesc, self.content, self.item_quality, self.bIsPress, 22)
     UIUtils.SetTextWithValidation(self.ItemDesc_1, self.coin_content, self.coin_validation, self.bIsPress)
   else
     self.Background_Selected:SetVisibility(UE4.ESlateVisibility.Collapsed)
@@ -48,7 +45,7 @@ function UMG_NPCInteractItem_C:SetBackGround(bIsPress)
       end
       self.FKey:SetKeyVisibility(false)
     end
-    UIUtils.SetTextWithQuality(self.ItemDesc, self.content, self.item_quality, self.bIsPress)
+    UIUtils.SetTextWithQuality(self.ItemDesc, self.content, self.item_quality, self.bIsPress, 22)
     UIUtils.SetTextWithValidation(self.ItemDesc_1, self.coin_content, self.coin_validation, self.bIsPress)
   end
   self:UpdateDesc2Content(self.bIsPress, self.option)
@@ -64,21 +61,20 @@ function UMG_NPCInteractItem_C:OnMouseEnter()
 end
 
 function UMG_NPCInteractItem_C:OnMouseLeave(_)
-  self:ReleaseMouseCapture(true)
+  self:ReleaseTouchMark(true)
 end
 
-function UMG_NPCInteractItem_C:ReleaseMouseCapture(bHaverOut)
-  if self.MouseCapture then
+function UMG_NPCInteractItem_C:ReleaseTouchMark(bHaverOut)
+  if self.TouchMark then
     if bHaverOut then
       self:SetHoverBG(false)
     end
-    UE.UWidgetBlueprintLibrary.ReleaseMouseCapture(self.MouseCapture)
-    self.MouseCapture = nil
+    self.TouchMark = false
   end
 end
 
 function UMG_NPCInteractItem_C:Tick(_, deltaTime)
-  if self.option and not self.option.bIsPlayerOption and not self.option.bIsHomeNPCOption and self.option:IsFarmOption() then
+  if self.option and not self.option.bIsPlayerOption and self.option:IsFarmOption() then
     self:UpdateDesc2Content(self.bIsPress, self.option)
   end
   if not self.isPressed then
@@ -134,9 +130,8 @@ function UMG_NPCInteractItem_C:OnTouchStarted(MyGeometry, InTouchEvent)
   if self.ParentView then
     self.ParentView.longTouchItem = self
   end
-  self.MouseCapture = Base.OnTouchStarted(self, MyGeometry, InTouchEvent)
-  UE.UWidgetBlueprintLibrary.CaptureMouse(self.MouseCapture, self)
-  return self.MouseCapture
+  self.TouchMark = true
+  return Base.OnTouchStarted(self, MyGeometry, InTouchEvent)
 end
 
 local NoScrollActionTypes = {
@@ -148,14 +143,27 @@ local NoScrollActionTypes = {
 }
 
 function UMG_NPCInteractItem_C:OnTouchEnded(_, _)
-  if not self.option or self.option.bFake or not self.MouseCapture then
+  if not self.option or self.option.bFake or not self.TouchMark then
     Log.DebugFormat("[NPCInteractMainUI] OnTouchEnded \229\174\140\229\133\168\230\178\161\230\156\186\228\188\154\232\167\166\229\143\145 %s", self.GetOptionID and self:GetOptionID() or "\231\130\184\231\154\132\229\190\136\228\184\165\233\135\141\228\186\134")
+    self:SetHoverBG(false)
     return UE.UWidgetBlueprintLibrary.Unhandled()
   end
-  self:ReleaseMouseCapture(true)
+  self:ReleaseTouchMark(true)
   if self:CheckIsLock() then
     Log.DebugFormat("[NPCInteractMainUI] OnTouchEnded MultiTouch\230\139\166\230\136\170\228\186\134 %s", self.GetOptionID and self:GetOptionID() or "\231\130\184\231\154\132\229\190\136\228\184\165\233\135\141\228\186\134")
+    self:SetHoverBG(false)
     return UE.UWidgetBlueprintLibrary.Unhandled()
+  end
+  if not self.option.bIsPlayerOption then
+    local owner = self.option and self.option.owner
+    local canInteract = owner and owner:CanInteract() or false
+    local serverId = owner and owner:GetServerId() or 0
+    local realNpc = _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.GetNpcByServerID, serverId)
+    if not (self.option.inActionArea and canInteract and realNpc) or realNpc ~= owner then
+      Log.Error("[NPCInteractMainUI] Option\232\161\140\228\184\186\229\188\130\229\184\184", self.option.inActionArea, canInteract, realNpc or "\230\151\160", owner)
+      self:BroadcastMsg("OnOptionResidue", self.option)
+      return UE.UWidgetBlueprintLibrary.Unhandled()
+    end
   end
   self.ParentView.longTouchItem = nil
   self.isPressed = false
@@ -170,14 +178,11 @@ function UMG_NPCInteractItem_C:OnTouchEnded(_, _)
     else
       Log.Error("[NPCInteractMainUI] \233\156\128\232\166\129\231\173\137\229\190\133\228\184\138\230\172\161\228\186\164\228\186\146\229\141\143\232\174\174\230\156\141\229\138\161\229\153\168\229\155\158\229\140\133\239\188\140\230\156\172\230\172\161\228\186\164\228\186\146\229\183\178\231\187\143\232\162\171\230\139\166\230\136\170", self.option.config.id)
     end
+    self:SetHoverBG(false)
     return UE.UWidgetBlueprintLibrary.Unhandled()
   end
   self:LockIsSelectBtnByActionType(actionType)
   self.option:OnOptionAction()
-  if self.ParentView and self.ParentView.Owner and not NoScrollActionTypes[actionType] then
-    self.ParentView.Owner:ClearCurSelectedOption()
-    self.ParentView.Owner:SelectOptionByIndex(self._index)
-  end
   return UE.UWidgetBlueprintLibrary.Handled()
 end
 
@@ -289,26 +294,25 @@ end
 
 function UMG_NPCInteractItem_C:SetData(option)
   if option.bFake then
+    self:SetVisibility(UE4.ESlateVisibility.Hidden)
     self.CanvasPanel_0:SetVisibility(UE4.ESlateVisibility.Hidden)
-    if self.option and self.option.NeedsValidation and self.option:NeedsValidation() then
-      self.option:RemoveEventListener(self, NpcOptionEvent.OptionChange, self.OnOptionChanged)
-    end
-    self.option = nil
     return
   else
+    self:SetVisibility(UE4.ESlateVisibility.Visible)
     self.CanvasPanel_0:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
   end
-  self:StopAllAnimations()
-  self.Background_Selected:SetVisibility(UE4.ESlateVisibility.Collapsed)
-  self:SetBackGround(false)
-  self:SetHoverBG(false)
-  self:ReleaseMouseCapture(false)
-  if self.option and self.option.NeedsValidation and self.option:NeedsValidation() and not option.bIsPlayerOption and not option.bIsHomeNPCOption then
-    self:RefreshValidationInfo()
-  end
   if self.option == option then
+    if self.option.NeedsValidation and self.option:NeedsValidation() then
+      self:RefreshValidationInfo()
+    end
     return
   end
+  self.option = option
+  self.bSelectedAndTouch = false
+  self:SetBackGround(false)
+  self:SetHoverBG(false)
+  self:ReleaseTouchMark(false)
+  self:PlayAnimation(self.In, 0, 1, 0, 1.8)
   LoadingProfiler:CheckPoint(LoadingProfilerCheckPoint.ShowInteractItem)
   _G.NRCEventCenter:UnRegisterEvent(self, RelationTreeEvent.OnPetInfoChangeEvent, self.UpdatePetName)
   _G.DataModelMgr.PlayerDataModel:RemoveEventListener(self, ENUM_PLAYER_DATA_EVENT.UPDATE_DATA, self.OnFarmOptionInfoChange)
@@ -321,10 +325,14 @@ function UMG_NPCInteractItem_C:SetData(option)
   self.IsHasLuoPan = false
   if option.bIsPlayerOption then
     self:SetPlayerOptionData(option)
-  elseif option.bIsHomeNPCOption then
-    self:SetHomeNPCOptionData(option)
   else
     self:SetNpcOptionData(option)
+  end
+end
+
+function UMG_NPCInteractItem_C:OnAnimationFinished(Animation)
+  if Animation == self.In then
+    self.Background_Selected:SetRenderOpacity(1)
   end
 end
 
@@ -334,38 +342,14 @@ function UMG_NPCInteractItem_C:SetHoverBG(bShow)
   self.HoverBG:SetColorAndOpacity(NewColor)
 end
 
-function UMG_NPCInteractItem_C:SetHomeNPCOptionData(option)
-  self.option = option
-  self.coin_validation = false
-  self.coin_content = ""
-  self.ItemDesc_1:SetVisibility(UE4.ESlateVisibility.Collapsed)
-  self.Icon_1:SetVisibility(UE4.ESlateVisibility.Collapsed)
-  self.content = option.config.button_text
-  self.item_quality = 0
-  self.NRCImage_35:SetBrushTintColor(UE4.UNRCStatics.HexToSlateColor("#3D3D3DFF"))
-  UIUtils.SetTextWithQuality(self.ItemDesc, self.content, self.item_quality, false)
-  if option.config.button_icon then
-    self.Icon:SetPath(option.config.button_icon)
-    self:PlayShine(option.config)
+function UMG_NPCInteractItem_C:ClearData()
+  if self.option and self.option.NeedsValidation and self.option:NeedsValidation() then
+    self.option:RemoveEventListener(self, NpcOptionEvent.OptionChange, self.OnOptionChanged)
   end
-  local optionConfig = option.config
-  if optionConfig and optionConfig.id == 720000012 then
-    local furnitureId = option.owner.furnitureId
-    if furnitureId then
-      local petInfo = _G.NRCModuleManager:DoCmd(_G.HomeModuleCmd.GetPairNestAndPet, furnitureId)
-      if petInfo and petInfo.base and petInfo.base.name then
-        self.content = string.format(optionConfig.button_text, petInfo.base.name)
-      end
-    end
-  else
-    self.content = optionConfig.button_text
-  end
-  self.ItemDesc_2:SetVisibility(UE4.ESlateVisibility.Collapsed)
-  UIUtils.SetTextWithQuality(self.ItemDesc, self.content, self.item_quality, false)
+  self.option = nil
 end
 
 function UMG_NPCInteractItem_C:SetPlayerOptionData(Option)
-  self.option = Option
   self.coin_validation = false
   self.coin_content = ""
   local OptionConfig = Option.config
@@ -399,7 +383,7 @@ function UMG_NPCInteractItem_C:SetPlayerOptionData(Option)
   else
     self.NRCImage_35:SetBrushTintColor(UE4.UNRCStatics.HexToSlateColor("#3D3D3DFF"))
   end
-  UIUtils.SetTextWithQuality(self.ItemDesc, self.content, self.item_quality, false)
+  UIUtils.SetTextWithQuality(self.ItemDesc, self.content, self.item_quality, false, 22)
   self:SetBackGround(false)
   if OptionConfig.button_icon then
     self.Icon:SetPath(OptionConfig.button_icon)
@@ -408,8 +392,6 @@ function UMG_NPCInteractItem_C:SetPlayerOptionData(Option)
 end
 
 function UMG_NPCInteractItem_C:SetNpcOptionData(option)
-  local NewRegister = self.option ~= option
-  self.option = option
   self.coin_validation = false
   self.coin_content = ""
   local optionConfig = option.config
@@ -417,9 +399,7 @@ function UMG_NPCInteractItem_C:SetNpcOptionData(option)
   local serverData = option.owner.serverData
   self.NRCImage_35:SetBrushTintColor(UE4.UNRCStatics.HexToSlateColor("#3D3D3DFF"))
   if self.option.NeedsValidation and self.option:NeedsValidation() then
-    if NewRegister then
-      self.option:AddEventListener(self, NpcOptionEvent.OptionChange, self.OnOptionChanged)
-    end
+    self.option:AddEventListener(self, NpcOptionEvent.OptionChange, self.OnOptionChanged)
     self:RefreshValidationInfo()
     self.ItemDesc_2:SetVisibility(UE4.ESlateVisibility.Collapsed)
   elseif self.option:IsFarmOption() then
@@ -476,6 +456,18 @@ function UMG_NPCInteractItem_C:SetNpcOptionData(option)
       local Name = string.ExtralongandOmitted(serverName, 9)
       self.content = string.format(optionConfig.button_text, Name)
       _G.NRCEventCenter:RegisterEvent("UMG_NPCInteractItem_C", self, RelationTreeEvent.OnPetInfoChangeEvent, self.UpdatePetName)
+    elseif optionConfig and optionConfig.id == 720000012 then
+      self.content = optionConfig.button_text
+      if option.owner.serverData and option.owner.serverData.attach_item_info then
+        local attachInfo = option.owner.serverData.attach_item_info
+        if attachInfo.attach_item_type == ProtoEnum.NpcAttachItemType.NAIT_HOME_PET_NEST then
+          local furnitureId = attachInfo.attach_item_id
+          local petInfo = _G.NRCModuleManager:DoCmd(_G.HomeModuleCmd.GetPairNestAndPet, furnitureId)
+          if petInfo and petInfo.base and petInfo.base.name then
+            self.content = string.format(optionConfig.button_text, petInfo.base.name)
+          end
+        end
+      end
     elseif string.IsNilOrEmpty(optionConfig.button_text) then
       self.content = npcConfig.name
     else
@@ -496,6 +488,9 @@ function UMG_NPCInteractItem_C:SetNpcOptionData(option)
   else
     self.content = optionConfig.button_text
   end
+  if option:GetActionType() == _G.Enum.ActionType.ACT_PICKEGG_HOME then
+    self.item_quality = 0
+  end
   local contentSize = 22
   if option:IsFarmOption() then
     local farmOptionType = FarmUtils.GetFarmOptionType(option)
@@ -506,6 +501,32 @@ function UMG_NPCInteractItem_C:SetNpcOptionData(option)
       end
     else
       self.item_quality = 0
+    end
+  end
+  if option:IsHomeViewArtOption() then
+    local InfoComp = option.owner:GetComponent(HomeNpcInfoComponent)
+    local Name = ""
+    if InfoComp then
+      local PropsData = InfoComp:GetFurnitureData()
+      Name = PropsData and PropsData:GetName() or ""
+    end
+    self.content = string.format(optionConfig.button_text, Name)
+  end
+  self.RawContent = self.content
+  if option:IsHomeSound2dOption() then
+    local InfoComp = option.owner:GetComponent(HomeNpcInfoComponent)
+    if InfoComp then
+      local ActionConf = option:GetActionConf()
+      if ActionConf then
+        local EventName = ActionConf.action_param1
+        local Proxy = InfoComp:EnsureSound2dProxy(EventName)
+        if Proxy:IsPlaying() then
+          self.content = ActionConf.action_param2
+        end
+        if not Proxy.OnChanged:Has(self, self.OnRefreshSoundOptionName) then
+          Proxy.OnChanged:Add(self, self.OnRefreshSoundOptionName)
+        end
+      end
     end
   end
   if RocoEnv.IS_EDITOR and ShowID then
@@ -549,6 +570,33 @@ function UMG_NPCInteractItem_C:SetNpcOptionData(option)
   elseif item_conf then
     self.Icon:SetPath(item_conf.icon)
   end
+end
+
+function UMG_NPCInteractItem_C:OnRefreshSoundOptionName()
+  if not self.option then
+    return
+  end
+  local optionConfig = self.option.config
+  self.content = self.RawContent
+  if self.option:IsHomeSound2dOption() then
+    local InfoComp = self.option.owner:GetComponent(HomeNpcInfoComponent)
+    if InfoComp then
+      local ActionConf = self.option:GetActionConf()
+      if ActionConf then
+        local EventName = ActionConf.action_param1
+        local Proxy = InfoComp:EnsureSound2dProxy(EventName)
+        if Proxy:IsPlaying() then
+          self.content = ActionConf.action_param2
+        else
+          self.content = self.RawContent
+        end
+      end
+    end
+  end
+  if RocoEnv.IS_EDITOR and ShowID then
+    self.content = string.format("%s(%d)", self.content, optionConfig.id)
+  end
+  UIUtils.SetTextWithQuality(self.ItemDesc, self.content, self.item_quality, self.bIsPress, 22)
 end
 
 function UMG_NPCInteractItem_C:OnHomeFeedOptionChange(bEquip, itemId, num)
@@ -723,9 +771,9 @@ function UMG_NPCInteractItem_C:UpdatePetName()
     serverName = string.ExtralongandOmitted(serverName, 9)
     self.content = string.format(optionConfig.button_text, serverName)
     if self:IsPCMode() then
-      UIUtils.SetTextWithQuality(self.ItemDesc, self.content, self.item_quality, self.bIsPress)
+      UIUtils.SetTextWithQuality(self.ItemDesc, self.content, self.item_quality, self.bIsPress, 22)
     else
-      UIUtils.SetTextWithQuality(self.ItemDesc, self.content, self.item_quality, false)
+      UIUtils.SetTextWithQuality(self.ItemDesc, self.content, self.item_quality, false, 22)
       self:SetBackGround(false)
     end
   end

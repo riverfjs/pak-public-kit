@@ -324,6 +324,9 @@ function ViewNPCBase:ResetLockNum(num)
 end
 
 function ViewNPCBase:UpdateData(ServerData, bIsReconnect)
+  if self.SetActorId and ServerData and ServerData.base then
+    self:SetActorId(ServerData.base.actor_id or 0)
+  end
 end
 
 function ViewNPCBase:Recycle()
@@ -810,7 +813,6 @@ function ViewNPCBase:FixCoord(bForceLockOnGround, bAllowFakeFixCoord)
     end
     if NewLandPos then
       sceneCharacter.landPos = NewLandPos
-      sceneCharacter.serverPos = NewLandPos
     end
   end
   return true
@@ -837,7 +839,12 @@ end
 function ViewNPCBase:OnFixCoordFinish()
   self.fixcoordFinish = true
   if self.sceneCharacter then
-    self.sceneCharacter:CheckPlayerInSeat()
+    if self.sceneCharacter.CheckPlayerInSeat then
+      self.sceneCharacter:CheckPlayerInSeat()
+    end
+    if self.sceneCharacter.CheckPlayerInBox then
+      self.sceneCharacter:CheckPlayerInBox()
+    end
   end
 end
 
@@ -925,10 +932,6 @@ function ViewNPCBase:ReceiveActorBeginOverlap(OtherActor)
     if self.sceneCharacter and self.sceneCharacter.InteractionComponent then
       self.sceneCharacter.InteractionComponent:OnPlayerEnterActionArea()
     else
-      if self.sceneCharacter and self.sceneCharacter.HomeInteractComponent then
-        self.sceneCharacter.HomeInteractComponent:OnPlayerEnterActionArea()
-      else
-      end
     end
   end
 end

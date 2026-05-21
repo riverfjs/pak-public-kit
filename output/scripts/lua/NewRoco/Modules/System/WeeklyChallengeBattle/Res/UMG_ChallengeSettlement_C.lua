@@ -9,6 +9,7 @@ function UMG_ChallengeSettlement_C:OnActive(SettleData, isTest)
     self:InitDataByFinishData(self.SettleData)
   end
   self:RefreshUI()
+  self:SendReceivePhotoReward()
 end
 
 function UMG_ChallengeSettlement_C:InitDataByFinishData(param)

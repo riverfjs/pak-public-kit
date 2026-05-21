@@ -73,6 +73,11 @@ BattlePassModuleCmd.IsDisTaskRewardReq = "BattlePassModuleCmd.IsDisTaskRewardReq
 BattlePassModuleCmd.OnPetSkillFilterRuleChange = "BattlePassModuleCmd.OnPetFilterRuleChange"
 BattlePassModuleCmd.OnPetSkillSortRuleChange = "BattlePassModuleCmd.OnPetSortRuleChange"
 BattlePassModuleCmd.ChangeThemeAndUnlockGift = "BattlePassModuleCmd.ChangeThemeAndUnlockGift"
+BattlePassModuleCmd.IsThemeA = "BattlePassModuleCmd.IsThemeA"
 BattlePassModuleCmd.ChangeThemeColor = "BattlePassModuleCmd.ChangeThemeColor"
 BattlePassModuleCmd.CloseBattlePassPurchasePanel = "BattlePassModuleCmd.CloseBattlePassPurchasePanel"
+BattlePassModuleCmd.ReqGetAnotherThemeFriends = "BattlePassModuleCmd.ReqGetAnotherThemeFriends"
+BattlePassModuleCmd.OpenSelectFriendPanel = "BattlePassModuleCmd.OpenSelectFriendPanel"
+BattlePassModuleCmd.CloseSelectFriendPanel = "BattlePassModuleCmd.CloseSelectFriendPanel"
+BattlePassModuleCmd.ReqBattlePassShopData = "BattlePassModuleCmd.ReqBattlePassShopData"
 return BattlePassModuleCmd

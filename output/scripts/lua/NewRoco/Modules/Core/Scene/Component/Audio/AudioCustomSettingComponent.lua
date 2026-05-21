@@ -75,6 +75,9 @@ function AudioCustomSettingComponent:InitNpcSettings()
     _G.NRCAudioManager:SetEmitterRTPC("Npc_State", 0, ownerView)
     _G.NRCAudioManager:SetEmitterSwitch("Boss_Switch", "NPC", ownerView)
   end
+  if ownerView and UE4.UObject.IsValid(ownerView) and ownerView:IsA(UE.ARocoCharacter) then
+    _G.NRCAudioManager:SetEmitterSwitch("Pet_Switch", "Pet_World", ownerView)
+  end
   local nature = owner.serverData.npc_base.nature
   if nature then
     if ownerView.SetPetNature then

@@ -137,6 +137,7 @@ function FunctionBanManager:InitFuncBlockingConf()
   self.SystemFuncBlockingConf = {}
   self.ActivityBlockingConf = {}
   self.FuncBlockingChannelConf = {}
+  self.isAuditServer = false
   _G.ZoneServer:AddProtocolListener(self, _G.ProtoCMD.ZoneSvrCmd.ZONE_FUNC_BLOCKING_CONFS_CHANGE_NOTIFY, self.OnZoneFuncBlockingConfsChangeNotify)
 end
 
@@ -179,14 +180,17 @@ function FunctionBanManager:OnZoneFuncBlockingConfsChangeNotify(_protoData)
   self.SystemFuncBlockingConf = newSystemFuncBlockingConf
   self.ActivityBlockingConf = newActivityBlockingConf
   self.FuncBlockingChannelConf = newFuncBlockingChannelConf
+  self.isAuditServer = _protoData.is_audit
   self:RefreshClientFuncBlockingConf()
 end
 
-function FunctionBanManager:GetEntranceBlockingTypeByClientData(clientData, funcItem)
+function FunctionBanManager:GetEntranceBlockingTypeByClientData(clientData, funcItem, uiFunctionId)
   if 1 ~= funcItem.is_open then
+    Log.Debug("[SvrBan]", uiFunctionId, "is_open ~= 1")
     return FunctionBanEnum.EntranceBlockingType.Lock
   end
-  if 1 ~= funcItem.is_audit and clientData.isAudit then
+  if 1 ~= funcItem.is_audit and self.isAuditServer then
+    Log.Debug("[SvrBan]", uiFunctionId, "is_audit ~= 1")
     return FunctionBanEnum.EntranceBlockingType.Hide
   end
   if funcItem.login_plat_limit then
@@ -197,6 +201,7 @@ function FunctionBanManager:GetEntranceBlockingTypeByClientData(clientData, func
     if 0 ~= limitMask then
       local loginPlatMask = LoginPlatLimitMask[clientData.loginPlat] or 0
       if 0 ~= limitMask & loginPlatMask then
+        Log.Debug("[SvrBan]", uiFunctionId, clientData.loginPlat, "in login plat limit!")
         return FunctionBanEnum.EntranceBlockingType.Hide
       end
     end
@@ -208,8 +213,10 @@ function FunctionBanManager:GetEntranceBlockingTypeByClientData(clientData, func
       if channelConf.display_platform then
         for _, platform in ipairs(channelConf.display_platform) do
           if -1 == platform then
+            Log.Debug("[SvrBan]", uiFunctionId, "display_platform == -1, channel", funcItem.channel_conf_id)
             return FunctionBanEnum.EntranceBlockingType.Hide
           elseif 0 ~= platform and clientData.loginChannel ~= platform then
+            Log.Debug("[SvrBan]", uiFunctionId, clientData.loginChannel, "not in display_platform, channel", funcItem.channel_conf_id)
             return FunctionBanEnum.EntranceBlockingType.Hide
           end
         end
@@ -217,6 +224,7 @@ function FunctionBanManager:GetEntranceBlockingTypeByClientData(clientData, func
       if channelConf.pkg_channel_hidden_list then
         for _, channel in ipairs(channelConf.pkg_channel_hidden_list) do
           if channel == clientData.channelId then
+            Log.Debug("[SvrBan]", uiFunctionId, clientData.channelId, "in hidden channel list")
             return FunctionBanEnum.EntranceBlockingType.Hide
           end
         end
@@ -230,6 +238,7 @@ function FunctionBanManager:GetEntranceBlockingTypeByClientData(clientData, func
           end
         end
         if not inShowList then
+          Log.Debug("[SvrBan]", uiFunctionId, clientData.channelId, "not in show channel List")
           return FunctionBanEnum.EntranceBlockingType.Hide
         end
       end
@@ -253,6 +262,7 @@ function FunctionBanManager:GetEntranceBlockingTypeByClientData(clientData, func
       local compareStart = math.min(#configVersionNumbers, #clientData.versionNumbers)
       for i = compareStart, 1, -1 do
         if clientData.versionNumbers[i] < configVersionNumbers[i] then
+          Log.Debug("[SvrBan]", uiFunctionId, clientData.version, "is lower than", configVersion)
           return FunctionBanEnum.EntranceBlockingType.NeedNewVersion
         end
       end
@@ -269,6 +279,7 @@ function FunctionBanManager:RefreshClientFuncBlockingConf()
   if self.gmSkipFuncBlocking then
     return
   end
+  Log.Debug("[SvrBan] RefreshClientFuncBlockingConf")
   local clientData = {
     isAudit = _G.AppMain:IsAuditVersion(),
     version = _G.AppMain:GetResVersion(),
@@ -286,9 +297,9 @@ function FunctionBanManager:RefreshClientFuncBlockingConf()
     if not funcBlockingConf then
       return
     end
-    for _, funcItem in pairs(funcBlockingConf) do
+    for uiFunctionId, funcItem in pairs(funcBlockingConf) do
       local preEntranceBlockingType = funcItem.entranceBlockingType
-      funcItem.entranceBlockingType = self:GetEntranceBlockingTypeByClientData(clientData, funcItem)
+      funcItem.entranceBlockingType = self:GetEntranceBlockingTypeByClientData(clientData, funcItem, uiFunctionId)
       if callback then
         callback(preEntranceBlockingType, funcItem)
       end
@@ -477,6 +488,9 @@ function FunctionBanManager:AddPlayerConditionType(conditionType, tag)
       local event = self.condTypeToCliEventMap[conditionType]
       self:SendZoneClientEventReq(event, true, tag)
     end
+    if self.eventDispatcher then
+      self.eventDispatcher:SendEvent(FunctionBanModuleEvent.OnPlayerConditionTypeChanged, conditionType, self:GetConditionCounter(conditionType))
+    end
   end
 end
 
@@ -501,6 +515,21 @@ function FunctionBanManager:RemovePlayerConditionType(conditionType, tag, IsPreH
   if self.condTypeToCliEventMap[conditionType] then
     local event = self.condTypeToCliEventMap[conditionType]
     self:SendZoneClientEventReq(event, false, tag)
+  end
+  if self.eventDispatcher then
+    self.eventDispatcher:SendEvent(FunctionBanModuleEvent.OnPlayerConditionTypeChanged, conditionType, self:GetConditionCounter(conditionType))
+  end
+end
+
+function FunctionBanManager:RegisterConditionTypeChangeListener(Caller, Handler)
+  if self.eventDispatcher then
+    self.eventDispatcher:AddEventListener(Caller, FunctionBanModuleEvent.OnPlayerConditionTypeChanged, Handler)
+  end
+end
+
+function FunctionBanManager:UnRegisterConditionTypeChangeListener(Caller, Handler)
+  if self.eventDispatcher then
+    self.eventDispatcher:RemoveEventListener(Caller, FunctionBanModuleEvent.OnPlayerConditionTypeChanged, Handler)
   end
 end
 
@@ -632,12 +661,6 @@ function FunctionBanManager:SendZoneClientEventReq(_event, _is_start, tag)
   self.clientEventReq.client_event[1].is_start = _is_start
   if tag then
     self.clientEventReq.client_event[1].tag = tag
-  end
-  if _event == Enum.ClientEvent.CE_UI_FULL_SCENE and _is_start then
-    local localPlayer = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
-    if localPlayer and localPlayer.ForceSendMoveReq then
-      localPlayer:ForceSendMoveReq(false, nil)
-    end
   end
   local bSent = _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_SCENE_CLIENT_EVENT_REQ, self.clientEventReq, self, self.OnZoneClientEventRsp, false, true)
   if not bSent then

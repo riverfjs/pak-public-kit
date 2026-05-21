@@ -13,6 +13,7 @@ function BattleSpectatorModuleHead:OnConstruct()
   self:BindCmd(_G.BattleSpectatorModuleCmd.RemoveRecord, "RemoveRecord")
   self:BindCmd(_G.BattleSpectatorModuleCmd.OnInnerBattleShieldBroken, "OnInnerBattleShieldBroken")
   self:BindCmd(_G.BattleSpectatorModuleCmd.OnInnerBattleChangePet, "OnInnerBattleChangePet")
+  self:BindCmd(_G.BattleSpectatorModuleCmd.TryKeepWatchNpcIfPlayerLogOut, "OnTryKeepWatchNpcIfPlayerLogOut")
   self:BindCmd(_G.BattleSpectatorModuleCmd.GetCanDrawDebug, "GetCanDrawDebug")
   self:BindCmd(_G.BattleSpectatorModuleCmd.SetCanDrawDebug, "SetCanDrawDebug")
 end

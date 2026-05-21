@@ -8,8 +8,9 @@ local ShareModuleEnum = {
     Tiktok = "Tiktok",
     TiktokFriend = "TiktokFriend",
     Weibo = "Weibo",
-    Xiaohongshu = "Xiaohongshu",
-    Kuaishou = "Kuaishou"
+    RedNote = "RedNote",
+    KuaiShou = "Kuaishou",
+    BiliBili = "BiliBili"
   },
   EnableShareChannel = {
     save = "save",

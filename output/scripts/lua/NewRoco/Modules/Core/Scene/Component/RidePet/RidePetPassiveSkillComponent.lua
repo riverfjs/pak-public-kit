@@ -1,6 +1,7 @@
 local Base = require("NewRoco.Modules.Core.Scene.Component.ActorComponent")
 local PlayerModuleEvent = require("NewRoco.Modules.Core.PlayerModule.PlayerModuleEvent")
 local PassiveSkillRegistry = require("NewRoco.Modules.Core.Scene.Component.RidePet.RidePetPassiveSkillRegistry")
+local PetUIModuleEvent = require("NewRoco.Modules.System.PetUI.PetUIModuleEvent")
 local RidePetPassiveSkillComponent = Base:Extend("RidePetPassiveSkillComponent")
 local ViewToComponentMap = {}
 
@@ -8,6 +9,15 @@ function RidePetPassiveSkillComponent:Attach(owner)
   Base.Attach(self, owner)
   self._passive_skills = {}
   self._typed_passive_skill = {}
+  self:BuildPassiveSkills()
+  self.owner:AddEventListener(self, PlayerModuleEvent.ON_STATUS_CHANGED, self.OnPetStatusChanged)
+  _G.NRCEventCenter:RegisterEvent("RidePetPassiveSkillComponent", self, PetUIModuleEvent.OnRefreshEvoPetModel, self.OnPetEvolution)
+end
+
+function RidePetPassiveSkillComponent:BuildPassiveSkills()
+  if not self.owner.rideConfig or not self.owner.rideConfig.passive_skill then
+    return
+  end
   local pass_skill_list = self.owner.rideConfig.passive_skill
   for i = 1, #pass_skill_list do
     local passiveSkillId = pass_skill_list[i]
@@ -28,7 +38,6 @@ function RidePetPassiveSkillComponent:Attach(owner)
       end
     end
   end
-  self.owner:AddEventListener(self, PlayerModuleEvent.ON_STATUS_CHANGED, self.OnPetStatusChanged)
 end
 
 function RidePetPassiveSkillComponent:IsEnvPassiveSkill(config)
@@ -92,6 +101,7 @@ end
 
 function RidePetPassiveSkillComponent:DeAttach()
   self.owner:RemoveEventListener(self, PlayerModuleEvent.ON_STATUS_CHANGED, self.OnPetStatusChanged)
+  _G.NRCEventCenter:UnRegisterEvent(self, PetUIModuleEvent.OnRefreshEvoPetModel, self.OnPetEvolution)
   if UE.UObject.IsValid(self.viewObj) then
     self.viewObj.MovementModeChangedDelegate:Remove(self.viewObj, self.OnMovementModeUpdate)
   end
@@ -105,6 +115,55 @@ function RidePetPassiveSkillComponent:DeAttach()
   self._passive_skills = nil
   self._typed_passive_skill = nil
   Base.DeAttach(self)
+end
+
+function RidePetPassiveSkillComponent:OnSetDoubleRide2P(isOnPet, player2P)
+  for _, v in ipairs(self._passive_skills) do
+    if v.OnSetDoubleRide2P then
+      v:OnSetDoubleRide2P(isOnPet, player2P)
+    end
+  end
+end
+
+function RidePetPassiveSkillComponent:OnPetEvolution(petData)
+  if not petData or not self.owner then
+    return
+  end
+  if petData.gid ~= self.owner.gid then
+    return
+  end
+  local newBaseId = petData.base_conf_id
+  if not newBaseId then
+    Log.Warning("RidePetPassiveSkillComponent:OnPetEvolution petData.base_conf_id is nil, gid=" .. tostring(petData.gid))
+    return
+  end
+  Log.Debug(string.format("RidePetPassiveSkillComponent:OnPetEvolution refresh passive skills, gid=%s, oldBaseId=%s, newBaseId=%s", tostring(self.owner.gid), tostring(self.owner.config and self.owner.config.id), tostring(newBaseId)))
+  local wasInRide = self._in_ride
+  for _, v in ipairs(self._passive_skills) do
+    v:Stop()
+  end
+  self._passive_skills = {}
+  self._typed_passive_skill = {}
+  local newConfig = _G.DataConfigManager:GetPetbaseConf(newBaseId)
+  if newConfig then
+    self.owner.config = newConfig
+  end
+  self.owner.rideConfig = _G.DataConfigManager:GetAllRidePet(newBaseId, true)
+  if not self.owner.rideConfig then
+    Log.Warning("RidePetPassiveSkillComponent:OnPetEvolution new rideConfig is nil, baseId=" .. tostring(newBaseId))
+    return
+  end
+  self:BuildPassiveSkills()
+  if wasInRide then
+    for _, v in ipairs(self._passive_skills) do
+      v:Start()
+    end
+    if UE.UObject.IsValid(self.viewObj) then
+      for _, v in ipairs(self._passive_skills) do
+        v:OnSetViewObj()
+      end
+    end
+  end
 end
 
 return RidePetPassiveSkillComponent

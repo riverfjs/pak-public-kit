@@ -254,7 +254,7 @@ end
 function UMG_PetAltar_C:updatePetTypeIcon(_dicTypes)
   local PetTypeList = {}
   for i = 1, 2 do
-    local petType = _dicTypes[#_dicTypes - i + 1]
+    local petType = _dicTypes[i]
     if petType then
       local typeDic = _G.DataConfigManager:GetTypeDictionary(petType)
       if typeDic then

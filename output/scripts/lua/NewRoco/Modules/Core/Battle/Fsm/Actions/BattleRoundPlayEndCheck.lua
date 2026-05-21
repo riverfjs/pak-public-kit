@@ -11,6 +11,7 @@ end
 
 function BattleRoundPlayEndCheck:OnEnter()
   self:CheckCameraLayerMask()
+  self.BattleManager.battleRuntimeData:SetIsJumpAiPerform(false)
   self:Finish()
 end
 

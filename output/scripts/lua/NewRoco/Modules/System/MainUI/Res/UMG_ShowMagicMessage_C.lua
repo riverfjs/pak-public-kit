@@ -16,6 +16,10 @@ function UMG_ShowMagicMessage_C:OnActive(param)
   if self.feedInfo.category == ProtoEnum.MarkGameplay.MK_MAGIC_MESSAGE or self.feedInfo.category == ProtoEnum.MarkGameplay.MK_FAKE_MAGIC_MESSAGE then
     _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.AddCondition, Enum.PlayerConditionType.PCT_UI, "ShowMagicMessage")
   end
+  local MainUIModule = NRCModuleManager:GetModule("MainUIModule")
+  if MainUIModule then
+    MainUIModule:SetJoystickEnabled(false)
+  end
   self:PlayAnimation(self.In)
   self:InitUI()
 end
@@ -34,6 +38,7 @@ function UMG_ShowMagicMessage_C:OnConstruct()
     [self.Switcher_Inspire] = 3,
     [self.Switcher_Incomprehension] = 4
   }
+  self.PlayerUin = _G.DataModelMgr.PlayerDataModel:GetPlayerUin()
 end
 
 function UMG_ShowMagicMessage_C:OnAddEventListener()
@@ -48,7 +53,9 @@ function UMG_ShowMagicMessage_C:OnAddEventListener()
   _G.FunctionBanManager:AddFunctionStateListener(Enum.PlayerFunctionBanType.PFBT_MARK_MUSIC_PLAY_BREAK_OFF, self, self.CheckMusicPlayBreakOff)
   _G.FunctionBanManager:AddFunctionStateListener(Enum.PlayerFunctionBanType.PFBT_MARK_VIDEO_WATCH_BREAK_OFF, self, self.CheckVideoWatchBreakOff)
   self:AddButtonListener(self.Btn_Close.btnClose, self.OnClickCloseBtn)
-  self:AddButtonListener(self.Report.btnLevelUp, self.OnClickReportBtn)
+  self:AddButtonListener(self.BtnMore.btnLevelUp, self.OnClickMoreBtn)
+  self:AddButtonListener(self.TeleportNearbyBtn, self.OnClickTeleportNearbyBtn)
+  self:AddButtonListener(self.ReportBtn, self.OnClickReportBtn)
   self:AddButtonListener(self.Enhance.btnLevelUp, self.OnClickEnhanceBtn)
   self:AddButtonListener(self.PlayMusic.btnLevelUp, self.OnClickPlayMusicBtn)
   self:AddButtonListener(self.StopMusic.btnLevelUp, self.OnClickStopMusicBtn)
@@ -56,6 +63,7 @@ function UMG_ShowMagicMessage_C:OnAddEventListener()
   self:AddButtonListener(self.Btn_Comment.btnLevelUp, self.OnClickCommentBtn)
   self:AddButtonListener(self.Btn_Comment_Grey.btnLevelUp, self.OnClickCommentGreyBtn)
   self:AddButtonListener(self.Btn_Sort, self.OnClickSortBtn)
+  self:AddButtonListener(self.ShareBtn.btnLevelUp, self.OnClickShareBtn)
   self.Btn_Like.OnPressed:Add(self, self.OnBtnLikePressed)
   self.Btn_Like.OnReleased:Add(self, self.OnBtnLikeReleased)
   self.Btn_Like.OnClicked:Add(self, self.OnBtnLikeClicked)
@@ -83,6 +91,7 @@ function UMG_ShowMagicMessage_C:OnDestruct()
   _G.NRCEventCenter:UnRegisterEvent(self, FriendModuleEvent.OnReportSuccessEvent, self.OnReportSuccess)
   _G.FunctionBanManager:RemoveFunctionStateListener(Enum.PlayerFunctionBanType.PFBT_MARK_MUSIC_PLAY_BREAK_OFF, self, self.CheckMusicPlayBreakOff)
   _G.FunctionBanManager:RemoveFunctionStateListener(Enum.PlayerFunctionBanType.PFBT_MARK_VIDEO_WATCH_BREAK_OFF, self, self.CheckVideoWatchBreakOff)
+  self:RemoveButtonListener(self.ShareBtn.btnLevelUp)
   self.Btn_Like.OnPressed:Remove(self, self.OnBtnLikePressed)
   self.Btn_Like.OnReleased:Remove(self, self.OnBtnLikeReleased)
   self.Btn_Hug.OnPressed:Remove(self, self.OnBtnHugPressed)
@@ -100,10 +109,16 @@ function UMG_ShowMagicMessage_C:OnDestruct()
   if self.feedInfo.category == ProtoEnum.MarkGameplay.MK_MAGIC_MESSAGE or self.feedInfo.category == ProtoEnum.MarkGameplay.MK_FAKE_MAGIC_MESSAGE then
     _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.RemoveCondition, Enum.PlayerConditionType.PCT_UI, "ShowMagicMessage")
   end
+  local MainUIModule = NRCModuleManager:GetModule("MainUIModule")
+  if MainUIModule then
+    MainUIModule:SetJoystickEnabled(true)
+  end
+  if -1 ~= self.SoundSession then
+    self:DoStopMusic()
+  end
   self.grid_id = nil
   self.feed_id = nil
   self.feedInfo = nil
-  self.SoundSession = nil
 end
 
 function UMG_ShowMagicMessage_C:OnAnimationFinished(anim)
@@ -157,16 +172,6 @@ function UMG_ShowMagicMessage_C:CheckVideoWatchBreakOff(newState, functionType, 
 end
 
 function UMG_ShowMagicMessage_C:CloseUI()
-  if 0 ~= self.feedInfo.music_id then
-    local mainUIModule = _G.NRCModuleManager:GetModule("MainUIModule")
-    if -1 ~= self.SoundSession then
-      self.feedDetail.feed_info = self.feedInfo
-      mainUIModule:OpenPanel("MagicMessageMusicToolbar", self.feedDetail, self.SoundSession)
-    end
-    if self.playingTimer then
-      _G.TimerManager:RemoveTimer(self.playingTimer)
-    end
-  end
   self:DoClose()
   local friendModule = _G.NRCModuleManager:GetModule("FriendModule")
   if friendModule:HasPanel("Friend_Report") then
@@ -198,20 +203,13 @@ function UMG_ShowMagicMessage_C:CloseUI()
 end
 
 function UMG_ShowMagicMessage_C:OnPcClose()
-  if self.feedInfo.category == ProtoEnum.MarkGameplay.MK_MAGIC_VIDEO then
-    local MagicAlive = _G.NRCModuleManager:DoCmd(_G.MagicReplayModuleCmd.GetMagicAlive)
-    if MagicAlive then
-      self.feedDetail.feed_info = self.feedInfo
-      _G.NRCModuleManager:DoCmd(_G.MagicReplayModuleCmd.OpenReplayPanel, self.feedDetail)
-    end
-  end
-  self:PlayAnimation(self.Out)
+  self:OnClickCloseBtn()
 end
 
 function UMG_ShowMagicMessage_C:OnReportSuccess(reportScene)
   if reportScene == ProtoEnum.SafetyBusinessInfo.ReportScense.RPTSS_DYNAMIC_POSTS_SCENE then
     local reqMsg = _G.ProtoMessage:newZoneFeedPlayerUninterestedReq()
-    reqMsg.uin = _G.DataModelMgr.PlayerDataModel:GetPlayerUin()
+    reqMsg.uin = self.PlayerUin
     reqMsg.feed_id = self.feed_id
     _G.ZoneServer:SendWithHandler(ProtoCMD.ZoneSvrCmd.ZONE_FEED_PLAYER_UNINTERESTED_REQ, reqMsg, self, self.OnFeedPlayerUnInterestedRsp, nil, false)
   end
@@ -280,15 +278,20 @@ function UMG_ShowMagicMessage_C:InitUI()
     self.HorizontalBox_Music:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
   if self.feedInfo.category == ProtoEnum.MarkGameplay.MK_MAGIC_MESSAGE or self.feedInfo.category == ProtoEnum.MarkGameplay.MK_MAGIC_VIDEO then
-    self:SetFeedIconAndName()
+    self:SetFeedPlayerInfo()
   elseif self.feedInfo.category == ProtoEnum.MarkGameplay.MK_FAKE_MAGIC_MESSAGE then
     self:SetHeadIcon(self.feedInfo.card_icon_selected)
     self.Text_RoleName:SetText(self.feedInfo.name)
+    self.OnlineStatus:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
   local currentSec = _G.ZoneServer:GetServerTime() / 1000
   local remainSec = self.feedInfo.expire_timestamp - currentSec
   self.Text_CountDown:SetText(ActivityUtils.GetTimeFormatStr(remainSec))
-  self.Text_Message:SetText(self.feedInfo.content)
+  local content = self.feedInfo.content
+  if self.feedInfo.sub_type and 0 ~= self.feedInfo.sub_type then
+    content = string.ConvertToRichText(content)
+  end
+  self.Text_Message:SetText(content)
   local curAttitudeType = self.feedInfo.attitude
   for switcher, attitude in pairs(self.attitudeSwitcherList) do
     switcher:SetActiveWidgetIndex(attitude == curAttitudeType and 1 or 0)
@@ -320,7 +323,7 @@ function UMG_ShowMagicMessage_C:InitUI()
     self.Delete:SetVisibility(UE4.ESlateVisibility.Collapsed)
   else
     self.Delete:SetVisibility(UE4.ESlateVisibility.Visible)
-    local curPlayerUni = _G.DataModelMgr.PlayerDataModel:GetPlayerUin()
+    local curPlayerUni = self.PlayerUin
     if curPlayerUni == self.feedInfo.uin then
       if self.feedInfo.category == ProtoEnum.MarkGameplay.MK_MAGIC_MESSAGE then
         self.Btn_Delete.Title_1:SetText(LuaText.umg_mark_magic_message_delete)
@@ -331,11 +334,24 @@ function UMG_ShowMagicMessage_C:InitUI()
       self.Btn_Delete:SetCommonText(LuaText.umg_mark_magic_message_unlike)
     end
   end
+  self.Text_Transmitting:SetText(LuaText.visible_circle_teleport_btn_text)
+  self.Text_Report:SetText(LuaText.magic_message_comment_report)
   if self.feedInfo.category == ProtoEnum.MarkGameplay.MK_FAKE_MAGIC_MESSAGE then
-    self.Report:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.CanvasPanel_More:SetVisibility(UE4.ESlateVisibility.Collapsed)
   else
-    local curPlayerUni = _G.DataModelMgr.PlayerDataModel:GetPlayerUin()
-    self.Report:SetVisibility(curPlayerUni == self.feedInfo.uin and UE4.ESlateVisibility.Collapsed or UE4.ESlateVisibility.SelfHitTestInvisible)
+    local curPlayerUni = self.PlayerUin
+    if curPlayerUni == self.feedInfo.uin then
+      self.CanvasPanel_More:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    else
+      self.CanvasPanel_More:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    end
+    self.bClickMore = false
+  end
+  if self.feedInfo.category == ProtoEnum.MarkGameplay.MK_MAGIC_VIDEO and self.feedInfo.uin == self.PlayerUin then
+    local platid = (not RocoEnv.PLATFORM_ANDROID or not 1) and (not RocoEnv.PLATFORM_IOS or not 0) and (not RocoEnv.PLATFORM_WINDOWS or not 2) and RocoEnv.PLATFORM_OPENHARMONY and 12
+    if 2 ~= platid and 12 ~= platid then
+      self.ShareBtn:SetVisibility(UE4.ESlateVisibility.Visible)
+    end
   end
   local checkBan = _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.CheckUIFunctionBan, _G.Enum.FunctionEntrance.FE_COMMENT_MESSAGE_MESSAGE, false)
   self.WidgetSwitcher_Comment:SetActiveWidgetIndex(checkBan and 1 or 0)
@@ -467,6 +483,9 @@ function UMG_ShowMagicMessage_C:OnComboBoxSelect(sortType)
 end
 
 function UMG_ShowMagicMessage_C:OnScrollBoxScrolled(offset)
+  if self.topContentHeight <= 0 then
+    return
+  end
   if offset >= self.topContentHeight then
     if not self.bEnableCommentScroll then
       self:SetEnableCommentListScroll(true)
@@ -487,9 +506,7 @@ function UMG_ShowMagicMessage_C:OnCommentListScrolled(offset)
     if self.bEnableCommentScroll then
       self:SetEnableCommentListScroll(false)
     end
-    local scrollBoxOffset = self.ScrollBox_Content:GetScrollOffset()
-    local newOffsetScrollBox = scrollBoxOffset - offset
-    self.ScrollBox_Content:SetScrollOffset(newOffsetScrollBox)
+    self.ScrollBox_Content:SetScrollOffset(self.topContentHeight)
     self.NRCScrollView_CommentList:SetScrollOffset(0)
   end
   self.lastOffset = offset
@@ -505,6 +522,7 @@ function UMG_ShowMagicMessage_C:SetEnableCommentListScroll(bEnable)
   self.bEnableCommentScroll = bEnable
   if self.bEnableCommentScroll then
     Log.Info("[ScrollTest]SetEnableCommentListScroll \229\144\175\231\148\168\232\175\132\232\174\186\229\136\151\232\161\168ScrollView")
+    self.NRCScrollView_CommentList:SetScrollOffset(0)
     self.NRCScrollView_CommentList:SetVisibility(UE4.ESlateVisibility.Visible)
     self.ScrollBox_Content:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
   else
@@ -516,7 +534,7 @@ end
 
 function UMG_ShowMagicMessage_C:ReqGetFeedComment()
   local reqMsg = _G.ProtoMessage:newZoneFeedGetFeedCommentReq()
-  reqMsg.uin = _G.DataModelMgr.PlayerDataModel:GetPlayerUin()
+  reqMsg.uin = self.PlayerUin
   reqMsg.feed_id = self.feed_id
   reqMsg.type = self.sortType
   reqMsg.page_num = self.curReqPage
@@ -524,8 +542,8 @@ function UMG_ShowMagicMessage_C:ReqGetFeedComment()
   _G.ZoneServer:SendWithHandler(ProtoCMD.ZoneSvrCmd.ZONE_FEED_GET_FEED_COMMENT_REQ, reqMsg, self, self.OnGetFeedCommentRsp, nil, false)
 end
 
-function UMG_ShowMagicMessage_C:SetFeedIconAndName()
-  local curPlayerUni = _G.DataModelMgr.PlayerDataModel:GetPlayerUin()
+function UMG_ShowMagicMessage_C:SetFeedPlayerInfo()
+  local curPlayerUni = self.PlayerUin
   if curPlayerUni == self.feedInfo.uin then
     local card_brief_info = _G.DataModelMgr.PlayerDataModel:GetCardBriefInfo()
     if card_brief_info then
@@ -533,25 +551,15 @@ function UMG_ShowMagicMessage_C:SetFeedIconAndName()
       self:SetHeadIcon(card_icon_selected)
       local playerName = _G.DataModelMgr.PlayerDataModel:GetPlayerName()
       self.Text_RoleName:SetText(playerName)
+      self.OnlineStatus:SetVisibility(UE4.ESlateVisibility.Collapsed)
       self.feedInfo.card_icon_selected = card_icon_selected
       self.feedInfo.name = playerName
       _G.NRCModuleManager:DoCmd(_G.MagicMessageModuleCmd.UpdateNpcByGridAndFeedId, self.grid_id, self.feed_id, self.feedInfo)
     end
   else
-    local friendData = _G.NRCModuleManager:DoCmd(_G.FriendModuleCmd.GetFriendByUin, self.feedInfo.uin)
-    if friendData then
-      local card_icon_selected = friendData.card_icon_selected
-      self:SetHeadIcon(card_icon_selected)
-      local playerName = friendData.name
-      self.Text_RoleName:SetText(playerName)
-      self.feedInfo.card_icon_selected = card_icon_selected
-      self.feedInfo.name = playerName
-      _G.NRCModuleManager:DoCmd(_G.MagicMessageModuleCmd.UpdateNpcByGridAndFeedId, self.grid_id, self.feed_id, self.feedInfo)
-    else
-      local req = _G.ProtoMessage:newZoneFriendSearchPlayerReq()
-      req.uin = self.feedInfo.uin
-      _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_FRIEND_SEARCH_PLAYER_REQ, req, self, self.OnSearchPlayerRsp, false, true)
-    end
+    local req = _G.ProtoMessage:newZoneFriendSearchPlayerReq()
+    req.uin = self.feedInfo.uin
+    _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_FRIEND_SEARCH_PLAYER_REQ, req, self, self.OnSearchPlayerRsp, false, true)
   end
 end
 
@@ -562,6 +570,12 @@ function UMG_ShowMagicMessage_C:OnSearchPlayerRsp(rsp)
     self:SetHeadIcon(card_icon_selected)
     local playerName = rsp.player_info.name
     self.Text_RoleName:SetText(playerName)
+    if rsp.player_info.online then
+      self.OnlineStatus:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
+      self.Text_OnlineStatus:SetText(LuaText.friend_list_online_text)
+    else
+      self.OnlineStatus:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    end
     self.feedInfo.card_icon_selected = card_icon_selected
     self.feedInfo.name = playerName
     _G.NRCModuleManager:DoCmd(_G.MagicMessageModuleCmd.UpdateNpcByGridAndFeedId, self.grid_id, self.feed_id, self.feedInfo)
@@ -587,6 +601,17 @@ function UMG_ShowMagicMessage_C:OnClickCloseBtn()
       _G.NRCModuleManager:DoCmd(_G.MagicReplayModuleCmd.OpenReplayPanel, self.feedDetail)
     end
   end
+  if 0 ~= self.feedInfo.music_id then
+    local mainUIModule = _G.NRCModuleManager:GetModule("MainUIModule")
+    if -1 ~= self.SoundSession then
+      self.feedDetail.feed_info = self.feedInfo
+      mainUIModule:OpenPanel("MagicMessageMusicToolbar", self.feedDetail, self.SoundSession)
+      self.SoundSession = -1
+      if self.playingTimer then
+        _G.TimerManager:RemoveTimer(self.playingTimer)
+      end
+    end
+  end
   self:PlayAnimation(self.Out)
 end
 
@@ -595,21 +620,40 @@ function UMG_ShowMagicMessage_C:OnClickHeadBtn()
   if self.feedInfo == nil then
     return
   end
-  local curPlayerUni = _G.DataModelMgr.PlayerDataModel:GetPlayerUin()
+  local curPlayerUni = self.PlayerUin
   if curPlayerUni == self.feedInfo.uin then
     _G.NRCModuleManager:DoCmd(_G.FriendModuleCmd.OpenStudentCardPanel, nil, FriendEnum.AdminFriendType.Own, FriendEnum.Source.Friend, nil)
-  else
-    local friendData = _G.NRCModuleManager:DoCmd(_G.FriendModuleCmd.GetFriendByUin, self.feedInfo.uin)
-    if friendData then
-      _G.NRCModuleManager:DoCmd(_G.FriendModuleCmd.OpenStudentCardPanel, friendData, FriendEnum.AdminFriendType.Others, FriendEnum.Source.Friend, nil)
-    elseif self.searchPlayerRsp then
-      local source = self.searchPlayerRsp.is_friend and FriendEnum.Source.Friend or FriendEnum.Source.Scene
-      _G.NRCModuleManager:DoCmd(_G.FriendModuleCmd.OpenStudentCardPanel, self.searchPlayerRsp.player_info, FriendEnum.AdminFriendType.Others, source, nil)
-    end
+  elseif self.searchPlayerRsp then
+    local source = self.searchPlayerRsp.is_friend and FriendEnum.Source.Friend or FriendEnum.Source.Scene
+    _G.NRCModuleManager:DoCmd(_G.FriendModuleCmd.OpenStudentCardPanel, self.searchPlayerRsp.player_info, FriendEnum.AdminFriendType.Others, source, nil)
   end
 end
 
+function UMG_ShowMagicMessage_C:OnClickMoreBtn()
+  _G.NRCAudioManager:PlaySound2DAuto(40008006, "UMG_ShowMagicMessage_C:OnClickMoreBtn")
+  self.bClickMore = not self.bClickMore
+  if self.bClickMore then
+    self.CanvasPanel_298:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    self:PlayAnimation(self.More_In)
+  else
+    self.CanvasPanel_298:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self:PlayAnimation(self.More_Out)
+  end
+end
+
+function UMG_ShowMagicMessage_C:OnClickTeleportNearbyBtn()
+  _G.NRCAudioManager:PlaySound2DAuto(40008006, "UMG_ShowMagicMessage_C:OnClickTeleportNearbyBtn")
+  self.CanvasPanel_298:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self:PlayAnimation(self.More_Out)
+  self.bClickMore = false
+  _G.NRCModuleManager:DoCmd(BigMapModuleCmd.OnCmdTeleportToPlayerReq, self.feedInfo.uin)
+end
+
 function UMG_ShowMagicMessage_C:OnClickReportBtn()
+  _G.NRCAudioManager:PlaySound2DAuto(40008006, "UMG_ShowMagicMessage_C:OnClickReportBtn")
+  self.CanvasPanel_298:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self:PlayAnimation(self.More_Out)
+  self.bClickMore = false
   if self.feedInfo == nil then
     return
   end
@@ -647,7 +691,7 @@ function UMG_ShowMagicMessage_C:OnClickEnhanceBtn()
         return
       end
       local reqMsg = _G.ProtoMessage:newZoneFeedHandWritingEnhanceReq()
-      reqMsg.uin = _G.DataModelMgr.PlayerDataModel:GetPlayerUin()
+      reqMsg.uin = self.PlayerUin
       reqMsg.feed_id = feedInfo.feed_id
       _G.ZoneServer:SendWithHandler(ProtoCMD.ZoneSvrCmd.ZONE_FEED_HAND_WRITING_ENHANCE_REQ, reqMsg, self, self.OnHandWritingEnhanceRsp, nil, false)
     end
@@ -690,12 +734,12 @@ function UMG_ShowMagicMessage_C:OnClickDeleteBtn()
     return
   end
   local feedInfo = self.feedInfo
-  local curPlayerUni = _G.DataModelMgr.PlayerDataModel:GetPlayerUin()
+  local curPlayerUni = self.PlayerUin
   if curPlayerUni == self.feedInfo.uin then
     local function ConfirmDelete()
       local reqMsg = _G.ProtoMessage:newZoneFeedMagicDeleteReq()
       
-      reqMsg.uin = _G.DataModelMgr.PlayerDataModel:GetPlayerUin()
+      reqMsg.uin = self.PlayerUin
       reqMsg.feed_id = feedInfo.feed_id
       reqMsg.category = feedInfo.category
       _G.ZoneServer:SendWithHandler(ProtoCMD.ZoneSvrCmd.ZONE_FEED_MAGIC_DELETE_REQ, reqMsg, self, self.OnFeedMagicDeleteRsp, nil, false)
@@ -725,7 +769,7 @@ function UMG_ShowMagicMessage_C:OnClickDeleteBtn()
     end
     self.bReqUnInterested = true
     local reqMsg = _G.ProtoMessage:newZoneFeedPlayerUninterestedReq()
-    reqMsg.uin = _G.DataModelMgr.PlayerDataModel:GetPlayerUin()
+    reqMsg.uin = self.PlayerUin
     reqMsg.feed_id = self.feed_id
     reqMsg.category = self.feedInfo.category
     _G.ZoneServer:SendWithHandler(ProtoCMD.ZoneSvrCmd.ZONE_FEED_PLAYER_UNINTERESTED_REQ, reqMsg, self, self.OnFeedPlayerUnInterestedRsp, nil, false)
@@ -756,7 +800,7 @@ function UMG_ShowMagicMessage_C:OnChangeAttitude(attitude)
     btn:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
   end
   local reqMsg = _G.ProtoMessage:newZoneFeedMagicAttitudeReq()
-  reqMsg.uin = _G.DataModelMgr.PlayerDataModel:GetPlayerUin()
+  reqMsg.uin = self.PlayerUin
   reqMsg.feed_id = self.feed_id
   reqMsg.attitude = attitude
   reqMsg.category = self.feedInfo.category
@@ -986,7 +1030,7 @@ function UMG_ShowMagicMessage_C:OnClickCommentMoreContentEvent(commentInfo)
     return
   end
   local feedInfo = self.feedInfo
-  local curPlayerUni = _G.DataModelMgr.PlayerDataModel:GetPlayerUin()
+  local curPlayerUni = self.PlayerUin
   if curPlayerUni == commentInfo.uin then
     local function ConfirmDeleteComment()
       local req = _G.ProtoMessage:newZoneFeedMagicCommentDeleteReq()
@@ -1054,6 +1098,25 @@ function UMG_ShowMagicMessage_C:GetCommentEncryptFlag()
     end
   end
   return self.encryptCommentFlag
+end
+
+function UMG_ShowMagicMessage_C:OnClickShareBtn()
+  local replaySeqInfo = _G.NRCModuleManager:DoCmd(_G.MagicReplayModuleCmd.GetReplaySeqInfo)
+  if replaySeqInfo and replaySeqInfo.time and replaySeqInfo.time > 1 then
+    _G.NRCModuleManager:DoCmd(_G.MagicReplayModuleCmd.OnEnterShareVideoState)
+  else
+    local str = _G.DataConfigManager:GetLocalizationConf("mark_video_lesstime_tips").msg
+    _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, str)
+  end
+end
+
+function UMG_ShowMagicMessage_C:OnTouchEnded(_MyGeometry, _InTouchEvent)
+  Log.Debug("UMG_ShowMagicMessage_C:OnTouchEnded")
+  if self.bComBoxExpand then
+    self:OnClickSortBtn()
+  end
+  _G.NRCEventCenter:DispatchEvent(_G.MainUIModuleEvent.ClickMagicMessageCommentMoreEvent, 0)
+  return UE4.UWidgetBlueprintLibrary.Unhandled()
 end
 
 return UMG_ShowMagicMessage_C

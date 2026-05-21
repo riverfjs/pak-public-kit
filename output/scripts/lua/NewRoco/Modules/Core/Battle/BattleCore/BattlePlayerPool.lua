@@ -15,6 +15,7 @@ local BattleDeathPlayer = require("NewRoco.Modules.Core.Battle.Players.BattlePet
 local BattlePetRevivePlayer = require("NewRoco.Modules.Core.Battle.Players.BattlePetRevivePlayer")
 local BattleEffectPlayer = require("NewRoco.Modules.Core.Battle.Players.BattleEffectPlayer")
 local BattleChangeModelPlayer = require("NewRoco.Modules.Core.Battle.Players.BattleChangeModelPlayer")
+local BattleBoxShieldBreakPlayer = require("NewRoco.Modules.Core.Battle.Players.BattleBoxShieldBreakPlayer")
 local BattleCheersSwitchPlayer = require("NewRoco.Modules.Core.Battle.Players.BattleCheersSwitchPlayer")
 local BattleCheerPetEscapePlayer = require("NewRoco.Modules.Core.Battle.Players.BattleCheerPetEscapePlayer")
 local BattlePlayerSkillPlayer = require("NewRoco.Modules.Core.Battle.Players.BattlePlayerSkillPlayer")
@@ -30,6 +31,8 @@ local BattleChangeSkillPositionPlayer = require("NewRoco.Modules.Core.Battle.Pla
 local BattlePrepareToBattlePlayer = require("NewRoco.Modules.Core.Battle.Players.BattlePrepareToBattlePlayer")
 local BagToPreparePlayer = require("NewRoco.Modules.Core.Battle.Players.BattleBagToPreparePlayer")
 local BattleParallelPlayer = require("NewRoco.Modules.Core.Battle.Players.BattleParallelPlayer")
+local BattleResonancePlayer = require("NewRoco.Modules.Core.Battle.Players.BattleResonancePlayer")
+local BattleFinishPerformPlayer = require("NewRoco.Modules.Core.Battle.Players.BattleFinishPerformPlayer")
 local BattlePlayerPool = NRCClass:Extend()
 
 function BattlePlayerPool:Ctor()
@@ -56,6 +59,7 @@ function BattlePlayerPool:Reset()
     revive = {t = BattlePetRevivePlayer},
     effect = {t = BattleEffectPlayer},
     changeModel = {t = BattleChangeModelPlayer},
+    boxShieldBreak = {t = BattleBoxShieldBreakPlayer},
     cheersSwitch = {t = BattleCheersSwitchPlayer},
     cheersEscape = {t = BattleCheerPetEscapePlayer},
     playerSkill = {t = BattlePlayerSkillPlayer},
@@ -73,7 +77,9 @@ function BattlePlayerPool:Reset()
     playerRunaway = {t = BattlePlayerRunawayPlayer},
     prepareToBattle = {t = BattlePrepareToBattlePlayer},
     bagToPrepare = {t = BagToPreparePlayer},
-    Parallel = {t = BattleParallelPlayer}
+    Parallel = {t = BattleParallelPlayer},
+    Resonance = {t = BattleResonancePlayer},
+    FinishPerform = {t = BattleFinishPerformPlayer}
   }
 end
 
@@ -141,6 +147,10 @@ function BattlePlayerPool:GetChangeModelPlayer()
   return self:GetPlayerFromDict("changeModel")
 end
 
+function BattlePlayerPool:GetSurpriseBoxShieldBreakPlayer()
+  return self:GetPlayerFromDict("boxShieldBreak")
+end
+
 function BattlePlayerPool:GetPopupPlayer()
   return self:GetPlayerFromDict("popup")
 end
@@ -203,6 +213,14 @@ end
 
 function BattlePlayerPool:GetParallelPlayer()
   return self:GetPlayerFromDict("Parallel")
+end
+
+function BattlePlayerPool:GetResonancePlayer()
+  return self:GetPlayerFromDict("Resonance")
+end
+
+function BattlePlayerPool:GetFinishPerformPlayer()
+  return self:GetPlayerFromDict("FinishPerform")
 end
 
 function BattlePlayerPool:GetPlayerFromDict(name)

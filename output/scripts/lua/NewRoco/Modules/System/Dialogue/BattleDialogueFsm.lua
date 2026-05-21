@@ -68,7 +68,7 @@ local function CreateFsm()
   local PostTimelineState = fsm:CreateBurstState("PostTimelineState")
   InitState:AddAction(DialogueInitAction("InitDialogue", {
     bInBattle = bInBattle,
-    DialogueConf = CurrentDialogue,
+    ConfID = NextConfID,
     TargetNPC = nil
   }))
   InitState:AddAction(BlockInputAction("InitDialogue", {Block = true}))

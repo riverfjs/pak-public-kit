@@ -1,9 +1,17 @@
 local TipUtils = require("NewRoco.Modules.System.TipsModule.Utils.TipUtils")
 local TipEnum = require("NewRoco.Modules.System.TipsModule.Utils.TipEnum")
 local TipsModuleEvent = require("NewRoco.Modules.System.TipsModule.TipsModuleEvent")
+local TipsDisplayExecutorId = 0
+
+local function GetTipsDisplayExecutorTag()
+  TipsDisplayExecutorId = TipsDisplayExecutorId + 1
+  return "TipsDisplayExecutor" .. TipsDisplayExecutorId
+end
+
 local TipsDisplayExecutor = NRCClass()
 
 function TipsDisplayExecutor:Ctor()
+  self.logTag = GetTipsDisplayExecutorTag()
   self.pauseReasons = {}
   self.sortCompareFunc = nil
   self.tipList = {}
@@ -16,6 +24,7 @@ function TipsDisplayExecutor:__Dctor()
 end
 
 function TipsDisplayExecutor:Attach(owner, _onTipDisplayStart, _onTipTick, _onTipDisplayEnd, _onTipDisplayStatusChange)
+  Log.Debug(self.logTag, "Attach")
   self.onTipDisplayStart = _onTipDisplayStart and _G.MakeWeakFunctor(owner, _onTipDisplayStart)
   self.onTipTick = _onTipTick and _G.MakeWeakFunctor(owner, _onTipTick)
   self.onTipDisplayEnd = _onTipDisplayEnd and _G.MakeWeakFunctor(owner, _onTipDisplayEnd)
@@ -24,6 +33,7 @@ function TipsDisplayExecutor:Attach(owner, _onTipDisplayStart, _onTipTick, _onTi
 end
 
 function TipsDisplayExecutor:Detach()
+  Log.Debug(self.logTag, "Detach")
   self.onTipDisplayStart = nil
   self.onTipTick = nil
   self.onTipDisplayEnd = nil
@@ -32,6 +42,7 @@ function TipsDisplayExecutor:Detach()
 end
 
 function TipsDisplayExecutor:Free()
+  Log.Debug(self.logTag, "Free")
   self:Clear()
   if self.listeningTipDispatchState then
     self.listeningTipDispatchState = false
@@ -66,8 +77,9 @@ function TipsDisplayExecutor:StopQueuedTips(ConditionFunc)
   for i = #self.tipList, 1, -1 do
     local tip = self.tipList[i]
     if ConditionFunc(tip) then
+      TipUtils.DebugTipFlow("[StopQueuedTips]", self.tip)
+      tip:MarkFinished()
       table.remove(self.tipList, i)
-      Log.Debug("TipsDisplayExecutor:StopTipsImmediately", tip.type, tip.tipCustomType)
     end
   end
   local tip = self:GetDisplayingTip()
@@ -92,6 +104,8 @@ function TipsDisplayExecutor:ConsumeNextTip()
     end
     if not self.waitingUserAgreeFinish then
       self:DoFinishCurDisplayTip()
+    else
+      TipUtils.DebugTipFlow("waitingUserAgreeFinish...", self.displayingTip)
     end
   end
 end
@@ -100,6 +114,7 @@ function TipsDisplayExecutor:UserAgreeFinish()
   if not self.waitingUserAgreeFinish then
     return
   end
+  TipUtils.DebugTipFlow("[UserAgreeFinish]", self.displayingTip)
   self.waitingUserAgreeFinish = false
   self:DoFinishCurDisplayTip()
 end
@@ -129,9 +144,10 @@ end
 
 function TipsDisplayExecutor:Pause(reason, finishCur)
   if string.IsNilOrEmpty(reason) then
-    Log.Error("pause tip executor should give valid reason!")
+    Log.Error(self.logTag, "pause tip executor should give valid reason!")
     return
   end
+  Log.Debug(self.logTag, "Pause", reason, finishCur)
   if finishCur then
     self:DoFinishCurDisplayTip()
   end
@@ -151,9 +167,10 @@ end
 
 function TipsDisplayExecutor:Resume(reason)
   if string.IsNilOrEmpty(reason) then
-    Log.Error("resume tip executor should give valid reason!")
+    Log.Error(self.logTag, "resume tip executor should give valid reason!")
     return
   end
+  Log.Debug(self.logTag, "Resume", reason)
   if not self.pauseReasons or not self.pauseReasons[reason] then
     return
   end
@@ -197,6 +214,7 @@ function TipsDisplayExecutor:IsPausedExcept(reason)
 end
 
 function TipsDisplayExecutor:Clear()
+  Log.Debug(self.logTag, "Clear")
   self:DoFinishCurDisplayTip()
   for _, _tip in ipairs(self.tipList) do
     _tip:MarkFinished()
@@ -209,6 +227,16 @@ function TipsDisplayExecutor:Clear()
     _G.DelayManager:CancelDelayById(self.delayActiveId)
     self.delayActiveId = nil
   end
+end
+
+function TipsDisplayExecutor:GetDebugInfo()
+  return {
+    logTag = self.logTag,
+    displayingTip = self.displayingTip,
+    tipList = self.tipList,
+    pauseReasons = self.pauseReasons,
+    waitingUserAgreeFinish = self.waitingUserAgreeFinish
+  }
 end
 
 function TipsDisplayExecutor:IsPaused()
@@ -231,7 +259,7 @@ function TipsDisplayExecutor:DoStartDisplayTip()
     if self.onTipDisplayStart then
       startSuccess, err = pcall(self.onTipDisplayStart, tip)
       if not startSuccess then
-        Log.Error("tip start failed.", err)
+        Log.Error(self.logTag, "tip start failed.", err)
       end
     end
     if startSuccess then
@@ -298,6 +326,7 @@ function TipsDisplayExecutor:OnDisplayCoordinatorResumed()
 end
 
 function TipsDisplayExecutor:OnDisplayCoordinatorAreaBlock(area, block)
+  Log.Debug(self.logTag, "OnDisplayCoordinatorAreaBlock", area, block)
   local reason = "AreaBlock_" .. area
   if block then
     local shouldPause = false

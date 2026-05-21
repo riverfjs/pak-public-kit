@@ -2,7 +2,9 @@ local PetUIModuleEvent = require("NewRoco.Modules.System.PetUI.PetUIModuleEvent"
 local PetUIModuleEnum = require("NewRoco.Modules.System.PetUI.PetUIModuleEnum")
 local NPCShopUIModuleEvent = require("NewRoco.Modules.System.NPCShopUI.NPCShopUIModuleEvent")
 local Delegate = require("Utils.Delegate")
+local UIUtils = require("NewRoco.Utils.UIUtils")
 local PetUtils = require("NewRoco.Utils.PetUtils")
+local PER_PETBOX_MAX_SIZE = 30
 local UMG_PetPortableBag_C = _G.NRCPanelBase:Extend("UMG_PetPortableBag_C")
 local ENUM_PLAYER_DATA_EVENT = require("Data.Global.PlayerDataEvent")
 local EnumPetTalent = {
@@ -40,6 +42,8 @@ function UMG_PetPortableBag_C:OnConstruct()
   self.minInterval = _G.DataConfigManager:GetPetGlobalConfig("box_click_minimum_interval").num
   self.minDis = _G.DataConfigManager:GetPetGlobalConfig("box_drag_minimum_distance").num
   self.LongPressTime = _G.DataConfigManager:GetGlobalConfigByKeyType("drag_mode_press_time", _G.DataConfigManager.ConfigTableId.GLOBAL_CONFIG).num / 1000
+  self.pcExtraPressTime = _G.DataConfigManager:GetPetGlobalConfig("PC_hold_extra_time").num / 1000
+  self.pcMinDis = _G.DataConfigManager:GetPetGlobalConfig("PC_drag_least_distance").num
 end
 
 function UMG_PetPortableBag_C:OnAddEventListener()
@@ -83,6 +87,7 @@ function UMG_PetPortableBag_C:OnAddEventListener()
   self:RegisterEvent(self, PetUIModuleEvent.AttributeChangeSetEggBtn, self.AttributeChangeSetEggBtn)
   self:RegisterEvent(self, PetUIModuleEvent.OnPetBoxUpdate, self.OnPetBoxUpdate)
   _G.DataModelMgr.PlayerDataModel:AddEventListener(self, ENUM_PLAYER_DATA_EVENT.UPDATE_DATA, self.OnPlayerDataUpdate)
+  _G.DataModelMgr.PlayerDataModel:AddEventListener(self, ENUM_PLAYER_DATA_EVENT.RELOGIN_UPDATE_PET, self.ShowPetBoxListView)
   _G.NRCEventCenter:RegisterEvent("UMG_PetPortableBag_C", self, PetUIModuleEvent.PetBagDragSelectItem, self.OnDragSelectItem)
   _G.NRCEventCenter:RegisterEvent("UMG_PetPortableBag_C", self, PetUIModuleEvent.SetPanelCanScroll, self.SetPetListPanelCanScroll)
   _G.NRCEventCenter:RegisterEvent("UMG_PetPortableBag_C", self, _G.NRCGlobalEvent.OnRocoTouchStart, self.OnRocoTouchStartHandler)
@@ -116,6 +121,7 @@ function UMG_PetPortableBag_C:OnDeactive()
   self:UnRegisterEvent(self, PetUIModuleEvent.AttributeChangeSetEggBtn, self.AttributeChangeSetEggBtn)
   self:UnRegisterEvent(self, PetUIModuleEvent.OnPetBoxUpdate, self.OnPetBoxUpdate)
   _G.DataModelMgr.PlayerDataModel:RemoveEventListener(self, ENUM_PLAYER_DATA_EVENT.UPDATE_DATA, self.OnPlayerDataUpdate)
+  _G.DataModelMgr.PlayerDataModel:RemoveEventListener(self, ENUM_PLAYER_DATA_EVENT.RELOGIN_UPDATE_PET, self.ShowPetBoxListView)
   _G.NRCEventCenter:UnRegisterEvent(self, PetUIModuleEvent.PetBagDragSelectItem, self.OnDragSelectItem)
   _G.NRCEventCenter:UnRegisterEvent(self, PetUIModuleEvent.SetPanelCanScroll, self.SetPetListPanelCanScroll)
   _G.NRCEventCenter:UnRegisterEvent(self, _G.NRCGlobalEvent.OnRocoTouchStart, self.OnRocoTouchStartHandler)
@@ -146,7 +152,6 @@ function UMG_PetPortableBag_C:OnActive()
   self:ShowPetTeamListView()
   self:ShowPetBoxListView()
   self:UpdateReleaseLifeModeUI()
-  self:UpdateAllQuickSelectPetInfoList()
   local CurSelectListIndex, CurSelectItemIndex
   _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.GetCurSelectInfoInPortableBag)
   local bNeedAutoSelectTeamPet = true
@@ -168,7 +173,7 @@ end
 function UMG_PetPortableBag_C:InitData()
   self:InitOrResetFreeData()
   self:ClearSelectData()
-  self:InitOrResetAllQuickSelectPetInfoList()
+  self:InitOrResetAllQuickSelectPetGidList()
   self:SetIsCanHandleFreeListInReleaseLifeMode(true)
   self.FreeLimitNum = _G.DataConfigManager:GetPetGlobalConfig("pet_depot_release_maximun").num
   self.CanScroll = true
@@ -184,14 +189,15 @@ function UMG_PetPortableBag_C:InitData()
   else
     self.ScreenBtn:SetPath(UEPath.Box_Screen_2, UEPath.Box_Screen_2, UEPath.Box_Screen_2)
   end
+  self.bInitBagPet = false
 end
 
-function UMG_PetPortableBag_C:InitOrResetAllQuickSelectPetInfoList()
-  self.AllQuickSelectPetInfoList = {}
-  self.AllQuickSelectPetInfoList[EnumPetTalent.Soso] = {}
-  self.AllQuickSelectPetInfoList[EnumPetTalent.NotBad] = {}
-  self.AllQuickSelectPetInfoList[EnumPetTalent.Good] = {}
-  self.AllQuickSelectPetInfoList[EnumPetTalent.Amazing] = {}
+function UMG_PetPortableBag_C:InitOrResetAllQuickSelectPetGidList()
+  self.AllQuickSelectPetGidList = {}
+  self.AllQuickSelectPetGidList[EnumPetTalent.Soso] = {}
+  self.AllQuickSelectPetGidList[EnumPetTalent.NotBad] = {}
+  self.AllQuickSelectPetGidList[EnumPetTalent.Good] = {}
+  self.AllQuickSelectPetGidList[EnumPetTalent.Amazing] = {}
 end
 
 function UMG_PetPortableBag_C:InitOrResetFreeData()
@@ -289,6 +295,7 @@ end
 function UMG_PetPortableBag_C:OnSwitchDefaultMode()
   self.LockImage:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.SortedOut:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  self.ScreenBtn:SetVisibility(UE4.ESlateVisibility.Visible)
   self.NRCSwitcher_1:SetActiveWidgetIndex(0)
   self:UpdateBottomPanel()
   for i = 1, self.BagPetList:GetItemCount() do
@@ -330,6 +337,7 @@ function UMG_PetPortableBag_C:OnSwitchFilterDisableMode()
     end
   end
   self.SortedOut:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self.ScreenBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
 end
 
 function UMG_PetPortableBag_C:UpdateBottomPanel()
@@ -386,6 +394,9 @@ function UMG_PetPortableBag_C:OnSwitchBagItemDisableState(isDisable)
 end
 
 function UMG_PetPortableBag_C:OnSwitchReleaseLifeMode()
+  if self:IsAnimationPlaying(self.In) or self:IsAnimationPlaying(self.Out) then
+    return
+  end
   self.isReleaseLifeMode = not self.isReleaseLifeMode
   self:DispatchEvent(PetUIModuleEvent.OnNewPetBagEnterScreenState, nil, self.isReleaseLifeMode)
   self:StopAnimation(self.Free_In)
@@ -434,9 +445,14 @@ function UMG_PetPortableBag_C:GetIsCanHandleFreeListInReleaseLifeMode()
   return self.isCanFreePetInReleaseLifeMode or false
 end
 
-function UMG_PetPortableBag_C:UpdateAllQuickSelectPetInfoList()
-  self:InitOrResetAllQuickSelectPetInfoList()
+function UMG_PetPortableBag_C:UpdateAllQuickSelectPetGidList()
+  self:InitOrResetAllQuickSelectPetGidList()
   local RawPetDataList = {}
+  local NumList = {
+    [EnumPetTalent.Soso] = 0,
+    [EnumPetTalent.NotBad] = 0,
+    [EnumPetTalent.Good] = 0
+  }
   local cacheFilterData = self.module:GetCachePetBoxFilterData()
   local PetDataListInFilter = cacheFilterData.RawFilterList
   if PetDataListInFilter and #PetDataListInFilter > 0 then
@@ -446,25 +462,19 @@ function UMG_PetPortableBag_C:UpdateAllQuickSelectPetInfoList()
   end
   for i = 1, #RawPetDataList do
     if not BattleUtils.GetBit(RawPetDataList[i].pet_status_flags, 1) then
-      local starLevel = PetUtils.GetBreakThroughStarsList(RawPetDataList[i])
-      local StarNum = 0
-      for k = 1, #starLevel do
-        if 1 == starLevel[k].IsShow then
-          StarNum = StarNum + 1
-        end
-      end
       for j = 1, 4 do
-        if RawPetDataList[i].talent_rank == j and self:CheckIsCanBeQuickSelect(RawPetDataList[i]) then
-          local petInfo = {
-            starLevel = StarNum,
-            petData = RawPetDataList[i],
-            ListIndex = j
-          }
-          table.insert(self.AllQuickSelectPetInfoList[j], petInfo)
+        if RawPetDataList[i] and RawPetDataList[i].talent_rank == j and self:CheckIsCanBeQuickSelect(RawPetDataList[i]) and RawPetDataList[i].gid then
+          table.insert(self.AllQuickSelectPetGidList[j], RawPetDataList[i].gid)
+          if nil == NumList[j] then
+            NumList[j] = 1
+          else
+            NumList[j] = NumList[j] + 1
+          end
         end
       end
     end
   end
+  return NumList
 end
 
 function UMG_PetPortableBag_C:CheckIsCanBeQuickSelect(petData)
@@ -472,7 +482,11 @@ function UMG_PetPortableBag_C:CheckIsCanBeQuickSelect(petData)
   local IsInBigWorldTeam = PetUtils.CheckIsBigWorldTeamPet(petData.gid)
   local IsCanBeFree = self:CheckIsCanFree(petData, true, false)
   local IsInFreeList = self:CheckIsInFreeList(petData)
-  if IsCanBeFree and not IsInBigWorldTeam and not IsInFreeList then
+  local IsGrown = false
+  if petData and petData.grow_times and petData.grow_times > 0 then
+    IsGrown = true
+  end
+  if IsCanBeFree and not IsInBigWorldTeam and not IsInFreeList and not IsGrown then
     IsCanBeQuickSelect = true
   end
   return IsCanBeQuickSelect
@@ -483,38 +497,22 @@ function UMG_PetPortableBag_C:OnClickQuickSelection()
   if not self:IsReleaseLifeMode() then
     return
   end
-  local RetNumList = self:GetCanQuickSelectNumFromTalentPetList()
+  local RetNumList = self:UpdateAllQuickSelectPetGidList()
   local sosoNum = RetNumList[EnumPetTalent.Soso]
   local notBadNum = RetNumList[EnumPetTalent.NotBad]
   local goodNUm = RetNumList[EnumPetTalent.Good]
   self.module:OpenPanel("QuickSelection", sosoNum, notBadNum, goodNUm)
 end
 
-function UMG_PetPortableBag_C:GetCanQuickSelectNumFromTalentPetList()
-  local RetNumList = {}
-  local num = 0
-  for _, TalentPetInfoList in pairs(self.AllQuickSelectPetInfoList or {}) do
-    for _, petInfo in pairs(TalentPetInfoList) do
-      if petInfo then
-        local IsInFreeList = self:CheckIsInFreeList(petInfo.petData)
-        local IsCanFree = self:CheckIsCanFree(petInfo.petData, true, false)
-        if not IsInFreeList and IsCanFree then
-          num = num + 1
-        end
-      end
-    end
-    table.insert(RetNumList, num)
-    num = 0
-  end
-  return RetNumList
-end
-
 function UMG_PetPortableBag_C:ApplyBatchSelectFree(TalentIndexList)
   for i, v in pairs(TalentIndexList or {}) do
     local TalentIndex = v.TalentIndex
-    for _, petInfo in pairs(self.AllQuickSelectPetInfoList[TalentIndex] or {}) do
-      if petInfo and petInfo.petData and not self:CheckIsInFreeList(petInfo.petData) then
-        self:AddOrRemoveItemFromFreeList(petInfo.petData, true)
+    for _, petGid in pairs(self.AllQuickSelectPetGidList[TalentIndex] or {}) do
+      if petGid then
+        local petData = _G.DataModelMgr.PlayerDataModel:GetPetDataByGid(petGid)
+        if petData and not self:CheckIsInFreeList(petData) then
+          self:AddOrRemoveItemFromFreeList(petData, true)
+        end
       end
     end
   end
@@ -681,7 +679,6 @@ end
 
 function UMG_PetPortableBag_C:OnPetFreeSuccess()
   self:InitOrResetFreeData()
-  self:UpdateAllQuickSelectPetInfoList()
   self:UpdateViewAfterFreePet()
 end
 
@@ -832,21 +829,26 @@ function UMG_PetPortableBag_C:GetCachePetListInfo()
 end
 
 function UMG_PetPortableBag_C:UpdatePetBoxList(list, select_idx)
+  local cacheFilterData = self.module:GetCachePetBoxFilterData()
+  local bFiltering = self.module:IsFilteringCondition(cacheFilterData.Condition)
+  local bForceNotCreate = self.bInitBagPet and not bFiltering
   self.CurBackpackPetList = list
-  self.BagPetList:InitList(list)
+  self.BagPetList:InitList(list, bForceNotCreate)
+  self.bInitBagPet = true
   if select_idx then
     self.BagPetList:SelectItemByIndex(select_idx)
   end
 end
 
 function UMG_PetPortableBag_C:SetCurBoxInfo(box_id, select_idx)
+  local needToPlayRefreshAnim = box_id and box_id ~= self.curBoxID
   self.curBoxID = box_id
   _G.NRCModeManager:DoCmd(PetUIModuleCmd.SetCurShowPageIndexInPortableBag, box_id)
   local curBoxData, idx = self:GetPetBoxDataById(box_id)
   self.SelectBoxData = curBoxData
   self.SelectBoxIndex = idx
   local backpackPetList = _G.DataModelMgr.PlayerDataModel:GetPetWarehouseBoxPetDatas(box_id)
-  local backpackPetInfos = self:CreatePetDataInfos(backpackPetList)
+  local backpackPetInfos = self:CreatePetDataInfos(backpackPetList, needToPlayRefreshAnim)
   self:UpdatePetBoxList(backpackPetInfos, select_idx)
   self:OnChangeBoxPageButton()
 end
@@ -857,18 +859,22 @@ function UMG_PetPortableBag_C:SeAllPetInfo()
   return allData
 end
 
-function UMG_PetPortableBag_C:CreatePetDataInfos(petDatas)
+function UMG_PetPortableBag_C:CreatePetDataInfos(petDatas, needToPlayRefreshAnim)
   local backpackPetInfos = {}
   for i = 1, #petDatas do
     local pet_data = petDatas[i]
     if next(pet_data) == nil then
       table.insert(backpackPetInfos, {
         petInfo = {},
-        parent = self
+        parent = self,
+        needToPlayRefreshAnim = needToPlayRefreshAnim
       })
     else
       local IsTravel = _G.NRCModuleManager:DoCmd(_G.TravelModuleCmd.GetPetIsTravel, pet_data.gid)
-      local IsInHome = _G.NRCModuleManager:DoCmd(_G.HomeModuleCmd.GetPetIsInHome, pet_data.gid)
+      local IsInHome = false
+      if pet_data.business_identity and pet_data.business_identity == _G.ProtoEnum.PetBusinessIdentity.PBI_HOME_PET then
+        IsInHome = true
+      end
       local IsInGuard = _G.NRCModuleManager:DoCmd(_G.HomeModuleCmd.GetHomePlantGuardPetGid) == pet_data.gid
       local IsConfigBanFree = PetUtils.CheckIsBanFreePet(pet_data)
       local IsInFreeList = self:CheckIsInFreeList(pet_data)
@@ -888,7 +894,8 @@ function UMG_PetPortableBag_C:CreatePetDataInfos(petDatas)
           petData = pet_data,
           indexBase = MAX_TEAM_PET_NUM
         },
-        parent = self
+        parent = self,
+        needToPlayRefreshAnim = needToPlayRefreshAnim
       })
     end
   end
@@ -931,6 +938,11 @@ function UMG_PetPortableBag_C:OnChangeBoxPageButton()
     self.MarkIcon:SetPath(boxData.isLock and collectConf.locked_mark_icon or collectConf.mark_small_flat_icon)
   end
   self.QuantityText:SetText(boxInfo.box_id)
+  if boxInfo and boxInfo.lock then
+    self.Lock:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  else
+    self.Lock:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  end
 end
 
 function UMG_PetPortableBag_C:IsHasBoxPanel()
@@ -953,7 +965,7 @@ function UMG_PetPortableBag_C:JumpToTargetBoxOrPage(BoxIndex, IsNeedAutoSelect)
     elseif self.CurAllPetPage < 1 then
       self.CurAllPetPage = self.CurAllPetPageMax
     end
-    local lst = table.move(filterList, (self.CurAllPetPage - 1) * 30 + 1, self.CurAllPetPage * 30, 1, {})
+    local lst = table.move(filterList, (self.CurAllPetPage - 1) * PER_PETBOX_MAX_SIZE + 1, self.CurAllPetPage * PER_PETBOX_MAX_SIZE, 1, {})
     local datas = self:CreatePetDataInfos(lst)
     self.NRCSwitcher_1:SetActiveWidgetIndex(0 == #datas and 1 or 0)
     self.LeftArrowBtn.btnLevelUp:SetIsEnabled(0 ~= #datas)
@@ -999,7 +1011,7 @@ function UMG_PetPortableBag_C:GetPetBoxDataById(box_id)
       return boxInfo, i
     end
   end
-  return nil, nil
+  return nil, 1
 end
 
 function UMG_PetPortableBag_C:OnUpdatePetItemClickIndex(index)
@@ -1049,6 +1061,7 @@ function UMG_PetPortableBag_C:OnLeavePetBoxFilter()
 end
 
 function UMG_PetPortableBag_C:OnRefreshNewPetBagFilter()
+  self.bInitBagPet = false
   self:SetIsCanHandleFreeListInReleaseLifeMode(false)
   self.LastOpenBoxId = self.module:GetLastOpenBoxId()
   self:SetCurBoxInfo(self.LastOpenBoxId)
@@ -1059,7 +1072,17 @@ function UMG_PetPortableBag_C:OnFilter(_, isProactiveUpdate)
   if isProactiveUpdate then
     self:ClearSelection()
   end
+  if self.module:HasPanel("PetSkillTips") then
+    return
+  end
   local cacheFilterData = self.module:GetCachePetBoxFilterData()
+  if cacheFilterData and cacheFilterData.Condition and cacheFilterData.Condition.FilterTraceBackCondition and #cacheFilterData.Condition.FilterTraceBackCondition > 0 and not PetUtils.CheckCurIsInTraceBackTime() then
+    local newFilterCondition = table.copy(cacheFilterData.Condition)
+    newFilterCondition.FilterTraceBackCondition = {}
+    self.module:SetCachePetBoxFilterDataCondition(newFilterCondition)
+    self.module:UpdateCachePetBoxFilterData(false, false)
+    cacheFilterData = self.module:GetCachePetBoxFilterData()
+  end
   local filterList = cacheFilterData.FinalFilterList
   local isCondition = self.module:IsFilteringCondition(cacheFilterData.Condition)
   if isCondition then
@@ -1067,8 +1090,8 @@ function UMG_PetPortableBag_C:OnFilter(_, isProactiveUpdate)
   else
     self.ScreenBtn:SetPath(UEPath.Box_Screen_2, UEPath.Box_Screen_2, UEPath.Box_Screen_2)
   end
-  self.CurAllPetPageMax = math.floor(#filterList / 30)
-  if #filterList % 30 > 0 then
+  self.CurAllPetPageMax = math.floor(#filterList / PER_PETBOX_MAX_SIZE)
+  if #filterList % PER_PETBOX_MAX_SIZE > 0 then
     self.CurAllPetPageMax = self.CurAllPetPageMax + 1
   end
   if not self.module:IsFilteringCondition(cacheFilterData.Condition) then
@@ -1093,8 +1116,14 @@ function UMG_PetPortableBag_C:OnFilter(_, isProactiveUpdate)
     if CurSelectItemType and CurSelectItemType == PetUIModuleEnum.PortableBagSelectItemType.PageItem then
       for i, petData in pairs(cacheFilterData.FinalFilterList or {}) do
         if petData and petData.gid and CurSelectPetGID and petData.gid == CurSelectPetGID then
-          TargetJumpPage = math.floor(i / 30) + 1
-          _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.SetCurSelectInfoInPortableBag, TargetJumpPage, i % 30)
+          local Index = i % PER_PETBOX_MAX_SIZE
+          if 0 == i % PER_PETBOX_MAX_SIZE then
+            TargetJumpPage = math.floor(i / PER_PETBOX_MAX_SIZE)
+            Index = PER_PETBOX_MAX_SIZE
+          else
+            TargetJumpPage = math.floor(i / PER_PETBOX_MAX_SIZE) + 1
+          end
+          _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.SetCurSelectInfoInPortableBag, TargetJumpPage, Index)
           IsFindSuccess = true
           break
         end
@@ -1106,7 +1135,6 @@ function UMG_PetPortableBag_C:OnFilter(_, isProactiveUpdate)
     self:JumpToTargetBoxOrPage(TargetJumpPage, false)
   end
   self:OnSwitchFilterMode()
-  self:UpdateAllQuickSelectPetInfoList()
 end
 
 function UMG_PetPortableBag_C:UpdateAutoSelect()
@@ -1130,9 +1158,13 @@ function UMG_PetPortableBag_C:UpdateAutoSelect()
     if IsFiltering then
       local CurShowPageIndex = _G.NRCModuleManager:DoCmd(PetUIModuleCmd.GetCurShowPageIndexInPortableBag)
       if FilterList then
-        local SelectIndex = (LastSelectListIndex - 1) * 30 + LastSelectItemIndex
-        if FilterList[SelectIndex] then
-          LastSelectPetData = FilterList[SelectIndex]
+        if LastSelectPetGID then
+          LastSelectPetData = _G.DataModelMgr.PlayerDataModel:GetPetDataByGid(LastSelectPetGID)
+        else
+          local SelectIndex = (LastSelectListIndex - 1) * PER_PETBOX_MAX_SIZE + LastSelectItemIndex
+          if FilterList[SelectIndex] then
+            LastSelectPetData = FilterList[SelectIndex]
+          end
         end
       end
     else
@@ -1161,21 +1193,13 @@ function UMG_PetPortableBag_C:UpdateAutoSelect()
         local selectIndex = (self.curTeamIndex - 1) * MAX_TEAM_PET_NUM
         self.BattlePetList:SelectItemByIndex(selectIndex)
       end
-    elseif LastSelectItemType == PetUIModuleEnum.PortableBagSelectItemType.PageItem and IsFiltering then
-      if #FilterList > 0 then
-        local CurShowPageIndex = _G.NRCModuleManager:DoCmd(PetUIModuleCmd.GetCurShowPageIndexInPortableBag)
-        if LastSelectListIndex == CurShowPageIndex then
-          local IsSelectSuccess = false
-          for i = LastSelectItemIndex, 1, -1 do
-            local item = self.BagPetList:GetItemByIndex(i - 1)
-            if item and item.hasPet and not item:IsRawGrayInFreeMode(false) then
-              self.BagPetList:SelectItemByIndex(i - 1)
-              IsSelectSuccess = true
-              break
-            end
-          end
-          if not IsSelectSuccess then
-            for i = 1, 30 do
+    elseif LastSelectItemType == PetUIModuleEnum.PortableBagSelectItemType.PageItem then
+      if IsFiltering then
+        if #FilterList > 0 then
+          local CurShowPageIndex = _G.NRCModuleManager:DoCmd(PetUIModuleCmd.GetCurShowPageIndexInPortableBag)
+          if LastSelectListIndex == CurShowPageIndex then
+            local IsSelectSuccess = false
+            for i = LastSelectItemIndex, 1, -1 do
               local item = self.BagPetList:GetItemByIndex(i - 1)
               if item and item.hasPet and not item:IsRawGrayInFreeMode(false) then
                 self.BagPetList:SelectItemByIndex(i - 1)
@@ -1184,24 +1208,75 @@ function UMG_PetPortableBag_C:UpdateAutoSelect()
               end
             end
             if not IsSelectSuccess then
-              self:ClearSelection()
+              for i = 1, PER_PETBOX_MAX_SIZE do
+                local item = self.BagPetList:GetItemByIndex(i - 1)
+                if item and item.hasPet and not item:IsRawGrayInFreeMode(false) then
+                  self.BagPetList:SelectItemByIndex(i - 1)
+                  IsSelectSuccess = true
+                  break
+                end
+              end
+              if not IsSelectSuccess then
+                self:ClearSelection()
+              end
+            end
+          else
+            local LastSelectItemPetData
+            local SelectIndex = (LastSelectListIndex - 1) * PER_PETBOX_MAX_SIZE + LastSelectItemIndex
+            if FilterList[SelectIndex] then
+              LastSelectItemPetData = FilterList[SelectIndex]
+            end
+            if LastSelectItemPetData and not PetUtils.CheckIsForbidSelectPetInFreeMode(LastSelectItemPetData.gid, false) then
+              _G.NRCModuleManager:DoCmd(PetUIModuleCmd.SetCurSelectPetGIDInPortableBag, LastSelectItemPetData.gid)
+              local TempPetInfo = {
+                petData = LastSelectItemPetData,
+                gid = LastSelectItemPetData.gid,
+                base_conf_id = LastSelectItemPetData.base_conf_id
+              }
+              _G.NRCModuleManager:GetModule("PetUIModule"):DispatchEvent(PetUIModuleEvent.ChangeChoosePet, LastSelectItemIndex + 6, TempPetInfo, true, false)
+            else
+              local IsFindValidPet = false
+              for i = #FilterList, 1, -1 do
+                if FilterList[i] and next(FilterList[i]) and not PetUtils.CheckIsForbidSelectPetInFreeMode(FilterList[i].gid, false) then
+                  local TargetSelectPetGid = FilterList[i].gid
+                  local TargetSelectListIndex = math.floor(i / PER_PETBOX_MAX_SIZE) + 1
+                  local TargetSelectItemIndex = i % PER_PETBOX_MAX_SIZE
+                  if 0 == TargetSelectItemIndex then
+                    TargetSelectListIndex = math.floor(i / PER_PETBOX_MAX_SIZE)
+                    TargetSelectItemIndex = PER_PETBOX_MAX_SIZE
+                  end
+                  if TargetSelectListIndex == CurShowPageIndex then
+                    self.BagPetList:SelectItemByIndex(TargetSelectItemIndex - 1)
+                  else
+                    _G.NRCModuleManager:DoCmd(PetUIModuleCmd.SetCurSelectPetGIDInPortableBag, TargetSelectPetGid)
+                    _G.NRCModuleManager:DoCmd(PetUIModuleCmd.SetCurSelectInfoInPortableBag, TargetSelectListIndex, TargetSelectItemIndex)
+                    local TempPetInfo = {
+                      petData = FilterList[i],
+                      gid = FilterList[i].gid,
+                      base_conf_id = FilterList[i].base_conf_id
+                    }
+                    _G.NRCModuleManager:GetModule("PetUIModule"):DispatchEvent(PetUIModuleEvent.ChangeChoosePet, TargetSelectItemIndex + 6, TempPetInfo, true, false)
+                  end
+                  IsFindValidPet = true
+                  break
+                end
+              end
+              if not IsFindValidPet then
+                self:ClearSelection()
+              end
             end
           end
         else
-          local IsListHasPet = false
-          for i = 30, 1, -1 do
-            local item = self.BagPetList:GetItemByIndex(i - 1)
-            if item and item.hasPet and not item:IsRawGrayInFreeMode(false) then
-              self.BagPetList:SelectItemByIndex(i - 1)
-              break
-            end
-          end
-          if not IsListHasPet then
-            self:ClearSelection()
-          end
+          self:ClearSelection()
         end
       else
-        self:ClearSelection()
+        local CurShowPageIndex = _G.NRCModuleManager:DoCmd(PetUIModuleCmd.GetCurShowPageIndexInPortableBag)
+        if LastSelectListIndex ~= CurShowPageIndex then
+          _G.NRCModeManager:DoCmd(PetUIModuleCmd.SetCurSelectPetGIDInPortableBag, nil)
+          _G.NRCModuleManager:GetModule("PetUIModule"):DispatchEvent(PetUIModuleEvent.ChangeChoosePet, nil, nil, true, false)
+        else
+          Log.Error("UMG_PetPortableBag_C:UpdateAutoSelect, Not FilterList, LastSelectListIndex == CurShowPageIndex, CurShowPageIndex=[", CurShowPageIndex, "]")
+        end
       end
     end
   end
@@ -1302,9 +1377,6 @@ function UMG_PetPortableBag_C:AttributeChangeSetEggBtn(showing)
 end
 
 function UMG_PetPortableBag_C:OnNewPetBagRightPanelClose(panelName)
-  if _G.NRCPanelManager:GetLoadingPanelCount() > 0 then
-    return
-  end
   if "NewPetBagBox" == panelName and self.module:HasPanel("NewPetBagWarehouseScreening") then
     return
   end
@@ -1340,7 +1412,7 @@ function UMG_PetPortableBag_C:OnPageChangeHandle(_page)
   self.curTeamIndex = self.TeamIndex
   _G.NRCModeManager:DoCmd(PetUIModuleCmd.SetCurShowTeamIndexInPortableBag, self.curTeamIndex)
   self:SetIsCanHandleFreeListInReleaseLifeMode(false)
-  local Start = (self.TeamIndex - 1) * 6 + 1
+  local Start = (self.TeamIndex - 1) * MAX_TEAM_PET_NUM + 1
   local End = Start + 5
   for i = Start, End do
     local item = self.BattlePetList:GetItemByIndex(i - 1)
@@ -1426,16 +1498,14 @@ function UMG_PetPortableBag_C:SetValidTeamIndex()
   end
 end
 
-function UMG_PetPortableBag_C:OnClickEditBoxBtn(bSkipSelectCheck)
-  if not bSkipSelectCheck then
-    if self:CheckIsSelectBtn() then
-      return false
-    end
-    local touchReasonType = _G.NRCModuleManager:DoCmd(MultiTouchModuleCmd.GetPanelSelectBtnReason, "PetBox").SUBPANEL
-    _G.NRCModuleManager:DoCmd(MultiTouchModuleCmd.LockIsSelectBtn, "PetUIModule", "PetBox", touchReasonType)
-    if self.lastClickTime and UE4.UNRCStatics.GetMilliSeconds() - self.lastClickTime < 600 then
-      return
-    end
+function UMG_PetPortableBag_C:OnClickEditBoxBtn()
+  if self:CheckIsSelectBtn() then
+    return false
+  end
+  local touchReasonType = _G.NRCModuleManager:DoCmd(MultiTouchModuleCmd.GetPanelSelectBtnReason, "PetBox").SUBPANEL
+  _G.NRCModuleManager:DoCmd(MultiTouchModuleCmd.LockIsSelectBtn, "PetUIModule", "PetBox", touchReasonType)
+  if self.lastClickTime and UE4.UNRCStatics.GetMilliSeconds() - self.lastClickTime < 600 then
+    return
   end
   if self.module:HasPanel("NewPetBagBox") and self.module:GetNewPetBagBoxPanelOpenState() then
     _G.NRCAudioManager:PlaySound2DAuto(40002006, "UMG_PetPortableBag_C:OnClickEditBoxBtn")
@@ -1463,6 +1533,9 @@ function UMG_PetPortableBag_C:OnClickScreenBtn()
   if self:CheckIsSelectBtn() then
     return false
   end
+  if self.lastClickTime and UE4.UNRCStatics.GetMilliSeconds() - self.lastClickTime < 600 then
+    return
+  end
   local touchReasonType = _G.NRCModuleManager:DoCmd(MultiTouchModuleCmd.GetPanelSelectBtnReason, "PetBox").SUBPANEL
   _G.NRCModuleManager:DoCmd(MultiTouchModuleCmd.LockIsSelectBtn, "PetUIModule", "PetBox", touchReasonType)
   self.isShowFilterPanel = true
@@ -1471,6 +1544,7 @@ function UMG_PetPortableBag_C:OnClickScreenBtn()
   _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.OpenNewPetBagWarehouseScreeningPanel)
   self.module:CloseNewPetBagBoxPanel()
   self:UpdateBottomPanel()
+  self.lastClickTime = UE4.UNRCStatics.GetMilliSeconds()
 end
 
 function UMG_PetPortableBag_C:OnClickLeftArrowBtn()
@@ -1491,12 +1565,18 @@ function UMG_PetPortableBag_C:OnClickRightArrowBtn()
   self:JumpToTargetBoxOrPage(isFiltering and self.CurAllPetPage + 1 or self.SelectBoxIndex + 1)
 end
 
-function UMG_PetPortableBag_C:OnPetBoxMarkChange(box_id, mark_type, box_name)
+function UMG_PetPortableBag_C:OnPetBoxMarkChange(box_id, mark_type, box_name, lock)
   if self.SelectBoxData and self.SelectBoxData.id == box_id then
     self.SelectBoxData.mark_type = mark_type
     if box_name and "" ~= box_name then
       self.SelectBoxData.box_name = box_name
       self:SetBoxName(box_name)
+    end
+    self.SelectBoxData.lock = lock
+    if self.SelectBoxData.lock then
+      self.Lock:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    else
+      self.Lock:SetVisibility(UE4.ESlateVisibility.Collapsed)
     end
     local confs = _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.GetAllWarehousCollectMarkConfigs)
     for _, conf in pairs(confs or {}) do
@@ -1520,6 +1600,11 @@ function UMG_PetPortableBag_C:OnPcClose()
     return
   end
   self.readyToClose = true
+  if not self.module:GetOpenPetAttribute() then
+    _G.NRCModuleManager:DoCmd(PetUIModuleCmd.PetRightPanelPcClose)
+    self.readyToClose = false
+    return
+  end
   if self:IsReleaseLifeMode() then
     self:OnNewPetBagExitFree()
     self.readyToClose = false
@@ -1654,7 +1739,7 @@ function UMG_PetPortableBag_C:OnDragStart(ItemUiData, ItemIndex)
   self.BagPetList:ForceLayoutPrepass()
   self:ShowExchangeIcon(true)
   self:OnInitDragItem()
-  self:CheckBoxPanel()
+  self:CheckBoxPanel(true)
   if self.DragEndDelayHandle then
     self:CancelDelayByID(self.DragEndDelayHandle)
     self.DragEndDelayHandle = nil
@@ -1684,7 +1769,6 @@ function UMG_PetPortableBag_C:OnDragEnd()
   self:TryDisableDragItem()
   self:CancelExchangeOperation()
   self:SetFreeAreaPos(true)
-  self:CheckBoxPanel()
 end
 
 function UMG_PetPortableBag_C:OnExchangeOperationEnd()
@@ -1720,6 +1804,7 @@ function UMG_PetPortableBag_C:OnExchangeOperationEnd()
       self.BagPetList:SelectItemByIndex(self.currentPetPos - MAX_TEAM_PET_NUM - 1)
     end
   end
+  self:CheckBoxPanel(false)
   self.dragPetInfo = nil
   self.exchangeTargetPetInfo = nil
   self.DragData = nil
@@ -1732,15 +1817,18 @@ function UMG_PetPortableBag_C:OnExchangeOperationEnd()
 end
 
 function UMG_PetPortableBag_C:ShowExchangeIcon(_bShow)
-  self.ShowItemExchange = _bShow
-  local bDragTeamPet = false
+  if _bShow then
+    self.bDragTeamPet = false
+  end
   local bDragSpecialPet = false
   if self.dragPetInfo then
     local petData = self.dragPetInfo.petInfo
     if petData then
-      local teamIndex = _G.DataModelMgr.PlayerDataModel:GetPlayerBattleTeamIndexByGid(petData.gid)
-      if teamIndex then
-        bDragTeamPet = true
+      if _bShow then
+        local teamIndex = _G.DataModelMgr.PlayerDataModel:GetPlayerBattleTeamIndexByGid(petData.gid)
+        if teamIndex then
+          self.bDragTeamPet = true
+        end
       end
       bDragSpecialPet = self:CheckIsSpecialPet(self.dragPetInfo.petInfo.gid)
     end
@@ -1749,13 +1837,13 @@ function UMG_PetPortableBag_C:ShowExchangeIcon(_bShow)
   for i = 0, #self.battlePetInfos - 1 do
     local item = self.BattlePetList:GetItemByIndex(i)
     if item then
-      item:ShowExchangeIcon(_bShow, bDragTeamPet, bDragSpecialPet)
+      item:ShowExchangeIcon(_bShow, self.bDragTeamPet, bDragSpecialPet)
     end
   end
   for i = 0, #self.CurBackpackPetList - 1 do
     local item = self.BagPetList:GetItemByIndex(i)
     if item then
-      item:ShowExchangeIcon(_bShow, isFiltering, bDragTeamPet)
+      item:ShowExchangeIcon(_bShow, isFiltering, self.bDragTeamPet)
     end
   end
 end
@@ -1903,10 +1991,13 @@ function UMG_PetPortableBag_C:CheckCanExchange(dragPetGid, exchangeTargetPetGid,
 end
 
 function UMG_PetPortableBag_C:CheckIsSpecialPet(petGid)
-  local IsTravel = _G.NRCModuleManager:DoCmd(_G.TravelModuleCmd.GetPetIsTravel, petGid)
-  local IsInHome = _G.NRCModuleManager:DoCmd(_G.HomeModuleCmd.GetPetIsInHome, petGid)
+  local IsInHome = false
   local IsInGuard = _G.NRCModuleManager:DoCmd(_G.HomeModuleCmd.GetHomePlantGuardPetGid) == petGid
-  return IsTravel or IsInHome or IsInGuard
+  local petData = _G.DataModelMgr.PlayerDataModel:GetPetDataByGid(petGid)
+  if petData and petData.business_identity then
+    IsInHome = petData.business_identity == _G.ProtoEnum.PetBusinessIdentity.PBI_HOME_PET
+  end
+  return IsInHome or IsInGuard
 end
 
 function UMG_PetPortableBag_C:GetFirstBattlePetListEmptyPos()
@@ -1951,38 +2042,47 @@ function UMG_PetPortableBag_C:DragPetToBox(box_id, pos)
 end
 
 function UMG_PetPortableBag_C:OnPetBoxChangeNotify()
-  local CacheFilterData = self.module:GetCachePetBoxFilterData()
-  if not self.module:IsFilteringCondition(CacheFilterData.Condition) and self.curBoxID then
-    self:SetCurBoxInfo(self.curBoxID)
+  if self.DelayPetBoxChangeID then
+    self:CancelDelayByID(self.DelayPetBoxChangeID)
+    self.DelayPetBoxChangeID = nil
   end
-  if self.selectTargetPetInfo and not self.selectTargetPetInfo.is_in_team then
-    local isFiltering, _ = self:GetCachePetListInfo()
-    if isFiltering and self.dragPetInfo and self.dragPetInfo.petInfo then
-      local gid = self.dragPetInfo.petInfo.gid
-      if gid then
-        self:DelayFrames(10, function()
-          local bSelected = false
-          for i = 1, self.BagPetList:GetItemCount() do
-            local item = self.BagPetList:GetItemByIndex(i - 1)
-            if item and item.uiData.gid == gid then
-              bSelected = true
-              self.BagPetList:SelectItemByIndex(i - 1)
-              break
-            end
-          end
-          if not bSelected and self.BagPetList:GetItemCount() > 0 then
-            self.BagPetList:SelectItemByIndex(0)
-          end
-        end)
-      end
-    else
-      self.BagPetList:SelectItemByIndex(self.selectTargetPetInfo.pos - 1)
+  self.DelayPetBoxChangeID = self:DelayFrames(1, function()
+    local CacheFilterData = self.module:GetCachePetBoxFilterData()
+    if not self.module:IsFilteringCondition(CacheFilterData.Condition) and self.curBoxID then
+      self:SetCurBoxInfo(self.curBoxID)
     end
-    self:OnExchangeOperationEnd()
-  end
+    if self.selectTargetPetInfo and not self.selectTargetPetInfo.is_in_team then
+      local isFiltering, _ = self:GetCachePetListInfo()
+      if isFiltering and self.dragPetInfo and self.dragPetInfo.petInfo then
+        local gid = self.dragPetInfo.petInfo.gid
+        if gid then
+          self:DelayFrames(10, function()
+            local bSelected = false
+            for i = 1, self.BagPetList:GetItemCount() do
+              local item = self.BagPetList:GetItemByIndex(i - 1)
+              if item and item.uiData.gid == gid then
+                bSelected = true
+                self.BagPetList:SelectItemByIndex(i - 1)
+                break
+              end
+            end
+            if not bSelected and self.BagPetList:GetItemCount() > 0 then
+              self.BagPetList:SelectItemByIndex(0)
+            end
+          end)
+        end
+      else
+        self.BagPetList:SelectItemByIndex(self.selectTargetPetInfo.pos - 1)
+      end
+      self:OnExchangeOperationEnd()
+    end
+  end)
 end
 
 function UMG_PetPortableBag_C:OnPlayerDataUpdate(UpdateGoodType, PetDataChangeItemList)
+  if UpdateGoodType and (UpdateGoodType == _G.Enum.VisualItem.VI_DIAMOND or UpdateGoodType == _G.Enum.VisualItem.VI_COUPON or UpdateGoodType == _G.Enum.VisualItem.VI_COIN) then
+    return
+  end
   local CacheFilterData = self.module:GetCachePetBoxFilterData()
   if self.module:IsFilteringCondition(CacheFilterData.Condition) and UpdateGoodType == _G.Enum.GoodsType.GT_PET then
     local bTargetPetDataChange = false
@@ -1998,10 +2098,15 @@ function UMG_PetPortableBag_C:OnPlayerDataUpdate(UpdateGoodType, PetDataChangeIt
         self:SetKeepSelectCurPet(true)
       end
     end
-    self.module:UpdateCachePetBoxFilterData(true, false)
+    if self:GetIsNeedUpdateCachePetBoxFilterData() then
+      self.module:UpdateCachePetBoxFilterData(true, false)
+    end
     if self:GetKeepSelectCurPet() then
       self:SetKeepSelectCurPet(false)
     end
+  end
+  if PetDataChangeItemList and 1 == #PetDataChangeItemList and PetDataChangeItemList[1] and PetDataChangeItemList[1].PetDataUpdateReasonType and PetDataChangeItemList[1].PetDataUpdateReasonType == PetUIModuleEnum.PetDataUpdateReason.TraceBack then
+    return
   end
   if PetDataChangeItemList then
     for i = 1, #PetDataChangeItemList do
@@ -2014,9 +2119,17 @@ function UMG_PetPortableBag_C:OnPlayerDataUpdate(UpdateGoodType, PetDataChangeIt
       end
     end
   end
-  if self.TeamIndex then
+  if PetDataChangeItemList and #PetDataChangeItemList > 0 and self.TeamIndex then
     self:SetCurTeamPetList(self.TeamIndex, true)
   end
+end
+
+function UMG_PetPortableBag_C:GetIsNeedUpdateCachePetBoxFilterData()
+  local bNeedUpdate = true
+  if self.module:OnCmdCheckIsOpenEvoPanel() then
+    bNeedUpdate = false
+  end
+  return bNeedUpdate
 end
 
 function UMG_PetPortableBag_C:SetKeepSelectCurPet(Flag)
@@ -2028,15 +2141,22 @@ function UMG_PetPortableBag_C:GetKeepSelectCurPet()
 end
 
 function UMG_PetPortableBag_C:OnBigWorldTeamPetChangeEvent()
-  self:SetValidTeamIndex()
-  if self.curTeamIndex then
-    self:SetCurTeamPetList(self.curTeamIndex)
+  if self.DelayPetBattleChangeID then
+    self:CancelDelayByID(self.DelayPetBattleChangeID)
+    self.DelayPetBattleChangeID = nil
   end
-  if self.selectTargetPetInfo and self.selectTargetPetInfo.is_in_team then
-    local selectItemIndex = self.selectTargetPetInfo.pos - 1 + (self.curTeamIndex - 1) * MAX_TEAM_PET_NUM
-    self.BattlePetList:SelectItemByIndex(selectItemIndex)
-    self:OnExchangeOperationEnd()
-  end
+  self:ClearSelectData()
+  self.DelayPetBattleChangeID = self:DelayFrames(1, function()
+    self:SetValidTeamIndex()
+    if self.curTeamIndex then
+      self:SetCurTeamPetList(self.curTeamIndex)
+    end
+    if self.selectTargetPetInfo and self.selectTargetPetInfo.is_in_team then
+      local selectItemIndex = self.selectTargetPetInfo.pos - 1 + (self.curTeamIndex - 1) * MAX_TEAM_PET_NUM
+      self.BattlePetList:SelectItemByIndex(selectItemIndex)
+      self:OnExchangeOperationEnd()
+    end
+  end)
 end
 
 function UMG_PetPortableBag_C:OnInitDragItem()
@@ -2054,12 +2174,8 @@ end
 
 function UMG_PetPortableBag_C:ShowDragItemStartPos()
   if self.DragItemInstance then
-    if RocoEnv.PLATFORM_WINDOWS then
-      local mousePos = UE4.UWidgetLayoutLibrary.GetMousePositionOnViewport(_G.UE4Helper.GetCurrentWorld())
-      self.DragItemInstance:SetPositionInViewport(mousePos, false)
-    else
-      self.DragItemInstance:SetPositionInViewport_ViewPosition(self.startPos, true)
-    end
+    local viewportPos = UIUtils.ScreenPositionToViewport(self.startPos)
+    self.DragItemInstance:SetPositionInViewport(viewportPos, false)
   end
   if self.DragData then
     self.DragItemInstance:AsDragItemInitInfo(self.DragData)
@@ -2088,6 +2204,10 @@ function UMG_PetPortableBag_C:OnRocoTouchMoveHandler(touchIndex, position)
             self:CancelDelayByID(self.touchDelayHandle)
             self.touchDelayHandle = nil
           end
+          if self.touchDelayPCHandle then
+            self:CancelDelayByID(self.touchDelayPCHandle)
+            self.touchDelayPCHandle = nil
+          end
         end
       end
       self.touchStartTime = nil
@@ -2096,12 +2216,8 @@ function UMG_PetPortableBag_C:OnRocoTouchMoveHandler(touchIndex, position)
   if self.CanScroll then
     return
   end
-  if RocoEnv.PLATFORM_WINDOWS then
-    local mousePos = UE4.UWidgetLayoutLibrary.GetMousePositionOnViewport(_G.UE4Helper.GetCurrentWorld())
-    self.DragItemInstance:SetPositionInViewport(mousePos, false)
-  else
-    self.DragItemInstance:SetPositionInViewport_ViewPosition(position, true)
-  end
+  local viewportPos = UIUtils.ScreenPositionToViewport(position)
+  self.DragItemInstance:SetPositionInViewport(viewportPos, false)
   self:DealWithCheckArea()
 end
 
@@ -2124,6 +2240,30 @@ function UMG_PetPortableBag_C:SetDragItemTemp(dragItem)
 end
 
 function UMG_PetPortableBag_C:OnLongPress()
+  if self.touchDelayPCHandle then
+    self:CancelDelayByID(self.touchDelayPCHandle)
+    self.touchDelayPCHandle = nil
+  end
+  if self:CheckIsDrag() then
+    self:OnRealLongPress()
+  elseif self.pcExtraPressTime then
+    self.touchDelayPCHandle = self:DelaySeconds(self.pcExtraPressTime, self.OnRealLongPress, self)
+  else
+    self:OnRealLongPress()
+  end
+end
+
+function UMG_PetPortableBag_C:CheckIsDrag()
+  if RocoEnv.PLATFORM_WINDOWS then
+    local currentPos = UE4.UWidgetLayoutLibrary.GetMousePositionOnViewport(_G.UE4Helper.GetCurrentWorld())
+    if currentPos and self.touchStartMousePos and self.pcMinDis and math.abs(currentPos.x - self.touchStartMousePos.x) < self.pcMinDis and math.abs(currentPos.y - self.touchStartMousePos.y) < self.pcMinDis then
+      return false
+    end
+  end
+  return true
+end
+
+function UMG_PetPortableBag_C:OnRealLongPress()
   if self.dragItemTemp then
     self.dragItemTemp:LongPress()
     self.touchStartTime = nil
@@ -2135,25 +2275,37 @@ function UMG_PetPortableBag_C:OnRocoTouchStartHandler(touchIndex, position)
   self.startPos.X = position.X
   self.startPos.Y = position.Y
   self.touchStartTime = UE4.UNRCStatics.GetMilliSeconds()
+  if RocoEnv.PLATFORM_WINDOWS then
+    self.touchStartMousePos = UE4.UWidgetLayoutLibrary.GetMousePositionOnViewport(_G.UE4Helper.GetCurrentWorld())
+  end
   self.touchDelayHandle = self:DelaySeconds(self.LongPressTime, self.OnLongPress, self)
 end
 
 function UMG_PetPortableBag_C:OnRocoTouchEndHandler(touchIndex)
   self.ScrollPageController:SetCanScroll(true)
   self.touchStartTime = nil
+  self.touchStartMousePos = nil
   if self.touchDelayHandle then
     self:CancelDelayByID(self.touchDelayHandle)
     self.touchDelayHandle = nil
+  end
+  if self.touchDelayPCHandle then
+    self:CancelDelayByID(self.touchDelayPCHandle)
+    self.touchDelayPCHandle = nil
   end
   if self.CurrentGuide and self.CurrentGuide:IsCompleteWithButtonReleased() then
     Log.Debug("UMG_PetPortableBag_C:OnRocoTouchEndHandler CurrentGuide IsCompleteWithButtonReleased")
     return
   end
+  local FreePetGid = 0
   if self:CheckIsHoverFreeBtn() and self.dragPetInfo and self.dragPetInfo.petInfo and self.dragPetInfo.petInfo.gid then
-    self:DragToFree(self.dragPetInfo.petInfo.gid)
+    FreePetGid = self.dragPetInfo.petInfo.gid
   end
   _G.NRCEventCenter:DispatchEvent(PetUIModuleEvent.OnPetPortableBagTouchEnded)
   _G.NRCEventCenter:DispatchEvent(PetUIModuleEvent.SetPanelCanScroll, true)
+  if 0 ~= FreePetGid then
+    self:DragToFree(FreePetGid)
+  end
 end
 
 function UMG_PetPortableBag_C:SetFreeAreaPos(bReset)
@@ -2233,7 +2385,7 @@ function UMG_PetPortableBag_C:OnTick(deltaTime)
   end
 end
 
-function UMG_PetPortableBag_C:CheckBoxPanel()
+function UMG_PetPortableBag_C:CheckBoxPanel(bDragStart)
   if self.readyToClose then
     return
   end
@@ -2241,15 +2393,21 @@ function UMG_PetPortableBag_C:CheckBoxPanel()
   if isFiltering then
     return
   end
-  if self.CanScroll then
-    if not self.bOpenBoxPanel then
-      self:OnClickEditBoxBtn(true)
+  if not bDragStart then
+    if self.module:HasPanel("NewPetBagBox") and self.module:GetNewPetBagBoxPanelOpenState() then
+      if not self.bOpenBoxPanel then
+        _G.NRCAudioManager:PlaySound2DAuto(40002006, "UMG_PetPortableBag_C:CheckBoxPanel")
+        self.module:CloseNewPetBagBoxPanel()
+      end
+      self.bOpenBoxPanel = nil
     end
-    self.bOpenBoxPanel = nil
   elseif self.module:HasPanel("NewPetBagBox") and self.module:GetNewPetBagBoxPanelOpenState() then
     self.bOpenBoxPanel = true
   else
-    self:OnClickEditBoxBtn(true)
+    self.bOpenBoxPanel = nil
+    self:SetIsCanHandleFreeListInReleaseLifeMode(false)
+    _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.OpenNewPetBagBoxPanel)
+    self:SetIsCanHandleFreeListInReleaseLifeMode(true)
   end
 end
 
@@ -2293,6 +2451,9 @@ function UMG_PetPortableBag_C:LockSwitchBtn(bLock)
 end
 
 function UMG_PetPortableBag_C:OnMouseWheel(MyGeometry, InTouchEvent)
+  if not self.CanScroll then
+    return UE4.UWidgetBlueprintLibrary.Unhandled()
+  end
   if self.module:HasPanel("NewPetBagBox") then
     local bagboxPanel = self.module:GetPanel("NewPetBagBox")
     if bagboxPanel then
@@ -2322,6 +2483,10 @@ function UMG_PetPortableBag_C:CancelLongPress()
     self:CancelDelayByID(self.touchDelayHandle)
     self.touchDelayHandle = nil
   end
+  if self.touchDelayPCHandle then
+    self:CancelDelayByID(self.touchDelayPCHandle)
+    self.touchDelayPCHandle = nil
+  end
   self:SetDragItemTemp(nil)
 end
 
@@ -2341,11 +2506,11 @@ function UMG_PetPortableBag_C:OnEndGuideTarget(config)
 end
 
 function UMG_PetPortableBag_C:IsShowChildrenPanel()
-  return self.module:OnGetPetBagChilderenPanelState()
+  return self.module:OnGetPetBagChilderenPanelState() or not self.module:GetOpenPetAttribute()
 end
 
 function UMG_PetPortableBag_C:ClearChildrenPanelState()
-  self.module.PanelStateMap = nil
+  self.module:ClearChildrenPanelState()
 end
 
 function UMG_PetPortableBag_C:OnNewPetBagExitScreen()

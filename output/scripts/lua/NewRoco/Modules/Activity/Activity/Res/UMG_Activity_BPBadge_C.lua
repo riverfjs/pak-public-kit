@@ -18,10 +18,11 @@ function UMG_Activity_BPBadge_C:OnConstruct()
   Base.OnConstruct(self)
   self.index = 1
   local _activityInst = self.activityInst
-  local activityGoodConf = _G.DataConfigManager:GetActivityGoodsConf(_activityInst:GetActivityId()).goods_group
-  if #activityGoodConf > 1 then
+  local activityGoodsConf = _G.DataConfigManager:GetActivityGoodsConf(_activityInst:GetSinglePartId())
+  local goods_group = activityGoodsConf.goods_group
+  if #goods_group > 1 then
     local initData = {}
-    for _, v in ipairs(activityGoodConf) do
+    for _, v in ipairs(goods_group) do
       local data = {
         text = v.option_name,
         caller = self,
@@ -36,7 +37,66 @@ function UMG_Activity_BPBadge_C:OnConstruct()
     self.TabBG:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self:OnItemSelected(1)
   end
+  if 0 ~= activityGoodsConf.task_id then
+    local req = _G.ProtoMessage:newZoneTaskQueryReq()
+    req.task_list = {
+      activityGoodsConf.task_id
+    }
+    _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_TASK_QUERY_REQ, req, self, self.InitRewardState)
+    local reward_id = _G.DataConfigManager:GetTaskConf(activityGoodsConf.task_id).Reward
+    local reward = _G.DataConfigManager:GetRewardConf(reward_id).RewardItem[1]
+    local rewardData = {}
+    local data = _G.NRCCommonItemIconData()
+    data.itemType = reward.Type
+    data.itemId = reward.Id
+    data.itemNum = reward.Count
+    data.bShowNum = true
+    data.bShowTip = true
+    data.Key = 215
+    data.extraKey = tostring(_activityInst:GetActivityId())
+    table.insert(rewardData, data)
+    self.AwardList:InitList(rewardData)
+    self.ContractText_62:SetText(_G.LuaText.activity_goods_task_tips)
+  end
   self:AddButtonListener(self.Btn_Claimable.btnLevelUp, self.OnClickJoinActivity)
+  self:AddButtonListener(self.ClickButton, self.ReqGetReward)
+end
+
+function UMG_Activity_BPBadge_C:InitRewardState(rsp)
+  if 0 == rsp.ret_info.ret_code then
+    if rsp.task_info_list[1].state == _G.ProtoEnum.EMTaskState.EM_TASK_STATE_WAIT then
+      self.ClickButton:SetVisibility(UE4.ESlateVisibility.Visible)
+    elseif rsp.task_info_list[1].state == _G.ProtoEnum.EMTaskState.EM_TASK_STATE_DONE then
+      self.AwardList:GetItemByIndex(0):SetAlreadyReceived(true)
+    end
+  end
+end
+
+function UMG_Activity_BPBadge_C:ReqGetReward()
+  local req = _G.ProtoMessage:newZoneTaskRewardReq()
+  req.task_list = {
+    _G.DataConfigManager:GetActivityGoodsConf(self.activityInst:GetSinglePartId()).task_id
+  }
+  _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_TASK_REWARD_REQ, req, self, self.GetReward)
+end
+
+function UMG_Activity_BPBadge_C:GetReward(rsp)
+  if 0 == rsp.ret_info.ret_code then
+    self.ClickButton:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    local item = self.AwardList:GetItemByIndex(0)
+    item:SetAlreadyReceived(true)
+    item:PlayAnimation(item.Receive)
+    local activityGoodsConf = _G.DataConfigManager:GetActivityGoodsConf(self.activityInst:GetSinglePartId())
+    local reward_id = _G.DataConfigManager:GetTaskConf(activityGoodsConf.task_id).Reward
+    local reward = _G.DataConfigManager:GetRewardConf(reward_id).RewardItem[1]
+    local popupInitData = {}
+    local popupData = _G.ProtoMessage:newGoodsItem()
+    popupData.id = reward.Id
+    popupData.num = reward.Count
+    popupData.type = reward.Type
+    table.insert(popupInitData, popupData)
+    _G.NRCModuleManager:DoCmd(_G.CommonPopUpModuleCmd.OpenNPCShopItemRewardsPanel, popupInitData)
+  end
 end
 
 function UMG_Activity_BPBadge_C:OnClickJoinActivity()
@@ -45,8 +105,13 @@ function UMG_Activity_BPBadge_C:OnClickJoinActivity()
     local _activityInst = self.activityInst
     if _activityInst then
       local activityGoodConf = _G.DataConfigManager:GetActivityGoodsConf(_activityInst:GetActivityId()).goods_group
-      local _itemObject = _activityInst:CreateWebSiteItem(activityGoodConf[self.index].website_id)
-      return _activityInst:PerformActivityInteraction(ActivityEnum.ActivityInteractionType.Join, _itemObject)
+      local _itemObject
+      if RocoEnv.PLATFORM_WINDOWS then
+        _itemObject = _activityInst:CreateWebSiteItem(activityGoodConf[self.index].website_id_pc)
+      elseif RocoEnv.PLATFORM_ANDROID or RocoEnv.PLATFORM_IOS or RocoEnv.PLATFORM_OPENHARMONY then
+        _itemObject = _activityInst:CreateWebSiteItem(activityGoodConf[self.index].website_id)
+      end
+      return _itemObject and _activityInst:PerformActivityInteraction(ActivityEnum.ActivityInteractionType.Join, _itemObject)
     end
   end)
 end
@@ -56,18 +121,27 @@ function UMG_Activity_BPBadge_C:OnItemSelected(index)
   self.index = index
   self.Bg:SetPath(activityGoodConf[index].bg_path)
   self.ReverseSide:SetPath(activityGoodConf[index].goods_back)
-  self:LoadPanelRes(activityGoodConf[index].back_ae_img, 255, self.OnLoadIconMaterialSucceed)
+  self.ReverseSide_1:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self:LoadPanelRes(activityGoodConf[index].back_ae_img, 255, function(_, _, asset)
+    self.ReverseSide_1:SetBrushFromMaterial(asset)
+    self.ReverseSide_1:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  end)
   self.Front:SetPath(activityGoodConf[index].goods_front)
-  self.Front_1:SetPath(activityGoodConf[index].ae_img1)
-  self.Front_2:SetPath(activityGoodConf[index].ae_img1)
-end
-
-function UMG_Activity_BPBadge_C:OnLoadIconMaterialSucceed(_, asset)
-  self.ReverseSide_1:SetBrushFromMaterial(asset)
+  self.Front_1:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self:LoadPanelRes(activityGoodConf[index].ae_img1, 255, function(_, _, asset)
+    self.Front_1:SetBrushFromMaterial(asset)
+    self.Front_1:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  end)
+  self.Front_2:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self:LoadPanelRes(activityGoodConf[index].ae_img2, 255, function(_, _, asset)
+    self.Front_2:SetBrushFromMaterial(asset)
+    self.Front_2:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  end)
 end
 
 function UMG_Activity_BPBadge_C:OnDestruct()
   self:RemoveButtonListener(self.Btn_Claimable.btnLevelUp)
+  self:RemoveButtonListener(self.ClickButton)
 end
 
 return UMG_Activity_BPBadge_C

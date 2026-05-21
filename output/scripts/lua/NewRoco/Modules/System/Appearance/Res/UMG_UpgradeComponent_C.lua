@@ -9,6 +9,7 @@ function UMG_UpgradeComponent_C:OnConstruct()
 end
 
 function UMG_UpgradeComponent_C:OnActive(showItemList, parentPanel, suitInfo, defaultSelectIndex)
+  _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.SetCurTopExclusionPanel, AppearanceModuleEnum.ExclusionPanelType.UpgradeComponent)
   _G.NRCEventCenter:DispatchEvent(AppearanceModuleEvent.OnUpgradeComponentOpen)
   self:OnAddEventListener()
   self.BecameEffective:SetIsEnabled(false)
@@ -31,13 +32,14 @@ function UMG_UpgradeComponent_C:OnActive(showItemList, parentPanel, suitInfo, de
   self.defaultSelectIndex = defaultSelectIndex
   self.selectedItemStack = {}
   self.titleAndButtonStateStack = {}
+  local sgSuitId = _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.CheckSGSuitId, self.suitInfo.suitId)
   self.titleAndButtonStateStack[1] = {
     itemId = self.suitInfo.suitId,
     type = _G.Enum.GoodsType.GT_FASHION_SUITS,
     mainTitle = self.suitInfo.suitTitle,
     subTitle = self.suitInfo.packageTitle,
     bShowDetail = true,
-    bShowGorgeous = true,
+    bShowGorgeous = sgSuitId == self.suitInfo.suitId,
     gorgeousType = 0
   }
   self:InitPanel()
@@ -130,7 +132,8 @@ end
 
 function UMG_UpgradeComponent_C:OnDestruct()
   self:OnRemoveEventListener()
-  local bHide = self.parent.bIsFromTryOn == true
+  local isOpen = _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.AppearanceTryOnPanelIsOpen)
+  local bHide = self.parent.bIsFromTryOn == true and isOpen
   self.parent.bIsFromTryOn = false
   _G.NRCEventCenter:DispatchEvent(AppearanceModuleEvent.OnUpgradeComponentClose, bHide)
 end
@@ -192,8 +195,12 @@ function UMG_UpgradeComponent_C:OnTick(deltaTime)
 end
 
 function UMG_UpgradeComponent_C:InitPanel()
-  self.bIsZoomIn = false
+  if self.module._bIsPlayingShiningMedalSkill then
+    _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.PlayClosetShiningMedalSkillEnd)
+  end
+  self.bEnableWearReq = false
   self.ItemList_4:ClearSelection()
+  self.bEnableWearReq = true
   self.Btn_MyMedal.Title_1:SetText(_G.LuaText.my_fashion_bond_function_btn)
   self.Btn_ViewDetails.Title_1:SetText(_G.LuaText.fashion_bond_func_btn)
   self.Btn_ViewDetails_1.Title_1:SetText(_G.LuaText.fashion_bond_func_btn)
@@ -319,8 +326,12 @@ function UMG_UpgradeComponent_C:OnClickReturnBtn()
   local size = self.ItemList_4:GetItemCount()
   for i = 0, size - 1 do
     local item = self.ItemList_4:GetItemByIndex(i)
-    if item and not item.bIsWoreComponent then
-      item:RestoreComponent()
+    if item then
+      if item:GetItemType() == _G.Enum.GoodsType.GT_FASHION_SUITS then
+        item:RestoreComponent()
+      elseif not item.bIsWoreComponent then
+        item:RestoreComponent()
+      end
     end
     if item and selectedIndices[item.itemIndex] ~= nil and not item.bIsWoreComponent and not bShouldShowTips then
       bShouldShowTips = not _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.CheckComponentIsUnlocked, i, self.suitInfo.suitId)
@@ -333,7 +344,7 @@ function UMG_UpgradeComponent_C:OnClickReturnBtn()
     _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.PlayClosetShiningMedalSkillEnd)
   end
   local closetAvatar = self.parent.module.closetAvatarPlayer
-  self.parent.module:SetPlayerAngle(_G.Enum.FashionLabelType.FLT_TOPS, closetAvatar)
+  self.parent.module:SetPlayerAngle(_G.Enum.FashionLabelType.FLT_TOPS, closetAvatar, "Closet")
   self:StopAllAnimations()
   self:PlayAnimation(self.Close)
 end
@@ -554,7 +565,10 @@ function UMG_UpgradeComponent_C:OnItemSelectedUpdateLevelUpButton(index, props)
 end
 
 function UMG_UpgradeComponent_C:_IsZoomedIn()
-  return self.bIsZoomIn
+  if self.parent and self.parent.GetUpgradeZoomIn then
+    return self.parent:GetUpgradeZoomIn()
+  end
+  return false
 end
 
 function UMG_UpgradeComponent_C:ZoomIn()
@@ -564,8 +578,9 @@ function UMG_UpgradeComponent_C:ZoomIn()
   if self.bIsInitSelection then
     return
   end
-  self.bIsZoomIn = true
-  self.module:OnCmdPlayMeiRongSkillByType(false)
+  if self.parent and self.parent.SetUpgradeZoomIn then
+    self.parent:SetUpgradeZoomIn(true)
+  end
 end
 
 function UMG_UpgradeComponent_C:ZoomOut()
@@ -575,32 +590,54 @@ function UMG_UpgradeComponent_C:ZoomOut()
   if self.bIsInitSelection then
     return
   end
-  self.bIsZoomIn = false
-  self.module:OnCmdPlayMeiRongSkillByType(true)
+  if self.parent and self.parent.SetUpgradeZoomIn then
+    self.parent:SetUpgradeZoomIn(false)
+  end
 end
 
 function UMG_UpgradeComponent_C:OnAnimationFinished(Anim)
   if Anim == self.Close then
     if not self.parent.bDirectToUpgrade then
-      if self.parent.bIsFromTryOn then
+      local isOpen = _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.AppearanceTryOnPanelIsOpen)
+      local bAlreadySaved = false
+      if self.parent.bIsFromTryOn and isOpen then
         self:SaveCurrentOutfit()
         self:GoBackToTryOnPage()
+        bAlreadySaved = true
       end
       if _G.GlobalConfig.DebugOpenUI then
         self:DoClose()
         return
       end
       if self:_IsZoomedIn() then
-        self.module:OnCmdPlayMeiRongSkillByType(true)
+        if self.parent and self.parent.SetUpgradeZoomIn then
+          self.parent:SetUpgradeZoomIn(false)
+        else
+          self.module:OnCmdPlayMeiRongSkillByType(true)
+        end
       end
-      if self.bHasSuit and self.parent and self.parent.OnConfirmBtnClicked then
+      if not bAlreadySaved and self.parent.bIsFromTryOn and self.bHasSuit and self.parent and self.parent.OnConfirmBtnClicked then
         self.parent:OnConfirmBtnClicked()
       end
       self:StopAllAnimations()
       self:DoClose()
     elseif self.parent.bDirectToUpgrade then
-      self:SaveCurrentOutfit()
-      self.parent:DoClose()
+      local isGorgeousMedalOpen = _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.GorgeousMedalPanelIsOpen)
+      if isGorgeousMedalOpen then
+        if self:_IsZoomedIn() then
+          if self.parent and self.parent.SetUpgradeZoomIn then
+            self.parent:SetUpgradeZoomIn(false)
+          else
+            self.module:OnCmdPlayMeiRongSkillByType(true)
+          end
+        end
+        self:StopAllAnimations()
+        self:DoClose()
+      else
+        self:SaveCurrentOutfit()
+        self:StopAllAnimations()
+        self:DoClose()
+      end
     end
   elseif Anim == self.Level_up then
     self:PlayAnimation(self.Level_up_loop, 0.0, 0, UE4.EUMGSequencePlayMode.Forward, 1.0, false)
@@ -662,7 +699,7 @@ function UMG_UpgradeComponent_C:_GetWornComponentIndices(bIsWear, index)
   local size = self.ItemList_4:GetItemCount()
   for i = 0, size - 1 do
     local item = self.ItemList_4:GetItemByIndex(i)
-    if item and item:IsComponentWorn() then
+    if item and item:IsComponentWorn() and item:GetItemType() ~= _G.Enum.GoodsType.GT_FASHION_SUITS then
       table.insertUnique(result, i)
     end
   end
@@ -679,9 +716,12 @@ function UMG_UpgradeComponent_C:_GetWornComponentIndices(bIsWear, index)
             end
           end
         end
-        local isUnlock = _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.CheckComponentIsUnlocked, v.itemIndex - 1, self.suitInfo.suitId)
-        if isUnlock then
-          table.insertUnique(result, v.itemIndex - 1)
+        if v:GetItemType() == _G.Enum.GoodsType.GT_FASHION_SUITS then
+        else
+          local isUnlock = _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.CheckComponentIsUnlocked, v.itemIndex - 1, self.suitInfo.suitId)
+          if isUnlock then
+            table.insertUnique(result, v.itemIndex - 1)
+          end
         end
       end
     end
@@ -882,6 +922,7 @@ function UMG_UpgradeComponent_C:_GetDefaultSelectionIndices()
       end
       local resList = {}
       table.deepCopy(v.components_is_worn, resList)
+      table.sort(resList)
       return resList, bIncludeMedal
     end
   end
@@ -978,20 +1019,32 @@ function UMG_UpgradeComponent_C:_GetSaveItemIdList(originalFashionIds, originalS
 end
 
 function UMG_UpgradeComponent_C:GoBackToTryOnPage()
+  self.module:InitAvatarRotationData(self.module.tempTryOnAvatar, nil, nil, "TryOn")
   local packageId = self.parent.TempPackageId
   _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.OpenTryOnByPackageId, packageId, self.suitInfo.suitId)
 end
 
 function UMG_UpgradeComponent_C:SaveCurrentOutfit()
+  if self.parent.bSkipSaveOnExit then
+    return
+  end
   if (self.parent.bDirectToUpgrade or self.parent.bIsFromTryOn) and self.bHasSuit then
     local fashionInfo = _G.DataModelMgr.PlayerDataModel:GetPlayerFashionInfo()
     if fashionInfo and fashionInfo.wardrobe_data and #fashionInfo.wardrobe_data > 0 then
-      local index = fashionInfo.current_wardrobe_index or 0
-      index = index + 1
-      local fashionItems = fashionInfo.wardrobe_data[index].wearing_item
+      local index = self.module.data.lastSelectedWardrobeIndex
+      if not index or index <= 0 then
+        index = (fashionInfo.current_wardrobe_index or 0) + 1
+      end
       local fashionIds = {}
-      for _, v in pairs(fashionItems or {}) do
-        table.insert(fashionIds, v.wearing_item_id)
+      if self.module.data.TempAppearData and #self.module.data.TempAppearData > 0 then
+        for k, v in ipairs(self.module.data.TempAppearData) do
+          table.insert(fashionIds, v.FashionId)
+        end
+      else
+        local fashionItems = fashionInfo.wardrobe_data[index].wearing_item
+        for _, v in pairs(fashionItems or {}) do
+          table.insert(fashionIds, v.wearing_item_id)
+        end
       end
       local salonIds = {}
       if self.module.data.TempBeautyData and #self.module.data.TempBeautyData > 0 then

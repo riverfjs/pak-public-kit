@@ -11,18 +11,28 @@ end
 function UMG_Closet_Item1_C:OnItemUpdate(_data, datalist, index)
   self.bEnableSound = true
   self.uiData = _data
+  self.parent = _data.ownedPanel
   self:UpdateItemInfo()
 end
 
 function UMG_Closet_Item1_C:OnItemSelected(_bSelected)
   self:StopAllAnimations()
   if _bSelected then
+    if not self.uiData then
+      Log.Warning("UMG_Closet_Item1_C:OnItemSelected uiData is nil, skip")
+      return
+    end
     if self.bEnableSound then
       _G.NRCAudioManager:PlaySound2DAuto(40110003, "UMG_Closet_Item1_C:OnItemSelected")
     end
     self:PlayAnimation(self.Select)
     local salonItemConf = _G.DataConfigManager:GetSalonItemConf(self.uiData.salonConfId)
     _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.SetCurTryOnItemInfo, salonItemConf.type, self.uiData.salonConfId, salonItemConf.texture_id, true)
+    if self.parent and self.parent.UpdateTitlesAndCurrentDetailId then
+      local itemName = salonItemConf and salonItemConf.name or ""
+      self.parent:UpdateTitlesAndCurrentDetailId(itemName, nil, nil, true)
+      self.parent:UpdateGorgeousMagicBtnVisible(false)
+    end
   else
     self:PlayAnimation(self.UnSelect)
   end

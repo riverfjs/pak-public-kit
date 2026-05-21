@@ -51,6 +51,7 @@ function AppearanceModuleData:Ctor()
   self.FashionMallPopUpRecord = {}
   self.AllSuitInPackage = {}
   self.packageIdToGoodsIdMap = {}
+  self.goodsIdToPackageIdMap = {}
   self.suitIdToExchangeGoodsMap = {}
   self.suitIdToExchangeVoucherMap = {}
   self.currentBPSuitIdSet = {}
@@ -81,11 +82,13 @@ function AppearanceModuleData:Ctor()
   self.IsClockwiseRotation = false
   self.AvatarPlayerRotation = UE4.FRotator()
   self.InitialSuitBottomCache = {}
+  self._suitWearIdCache = nil
   self.AvatarPlayerRotation_Yaw = nil
   self.AvatarPlayerRotation_InitializeYaw = nil
   self.FrontAndBackRotation_Yaw = nil
   self.CurrentFashionLabelTyp = nil
   self.IsRotation = false
+  self.rotationContexts = {}
   self.PlayAnimStartTime = 0
   self.PlayAnimEndTime = 6
   self.PlayMoZhangIdleTime = 0
@@ -121,6 +124,15 @@ function AppearanceModuleData:Ctor()
   self.curSelectItemInfo = nil
   self.curSelectedItemGlassMap = {}
   self.savedItemGlassMap = nil
+  self.curTopExclusionPanel = AppearanceModuleEnum.ExclusionPanelType.None
+end
+
+function AppearanceModuleData:SetCurTopExclusionPanel(panelType)
+  self.curTopExclusionPanel = panelType
+end
+
+function AppearanceModuleData:GetCurTopExclusionPanel()
+  return self.curTopExclusionPanel
 end
 
 function AppearanceModuleData:SetAppearChooseType(type)
@@ -184,7 +196,10 @@ function AppearanceModuleData:SaveCurAppearChooseInfo()
 end
 
 function AppearanceModuleData:TempCurAppearChooseInfo(itemType, itemId, fashionGoodsId, bChoosed, tag, glassInfo)
-  _, itemType = _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.GetConfigEnumFromFashionId, itemId)
+  local itemConf = _G.DataConfigManager:GetFashionItemConf(itemId, true)
+  if itemConf then
+    itemType = itemConf.type
+  end
   local hasType = false
   if self.TempAppearData == nil then
     self.TempAppearData = {}
@@ -216,37 +231,7 @@ function AppearanceModuleData:TempCurAppearChooseInfo(itemType, itemId, fashionG
         glassInfo = glassInfo
       })
     end
-    if itemType == Enum.FashionLabelType.FLT_TOPS or itemType == Enum.FashionLabelType.FLT_BOTTOMS then
-      for i = 1, #self.TempAppearData do
-        if self.TempAppearData[i].FashionType == Enum.FashionLabelType.FLT_DRESSES then
-          table.remove(self.TempAppearData, i)
-          break
-        end
-      end
-    elseif itemType == Enum.FashionLabelType.FLT_DRESSES then
-      for i = #self.TempAppearData, 1, -1 do
-        if self.TempAppearData[i].FashionType == Enum.FashionLabelType.FLT_TOPS or self.TempAppearData[i].FashionType == Enum.FashionLabelType.FLT_BOTTOMS then
-          table.remove(self.TempAppearData, i)
-        end
-      end
-    end
-    if tag == _G.Enum.FashionTopsTag.FTT_LONGTOPS and (itemType == _G.Enum.FashionLabelType.FLT_TOPS or itemType == _G.Enum.FashionLabelType.FLT_DRESSES) then
-      for i = 1, #self.TempAppearData do
-        if self.TempAppearData[i].FashionType == _G.Enum.FashionLabelType.FLT_RINGS and self.TempAppearData[i].tag == _G.Enum.FashionRingsTag.FRT_LONGRINGS then
-          table.remove(self.TempAppearData, i)
-          break
-        end
-      end
-    end
-    if tag == _G.Enum.FashionRingsTag.FRT_LONGRINGS and itemType == _G.Enum.FashionLabelType.FLT_RINGS then
-      for i = 1, #self.TempAppearData do
-        local t = self.TempAppearData[i]
-        if (t.FashionType == _G.Enum.FashionLabelType.FLT_DRESSES or t.FashionType == _G.Enum.FashionLabelType.FLT_TOPS) and t.tag == _G.Enum.FashionTopsTag.FTT_LONGTOPS then
-          table.remove(self.TempAppearData, i)
-          break
-        end
-      end
-    end
+    self:RemoveConflictFashionItem(itemType, tag)
   else
     for i = 1, #self.TempAppearData do
       if self.TempAppearData[i].FashionType == itemType then
@@ -258,6 +243,7 @@ function AppearanceModuleData:TempCurAppearChooseInfo(itemType, itemId, fashionG
   table.sort(self.TempAppearData, function(a, b)
     return a.FashionType < b.FashionType
   end)
+  self._suitWearIdCache = nil
 end
 
 function AppearanceModuleData:TempCurBeautyChooseInfo(itemType, itemId, salonGoodsId, colorIndex, bChoosed)
@@ -288,6 +274,7 @@ function AppearanceModuleData:TempCurBeautyChooseInfo(itemType, itemId, salonGoo
       })
     end
   end
+  self._suitWearIdCache = nil
 end
 
 function AppearanceModuleData:GetBeautyList(chooseType)
@@ -316,6 +303,7 @@ end
 
 function AppearanceModuleData:ClearDataOnAppearClosed()
   self.TempAppearData = nil
+  self._suitWearIdCache = nil
   self.AppearShopItemList = nil
   self.onlyShowOwned = false
 end
@@ -402,6 +390,7 @@ function AppearanceModuleData:BuildFashionIdToGoodsIdMap()
       end
       if conf.Type == _G.Enum.GoodsType.GT_FASHION_PACKAGE then
         self.packageIdToGoodsIdMap[conf.item_id] = conf.id
+        self.goodsIdToPackageIdMap[conf.id] = conf.item_id
         if conf.gift_list and #conf.gift_list then
           for k, v in ipairs(conf.gift_list) do
             self.giftIdToPackageIdMap[v] = conf.item_id
@@ -575,8 +564,12 @@ function AppearanceModuleData:GetInitBodyPath()
   local defaultSuitClass
   if self.module.player.gender == Enum.ESexValue.SEX_MALE then
     defaultSuitClass = _G.NRCBigWorldPreloader:Get(UEPath.DEFAULT_AVATAR_SUIT_MALE)
-  elseif self.module.player.gender == Enum.ESexValue.SEX_FEMALE then
+  else
     defaultSuitClass = _G.NRCBigWorldPreloader:Get(UEPath.DEFAULT_AVATAR_SUIT_FEMALE)
+  end
+  if not defaultSuitClass then
+    Log.Error("AppearanceModuleData:GetInitBodyPath defaultSuitClass is nil, gender:", self.module.player.gender)
+    return
   end
   local BPDefaultSuitConfig = defaultSuitClass:GetDefaultObject()
   local bodyPath = BPDefaultSuitConfig.BodyPaths:ToTable()
@@ -940,9 +933,6 @@ function AppearanceModuleData:InitClosetShowItemList()
       end
     end
   end
-  for k, v in ipairs(upgradeSuitId) do
-    table.removeValue(self.closetFashionListByType[Enum.FashionLabelType.FLT_SUIT], v)
-  end
   local fashionItemTable = _G.DataConfigManager:GetTable(_G.DataConfigManager.ConfigTableId.FASHION_ITEM_CONF):GetAllDatas()
   for k, v in pairs(fashionItemTable) do
     local conf = _G.DataConfigManager:GetItemTransConf(k, true)
@@ -987,6 +977,13 @@ end
 function AppearanceModuleData:CheckSuitTime(suitId, count)
   count = count or 0
   local svrTime = _G.ZoneServer:GetServerTime() or 0
+  local suitConf = _G.DataConfigManager:GetFashionSuitsConf(suitId)
+  if suitConf and suitConf.activity_time and not string.IsNilOrEmpty(suitConf.activity_time) then
+    local activityStartTime = ActivityUtils.ToTimestamp(suitConf.activity_time) * 1000
+    if svrTime < activityStartTime then
+      return false
+    end
+  end
   local fashionGoodsConf = self.FashionIdToGoodsIdMap[suitId]
   if fashionGoodsConf then
     local goodsShopConf = _G.DataConfigManager:GetNormalShopConf(fashionGoodsConf.id)
@@ -1224,17 +1221,18 @@ function AppearanceModuleData:GetWearIdByType(bFashion, typeEnum)
     if fashionWear and #fashionWear > 0 then
       if typeEnum ~= _G.Enum.FashionLabelType.FLT_SUIT then
         for k, v in ipairs(fashionWear) do
-          if v.FashionId > 0 then
-            local fashionItemConf = _G.DataConfigManager:GetFashionItemConf(v.FashionId, true)
-            if typeEnum == fashionItemConf.type then
-              return v.FashionId
-            end
+          if v.FashionId > 0 and v.FashionType == typeEnum then
+            return v.FashionId
           end
         end
       else
+        if self._suitWearIdCache ~= nil then
+          return self._suitWearIdCache
+        end
         local firstItem = fashionWear[1]
         local belongSuitId = self.fashionIdToSuitIdMap[firstItem.FashionId]
         if not belongSuitId or 0 == belongSuitId then
+          self._suitWearIdCache = 0
           return 0
         end
         local initSuitIds = _G.NRCModuleManager:DoCmd(_G.AppearanceLoginModuleCmd.GetInitialOptionalSuitIds, player.gender)
@@ -1268,6 +1266,7 @@ function AppearanceModuleData:GetWearIdByType(bFashion, typeEnum)
               end
             end
             if wearCountExcludeWand == initSuitItemCountExcludeWand then
+              self._suitWearIdCache = initSelectSuitId
               return initSelectSuitId
             end
           end
@@ -1283,6 +1282,7 @@ function AppearanceModuleData:GetWearIdByType(bFashion, typeEnum)
               end
             end
             if not bFound then
+              self._suitWearIdCache = 0
               return 0
             end
           end
@@ -1322,13 +1322,16 @@ function AppearanceModuleData:GetWearIdByType(bFashion, typeEnum)
                   end
                 end
                 if not bFound then
+                  self._suitWearIdCache = 0
                   return 0
                 end
               end
             end
           end
+          self._suitWearIdCache = belongSuitId
           return belongSuitId
         else
+          self._suitWearIdCache = 0
           return 0
         end
       end
@@ -1337,11 +1340,8 @@ function AppearanceModuleData:GetWearIdByType(bFashion, typeEnum)
     local salonWear = self.TempBeautyData
     if salonWear and #salonWear > 0 then
       for k, v in ipairs(salonWear) do
-        if v.SalonId > 0 then
-          local salonItemConf = _G.DataConfigManager:GetSalonItemConf(v.SalonId, true)
-          if typeEnum == salonItemConf.type then
-            return v.SalonId
-          end
+        if v.SalonId > 0 and v.SalonType == typeEnum then
+          return v.SalonId
         end
       end
     end
@@ -1462,9 +1462,12 @@ function AppearanceModuleData:_InitSuitComponentData(fashionData)
         for k1, v1 in pairs(v.components_is_worn) do
           v1 = v1 + 1
           if suitConf.lv_up_closet and #suitConf.lv_up_closet > 0 and suitConf.lv_up_closet[v1] then
-            local bFashion = suitConf.lv_up_closet[v1].lv_item_type == _G.Enum.GoodsType.GT_FASHION
-            local id = suitConf.lv_up_closet[v1].lv_item_id
-            table.insert(self.SuitComponentData[v.suit_id], {bFashion = bFashion, id = id})
+            local lvItemType = suitConf.lv_up_closet[v1].lv_item_type
+            if lvItemType ~= _G.Enum.GoodsType.GT_FASHION_SUITS then
+              local bFashion = lvItemType == _G.Enum.GoodsType.GT_FASHION
+              local id = suitConf.lv_up_closet[v1].lv_item_id
+              table.insert(self.SuitComponentData[v.suit_id], {bFashion = bFashion, id = id})
+            end
           end
         end
       end
@@ -1522,6 +1525,13 @@ function AppearanceModuleData:BuildSuitIdToExchangeGoodsMap(exchangeShopId)
                     if suitRewardItem.Type == _G.Enum.GoodsType.GT_FASHION_SUITS then
                       self.suitIdToExchangeGoodsMap[suitRewardItem.Id] = goodsId
                       self.suitIdToExchangeVoucherMap[suitRewardItem.Id] = rewardItem.Id
+                      local suitConf = _G.DataConfigManager:GetFashionSuitsConf(suitRewardItem.Id)
+                      if suitConf and suitConf.package_id and 0 ~= suitConf.package_id then
+                        if not self.goodsIdToPackageIdMap[goodsId] then
+                          self.goodsIdToPackageIdMap[goodsId] = {}
+                        end
+                        table.insert(self.goodsIdToPackageIdMap[goodsId], suitConf.package_id)
+                      end
                       Log.Info(string.format("AppearanceModuleData:BuildSuitIdToExchangeGoodsMap suitId=%d -> goodsId=%d, voucherId=%d", suitRewardItem.Id, goodsId, rewardItem.Id))
                     end
                   end
@@ -1541,6 +1551,126 @@ end
 
 function AppearanceModuleData:GetExchangeVoucherIdBySuitId(suitId)
   return self.suitIdToExchangeVoucherMap and self.suitIdToExchangeVoucherMap[suitId]
+end
+
+function AppearanceModuleData:GetSuitIdByExchangeVoucherId(voucherId)
+  if not self.suitIdToExchangeVoucherMap then
+    return nil
+  end
+  local player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
+  if player then
+    for suitId, vId in pairs(self.suitIdToExchangeVoucherMap) do
+      if vId == voucherId then
+        local suitConf = _G.DataConfigManager:GetFashionSuitsConf(suitId)
+        if suitConf and suitConf.gender == player.gender then
+          return suitId
+        end
+      end
+    end
+  end
+  return nil
+end
+
+function AppearanceModuleData:GetPackageIdByGoodsId(goodsId)
+  if not self.goodsIdToPackageIdMap then
+    return nil
+  end
+  local value = self.goodsIdToPackageIdMap[goodsId]
+  if not value then
+    return nil
+  end
+  if type(value) == "number" then
+    return value
+  end
+  if type(value) == "table" then
+    local player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
+    if player then
+      for _, pkgId in ipairs(value) do
+        local fashionPackageConf = _G.DataConfigManager:GetFashionPackageConf(pkgId)
+        if fashionPackageConf and fashionPackageConf.gender == player.gender then
+          return pkgId
+        end
+      end
+    end
+    return value[1]
+  end
+  return nil
+end
+
+function AppearanceModuleData:RemoveConflictFashionItem(newFashionType, tag)
+  local AppearanceUtils = require("NewRoco.Modules.System.Appearance.AppearanceUtils")
+  if newFashionType == _G.Enum.FashionLabelType.FLT_TOPS or newFashionType == _G.Enum.FashionLabelType.FLT_BOTTOMS then
+    for i = 1, #self.TempAppearData do
+      if self.TempAppearData[i].FashionType == Enum.FashionLabelType.FLT_DRESSES then
+        table.remove(self.TempAppearData, i)
+        break
+      end
+    end
+  elseif newFashionType == _G.Enum.FashionLabelType.FLT_DRESSES then
+    for i = #self.TempAppearData, 1, -1 do
+      if self.TempAppearData[i].FashionType == Enum.FashionLabelType.FLT_TOPS or self.TempAppearData[i].FashionType == Enum.FashionLabelType.FLT_BOTTOMS then
+        table.remove(self.TempAppearData, i)
+      end
+    end
+  end
+  local newFashionId
+  for i = 1, #self.TempAppearData do
+    if self.TempAppearData[i].FashionType == newFashionType then
+      newFashionId = self.TempAppearData[i].FashionId
+      break
+    end
+  end
+  if newFashionId then
+    local newAvatarEnum = AppearanceUtils.GetAvatarEnumFromFashionId(newFashionId)
+    if newAvatarEnum then
+      local conflictBodyTypes = AppearanceUtils.GetConflictBodyTypes(newAvatarEnum)
+      if conflictBodyTypes and #conflictBodyTypes > 0 then
+        for i = #self.TempAppearData, 1, -1 do
+          local data = self.TempAppearData[i]
+          if data.FashionId ~= newFashionId then
+            local existAvatarEnum = AppearanceUtils.GetAvatarEnumFromFashionId(data.FashionId)
+            if existAvatarEnum then
+              for _, conflictType in ipairs(conflictBodyTypes) do
+                if existAvatarEnum == conflictType then
+                  table.remove(self.TempAppearData, i)
+                  break
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+  local newTagMap = AppearanceUtils.BuildTagMapFromAppearData(newFashionType, tag)
+  if not next(newTagMap) then
+    return
+  end
+  local conflictEntries = AppearanceUtils.GetConflictingTagEntries(newTagMap)
+  if 0 == #conflictEntries then
+    return
+  end
+  local conflictLookup = {}
+  for _, entry in ipairs(conflictEntries) do
+    local key = tostring(entry.fashionType) .. "_" .. tostring(entry.tagValue)
+    conflictLookup[key] = entry.field
+  end
+  for i = #self.TempAppearData, 1, -1 do
+    local data = self.TempAppearData[i]
+    if data.tag then
+      local existTagMap = AppearanceUtils.BuildTagMapFromAppearData(data.FashionType, data.tag)
+      for field, tagVal in pairs(existTagMap) do
+        local fType = AppearanceUtils.TagFieldToFashionType[field]
+        if fType then
+          local key = tostring(fType) .. "_" .. tostring(tagVal)
+          if conflictLookup[key] then
+            table.remove(self.TempAppearData, i)
+            break
+          end
+        end
+      end
+    end
+  end
 end
 
 return AppearanceModuleData

@@ -127,6 +127,7 @@ function UMG_Activity_StageAward_C:OnItemUpdate(_itemInst, _index, _itemObject)
   if _itemInst then
     _itemInst:SetDescribe(_itemObject:GetRewardItemDesc())
     _itemInst:SetTitle(_itemObject:GetRewardItemName())
+    _itemInst:SetBgImg(_itemObject:GetRewardItemBg())
     _itemInst:SetProgress(_itemObject:GetProgress())
     _itemInst:SetRewardGroup(_itemObject:GetRewardGroup())
     _itemInst:SetupRedPoint(_itemObject:GetRewardRedPointData())

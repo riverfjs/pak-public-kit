@@ -18,6 +18,8 @@ function ShareModuleCmdHead:OnConstruct()
   self:BindCmd(ShareModuleCmd.ShareMiniApp, "ShareMiniApp")
   self:BindCmd(ShareModuleCmd.ShareH5WechatAndQQ, "ShareH5WechatAndQQ")
   self:BindCmd(ShareModuleCmd.CheckAppInstall, "CheckAppInstall")
+  self:BindCmd(ShareModuleCmd.ForceClearRecordedVideo, "ForceClearRecordedVideo")
+  self:BindCmd(ShareModuleCmd.ShareCosVideo, "ShareCosVideo")
 end
 
 return ShareModuleCmdHead

@@ -10,6 +10,9 @@ local UMG_LegendaryBattle_Match_C = _G.NRCPanelBase:Extend("UMG_LegendaryBattle_
 function UMG_LegendaryBattle_Match_C:OnConstruct()
   NRCModeManager:GetCurMode():DisablePanelByLayer(_G.Enum.UILayerType.UI_LAYER_MAIN)
   self:OnAddEventListener()
+  self.TabList:SetMsgHandler({
+    OnItemSelected = _G.MakeWeakFunctor(self, self.OnItemSelected)
+  })
 end
 
 function UMG_LegendaryBattle_Match_C:OnActive(npcAction)
@@ -360,6 +363,10 @@ function UMG_LegendaryBattle_Match_C:ShowStarList()
   self.TabList:InitList(starTbl)
   self.TabList:SelectItemByIndex(self.module.curChooseStarNum - self.startNum)
   self.TabList:ScrollToIndex(self.module.curChooseStarNum - self.startNum, true)
+end
+
+function UMG_LegendaryBattle_Match_C:OnItemSelected(Num)
+  self.module:OnSetStarNum(Num)
 end
 
 function UMG_LegendaryBattle_Match_C:SetCommonTitle()

@@ -1,4 +1,5 @@
 local Base = require("NewRoco.TUI.BP_NRCItemBase_C")
+local SceneEvent = require("NewRoco.Modules.Core.Scene.Common.SceneEvent")
 local UMG_RolePlayItem_C = Base:Extend("UMG_RolePlayItem_C")
 local RolePlayModuleDef = require("NewRoco.Modules.System.RolePlay.RolePlayModuleDef")
 local RolePlayModuleEvent = require("NewRoco.Modules.System.RolePlay.RolePlayModuleEvent")
@@ -13,12 +14,14 @@ function UMG_RolePlayItem_C:OnConstruct()
   self.bShouldEnableMarquee = false
   self.nextTriggerPropTime = 0
   _G.UpdateManager:Register(self)
+  _G.NRCEventCenter:RegisterEvent(self.name, self, SceneEvent.OnRolePlayPropsBanStateChanged, self.OnRolePlayPropsBanStateChanged)
 end
 
 function UMG_RolePlayItem_C:OnDestruct()
   _G.UpdateManager:UnRegister(self)
   self:ClearCountdownTime()
   _G.NRCEventCenter:UnRegisterEvent(self, RolePlayModuleEvent.ItemEraseRedPoint, self.CheckEraseRedPoint)
+  _G.NRCEventCenter:UnRegisterEvent(self, SceneEvent.OnRolePlayPropsBanStateChanged, self.OnRolePlayPropsBanStateChanged)
   self:CancelDelayCheckShouldEnableMarquee()
 end
 
@@ -39,6 +42,7 @@ function UMG_RolePlayItem_C:OnItemUpdate(_data, datalist, index)
   end
   self:StopAllAnimations()
   self:ClearCountdownTime()
+  self:PlayAnimation(self.Normal)
   if changeTab then
     if _data.bSelected then
       self:PlayAnimation(self.Selected_in)
@@ -143,6 +147,10 @@ function UMG_RolePlayItem_C:CalculateTextWidth(textComp, textContent)
 end
 
 function UMG_RolePlayItem_C:OnItemSelected(_bSelected)
+  if not UE4.UObject.IsValid(self.Object) then
+    Log.Error("UMG_RolePlayItem_C Object is nil")
+    return
+  end
   if self:GetVisibility() == UE4.ESlateVisibility.Collapsed then
     return
   end
@@ -165,6 +173,9 @@ function UMG_RolePlayItem_C:OnItemSelected(_bSelected)
           self:SelectFurnitureConfItem()
         end
       end
+    end
+    if self.BroadcastOnClicked then
+      self:BroadcastOnClicked()
     end
     self:CheckEraseRedPoint()
   end
@@ -283,7 +294,8 @@ function UMG_RolePlayItem_C:UpdateWardrobeConfItem()
 end
 
 function UMG_RolePlayItem_C:UpdatePropConfItem()
-  local conf = _G.DataConfigManager:GetRoleplayPropConf(self.data and self.data.value or 0)
+  local propId = self.data and self.data.value or 0
+  local conf = _G.DataConfigManager:GetRoleplayPropConf(propId)
   if conf then
     self:SetName(conf.name_text)
     self.FurnitureIcon:SetPath(conf.icon_path)
@@ -300,6 +312,9 @@ function UMG_RolePlayItem_C:UpdatePropConfItem()
       self.CountDown:SetVisibility(UE4.ESlateVisibility.Collapsed)
     end
   end
+  local bBanned = _G.NRCModuleManager:DoCmd(_G.SceneModuleCmd.IsRolePlayPropBanned, propId)
+  bBanned = bBanned or _G.NRCModuleManager:DoCmd(_G.AreaAndZoneModuleCmd.CheckRolePlayPropsIsBan, propId)
+  self:UpdatePropBanState(bBanned)
 end
 
 function UMG_RolePlayItem_C:ClearCountdownTime()
@@ -403,16 +418,31 @@ function UMG_RolePlayItem_C:SelectFurnitureConfItem()
     _G.NRCModuleManager:DoCmd(_G.RolePlayModuleCmd.ShowPlaceFrequentlyTips)
     return
   end
+  local Player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
   local npcId = self.data and self.data.value or 0
   local curPutPropId = _G.NRCModuleManager:DoCmd(_G.RolePlayModuleCmd.GetCurPutPropNpcId)
   if curPutPropId > 0 then
     _G.NRCModuleManager:DoCmd(_G.RolePlayModuleCmd.SetInRecycleNpcId, curPutPropId)
-    _G.NRCModeManager:DoCmd(_G.NPCModuleCmd.RecycleSceneSeat, curPutPropId, _G.NRCModeManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_UIN))
+    if Player and Player.playerToyComponent then
+      Player.playerToyComponent:RecycleRolePlayProp(curPutPropId, _G.NRCModeManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_UIN))
+    end
     return
   end
-  _G.NRCModuleManager:DoCmd(_G.RolePlayModuleCmd.RefreshNextPutPropTime, curTime)
-  _G.NRCModuleManager:DoCmd(_G.RolePlayModuleCmd.SetInPutPropNpcId, npcId)
-  _G.NRCModeManager:DoCmd(_G.NPCModuleCmd.CreateSceneSeat, npcId)
+  if self.data.disabled then
+    _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.put_prop_ban)
+    return
+  end
+  local propPlaceMode = _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.GetPropPlaceMode)
+  if 1 == propPlaceMode then
+    _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.OpenPropPlacementPanel, self.data.value or 0)
+    _G.NRCModuleManager:DoCmd(_G.RolePlayModuleCmd.CloseMainPanel)
+  else
+    _G.NRCModuleManager:DoCmd(_G.RolePlayModuleCmd.RefreshNextPutPropTime, curTime)
+    _G.NRCModuleManager:DoCmd(_G.RolePlayModuleCmd.SetInPutPropNpcId, npcId)
+    if Player and Player.playerToyComponent then
+      Player.playerToyComponent:CreateRolePlayProp(npcId)
+    end
+  end
 end
 
 function UMG_RolePlayItem_C:OnAnimationFinished(anim)
@@ -446,6 +476,33 @@ end
 
 function UMG_RolePlayItem_C:IgnoreNextSelectEvent()
   self.bIgnoreSelect = true
+end
+
+function UMG_RolePlayItem_C:OnRolePlayPropsBanStateChanged(id, bBanned)
+  local data = self.data
+  if not data then
+    return
+  end
+  if data.type ~= RolePlayModuleDef.RolePlayType.PutProp then
+    return
+  end
+  local propId = data.value
+  if propId ~= id then
+    return
+  end
+  Log.Debug("UMG_RolePlayItem_C:OnRolePlayPropsBanStateChanged", propId, bBanned)
+  self:UpdatePropBanState(bBanned)
+end
+
+function UMG_RolePlayItem_C:UpdatePropBanState(bBanned)
+  local npcId = self.data and self.data.value or 0
+  local curPutPropId = _G.NRCModuleManager:DoCmd(_G.RolePlayModuleCmd.GetCurPutPropNpcId)
+  if bBanned and npcId ~= curPutPropId then
+    self.CanvasForbid:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  else
+    self.CanvasForbid:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  end
+  self.data.disabled = bBanned
 end
 
 return UMG_RolePlayItem_C

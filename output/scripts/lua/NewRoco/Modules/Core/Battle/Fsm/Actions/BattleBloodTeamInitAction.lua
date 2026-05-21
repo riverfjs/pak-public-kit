@@ -5,6 +5,8 @@ local BattleBloodTeamInitAction = BattleInitAction:Extend("BattleBloodTeamInitAc
 function BattleBloodTeamInitAction:OnEnter()
   NRCEventCenter:DispatchEvent(BattleEvent.EnterBattle)
   self.BattleManager:OpenBattleMainWindow()
+  _G.BattleLevelHelper:SetEnvVolumeForLoadLevel(true)
+  _G.BattleLevelHelper:ResetBloodTeamLevelData()
   self:Finish()
 end
 

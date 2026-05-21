@@ -26,6 +26,7 @@ function RedPointModuleData:InitFromPlayerData()
     redPointNodeDic[key].cfg = cfg
     redPointNodeDic[key].redCount = 0
     redPointNodeDic[key].litUpReasonDic = {}
+    redPointNodeDic[key].litUpRootDic = {}
     redPointNodeDic[key].popReasonDic = {}
     redPointNodeDic[key].popFromDic = {}
     redPointNodeDic[key].redPointTypeTable = {}
@@ -148,6 +149,10 @@ local function _UpdateOneRpNode(rpNode, reason, customPointData, isPopReason, fr
     rpNode.redPointTypeTable = {}
     local redpoint_type = rpNode.cfg.redpoint_type[1]
     table.insert(rpNode.redPointTypeTable, redpoint_type)
+    rpNode.litUpRootDic = {}
+    if customPointData and #customPointData.oriPointData > 0 then
+      rpNode.litUpRootDic[reason] = rpNode.key
+    end
     if numInfo and numInfo > 0 then
       rpNode.numInfoDic = rpNode.numInfoDic or {}
       rpNode.numInfoDic[reason] = numInfo
@@ -163,6 +168,21 @@ local function _UpdateOneRpNode(rpNode, reason, customPointData, isPopReason, fr
       rpNode.popNumInfoDic[reason] = numInfo
     elseif rpNode.popNumInfoDic then
       rpNode.popNumInfoDic[reason] = nil
+    end
+    rpNode.litUpRootDic = {}
+    local RedPointModule = NRCModuleManager:GetModule("RedPointModule")
+    local RedPointNodeDic = RedPointModule.data:GetRedPointNodeDic()
+    if RedPointNodeDic then
+      for _, sonRedPointNodeKey in pairs(rpNode.popFromDic or {}) do
+        if RedPointNodeDic[sonRedPointNodeKey] then
+          local SonRedPointNode = RedPointNodeDic[sonRedPointNodeKey]
+          if SonRedPointNode then
+            for k, v in pairs(SonRedPointNode.litUpRootDic) do
+              rpNode.litUpRootDic[k] = v
+            end
+          end
+        end
+      end
     end
   end
   local num = 0
@@ -321,9 +341,10 @@ function RedPointModuleData:UpdateParentNode(rpNode, reason, customPointData, is
   if not rootFlag then
     _UpdateOneRpNode(rpNode, reason, customPointData, true, fromKey, numInfo)
   end
+  local PopupPointData = customPointData
   if rpNode.parent and #rpNode.parent > 0 then
     for _, parent in ipairs(rpNode.parent) do
-      self:UpdateParentNode(parent, reason, customPointData, true, rpNode.key, false, numInfo)
+      self:UpdateParentNode(parent, reason, PopupPointData, true, rpNode.key, false, numInfo)
     end
   end
 end
@@ -568,6 +589,10 @@ end
 
 function RedPointModuleData:isPrefixMatch(A, B)
   if not A or not B then
+    return false
+  end
+  if type(A) ~= "table" or type(B) ~= "table" then
+    Log.Error("\230\156\137extraKey\228\184\141\230\152\175table\231\154\132\229\189\162\229\188\143\239\188\140\232\175\183\230\163\128\230\159\165extraKey\239\188\140\229\186\148\232\175\165\233\131\189\228\184\186table")
     return false
   end
   if #B < #A then

@@ -11,7 +11,6 @@ MagicCreationModuleCmd.MakePreperformPair = "MagicCreationModuleCmd.MakePreperfo
 MagicCreationModuleCmd.PreperformLocalReady = "MagicCreationModuleCmd.PreperformLocalReady"
 MagicCreationModuleCmd.CheckLandValid = "MagicCreationModuleCmd.CheckLandValid"
 MagicCreationModuleCmd.CheckNpcHeightDifferenceWithPlayer = "MagicCreationModuleCmd.CheckNpcHeightDifferenceWithPlayer"
-MagicCreationModuleCmd.CheckBossAreaOverlap = "MagicCreationModuleCmd.CheckBossAreaOverlap"
 MagicCreationModuleCmd.CheckEavesExisted = "MagicCreationModuleCmd.CheckEavesExisted"
 MagicCreationModuleCmd.GetCanDrawDebug = "MagicCreationModuleCmd.GetCanDrawDebug"
 return MagicCreationModuleCmd

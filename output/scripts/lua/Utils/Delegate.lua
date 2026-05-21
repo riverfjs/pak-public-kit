@@ -41,6 +41,9 @@ function Delegate:Remove(caller, handler)
 end
 
 function Delegate:Has(caller, handler)
+  if not self.List then
+    return false
+  end
   local ExistingItem = self.List:FindValue(self, self.CompareItem, caller, handler)
   return nil ~= ExistingItem
 end

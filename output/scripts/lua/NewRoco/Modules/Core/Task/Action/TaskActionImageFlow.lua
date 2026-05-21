@@ -35,11 +35,20 @@ function TaskActionImageFlow:OnImageFlowFinish(bSuccess)
 end
 
 function TaskActionImageFlow:SendFinishReq()
-  local Req = ProtoMessage:newZoneTaskConditionTriggerReq()
-  Req.taskid = self.Task.Config.id
-  Req.condition_type = self.Conf.type
-  Log.Debug("[TaskActionImageFlow:SendFinishReq] Send Finish Req")
-  _G.ZoneServer:SendWithHandler(ProtoCMD.ZoneSvrCmd.ZONE_TASK_CONDITION_TRIGGER_REQ, Req, self, self.OnSendFinish, false, false)
+  if self.Task.Config.task_structure_type == ProtoEnum.TaskStructureType.TSCAT_SLIDE then
+    local InfoList = self:GetClientConditionInfo()
+    if #InfoList > 0 then
+      local Info = InfoList[1]
+      local Req = ProtoMessage:newZoneTaskConditionTriggerReq()
+      Req.taskid = Info.taskid
+      Req.condition_type = Info.condition_type
+      Req.task_condition_idx = Info.task_condition_idx
+      Log.Debug("[TaskActionImageFlow:SendFinishReq] Send Finish Req", Info.taskid, Info.condition_type, Info.task_condition_idx)
+      _G.ZoneServer:SendWithHandler(ProtoCMD.ZoneSvrCmd.ZONE_TASK_CONDITION_TRIGGER_REQ, Req, self, self.OnSendFinish, false, false)
+    end
+  else
+    Base.SendFinishReq(self)
+  end
 end
 
 function TaskActionImageFlow:OnSendFinish(Rsp)

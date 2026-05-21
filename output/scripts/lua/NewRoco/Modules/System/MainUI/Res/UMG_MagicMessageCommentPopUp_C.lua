@@ -14,6 +14,18 @@ function UMG_MagicMessageCommentPopUp_C:OnActive(feedInfo)
   self:SetCommonPopUpInfo(self.PopUp3)
   local Conf = _G.DataConfigManager:GetGlobalConfig("magic_message_word_count")
   self.maxWordCount = Conf.num
+  local hintText = LuaText.message_wand_null_remind_text
+  if self.feedInfo.sub_type and 0 ~= self.feedInfo.sub_type then
+    local subMarkMessageTable = _G.DataConfigManager:GetTable(DataConfigManager.ConfigTableId.MARK_MESSAGE_CHILD_CONF):GetAllDatas()
+    for k, v in pairs(subMarkMessageTable) do
+      local subMarkMessageConf = v
+      if subMarkMessageConf.child_type == self.feedInfo.sub_type then
+        hintText = subMarkMessageConf.remind_text
+        break
+      end
+    end
+  end
+  self.InputBox_Content:SetHintText(hintText)
 end
 
 function UMG_MagicMessageCommentPopUp_C:OnDeactive()
@@ -34,23 +46,29 @@ end
 
 function UMG_MagicMessageCommentPopUp_C:OnTextChanged()
   local content = self.InputBox_Content:GetText()
+  local plainText = content
+  local colorList
+  if self.feedInfo and self.feedInfo.sub_type and 0 ~= self.feedInfo.sub_type then
+    plainText, colorList = string.ExtractColorCodes(content)
+  end
   local transCount = self.maxWordCount / 3 * 2
-  local count = string.StringGetTotalNum(content)
-  Log.Info("UMG_MagicMessageCommentPopUp_C:OnTextChanged GetText count", content, count)
+  local count = string.StringGetTotalNum(plainText)
   if RocoEnv.PLATFORM ~= "PLATFORM_WINDOWS" then
     if count > 40 then
-      Log.Info("OnTextChanged SetAutoSize true")
       self.InputBox_Content.Slot:SetAutoSize(true)
     else
-      Log.Info("OnTextChanged SetAutoSize false", content)
       self.InputBox_Content.Slot:SetAutoSize(false)
     end
   end
   if transCount < count then
     _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.Error_Code_18303)
-    local subStr = string.GetSubStr(content, transCount)
-    Log.Info("OnTextChanged \232\182\133\232\191\13530\228\184\170\229\173\151\239\188\140\232\163\129\229\137\170\228\184\186", subStr)
-    self.InputBox_Content:SetText(subStr)
+    local subPlainText = string.GetSubStr(plainText, transCount)
+    local finalText = subPlainText
+    if self.feedInfo and self.feedInfo.sub_type and 0 ~= self.feedInfo.sub_type then
+      finalText = string.RebuildTextWithColorCodes(subPlainText, colorList)
+    end
+    Log.Info("OnTextChanged \232\182\133\232\191\13530\228\184\170\229\173\151\239\188\140\232\163\129\229\137\170\228\184\186", finalText)
+    self.InputBox_Content:SetText(finalText)
   end
 end
 
@@ -73,11 +91,15 @@ function UMG_MagicMessageCommentPopUp_C:OnBtnOkClick()
     _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.Error_Code_18300)
     return
   end
+  local svrContent = content
+  if self.feedInfo and self.feedInfo.sub_type and 0 ~= self.feedInfo.sub_type then
+    svrContent = string.ExtractInvalidColorCodes(content)
+  end
   self.bReq = true
   local reqMsg = _G.ProtoMessage:newZoneFeedMagicFeedbackReq()
   reqMsg.uin = _G.DataModelMgr.PlayerDataModel:GetPlayerUin()
   reqMsg.feed_id = self.feedInfo.feed_id
-  reqMsg.comment_content = content
+  reqMsg.comment_content = svrContent
   reqMsg.category = self.feedInfo.category
   _G.ZoneServer:SendWithHandler(ProtoCMD.ZoneSvrCmd.ZONE_FEED_MAGIC_FEEDBACK_REQ, reqMsg, self, self.OnFeedBackProcess, nil, false)
   self:DelaySeconds(2, function()
@@ -97,17 +119,10 @@ function UMG_MagicMessageCommentPopUp_C:OnFeedBackProcess(rsp)
     return
   end
   if rsp.ret_info.ret_code == 18306 then
-    if self.feedInfo.category == ProtoEnum.MarkGameplay.MK_MAGIC_VIDEO then
-      _G.NRCModuleManager:DoCmd(_G.MagicReplayModuleCmd.StopMagicReplay)
-    end
-    _G.NRCModuleManager:DoCmd(_G.MagicMessageModuleCmd.DeleteNpcByGridAndFeedId, self.feedInfo.grid_id, self.feedInfo.feed_id, self.feedInfo.category)
     local mainUIModule = _G.NRCModuleManager:GetModule("MainUIModule")
     local showMessagePanel = mainUIModule:GetPanel("ShowMagicMessage")
     if showMessagePanel then
-      if 0 ~= self.feedInfo.music_id and -1 ~= showMessagePanel.SoundSession then
-        showMessagePanel:DoStopMusic()
-      end
-      showMessagePanel:CloseUI()
+      showMessagePanel:DeleteCurFeed()
     end
     return
   end

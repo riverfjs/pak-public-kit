@@ -15,6 +15,7 @@ function CastSkillObject:Ctor()
   self.CallbackOwner = nil
   self.PerformCallback = nil
   self.CompleteCallback = nil
+  self.OnStartFailedCallback = nil
   self.SkipBackswingCallback = nil
   self.OnCounterCallback = nil
   self.OnInterruptCallback = nil
@@ -34,6 +35,7 @@ function CastSkillObject:Ctor()
   self.HidePopupCallback = nil
   self.ShowPopupCallback = nil
   self.OpenUICallback = nil
+  self.InterruptBeCounterSkill = nil
   self.OnAllHitEnd = nil
   self.OnStateEffectEndCallback = nil
   self.OnNormalDefendEnd = nil
@@ -51,7 +53,6 @@ function CastSkillObject:Ctor()
   self.DamageType = 0
   self.CounterActor = nil
   self.BeCounterActor = nil
-  self.resonance_skill_id = 0
   BattleResourceManager:AttachCastSkillObject(self)
 end
 
@@ -238,8 +239,18 @@ function CastSkillObject:SetOpenUICallback(callback)
   return self
 end
 
+function CastSkillObject:SetInterruptBeCounterSkill(callback)
+  self.InterruptBeCounterSkill = callback
+  return self
+end
+
 function CastSkillObject:SetLastHitCallback(callback)
   self.OnLastHitCallBack = callback
+  return self
+end
+
+function CastSkillObject:SetStartFailedCallback(callback)
+  self.OnStartFailedCallback = callback
   return self
 end
 
@@ -386,10 +397,6 @@ function CastSkillObject.FromPerformInfoToSkill(skill_cast, skillResChange)
     SkillRes = skillResChange.res_id
   else
     SkillRes = SkillConf.res_id
-  end
-  if ProtoEnum.PET_SKILL_PERFORM_FLAG.PET_SKILL_PERFORM_FLAG_RESONANCE == skill_cast.perform_flag then
-    SkillRes = BattleConst.ResonanceSkillPath
-    Obj.resonance_skill_id = skill_cast.skill_id
   end
   Obj.DamageType = SkillConf.damage_type
   Obj.skillID = RealSkillID

@@ -1,18 +1,27 @@
+local BattleUtils = require("NewRoco.Modules.Core.Battle.Common.BattleUtils")
 local UMG_Battle_Tutorial_C = _G.NRCPanelBase:Extend("UMG_Battle_Tutorial_C")
 local BattleEvent = require("NewRoco.Modules.Core.Battle.Common.BattleEvent")
+local TutorialStep = {
+  None = 0,
+  Step1 = 1,
+  Step2 = 2,
+  Step3 = 3
+}
 
 function UMG_Battle_Tutorial_C:OnActive(num, guideWidget)
+  self.battleManager = _G.BattleManager
   NRCModuleManager:DoCmd(BattleUIModuleCmd.Close_Information_Recording)
   _G.NRCModuleManager:DoCmd(_G.BattleUIModuleCmd.CloseAllBattleChatRelatedUI, true)
   NRCModuleManager:DoCmd(BattleUIModuleCmd.CloseBattleChangePetConfirmPanel)
   self.guideWidget = guideWidget
   self.bEnabledDebug = _G.NRCModuleManager:DoCmd(_G.GuidanceModuleCmd.GetDebugEnabled)
+  self.currentStep = TutorialStep.None
   self:BindInputAction()
   self:OnAddEventListener()
   if 1 == num then
     self:OnGetContent()
   elseif 2 == num then
-    self:CallOutNameTutorial2()
+    self:CallOutNameTutorial2(true)
   end
   if UE4Helper.IsPCMode() then
     self.CallNameTutorial1:SetRenderScale(UE4.FVector2D(0.82, 0.82))
@@ -107,22 +116,47 @@ function UMG_Battle_Tutorial_C:CallOutNameTutorial1()
   self:LimitInputAction("IA_BattleBagStart", "CallOutNameTutorial2")
 end
 
-function UMG_Battle_Tutorial_C:CallOutNameTutorial2()
+function UMG_Battle_Tutorial_C:CallOutNameTutorial2(bFinalBattleEnergyIsFull)
   self:UploadData()
   self:LimitInputAction("IA_BattleSelectItemStart_1", "CloseCallOutNameTutorial2")
+  self.bFinalBattleEnergyIsFull = bFinalBattleEnergyIsFull
   _G.BattleEventCenter:Dispatch(BattleEvent.SimulateClickBag)
 end
 
 function UMG_Battle_Tutorial_C:ShowTutorial2(guideWidget)
-  self.guideWidget = guideWidget
-  self:UpdateGuidePositonInternal(self.guideWidget, self.Background_1, self.CallNameTutorial2)
-  self:ChangeWishPowerBgByCallNameTutorialIndex(2)
-  self.CallNameTutorialPanel:SetVisibility(UE4.ESlateVisibility.Collapsed)
-  self.CallNameTutorialPanel2:SetVisibility(UE4.ESlateVisibility.Visible)
-  self:PlayAnimation(self.Point_L)
+  if self.bHasShowTutorial2 and not self.bFinalBattleEnergyIsFull then
+    return
+  end
+  if self.currentStep == TutorialStep.Step3 then
+    return
+  end
+  if BattleUtils.IsFinalBattleP1() then
+    if 2 == self.battleManager.battleRuntimeData.roundIndex then
+      self.guideWidget = guideWidget
+      self:UpdateGuidePositonInternal(self.guideWidget, self.Background_1, self.CallNameTutorial2)
+      self:ChangeWishPowerBgByCallNameTutorialIndex(2)
+      self.CallNameTutorialPanel:SetVisibility(UE4.ESlateVisibility.Collapsed)
+      self.CallNameTutorialPanel2:SetVisibility(UE4.ESlateVisibility.Visible)
+      self:PlayAnimation(self.Point_L)
+      self.bHasShowTutorial2 = true
+      self.currentStep = TutorialStep.Step2
+    elseif self.bFinalBattleEnergyIsFull then
+      self.guideWidget = guideWidget
+      self:UpdateGuidePositonInternal(self.guideWidget, self.Background_1, self.CallNameTutorial2)
+      self:ChangeWishPowerBgByCallNameTutorialIndex(2)
+      self.CallNameTutorialPanel:SetVisibility(UE4.ESlateVisibility.Collapsed)
+      self.CallNameTutorialPanel2:SetVisibility(UE4.ESlateVisibility.Visible)
+      self:PlayAnimation(self.Point_L)
+      self.bHasShowTutorial2 = true
+      self.currentStep = TutorialStep.Step2
+    end
+  end
 end
 
 function UMG_Battle_Tutorial_C:CloseCallOutNameTutorial2()
+  if self.currentStep ~= TutorialStep.Step2 then
+    return
+  end
   NRCEventCenter:DispatchEvent(BattlePerformEvent.SimulateClickItem0)
   self.CallNameTutorialPanel2:SetVisibility(UE4.ESlateVisibility.Collapsed)
   local curRound = _G.BattleManager.curRound
@@ -130,8 +164,10 @@ function UMG_Battle_Tutorial_C:CloseCallOutNameTutorial2()
     self:ChangeWishPowerBgByCallNameTutorialIndex(3)
     self.CallNameTutorialPanel3:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     self:PlayAnimation(self.Point_Middle)
+    self.currentStep = TutorialStep.Step3
     self:LimitInputAction("IA_BattleSure", "HandleScreenClick")
   else
+    self.currentStep = TutorialStep.None
     self:CancelAllLimitInputAction()
     self:OnClose()
   end
@@ -152,9 +188,13 @@ function UMG_Battle_Tutorial_C:OnGetContent(Data)
 end
 
 function UMG_Battle_Tutorial_C:HandleScreenClick()
+  if self.currentStep ~= TutorialStep.Step3 then
+    return
+  end
   if self.CallNameTutorialPanel3:GetVisibility() == UE4.ESlateVisibility.SelfHitTestInvisible then
     self.CallNameTutorialPanel3:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
+  self.currentStep = TutorialStep.None
   self:CancelAllLimitInputAction()
 end
 

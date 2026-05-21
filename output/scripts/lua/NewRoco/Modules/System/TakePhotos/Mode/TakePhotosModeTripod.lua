@@ -252,7 +252,6 @@ function TakePhotosModeTripod:BeginExitCamera()
   if self.TripodNpc and UE.UObject.IsValid(self.TripodNpc) then
     self.TripodNpc:SetAudioPlayEnabled(true)
     self.TripodNpc:EndOverlap()
-    self.TripodNpc:SetAudioPlayEnabled(true)
   end
 end
 

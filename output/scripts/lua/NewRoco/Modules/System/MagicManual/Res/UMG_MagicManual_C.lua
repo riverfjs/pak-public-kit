@@ -165,12 +165,12 @@ function UMG_MagicManual_C:OnActive(_TaskPanelInfo)
   self.data = self.module:GetData("MagicManualModuleData")
   if self.module.TableIndex == self.data.TaskSortType.Task_Adventure and self.module.ManaulChildIndex == self.data.ManualTaskType.SeasonManual then
     self.TaskPanelInfo = self.data:GetMagicManualTaskPanelInfo()
-    if self.TaskPanelInfo then
+    if self.TaskPanelInfo and self.TaskPanelInfo.LeftPanelInfo then
       self.ParagraphId = self.TaskPanelInfo.LeftPanelInfo.id
     end
   else
     self.TaskPanelInfo = _TaskPanelInfo
-    if self.TaskPanelInfo then
+    if self.TaskPanelInfo and self.TaskPanelInfo.LeftPanelInfo then
       self.ParagraphId = self.TaskPanelInfo.LeftPanelInfo.id
     end
   end

@@ -226,12 +226,18 @@ end
 
 function EnhancedInputModule:DumpEnhancedInputDetail()
   local debugContextData = {}
-  for _, mappingContext in pairs(self.activeMappingContext) do
-    table.insert(debugContextData, mappingContext:GetDebugData())
+  for _, contextData in pairs(self.applyInputMappingContext or {}) do
+    local debugItem = {}
+    debugItem.priority = contextData.priority
+    debugItem.contextName = contextData.imcName
+    local mappingContext = self.activeMappingContext and self.activeMappingContext[debugItem.contextName]
+    if mappingContext then
+      local _debugData = mappingContext:GetDebugData() or {}
+      debugItem.isActive = _debugData.isActive
+      debugItem.bindActions = _debugData.bindActions
+    end
+    table.insert(debugContextData, debugItem)
   end
-  table.sort(debugContextData, function(a, b)
-    return a.sortNumber < b.sortNumber
-  end)
   local DebugData = {
     ["\231\148\159\230\149\136\228\184\173\231\154\132\233\148\174\231\155\152\230\152\160\229\176\132\228\191\161\230\129\175"] = debugContextData
   }

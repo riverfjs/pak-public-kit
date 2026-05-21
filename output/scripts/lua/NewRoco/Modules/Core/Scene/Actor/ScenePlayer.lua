@@ -13,6 +13,8 @@ local StatusCheckerEnum = require("NewRoco.Modules.Core.Task.StatusCheckers.Stat
 local NPCLuaUtils = require("NewRoco.Modules.Core.NPC.NPCLuaUtils")
 local RocoSkillProxy = require("NewRoco.Utils.RocoSkillProxy")
 local TakePhotoComponent = require("NewRoco.Modules.Core.Scene.Component.TakePhoto.TakePhotoComponent")
+local AbnormalStatusComponent = require("NewRoco.Modules.Core.Scene.Component.Status.AbnormalStatus.AbnormalStatusComponent")
+local ResonanceComponent = require("NewRoco.Modules.Core.Scene.Component.ResonanceComponent")
 local ScenePlayer = Base:Extend("ScenePlayer")
 
 function ScenePlayer:Ctor(module)
@@ -33,7 +35,7 @@ function ScenePlayer:InitData(Config, ServerData)
   self:InitComponent()
   if ServerData and ServerData.base then
     local bornPos = ServerData.base.pt.pos
-    bornPos = UE4.FVector(bornPos.x, bornPos.y, bornPos.z)
+    bornPos = SceneUtils.ServerPos2PlayerPos(bornPos)
     local surfaceBornPos = bornPos
     if surfaceBornPos then
       self.pos = surfaceBornPos
@@ -75,6 +77,8 @@ function ScenePlayer:InitComponent()
   self:EnsureComponent(TemperatureComponent)
   self:EnsureComponent(RolePlayComponent)
   self:EnsureComponent(TakePhotoComponent)
+  self:EnsureComponent(AbnormalStatusComponent)
+  self:EnsureComponent(ResonanceComponent)
 end
 
 function ScenePlayer:OnPlayerTeleport(to_pt)

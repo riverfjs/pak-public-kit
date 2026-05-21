@@ -174,8 +174,11 @@ function BattleTeamBeastDefeatAction:SkillFinish()
       self.OldBoss:OnRecall()
       self.OldBoss = nil
     end
-    if self.Boss and not self.Boss.buffComponent:CheckStateIsPlaying(Enum.BuffGroupSign.BGS_CATCHSTUN) then
-      self:StunBuff()
+    if self.Boss then
+      if not self.Boss.buffComponent:CheckStateIsPlaying(Enum.BuffGroupSign.BGS_CATCHSTUN) then
+        self:StunBuff()
+      end
+      self.Boss:PinOnTheGround()
     end
     self.Boss = nil
     self:RevertPetsPosition()

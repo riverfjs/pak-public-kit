@@ -30,7 +30,17 @@ function PreProcessEnterBattleAction:OnEnter()
   Log.Debug("PreProcessEnterBattleAction:OnEnter")
   if self:CheckNeedTeleport() then
     if self.isPvp and not self.isAutoBattle then
-      self:CheckStartTeleport()
+      if not BattleUtils.HasUI("BattleLoading") and not BattleUtils.HasUI("TransformLoading") and not BattleUtils.HasUI("PVP_Prepare") then
+        self.IsCloseLoading = true
+        local asyncData = {
+          owner = self,
+          callback = self.CheckStartTeleport
+        }
+        NRCModuleManager:DoCmdAsync(asyncData, BattleUIModuleCmd.OpenLoading)
+        self:SafeDelaySeconds("d_CheckStartTeleport", 3, self.CheckStartTeleport, self)
+      else
+        self:CheckStartTeleport()
+      end
     elseif BattleUtils.IsB1FinalBattleP1() then
       self:CheckStartTeleport()
     else
@@ -105,7 +115,12 @@ function PreProcessEnterBattleAction:LoadBattleLevel()
         scenePath = "/Game/ArtRes/Level/Game/Indoor/A2/Indoor_A2_04/Indoor_A2_04_Release"
       end
     end
-    local LevelStreaming = BattleManager.vBattleField:LoadBattleLevel(scenePath, self.npcPos, UE.FRotator())
+    local LevelStreaming
+    if BattleUtils.IsBloodTeam() then
+      LevelStreaming = BattleLevelHelper:LoadLevelStream(scenePath, true, self.npcPos, UE.FRotator())
+    else
+      LevelStreaming = BattleManager.vBattleField:LoadBattleLevel(scenePath, self.npcPos, UE.FRotator())
+    end
     if LevelStreaming then
       LevelStreaming.OnLevelLoaded:Add(LevelStreaming, function(level)
         self:FindLevelBattleCenter()

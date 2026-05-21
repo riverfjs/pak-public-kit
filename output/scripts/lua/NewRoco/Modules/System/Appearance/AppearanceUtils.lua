@@ -140,4 +140,346 @@ function AppearanceUtils.CheckIsGlassItem(item_id)
   return false
 end
 
+AppearanceUtils.FashionTypeToTagField = {
+  [_G.Enum.FashionLabelType.FLT_TOPS] = "fashion_tops_tag",
+  [_G.Enum.FashionLabelType.FLT_RINGS] = "fashion_rings_tag",
+  [_G.Enum.FashionLabelType.FLT_BOTTOMS] = "fashion_bottoms_tag",
+  [_G.Enum.FashionLabelType.FLT_SHOES] = "fashion_shoes_tag",
+  [_G.Enum.FashionLabelType.FLT_SOCKS] = "fashion_socks_tag"
+}
+AppearanceUtils.AllTagFields = {
+  "fashion_tops_tag",
+  "fashion_rings_tag",
+  "fashion_bottoms_tag",
+  "fashion_shoes_tag",
+  "fashion_socks_tag"
+}
+AppearanceUtils.TagFieldToFashionType = {
+  fashion_tops_tag = _G.Enum.FashionLabelType.FLT_TOPS,
+  fashion_rings_tag = _G.Enum.FashionLabelType.FLT_RINGS,
+  fashion_bottoms_tag = _G.Enum.FashionLabelType.FLT_BOTTOMS,
+  fashion_shoes_tag = _G.Enum.FashionLabelType.FLT_SHOES,
+  fashion_socks_tag = _G.Enum.FashionLabelType.FLT_SOCKS
+}
+
+function AppearanceUtils.BuildTagMapFromConf(fashionItemConf)
+  if not fashionItemConf then
+    return {}
+  end
+  local tagMap = {}
+  local itemType = fashionItemConf.type
+  if itemType == _G.Enum.FashionLabelType.FLT_DRESSES then
+    if fashionItemConf.fashion_tops_tag and fashionItemConf.fashion_tops_tag > 0 then
+      tagMap.fashion_tops_tag = fashionItemConf.fashion_tops_tag
+    end
+    if fashionItemConf.fashion_bottoms_tag and fashionItemConf.fashion_bottoms_tag > 0 then
+      tagMap.fashion_bottoms_tag = fashionItemConf.fashion_bottoms_tag
+    end
+  else
+    local field = AppearanceUtils.FashionTypeToTagField[itemType]
+    if field and fashionItemConf[field] and fashionItemConf[field] > 0 then
+      tagMap[field] = fashionItemConf[field]
+    end
+  end
+  return tagMap
+end
+
+function AppearanceUtils.BuildTagArrayFromConf(fashionItemConf)
+  if not fashionItemConf then
+    return nil
+  end
+  local itemType = fashionItemConf.type
+  if itemType == _G.Enum.FashionLabelType.FLT_RINGS then
+    return {
+      fashionItemConf.fashion_rings_tag
+    }
+  elseif itemType == _G.Enum.FashionLabelType.FLT_TOPS then
+    return {
+      fashionItemConf.fashion_tops_tag
+    }
+  elseif itemType == _G.Enum.FashionLabelType.FLT_DRESSES then
+    return {
+      fashionItemConf.fashion_tops_tag,
+      fashionItemConf.fashion_bottoms_tag
+    }
+  elseif itemType == _G.Enum.FashionLabelType.FLT_BOTTOMS then
+    return {
+      fashionItemConf.fashion_bottoms_tag
+    }
+  elseif itemType == _G.Enum.FashionLabelType.FLT_SHOES then
+    return {
+      fashionItemConf.fashion_shoes_tag
+    }
+  elseif itemType == _G.Enum.FashionLabelType.FLT_SOCKS then
+    return {
+      fashionItemConf.fashion_socks_tag
+    }
+  end
+  return nil
+end
+
+function AppearanceUtils.BuildTagMapFromAppearData(fashionType, tagArray)
+  if not tagArray then
+    return {}
+  end
+  local tagMap = {}
+  if fashionType == _G.Enum.FashionLabelType.FLT_DRESSES then
+    if tagArray[1] and tagArray[1] > 0 then
+      tagMap.fashion_tops_tag = tagArray[1]
+    end
+    if tagArray[2] and tagArray[2] > 0 then
+      tagMap.fashion_bottoms_tag = tagArray[2]
+    end
+  else
+    local field = AppearanceUtils.FashionTypeToTagField[fashionType]
+    if field and tagArray[1] and tagArray[1] > 0 then
+      tagMap[field] = tagArray[1]
+    end
+  end
+  return tagMap
+end
+
+function AppearanceUtils.CheckTagConflict(tagMapA, tagMapB)
+  if not tagMapA or not tagMapB then
+    return false
+  end
+  local conflictConf = _G.DataConfigManager:GetTable(_G.DataConfigManager.ConfigTableId.FASHION_CONFLICTTAG_CONF):GetAllDatas()
+  if not conflictConf then
+    return false
+  end
+  for _, rule in pairs(conflictConf) do
+    local aMatchFields = {}
+    local bMatchFields = {}
+    for _, field in ipairs(AppearanceUtils.AllTagFields) do
+      local ruleVal = rule[field]
+      if ruleVal and ruleVal > 0 then
+        if tagMapA[field] and tagMapA[field] == ruleVal then
+          aMatchFields[field] = true
+        end
+        if tagMapB[field] and tagMapB[field] == ruleVal then
+          bMatchFields[field] = true
+        end
+      end
+    end
+    for aField, _ in pairs(aMatchFields) do
+      for bField, _ in pairs(bMatchFields) do
+        if aField ~= bField then
+          return true
+        end
+      end
+    end
+  end
+  return false
+end
+
+function AppearanceUtils.GetConflictingTagEntries(tagMap)
+  local result = {}
+  if not tagMap then
+    return result
+  end
+  local conflictConf = _G.DataConfigManager:GetTable(_G.DataConfigManager.ConfigTableId.FASHION_CONFLICTTAG_CONF):GetAllDatas()
+  if not conflictConf then
+    return result
+  end
+  for _, rule in pairs(conflictConf) do
+    local matchedFields = {}
+    for _, field in ipairs(AppearanceUtils.AllTagFields) do
+      local ruleVal = rule[field]
+      if ruleVal and ruleVal > 0 and tagMap[field] and tagMap[field] == ruleVal then
+        matchedFields[field] = true
+      end
+    end
+    if next(matchedFields) then
+      for _, field in ipairs(AppearanceUtils.AllTagFields) do
+        local ruleVal = rule[field]
+        if ruleVal and ruleVal > 0 and not matchedFields[field] then
+          local fType = AppearanceUtils.TagFieldToFashionType[field]
+          if fType then
+            table.insert(result, {
+              field = field,
+              fashionType = fType,
+              tagValue = ruleVal
+            })
+          end
+        end
+      end
+    end
+  end
+  return result
+end
+
+function AppearanceUtils.GetAvatarEnumFromFashionId(fashionId)
+  if not fashionId or fashionId < 10000000 then
+    return nil
+  end
+  local base = fashionId > 99999999 and 1000000000 or 10000000
+  return math.floor(fashionId / (base / 100) % 100)
+end
+
+AppearanceUtils.BodyTypeConflictMap = nil
+
+function AppearanceUtils.InitBodyTypeConflictMap()
+  if AppearanceUtils.BodyTypeConflictMap then
+    return
+  end
+  local BT = UE4.EAvatarBodyType
+  AppearanceUtils.BodyTypeConflictMap = {
+    [BT.Hat] = {
+      ConflictBodyTypes = {
+        BT.Wh,
+        BT.Wa
+      },
+      CacheBodyTypes = {}
+    },
+    [BT.Wh] = {
+      ConflictBodyTypes = {
+        BT.Hat,
+        BT.Heads,
+        BT.Hg,
+        BT.Hp,
+        BT.Hair
+      },
+      CacheBodyTypes = {
+        BT.Hair
+      }
+    },
+    [BT.Wa] = {
+      ConflictBodyTypes = {
+        BT.Hat,
+        BT.Heads,
+        BT.Hg,
+        BT.Hp,
+        BT.Hair
+      },
+      CacheBodyTypes = {
+        BT.Hair
+      }
+    },
+    [BT.Heads] = {
+      ConflictBodyTypes = {
+        BT.Wh,
+        BT.Wa
+      },
+      CacheBodyTypes = {}
+    },
+    [BT.Masks] = {
+      ConflictBodyTypes = {
+        BT.Hp
+      },
+      CacheBodyTypes = {}
+    },
+    [BT.Faces] = {
+      ConflictBodyTypes = {
+        BT.Hp
+      },
+      CacheBodyTypes = {}
+    },
+    [BT.Hair] = {
+      ConflictBodyTypes = {
+        BT.Hg,
+        BT.Hp,
+        BT.Wh,
+        BT.Wa
+      },
+      CacheBodyTypes = {}
+    },
+    [BT.Hg] = {
+      ConflictBodyTypes = {
+        BT.Hair,
+        BT.Wh
+      },
+      CacheBodyTypes = {
+        BT.Heads,
+        BT.Hair
+      }
+    },
+    [BT.Hp] = {
+      ConflictBodyTypes = {
+        BT.Masks,
+        BT.Faces,
+        BT.Hair,
+        BT.Wh
+      },
+      CacheBodyTypes = {
+        BT.Heads,
+        BT.Masks,
+        BT.Faces,
+        BT.Hair
+      }
+    }
+  }
+end
+
+function AppearanceUtils.GetConflictBodyTypes(bodyType)
+  if not AppearanceUtils.BodyTypeConflictMap then
+    AppearanceUtils.InitBodyTypeConflictMap()
+  end
+  if not AppearanceUtils.BodyTypeConflictMap then
+    return nil
+  end
+  local entry = AppearanceUtils.BodyTypeConflictMap[bodyType]
+  if entry then
+    return entry.ConflictBodyTypes
+  end
+  return nil
+end
+
+function AppearanceUtils.GetCacheBodyTypes(bodyType)
+  if not AppearanceUtils.BodyTypeConflictMap then
+    AppearanceUtils.InitBodyTypeConflictMap()
+  end
+  if not AppearanceUtils.BodyTypeConflictMap then
+    return nil
+  end
+  local entry = AppearanceUtils.BodyTypeConflictMap[bodyType]
+  if entry then
+    return entry.CacheBodyTypes
+  end
+  return nil
+end
+
+function AppearanceUtils.IsBodyTypeConflict(bodyTypeA, bodyTypeB)
+  local conflicts = AppearanceUtils.GetConflictBodyTypes(bodyTypeA)
+  if not conflicts then
+    return false
+  end
+  for _, v in ipairs(conflicts) do
+    if v == bodyTypeB then
+      return true
+    end
+  end
+  return false
+end
+
+function AppearanceUtils.IsFashionConflictWithBodyType(fashionId, targetBodyType)
+  local avatarEnum = AppearanceUtils.GetAvatarEnumFromFashionId(fashionId)
+  if not avatarEnum then
+    return false
+  end
+  return AppearanceUtils.IsBodyTypeConflict(targetBodyType, avatarEnum)
+end
+
+function AppearanceUtils.GetConflictFashionTypesForItem(fashionId)
+  local avatarEnum = AppearanceUtils.GetAvatarEnumFromFashionId(fashionId)
+  if not avatarEnum then
+    return nil
+  end
+  local conflicts = AppearanceUtils.GetConflictBodyTypes(avatarEnum)
+  if not conflicts or 0 == #conflicts then
+    return nil
+  end
+  local result = {}
+  local UIUtils = require("NewRoco.Modules.System.TipsModule.Utils.UIUtils")
+  for _, conflictBodyType in ipairs(conflicts) do
+    local _, configEnum = UIUtils.GetConfigEnumByAvatarEnum(conflictBodyType, 0)
+    if configEnum then
+      result[configEnum] = true
+    end
+  end
+  if not next(result) then
+    return nil
+  end
+  return result
+end
+
 return AppearanceUtils

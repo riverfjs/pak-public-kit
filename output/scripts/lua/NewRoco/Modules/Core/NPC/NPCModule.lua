@@ -15,6 +15,7 @@ local NPCBrutalFinder = require("NewRoco.Modules.Core.NPC.LuaClass.NPCBrutalFind
 local BattleExitHelper = require("NewRoco.Modules.Core.Battle.Players.BattleExitHelper")
 local ServerAICommandEnum = require("NewRoco.Modules.Core.Scene.Component.AI.ServerAICommandEnum")
 local NPCActorPool = require("NewRoco.Modules.Core.NPC.NPCActorPool")
+local NPCActorPoolNew = require("NewRoco.Modules.Core.NPC.NPCActorPoolNew")
 local ThrowSession = require("NewRoco.Modules.Core.NPC.ThrowSession")
 local ThrowStarSession = require("NewRoco.Modules.Core.NPC.MagicStar.ThrowStarSession")
 local ThrowSessionStatusEnum = require("NewRoco.Modules.Core.NPC.ThrowSessionStatusEnum")
@@ -56,6 +57,8 @@ local BornDieComponent = require("NewRoco.Modules.Core.Scene.Component.BornDie.B
 local CreateMagicComponent = require("NewRoco.Modules.System.MagicCreation.CreateMagicComponent")
 local RelationTreeEvent = reload("NewRoco.Modules.System.RelationTree.RelationTreeEvent")
 local PetResponseComponent = require("NewRoco.Modules.Core.Scene.Component.Show.PetResponseComponent")
+local RocoSkillProxy = require("NewRoco.Utils.RocoSkillProxy")
+local ENUM_PLAYER_DATA_EVENT = require("Data.Global.PlayerDataEvent")
 local NPCBaseCommon = UE.NPCBaseCommon
 local pairs = _ENV.pairs
 local Ticker
@@ -133,7 +136,6 @@ function NPCModule:OnConstruct()
   self.MonitorNPCByConfID = {}
   self.MonitorNPCByServerID = {}
   self.followingNpc = nil
-  self.SceneSeatID = nil
   self.HasEnterBattle = false
   self.ThrowSessionManager = ThrowSessionManager()
   self.localParticles = {}
@@ -209,6 +211,27 @@ function NPCModule:FindFarRelease(Actor, StandType, InnerRadius, OuterRadius, Ow
   return Runner:StartQueryWithRequest(UE.EEnvQueryRunMode.SingleResult, Request, Owner, Callback)
 end
 
+function NPCModule:QueryPosForServer(Owner, Callback)
+  local Runner = self.EQSManager:Get("PosForServer")
+  if not Runner then
+    _G.tcall(Owner, Callback, nil)
+    return -1
+  end
+  local LocalPlayer = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
+  if not LocalPlayer or not LocalPlayer.viewObj then
+    _G.tcall(Owner, Callback, nil)
+    return -1
+  end
+  local Request = Runner:MakeRequest(nil, LocalPlayer.viewObj)
+  Request:SetIntParam("Stand.StandType", 0)
+  Request:SetFloatParam("Donut.InnerRadius", 400)
+  Request:SetFloatParam("Donut.OuterRadius", 1000)
+  local QueryID = Runner:StartQueryWithRequest(UE.EEnvQueryRunMode.AllMatching, Request, Owner, Callback)
+  if QueryID < 0 then
+    Log.Error("QueryNpcPosForServer failed", QueryID)
+  end
+end
+
 function NPCModule:FindFanFrontRelease(Actor, StandType, InnerRadius, OuterRadius, Owner, Callback)
   local Runner = self.EQSManager:Get("FanFront")
   if not Runner then
@@ -230,10 +253,15 @@ function NPCModule:FindStandRelease(Actor, StandType, InnerRadius, OuterRadius, 
   end
   local Request = Runner:MakeRequest(nil, Actor)
   if Owner and Owner.ModelID then
-    local CheckCapsuleRadius = _G.DataConfigManager:GetModelConf(Owner.ModelID).capsule_radius
-    local CheckHeight = _G.DataConfigManager:GetModelConf(Owner.ModelID).capsule_halfheight
-    Request:SetFloatParam("CustomOverlap.Radius", CheckCapsuleRadius and CheckCapsuleRadius * 7.5E-4 or 0)
-    Request:SetFloatParam("CustomOverlap.HalfHeight", CheckHeight and CheckHeight * 5.0E-4 or 0)
+    local ModelConf = _G.DataConfigManager:GetModelConf(Owner.ModelID)
+    local CheckCapsuleRadius = ModelConf and ModelConf.capsule_radius
+    local CheckHeight = ModelConf and ModelConf.capsule_halfheight
+    CheckCapsuleRadius = CheckCapsuleRadius and CheckCapsuleRadius * 7.5E-4 or 0
+    CheckHeight = CheckHeight and CheckHeight * 7.5E-4 or 0
+    local CheckZOffset = math.max(CheckHeight, CheckCapsuleRadius) + 20
+    Request:SetFloatParam("CustomOverlap.Radius", CheckCapsuleRadius)
+    Request:SetFloatParam("CustomOverlap.HalfHeight", CheckHeight)
+    Request:SetFloatParam("CustomOverlap.OverlapZOffset", CheckZOffset)
   end
   Request:SetIntParam("Stand.StandType", StandType or 0)
   Request:SetFloatParam("Donut.InnerRadius", InnerRadius or 200)
@@ -626,6 +654,12 @@ function NPCModule:OnLeaveVisit()
   end
 end
 
+function NPCModule:OnHomeVisitChange()
+  for _, v in pairs(self._npcIterDic) do
+    v:OnHomeVisitChange()
+  end
+end
+
 function NPCModule:RegisterTopKFinder(id, k, handler1, constValidFunc, handler2, adjustValidFunc, handler3, compareFunc, handler4, changeToValidFunc, handler5, changeToInValidFunc)
   self._npcFinders[id] = NPCBrutalFinder(k, handler1, constValidFunc, handler2, adjustValidFunc, handler3, compareFunc, handler4, changeToValidFunc, handler5, changeToInValidFunc)
 end
@@ -650,7 +684,7 @@ end
 
 function NPCModule:OnActive()
   Log.Debug("NPCModule:OnActive")
-  self.SceneAIManager:Init()
+  self.SceneAIManager:Init(self)
   NRCEventCenter:RegisterEvent("NPCModule", self, SceneEvent.PlayerTeleportStart, self.OnPlayerTeleportStart)
   NRCEventCenter:RegisterEvent("NPCModule", self, SceneEvent.PlayerTeleportPreStart, self.OnPlayerTeleportStart)
   NRCEventCenter:RegisterEvent("NPCModule", self, SceneEvent.PlayerTeleportFinish, self.OnPlayerTeleportFinish)
@@ -661,7 +695,6 @@ function NPCModule:OnActive()
   NRCEventCenter:RegisterEvent("NPCModule", self, BattleEvent.UPDATE_BATTLEFIELD_POS, self.OnUpdateBattleFieldPos)
   _G.NRCEventCenter:RegisterEvent("NPCModule", self, FriendModuleEvent.OnEnterVisit, self.OnEnterVisit)
   _G.NRCEventCenter:RegisterEvent("NPCModule", self, FriendModuleEvent.OnLeaveVisit, self.OnLeaveVisit)
-  ZoneServer:AddProtocolListener(self, ProtoCMD.ZoneSvrCmd.ZONE_SCENE_CLIENT_VISUALIZATION_NTY, self.OnNet_ClientVisualizationNty)
   ZoneServer:AddProtocolListener(self, ProtoCMD.ZoneSvrCmd.ZONE_SWITCH_SERVER_TO_CLIENT_AI_NTY, self.OnSwitchServerToClientAINty)
   FunctionBanManager:AddRawFunctionStateListener(Enum.PlayerFunctionBanType.PFBT_HIDE_IN_AREA_NPCS, self, self.ToggleHideNPCs)
   self.PreloadRes = {}
@@ -675,6 +708,7 @@ function NPCModule:OnActive()
   end
   _G.NRCEventCenter:RegisterEvent(self.name, self, MainUIModuleEvent.UI_SetThrowItem, self.OnThrowItemChange)
   DeviceUtils.EventDispatcher:AddEventListener(self, DeviceEvent.OnQualityChange, self.OnQualityChange)
+  _G.DataModelMgr.PlayerDataModel:AddEventListener(self, ENUM_PLAYER_DATA_EVENT.ON_HOME_VISIT_INFO_CHANGED, self.OnHomeVisitChange)
   self:OnQualityChange()
 end
 
@@ -737,7 +771,6 @@ function NPCModule:OnDeactive()
   NRCEventCenter:UnRegisterEvent(self, NPCModuleEvent.UPDATE_BATTLEFIELD_POS, self.OnUpdateBattleFieldPos)
   _G.NRCEventCenter:UnRegisterEvent(self, FriendModuleEvent.OnEnterVisit, self.OnEnterVisit)
   _G.NRCEventCenter:UnRegisterEvent(self, FriendModuleEvent.OnLeaveVisit, self.OnLeaveVisit)
-  ZoneServer:RemoveProtocolListener(self, ProtoCMD.ZoneSvrCmd.ZONE_SCENE_CLIENT_VISUALIZATION_NTY, self.OnNet_ClientVisualizationNty)
   ZoneServer:RemoveProtocolListener(self, ProtoCMD.ZoneSvrCmd.ZONE_SWITCH_SERVER_TO_CLIENT_AI_NTY, self.OnSwitchServerToClientAINty)
   FunctionBanManager:RemoveRawFunctionStateListener(Enum.PlayerFunctionBanType.PFBT_HIDE_IN_AREA_NPCS, self, self.ToggleHideNPCs)
   self.CloseRelease = nil
@@ -751,6 +784,7 @@ function NPCModule:OnDeactive()
   end
   _G.NRCEventCenter:UnRegisterEvent(self, MainUIModuleEvent.UI_SetThrowItem, self.OnThrowItemChange)
   DeviceUtils.EventDispatcher:RemoveEventListener(self, DeviceEvent.OnQualityChange, self.OnQualityChange)
+  _G.DataModelMgr.PlayerDataModel:RemoveEventListener(self, ENUM_PLAYER_DATA_EVENT.ON_HOME_VISIT_INFO_CHANGED, self.OnHomeVisitChange)
 end
 
 function NPCModule:OnPreloadDummy()
@@ -1351,7 +1385,7 @@ function NPCModule:ClearActorInReconnect(InitialActors)
   local needToRemove = {}
   for _, npc in pairs(self._npcIterDic) do
     local serverId = npc.serverData.base.actor_id
-    if not initActorsLookup[serverId] then
+    if not initActorsLookup[serverId] and not npc.serverData.MagicFeedInfo then
       table.insert(needToRemove, serverId)
     else
       self:Log("[NpcAOI]Reconnect, keep npc actor", serverId, npc.serverData.base.name)
@@ -1548,6 +1582,13 @@ function NPCModule:OnNPCEnter(actor, Tag, BaseData, bConnect)
   end
   self:RecordOperations()
   self:PreInfoAndCreate(NPCInfo)
+  if BaseData and BaseData.simulate then
+    npc = self._npcDic[serverId]
+    if npc then
+      npc.simulate = true
+    end
+    self:Log("\230\156\172\229\156\176\230\168\161\230\139\159NPC\232\191\155\229\133\165\229\156\186\230\153\175", string.format("actor_id = %d", serverId))
+  end
   if self.MapLoaded then
   else
     Log.Error("\229\156\176\229\155\190\232\191\152\230\178\161\229\138\160\232\189\189\229\174\140\230\136\144")
@@ -1566,7 +1607,7 @@ function NPCModule:PreInfoAndCreate(npcInfo)
     end
   end
   local AttachInfo = npcInfo.attach_item_info
-  if AttachInfo and AttachInfo.attach_item_type == _G.Enum.NpcAttachItemType.NAIT_HOME_SEAT then
+  if AttachInfo and (AttachInfo.attach_item_type == _G.Enum.NpcAttachItemType.NAIT_HOME_SEAT or AttachInfo.attach_item_type == _G.Enum.NpcAttachItemType.NAIT_HOME_PET_NEST and not npcInfo.home_pet) and ActorType ~= ProtoEnum.SpaceEnum_ActorDetailType.ENUM.Npc_HomePetEgg then
     self:CreateVirtualHomeNPC(npcInfo)
     return
   end
@@ -1707,6 +1748,13 @@ function NPCModule:OnMapLoaded()
   local allnpc = self.data:GetAllNPC()
   for _, npcInfo in pairs(allnpc) do
     self:PreInfoAndCreate(npcInfo)
+  end
+  local hudClass = _G.NRCBigWorldPreloader:Get("PET_HUD")
+  if hudClass then
+    local world = UE4.UNRCPlatformGameInstance.GetInstance()
+    self:PreCreateHudClass(NPCModuleEnum.HudPoolType.PetHud, function()
+      return UE4.UWidgetBlueprintLibrary.Create(world, hudClass)
+    end)
   end
   self.MapLoaded = true
 end
@@ -1947,7 +1995,7 @@ function NPCModule:OnNpcAiControlFlagsChanged(action)
   end
 end
 
-function NPCModule:OnStunServerNty(action)
+function NPCModule:OnStunServerNty(action, Tag, BaseData)
   local npc = self._npcDic[action.actor_id]
   if npc and npc.AIComponent then
     local finalDuration = action.remain_time
@@ -1955,6 +2003,13 @@ function NPCModule:OnStunServerNty(action)
       local StunComp = npc:EnsureComponent(StunComponent)
       StunComp:Stun(finalDuration)
     end
+  end
+end
+
+function NPCModule:OnNPCPlayChatBubble(action, Tag, BaseData)
+  local npc = self._npcDic[action.actor_id]
+  if npc and npc.ServerAIComponent then
+    npc.ServerAIComponent:EnqueueEvent(ServerAICommandEnum.ServerAICommandEvent.PlayChatBubble, action, BaseData, action.sync_common_info)
   end
 end
 
@@ -2263,9 +2318,8 @@ function NPCModule:OnNpcBornEnd(action)
   if npc then
     if npc.BornDieComponent then
       npc.BornDieComponent:OnBornEnd(action)
-    else
-      npc:SendEvent(NPCModuleEvent.On_NPC_Born, npc, action)
     end
+    npc:SendEvent(NPCModuleEvent.On_NPC_Born, npc, action)
   else
   end
 end
@@ -2273,14 +2327,11 @@ end
 function NPCModule:OnNpcDieBegin(action)
   local npc = self._npcDic[action.actor_id]
   if npc then
-    if not npc.CreateMagicComponent then
-      npc:EnsureComponent(BornDieComponent)
-    end
+    npc:EnsureComponent(BornDieComponent)
     if npc.BornDieComponent then
       npc.BornDieComponent:OnBeginDying(action)
-    else
-      npc:SendEvent(NPCModuleEvent.On_NPC_Die, npc, action)
     end
+    npc:SendEvent(NPCModuleEvent.On_NPC_Die, npc, action)
   else
   end
 end
@@ -2576,7 +2627,7 @@ function NPCModule:OnNPCSetPos(action, Tag, BaseData)
     local Rotator = UE.UKismetMathLibrary.MakeRotator(action.to_dir.x / 10, action.to_dir.y / 10, action.to_dir.z / 10)
     npc:SetActorRotation(Rotator)
     if npc.ServerAIComponent then
-      npc.ServerAIComponent:EnqueueEvent(ServerAICommandEnum.ServerAICommandEvent.Empty, action, BaseData, action.sync_common_info)
+      npc.ServerAIComponent:EnqueueEvent(ServerAICommandEnum.ServerAICommandEvent.SetNpcPos, action, BaseData, action.sync_common_info)
     end
   end
 end
@@ -2801,7 +2852,23 @@ function NPCModule:OnTick(deltaTime)
     npc:CreateView(false)
   end
   if _G.GlobalConfig.bShouldShowDebugPetName then
+    if not self.Res then
+      self.Res = ResObject.MakeUClass("/Game/NewRoco/Modules/System/Marker/Res/BP_MarkerBoss.BP_MarkerBoss_C")
+      self.Res:StartLoad(self, self.SpawnBeam)
+    end
     self:ShowNPCDebugNameByDistance()
+  elseif self.Res then
+    self.Res:Release()
+    self.Res = nil
+    if self.Beams and next(self.Beams) then
+      for i, beam in pairs(self.Beams) do
+        if UE4.UObject.IsValid(beam) and beam.K2_DestroyActor then
+          beam:K2_DestroyActor()
+        end
+      end
+      self.Beams = nil
+      self.BeamsRef = nil
+    end
   end
   if _G.GlobalConfig.bShouldShowRevivePointInfo then
     self:ShowRevivePointNPCDebugName()
@@ -2894,11 +2961,33 @@ function NPCModule:ShowNPCDebugNameByDistance()
     else
       local Dist = npc.squaredDis2Local
       if not Dist then
-      elseif Dist > 4000000 then
       else
         local ServerData = npc.serverData
         if not ServerData then
         else
+          local owlContId = ServerData.npc_base.owl_sanctuary_content_cfg_id
+          local fakeId = ServerData.npc_base.ContentIdForOwl
+          if Dist > 4000000 then
+            if owlContId and 0 ~= owlContId and self.Beams and fakeId and self.Beams[fakeId] then
+              local Beam = self.Beams[fakeId]
+              local HasBeam = Beam and Beam:IsValid()
+              if HasBeam then
+                Beam:K2_DestroyActor()
+                self.Beams[fakeId] = nil
+                self.BeamsRef[fakeId] = nil
+                ServerData.npc_base.ContentIdForOwl = nil
+              end
+            end
+            goto lbl_196
+          elseif owlContId and 0 ~= owlContId then
+            if not self.Beams then
+              goto lbl_196
+            end
+            if (not fakeId or not self.Beams[fakeId]) and self.Res then
+              local BeamClass = self.Res:Get()
+              self:SpawnOwlPet(npc, BeamClass)
+            end
+          end
           local Config = npc.config
           if not Config then
           else
@@ -2914,13 +3003,84 @@ function NPCModule:ShowNPCDebugNameByDistance()
                 area_id = npc_content_cfg and npc_content_cfg.refresh_param
               end
               local debug_string = string.format("%s (%d,%d,%d)", ServerData.base.name, id or 0, npc_content_cfg_id or 0, area_id or 0)
+              if owlContId and 0 ~= owlContId then
+                if self.Beams and fakeId and self.Beams[fakeId] then
+                  local Beam = self.Beams[fakeId]
+                  local HasBeam = Beam and Beam:IsValid()
+                  if HasBeam then
+                    local Position = npc:GetActorLocation()
+                    Beam:Abs_K2_SetActorLocation_WithoutHit(Position, false, true)
+                  end
+                end
+                debug_string = string.format([[
+%s (%d,%d,%d)
+  %d]], ServerData.base.name, id or 0, npc_content_cfg_id or 0, area_id or 0, owlContId or 0)
+              end
               UE4.UKismetSystemLibrary.Abs_DrawDebugString(World, npc.viewObj:Abs_K2_GetActorLocation(), debug_string, nil, UE4.FLinearColor(1, 1, 1, 1), 0, false, 3.0)
             end
           end
         end
       end
     end
+    ::lbl_196::
   end
+end
+
+function NPCModule:SpawnBeam()
+  if self.Res then
+    local BeamClass = self.Res:Get()
+    if not BeamClass then
+      return
+    end
+    if not self.Beams then
+      self.Beams = {}
+      self.BeamsRef = {}
+    end
+    for _, npc in pairs(self._npcDic) do
+      local owlContId = npc.serverData.npc_base.owl_sanctuary_content_cfg_id
+      if owlContId and 0 ~= owlContId then
+        local fakeId = npc.serverData.npc_base.ContentIdForOwl
+        if not fakeId then
+          self:SpawnOwlPet(npc, BeamClass)
+        end
+      end
+    end
+  end
+end
+
+function NPCModule:SpawnOwlPet(npc, BeamClass)
+  local fakeId = self:AcquireFakeID()
+  npc.serverData.npc_base.ContentIdForOwl = fakeId
+  self.Beams[fakeId] = _G.UE4Helper.GetCurrentWorld():Abs_SpawnActor(BeamClass, UE4.FTransform(), UE4.ESpawnActorCollisionHandlingMethod.AlwaysSpawn, nil, nil, nil, {
+    min = 100,
+    max = 1000,
+    mult = 10
+  })
+  self.BeamsRef[fakeId] = self.Beams and UnLua.Ref(self.Beams[fakeId])
+  local OwlPetLevel = self:GetOwlPetLevel(npc.config.id)
+  self.Beams[fakeId]:SetPetType(OwlPetLevel)
+  self.Beams[fakeId].NS_Scene_Box_TypeLock:SetActive(true, true)
+end
+
+function NPCModule:GetOwlPetLevel(npcId)
+  local NpcConf = _G.DataConfigManager:GetNpcConf(npcId, true)
+  local PetBaseId = NpcConf and NpcConf.traverse_data_param
+  if not PetBaseId then
+    return 5
+  end
+  local PetBaseConf = _G.DataConfigManager:GetPetbaseConf(PetBaseId, true)
+  local OwlPetLevel = PetBaseConf and PetBaseConf.stage
+  if not OwlPetLevel then
+    return 5
+  end
+  if 1 == OwlPetLevel then
+    return 5
+  elseif 2 == OwlPetLevel then
+    return 12
+  else
+    return 0
+  end
+  return OwlPetLevel
 end
 
 function NPCModule:ShowRevivePointNPCDebugName()
@@ -3200,30 +3360,45 @@ function NPCModule:GetAllNPCInIter()
   return self._npcIterDic
 end
 
-function NPCModule:GetOrCreateSubHudPool(_subHudType)
+local HUD_POOL_SIZE_LIMIT = 30
+
+function NPCModule:PreCreateHudClass(poolType, creator)
+  local hudPool = self:GetOrCreateSubHudPool(poolType)
+  if hudPool and creator then
+    local createNum = HUD_POOL_SIZE_LIMIT - hudPool:Count()
+    for i = 1, createNum do
+      local inst = creator()
+      if inst and UE4.UObject.IsValid(inst) then
+        hudPool:Recycle(inst)
+      end
+    end
+  end
+end
+
+function NPCModule:GetOrCreateSubHudPool(poolType)
   if not _G.GlobalConfig.EnableHudPool then
     return
   end
-  if _subHudType and self.subHudPools then
-    local _umgPool = self.subHudPools[_subHudType]
+  if poolType and self.subHudPools then
+    local _umgPool = self.subHudPools[poolType]
     if not _umgPool then
-      _umgPool = InstancePool(_subHudType, nil, 0)
-      self.subHudPools[_subHudType] = _umgPool
+      _umgPool = InstancePool(poolType, nil, 0)
+      self.subHudPools[poolType] = _umgPool
     end
     return _umgPool
   end
 end
 
-function NPCModule:GetHudFromPool(_subHudType)
-  local hudPool = self:GetOrCreateSubHudPool(_subHudType)
+function NPCModule:GetHudFromPool(poolType)
+  local hudPool = self:GetOrCreateSubHudPool(poolType)
   if hudPool then
     return hudPool:Get()
   end
 end
 
-function NPCModule:ReturnHudToPool(_subHudType, inst)
-  local hudPool = self:GetOrCreateSubHudPool(_subHudType)
-  if hudPool and hudPool:Count() <= 15 then
+function NPCModule:ReturnHudToPool(poolType, inst)
+  local hudPool = self:GetOrCreateSubHudPool(poolType)
+  if hudPool and hudPool:Count() <= HUD_POOL_SIZE_LIMIT and inst and UE4.UObject.IsValid(inst) then
     hudPool:Recycle(inst)
   end
 end
@@ -3551,15 +3726,50 @@ function NPCModule:OnPetNameChange(Action, Tag, BaseData)
   npc.serverData.base.name = Action.name
   local InterComp = npc:EnsureComponent(InteractionComponent)
   InterComp:OnOptionsChange(Action, Tag, BaseData)
+  self:CheckRenameEasterEgg(Action.name, npc)
   _G.NRCEventCenter:DispatchEvent(RelationTreeEvent.OnPetInfoChangeEvent)
 end
 
-function NPCModule:ReqControlNpc(RefreshContentId, ControllableNpcOpType, Point, RspDelegate, ServerId)
+function NPCModule:CheckRenameEasterEgg(new_name, npc)
+  if nil == new_name then
+    return
+  end
+  if "" == new_name then
+    return
+  end
+  if nil == npc then
+    return
+  end
+  if nil == npc.viewObj then
+    return
+  end
+  if npc.serverData and npc.serverData.pet_info then
+    local PetData = _G.DataModelMgr.PlayerDataModel:GetPetDataByGid(npc.serverData.pet_info.gid)
+    if PetData then
+      local PetConfId = PetData.conf_id
+      local PetConf = _G.DataConfigManager:GetPetConf(PetConfId)
+      if PetConf and PetConf.need_name and "" ~= PetConf.need_name and new_name == PetConf.need_name then
+        local PetSceneSkillPath = PetConf.world_anim
+        if PetSceneSkillPath then
+          local SkillComp = npc.viewObj:GetComponentByClass(UE.URocoSkillComponent)
+          local SkillObj = RocoSkillProxy.Create(PetSceneSkillPath, SkillComp, PriorityEnum.Active_Throw_Pet)
+          if SkillObj then
+            SkillObj:SetCaster(npc.viewObj)
+            SkillObj:PlaySkill()
+          end
+        end
+      end
+    end
+  end
+end
+
+function NPCModule:ReqControlNpc(RefreshContentId, ControllableNpcOpType, Point, RspDelegate, ServerId, SkinId)
   local Req = ProtoMessage:newZoneSceneNpcControlReq()
   Req.content_id = RefreshContentId
   Req.operate_type = ControllableNpcOpType
   Req.point = Point
   Req.npc_id = ServerId
+  Req.skin_id = SkinId
   Log.Info("[NPC] ReqControlNpc", RefreshContentId, ControllableNpcOpType, Point, RspDelegate, ServerId)
   local rspWrapper = {}
   rspWrapper.handler = _G.MakeWeakFunctor(self, self.OnNpcControlRsp)
@@ -3695,7 +3905,10 @@ function NPCModule:OnNpcOptionNotify(Action, Tag, BaseData)
   if npc then
     npc:SendEvent(NPCModuleEvent.OptActionNotify, npc, Action)
     if Action.action_type == Enum.ActionType.ACT_SIT or Action.action_type == Enum.ActionType.ACT_HOME_SIT_LIE then
-      NPCLuaUtils.OnSeatNPCNotify(npc, Action, BaseData)
+      local Player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GetPlayerByServerID, BaseData.operator_obj_id)
+      if Player and Player.playerToyComponent then
+        Player.playerToyComponent:OnSeatNPCNotify(npc, Action)
+      end
     end
   end
 end
@@ -3866,287 +4079,6 @@ function NPCModule:IsInInitialActorIDs(actorId)
   return false
 end
 
-function NPCModule:CreateSceneSeat(SeatID)
-  self.SceneSeatID = SeatID
-  if SeatID then
-    self:QueryPosForSeat()
-  end
-end
-
-function NPCModule:RecycleSceneSeat(SeatID, CreatorUin)
-  local NPC = self:OnFindNPCByConfigIDAndUin(SeatID, CreatorUin)
-  if NPC then
-    if NPC.notDestroyFlag then
-      _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.suitcase_retake_ban)
-      _G.NRCModuleManager:DoCmd(_G.RolePlayModuleCmd.OnRecyclePropResponse, false)
-      return
-    end
-    self:OnPlayerRecycleSceneSeat(NPC.serverData.base.actor_id)
-  end
-end
-
-function NPCModule:QueryPosForSeat()
-  local Player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
-  if _G.NRCModuleManager:DoCmd(_G.MagicCreationModuleCmd.CheckBossAreaOverlap, Player:GetActorLocation()) then
-    _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.put_prop_fail_b)
-    _G.NRCModuleManager:DoCmd(_G.RolePlayModuleCmd.OnPutPropResponse, false)
-    return
-  end
-  local MovementBaseComp = Player.viewObj.BasedMovement.MovementBase
-  if MovementBaseComp then
-    local MovementBaseActor = MovementBaseComp:GetOwner()
-    if MovementBaseActor and MovementBaseActor:IsA(UE.ANPCSceneSkeletalMeshActor) then
-      _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.put_prop_fail_b)
-      _G.NRCModuleManager:DoCmd(_G.RolePlayModuleCmd.OnPutPropResponse, false)
-      return
-    end
-  end
-  local Runner = self.EQSManager:Get("SceneSeat")
-  local Request = Runner:MakeRequest(nil, Player.viewObj)
-  local QueryID = -1
-  QueryID = Runner:StartQueryWithRequest(UE.EEnvQueryRunMode.AllMatching, Request, self, self.OnQueryPosForSeatFinished)
-  if QueryID < 0 then
-    Log.Error("QueryPosForSeat failed!")
-  end
-end
-
-function NPCModule:OnQueryPosForSeatFinished(Result)
-  if not (Result and Result.bFinished) or not Result.bSuccess then
-    Log.Debug("NPCModule:OnQueryPosForSeatFinished. not Result, not bFinished, not bSuccess")
-    _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.put_prop_fail_a)
-    _G.NRCModuleManager:DoCmd(_G.RolePlayModuleCmd.OnPutPropResponse, false)
-    return
-  end
-  if _G.GlobalConfig.bDebugSceneSeatEQS then
-    NPCLuaUtils.DebugSceneSeatEQS(Result)
-  end
-  if 0 == Result.ResultLocations:Num() then
-    Log.Debug("NPCModule:OnQueryPosForSeatFinished. Result.ResultLocations:Num() == 0")
-    _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.put_prop_fail_a)
-    _G.NRCModuleManager:DoCmd(_G.RolePlayModuleCmd.OnPutPropResponse, false)
-    return
-  end
-  local Conf = _G.DataConfigManager:GetRoleplayPropConf(self.SceneSeatID)
-  if not Conf then
-    Log.Error("==NPCModule:OnQueryPosForSeatFinished==Conf is nil", self.SceneSeatID)
-    _G.NRCModuleManager:DoCmd(_G.RolePlayModuleCmd.OnPutPropResponse, false)
-    return
-  end
-  local Box = {}
-  if Conf.prop_eqs_box_custom and #Conf.prop_eqs_box_custom > 0 then
-    for i, v in ipairs(Conf.prop_eqs_box_custom) do
-      table.insert(Box, tonumber(v))
-    end
-  else
-    local ExportConf = _G.DataConfigManager:GetEqsBoxExport(self.SceneSeatID)
-    if ExportConf and ExportConf.prop_eqs_box and #ExportConf.prop_eqs_box > 0 then
-      for i, v in ipairs(ExportConf.prop_eqs_box) do
-        table.insert(Box, tonumber(v))
-      end
-    end
-  end
-  if 3 ~= #Box then
-    Log.Error("==NPCModule:OnQueryPosForSeatFinished==Box is not 3", self.SceneSeatID)
-    _G.NRCModuleManager:DoCmd(_G.RolePlayModuleCmd.OnPutPropResponse, false)
-    return
-  end
-  if not UE4.UNRCTraceLibrary then
-    Log.Error("NPCModule:OnQueryPosForSeatFinished UNRCTraceLibrary not found")
-    _G.NRCModuleManager:DoCmd(_G.RolePlayModuleCmd.OnPutPropResponse, false)
-    return
-  end
-  local Player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
-  local PlayerAbsoluteLocation = Player:GetActorLocation()
-  local PlayerLocation = SceneUtils.ConvertAbsoluteToRelative(PlayerAbsoluteLocation)
-  local AllPlayer = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_ALL_PLAYER)
-  local IgnoreActor = {}
-  for i, v in ipairs(AllPlayer) do
-    table.insert(IgnoreActor, v.viewObj)
-  end
-  local SuccessPoint = {}
-  local Offset = UE4.FVector(0, 0, Box[3] + (Conf.lift_box or 0))
-  local Extent = UE4.FVector(Box[1], Box[2], Box[3])
-  local NpcBoxOffset = UE4.FVector(0, 0, (Box[3] or 0) / 2.0)
-  local drawDebugType = UE4.EDrawDebugTrace.None
-  local traceColor, traceHitColor, drawTime
-  if _G.GlobalConfig.bDebugSceneSeatEQS then
-    drawDebugType = UE4.EDrawDebugTrace.ForDuration
-    traceColor = UE4.FLinearColor(0.3, 1, 0.1, 1)
-    traceHitColor = UE4.FLinearColor(0.9, 0.2, 0.2, 1)
-    drawTime = 12.0
-  end
-  local LandTraceChannel = UE4.UNRCStatics.ConvertToTraceChannel(UE4.ECollisionChannel.ECC_GameTraceChannel5)
-  local LineTraceObjectTypes = {
-    UE4.ECollisionChannel.ECC_WorldStatic,
-    UE4.ECollisionChannel.ECC_WorldDynamic,
-    UE4.ECollisionChannel.ECC_Camera,
-    UE4.ECollisionChannel.ECC_Pawn,
-    UE4.ECollisionChannel.ECC_GameTraceChannel7,
-    UE4.ECollisionChannel.ECC_GameTraceChannel10,
-    UE4.ECollisionChannel.ECC_GameTraceChannel12
-  }
-  local BoxTraceObjectTypes = {
-    UE4.EObjectTypeQuery.WorldStatic,
-    UE4.EObjectTypeQuery.WorldDynamic,
-    UE4.EObjectTypeQuery.Character,
-    UE4.EObjectTypeQuery.Pawn,
-    UE4.EObjectTypeQuery.Vehicle,
-    UE4.EObjectTypeQuery.Tree
-  }
-  local NPCTraceObjectTypes = {
-    UE4.EObjectTypeQuery.WorldDynamic,
-    UE4.EObjectTypeQuery.Character,
-    UE4.EObjectTypeQuery.Pawn
-  }
-  
-  local function checkIsNpc(component)
-    if not component or not UE4.UObject.IsValid(component) then
-      return false
-    end
-    local actor = component:GetOwner()
-    if not actor or not UE4.UObject.IsValid(actor) then
-      return false
-    end
-    local collisionEnabled = component:GetCollisionEnabled()
-    if collisionEnabled == UE4.ECollisionEnabled.QueryOnly then
-      return false
-    end
-    if actor:IsA(UE4.ANPCBaseActor) then
-      return true
-    end
-    return false
-  end
-  
-  local function checkComponent(component, objectTypes)
-    if not component or not UE4.UObject.IsValid(component) then
-      return false
-    end
-    local collisionEnabled = component:GetCollisionEnabled()
-    if collisionEnabled == UE4.ECollisionEnabled.QueryOnly then
-      return false
-    end
-    if objectTypes then
-      for _, channel in pairs(objectTypes) do
-        if component:GetCollisionResponseToChannel(channel) == UE4.ECollisionResponse.ECR_Block then
-          return true
-        end
-      end
-    end
-    return false
-  end
-  
-  local queryParams = UE4.FNRCollisionQueryParams()
-  queryParams.ActorsToIgnore = IgnoreActor
-  local landTraceExtent = UE4.FVector(0, 0, 150)
-  Log.Debug("NPCModule:OnQueryPosForSeatFinished begin loop ResultLocations", Result.ItemSuccess:Num(), Result.ResultLocations:Num(), Result.AbsoluteResultLocations:Num())
-  for i, ResultLocation in tpairs(Result.ResultLocations) do
-    local BoxLocation = ResultLocation + Offset
-    local Dir = PlayerLocation - BoxLocation
-    Dir:Normalize()
-    local Rotator = UE.UKismetMathLibrary.MakeRotFromX(Dir)
-    local Rot = UE.FRotator(0, (Rotator.Yaw - 90 + 360) % 3600, 0)
-    local bQuerySuccess = Result.ItemSuccess:Get(i)
-    local AbsoluteLocation = SceneUtils.ConvertRelativeToAbsolute(BoxLocation)
-    Log.Debug("NPCModule:OnQueryPosForSeatFinished loop ResultLocations", i, bQuerySuccess, UE4.UKismetStringLibrary.Conv_VectorToString(AbsoluteLocation), UE4.UKismetStringLibrary.Conv_VectorToString(BoxLocation))
-    if bQuerySuccess then
-      queryParams.OwnerTag = string.format("SceneSeat_%d", i)
-      queryParams.TraceTag = "Land"
-      local landHitResults, bLandHitSuccess = UE4.UNRCTraceLibrary.LineTraceMulti(_G.UE4Helper.GetCurrentWorld(), ResultLocation + landTraceExtent, ResultLocation - landTraceExtent, LandTraceChannel, queryParams, nil, drawDebugType, traceColor, traceHitColor, drawTime)
-      if bLandHitSuccess and landHitResults then
-        for _, hitResult in tpairs(landHitResults) do
-          if checkIsNpc(hitResult.Component) then
-            if _G.GlobalConfig.bDebugSceneSeatEQS then
-              UE4.UKismetSystemLibrary.DrawDebugString(_G.UE4Helper.GetCurrentWorld(), hitResult.ImpactPoint, UE4.UKismetSystemLibrary.GetDisplayName(hitResult.Component), nil, UE4.FLinearColor(0.8, 0.2, 0.5, 0.8), drawTime)
-            end
-            Log.Debug("NPCModule:OnQueryPosForSeatFinished land trace hit", i, UE4.UKismetStringLibrary.Conv_VectorToString(hitResult.ImpactPoint), UE4.UKismetSystemLibrary.GetDisplayName(hitResult.Component))
-            goto lbl_770
-          end
-        end
-      end
-      queryParams.TraceTag = "LineHit"
-      local lineHitResults, bLineHitSuccess = UE4.UNRCTraceLibrary.LineTraceMultiForObjects(_G.UE4Helper.GetCurrentWorld(), PlayerLocation, BoxLocation, LineTraceObjectTypes, queryParams, nil, drawDebugType, traceColor, traceHitColor, drawTime)
-      if bLineHitSuccess and lineHitResults then
-        for _, hitResult in tpairs(lineHitResults) do
-          if checkComponent(hitResult.Component, LineTraceObjectTypes) then
-            if _G.GlobalConfig.bDebugSceneSeatEQS then
-              UE4.UKismetSystemLibrary.DrawDebugString(_G.UE4Helper.GetCurrentWorld(), hitResult.ImpactPoint, UE4.UKismetSystemLibrary.GetDisplayName(hitResult.Component), nil, UE4.FLinearColor(1, 0.2, 0, 0.8), drawTime)
-            end
-            Log.Debug("NPCModule:OnQueryPosForSeatFinished line trace hit", i, UE4.UKismetStringLibrary.Conv_VectorToString(hitResult.ImpactPoint), UE4.UKismetSystemLibrary.GetDisplayName(hitResult.Component))
-            goto lbl_770
-          end
-        end
-      end
-      queryParams.TraceTag = "BoxOverlap"
-      local components = UE4.UNRCTraceLibrary.BoxOverlapComponents(_G.UE4Helper.GetCurrentWorld(), BoxLocation, Extent, Rot, BoxTraceObjectTypes, nil, queryParams, nil, drawDebugType, traceColor, traceHitColor, drawTime)
-      for compIdx, comp in tpairs(components) do
-        if checkComponent(comp, LineTraceObjectTypes) then
-          if _G.GlobalConfig.bDebugSceneSeatEQS then
-            UE4.UKismetSystemLibrary.DrawDebugString(_G.UE4Helper.GetCurrentWorld(), BoxLocation + UE4.FVector(0, 0, compIdx * 5), UE4.UKismetSystemLibrary.GetDisplayName(comp), nil, UE4.FLinearColor(1, 0.2, 0, 0.8), drawTime)
-          end
-          Log.Debug("NPCModule:OnQueryPosForSeatFinished box overlap hit", i, UE4.UKismetSystemLibrary.GetDisplayName(comp))
-          goto lbl_770
-        end
-      end
-      queryParams.TraceTag = "NpcOverlap"
-      local npcComponents = UE4.UNRCTraceLibrary.BoxOverlapComponents(_G.UE4Helper.GetCurrentWorld(), ResultLocation + NpcBoxOffset, Extent, Rot, NPCTraceObjectTypes, nil, queryParams, nil, drawDebugType, traceColor, traceHitColor, drawTime)
-      for compIdx, comp in tpairs(npcComponents) do
-        if checkIsNpc(comp) then
-          if _G.GlobalConfig.bDebugSceneSeatEQS then
-            UE4.UKismetSystemLibrary.DrawDebugString(_G.UE4Helper.GetCurrentWorld(), BoxLocation + UE4.FVector(0, 0, compIdx * 5), UE4.UKismetSystemLibrary.GetDisplayName(comp), nil, UE4.FLinearColor(0.4, 0.2, 0.6, 0.8), drawTime)
-          end
-          Log.Debug("NPCModule:OnQueryPosForSeatFinished overlap npc", i, UE4.UKismetSystemLibrary.GetDisplayName(comp))
-          goto lbl_770
-        end
-      end
-      local Point = ProtoMessage:newPoint()
-      Point.pos.x = math.round(AbsoluteLocation.X)
-      Point.pos.y = math.round(AbsoluteLocation.Y)
-      Point.pos.z = math.round(AbsoluteLocation.Z)
-      Point.dir.x = 0
-      Point.dir.y = 0
-      Point.dir.z = math.round(Rot.Yaw * 10)
-      table.insert(SuccessPoint, Point)
-    end
-    ::lbl_770::
-    if _G.GlobalConfig.bDebugSceneSeatEQS then
-      UE4.UKismetSystemLibrary.DrawDebugString(_G.UE4Helper.GetCurrentWorld(), BoxLocation, i, nil, UE4.FLinearColor(1, 1, 1, 1), drawTime)
-    end
-  end
-  if 0 == #SuccessPoint then
-    _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.put_prop_fail_a)
-    _G.NRCModuleManager:DoCmd(_G.RolePlayModuleCmd.OnPutPropResponse, false)
-    return
-  end
-  local Request = _G.ProtoMessage:newZoneSceneCreateSceneSeatReq()
-  Request.create_pts = SuccessPoint
-  Request.npc_config_id = self.SceneSeatID or 68001
-  _G.ZoneServer:SendWithHandler(ProtoCMD.ZoneSvrCmd.ZONE_SCENE_CREATE_SCENE_SEAT_REQ, Request, self, self.OnZoneSceneCreateSceneSeatRsp, nil, true)
-end
-
-function NPCModule:OnZoneSceneCreateSceneSeatRsp(Rsp)
-  if 0 ~= Rsp.ret_info.ret_code then
-    _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.put_prop_fail_a)
-  else
-    _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.put_prop_success)
-    _G.NRCEventCenter:DispatchEvent(NPCModuleEvent.OnSceneSeatCreate)
-  end
-  _G.NRCModuleManager:DoCmd(_G.RolePlayModuleCmd.OnPutPropResponse, 0 == Rsp.ret_info.ret_code)
-  self.SceneSeatID = nil
-end
-
-function NPCModule:OnPlayerRecycleSceneSeat(SeatNpcID)
-  local Request = _G.ProtoMessage:newZoneSceneRecycleSceneSeatReq()
-  Request.recycle_npc_id = SeatNpcID
-  _G.ZoneServer:SendWithHandler(ProtoCMD.ZoneSvrCmd.ZONE_SCENE_RECYCLE_SCENE_SEAT_REQ, Request, self, self.OnZoneSceneRecycleSceneSeatRsp)
-end
-
-function NPCModule:OnZoneSceneRecycleSceneSeatRsp(Rsp)
-  if 0 == Rsp.ret_info.ret_code then
-    _G.NRCEventCenter:DispatchEvent(NPCModuleEvent.OnSceneSeatRecycle)
-  end
-  _G.NRCModuleManager:DoCmd(_G.RolePlayModuleCmd.OnRecyclePropResponse, 0 == Rsp.ret_info.ret_code)
-end
-
 function NPCModule:OnCmdCreateAllBall(ballId)
   self:GetBallClass(ballId)
 end
@@ -4154,6 +4086,8 @@ end
 function NPCModule:ThrowCatchNotify(notify)
   Log.Debug(string.format("\229\146\149\229\153\156\231\144\131\231\155\184\229\133\179\230\151\165\229\191\151: NPCModule:ThrowCatchNotify %d %d %d %d", notify.is_catch and 1 or 0, notify.is_catch_success and 1 or 0, notify.throw_id or 0, notify.caster_id or 0))
   if notify.is_catch then
+    local local_caster_id = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_UIN)
+    local is_local = local_caster_id == notify.caster_id
     local throw_ball = self:GetThrowBallById(notify.caster_id, notify.throw_id)
     local npc = self:GetNpcByServerID(notify.npc_id)
     if not npc then
@@ -4162,18 +4096,29 @@ function NPCModule:ThrowCatchNotify(notify)
         throw_ball.viewObj:ThrowRecycle()
       end
       _G.NRCEventCenter:DispatchEvent(NPCModuleEvent.CatchEndWithoutCondition, notify.caster_id or 0)
+      if is_local then
+        ThrowSession.RawSendCatchFinish(notify.throw_id)
+      end
       return
     end
     if not throw_ball then
       Log.Error("\229\146\149\229\153\156\231\144\131\231\155\184\229\133\179\230\151\165\229\191\151: \229\146\149\229\153\156\231\144\131\228\184\141\232\167\129\228\186\134\239\188\140\230\141\149\230\141\137\232\161\168\230\188\148\228\190\157\232\181\150\229\146\149\229\153\156\231\144\131\229\173\152\229\156\168\239\188\140\230\148\190\229\188\131\230\141\149\230\141\137\232\161\168\230\188\148\239\188\140\231\155\180\230\142\165\231\148\168\231\187\147\230\158\156")
       npc:SetNotDestroyFlag(false)
       _G.NRCEventCenter:DispatchEvent(NPCModuleEvent.CatchEndWithoutCondition, notify.caster_id or 0)
+      if is_local then
+        ThrowSession.RawSendCatchFinish(notify.throw_id)
+      end
       return
     end
     if npc:IsHidden() then
       Log.Debug("\229\146\149\229\153\156\231\144\131\231\155\184\229\133\179\230\151\165\229\191\151: \231\178\190\231\129\181\232\162\171\233\154\144\232\151\143\228\186\134\239\188\140\230\148\190\229\188\131\230\141\149\230\141\137\232\161\168\230\188\148\239\188\140\231\155\180\230\142\165\231\148\168\231\187\147\230\158\156")
       npc:SetNotDestroyFlag(false)
       _G.NRCEventCenter:DispatchEvent(NPCModuleEvent.CatchEndWithoutCondition, notify.caster_id or 0)
+      if throw_ball.ThrowSession then
+        throw_ball.ThrowSession:SendCatchFinishReq()
+      elseif is_local then
+        ThrowSession.RawSendCatchFinish(notify.throw_id)
+      end
       local throw_ball_view = throw_ball.viewObj
       if throw_ball_view then
         throw_ball_view:RemoveItem()
@@ -4308,6 +4253,50 @@ function NPCModule:OnPetResponseVoice(action, tag, baseData)
   end
   local responseComponent = npc:EnsureComponent(PetResponseComponent)
   responseComponent:AddPetResponse()
+end
+
+function NPCModule:OnLLMPETSQueryPets(action)
+  self.SceneAIManager:LLMPETSQueryPets(action)
+end
+
+function NPCModule:OnLLMPETSBehaviorNotify(action)
+  self.SceneAIManager:LLMPETSBehaviorNotify(action)
+end
+
+function NPCModule:OnLLMPETSDebug(action)
+  self.SceneAIManager:LLMPETSDebug(action)
+end
+
+function NPCModule:OnNpcSizeScaleChange(action)
+  if not (action and action.npc_id) or not action.size_scale then
+    return
+  end
+  local npc = self._npcDic[action.npc_id]
+  if npc then
+    npc:UpdateSizeScale(action.size_scale)
+  end
+end
+
+function NPCModule:OnOptionBlacklistAndWhitelist(Action, Tag, BaseData)
+  if not Action then
+    return
+  end
+  local NPC = self._npcDic[Action.npc_id]
+  if NPC then
+    local InterComp = NPC and NPC.InteractionComponent
+    if InterComp then
+      local Option = InterComp:GetOptionByID(Action.option_id)
+      if Option then
+        if Action.whitelist_uins then
+          Option.optionInfo.whitelist_uins = Action.whitelist_uins
+        end
+        if Action.blacklist_uins then
+          Option.optionInfo.blacklist_uins = Action.blacklist_uins
+        end
+        InterComp:UpdateByDistance(0)
+      end
+    end
+  end
 end
 
 return NPCModule

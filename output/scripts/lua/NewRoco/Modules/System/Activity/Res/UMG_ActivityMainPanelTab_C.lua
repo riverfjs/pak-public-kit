@@ -29,7 +29,12 @@ function UMG_ActivityMainPanelTab_C:OnItemUpdate(_data, datalist, index)
     _activityInst:RemoveEventListener(self, ActivityModuleEvent.CompositedActivitySelectChange, self.OnRefreshView)
     _activityInst:AddEventListener(self, ActivityModuleEvent.CompositedActivitySelectChange, self.OnRefreshView)
     local mainTabId = _activityInst:GetActivityMainTabId()
-    local redPointId = ActivityUtils.GetTabRedPoint(mainTabId)
+    local redPointId
+    if _activityInst:GetActivityBelongSystem() == _G.Enum.BelongSystem.BS_RECALL_ACTIVITY then
+      redPointId = 487
+    else
+      redPointId = ActivityUtils.GetTabRedPoint(mainTabId)
+    end
     if redPointId then
       local extraKeyList = _activityInst:GetTabRedPointExtraKeyList()
       self.redPointSpecial:EnableAnimation()
@@ -52,9 +57,18 @@ function UMG_ActivityMainPanelTab_C:OnRedPointSpecialStatusChange(redPoint, isRe
   if isRed or not activityInst then
     self.redPointNew:SetupKey(0)
   else
-    self.redPointNew:SetupKey(ActivityEnum.RedPointKey.NewActivity, {
+    local newRedKey
+    if activityInst:GetActivityBelongSystem() == _G.Enum.BelongSystem.BS_RECALL_ACTIVITY then
+      newRedKey = 488
+    else
+      newRedKey = ActivityEnum.RedPointKey.NewActivity
+    end
+    self.redPointNew:SetupKey(newRedKey, {
       tostring(activityInst:GetActivityId())
     })
+    if self.bSelected and self.redPointNew:IsRed() then
+      self.activityInst:EraseNewActivityRedPoint()
+    end
   end
 end
 

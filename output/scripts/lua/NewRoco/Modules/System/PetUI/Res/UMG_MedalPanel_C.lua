@@ -92,6 +92,9 @@ function UMG_MedalPanel_C:SetMedalInfo()
   if not self.IsFirstOpen then
     self.WearMedal = WearMedal
   end
+  self.NRCImage_50:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self.Text_defeat:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self.ReplacementRedal_Bg:SetVisibility(UE4.ESlateVisibility.Collapsed)
   if WearMedal then
     self.NotWear:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.ReplacementRedal:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
@@ -131,9 +134,11 @@ function UMG_MedalPanel_C:SetMedalInfo()
             local params = medalLevelInfo.ui_param2:split(";")
             if params and #params >= 3 then
               self.Text_defeat:SetColorAndOpacity(UE4.UNRCStatics.HexToSlateColor(params[1]))
+              self.NRCImage_50:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
               self.NRCImage_50:SetPath(params[3])
             end
             self.Text_defeat:SetText(WearMedal.complete_cnt)
+            self.Text_defeat:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
             self.CanvasPanel_Defeat:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
           end
         end
@@ -171,6 +176,7 @@ function UMG_MedalPanel_C:SetMedalInfo()
         self.NotWear:SetVisibility(UE4.ESlateVisibility.Collapsed)
         self.ICON_1:SetVisibility(UE4.ESlateVisibility.Collapsed)
         self.NRCText:SetVisibility(UE4.ESlateVisibility.Collapsed)
+        self.ReplacementRedal_Bg:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
       end
     else
       self.ReplacementRedal:SetVisibility(UE4.ESlateVisibility.Collapsed)
@@ -289,22 +295,14 @@ end
 
 function UMG_MedalPanel_C:GetPetPKInfo(isPartner)
   local Text = ""
-  local pvp_first_win_info, legend_first_win_alone_info
+  local legend_first_win_alone_info
   if isPartner then
     local petData = self.PetData.activity_partner_pet_data
     if petData and petData.key_experience then
-      pvp_first_win_info = petData.key_experience.pvp_first_win_info
       legend_first_win_alone_info = petData.key_experience.legend_first_win_alone_info
     end
   elseif self.PetData and self.PetData.key_experience then
-    pvp_first_win_info = self.PetData.key_experience.pvp_first_win_info
     legend_first_win_alone_info = self.PetData.key_experience.legend_first_win_alone_info
-  end
-  if pvp_first_win_info then
-    AddTime = os.date(LuaText.medal_text_5, pvp_first_win_info.win_time)
-    local msg = _G.DataConfigManager:GetLocalizationConf("pet_experience_form_2").msg
-    local Text_Info = string.format(msg, AddTime, pvp_first_win_info.enemy_name, pvp_first_win_info.last_killed_pet_name)
-    Text = string.format("%s%s", Text, Text_Info)
   end
   if legend_first_win_alone_info then
     AddTime = os.date(LuaText.medal_text_5, legend_first_win_alone_info.win_time)

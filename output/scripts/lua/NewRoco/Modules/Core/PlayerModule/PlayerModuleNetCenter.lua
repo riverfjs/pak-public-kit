@@ -51,8 +51,8 @@ function PlayerModuleNetCenter:InitMapData(avatarInfo, reason)
   if 0 == pos.x and 0 == pos.y and 0 == pos.z then
     Log.Warning("PlayerModuleNetCenter:OnSwitchScene bornPos is (0,0,0)")
   end
-  self._bornPos = UE4.FVector(pos.x, pos.y, pos.z)
-  Log.Dump(self._bornPos, 9, "PlayerModuleNetCenter:OnEnterScene bornPos")
+  Log.Dump(pos, 9, "PlayerModuleNetCenter:OnEnterScene bornPt.pos")
+  self._bornPos = SceneUtils.ServerPos2PlayerPos(pos)
   Log.Debug("[SceneLocalPlayer] platform_actor_id = ", avatarInfo.base.platform_actor_id)
   self._bornRot = SceneUtils.ServerPos2ClientRotator(bornPt.dir)
   Log.Debug("Born angle " .. tostring(self._bornRot.Yaw))

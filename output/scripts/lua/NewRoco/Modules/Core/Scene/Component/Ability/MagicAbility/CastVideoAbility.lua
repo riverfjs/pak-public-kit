@@ -166,12 +166,7 @@ function CastVideoAbility:StartMagicVideo()
   self.buff.magicInfo.pauseBuff = true
   _G.NRCModuleManager:DoCmd(_G.MagicMessageModuleCmd.RegisterPreperform, self.buff.magicInfo.npc)
   if npc.serverData and npc.serverData.base and npc.serverData.base.actor_id then
-    local param = {
-      markType = ProtoEnum.MarkGameplay.MK_MAGIC_VIDEO,
-      create_pos = create_pos.pos,
-      npc_id = npc.serverData.base.actor_id,
-      valid = self.buff.magicInfo.valid
-    }
+    local param = MagicMessageUtils.CreateParam(ProtoEnum.MarkGameplay.MK_MAGIC_VIDEO, npc, create_pos, self.buff.magicInfo.valid)
     _G.NRCModuleManager:DoCmd(_G.MagicReplayModuleCmd.SetRecordFeedInitInfo, param)
     _G.NRCModuleManager:DoCmd(_G.MagicReplayModuleCmd.StartMagicReplay, MagicReplayModuleEnum.ModuleOpType.Record)
   end

@@ -1,4 +1,5 @@
 local Super = require("NewRoco/Modules/System/BigMap/Res/UMG_IconTempBasic_C")
+local BigMapUtils = require("NewRoco/Modules/System/BigMap/BigMapUtils")
 local UMG_IconNpcRole_C = Super:Extend("UMG_IconNpcRole_C")
 
 function UMG_IconNpcRole_C:OnConstruct()
@@ -85,8 +86,8 @@ function UMG_IconNpcRole_C:UpdateIcon()
         elseif self.WorldMapConfig.npcicon_unlock then
           self:GetIconPath(self.WorldMapConfig.npcicon_unlock)
           self:SetCornerIcon()
-        elseif model and model.icon then
-          self:SetPetIconPath(model.icon)
+        elseif model and (model.icon or model.ui_icon) then
+          self:SetPetIconPath(model.icon or model.ui_icon)
           self:SetCornerIcon()
         end
       elseif self.uiData.status == _G.ProtoEnum.LockStatus.ENUM.DUNGEON_FINISH then
@@ -100,7 +101,7 @@ function UMG_IconNpcRole_C:UpdateIcon()
         self:GetIconPath(self.WorldMapConfig.npcicon_lock)
         self:SetCornerIcon()
       elseif model then
-        self:SetPetIconPath(model.icon)
+        self:SetPetIconPath(model.icon or model.ui_icon)
       end
     end
     if self.uiData and self.uiData.npc_refresh_id then
@@ -191,9 +192,16 @@ function UMG_IconNpcRole_C:GetPetIconPath(Icon)
 end
 
 function UMG_IconNpcRole_C:GetCathIconPath(npcRefreshId)
-  local path = self.WorldMapConfig and self.WorldMapConfig.world_map_NPCicon_des or G.NRCModuleManager:DoCmd(_G.BigMapModuleCmd.GetCatchPetIconPath, npcRefreshId)
+  if self.WorldMapConfig == nil then
+    return
+  end
+  local path = ""
+  if BigMapUtils.CheckShowRongDuanIcon(self.WorldMapConfig, self.uiData.mutation_type) then
+    path = self.WorldMapConfig.shine_rongduan_icon
+  else
+    path = self.WorldMapConfig.world_map_NPCicon_des
+  end
   self:SetPetPath(path)
-  self.BG:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.Department:SetVisibility(UE4.ESlateVisibility.Collapsed)
 end
 
@@ -222,14 +230,18 @@ function UMG_IconNpcRole_C:SetPetIconPath(iconPath)
   self.QuestionMark:SetVisibility(UE4.ESlateVisibility.Collapsed)
   if iconPath then
     if self.uiData.state then
-      if self.uiData.state == _G.ProtoEnum.PetHandbookStatus.PHS_NOT_FOUND then
-        self:SetRenderOpacity(0)
-        self.iconPath = iconPath
-        self.NRCpetIcon:SetVisibility(UE4.ESlateVisibility.Collapsed)
-        self:SetUnFoundIcon()
-      elseif not self.uiData.isFound then
-        self.iconPath = iconPath
-        self:SetDarkIcon()
+      if self.uiData.petBase_id and 0 ~= self.uiData.petBase_id then
+        if self.uiData.state == _G.ProtoEnum.PetHandbookStatus.PHS_NOT_FOUND then
+          self:SetRenderOpacity(0)
+          self.iconPath = iconPath
+          self.NRCpetIcon:SetVisibility(UE4.ESlateVisibility.Collapsed)
+          self:SetUnFoundIcon()
+        elseif not self.uiData.isFound then
+          self.iconPath = iconPath
+          self:SetDarkIcon()
+        else
+          self:SetPetPath(iconPath)
+        end
       else
         self:SetPetPath(iconPath)
       end

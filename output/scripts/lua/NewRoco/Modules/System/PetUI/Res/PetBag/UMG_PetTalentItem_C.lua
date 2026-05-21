@@ -27,7 +27,7 @@ function UMG_PetTalentItem_C:OnItemSelected(_bSelected)
     else
       self:PlayAnimation(self.Cancel)
     end
-    _G.NRCEventCenter:DispatchEvent(PetUIModuleEvent.OnChangePetBagFilterToggle, _G.Enum.FilterRule.FIL_TALENT_TYPE, self.enum, self.clickToggle)
+    _G.NRCEventCenter:DispatchEvent(PetUIModuleEvent.OnChangePetBagFilterToggle, self.data.filter_type, self.enum, self.clickToggle)
   end
 end
 

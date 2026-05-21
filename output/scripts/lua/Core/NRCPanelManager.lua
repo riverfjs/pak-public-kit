@@ -29,6 +29,7 @@ function NRCPanelManager:Ctor()
   self.debugData = {}
   self.panelDataDict = {}
   self.panelArgsDict = {}
+  self.panelArgsDynamicAdd = {}
   self.panelDict = {}
   self.panelLoaderDict = {}
   self.isLoadingPanelDict = {}
@@ -45,8 +46,21 @@ function NRCPanelManager:Ctor()
   self.ActiveConditionState = {}
   self.waitForClosePanel = {}
   self.PanelStack = {}
+  self.panelTriggers = {}
+  self.UmgStaticConfigDic = {}
   self:EnableTick(true)
   self:InstantiateGlobalPanelExitTrigger()
+end
+
+function NRCPanelManager:InitAllUmgStaticConfig()
+  local AllConfig = _G.DataConfigManager:GetAllByName("UMG_STATIC_CONF")
+  if nil == AllConfig then
+    Log.Error("[NRCPanelManager] InitAllUmgStaticConfig, AllConfig is nil")
+    return
+  end
+  for k, v in pairs(AllConfig) do
+    self.UmgStaticConfigDic[v.panel_name] = v
+  end
 end
 
 function NRCPanelManager:Free()
@@ -107,6 +121,15 @@ function NRCPanelManager:CheckNeedCloseFirst(panelData)
   return false
 end
 
+function NRCPanelManager:CheckFullScreenPanelIsShowTop(panelName)
+  if self.layerCenter then
+    local fullScreenCtrl = self.layerCenter:GetLayerCtrl(_G.Enum.UILayerType.UI_LAYER_FULLSCREEN)
+    if fullScreenCtrl then
+      return not fullScreenCtrl:CheckWindowBeOverlay(panelName)
+    end
+  end
+end
+
 function NRCPanelManager:OpenPanelTest(module, panelData, panelArg, isOpenNew)
   self:LoadPanel(module, panelData, panelArg)
 end
@@ -147,6 +170,9 @@ function NRCPanelManager:OpenPanel(module, panelData, panelArg)
     self.panelArgsDict[module.moduleName] = {}
   end
   self.panelArgsDict[module.moduleName][panelData.panelName] = panelArg
+  if self.panelArgsDynamicAdd[module.moduleName] then
+    self.panelArgsDynamicAdd[module.moduleName][panelData.panelName] = nil
+  end
   panelData.openReqParam = nil
   panelData.panelDynamicData = nil
   panelData.NeedRes = nil
@@ -186,11 +212,7 @@ function NRCPanelManager:OpenPanel(module, panelData, panelArg)
   if self.layerCenter:CheckCanOpen(panelData) then
     local layerCtrl = self.layerCenter:GetLayerCtrl(panelData.panelLayer)
     if layerCtrl then
-      local dependentPanelName
-      if panelData and panelData.dependentPanelName then
-        dependentPanelName = panelData.dependentPanelName
-      end
-      layerCtrl:SetPanelReadyToOpen(panelData.panelName, module, dependentPanelName)
+      layerCtrl:SetPanelReadyToOpen(panelData.panelName, module, panelData)
     end
     if panelData.panelLayer == Enum.UILayerType.UI_LAYER_FULLSCREEN then
       _G.UE4Helper.SetDesiredResLoadMode(_G.UE4Helper.ResLoadMode.FullSpeed, panelData.panelName)
@@ -224,7 +246,9 @@ function NRCPanelManager:LoadPanel(module, panelData, panelArg)
     panelData.BlockTrigger = BlockTrigger
   else
   end
-  NRCModuleManager:DoCmd(MultiTouchModuleCmd.OpenBlockingMask)
+  if panelData.enableTouchMask then
+    NRCModuleManager:DoCmd(MultiTouchModuleCmd.OpenBlockingMask)
+  end
   local path = panelData.panelPath
   if not self.panelLoaderDict[module.moduleName] then
     self.panelLoaderDict[module.moduleName] = {}
@@ -360,6 +384,10 @@ function NRCPanelManager:DoInstantiatePanel(module, umgPanel, panelData, panelAr
         Log.Debug("IsPanelEnabled = false", panelData.panelName)
       end
       NRCEventCenter:DispatchEvent(NRCPanelEvent.OpenPanelFinish, panelData)
+      local panelConfig = self.UmgStaticConfigDic[panelData.panelName]
+      if panelConfig then
+        panelData.panelStaticConf = panelConfig
+      end
       self:SafeCallPanelFunction(panelData.panelName, umgPanel.Active, umgPanel, table.unpack(panelArg, 1, math.max(panelArg.n, #panelArg)))
       self:OnPostActivePanel(umgPanel)
       self:CloseCapture()
@@ -371,14 +399,43 @@ function NRCPanelManager:DoInstantiatePanel(module, umgPanel, panelData, panelAr
   Log.Debug("[NRCPanelManager] DoInstantiatePanel succ:", type(umgPanel))
 end
 
-function NRCPanelManager:UpdateTempPanelArg(module, panelData, panelArg)
-  self.panelArgsDict[module.moduleName][panelData.panelName] = panelArg
+function NRCPanelManager:RefreshPanelOpenArg(module, panelData, panelArgs)
+  if not module or not panelData then
+    return
+  end
+  local curArgs = self.panelArgsDict[module.moduleName][panelData.panelName]
+  if curArgs then
+    panelArgs = panelArgs or {}
+    self.panelArgsDict[module.moduleName][panelData.panelName] = panelArgs
+    local dynamicArgs = self.panelArgsDynamicAdd[module.moduleName] and self.panelArgsDynamicAdd[module.moduleName][panelData.panelName]
+    if dynamicArgs then
+      for _, arg in ipairs(dynamicArgs) do
+        table.insert(panelArgs, arg)
+      end
+    end
+  end
+end
+
+function NRCPanelManager:AddPanelOpenArg(module, panelData, arg)
+  if not (module and panelData) or not arg then
+    return
+  end
+  local panelArgs = self.panelArgsDict[module.moduleName][panelData.panelName]
+  if panelArgs then
+    table.insert(panelArgs, arg)
+    self.panelArgsDict[module.moduleName][panelData.panelName] = panelArgs
+    if not self.panelArgsDynamicAdd[module.moduleName] then
+      self.panelArgsDynamicAdd[module.moduleName] = {}
+    end
+    local dynamicArgs = self.panelArgsDynamicAdd[module.moduleName][panelData.panelName] or {}
+    table.insert(dynamicArgs, arg)
+    self.panelArgsDynamicAdd[module.moduleName][panelData.panelName] = dynamicArgs
+    return panelArgs
+  end
 end
 
 function NRCPanelManager:OnReceiveOpenRsp(module, panelData, rsp)
-  local panelArgs = self.panelArgsDict[module.moduleName][panelData.panelName]
-  table.insert(panelArgs, rsp)
-  self:UpdateTempPanelArg(module, panelData, panelArgs)
+  self:AddPanelOpenArg(module, panelData, rsp)
   if rsp and rsp.ret_info and rsp.ret_info.ret_code and 0 == rsp.ret_info.ret_code then
     self:SetActiveConditionState(NRCPanelManager.ActivePreCondition.OpenRsp, panelData, module)
   else
@@ -433,6 +490,7 @@ end
 function NRCPanelManager:ClosePanel(moduleName, panelName, panelIndex)
   _G.NRCSDKManager:ReportExtraCrashData(UE4.ECrashDataReporterType.UIOperate, "ClosePanel " .. panelName)
   _G.NRCPanelBlocker:StopBlock()
+  self:ClearPanelTriggerRecord(panelName)
   Log.Debug("[NRCPanelManager] ClosePanel:", moduleName, panelName)
   panelIndex = panelIndex or 1
   self:CloseCapture()
@@ -443,6 +501,7 @@ function NRCPanelManager:ClosePanel(moduleName, panelName, panelIndex)
         panelData.panelDynamicData:TriggerClose(panelData)
       end
       self:RemovePanelBlockIMC(panelData)
+      _G.NRCModuleManager:DoCmd(_G.MultiTouchModuleCmd.RemoveSingleTouchPanel, panelData)
       _G.NRCProfilerLog:NRCPanelProfilerLog(false, true, panelName)
       self.debugData[panelData.panelPath] = nil
       local panel = self:GetPanel(moduleName, panelName, false, panelIndex)
@@ -461,16 +520,20 @@ function NRCPanelManager:ClosePanel(moduleName, panelName, panelIndex)
         if self.panelArgsDict[moduleName] then
           self.panelArgsDict[moduleName][panelName] = nil
         end
+        if self.panelArgsDynamicAdd[moduleName] then
+          self.panelArgsDynamicAdd[moduleName][panelName] = nil
+        end
         if panelData.panelLayer == Enum.UILayerType.UI_LAYER_FULLSCREEN then
           _G.UE4Helper.SetDesiredResLoadMode(_G.UE4Helper.ResLoadMode.Default, panelName)
           UE4.UNRCQualityLibrary.SwitchNRCGameShadowMode(0)
         end
-        NRCModuleManager:DoCmd(MultiTouchModuleCmd.RemoveSingleTouchPanel, panelData)
         self:SafeCallPanelFunction(panelData.panelName, panel.Disable, panel)
         self:SafeCallPanelFunction(panelData.panelName, panel.Deactive, panel)
         Log.Debug("[NRCPanelManager] ClosePanel succ:", moduleName, panelName)
         self.layerCenter:RemoveFromLayerViewportByNameAndType(panelData.panelName, panelData.panelLayer)
-        UE4.UNRCStatics.DestroyImmediately(panel)
+        if panel and UE4.UObject.IsValid(panel) then
+          UE4.UNRCStatics.DestroyImmediately(panel)
+        end
         self:OnPostDestructPanel(panelData)
         if _G.GlobalConfig.DebugOpenUI then
           self:ClearLocalPlayerSkill()
@@ -513,6 +576,25 @@ function NRCPanelManager:CloseAllPanel(moduleName)
       end
     end
   end
+end
+
+function NRCPanelManager:CheckPanelVisible(panelName)
+  for _, _panelList in pairs(self.panelDict) do
+    for _panelName, _panelDetails in pairs(_panelList or {}) do
+      if _panelName == panelName then
+        local panelInst = _panelDetails and _panelDetails[1]
+        local panel = panelInst and panelInst.inst
+        if panel and UE4.UObject.IsValid(panel) then
+          local visibility = panel:GetVisibility()
+          if visibility ~= UE4.ESlateVisibility.Collapsed and visibility ~= UE4.ESlateVisibility.Hidden then
+            return true
+          end
+        end
+        break
+      end
+    end
+  end
+  return false
 end
 
 function NRCPanelManager:CheckStopRenderPanelCount()
@@ -758,6 +840,50 @@ function NRCPanelManager:InstantiateGlobalPanelExitTrigger()
   self:BindInputAction()
 end
 
+function NRCPanelManager:AddPanelTriggerRecord(panelName, triggerObj)
+  if not string.IsNilOrEmpty(panelName) and triggerObj then
+    local triggerList = self.panelTriggers[panelName]
+    if triggerList then
+      table.insert(triggerList, triggerObj)
+    else
+      self.panelTriggers[panelName] = {triggerObj}
+    end
+  end
+end
+
+function NRCPanelManager:RemovePanelTriggerRecord(panelName, triggerObj)
+  if not string.IsNilOrEmpty(panelName) and triggerObj then
+    local triggerList = self.panelTriggers[panelName]
+    if triggerList then
+      for i, v in ipairs(triggerList) do
+        if v == triggerObj then
+          table.remove(triggerList, i)
+          break
+        end
+      end
+    end
+  end
+end
+
+function NRCPanelManager:ClearPanelTriggerRecord(panelName)
+  if not string.IsNilOrEmpty(panelName) then
+    self.panelTriggers[panelName] = nil
+  end
+end
+
+function NRCPanelManager:UpdatePanelTriggerPriority(panelName, priority)
+  if not string.IsNilOrEmpty(panelName) and priority then
+    local triggerList = self.panelTriggers[panelName]
+    if triggerList then
+      for _, triggerObj in ipairs(triggerList) do
+        if UE.UObject.IsValid(triggerObj) then
+          UE.UNRCEnhancedInputHelper.SetInputMappingContextPriority(triggerObj, priority)
+        end
+      end
+    end
+  end
+end
+
 function NRCPanelManager:OnPreOpenPanel(PanelData)
 end
 
@@ -835,6 +961,7 @@ function NRCPanelManager:AddPanelBlockIMC(panelData)
       priority = layerCtrl:GetWindowDepth(panelData.panelName)
     end
     local TriggerObj = ObjectRefUnBoxing(Trigger)
+    self:AddPanelTriggerRecord(panelData.panelName, TriggerObj)
     _G.NRCModuleManager:DoCmd(_G.EnhancedInputModuleCmd.EnhancedInputHelperAddInputMappingContext, TriggerObj, priority)
     Log.Debug("+++++++++ AddPanelBlockIMC IMC = %s  PanelName = %s", TriggerObj:GetName(), panelData.panelName)
   else
@@ -852,6 +979,7 @@ function NRCPanelManager:RemovePanelBlockIMC(panelData)
   end
   if panelData and panelData.BlockTrigger then
     local TriggerObj = ObjectRefUnBoxing(panelData.BlockTrigger)
+    self:RemovePanelTriggerRecord(panelData.panelName, TriggerObj)
     _G.NRCModuleManager:DoCmd(_G.EnhancedInputModuleCmd.EnhancedInputHelperRemoveInputMappingContext, TriggerObj)
     table.insert(self.panelBlockTriggerFreePool, panelData.BlockTrigger)
     Log.Debug("--------- RemovePanelBlockIMC IMC = %s  PanelName = %s", TriggerObj:GetName(), panelData.panelName)
@@ -926,6 +1054,7 @@ function NRCPanelManager:PushEscTrigger(PanelInfo)
         if layerCtrl then
           priority = layerCtrl:GetWindowDepth(PanelInfo.PanelData.panelName)
         end
+        self:AddPanelTriggerRecord(PanelInfo.PanelData.panelName, TriggerObj)
         _G.NRCModuleManager:DoCmd(_G.EnhancedInputModuleCmd.EnhancedInputHelperAddInputMappingContext, TriggerObj, priority)
         Log.Info("[IMC] push esc trigger for panel", PanelInfo.PanelData.panelName, TriggerObj:GetName())
       else
@@ -937,10 +1066,12 @@ end
 
 function NRCPanelManager:PopEscTrigger(PanelInfo)
   if PanelInfo and PanelInfo.EscTrigger then
+    local panelName = PanelInfo.PanelData and PanelInfo.PanelData.panelName
     local TriggerObj = ObjectRefUnBoxing(PanelInfo.EscTrigger)
+    self:RemovePanelTriggerRecord(panelName, TriggerObj)
     _G.NRCModuleManager:DoCmd(_G.EnhancedInputModuleCmd.EnhancedInputHelperRemoveInputMappingContext, TriggerObj)
     table.insert(self.panelExitTriggerFreePool, PanelInfo.EscTrigger)
-    Log.Info("[IMC] remove esc trigger", PanelInfo.PanelData.panelName, TriggerObj:GetName())
+    Log.Info("[IMC] remove esc trigger", panelName, TriggerObj:GetName())
   end
 end
 
@@ -1148,10 +1279,12 @@ function NRCPanelManager:SetEnableWorldListenerVolume(enable, panelName)
     if CheckEnableWorldListenerVolume(enable, panelName) then
       Log.Debug("=========================NRCPanelBase:EnableWorldListenerVolume", true, panelName)
       UE4.UNRCAudioManager.ResetWorldListenerVolumeOffset()
+      _G.NRCAudioManager:SetStateByName("Fullscreen", "Close", "PanelManager")
     end
   elseif CheckEnableWorldListenerVolume(enable, panelName) then
     Log.Debug("=========================NRCPanelBase:EnableWorldListenerVolume", false, panelName)
     _G.UE4.UNRCAudioManager.SetWorldListenerVolumeOffset(db)
+    _G.NRCAudioManager:SetStateByName("Fullscreen", "Open", "PanelManager")
   end
 end
 

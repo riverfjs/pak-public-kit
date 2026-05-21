@@ -59,7 +59,7 @@ function UMG_Pass_PetDetail_C:CreatePetSkills()
   if self.curSelectId == nil then
     return nil
   end
-  local LevelSkillConf = _G.DataConfigManager:GetLevelSkillConf(self.curSelectId)
+  local LevelSkillConf = _G.NRCModeManager:DoCmd(_G.PetUIModuleCmd.GetLevelSkillConfByPetBaseId, self.curSelectId)
   local skillList = {}
   if LevelSkillConf and LevelSkillConf.level then
     for i, level in pairs(LevelSkillConf.level) do

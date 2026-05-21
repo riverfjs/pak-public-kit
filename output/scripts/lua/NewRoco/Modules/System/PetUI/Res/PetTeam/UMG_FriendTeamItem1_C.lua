@@ -1,5 +1,6 @@
 local Base = require("NewRoco.TUI.BP_NRCItemBase_C")
 local ActivityModuleEvent = require("NewRoco.Modules.System.Activity.ActivityModuleEvent")
+local PetUIModuleEvent = require("NewRoco.Modules.System.PetUI.PetUIModuleEvent")
 local UMG_FriendTeamItem1_C = Base:Extend("UMG_FriendTeamItem1_C")
 
 function UMG_FriendTeamItem1_C:OnConstruct()
@@ -23,6 +24,8 @@ function UMG_FriendTeamItem1_C:OnItemUpdate(_data, datalist, index)
   local petLevel = _data.pet_level
   local initData = {}
   local pet_team_info
+  self.teamData = _data
+  self.team_id = _data.team_id
   if _data.pet_team_info then
     pet_team_info = _data.pet_team_info
     local encodePetData = NRCModuleManager:DoCmd(_G.PetUIModuleCmd.EncodeShareTeamCode, pet_team_info.pets, pet_team_info.role_magic_id, pet_team_info.team_type, _data.team_name)
@@ -33,7 +36,7 @@ function UMG_FriendTeamItem1_C:OnItemUpdate(_data, datalist, index)
     pet_team_info.team_type = _G.Enum.PlayerTeamType.PTT_PVP_BATTLE_4
     self.teamShareCode = self:AddCodeAnnotation(_data.pet_team_share_id, pet_team_info.role_magic_id, _data.team_name, pet_team_info.pets)
   end
-  self.pet_team_info = pet_team_info
+  self.teamData.pet_team_info = pet_team_info
   self.TeamName:SetText(_data.team_name)
   self.MagicIcon:SetPath(_G.DataConfigManager:GetBagItemConf(pet_team_info.role_magic_id).icon)
   for _, v in ipairs(pet_team_info.pets) do
@@ -101,8 +104,12 @@ end
 
 function UMG_FriendTeamItem1_C:OpenDetailPanel()
   self.module:GetData():SetShiningWeekendTeamOpenIndex(self.index)
-  _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.OpenLoadPetTeamPanel, self.pet_team_info.team_type, -1, self.teamShareCode)
+  if self.team_id >= 10000 then
+    _G.NRCEventCenter:DispatchEvent(PetUIModuleEvent.UseAICoachRecommendTeam, self.teamData)
+  end
+  _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.OpenLoadPetTeamPanel, self.teamData.pet_team_info.team_type, -1, self.teamShareCode)
   _G.NRCEventCenter:DispatchEvent(ActivityModuleEvent.SendShiningWeekendTLog, 5)
+  self:OnReportAICoachLog("team_apply_click", self.team_id)
 end
 
 function UMG_FriendTeamItem1_C:CopyTeamCode()
@@ -110,6 +117,16 @@ function UMG_FriendTeamItem1_C:CopyTeamCode()
   _G.NRCAudioManager:PlaySound2DAuto(41401003, "UMG_FriendTeamItem1_C:CopyTeamCode")
   _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, _G.DataConfigManager:GetLocalizationConf("lineup_code_copy").msg)
   _G.NRCEventCenter:DispatchEvent(ActivityModuleEvent.SendShiningWeekendTLog, 4)
+  self:OnReportAICoachLog("team_copy_click", self.team_id)
+end
+
+function UMG_FriendTeamItem1_C:OnReportAICoachLog(key, value)
+  local isAICoachOpen = _G.NRCModuleManager:DoCmd(_G.AICoachModuleCmd.GetIsCurrAICoachOpen)
+  local isAIInWhiteList = _G.NRCModuleManager:DoCmd(_G.AICoachModuleCmd.GetIsPlayerInWhiteList)
+  local isSystemOpen = _G.NRCModuleManager:DoCmd(_G.AICoachModuleCmd.GetSysAICoachSceneIsOpen, Enum.FunctionEntrance.FE_AI_COACH_TEAM)
+  if isAICoachOpen and isAIInWhiteList and isSystemOpen then
+    _G.NRCModuleManager:DoCmd(_G.AICoachModuleCmd.OnReportEvent, key, value)
+  end
 end
 
 return UMG_FriendTeamItem1_C

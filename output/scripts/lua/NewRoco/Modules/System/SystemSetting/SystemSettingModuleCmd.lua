@@ -36,9 +36,9 @@ SystemSettingModuleCmd.SwitchSleepMode = "SystemSettingModuleCmd.SwitchSleepMode
 SystemSettingModuleCmd.QuitSleepMode = "SystemSettingModuleCmd.QuitSleepMode"
 SystemSettingModuleCmd.EnterSleepModeOnDebug = "SystemSettingModuleCmd.EnterSleepModeOnDebug"
 SystemSettingModuleCmd.CheckSecondaryPassword = "SystemSettingModuleCmd.CheckSecondaryPassword"
+SystemSettingModuleCmd.ReqSecondaryPasswordGetInfo = "SystemSettingModuleCmd.ReqSecondaryPasswordGetInfo"
 SystemSettingModuleCmd.GetSecondaryPasswordInfo = "SystemSettingModuleCmd.GetSecondaryPasswordInfo"
 SystemSettingModuleCmd.OnSecondaryPasswordStatusChange = "SystemSettingModuleCmd.OnSecondaryPasswordStatusChange"
-SystemSettingModuleCmd.OnSecondaryDefaultFreeChange = "SystemSettingModuleCmd.OnSecondaryDefaultFreeChange"
 SystemSettingModuleCmd.OpenSecondaryPasswordSet = "SystemSettingModuleCmd.OpenSecondaryPasswordSet"
 SystemSettingModuleCmd.OpenSecondaryPasswordModify = "SystemSettingModuleCmd.OpenSecondaryPasswordModify"
 SystemSettingModuleCmd.OpenSecondaryPasswordVerify = "SystemSettingModuleCmd.OpenSecondaryPasswordVerify"
@@ -46,4 +46,5 @@ SystemSettingModuleCmd.OpenSecondaryPasswordCancel = "SystemSettingModuleCmd.Ope
 SystemSettingModuleCmd.ForgetSecondaryPassword = "SystemSettingModuleCmd.ForgetSecondaryPassword"
 SystemSettingModuleCmd.OpenSecondaryPasswordCancelForceDisable = "SystemSettingModuleCmd.OpenSecondaryPasswordCancelForceDisable"
 SystemSettingModuleCmd.EncryptInputText = "SystemSettingModuleCmd.EncryptInputText"
+SystemSettingModuleCmd.ChangePlayerName = "SystemSettingModuleCmd.ChangePlayerName"
 return SystemSettingModuleCmd

@@ -30,7 +30,7 @@ function UMG_BattleBallEntry_C:Initialize(Initializer)
 end
 
 function UMG_BattleBallEntry_C:Construct()
-  _G.BattleEventCenter:Bind(self, BattleEvent.BATTLE_CLICKED_BALL, BattleEvent.CHANGE_OPERATE_TYPE)
+  _G.BattleEventCenter:Bind(self, BattleEvent.BATTLE_CLICKED_BALL, BattleEvent.CHANGE_OPERATE_TYPE, BattleEvent.UI_INSTANT_UPDATE_BALL_NUM)
   self.props = {}
   self._timer = 0
   self._longPressThreshold = BattleConst.ItemLongPressThreshold
@@ -38,6 +38,7 @@ function UMG_BattleBallEntry_C:Construct()
   self._isSelect = false
   self.curOperateType = BattleEnum.Operation.ENUM_CATCH
   self.TouchButton:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self.Forbid:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
 end
 
 function UMG_BattleBallEntry_C:Destruct()
@@ -50,6 +51,8 @@ function UMG_BattleBallEntry_C:OnBattleEvent(eventName, ...)
   if eventName == BattleEvent.BATTLE_CLICKED_BALL then
   elseif eventName == BattleEvent.CHANGE_OPERATE_TYPE then
     self:OnOperatePanelChanged(...)
+  elseif eventName == BattleEvent.UI_INSTANT_UPDATE_BALL_NUM then
+    self:UpdateBallNum(...)
   end
 end
 
@@ -102,19 +105,18 @@ function UMG_BattleBallEntry_C:Tick(geometry, deltaTime)
 end
 
 function UMG_BattleBallEntry_C:RefreshBallSelected()
-  if not self.ballData.isSelected then
+  if not self.ballData or not self.ballData.isSelected then
     UE4.UNRCAudioManager.Get():PlaySound2DAuto(1004, "UMG_BattleBallEntry_C:OnClickedBall")
     if self.SelectedImage:GetVisibility() == UE4.ESlateVisibility.Visible or self.SelectedImage:GetVisibility() == UE4.ESlateVisibility.SelfHitTestInvisible then
       self.SelectedImage:SetVisibility(UE4.ESlateVisibility.Collapsed)
-      self:StopAndPlayAnim(self.Btn_Notclick)
+      self.NubBg:SetColorAndOpacity(UE4.FLinearColor(0.904661, 0.854993, 0.752942, 1))
+      self.Bg:SetRenderOpacity(1)
     end
   else
     self.UMG_BattleClickFX:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
     self.SelectedImage:SetVisibility(UE4.ESlateVisibility.Visible)
     self.NubBg:SetVisibility(UE4.ESlateVisibility.Visible)
-    if not self:IsAnyOpenAnimationPlaying() then
-      self:StopAndPlayAnim(self.Btn_Click)
-    end
+    self:StopAndPlayAnim(self.Btn_Click)
   end
 end
 
@@ -200,9 +202,7 @@ end
 function UMG_BattleBallEntry_C:OnSelectExtraBall(ballGID)
   if self.curOperateType == BattleEnum.Operation.ENUM_CATCH and self.ballData and self.ballData.gid == ballGID then
     self.UMG_BattleClickFX:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
-    if not self:IsAnyOpenAnimationPlaying() then
-      self:StopAndPlayAnim(self.Btn_Click)
-    end
+    self:StopAndPlayAnim(self.Btn_Click)
     _G.BattleManager.battleRuntimeData.catchInfo.curUseBallId = self.ballData.id
     _G.BattleManager.battleRuntimeData.catchInfo.curUseBallGID = self.ballData.gid
     _G.BattleEventCenter:Dispatch(BattleEvent.BATTLE_CLICKED_BALL, self.ballData)
@@ -214,9 +214,7 @@ end
 function UMG_BattleBallEntry_C:SelectCatchBall()
   if self.curOperateType == BattleEnum.Operation.ENUM_CATCH then
     self.UMG_BattleClickFX:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
-    if not self:IsAnyOpenAnimationPlaying() then
-      self:StopAndPlayAnim(self.Btn_Click)
-    end
+    self:StopAndPlayAnim(self.Btn_Click)
     _G.BattleManager.battleRuntimeData.catchInfo.curUseBallId = self.ballData.id
     _G.BattleManager.battleRuntimeData.catchInfo.curUseBallGID = self.ballData.gid
     _G.BattleEventCenter:Dispatch(BattleEvent.BATTLE_CLICKED_BALL, self.ballData)
@@ -246,10 +244,6 @@ end
 function UMG_BattleBallEntry_C:SetData(itemData)
   Log.Debug("UMG_BattleBallEntry_C SetData")
   if not itemData or not itemData:IsValid() then
-    self.Forbid:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-    self.BanImage:SetVisibility(UE4.ESlateVisibility.Collapsed)
-    self.emptyImage:SetVisibility(UE4.ESlateVisibility.Visible)
-    self.emptyImage:SetRenderOpacity(0.2)
     self.Bg:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.SelectedImage:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.BallIcon:CancelLoad()
@@ -262,7 +256,6 @@ function UMG_BattleBallEntry_C:SetData(itemData)
     return
   else
     self:SetRenderOpacity(1)
-    self.emptyImage:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.Bg:SetVisibility(UE4.ESlateVisibility.Visible)
     self.SelectedImage:SetVisibility(UE4.ESlateVisibility.Visible)
     self.BallIcon:SetVisibility(UE4.ESlateVisibility.Visible)
@@ -275,9 +268,10 @@ function UMG_BattleBallEntry_C:SetData(itemData)
     self.ballBagCfg = _G.DataConfigManager:GetBagItemConf(self.ballData.conf_id)
     if not self.ballBagCfg then
       Log.Error("UMG_BattleBallEntry_C Bag Conf not found " .. self.ballData.conf_id)
+    else
+      self.BallIcon:SetPath(NRCUtils:FormatConfIconPath(self.ballBagCfg.icon, _G.UIIconPath.BagItemPath))
+      self.emptyImage:SetPath(NRCUtils:FormatConfIconPath(self.ballBagCfg.icon, _G.UIIconPath.BagItemPath))
     end
-    self.BallIcon:SetPath(NRCUtils:FormatConfIconPath(self.ballBagCfg.icon, _G.UIIconPath.BagItemPath))
-    self.emptyImage:SetPath(NRCUtils:FormatConfIconPath(self.ballBagCfg.icon, _G.UIIconPath.BagItemPath))
   end
   self.NumTxt:SetText(tostring(self.ballData.num))
   if self.ballData.sign then
@@ -285,6 +279,19 @@ function UMG_BattleBallEntry_C:SetData(itemData)
   else
     self.Sign:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
+  self:RefreshEmptyAndBanImage()
+end
+
+function UMG_BattleBallEntry_C:UpdateBallNum(BallIdNumMap)
+  if not self.ballData or not self.ballData.id then
+    return
+  end
+  local newNum = BallIdNumMap[self.ballData.id]
+  if not newNum then
+    return
+  end
+  self.ballData.num = newNum
+  self.NumTxt:SetText(tostring(self.ballData.num))
 end
 
 function UMG_BattleBallEntry_C:HidePoint()
@@ -304,7 +311,7 @@ end
 
 function UMG_BattleBallEntry_C:DelayPlayAnim(_IsOpen, i)
   self.tweenOutCallback = nil
-  self:StopCurrentOpenAnimation()
+  self:StopCurrentAnimation()
   self:CancelOpenAnimDelay()
   if _IsOpen then
     self:SetRenderOpacity(0)
@@ -319,6 +326,7 @@ function UMG_BattleBallEntry_C:PlayOpenAnimation(_IsOpen)
   end
   self:HidePoint()
   self.CanvasPanel_0:SetRenderTranslation(UE.FVector2D(0, 0))
+  self.CanvasPanel_0:SetRenderScale(UE4.FVector2D(1, 1))
   self:SetRenderOpacity(1)
   self:CancelOpenAnimDelay()
   if _IsOpen then
@@ -337,10 +345,10 @@ function UMG_BattleBallEntry_C:PlayOpenAnimation(_IsOpen)
 end
 
 function UMG_BattleBallEntry_C:IsAnyOpenAnimationPlaying()
-  return self:IsAnimationPlaying(self.open) and self:IsAnimationPlaying(self.Change_open)
+  return self:IsAnimationPlaying(self.open) or self:IsAnimationPlaying(self.Change_open)
 end
 
-function UMG_BattleBallEntry_C:StopCurrentOpenAnimation()
+function UMG_BattleBallEntry_C:StopCurrentAnimation()
   if not self.curAnim then
     return
   end
@@ -361,18 +369,33 @@ function UMG_BattleBallEntry_C:SetCanCatch(bCanCatch, CatchMsg)
   if not UE4.UObject.IsValid(self) then
     return
   end
-  if bCanCatch then
-    self.BanImage:SetVisibility(UE4.ESlateVisibility.Collapsed)
-    if self.emptyImageDefaultVisibility then
-      self.emptyImage:SetVisibility(self.emptyImageDefaultVisibility)
-    end
-  else
-    self.emptyImageDefaultVisibility = self.emptyImage:GetVisibility()
-    self.emptyImage:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-    self.BanImage:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-  end
   self.CatchMsg = CatchMsg
   self.bCanCatch = bCanCatch
+  self:RefreshEmptyAndBanImage()
+end
+
+function UMG_BattleBallEntry_C:RefreshEmptyAndBanImage()
+  local bCanCatch = true
+  if self.bCanCatch ~= nil then
+    bCanCatch = self.bCanCatch
+  end
+  local catchMsg = self.CatchMsg
+  local ballData = self.ballData
+  local banImageVisibility = UE4.ESlateVisibility.Collapsed
+  local emptyImageVisibility = UE4.ESlateVisibility.Collapsed
+  local emptyImageOpacity = 1
+  if not bCanCatch then
+    banImageVisibility = UE4.ESlateVisibility.SelfHitTestInvisible
+    emptyImageVisibility = UE4.ESlateVisibility.SelfHitTestInvisible
+  end
+  if not ballData or not ballData:IsValid() then
+    banImageVisibility = UE4.ESlateVisibility.Collapsed
+    emptyImageVisibility = UE4.ESlateVisibility.SelfHitTestInvisible
+    emptyImageOpacity = 0.2
+  end
+  self.emptyImage:SetVisibility(emptyImageVisibility)
+  self.emptyImage:SetRenderOpacity(emptyImageOpacity)
+  self.BanImage:SetVisibility(banImageVisibility)
 end
 
 function UMG_BattleBallEntry_C:OnTouchStarted(MyGeometry, InTouchEvent)
@@ -399,16 +422,16 @@ function UMG_BattleBallEntry_C:IsBallDataValid()
 end
 
 function UMG_BattleBallEntry_C:StopAndPlayAnim(InAnimation, ...)
-  if self.nextAnim == InAnimation or self.curAnim == InAnimation then
+  if self.nextAnim ~= nil or self.curAnim == InAnimation then
     return
   end
   self:CancelOpenAnimDelay()
   self.nextAnim = InAnimation
   if self.curAnim then
-    self:StopCurrentOpenAnimation()
+    self:StopCurrentAnimation()
   end
   self:PlayAnimation(InAnimation, ...)
-  self.curAnim = self.nextAnim
+  self.curAnim = InAnimation
   self.nextAnim = nil
 end
 

@@ -1,24 +1,12 @@
 local WishCrystalModuleEvent = reload("NewRoco.Modules.System.WishCrystal.WishCrystalModuleEvent")
 local RocoSkillProxy = require("NewRoco.Utils.RocoSkillProxy")
-local StatusCheckerGroup = require("NewRoco.Modules.Core.Task.StatusCheckers.StatusCheckerGroup")
-local StatusCheckerEnum = require("NewRoco.Modules.Core.Task.StatusCheckers.StatusCheckerEnum")
-local NPCModuleEvent = require("NewRoco.Modules.Core.NPC.NPCModuleEvent")
 local WishCrystalModule = NRCModuleBase:Extend("WishCrystalModule")
 
 function WishCrystalModule:OnConstruct()
   self.data = self:SetData("WishCrystalModuleData", "NewRoco.Modules.System.WishCrystal.WishCrystalModuleData")
-  self.StatusChecker = StatusCheckerGroup({
-    StatusCheckerEnum.Catch
-  }, Log.LOG_LEVEL.ELogDebug)
-  self.DelayList = {}
 end
 
 function WishCrystalModule:OnDestruct()
-  for _, id in pairs(self.DelayList or {}) do
-    if id then
-      _G.DelayManager:CancelDelayById(id)
-    end
-  end
 end
 
 function WishCrystalModule:OnActive()
@@ -26,8 +14,6 @@ function WishCrystalModule:OnActive()
   _G.NRCEventCenter:RegisterEvent("WishCrystalModule", self, WishCrystalModuleEvent.WISH_CRYSTAL_SEND_WISHSTAR_EXCHANGE_REQ, self.OnSendWishStarExchangeReq)
   _G.NRCEventCenter:RegisterEvent("WishCrystalModule", self, WishCrystalModuleEvent.WISH_CRYSTAL_STARLIGHT_INIT, self.OnStarligthInfoInit)
   _G.NRCEventCenter:RegisterEvent("WishCrystalModule", self, WishCrystalModuleEvent.WISH_CRYSTAL_STARLIGHT_ON_STARLIGHT_CHANGE, self.OnStarlightChange)
-  _G.NRCEventCenter:RegisterEvent("WishCrystalModule", self, NPCModuleEvent.StillCatching, self.UpdateWithCachedNotify)
-  _G.NRCEventCenter:RegisterEvent("WishCrystalModule", self, NPCModuleEvent.CatchEndWithoutCondition, self.UpdateWithCachedShareNotify)
   if _G.DataModelMgr.PlayerDataModel.starlightInfo then
     self:OnStarlightChangeNotify(_G.DataModelMgr.PlayerDataModel.starlightInfo)
   end
@@ -39,17 +25,13 @@ function WishCrystalModule:OnDeactive()
   _G.NRCEventCenter:UnRegisterEvent(self, WishCrystalModuleEvent.WISH_CRYSTAL_SEND_WISHSTAR_EXCHANGE_REQ, self.OnSendWishStarExchangeReq)
   _G.NRCEventCenter:UnRegisterEvent(self, WishCrystalModuleEvent.WISH_CRYSTAL_STARLIGHT_INIT, self.OnStarligthInfoInit)
   _G.NRCEventCenter:UnRegisterEvent(self, WishCrystalModuleEvent.WISH_CRYSTAL_STARLIGHT_ON_STARLIGHT_CHANGE, self.OnStarlightChange)
-  _G.NRCEventCenter:UnRegisterEvent(self, NPCModuleEvent.StillCatching, self.UpdateWithCachedNotify)
-  _G.NRCEventCenter:UnRegisterEvent(self, NPCModuleEvent.CatchEndWithoutCondition, self.UpdateWithCachedShareNotify)
 end
 
 function WishCrystalModule:OnStarlightChangeNotify(rsp)
   if rsp.star_light_info then
     self.data:UpdateStarlightInfo(rsp.star_light_info, rsp.increment_star_light_num, rsp.is_share_from_wild_no_battle)
   end
-  if not rsp.is_share_from_wild_no_battle then
-    self.StatusChecker:Check(self, self.UpdateWithCachedNotify)
-  end
+  _G.NRCEventCenter:DispatchEvent(WishCrystalModuleEvent.WISH_CRYSTAL_STARLIGHT_INFO_UPDATE, rsp)
 end
 
 function WishCrystalModule:OnSendWishStarExchangeReq()
@@ -76,37 +58,6 @@ function WishCrystalModule:OnWishingStarExchangeRsp(rsp)
     end
     _G.NRCEventCenter:DispatchEvent(WishCrystalModuleEvent.WISH_CRYSTAL_STARLIGHT_EXCHANGE, rsp)
   end
-end
-
-function WishCrystalModule:UpdateWithCachedNotify()
-  for _, info in pairs(self.data.StarlightInfoList or {}) do
-    if info and not info.Unlock then
-      info.Unlock = true
-      local rsp = {
-        star_light_info = info.PlayerStarInfo,
-        increment_star_light_num = info.IncrementStarlight
-      }
-      _G.NRCEventCenter:DispatchEvent(WishCrystalModuleEvent.WISH_CRYSTAL_STARLIGHT_INFO_UPDATE, rsp)
-      break
-    end
-  end
-end
-
-function WishCrystalModule:UpdateWithCachedShareNotify()
-  local delayID = _G.DelayManager:DelayFrames(5, function()
-    for _, info in pairs(self.data.StarlightInfoList or {}) do
-      if info and not info.Unlock and info.IsShare then
-        info.Unlock = true
-        local rsp = {
-          star_light_info = info.PlayerStarInfo,
-          increment_star_light_num = info.IncrementStarlight
-        }
-        _G.NRCEventCenter:DispatchEvent(WishCrystalModuleEvent.WISH_CRYSTAL_STARLIGHT_INFO_UPDATE, rsp)
-        break
-      end
-    end
-  end)
-  table.insert(self.DelayList, delayID)
 end
 
 function WishCrystalModule:OnStarligthInfoInit(InStarligthInfo)

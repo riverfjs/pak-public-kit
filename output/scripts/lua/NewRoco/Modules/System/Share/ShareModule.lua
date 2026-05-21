@@ -6,6 +6,7 @@ local NRCSDKManagerEvent = require("Core.Service.SDKManager.NRCSDKManagerEvent")
 local DialogContext = require("NewRoco.Modules.System.TipsModule.DialogContext")
 local ShareModule = NRCModuleBase:Extend("ShareModule")
 local rapidjson = require("rapidjson")
+local ShareVerifier = require("NewRoco.Modules.System.Share.ShareVerifier")
 
 function ShareModule:OnConstruct()
   self.uploadGameInstance = UE.UUploadImpl.GetInstance()
@@ -26,11 +27,15 @@ function ShareModule:OnConstruct()
   local quality = 3
   Log.Debug("quality type is ", type(quality))
   UE.UBP_GameJoyPluginLibrary.SetVideoQuality(quality)
+  UE.UBP_GameJoyPluginLibrary.SetVideoBitrate(3, 8000000)
   UE.UBP_GameJoyPluginLibrary.InitGameJoyBPLib()
-  if RocoEnv.PLATFORM_ANDROID or RocoEnv.PLATFORM_OPENHARMONY then
+  if RocoEnv.PLATFORM_ANDROID or RocoEnv.PLATFORM_OPENHARMONY or RocoEnv.PLATFORM_IOS then
     UE.UBP_GameJoyPluginLibrary.SetCaptureSource(1)
-    UE.UBP_GameJoyPluginLibrary.SetShareRenderContext()
+    if not RocoEnv.PLATFORM_IOS then
+      UE.UBP_GameJoyPluginLibrary.SetShareRenderContext()
+    end
   end
+  UE.UShareStatics.Init()
   _G.NRCEventCenter:RegisterEvent(self.name, self, NRCSDKManagerEvent.OnIOSMediaIDGetNotify, self.OnIOSImageIDNotify)
   _G.NRCEventCenter:RegisterEvent(self.name, self, _G.NRCGlobalEvent.Shutdown, self.OnShutdown)
 end
@@ -55,6 +60,11 @@ function ShareModule:OnShareCallback(ret)
     local jsonTable = JsonUtils.StringToJson(jsonStr)
     if jsonTable.LocalID then
       self:OnIOSImageIDNotify(jsonTable.LocalID, ret.RetMsg)
+    end
+  elseif ret.SourceMethodName == "OnUSSDKResult" then
+    Log.Debug("OnShareResult:", ret.RetCode, ret.RetMsg, ret.ThirdChannelCode, ret.ThirdChannelMsg)
+    if 1 ~= ret.RetCode and ret.ThirdChannelCode == -10000005 then
+      _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.share_fail_tips3 or "")
     end
   end
 end
@@ -94,11 +104,11 @@ function ShareModule:HandleRecorder(eventID, errorCode, info)
       end
       local petVideoPath = UE.UBlueprintPathsLibrary.Combine({
         TempVideos,
-        (not string.IsNilOrEmpty(self.gid) and self.gid or "unknown") .. ".mp4"
+        (not string.IsNilOrEmpty(self.videoName) and self.videoName or "unknown") .. ".mp4"
       })
       local petVideoCoverPath = UE.UBlueprintPathsLibrary.Combine({
         TempVideos,
-        (not string.IsNilOrEmpty(self.gid) and self.gid or "unknown") .. ".jpg"
+        (not string.IsNilOrEmpty(self.videoName) and self.videoName or "unknown") .. ".jpg"
       })
       local petVideoPathAbs = UE.UNRCStatics.ConvertToAbsolutePath(petVideoPath, true)
       local petVideoCoverPathAbs = UE.UNRCStatics.ConvertToAbsolutePath(petVideoCoverPath, true)
@@ -106,8 +116,21 @@ function ShareModule:HandleRecorder(eventID, errorCode, info)
       Log.Debug("move cache cover: %s to save path:%s", coverPath, petVideoCoverPathAbs)
       UE.UBP_GameJoyPluginLibrary.MoveFile(videoPath, petVideoPath)
       UE.UBP_GameJoyPluginLibrary.MoveFile(coverPath, petVideoCoverPath)
+      if UE.UNRCStatics.FileExists(petVideoPathAbs) then
+        ShareVerifier.Register(petVideoCoverPathAbs)
+        ShareVerifier.Register(petVideoPathAbs)
+        _G.NRCEventCenter:DispatchEvent(ShareModuleEvent.VideoRecordSuccess, petVideoPathAbs, petVideoCoverPathAbs)
+      else
+        Log.Warning("[Share] video not found after MoveFile, skip register", petVideoPathAbs)
+      end
     end
-    self.gid = ""
+    self.videoName = ""
+  elseif eventID == VideoRecordEnum.EventType.EVENT_ID_MOVE_MEDIA_TO_ALBUM then
+    if errorCode == VideoRecordEnum.ErrorCode.SUCCESS then
+      _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.save_success_tips, nil, nil, 2)
+    end
+  elseif eventID == VideoRecordEnum.EventType.EVENT_ID_START_RECORD and errorCode == VideoRecordEnum.ErrorCode.STATUS_START_SUCCESS then
+    UE.UBP_GameJoyPluginLibrary.SetCoverSize(960, 540)
   end
   if errorCode == VideoRecordEnum.ErrorCode.PERMISSION_STATUS_UNKNOWN then
     if RocoEnv.PLATFORM_ANDROID or RocoEnv.PLATFORM_OPENHARMONY then
@@ -122,67 +145,174 @@ end
 
 function ShareModule:RequestRT()
   if not self.ShareRT then
-    local ViewportSize = UE4.UWidgetLayoutLibrary.GetViewportSize(_G.UE4Helper.GetCurrentWorld())
-    self.ShareRT = UE.UPlatformImageLibrary.CreateRenderTarget2D(UE4Helper.GetCurrentWorld(), "ShareModule_", UE.ETextureRenderTargetFormat.RTF_RGBA8, math.floor(ViewportSize.X), math.floor(ViewportSize.Y))
+    self.ShareRT = UE.UPlatformImageLibrary.CreateRenderTargetMatchingBackBuffer(_G.UE4Helper.GetCurrentWorld(), "ShareModule_")
+    self.bShareRTMatchesBackBuffer = self.ShareRT ~= nil
+    if not self.ShareRT then
+      local ViewportSize = UE4.UWidgetLayoutLibrary.GetViewportSize(_G.UE4Helper.GetCurrentWorld())
+      self.ShareRT = UE.UPlatformImageLibrary.CreateRenderTarget2D(_G.UE4Helper.GetCurrentWorld(), "ShareModule_", UE.ETextureRenderTargetFormat.RTF_RGBA8, math.floor(ViewportSize.X), math.floor(ViewportSize.Y))
+    end
     self.ShareRTRef = UnLua.Ref(self.ShareRT)
   end
 end
 
-function ShareModule:StartRecordVideo(camera, gid)
+function ShareModule:_GetBackbufferSamplingCVar()
+  return UE.UKismetSystemLibrary.GetConsoleVariableIntValue("r.OpenGL.EnableBackbufferSampling") or 0
+end
+
+function ShareModule:_EnableBackbufferSamplingIfNeeded()
+  if self._savedBackbufferSampling ~= nil then
+    return
+  end
+  if not RocoEnv.PLATFORM_ANDROID and not RocoEnv.PLATFORM_OPENHARMONY then
+    return
+  end
+  local cvar = self:_GetBackbufferSamplingCVar()
+  if 1 == cvar then
+    return
+  end
+  self._savedBackbufferSampling = cvar
+  UE.UKismetSystemLibrary.ExecuteConsoleCommand(_G.UE4Helper.GetCurrentWorld(), "r.OpenGL.EnableBackbufferSampling 1")
+  Log.Debug("ShareModule: enable r.OpenGL.EnableBackbufferSampling (saved=" .. tostring(cvar) .. ")")
+end
+
+function ShareModule:_RestoreBackbufferSamplingIfNeeded()
+  if self._savedBackbufferSampling == nil then
+    return
+  end
+  local saved = self._savedBackbufferSampling
+  self._savedBackbufferSampling = nil
+  if 1 ~= saved then
+    UE.UKismetSystemLibrary.ExecuteConsoleCommand(_G.UE4Helper.GetCurrentWorld(), string.format("r.OpenGL.EnableBackbufferSampling %d", saved))
+    Log.Debug("ShareModule: restore r.OpenGL.EnableBackbufferSampling = " .. tostring(saved))
+  end
+end
+
+function ShareModule:_ShouldFlipYForCaptureTexture(bUseCopy)
+  if bUseCopy then
+    return false
+  end
+  local rhiName = UE.UNRCStatics.GetCurrentRHIName() or ""
+  if string.find(rhiName, "OpenGL") ~= nil or nil ~= string.find(rhiName, "GLES") or nil ~= string.find(rhiName, "Vulkan") then
+    return true
+  end
+  return false
+end
+
+function ShareModule:StartRecordVideo(camera, videoName, bExcludeUI)
+  if not string.IsNilOrEmpty(self.videoName) then
+    self:EndRecordVideo(self.videoName, self.bExcludeUI)
+    Log.Error("Stop Last Record Task,the Last VideoName is" .. self.videoName .. "and the new one is " .. (not string.IsNilOrEmpty(videoName) and videoName) or "nil")
+  end
   self.mainCamera = camera
   if self.mainCamera == nil then
     Log.Error("camera not valid")
     return
   end
-  self.gid = gid
-  if RocoEnv.PLATFORM_ANDROID or RocoEnv.PLATFORM_OPENHARMONY then
+  self.videoName = videoName
+  self.bExcludeUI = bExcludeUI
+  if RocoEnv.PLATFORM_ANDROID or RocoEnv.PLATFORM_OPENHARMONY or RocoEnv.PLATFORM_IOS then
+    if not bExcludeUI then
+      self:_EnableBackbufferSamplingIfNeeded()
+    end
     self.captureComponent = self.mainCamera:GetComponentByClass(UE4.UNRCCameraCaptureComponent)
     if nil == self.captureComponent then
       Log.Error("captureComponent invalid")
       return
     end
-    if nil == self.captureComponent.TextureTarget then
-      if not self.ShareRT then
-        self:RequestRT()
-      end
-      self.captureComponent.TextureTarget = self.ShareRT
+    if not self.ShareRT then
+      self:RequestRT()
     end
+    self.captureComponent.TextureTarget = self.ShareRT
     if self.captureComponent.TextureTarget then
       Log.Debug("self.captureComponent.TextureTarget not nil")
       UE.UPlatformImageLibrary.UpdateRenderTarget(self.captureComponent.TextureTarget, true)
-      _G.DelayManager:DelayFrames(3, function()
-        if not UE4.UObject.IsValid(self.captureComponent) then
-          Log.Error("self.captureComponent invalid")
-          return
-        end
-        UE.UBP_GameJoyPluginLibrary.SetCaptureTexture(self.captureComponent.TextureTarget)
-        UE.UBP_GameJoyPluginLibrary.SetCaptureTextureFlipY(true)
-        self.captureComponent:StartVideoCaptureSceneWithUI(false)
-      end)
+      self.recordDelayId = _G.DelayManager:DelayFrames(3, self.OnStartRecordVideo, self, bExcludeUI)
     end
   end
-  UE.UBP_GameJoyPluginLibrary.EnableInGameAudio(true)
-  UE.UBP_GameJoyPluginLibrary.StartRecorder()
   _G.NRCModuleManager:DoCmd(PetUIModuleCmd.SetIsShareRecordVideo, true)
 end
 
-function ShareModule:EndRecordVideo(gid)
-  UE.UBP_GameJoyPluginLibrary.StopRecorder()
-  if (RocoEnv.PLATFORM_ANDROID or RocoEnv.PLATFORM_OPENHARMONY) and self.captureComponent ~= nil and UE4.UObject.IsValid(self.captureComponent) then
-    self.captureComponent:StopVideoCaptureSceneWithUI()
+function ShareModule:OnStartRecordVideo(bExcludeUI)
+  self.recordDelayId = nil
+  if not UE4.UObject.IsValid(self.captureComponent) then
+    Log.Error("self.captureComponent invalid")
+    return
   end
+  UE.UBP_GameJoyPluginLibrary.SetCaptureTexture(self.captureComponent.TextureTarget)
+  if bExcludeUI then
+    local bFlipY = self:_ShouldFlipYForCaptureTexture(false)
+    UE.UBP_GameJoyPluginLibrary.SetCaptureTextureFlipY(bFlipY)
+    Log.Debug(string.format("ShareModule[Scene]: SetCaptureTextureFlipY(%s)", tostring(bFlipY)))
+    self.captureComponent:StartVideoCaptureScene()
+  else
+    local bUseCopy = self.bShareRTMatchesBackBuffer == true
+    local bFlipY = self:_ShouldFlipYForCaptureTexture(bUseCopy)
+    UE.UBP_GameJoyPluginLibrary.SetCaptureTextureFlipY(bFlipY)
+    Log.Debug(string.format("ShareModule[UI]: bUseCopy=%s SetCaptureTextureFlipY(%s) RHI=%s", tostring(bUseCopy), tostring(bFlipY), tostring(UE.UNRCStatics.GetCurrentRHIName())))
+    self.captureComponent:StartVideoCaptureSceneWithUI(bUseCopy)
+  end
+  UE.UBP_GameJoyPluginLibrary.EnableInGameAudio(true)
+  UE.UBP_GameJoyPluginLibrary.StartRecorder()
+end
+
+function ShareModule:EndRecordVideo(videoName, bExcludeUI)
+  UE.UBP_GameJoyPluginLibrary.StopRecorder()
+  if (RocoEnv.PLATFORM_ANDROID or RocoEnv.PLATFORM_OPENHARMONY or RocoEnv.PLATFORM_IOS) and self.captureComponent ~= nil and UE4.UObject.IsValid(self.captureComponent) then
+    if bExcludeUI then
+      self.captureComponent:StopVideoCaptureScene()
+    else
+      self.captureComponent:StopVideoCaptureSceneWithUI()
+    end
+  end
+  self:_RestoreBackbufferSamplingIfNeeded()
   self.mainCamera = nil
   self.captureComponent = nil
   if self.ShareRT then
     self.ShareRT = nil
   end
+  self.bExcludeUI = false
   _G.NRCModuleManager:DoCmd(PetUIModuleCmd.SetIsShareRecordVideo, false)
+end
+
+function ShareModule:ForceClearRecordedVideo(videoName, imageName)
+  if not string.IsNilOrEmpty(videoName) or not string.IsNilOrEmpty(imageName) then
+    local TempVideos = UE.UBlueprintPathsLibrary.Combine({
+      UE4.UBlueprintPathsLibrary.ProjectPersistentDownloadDir(),
+      "TempVideos"
+    })
+    if not string.IsNilOrEmpty(videoName) then
+      local videoPath = UE.UBlueprintPathsLibrary.Combine({
+        TempVideos,
+        videoName .. ".mp4"
+      })
+      local videoAbsPath = UE.UNRCStatics.ConvertToAbsolutePath(videoPath, true)
+      local bDeleteVideo = UE.UNRCStatics.DeleteToFile(videoAbsPath)
+      Log.Debug("ForceClearRecordedVideo video", videoAbsPath, bDeleteVideo)
+    end
+    if not string.IsNilOrEmpty(imageName) then
+      local imagePath = UE.UBlueprintPathsLibrary.Combine({
+        TempVideos,
+        imageName .. ".jpg"
+      })
+      local imageAbsPath = UE.UNRCStatics.ConvertToAbsolutePath(imagePath, true)
+      local bDeleteImage = UE.UNRCStatics.DeleteToFile(imageAbsPath)
+      Log.Debug("ForceClearRecordedVideo iamge", imageAbsPath, bDeleteImage)
+    end
+  else
+    local absPath = UE.UNRCStatics.ConvertToAbsolutePath(UE.UBlueprintPathsLibrary.Combine({
+      UE4.UBlueprintPathsLibrary.ProjectPersistentDownloadDir(),
+      "TempVideos"
+    }), true)
+    local bRemove = UE.UNRCStatics.RemoveFolder(absPath)
+    Log.Debug("ForceClearRecordedVideo:", absPath, ", result:", bRemove)
+  end
 end
 
 function ShareModule:OnDestruct()
   self.channel = nil
   self.reqInfoForTT = nil
   self.reqInfoForTTRef = nil
+  self.recordDelayId = nil
 end
 
 function ShareModule:OnActive()
@@ -197,49 +327,74 @@ function ShareModule:OnShutDown()
     UE.UNRCPermissionMgr.CancelRequestPermissionCallback(self.requestCode)
     self.requestCode = nil
   end
+  self:_RestoreBackbufferSamplingIfNeeded()
   self.uploadGameInstance.OnLiveVideoEvent:Clear()
   UE.UBP_GameJoyPluginLibrary.GetInstance().onGameJoyEvent:Clear()
   self.uploadGameInstance = nil
   self.uploadGameInstanceRef = nil
 end
 
-function ShareModule:OnOpenMainPanel(arg)
-end
-
 function ShareModule:ShareToChannel(reqInfo, channel)
-  if channel == ShareModuleEnum.ShareChannel.QQFriend then
-    Log.Debug("SendToChannel QQ")
-    UE.UShareStatics.SendToChannel(reqInfo, "QQ")
-  elseif channel == ShareModuleEnum.ShareChannel.Qzone then
-    UE.UShareStatics.ShareToChannel(reqInfo, "QQ", false)
-  elseif channel == ShareModuleEnum.ShareChannel.WeChatFriend then
-    Log.Debug("SendToChannel WeChatFriend")
-    UE.UShareStatics.SendToChannel(reqInfo, "WeChat")
-  elseif channel == ShareModuleEnum.ShareChannel.WeChatMoments then
-    Log.Debug("SendToChannel WeChatMoments")
-    UE.UShareStatics.ShareToChannel(reqInfo, "WeChat", false)
-  elseif channel == ShareModuleEnum.ShareChannel.TiktokFriend then
-    if RocoEnv.PLATFORM_IOS then
-      self.reqInfoForTT = reqInfo
-      self.reqInfoForTTRef = UnLua.Ref(self.reqInfoForTT)
-      self.channel = ShareModuleEnum.ShareChannel.TiktokFriend
-      UE.UShareStatics.SaveMediaWrapper(reqInfo.ImagePath, "NRC")
-    elseif RocoEnv.PLATFORM_ANDROID or RocoEnv.PLATFORM_OPENHARMONY then
-      UE.UShareStatics.SendToDouYin(reqInfo)
-    end
-  elseif channel == ShareModuleEnum.ShareChannel.Tiktok then
-    if RocoEnv.PLATFORM_IOS then
-      self.reqInfoForTT = reqInfo
-      self.reqInfoForTTRef = UnLua.Ref(self.reqInfoForTT)
-      self.channel = ShareModuleEnum.ShareChannel.Tiktok
-      if reqInfo.type == UE.EShareType.ShareVideo then
-        UE.UShareStatics.SaveMediaWrapper(reqInfo.VideoPath, "NRC")
-      elseif reqInfo.type == UE.EShareType.ShareImg then
+  local shareHandlers = {
+    [ShareModuleEnum.ShareChannel.QQFriend] = function()
+      UE.UShareStatics.SendToChannel(reqInfo, "QQ")
+    end,
+    [ShareModuleEnum.ShareChannel.Qzone] = function()
+      UE.UShareStatics.ShareToChannel(reqInfo, "QQ")
+    end,
+    [ShareModuleEnum.ShareChannel.WeChatFriend] = function()
+      UE.UShareStatics.SendToChannel(reqInfo, "WeChat")
+    end,
+    [ShareModuleEnum.ShareChannel.WeChatMoments] = function()
+      UE.UShareStatics.ShareToChannel(reqInfo, "WeChat")
+    end,
+    [ShareModuleEnum.ShareChannel.TiktokFriend] = function()
+      if RocoEnv.PLATFORM_IOS then
+        self.reqInfoForTT = reqInfo
+        self.reqInfoForTTRef = UnLua.Ref(self.reqInfoForTT)
+        self.channel = ShareModuleEnum.ShareChannel.TiktokFriend
         UE.UShareStatics.SaveMediaWrapper(reqInfo.ImagePath, "NRC")
+      elseif RocoEnv.PLATFORM_ANDROID or RocoEnv.PLATFORM_OPENHARMONY then
+        UE.UShareStatics.SendToDouYin(reqInfo)
       end
-    elseif RocoEnv.PLATFORM_ANDROID or RocoEnv.PLATFORM_OPENHARMONY then
-      UE.UShareStatics.ShareToDouYin(reqInfo)
+    end,
+    [ShareModuleEnum.ShareChannel.Tiktok] = function()
+      if RocoEnv.PLATFORM_IOS then
+        self.reqInfoForTT = reqInfo
+        self.reqInfoForTTRef = UnLua.Ref(self.reqInfoForTT)
+        self.channel = ShareModuleEnum.ShareChannel.Tiktok
+        if reqInfo.type == UE.EShareType.ShareVideo then
+          UE.UShareStatics.SaveMediaWrapper(reqInfo.VideoPath, "NRC")
+        elseif reqInfo.type == UE.EShareType.ShareImg then
+          UE.UShareStatics.SaveMediaWrapper(reqInfo.ImagePath, "NRC")
+        end
+      elseif RocoEnv.PLATFORM_ANDROID or RocoEnv.PLATFORM_OPENHARMONY then
+        UE.UShareStatics.ShareToDouYin(reqInfo)
+      end
+    end,
+    [ShareModuleEnum.ShareChannel.Weibo] = function()
+      UE.UShareStatics.SetUSSDKChannel("Weibo")
+      UE.UShareStatics.ShareToChannel(reqInfo, "Weibo")
+    end,
+    [ShareModuleEnum.ShareChannel.RedNote] = function()
+      UE.UShareStatics.SetUSSDKChannel("RedNote")
+      UE.UShareStatics.ShareToChannel(reqInfo, "RedNote")
+    end,
+    [ShareModuleEnum.ShareChannel.KuaiShou] = function()
+      UE.UShareStatics.SetUSSDKChannel("Kwai")
+      UE.UShareStatics.ShareToChannel(reqInfo, "KuaiShou")
+    end,
+    [ShareModuleEnum.ShareChannel.BiliBili] = function()
+      UE.UShareStatics.SetUSSDKChannel("Bilibili")
+      UE.UShareStatics.ShareToChannel(reqInfo, "BiliBili")
     end
+  }
+  local handler = shareHandlers[channel]
+  if handler then
+    Log.Debug("ShareToChannel:", channel)
+    handler()
+  else
+    Log.Error("ShareToChannel not support now:", channel)
   end
 end
 
@@ -301,13 +456,44 @@ function ShareModule:SharePic(picPath, channel)
     Log.Error("invalid picPath when SharePic")
     return
   end
+  local ok, reason = ShareVerifier.Verify(picPath, ShareVerifier.FileKind.Pic)
+  if not ok then
+    Log.Error("[Share] SharePic blocked by verifier", picPath, reason)
+    _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.share_fail_tips, nil, nil, 2)
+    return
+  end
   if not table.contains(ShareModuleEnum.ShareChannel, channel) then
     Log.Error("channel not support", channel)
     return
   end
   local reqInfo = NewObject(UE.UFriendReqWrapper)
-  if reqInfo then
-    reqInfo.Type = UE.EShareType.ShareImg
+  reqInfo.Type = UE.EShareType.ShareImg
+  if channel == ShareModuleEnum.ShareChannel.Weibo or channel == ShareModuleEnum.ShareChannel.RedNote or channel == ShareModuleEnum.ShareChannel.KuaiShou or channel == ShareModuleEnum.ShareChannel.BiliBili then
+    local accountInfo = _G.NRCModuleManager:DoCmd(_G.OnlineModuleCmd.GetUserAccountInfo)
+    if accountInfo then
+      reqInfo.Title = LuaText.USSDK_Share_Title or "NRC"
+      reqInfo.ImagePath = picPath
+      reqInfo.User = accountInfo.openid or 0
+      reqInfo.Content = LuaText.USSDK_Share_Content or "NRC"
+      if channel == ShareModuleEnum.ShareChannel.BiliBili then
+        local extraTable = {
+          biz_code = "tencent_ussdk",
+          type_id = 0,
+          topic_id = 0,
+          delivery_mode = 2
+        }
+        reqInfo.ExtraJson = JsonUtils.EncodeTable(extraTable)
+      elseif channel == ShareModuleEnum.ShareChannel.KuaiShou then
+        local extraTable = {
+          message_description = LuaText.USSDK_Share_Content or "NRC",
+          disable_fallback = false,
+          share_strategy = "SinglePictureEdit"
+        }
+        reqInfo.ExtraJson = JsonUtils.EncodeTable(extraTable)
+      end
+      self:ShareToChannel(reqInfo, channel)
+    end
+  elseif reqInfo then
     Log.Debug("pic path is ", picPath)
     reqInfo.ImagePath = picPath
     self:ShareToChannel(reqInfo, channel)
@@ -373,16 +559,13 @@ function ShareModule:ShareWeChatMiniAppToQQByURL(extraCode)
     [5] = {
       _path = "pages/entry/entry"
     },
-    [6] = {_vt = "1"},
+    [6] = {
+      _vt = RocoEnv.IS_SHIPPING and "3" or "1"
+    },
     [7] = {_sig = "3966102803"},
     [8] = {_nq = paramNq},
     [9] = {host_scene = "2000000000"}
   }
-  if RocoEnv.IS_SHIPPING then
-    params._vt = "3"
-  else
-    params._vt = "1"
-  end
   local paramStr = ""
   local firstParam = true
   for index, valueTable in ipairs(params) do
@@ -558,7 +741,7 @@ function ShareModule:ResPathToNativePath(ThumbPath, successHandler, failHandler)
     if not UE.UNRCStatics.DirectoryExists(tempPhotos) then
       UE.UNRCStatics.MakeDirectory(tempPhotos)
     end
-    local filePath = UE4.UNRCStatics.GetBaseFilename(originThumbPath, true)
+    local filePath = UE4.UNRCStatics.GetBaseFilename(ThumbPath, true)
     local finalPath = UE.UNRCStatics.ConvertToAbsolutePath(UE.UBlueprintPathsLibrary.Combine({tempPhotos, filePath}) .. ".png", true)
     Log.PrintScreenMsgRed("finalPath return " .. finalPath)
     local texture = asset.BakedSourceTexture
@@ -579,12 +762,41 @@ function ShareModule:ResPathToNativePath(ThumbPath, successHandler, failHandler)
   _G.NRCResourceManager:LoadResAsync(self, ThumbPath, 0, 1, LoadAssetSuccess, failHandler, nil, nil)
 end
 
-function ShareModule:ShareLocalVideo(channel, gid)
+function ShareModule:ShareCosVideo(channel, videoLink)
   if not self:CheckAppInstall(channel) then
     _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.app_not_install_tip, nil, nil, 2)
     return
   end
-  if string.IsNilOrEmpty(channel) or string.IsNilOrEmpty(gid) then
+  if string.IsNilOrEmpty(channel) or string.IsNilOrEmpty(videoLink) then
+    Log.Error("invalid videoLink when ShareCosVideo")
+    return
+  end
+  local reqInfo = NewObject(UE.UFriendReqWrapper)
+  reqInfo.Type = UE.EShareType.ShareVideo
+  if channel == ShareModuleEnum.ShareChannel.BiliBili then
+    reqInfo.Title = LuaText.USSDK_Share_Title or "NRC"
+    reqInfo.User = accountInfo.openid
+    reqInfo.Content = LuaText.USSDK_Share_Content or "NRC"
+    local extraJsonTable = {
+      biz_code = "tencent_ussdk",
+      type_id = 0,
+      topic_id = 1330131,
+      delivery_mode = 2
+    }
+    reqInfo.ExtraJson = JsonUtils.Encode(extraJsonTable)
+  else
+    Log.Error("invalid channel when ShareCosVideo")
+    return
+  end
+  self:ShareToChannel(reqInfo, channel)
+end
+
+function ShareModule:ShareLocalVideo(channel, videoName)
+  if not self:CheckAppInstall(channel) then
+    _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.app_not_install_tip, nil, nil, 2)
+    return
+  end
+  if string.IsNilOrEmpty(channel) or string.IsNilOrEmpty(videoName) then
     Log.Error("invalid channel or filePath when shareVideo")
     return
   end
@@ -594,7 +806,7 @@ function ShareModule:ShareLocalVideo(channel, gid)
   })
   local filePath = UE.UBlueprintPathsLibrary.Combine({
     TempVideos,
-    gid .. ".mp4"
+    videoName .. ".mp4"
   })
   local fileAbsPath = UE.UNRCStatics.ConvertToAbsolutePath(filePath, true)
   if not UE.UNRCStatics.FileExists(fileAbsPath) then
@@ -602,15 +814,48 @@ function ShareModule:ShareLocalVideo(channel, gid)
     _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.share_fail_tips2, nil, nil, 2)
     return
   end
+  local ok, reason = ShareVerifier.Verify(fileAbsPath, ShareVerifier.FileKind.Video)
+  if not ok then
+    Log.Error("[Share] ShareLocalVideo blocked by verifier", fileAbsPath, reason)
+    _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.share_fail_tips, nil, nil, 2)
+    return
+  end
   local reqInfo = NewObject(UE.UFriendReqWrapper)
   reqInfo.Type = UE.EShareType.ShareVideo
-  reqInfo.Title = _G.DataConfigManager:GetLocalizationConf("ShareTxt_tiktok").msg ~= nil and _G.DataConfigManager:GetLocalizationConf("ShareTxt_tiktok").msg ~= nil or "NRC"
-  reqInfo.Desc = LuaText.share_tip
   reqInfo.VideoPath = fileAbsPath
   if channel == ShareModuleEnum.ShareChannel.Tiktok or channel == ShareModuleEnum.ShareChannel.TiktokFriend then
-    self:ShareToChannel(reqInfo, channel)
+    reqInfo.Title = _G.DataConfigManager:GetLocalizationConf("ShareTxt_tiktok").msg ~= nil and _G.DataConfigManager:GetLocalizationConf("ShareTxt_tiktok").msg ~= nil or "NRC"
+    reqInfo.Desc = LuaText.share_tip
   elseif channel == ShareModuleEnum.ShareChannel.QQFriend or channel == ShareModuleEnum.ShareChannel.Qzone or channel == ShareModuleEnum.ShareChannel.WeChatFriend or channel == ShareModuleEnum.ShareChannel.WeChatMoments then
+  elseif channel == ShareModuleEnum.ShareChannel.Weibo or channel == ShareModuleEnum.ShareChannel.RedNote or channel == ShareModuleEnum.ShareChannel.KuaiShou then
+    local accountInfo = _G.NRCModuleManager:DoCmd(_G.OnlineModuleCmd.GetUserAccountInfo)
+    if accountInfo then
+      reqInfo.Title = LuaText.USSDK_Share_Title or "NRC"
+      reqInfo.User = accountInfo.openid
+      reqInfo.Content = LuaText.USSDK_Share_Content or "NRC"
+      local coverPath = UE.UBlueprintPathsLibrary.Combine({
+        TempVideos,
+        videoName .. ".jpg"
+      })
+      local coverAbsPath = UE.UNRCStatics.ConvertToAbsolutePath(coverPath, true)
+      if not UE.UNRCStatics.FileExists(coverAbsPath) then
+        Log.Error("%s not exist", coverAbsPath)
+      end
+      reqInfo.ThumbPath = coverAbsPath
+    else
+      Log.Error("accountInfo is nil")
+      return
+    end
+    if channel == ShareModuleEnum.ShareChannel.KuaiShou then
+      local extraTable = {
+        message_description = LuaText.USSDK_Share_Content or "NRC",
+        disable_fallback = false,
+        share_strategy = "SingleVideoClip"
+      }
+      reqInfo.ExtraJson = JsonUtils.EncodeTable(extraTable)
+    end
   end
+  self:ShareToChannel(reqInfo, channel)
 end
 
 function ShareModule:ShareRecordVideo(petName)
@@ -627,14 +872,14 @@ function ShareModule:ShareRecordVideo(petName)
   end
 end
 
-function ShareModule:SaveVideoToAlbum(gid)
+function ShareModule:SaveVideoToAlbum(videoName)
   local filePath = UE.UBlueprintPathsLibrary.Combine({
     UE4.UBlueprintPathsLibrary.ProjectPersistentDownloadDir(),
     "TempVideos"
   })
   filePath = UE.UBlueprintPathsLibrary.Combine({
     filePath,
-    gid .. ".mp4"
+    videoName .. ".mp4"
   })
   local absoluteFilePath = UE.UNRCStatics.ConvertToAbsolutePath(filePath, true)
   if not UE.UNRCStatics.FileExists(absoluteFilePath) then
@@ -645,8 +890,7 @@ function ShareModule:SaveVideoToAlbum(gid)
   
   local function OnPermissionCallback()
     Log.Debug("MoveVideoToAlbum with path:", absoluteFilePath)
-    UE.UBP_GameJoyPluginLibrary.MoveVideoToAlbum(1, "NRC", absoluteFilePath)
-    _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.save_success_tips, nil, nil, 2)
+    UE.UBP_GameJoyPluginLibrary.MoveVideoToAlbum(VideoRecordEnum.EventType.EVENT_ID_MOVE_MEDIA_TO_ALBUM, "NRC", absoluteFilePath)
   end
   
   if self.requestCode then

@@ -14,9 +14,16 @@ local DeviceUtils = require("NewRoco.Modules.Core.App.DeviceUtils")
 local BitMask = require("Utils.BitMask")
 local ThrowSession = require("NewRoco.Modules.Core.NPC.ThrowSession")
 local PetResponseComponent = require("NewRoco.Modules.Core.Scene.Component.Show.PetResponseComponent")
+local MutualPerformComponent = require("NewRoco.Modules.Core.Scene.Component.AI.MutualPerformComponent")
 local PlayerDataEvent = require("Data.Global.PlayerDataEvent")
 local PetUIModuleEvent = require("NewRoco.Modules.System.PetUI.PetUIModuleEvent")
 local PetUtils = require("NewRoco.Utils.PetUtils")
+local EnumFriendRideStateChangeType = {
+  None = 0,
+  ActionNotify = 1,
+  Reconnected = 2,
+  PetMainTeamChanged = 3
+}
 local PlayerModule = NRCModuleBase:Extend("PlayerModule")
 
 function PlayerModule:OnConstruct()
@@ -39,6 +46,7 @@ function PlayerModule:OnConstruct()
     End = 3
   }
   self._hideAllPlayer = BitMask()
+  self._hideNotVisitPlayer = BitMask()
   self.ridePetEyeViewOffset = {}
   self.rideThrowCameraOffset = {}
 end
@@ -120,6 +128,8 @@ function PlayerModule:OnActive()
   self:RegisterCmd(_G.PlayerModuleCmd.OnHomeOwnerStoryFlagChange, self.OnHomeOwnerStoryFlagChange)
   self:RegisterCmd(_G.PlayerModuleCmd.OnPetResponseVoice, self.OnPetResponseVoice)
   self:RegisterCmd(_G.PlayerModuleCmd.GetRidePetEyeViewOffset, self.GetRidePetEyeViewOffset)
+  self:RegisterCmd(_G.PlayerModuleCmd.OnAbnormalStatusChange, self.OnAbnormalStatusChange)
+  self:RegisterCmd(_G.PlayerModuleCmd.HIDE_NOVISIT_PLAYER, self.HideNotVisitPlayer)
   _G.ZoneServer:AddProtocolListener(self, ProtoCMD.ZoneSvrCmd.ZONE_PLAYER_PET_HP_CHANGE_NOTIFY, self.OnPlayerPetHpChangeNotify)
   _G.ZoneServer:AddProtocolListener(self, ProtoCMD.ZoneSvrCmd.ZONE_PLAYER_ADD_ROLE_ENERGY_NOTIFY, self.OnPlayerEnergyAddNotify)
   _G.ZoneServer:AddProtocolListener(self, ProtoCMD.ZoneSvrCmd.ZONE_INTERACT_ACTION_RESULT_NTF, self.OnInteractionActionResultNotify)
@@ -171,11 +181,12 @@ function PlayerModule:OnReconnect(bLight)
   local localPlayer = self.playerModuleData.localPlayer
   if localPlayer then
     localPlayer.viewObj.CapsuleComponent:SetGenerateOverlapEvents(true)
+    self:InitTaskState(self._localUin)
   end
   if self.playerModuleData and self.playerModuleData.FriendRidePetMap then
     for friendRidePetGID, _ in pairs(self.playerModuleData.FriendRidePetMap or {}) do
       if friendRidePetGID then
-        self:FriendRideSelfPetStateChange(false, nil, friendRidePetGID, nil)
+        self:FriendRideSelfPetStateChange(false, nil, friendRidePetGID, nil, EnumFriendRideStateChangeType.Reconnected)
       end
     end
   end
@@ -427,7 +438,7 @@ function PlayerModule:OnPlayerAppear(value)
   local ID = value.base.actor_id
   if ID == self._localUin then
     local serverPos = value.base.pt.pos
-    self._bornPos = UE4.FVector(serverPos.x, serverPos.y, serverPos.z)
+    self._bornPos = SceneUtils.ServerPos2PlayerPos(serverPos)
   elseif self._playerDic[ID] == nil and value.base.pt and not _G.GlobalConfig.DisableNetPlayer then
     local player = ScenePlayer(self)
     player:InitData(nil, value)
@@ -438,6 +449,14 @@ function PlayerModule:OnPlayerAppear(value)
       local bits = self._hideAllPlayer:bits()
       for _, hideType in pairs(bits) do
         player.viewObj:SetHiddenMask(true, hideType)
+      end
+    end
+    if self._hideNotVisitPlayer:any() then
+      local bits = self._hideNotVisitPlayer:bits()
+      for _, hideType in pairs(bits) do
+        if not _G.DataModelMgr.PlayerDataModel:IsVisitor(player:GetLogicId()) then
+          player.viewObj:SetHiddenMask(true, hideType)
+        end
       end
     end
     _G.NRCEventCenter:DispatchEvent(SceneEvent.OnNetPlayerSpawn, player)
@@ -517,7 +536,7 @@ end
 
 function PlayerModule:CancelDelayHandle()
   if self.GPDelayID then
-    _G.DelayManager:CancelDelayById(self.DelayId)
+    _G.DelayManager:CancelDelayById(self.GPDelayID)
     self.GPDelayID = nil
   end
 end
@@ -582,6 +601,10 @@ function PlayerModule:OnSceneLoaded(isReconnect)
     if not Reason or Reason ~= ProtoEnum.TeleportReason.ENUM.MINIGAME then
       local ueController = self.playerModuleData.localPlayer:GetUEController()
       if ueController then
+        if 0 ~= self._bornRot.Roll then
+          Log.Error("\231\153\187\229\189\149\230\151\182\231\142\169\229\174\182\229\173\152\229\156\168Roll\230\151\139\232\189\172\239\188\140\229\188\186\232\161\140\228\191\174\230\173\163\233\149\156\229\164\180")
+          self._bornRot.Roll = 0
+        end
         ueController:SetControlRotation(self._bornRot)
       end
     end
@@ -905,6 +928,22 @@ function PlayerModule:HideOtherPlayer(hide, hideType)
   for _, v in pairs(self._allPlayers) do
     local player = v
     if player and player:GetServerId() ~= self._localUin and player.viewObj then
+      player.viewObj:SetHiddenMask(hide, hideType)
+    end
+  end
+end
+
+function PlayerModule:HideNotVisitPlayer(hide, hideType)
+  if not hideType then
+    Log.Error("PlayerModule:HideNotVisitPlayer can't hide without hide type")
+    return
+  end
+  Log.Debug("PlayerModule:HideNotVisitPlayer ", hide, hideType)
+  hideType = hideType or UE4.EPlayerForceHiddenType.OldForceHidden
+  self._hideNotVisitPlayer:set(hideType, hide)
+  for _, v in pairs(self._allPlayers) do
+    local player = v
+    if player and player:GetServerId() ~= self._localUin and not _G.DataModelMgr.PlayerDataModel:IsVisitor(player:GetLogicId()) and player.viewObj then
       player.viewObj:SetHiddenMask(hide, hideType)
     end
   end
@@ -1558,13 +1597,19 @@ function PlayerModule:OnPetMainTeamChanged(CurMainTeamIndex)
   if nil == CurMainTeam then
     return
   end
+  local bAlreadyUpdateUI = false
   for friendRidePetGID, _ in pairs(self.playerModuleData.FriendRidePetMap or {}) do
     if friendRidePetGID then
       local petInfo = PetUtils.PetTeamFindPetInfoByIndex(CurMainTeam, friendRidePetGID)
       if not petInfo then
-        self:FriendRideSelfPetStateChange(false, nil, friendRidePetGID, nil)
+        self:FriendRideSelfPetStateChange(false, nil, friendRidePetGID, nil, EnumFriendRideStateChangeType.PetMainTeamChanged)
+        bAlreadyUpdateUI = true
       end
     end
+  end
+  if not bAlreadyUpdateUI then
+    local player = self:GetLocalPlayer()
+    player:SendEvent(PlayerModuleEvent.On_FRIENDRIDE_STATE_CHANGE)
   end
 end
 
@@ -1597,24 +1642,28 @@ function PlayerModule:FriendRideStateChange(action)
         local LocalPlayerUin = player:GetLogicId()
         if LocalPlayerUin == friendUin then
         else
-          self:FriendRideSelfPetStateChange(IsFriendRiding, friendUin, ridingPetGid, friendName)
+          self:FriendRideSelfPetStateChange(IsFriendRiding, friendUin, ridingPetGid, friendName, EnumFriendRideStateChangeType.ActionNotify)
         end
       end
     end
   end
 end
 
-function PlayerModule:FriendRideSelfPetStateChange(IsFriendRiding, friendUin, ridingPetGid, friendName)
+function PlayerModule:FriendRideSelfPetStateChange(IsFriendRiding, friendUin, ridingPetGid, friendName, changeReasonType)
   Log.Debug("PlayerModule:FriendRideSelfPetStateChange IsFriendRiding=[", IsFriendRiding or 0, "] friendUin=[", friendUin or 0, "] ridingPetGid=[", ridingPetGid or 0, "], friendName=[", friendName or "", "]")
   if self.playerModuleData.FriendRidePetMap == nil then
     self.playerModuleData.FriendRidePetMap = {}
   end
-  self.playerModuleData.FriendRidePetMap[ridingPetGid] = {IsFriendRiding = IsFriendRiding, FriendUin = friendUin}
-  if not string.IsNilOrEmpty(friendName) then
-    self.playerModuleData.FriendRidePetMap[ridingPetGid].FriendName = friendName
+  if IsFriendRiding then
+    self.playerModuleData.FriendRidePetMap[ridingPetGid] = {IsFriendRiding = IsFriendRiding, FriendUin = friendUin}
+    if not string.IsNilOrEmpty(friendName) then
+      self.playerModuleData.FriendRidePetMap[ridingPetGid].FriendName = friendName
+    end
+  else
+    self.playerModuleData.FriendRidePetMap[ridingPetGid] = nil
   end
   local player = self:GetLocalPlayer()
-  player:SendEvent(PlayerModuleEvent.On_FRIENDRIDE_STATE_CHANGE, ridingPetGid, IsFriendRiding)
+  player:SendEvent(PlayerModuleEvent.On_FRIENDRIDE_STATE_CHANGE)
   if IsFriendRiding then
     local PetData = _G.DataModelMgr.PlayerDataModel:GetPetDataByGid(ridingPetGid)
     if PetData then
@@ -1622,7 +1671,7 @@ function PlayerModule:FriendRideSelfPetStateChange(IsFriendRiding, friendUin, ri
       local FinalTipText = string.format(TipText, friendName, PetData.name)
       _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, FinalTipText)
     end
-  else
+  elseif changeReasonType == EnumFriendRideStateChangeType.ActionNotify then
     local Session = ThrowSession.GetWithGID(ridingPetGid)
     if Session then
       Session:OnNPCFriendRideEnd()
@@ -2106,6 +2155,8 @@ function PlayerModule:PlayIdleSkill(nty)
       role_play_param.mutation_type = nty.mutation_type
       role_play_param.glass_info = nty.glass_info
       role_play_param.nature = nty.nature
+      local PetData = _G.DataModelMgr.PlayerDataModel:GetPetDataByGid(nty.gid or 0)
+      role_play_param.ball_id = PetData and PetData.ball_id or 0
     else
       role_play_param.skill_type = ProtoEnum.RolePlaySkillType.RPST_IDLE_OTHER
     end
@@ -2171,6 +2222,27 @@ function PlayerModule:OnVisibleCircleChanged(notify)
   end
 end
 
+function PlayerModule:OnHomeOwnerStoryFlagChange(notify)
+  Log.Debug("PlayerModule:OnHomeOwnerStoryFlagChange")
+  _G.DataModelMgr.PlayerDataModel:UpdateHomeOwnerStoryFlags(notify)
+end
+
+function PlayerModule:OnCatchRecordInfoChange(action)
+  local player = self:GetLocalPlayer()
+  local CatchComponent = player and player.CatchRecordComponent
+  if CatchComponent then
+    CatchComponent:OnRecordInfoChange(action)
+  end
+end
+
+function PlayerModule:OnAIMutualPerformStateChanged(action)
+  local player = self:GetLocalPlayer()
+  if player then
+    local mutComp = player:EnsureComponent(MutualPerformComponent)
+    mutComp:OnStateUpdate(action)
+  end
+end
+
 function PlayerModule:GetRidePetEyeViewOffset(petId, is2p)
   local offset = self.ridePetEyeViewOffset[petId]
   if not offset then
@@ -2189,16 +2261,20 @@ function PlayerModule:GetRidePetEyeViewOffset(petId, is2p)
   return offset
 end
 
-function PlayerModule:OnHomeOwnerStoryFlagChange(notify)
-  Log.Debug("PlayerModule:OnHomeOwnerStoryFlagChange")
-  _G.DataModelMgr.PlayerDataModel:UpdateHomeOwnerStoryFlags(notify)
-end
-
-function PlayerModule:OnCatchRecordInfoChange(action)
-  local player = self:GetLocalPlayer()
-  local CatchComponent = player and player.CatchRecordComponent
-  if CatchComponent then
-    CatchComponent:OnRecordInfoChange(action)
+function PlayerModule:OnAbnormalStatusChange(action)
+  local id = action.actor_id
+  local statusId = action.status_conf_id
+  local player = self._playerDic[id]
+  if player and player.AbnormalStatusComponent then
+    if 0 == statusId then
+      Log.Info("AbnormalStatusComponent RemoveAllStatus", id, statusId, action.start_time_ms)
+      player.AbnormalStatusComponent:RemoveAllStatus(false)
+    else
+      Log.Info("AbnormalStatusComponent ExecuteStatus", id, statusId, action.start_time_ms)
+      player.AbnormalStatusComponent:ExecuteStatus(statusId, action.start_time_ms)
+    end
+  else
+    Log.Error("player or AbnormalStatusComponent not found", id, statusId, action.start_time_ms)
   end
 end
 

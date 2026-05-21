@@ -214,6 +214,8 @@ function AbilityBase:CastG6AbilityAsync(characters, targets, skillPath)
   self.skillProxy:SetCaster(casterActor)
   self.skillProxy:SetCharacters(characters)
   self.skillProxy:SetTargets(targets)
+  local serverDataBase = self.caster.serverData and self.caster.serverData.base
+  self.skillProxy.BattleGenderType = serverDataBase and serverDataBase.gender or 0
   self.skillProxy:RegisterRawCallback(self, self.OnSkillEvent)
   self.skillProxy:RegisterEventCallback("ActionStart", self, self.OnActionStart)
   self.skillProxy:RegisterEventCallback("PreStart", self, self.OnG6PreStart)
@@ -231,9 +233,6 @@ end
 function AbilityBase:OnG6AbilityAsync(skillProxy, result)
   self._skillObj = skillProxy.SkillObject
   self.skillProxy = nil
-  if self._skillObj and self.caster and self.caster.serverData and self.caster.serverData.base then
-    self._skillObj.BattleGenderType = self.caster.serverData.base.gender
-  end
 end
 
 function AbilityBase:OnCastG6Success()

@@ -8,6 +8,7 @@ function UMG_Pet_GetItems_C:OnActive(_Param, PrivilegeChannel, MedalReward)
   end
   _G.BattleEventCenter:Bind(self, BattleEvent.BATTLE_TEAMBATTLE_BALANCELENS)
   self:OnAddEventListener()
+  local firstPassRewards = {}
   local firstRewards = {}
   local secondRewards = {}
   local activityItems = {}
@@ -19,6 +20,8 @@ function UMG_Pet_GetItems_C:OnActive(_Param, PrivilegeChannel, MedalReward)
         table.insert(firstRewards, reward)
       elseif reward.tag == Enum.RewardTag.RTA_SHINYDOUBLE then
         table.insert(activityItems, reward)
+      elseif reward.tag == Enum.RewardTag.RTA_ACTIVITY_FLOWER_FIRST then
+        table.insert(firstPassRewards, reward)
       else
         table.insert(secondRewards, reward)
       end
@@ -43,9 +46,11 @@ function UMG_Pet_GetItems_C:OnActive(_Param, PrivilegeChannel, MedalReward)
     end
   end
   
+  table.sort(firstPassRewards, Sorter)
   table.sort(firstRewards, Sorter)
   table.sort(activityItems, Sorter)
   table.sort(secondRewards, Sorter)
+  table.move(firstPassRewards, 1, #firstPassRewards, #Items + 1, Items)
   table.move(firstRewards, 1, #firstRewards, #Items + 1, Items)
   table.move(activityItems, 1, #activityItems, #Items + 1, Items)
   table.move(secondRewards, 1, #secondRewards, #Items + 1, Items)
@@ -62,7 +67,7 @@ end
 function UMG_Pet_GetItems_C:SetItemInfo(Items, PrivilegeChannel, MedalReward)
   self.List:InitGridView(Items)
   self:UpdatePrivilegeUI(PrivilegeChannel)
-  if MedalReward then
+  if MedalReward and MedalReward.pet_gid then
     local petData = _G.DataModelMgr.PlayerDataModel:GetPetDataByGid(MedalReward.pet_gid)
     local pet_evolution_id = _G.DataConfigManager:GetPetbaseConf(MedalReward.petbase_id).pet_evolution_id[1]
     local pet_name = _G.DataConfigManager:GetPetEvolutionConf(pet_evolution_id).evolution_chain[1].pet_name

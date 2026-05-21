@@ -166,11 +166,7 @@ function CastMessageAbility:OpenCommonPanel()
   req.item_conf_id = item_id or 0
   _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_SCENE_END_THROW_REQ, req, self, self.OnCreateRsp)
   if npc.serverData and npc.serverData.base and npc.serverData.base.actor_id then
-    local param = {}
-    param.markType = ProtoEnum.MarkGameplay.MK_MAGIC_MESSAGE
-    param.create_pos = create_pos.pos
-    param.npc_id = npc.serverData.base.actor_id
-    param.valid = self.buff.magicInfo.valid
+    local param = MagicMessageUtils.CreateParam(ProtoEnum.MarkGameplay.MK_MAGIC_MESSAGE, npc, create_pos, self.buff.magicInfo.valid)
     _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.OpenCreateMagicMessage, param)
   end
 end
@@ -189,7 +185,11 @@ function CastMessageAbility:NotifyInvalidCreate()
   if nil ~= reason then
     _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, reason)
   end
-  _G.NRCAudioManager:PlaySound2DAuto(self.SoundIdCreateFailed, self.SoundSource)
+  local wandConf = self.caster:GetCurWandConf()
+  if wandConf then
+    _G.NRCAudioManager:SetEmitterSwitch("Suit", wandConf.WandName, self.caster.viewObj, "")
+  end
+  _G.NRCAudioManager:PlaySound3DWithActorAuto(self.SoundIdCreateFailed, self.caster.viewObj, self.SoundSource)
 end
 
 return CastMessageAbility

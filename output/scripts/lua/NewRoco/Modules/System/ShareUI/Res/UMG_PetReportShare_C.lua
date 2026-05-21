@@ -76,6 +76,12 @@ function UMG_PetReportShare_C:InitPetRatioUI()
           local ratioInfo = {}
           ratioInfo.enum_name = ratioConf.enum_name
           ratioInfo.param_name = ratioConf.param_name
+          if ratioConf.enum_ReportCoinRatio == Enum.ReportCoinRatio.RCR_GLASS_HIDDEN then
+            local glassName = self:GetHiddenGlassName()
+            if glassName then
+              ratioInfo.param_name = glassName
+            end
+          end
           ratioInfo.ratio = info.ratio / 10000
           ratioInfo.id = id
           table.insert(ratioList, ratioInfo)
@@ -104,6 +110,21 @@ function UMG_PetReportShare_C:InitPetRatioUI()
       item.CanvasPanel_0:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     end
   end
+end
+
+function UMG_PetReportShare_C:GetHiddenGlassName()
+  if self.data and self.data.reportData and self.data.reportData.pet_brief and self.data.reportData.pet_brief.glass_info and self.data.reportData.pet_brief.glass_info.glass_type == ProtoEnum.GlassType.GT_HIDDEN then
+    local HiddenGlassID = self.data.reportData.pet_brief.glass_info.glass_value
+    if HiddenGlassID then
+      local HiddenGlassConf = _G.DataConfigManager:GetHiddenGlassConf(HiddenGlassID)
+      if HiddenGlassConf then
+        local name = HiddenGlassConf.name
+        name = name and name:gsub("<[^>]*>", ""):gsub("</>", "")
+        return name
+      end
+    end
+  end
+  return nil
 end
 
 return UMG_PetReportShare_C

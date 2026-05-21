@@ -14,14 +14,15 @@ local MarkInvalidReason = {
   [7] = "NearestActor not found",
   [8] = "OnDestroy"
 }
-local ServerTrackPos = UE4.FVector(0, 0, 0)
 local CheckRange = 3000
 local CheckDistSquared2D = CheckRange * CheckRange
 
 function WildTrackItem:Ctor(config, info, go, TaskObject, Index)
-  Base.Ctor(self, config, info, go, TaskObject, Index)
   self.LastShowTime = 0
   self.bNeedShowTips = false
+  self.bLastNeedShowTips = false
+  self.ServerTrackPos = UE4.FVector(0, 0, 0)
+  Base.Ctor(self, config, info, go, TaskObject, Index)
 end
 
 function WildTrackItem:OnTick(DeltaTime)
@@ -31,10 +32,12 @@ function WildTrackItem:OnTick(DeltaTime)
     self.LastShowTime = 0
     self.bNeedShowTips = false
     _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.task_trace_wild_special, nil, nil, 5)
+    Log.Debug("WildTrackItem:OnTick ", self.TaskInfo.id)
   end
 end
 
 function WildTrackItem:FindNPC()
+  self.bLastNeedShowTips = self.bNeedShowTips
   self.bNeedShowTips = false
   local Player = self:UpdatePlayerPosCache()
   if not Player then
@@ -111,8 +114,14 @@ function WildTrackItem:FindNPC()
         end
         return
       end
-    elseif UE4.UKismetMathLibrary.VSizeSquared(ServerTrackPos) > 1 and self:DistSquared2D(Player:GetActorLocationFrameCache(), ServerTrackPos) <= CheckDistSquared2D then
-      self.bNeedShowTips = true
+    elseif UE4.UKismetMathLibrary.VSizeSquared(self.ServerTrackPos) > 1 then
+      local Dist3D = Player:GetActorLocationFrameCache():DistSquared(self.ServerTrackPos)
+      if Dist3D <= CheckDistSquared2D then
+        self.bNeedShowTips = true
+        if not self.bLastNeedShowTips then
+          self.LastShowTime = 0
+        end
+      end
     end
   elseif self:IsRegisteredFinder() then
     self:UnRegisterFinder()
@@ -191,7 +200,7 @@ function WildTrackItem:FindNPC()
   self:UpdateDirectionSign()
   self.TargetSceneID = NearestActor.dest_scene_cfg_id or -1
   self.TargetSceneResID = NearestActor.dest_res_cfg_id or -1
-  if self:DistSquared2D(Player:GetActorLocationFrameCache(), ServerTrackPos) > CheckDistSquared2D then
+  if self:DistSquared2D(Player:GetActorLocationFrameCache(), self.ServerTrackPos) > CheckDistSquared2D then
     self.Valid = true
     self.MinimapValid = true
   end
@@ -213,18 +222,21 @@ function WildTrackItem:FindNPC()
     self.Valid = false
     self.MinimapValid = false
   end
+  if not self.ServerTrackPos then
+    self.ServerTrackPos = UE4.FVector(0, 0, 0)
+  end
   if NearestActor.dest_res_cfg_id == CurrentMapID then
-    ServerTrackPos.X = NearestActor.dest_pos.x
-    ServerTrackPos.Y = NearestActor.dest_pos.y
-    ServerTrackPos.Z = NearestActor.dest_pos.z
+    self.ServerTrackPos.X = NearestActor.dest_pos.x
+    self.ServerTrackPos.Y = NearestActor.dest_pos.y
+    self.ServerTrackPos.Z = NearestActor.dest_pos.z
   elseif NearestActor.target_res_cfg_id == CurrentMapID then
-    ServerTrackPos.X = NearestActor.target_pos.x
-    ServerTrackPos.Y = NearestActor.target_pos.y
-    ServerTrackPos.Z = NearestActor.target_pos.z
+    self.ServerTrackPos.X = NearestActor.target_pos.x
+    self.ServerTrackPos.Y = NearestActor.target_pos.y
+    self.ServerTrackPos.Z = NearestActor.target_pos.z
   else
-    ServerTrackPos.X = 0
-    ServerTrackPos.Y = 0
-    ServerTrackPos.Z = 0
+    self.ServerTrackPos.X = 0
+    self.ServerTrackPos.Y = 0
+    self.ServerTrackPos.Z = 0
   end
 end
 

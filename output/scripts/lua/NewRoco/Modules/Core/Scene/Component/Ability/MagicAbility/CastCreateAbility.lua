@@ -179,7 +179,9 @@ function CastCreateAbility:OnCreateRsp(rsp)
     Log.ErrorFormat("MagicCreationUtils.OnServerCreateNPC: rsp throw_magic_create_npc_result is nil, server version may not compatible")
   else
     local objId = rsp.throw_magic_create_npc_result.npc_obj_id
-    _G.NRCModuleManager:DoCmd(_G.MagicCreationModuleCmd.MakePreperformPair, self.buff.magicInfo.npc, objId)
+    if self.buff and self.buff.magicInfo then
+      _G.NRCModuleManager:DoCmd(_G.MagicCreationModuleCmd.MakePreperformPair, self.buff.magicInfo.npc, objId)
+    end
   end
 end
 

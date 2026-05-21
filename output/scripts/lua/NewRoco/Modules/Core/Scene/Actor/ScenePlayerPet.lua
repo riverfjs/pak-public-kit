@@ -180,8 +180,10 @@ end
 function ScenePlayerPet:ResetStatus()
   if self.gid then
     if self._status == ProtoEnum.WorldPlayerPetStatusType.WPPST_IN_RIDE then
-      self.owner.statusComponent:RemoveStatus(ProtoEnum.WorldPlayerStatusType.WPST_RIDEALL)
-      self:SetStatus(ProtoEnum.WorldPlayerPetStatusType.WPPST_IN_BAG)
+      if not self.owner.viewObj.BP_RideComponent:TryChangeToLink() then
+        self.owner.statusComponent:RemoveStatus(ProtoEnum.WorldPlayerStatusType.WPST_RIDEALL)
+        self:SetStatus(ProtoEnum.WorldPlayerPetStatusType.WPPST_IN_BAG)
+      end
     elseif self._status == _G.ProtoEnum.WorldPlayerPetStatusType.WPPST_IN_INTERACT then
       self:SetStatus(_G.ProtoEnum.WorldPlayerPetStatusType.WPPST_IN_BAG)
     end
@@ -333,6 +335,14 @@ function ScenePlayerPet:CheckIsTalentActive(TalentConf)
     end
   end
   return isActive
+end
+
+function ScenePlayerPet:OnSetDoubleRide2P(isOnPet, player2P)
+  if self.RidePetPassiveSkillComponent then
+    self.RidePetPassiveSkillComponent:OnSetDoubleRide2P(isOnPet, player2P)
+  elseif self.RemotePlayerRidePetPassiveSkillComponent then
+    self.RemotePlayerRidePetPassiveSkillComponent:OnSetDoubleRide2P(isOnPet, player2P)
+  end
 end
 
 return ScenePlayerPet

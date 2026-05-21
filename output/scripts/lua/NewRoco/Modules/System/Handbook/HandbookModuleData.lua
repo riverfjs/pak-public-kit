@@ -2,6 +2,7 @@ local PetUtils = require("NewRoco.Utils.PetUtils")
 local HandbookModuleEvent = reload("NewRoco.Modules.System.Handbook.HandbookModuleEvent")
 local MainUIModuleEvent = reload("NewRoco.Modules.System.MainUI.MainUIModuleEvent")
 local JsonUtils = require("Common.JsonUtils")
+local HandbookModuleEnum = reload("NewRoco.Modules.System.Handbook.HandbookModuleEnum")
 local HandbookModuleData = _G.NRCData:Extend("HandbookModuleData")
 
 function HandbookModuleData:Ctor()
@@ -58,12 +59,17 @@ function HandbookModuleData:Ctor()
   self.ReverseCacheTaskSortList = nil
   self:InitData()
   self:CreatPetHandbookMainDataDic()
+  self.curSelectedSeasonPhotoType = ProtoEnum.PetHandbookSeasonPetType.PHSPT_NONE
+  self.curSelectedSeason = 0
+  self.curSelectedSeasonHandbookData = {
+    type = HandbookModuleEnum.SeasonHandbookTable.Handbook,
+    id = 1
+  }
 end
 
 local function getUnfinishedTaskCount(id, handbookDic)
   local handbookInfo = handbookDic[id]
   local conf = handbookInfo.HandBookConf
-  local topic_list = handbookInfo.Collection.topic_list
   if handbookInfo.Collection == nil then
     return 0
   end
@@ -91,10 +97,10 @@ end
 local function getFinishedTaskCount(id, handbookDic)
   local handbookInfo = handbookDic[id]
   local conf = handbookInfo.HandBookConf
-  local topic_list = handbookInfo.Collection.topic_list
   if handbookInfo.Collection == nil then
     return 0
   end
+  local topic_list = handbookInfo.Collection.topic_list
   local count = 0
   for i = 1, #topic_list do
     local finish_cnt = 0
@@ -118,6 +124,16 @@ local function getTaskCount(id, handbookDic)
     return 0
   end
   return #handbookInfo.Collection.topic_list or 0
+end
+
+function HandbookModuleData:GetHandbookTaskFinishCountById(handbookId)
+  if handbookId then
+    local UnfinishedTaskCount = getUnfinishedTaskCount(handbookId, self.HandBookMainDataDic)
+    local TaskCount = getTaskCount(handbookId, self.HandBookMainDataDic)
+    local FinishedTaskCount = getFinishedTaskCount(handbookId, self.HandBookMainDataDic)
+    return UnfinishedTaskCount, FinishedTaskCount, TaskCount
+  end
+  return 0, 0, 0
 end
 
 function HandbookModuleData:GetIconPath(petId)
@@ -215,6 +231,10 @@ end
 function HandbookModuleData:ReverseCurBookId()
   self.CurHandbookAreaId = 1
   self.CurHandbookAreaType = _G.Enum.AreaHandbookType.AHT_KINGDOM
+  self.curSelectedSeasonHandbookData = {
+    type = HandbookModuleEnum.SeasonHandbookTable.Handbook,
+    id = 1
+  }
 end
 
 function HandbookModuleData:IsShowShiningIcon(record)
@@ -288,6 +308,9 @@ function HandbookModuleData:CreateCacheNumberSortList()
         end
       end
       if nil ~= defaultInfo then
+        defaultInfo.UnfinishedTaskCount = getUnfinishedTaskCount(defaultInfo.HandbookId, self.HandBookMainDataDic)
+        defaultInfo.TaskCount = getTaskCount(defaultInfo.HandbookId, self.HandBookMainDataDic)
+        defaultInfo.FinishedTaskCount = getFinishedTaskCount(defaultInfo.HandbookId, self.HandBookMainDataDic)
         table.insert(self.CacheNumberSortList, defaultInfo)
       end
     end
@@ -717,7 +740,7 @@ function HandbookModuleData:GetPetState(_petBaseId)
   return _G.ProtoEnum.PetHandbookStatus.PHS_NOT_FOUND
 end
 
-function HandbookModuleData:GetPetHandBookRecord(petbaseId)
+function HandbookModuleData:GetPetHandBookRecord(_petBaseId)
   for i, handbookInfo in pairs(self.HandBookMainDataDic) do
     if handbookInfo.Records[_petBaseId] ~= nil then
       return handbookInfo.Records[_petBaseId].State
@@ -1149,6 +1172,9 @@ function HandbookModuleData:CheckItemInHandbook(itemId)
       end
       for i = 1, #fruitConf.pet_refresh do
         local npc_id = fruitConf.pet_refresh[i].npc_id
+        if isHaveBook then
+          break
+        end
         for j = 1, #npc_id do
           local id = npc_id[j]
           local npcConf = _G.DataConfigManager:GetNpcConf(id)
@@ -1214,11 +1240,26 @@ function HandbookModuleData:GetPetHandbookRecordDataByPetBaseID(petBaseID)
   return nil
 end
 
+function HandbookModuleData:GetPetHandbookRecordByPetBaseID(petBaseID)
+  local handbookID = self:GetHandbookId(petBaseID)
+  if handbookID and petBaseID and self.HandBookMainDataDic[handbookID] and self.HandBookMainDataDic[handbookID].Collection then
+    local record = self.HandBookMainDataDic[handbookID].Collection.record
+    for i, value in pairs(record or {}) do
+      if value.pet_base_id == petBaseID then
+        return record[i]
+      end
+    end
+  end
+  return nil
+end
+
 function HandbookModuleData:GetHandbookId(pet_base_id)
   local handbookId
   if pet_base_id then
-    local handbookConfs = DataConfigManager:GetTable(DataConfigManager.ConfigTableId.PET_HANDBOOK):GetAllDatas()
-    for _, handbookConf in ipairs(handbookConfs or {}) do
+    if not self.handbookConfs then
+      self.handbookConfs = DataConfigManager:GetTable(DataConfigManager.ConfigTableId.PET_HANDBOOK):GetAllDatas()
+    end
+    for _, handbookConf in ipairs(self.handbookConfs or {}) do
       for i = 1, #handbookConf.include_petbase_id do
         local petbaseId = handbookConf.include_petbase_id[i].petbase_id[1]
         if petbaseId == pet_base_id then
@@ -1257,6 +1298,71 @@ function HandbookModuleData:GetAllFilterData()
     end
   end
   return filterData
+end
+
+function HandbookModuleData:CheckHandbookSeasonIsGotReward(seasonId, petType)
+  local seasonInfo
+  if self.HandbookInfo and self.HandbookInfo.handbook then
+    for _, info in pairs(self.HandbookInfo.handbook.season_info or {}) do
+      if info.season_id == seasonId then
+        seasonInfo = info
+        break
+      end
+    end
+  end
+  if seasonInfo then
+    local gotReward = seasonInfo.getted_reward
+    local hasFlag = 0 ~= gotReward & 1 << petType
+    return hasFlag
+  end
+  return false
+end
+
+function HandbookModuleData:CheckHandbookSeasonAwardState(seasonId)
+  local checkTypes = {
+    ProtoEnum.PetHandbookSeasonPetType.PHSPT_NEW,
+    ProtoEnum.PetHandbookSeasonPetType.PHSPT_SHINING,
+    ProtoEnum.PetHandbookSeasonPetType.PHSPT_NORMAL_SHINING
+  }
+  local allClaimed = true
+  for _, petType in ipairs(checkTypes) do
+    local isGotReward = self:CheckHandbookSeasonIsGotReward(seasonId, petType)
+    if not isGotReward then
+      allClaimed = false
+      local _, collectedNum, rewardNum = _G.NRCModuleManager:DoCmd(_G.HandbookModuleCmd.GetSeasonPetCount, seasonId, petType)
+      if collectedNum and rewardNum and collectedNum == rewardNum then
+        return HandbookModuleEnum.SeasonHandbookAwardState.NotClaimed
+      end
+    end
+  end
+  if allClaimed then
+    return HandbookModuleEnum.SeasonHandbookAwardState.Claimed
+  else
+    return HandbookModuleEnum.SeasonHandbookAwardState.NotReached
+  end
+end
+
+function HandbookModuleData:UpdateHandbookSeasonIsGotReward(seasonId, petType)
+  if self.HandbookInfo and self.HandbookInfo.handbook then
+    if not self.HandbookInfo.handbook.season_info then
+      self.HandbookInfo.handbook.season_info = {}
+    end
+    local isFound = false
+    for _, info in pairs(self.HandbookInfo.handbook.season_info or {}) do
+      if info.season_id == seasonId then
+        isFound = true
+        info.getted_reward = info.getted_reward | 1 << petType
+        break
+      end
+    end
+    if not isFound then
+      local temp = {
+        season_id = seasonId,
+        getted_reward = 1 << petType
+      }
+      table.insert(self.HandbookInfo.handbook.season_info, temp)
+    end
+  end
 end
 
 return HandbookModuleData

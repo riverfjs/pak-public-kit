@@ -6,7 +6,7 @@ function PrepareMessageAbility:Start(OnFinished)
   Base.Start(self, OnFinished)
   self.CastMagicThrowAnimType = 1
   self.SoundSource = "PrepareMessageAbility"
-  self.SoundIdLoop = 202701
+  self.SoundIdLoop = 202707
   local buffComp = self.caster.buffComponent
   if buffComp and buffComp:HasBuff(self.helper:GetBuffName()) then
     return
@@ -17,13 +17,11 @@ function PrepareMessageAbility:Start(OnFinished)
     return
   end
   self.caster.viewObj:ChangeThrowAnim(self.CastMagicThrowAnimType)
-  self.magicBuffInfo.SoundIdCreateLoop = _G.NRCAudioManager:PlaySound2DAuto(self.SoundIdLoop, self.SoundSource)
   self:PlaySkill()
 end
 
 function PrepareMessageAbility:SyncStart()
   self.caster.viewObj:SetAimMode(true, self.CastMagicThrowAnimType)
-  self.magicBuffInfo.SoundIdCreateLoop = _G.NRCAudioManager:PlaySound3DWithActorAuto(self.SoundIdLoop, self.caster.viewObj, self.SoundSource)
   self:PlaySkill()
 end
 
@@ -36,6 +34,11 @@ function PrepareMessageAbility:PlaySkill()
   local typedConfig = _G.DataConfigManager:GetSceneAbilityThrowConf(1)
   self.magicBuffInfo.skillTypedConfig = typedConfig
   self.caster.buffComponent:AddBuff(self.helper:GetBuffName(), MessageBuff, self.caster, self.magicBuffInfo)
+  local wandConf = self.caster:GetCurWandConf()
+  if wandConf then
+    _G.NRCAudioManager:SetEmitterSwitch("Suit", wandConf.WandName, self.caster.viewObj, "")
+  end
+  self.magicBuffInfo.SoundIdCreateLoop = _G.NRCAudioManager:PlaySound3DWithActorAuto(self.SoundIdLoop, self.caster.viewObj, self.SoundSource)
 end
 
 function PrepareMessageAbility:InitWand()

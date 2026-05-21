@@ -76,6 +76,13 @@ function UMG_ChangePetConfirmPanel_C:OnActive(data, NeedBtn, SkillPanel, bDirect
   self:InitRewardButton()
   self:OnAddEventListener()
   self:RefreshShowLockSkillBtn()
+  local formationPanel = self.module:GetPanel("TeamEdit")
+  if formationPanel and formationPanel.ConsumePendingChangeSelectPetData then
+    local pendingPetData = formationPanel:ConsumePendingChangeSelectPetData()
+    if pendingPetData then
+      self:OnFormationPanelChangeSelectPet(pendingPetData)
+    end
+  end
 end
 
 function UMG_ChangePetConfirmPanel_C:InitRewardButton()

@@ -79,11 +79,13 @@ function PVPRankedMatchModule:OnActive()
   self:RegPanel("PVPHistoricalRecord", "UMG_PVP_HistoricalRecord", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, true)
   self:RegPanel("SeasonOpen", "UMG_SeasonOpen", _G.Enum.UILayerType.UI_LAYER_TOP_LOADING, nil, true)
   self:RegPanel("SeasonRank", "UMG_SeasonRank", _G.Enum.UILayerType.UI_LAYER_TOP_LOADING, nil, true, nil, nil, true)
+  self:RegPanel("SeasonRankS2", "UMG_SeasonRank_S2", _G.Enum.UILayerType.UI_LAYER_TOP_LOADING, nil, true, nil, nil, true)
   self:RegPanel("PVPCutto", "UMG_PVP_Cutto", _G.Enum.UILayerType.UI_LAYER_TOP_LOADING, nil, true, nil, nil, true)
   self:RegPanel("PVPCongratulation", "UMG_PVPcongratulation", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, true, nil, nil, true)
   _G.NRCEventCenter:RegisterEvent("PVPRankedMatchModule", self, SceneEvent.LoadMapStart, self.OnChangeScene)
   _G.DataModelMgr.PlayerDataModel:AddEventListener(self, ENUM_PLAYER_DATA_EVENT.UPDATE_DATA, self.OnPlayerDataUpdate)
   self:InitTeamInfoRandomPet()
+  self:OnCmdZonePvpInfoQueryReq()
 end
 
 function PVPRankedMatchModule:OnChangeScene()
@@ -263,7 +265,8 @@ function PVPRankedMatchModule:OnCmdGetRankGrade(curStarNum)
   return self.data:GetRankGrade(curStarNum)
 end
 
-function PVPRankedMatchModule:DebugSeasonOpen(starNum, prevNum)
+function PVPRankedMatchModule:DebugSeasonOpen(curSeasonId, starNum, prevNum)
+  self.data:DebugSeasonId(curSeasonId)
   self.__debugSeasonOpenStarNum = starNum
   self.__debugSeasonOpenPrevStarNum = prevNum
 end
@@ -314,16 +317,27 @@ function PVPRankedMatchModule:CmdPlaySeasonOpen()
 end
 
 function PVPRankedMatchModule:CmdTrySwitch_UMG_SeasonRank(bShow)
+  local panelName = self:GetPanelName_SeasonRank()
   if bShow then
     local bChanged, oldRank, resetToRank = self:CheckRankStarChanged()
-    if bChanged and not self:HasPanel("SeasonRank") then
-      self:OpenPanel("SeasonRank", oldRank, resetToRank)
+    if bChanged and not self:HasPanel(panelName) then
+      self:OpenPanel(panelName, oldRank, resetToRank)
       return true
     end
     return false
   else
-    self:ClosePanel("SeasonRank")
+    self:ClosePanel(panelName)
     return true
+  end
+end
+
+function PVPRankedMatchModule:GetPanelName_SeasonRank()
+  local currentSeasonId = self.data:GetCurSeasonId() or 0
+  local firstSeasonId = self.data:GetFirstSeasonId() or 0
+  if currentSeasonId == firstSeasonId then
+    return "SeasonRank"
+  else
+    return "SeasonRankS2"
   end
 end
 
@@ -827,7 +841,9 @@ end
 
 function PVPRankedMatchModule:OnCmdGetRandomPetRewordConf(pureRandomPetCount, typeRandomPetCount)
   local RandomPetRewordIndexMap = self.data and self.data.RandomPetRewordIndexMap
-  local row = RandomPetRewordIndexMap and RandomPetRewordIndexMap[pureRandomPetCount]
+  local randomPetNum = pureRandomPetCount + typeRandomPetCount
+  typeRandomPetCount = 0
+  local row = RandomPetRewordIndexMap and RandomPetRewordIndexMap[randomPetNum]
   local conf = row and row[typeRandomPetCount]
   return conf
 end

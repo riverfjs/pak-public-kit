@@ -242,9 +242,9 @@ function AbilityComponent:TickCD(deltaTime)
   end
 end
 
-function AbilityComponent:StartSuitPerform(skillId, petBaseId, petServerId, mutationType, glassInfo, nature)
+function AbilityComponent:StartSuitPerform(skillId, petBaseId, petServerId, mutationType, glassInfo, nature, ball_id)
   if self._suitPerformAbility then
-    self._suitPerformAbility:StartPerform(skillId, petBaseId, petServerId, mutationType, glassInfo, nature)
+    self._suitPerformAbility:StartPerform(skillId, petBaseId, petServerId, mutationType, glassInfo, nature, ball_id)
   end
 end
 

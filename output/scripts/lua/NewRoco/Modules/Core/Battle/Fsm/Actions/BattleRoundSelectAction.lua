@@ -9,6 +9,7 @@ local BattleRoundSelectMarkerManager = require("NewRoco.Modules.Core.Battle.Batt
 local RoundSelectFsm = require("NewRoco.Modules.Core.Battle.Fsm.RoundSelectFsm")
 local PetUtils = require("NewRoco.Utils.PetUtils")
 local BattleDebugger = require("NewRoco.Modules.Core.Battle.Debugger.BattleDebugger_Declare")
+local Enum = require("Data.Config.Enum")
 local BattleRoundSelectAction = BattleActionBase:Extend("BattleRoundSelectAction")
 FsmUtils.MergeMembers(BattleActionBase, BattleRoundSelectAction, {
   {name = "RoundState", type = "number"}
@@ -50,7 +51,7 @@ function BattleRoundSelectAction:OnEnter()
   local mainWindow = BattleUtils.GetMainWindow()
   local battlePawnManager = self.battleManager.battlePawnManager
   _G.BattleEventCenter:Dispatch(BattleEvent.ROUND_STATE_SELECT)
-  _G.BattleEventCenter:Bind(self, BattleEvent.CHANGE_OPERATE_TYPE, BattleEvent.PUSHBACK_CMD_SENT, BattleEvent.PET_SPAWNED, BattleEvent.BATTLE_PLAY_PLAYERSKILL_SUCCESS, BattleEvent.BATTLE_RECOVER_PLAYERSKILL, BattleEvent.BATTLE_SET_PLAYERSKILL, BattleEvent.Clear_SkillList, BattleEvent.SHOW_MAIN_WHEN_SKILLOVER, BattleEvent.ALL_ONLOOKER_SPAWNED, BattleEvent.LEAVE_ESCAPE_STATE, BattleEvent.ReconnetBattle_RoundStrart, BattleEvent.UPDATE_UI_ON_ROUND_SELECT)
+  _G.BattleEventCenter:Bind(self, BattleEvent.CHANGE_OPERATE_TYPE, BattleEvent.PUSHBACK_CMD_SENT, BattleEvent.POPBACK_CMD_SENT, BattleEvent.PET_SPAWNED, BattleEvent.BATTLE_PLAY_PLAYERSKILL_SUCCESS, BattleEvent.BATTLE_RECOVER_PLAYERSKILL, BattleEvent.BATTLE_SET_PLAYERSKILL, BattleEvent.Clear_SkillList, BattleEvent.SHOW_MAIN_WHEN_SKILLOVER, BattleEvent.ALL_ONLOOKER_SPAWNED, BattleEvent.LEAVE_ESCAPE_STATE, BattleEvent.ReconnetBattle_RoundStrart, BattleEvent.UPDATE_UI_ON_ROUND_SELECT)
   BattleUtils.CheerPetsStartRandomMove()
   self.battleManager.EscapeContext:Close()
   if mainWindow then
@@ -100,7 +101,21 @@ function BattleRoundSelectAction:OnEnter()
   self:CheckChangePet()
   self.battleSelectMarkerMgr:HideAllSelectMarkers()
   self.CurrentEnemyPet = self.battleManager.battlePawnManager:GetInFieldAllPet(BattleEnum.Team.ENUM_ENEMY)
-  self:StartSelect(self.curEvent ~= BattleEnum.RoundStateNames.SkillState)
+  local curEventIsSkillState = self.curEvent == BattleEnum.RoundStateNames.SkillState
+  local isObserverMode2 = false
+  if _G.BattleUtils.IsWatchingBattle() then
+    local observeMode = ProtoEnum.ObserveBattleMode.OBM_MODE_2
+    local playerSettings = _G.NRCModuleManager:DoCmd(_G.SystemSettingModuleCmd.GetPlayerSettings)
+    if playerSettings then
+      observeMode = BattleUtils.GetObserveModeFromSystemSettings(playerSettings)
+    end
+    if observeMode == ProtoEnum.ObserveBattleMode.OBM_MODE_2 then
+      isObserverMode2 = true
+    end
+  end
+  local moveView = curEventIsSkillState or isObserverMode2
+  local notMoveView = not moveView
+  self:StartSelect(notMoveView)
   self.battleManager:ChangeOperateMode(operateType)
   local roundIndex = self.battleManager.battleRuntimeData.roundIndex
   if 1 == roundIndex then
@@ -384,6 +399,18 @@ function BattleRoundSelectAction:UpdateUIInfo(sync_data)
   if not sync_data then
     return
   end
+  local shouldDelayHp = false
+  local ignoreHpPetIds
+  local playerSkillPhase, activedPlayerSkillInfo = self.CurrentPlayer:GetPlayerSkillPhase()
+  if playerSkillPhase ~= BattleEnum.PlayerSkillPhase.NoSkill and activedPlayerSkillInfo then
+    local effectType = activedPlayerSkillInfo:GetEffectType()
+    shouldDelayHp = effectType == Enum.EffectType.ET_BOSS_BLOOD
+    if shouldDelayHp and activedPlayerSkillInfo.OnClickPet and activedPlayerSkillInfo.OnClickPet.guid then
+      ignoreHpPetIds = {
+        activedPlayerSkillInfo.OnClickPet.guid
+      }
+    end
+  end
   if sync_data.pet_sync_info then
     for _, v in ipairs(sync_data.pet_sync_info) do
       local pet = _G.BattleManager.battlePawnManager:GetPetByGuid(v.pet_id)
@@ -424,7 +451,7 @@ function BattleRoundSelectAction:UpdateUIInfo(sync_data)
       player:RefreshMagicItem(info)
     end
   end
-  _G.BattleEventCenter:Dispatch(BattleEvent.DIRECT_UPDATE_UI)
+  BattleUtils.DirectUpdateUI(ignoreHpPetIds and {ignoreHp = ignoreHpPetIds} or nil)
 end
 
 function BattleRoundSelectAction:ProcessRoleHpEnd(player)
@@ -449,7 +476,10 @@ function BattleRoundSelectAction:ProcessRoleHpStart(player, hp_result, hp_change
     pvp_change = pvp_change
   }
   _G.NRCModuleManager:DoCmdAsync(asyncData, BattleUIModuleCmd.OpenRoleHpDefeatedTipPanel)
-  _G.DelayManager:DelaySeconds(BattleConst.Show.PveRoleHpShowTime, self.ProcessRoleHpEnd, self, player)
+  if self.ProcessRoleHpHandler then
+    _G.DelayManager:CancelDelayById(self.ProcessRoleHpHandler)
+  end
+  self.ProcessRoleHpHandler = _G.DelayManager:DelaySeconds(BattleConst.Show.PveRoleHpShowTime, self.ProcessRoleHpEnd, self, player)
 end
 
 function BattleRoundSelectAction:SetEnemyPetHighlight(needHighlight)
@@ -609,6 +639,88 @@ function BattleRoundSelectAction:OnCmdPushRsp(rsp)
   end
 end
 
+function BattleRoundSelectAction:OnCmdPopRsp(rsp)
+  Log.Dump(rsp, nil, "BattleRoundSelectAction:OnCmdPopRsp")
+  local retInfo = rsp and rsp.ret_info
+  local retCode = retInfo and retInfo.ret_code
+  if not retCode or 0 ~= retCode then
+    return
+  end
+  local req = rsp and rsp.req
+  local reqType = req and req.req_type
+  local currentPlayer = self.CurrentPlayer
+  local currentPet = self.CurrentPet
+  local battleManager = self.battleManager
+  local battlePawnManager = battleManager and battleManager.battlePawnManager
+  local playerSkill = currentPlayer and currentPlayer:GetPlayerSkillInfo()
+  if reqType == _G.ProtoEnum.BATTLE_REQ_TYPE.CMD_ROLE_MAGIC then
+    local magicInfo = req and req.magic_op
+    local targetPetId = magicInfo and magicInfo.target_pet_id
+    local opPet = battlePawnManager and battlePawnManager:GetPetByGuid(targetPetId)
+    if opPet then
+      opPet:InitOp()
+    end
+    local EffectType = playerSkill and playerSkill:GetEffectType()
+    local battlePet
+    if EffectType == Enum.EffectType.ET_ROLE_CHANGE_SKILL or EffectType == Enum.EffectType.ET_ADD_BUFF_BY_BLOOD or EffectType == Enum.EffectType.ET_BOSS_BLOOD then
+      local sync_data = rsp and rsp.sync_data
+      local battleInfoManager = _G.BattleManager.battleInfoManager
+      local rspRound = rsp and rsp.round
+      if opPet then
+        battlePet = opPet
+      else
+        battlePet = currentPet
+      end
+      local battlePetId = battlePet and battlePet.guid
+      local petInfoList = sync_data and sync_data.pet_info or {}
+      for i, petInfo in ipairs(petInfoList) do
+        local insideInfo = petInfo and petInfo.battle_inside_pet_info
+        local petId = insideInfo and insideInfo.pet_id
+        if petId and petId == battlePetId then
+          battleInfoManager:AddBattlePetInfoDataFromPushPop(petId, petInfo, rspRound)
+          battlePet:OverwriteByServer(petInfo)
+          battlePet:RefreshByServer()
+        end
+      end
+      self:UpdateUIInfo(sync_data)
+      _G.BattleEventCenter:Dispatch(BattleEvent.UPDATE_DATA, currentPet, true)
+    elseif EffectType == Enum.EffectType.ET_ROLE_CHANGE_PET then
+      local upPetId = magicInfo and magicInfo.up_pet_id
+      opPet = battlePawnManager and battlePawnManager:GetPetByGuid(upPetId)
+      if opPet then
+        opPet:InitOp()
+      end
+      if playerSkill then
+        playerSkill:Cancel()
+        local ClickPet, UpPet = playerSkill:GetClickPetAndUpPet()
+        battlePet = UpPet and UpPet.BattlePet
+      end
+      _G.BattleEventCenter:Dispatch(BattleEvent.UPDATE_DATA, currentPet, true)
+    end
+    do
+      local playerUin = currentPlayer and currentPlayer.guid
+      local rspRound = rsp and rsp.round
+      local roleInfo = {}
+      local magicOpInfo = _G.ProtoMessage:newBattleRoleMagicOpInfo()
+      roleInfo.magic_op_info = magicOpInfo
+      local battleInfoManager = _G.BattleManager.battleInfoManager
+      battleInfoManager:AddBattleRoleInfoDataFromPushPop(playerUin, roleInfo, rspRound)
+    end
+    if playerSkill then
+      playerSkill:CancelLinkEffect()
+    end
+    if currentPlayer then
+      currentPlayer:SetPlayerSkill(BattleEnum.PlayerSkillPhase.NoSkill)
+      currentPlayer:ClearMagicOpInfo()
+    end
+    local vBattleField = battleManager and battleManager.vBattleField
+    local battleCameraManager = vBattleField and vBattleField.battleCameraManager
+    if battleCameraManager then
+      battleCameraManager:ChangeByOperateType(BattleEnum.Operation.ENUM_ITEM)
+    end
+  end
+end
+
 function BattleRoundSelectAction:RefreshByServer(rsp, OpPet)
   if not rsp then
     return
@@ -645,7 +757,7 @@ function BattleRoundSelectAction:UpdateChiefInfo(rsp)
     end
     self:UpdateReduceSelfHp(rsp.sync_data)
     self:UpdateGatherSkill(rsp)
-    _G.BattleEventCenter:Dispatch(BattleEvent.DIRECT_UPDATE_UI)
+    BattleUtils.DirectUpdateUI()
   end
 end
 
@@ -971,6 +1083,9 @@ function BattleRoundSelectAction:OnBattleEvent(eventName, ...)
     return true
   elseif eventName == BattleEvent.PUSHBACK_CMD_SENT then
     self:OnCmdPushRsp(...)
+    return true
+  elseif eventName == BattleEvent.POPBACK_CMD_SENT then
+    self:OnCmdPopRsp(...)
     return true
   elseif eventName == BattleEvent.PET_SPAWNED then
     self:PawnPetOver(...)

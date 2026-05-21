@@ -16,6 +16,7 @@ local AIStateSpec = require("NewRoco.AI.State.AIStateSpec")
 local NPCLuaUtils = require("NewRoco.Modules.Core.NPC.NPCLuaUtils")
 local FarmUtils = require("NewRoco.Modules.System.Farm.FarmUtils")
 local Delegate = require("Utils.Delegate")
+local PetMutationUtils = require("NewRoco.Utils.PetMutationUtils")
 local Base = require("NewRoco.Modules.Core.Scene.Component.ActorComponent")
 local AIComponent = Base:Extend("AIComponent")
 local DefaultMetaAITreePath = "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/BT_MetaAI"
@@ -243,6 +244,34 @@ function AIComponent:UpdateDataFromConfig()
     RESULT_btree = nil
     RESULT_perform = Server_perform
     bAIConfigValid = true
+  end
+  if not bAIConfigValid then
+    local mutType = _serverData.npc_base.mutation_type
+    if mutType and PetMutationUtils.GetMutationValue(mutType, _G.Enum.MutationDiffType.MDT_SHINING) then
+      local mutPerformId = self.owner.config.shining_ai_conf
+      if mutPerformId and mutPerformId > 0 then
+        RESULT_btree = nil
+        RESULT_perform = mutPerformId
+        bAIConfigValid = true
+      end
+    end
+  end
+  if not bAIConfigValid then
+    local sanctuary_id = _serverData.npc_base and _serverData.npc_base.owl_sanctuary_content_cfg_id
+    if sanctuary_id and sanctuary_id > 0 then
+      local sanctuary_conf = _G.DataConfigManager:GetOwlSanctuaryConf(sanctuary_id, true)
+      if sanctuary_conf and sanctuary_conf.cave_ban_fly_ai_perform_group and 0 ~= sanctuary_conf.cave_ban_fly_ai_perform_group then
+        local petbaseConf = self.owner:GetConfPetData()
+        if petbaseConf and petbaseConf.model_conf then
+          local modelConf = _G.DataConfigManager:GetModelConf(petbaseConf.model_conf, true)
+          if modelConf and (modelConf.habitat_flag == Enum.HABITAT_FLAG.HAB_FLY or modelConf.habitat_flag == Enum.HABITAT_FLAG.HAB_FLY_WATER) then
+            RESULT_btree = nil
+            RESULT_perform = sanctuary_conf.cave_ban_fly_ai_perform_group
+            bAIConfigValid = true
+          end
+        end
+      end
+    end
   end
   local RefreshContentConfig = _G.DataConfigManager:GetNpcRefreshContentConf(_serverData.npc_base.npc_content_cfg_id, true)
   if RefreshContentConfig then
@@ -670,15 +699,22 @@ function AIComponent:TrySendGuardEvent()
 end
 
 function AIComponent:TrySendFarmerEvent()
-  if self.owner:IsAThrownPet() then
+  local enableFarm = false
+  if FarmUtils.IsCurrentHomeOwner() then
+    enableFarm = self.owner:IsLogicStatus(Enum.SpaceActorLogicStatus.SALS_HOME_PET_GUARD)
+  end
+  if not enableFarm and self.owner:IsAThrownPet() then
     local OwnerPlayerId = self.owner.serverData and self.owner.serverData.base.owner_id or 0
     local ownerPlayer = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GetPlayerByServerID, OwnerPlayerId)
     if ownerPlayer and ownerPlayer.isLocal then
-      rawset(self, "IsUnitType_Water", self.owner:ContainsUnitType(Enum.SkillDamType.SDT_WATER))
-      rawset(self, "IsUnitType_Grass", self.owner:ContainsUnitType(Enum.SkillDamType.SDT_GRASS))
-      self:SetFarmEventEnabled(true)
-      self:CollectInteractableFarms()
+      enableFarm = true
     end
+  end
+  if enableFarm then
+    rawset(self, "IsUnitType_Water", self.owner:ContainsUnitType(Enum.SkillDamType.SDT_WATER))
+    rawset(self, "IsUnitType_Grass", self.owner:ContainsUnitType(Enum.SkillDamType.SDT_GRASS))
+    self:SetFarmEventEnabled(true)
+    self:CollectInteractableFarms()
   end
 end
 
@@ -859,11 +895,15 @@ function AIComponent:UpdateMovementModeAlter(move_mode)
     return false
   end
   local FlowComp = self.AIController:GetComponentByClass(UE.URocoMultiposFlowComponent)
-  if 1 == move_mode.move_mode then
-    move_mode.move_mode = 3
-  end
   local moveComp = self:GetMoveComponent()
   if moveComp and moveComp:IsA(UE.UCharacterNavMovementComponent) then
+    local current_movement_state = moveComp.MovementMode
+    if 1 == move_mode.move_mode or 3 == move_mode.move_mode then
+      local NeedFalling = current_movement_state == UE.EMovementMode.MOVE_Flying or current_movement_state == UE.EMovementMode.MOVE_Custom and moveComp.CustomMovementMode == UE.ERocoCustomMovementMode.MOVE_Hovering
+      if NeedFalling then
+        move_mode.move_mode = 3
+      end
+    end
     moveComp.ServerGravity = server_data and server_data.ai_info and server_data.ai_info.move_mode and server_data.ai_info.move_mode.gravity or 0
   end
   if FlowComp then
@@ -919,6 +959,9 @@ function AIComponent:OnDistanceOptimize(sqrDistanceIgnoreZ, viewDotValue, sqrDis
   end
   if self.PersistentEnable then
     bulkyRatio = 0
+  end
+  if SceneUtils.debugCloseCreateAIComp then
+    bulkyRatio = 3
   end
   if bulkyRatio <= 1 then
     if self.distOptimizeMark ~= DistOptimizeMarkType.NEAR then
@@ -999,7 +1042,7 @@ function AIComponent:UpdateAIReaction(tryEnable)
       if self.isControllerCreated then
         reactionComp:UpdateAbility(Abilities.Lookup | Abilities.Angry)
       else
-        if 1 ~= self.owner.config.not_turn_face then
+        if 0 == self.owner.config.not_turn_face then
           reactionComp:UpdateAbility(Abilities.AutoLookAt)
         end
         local view = self.owner.viewObj
@@ -1179,9 +1222,15 @@ function AIComponent:TryStartBtree(NeedLoadIfNon)
     else
       self:GetServerAIComponent()
     end
-    if self:IsControllerValid() and self.AIController.SetCanTick then
-      self.AIController:SetCanTick(false)
+    if self:IsControllerValid() then
+      local Controller = self.AIController
+      if Controller.SetCanTick then
+        Controller:SetCanTick(false)
+      end
     end
+    return
+  end
+  if self.owner:IsMagicReplayActor() then
     return
   end
   if self.isMFBT or not string.IsNilOrEmpty(self.TreePath) then
@@ -1191,6 +1240,7 @@ function AIComponent:TryStartBtree(NeedLoadIfNon)
     if self.isBTLoaded and self.AIController and UE.UObject.IsValid(self.AIController) then
       self.isBTRunning = true
       self.AIController:SetCanTick(true)
+      self.AIController:SuspendDotsGroup(false)
       if self.owner:CanIntimate() then
         self:SendBondBeginEvent()
       end
@@ -1207,6 +1257,7 @@ end
 function AIComponent:TryPauseBtree()
   if self.isBTRunning and self.AIController and UE.UObject.IsValid(self.AIController) then
     self.AIController:SetCanTick(false)
+    self.AIController:SuspendDotsGroup(true)
     self.isBTRunning = false
   end
 end
@@ -1625,7 +1676,7 @@ function AIComponent:UpdateChargeSkill()
     return
   end
   local petBaseId = self.owner.config.traverse_data_param[1]
-  local levelConf = DataConfigManager:GetLevelSkillConf(petBaseId, true)
+  local levelConf = _G.NRCModeManager:DoCmd(_G.PetUIModuleCmd.GetLevelSkillConfByPetBaseId, petBaseId)
   if not levelConf then
     return
   end
@@ -1761,6 +1812,22 @@ end
 function AIComponent:OverrideBehavior(BehaviorGroupId, BTOverridePriority, SwitchOutCondId, PlayerContext)
   if self:IsActive() then
     self.AIController:OverrideBehavior(BehaviorGroupId, BTOverridePriority, SwitchOutCondId or 0, PlayerContext and PlayerContext.viewObj or nil)
+  end
+end
+
+local SequalBehaviorGroupId
+
+local function GetSequalBehaviorGroupId()
+  if not SequalBehaviorGroupId then
+    local conf = _G.DataConfigManager:GetNrcAiGlobalConfigConf("llm_pets_sequal_behavior_group_id")
+    SequalBehaviorGroupId = conf and conf.num or 9000
+  end
+  return SequalBehaviorGroupId
+end
+
+function AIComponent:OverrideBehaviorWithSequal(Seq, BTOverridePriority, SwitchOutCondId, PlayerContext)
+  if self:IsActive() then
+    self.AIController:OverrideBehaviorWithSequal(GetSequalBehaviorGroupId(), Seq, BTOverridePriority, SwitchOutCondId or 0, PlayerContext and PlayerContext.viewObj or nil)
   end
 end
 

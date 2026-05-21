@@ -12,6 +12,7 @@ local BOND_TOUCH_DISTANCE = _G.DataConfigManager:GetGlobalConfigByKeyType("bond_
 local AppearanceModuleEnum = require("NewRoco.Modules.System.Appearance.AppearanceModuleEnum")
 local PetMutationUtils = require("NewRoco.Utils.PetMutationUtils")
 local PetUtils = require("NewRoco.Utils.PetUtils")
+local ScenePlayerRideFriendPetBuff = require("NewRoco.Modules.Core.Scene.Component.Buff.ScenePlayerRideFriendPetBuff")
 local EnumOpationState = {GetState = 1, Implement = 2}
 local PetTouchState = {
   IsCanTouch = 1,
@@ -29,8 +30,23 @@ local PetCloseState = {
   IsYiSeANotReward = 5,
   IsXuanCaiANotReward = 6,
   IsYiSeHaveReward = 7,
-  IsXuanCaiHaveReward = 8
+  IsXuanCaiHaveReward = 8,
+  IsYiSeLowLevelNotReward = 9,
+  IsXuanCaiLowLevelNotReward = 10,
+  IsHaveButNoInteract = 11
 }
+
+function UMG_RelationTree_Item_Pet_C:IsPetBaseLowLevel(BaseId, fashionBondConf)
+  if not (fashionBondConf and fashionBondConf.petbase_id) or not BaseId then
+    return true
+  end
+  for _, id in ipairs(fashionBondConf.petbase_id) do
+    if id == BaseId then
+      return false
+    end
+  end
+  return true
+end
 
 function UMG_RelationTree_Item_Pet_C:OnConstruct()
   self.player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
@@ -64,12 +80,12 @@ function UMG_RelationTree_Item_Pet_C:UpdateInviteAnim(isCancel)
         IITType = ProtoEnum.InteractInviteType.IIT_PET_BLESSING
       end
       if not isCancel then
-        if IITType and IITType == InviteComponent.InviteType then
-          if self.ItemData.Unlock then
-          end
+        if self.ItemData.Unlock then
+        end
+        if IITType and IITType == InviteComponent.InviteType and not self:IsSelf() then
           self:PlayAnimation(self.WaitForResponse_In)
         end
-      elseif IITType and IITType == InviteComponent.InviteType then
+      elseif IITType and IITType == InviteComponent.InviteType and not self:IsSelf() then
         self:StopAnimation(self.WaitForResponse_In)
         self:StopAnimation(self.WaitForResponse)
         self:PlayAnimation(self.WaitForResponse_Out)
@@ -111,7 +127,8 @@ function UMG_RelationTree_Item_Pet_C:OnItemUpdate(Data)
             local petInfo = ParamData.PetInfo
             local PetbaseId = petInfo.serverData and petInfo.serverData.pet_info and petInfo.serverData.pet_info.pet_base_conf_id or 0
             local PetGid = petInfo.serverData and petInfo.serverData.pet_info and petInfo.serverData.pet_info.gid or 0
-            local Pet = ScenePlayerPet(nil, PetbaseId, PetGid, self.player)
+            local PetData = _G.NRCModuleManager:DoCmd(RelationTreeCmd.GetPetInfoData)
+            local Pet = ScenePlayerPet(nil, PetbaseId, PetGid, self.player, PetData)
             self.PetRideIconInfo = RelationTreeRidePetItem(Pet, function(IconType, IsBlock)
               self.RideBlock = IsBlock
               self:UpdateItemIconByRide(IconType)
@@ -189,7 +206,7 @@ function UMG_RelationTree_Item_Pet_C:UpdateClosenessUI()
   local BondId = _G.NRCModuleManager:DoCmd(RelationTreeCmd.GetPetFashionBondID, BaseId)
   local fashion_bond_conf = _G.DataConfigManager:GetFashionBondConf(BondId)
   if self.ItemData and self.ItemData.InteractionTreeTypeDefault == Enum.InteractiontreeTypeDefault.ITTD_CLOSE then
-    if self.State == PetCloseState.IsYiSeANotReward then
+    if self.State == PetCloseState.IsYiSeANotReward or self.State == PetCloseState.IsYiSeLowLevelNotReward then
       self.NRCSwitcher:SetActiveWidgetIndex(0)
       self.headPortrait:SetPath("/Game/NewRoco/Modules/System/RelationTree/Rew/Frames/img_ClothingDifferentColors1_png.img_ClothingDifferentColors1_png")
       self.NameText:SetText(LuaText.interactiontree_closeness_mystery_gift)
@@ -210,7 +227,7 @@ function UMG_RelationTree_Item_Pet_C:UpdateClosenessUI()
       if fashion_bond_conf and fashion_bond_conf.fashion_bond_icon and fashion_bond_conf.fashion_bond_icon ~= "" then
         self.Icon:SetPath(fashion_bond_conf.fashion_bond_icon)
       end
-    elseif self.State == PetCloseState.IsXuanCaiANotReward then
+    elseif self.State == PetCloseState.IsXuanCaiANotReward or self.State == PetCloseState.IsXuanCaiLowLevelNotReward then
       self.NRCSwitcher:SetActiveWidgetIndex(0)
       self.headPortrait:SetPath("/Game/NewRoco/Modules/System/RelationTree/Rew/Frames/img_xuancai1_png.img_xuancai1_png")
       self.NameText:SetText(LuaText.interactiontree_closeness_mystery_gift)
@@ -231,7 +248,7 @@ function UMG_RelationTree_Item_Pet_C:UpdateClosenessUI()
       if fashion_bond_conf and fashion_bond_conf.fashion_bond_icon and fashion_bond_conf.fashion_bond_icon ~= "" then
         self.Icon:SetPath(fashion_bond_conf.fashion_bond_icon)
       end
-    elseif self.State == PetCloseState.IsEmpty then
+    elseif self.State == PetCloseState.IsEmpty or self.State == PetCloseState.IsHaveButNoInteract then
       self.NRCSwitcher:SetActiveWidgetIndex(1)
       self.NameText:SetText(self.ItemData.StateStruct[2].name)
     else
@@ -288,12 +305,6 @@ end
 function UMG_RelationTree_Item_Pet_C:UpdateItemIconByRide(IconType)
   if self.ItemData then
     if not self:IsSelf() then
-      local PlayerUin = _G.NRCModeManager:DoCmd(_G.RelationTreeCmd.GetCurOpenPetPanelPlayerUin)
-      if not _G.DataModelMgr.PlayerDataModel:IsFriend(PlayerUin) then
-        self.headPortrait:SetPath(self.ItemData.StateStruct[self.State].icon[RelationTreeRidePetItem.IconType.Land])
-        self.Mask:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-        return
-      end
     end
     if IconType ~= RelationTreeRidePetItem.IconType.None then
       if self.ItemData.StateStruct[self.State].icon[IconType] and self.ItemData.StateStruct[self.State].icon[IconType] ~= "" then
@@ -317,31 +328,27 @@ end
 function UMG_RelationTree_Item_Pet_C:UpdatePetInfoEnableTouch(PetNpc, Dis, CurAnge)
   if PetNpc and self.ItemData and self.ItemData.InteractionTreeTypeDefault == Enum.InteractiontreeTypeDefault.ITTD_PET_TOUCH and Dis and CurAnge then
     local PlayerUin = _G.NRCModeManager:DoCmd(_G.RelationTreeCmd.GetCurOpenPetPanelPlayerUin)
-    if self:IsSelf() or _G.DataModelMgr.PlayerDataModel:IsFriend(PlayerUin) then
-      local InTakePhotoWorld = NRCModuleManager:DoCmd(TakePhotosModuleCmd.IfInTakePhotoWorldPreviewMode) or NRCModuleManager:DoCmd(TakePhotosModuleCmd.IfInTakePhotoTripodMode)
-      if self:IsSelf() and not InTakePhotoWorld then
-        local InterComp = PetNpc:EnsureComponent(InteractionComponent)
-        if InterComp then
-          local NpcOption = InterComp:GetOptionByInteractType(Enum.InteractType.IT_MANUAL_BOND)
-          if NpcOption and NpcOption:IsPetBond() then
-            self.isIntimate = true
-          else
-            self.isIntimate = false
-          end
+    local InTakePhotoWorld = NRCModuleManager:DoCmd(TakePhotosModuleCmd.IfInTakePhotoWorldPreviewMode) or NRCModuleManager:DoCmd(TakePhotosModuleCmd.IfInTakePhotoTripodMode)
+    if self:IsSelf() and not InTakePhotoWorld then
+      local InterComp = PetNpc:EnsureComponent(InteractionComponent)
+      if InterComp then
+        local NpcOption = InterComp:GetOptionByInteractType(Enum.InteractType.IT_MANUAL_BOND)
+        if NpcOption and NpcOption:IsPetBond() and NpcOption:IsOptionEnable() then
+          self.isIntimate = true
+        else
+          self.isIntimate = false
         end
       end
-      if Dis <= BOND_TOUCH_DISTANCE * BOND_TOUCH_DISTANCE and CurAnge <= BOND_TOUCH_VISION_RANGE then
-        if PetNpc.AIComponent then
-          local ctrl = PetNpc.AIComponent:GetControllerSafe()
-          if ctrl then
-            local inst, _, _ = ctrl:GetGroupInfos()
-            if 0 ~= inst then
-              self.IsEnableTouch = PetTouchState.IsInAnyGroup
-              PetNpc:SetPetBondActive(false, 1)
-              self.Mask:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-            else
-              self:IsCanEnbaleTouchSetting(PetNpc)
-            end
+    end
+    if Dis <= BOND_TOUCH_DISTANCE * BOND_TOUCH_DISTANCE and CurAnge <= BOND_TOUCH_VISION_RANGE then
+      if PetNpc.AIComponent then
+        local ctrl = PetNpc.AIComponent:GetControllerSafe()
+        if ctrl then
+          local inst, _, _ = ctrl:GetGroupInfos()
+          if 0 ~= inst then
+            self.IsEnableTouch = PetTouchState.IsInAnyGroup
+            PetNpc:SetPetBondActive(false, 1)
+            self.Mask:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
           else
             self:IsCanEnbaleTouchSetting(PetNpc)
           end
@@ -349,16 +356,14 @@ function UMG_RelationTree_Item_Pet_C:UpdatePetInfoEnableTouch(PetNpc, Dis, CurAn
           self:IsCanEnbaleTouchSetting(PetNpc)
         end
       else
-        PetNpc:SetPetBondActive(false, 1)
-        self.IsEnableTouch = PetTouchState.IsNotCanTouch
-        if Dis <= BOND_TOUCH_DISTANCE * BOND_TOUCH_DISTANCE and CurAnge > BOND_TOUCH_VISION_RANGE then
-          self.IsEnableTouch = PetTouchState.IsNotCanTouchForAnge
-        end
-        self.Mask:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+        self:IsCanEnbaleTouchSetting(PetNpc)
       end
     else
       PetNpc:SetPetBondActive(false, 1)
-      self.IsEnableTouch = PetTouchState.IsNotFriendPet
+      self.IsEnableTouch = PetTouchState.IsNotCanTouch
+      if Dis <= BOND_TOUCH_DISTANCE * BOND_TOUCH_DISTANCE and CurAnge > BOND_TOUCH_VISION_RANGE then
+        self.IsEnableTouch = PetTouchState.IsNotCanTouchForAnge
+      end
       self.Mask:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     end
     self:PlayerPetEnableTouchAnimation()
@@ -424,7 +429,7 @@ function UMG_RelationTree_Item_Pet_C:GetBPRideIsNotPlay()
 end
 
 function UMG_RelationTree_Item_Pet_C:OnSelectButton()
-  if self.ItemData.InteractionTreeTypeDefault == Enum.InteractiontreeTypeDefault.ITTD_CLOSE and 4 == self.State then
+  if self.ItemData.InteractionTreeTypeDefault == Enum.InteractiontreeTypeDefault.ITTD_CLOSE and (self.State == PetCloseState.IsEmpty or self.State == PetCloseState.IsHaveButNoInteract) then
     return
   end
   if _G.BattleManager:IsInBattle() then
@@ -467,17 +472,13 @@ function UMG_RelationTree_Item_Pet_C:OnSelectButton()
     _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, Text)
     return
   end
-  if self.ItemData.InteractionTreeTypeDefault == Enum.InteractiontreeTypeDefault.ITTD_RIDE then
-    if self.RideBlock then
-      _G.NRCModeManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.RLTT_Error_Code_2443)
+  if self.ItemData.InteractionTreeTypeDefault == Enum.InteractiontreeTypeDefault.ITTD_RIDE and self.RideBlock then
+    if player and player.buffComponent and player.buffComponent:HasBuff(ScenePlayerRideFriendPetBuff.BuffName) then
+      Log.Debug("UMG_RelationTree_Item_Pet_C:OnSelectButton is requesting, no need to show tips")
       return
     end
-    local PlayerUin = _G.NRCModeManager:DoCmd(_G.RelationTreeCmd.GetCurOpenPetPanelPlayerUin)
-    if not self:IsSelf() and not _G.DataModelMgr.PlayerDataModel:IsFriend(PlayerUin) then
-      local Text = LuaText.interactiontree_ride_request_text_3
-      _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, Text)
-      return
-    end
+    _G.NRCModeManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.RLTT_Error_Code_2443)
+    return
   end
   _G.NRCAudioManager:PlaySound2DAuto(41401003, "UMG_RelationTree_Item_Pet_C:OnConfirm")
   if _G.NRCModeManager:DoCmd(_G.RelationTreeCmd.GetRelationItemSelectCD) > 0 then
@@ -614,23 +615,26 @@ function UMG_RelationTree_Item_Pet_C:GetDefaultEnumOpation(Opation)
         local GlassInfo = PetData.glass_info or nil
         if BondId then
           local IsHave = _G.NRCModuleManager:DoCmd(RelationTreeCmd.GetSelfIsHaveBondID, BondId)
-          local medalConf = _G.DataConfigManager:GetFashionBondConf(BondId)
-          local fashion_bond_source = medalConf and medalConf.fashion_bond_source or nil
+          local fashionBondConf = _G.DataConfigManager:GetFashionBondConf(BondId)
+          local fashion_bond_source = fashionBondConf and fashionBondConf.fashion_bond_source or nil
           local Quality = 1
           local isHaveShiningSuit = _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.GetShiningSuitIdFromBondId, BondId)
-          if medalConf and medalConf.fashion_bond_quality then
-            if medalConf.fashion_bond_quality == _G.Enum.FashionBondQuality.FBQ_S then
+          if fashionBondConf and fashionBondConf.fashion_bond_quality then
+            if fashionBondConf.fashion_bond_quality == _G.Enum.FashionBondQuality.FBQ_S then
               Quality = 1
-            elseif medalConf.fashion_bond_quality == _G.Enum.FashionBondQuality.FBQ_A then
+            elseif fashionBondConf.fashion_bond_quality == _G.Enum.FashionBondQuality.FBQ_A then
               Quality = 2
             end
           end
+          local isLowLevel = self:IsPetBaseLowLevel(BaseId, fashionBondConf)
           if self:IsSelf() then
             if IsHave then
               if IsYiSe and isHaveShiningSuit then
                 local IsState = _G.NRCModuleManager:DoCmd(RelationTreeCmd.GetColorSuitState)
                 if 0 == IsState then
-                  if 2 == Quality then
+                  if isLowLevel then
+                    return PetCloseState.IsYiSeLowLevelNotReward
+                  elseif 2 == Quality then
                     return PetCloseState.IsYiSeANotReward
                   end
                 elseif 1 == IsState then
@@ -659,14 +663,22 @@ function UMG_RelationTree_Item_Pet_C:GetDefaultEnumOpation(Opation)
               if isShowReward then
                 if isHaveShiningSuit and IsYiSe then
                   local IsState = _G.NRCModuleManager:DoCmd(RelationTreeCmd.GetColorSuitState)
-                  if 0 == IsState and 2 == Quality then
-                    return PetCloseState.IsYiSeANotReward
+                  if 0 == IsState then
+                    if isLowLevel then
+                      return PetCloseState.IsYiSeLowLevelNotReward
+                    elseif 2 == Quality then
+                      return PetCloseState.IsYiSeANotReward
+                    end
                   end
                 end
-                if IsXuanCai and fashion_bond_source and fashion_bond_source == Enum.FashionBondSource.FBS_SUITS and 2 == Quality then
-                  local isClanmable = _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.CheckPetGlassTintIsClaimableByBondID, BondId, GlassInfo, IsYiSe)
-                  if not isClanmable then
-                    return PetCloseState.IsXuanCaiANotReward
+                if IsXuanCai and fashion_bond_source and fashion_bond_source == Enum.FashionBondSource.FBS_SUITS then
+                  if isLowLevel then
+                    return PetCloseState.IsXuanCaiLowLevelNotReward
+                  elseif 2 == Quality then
+                    local isClanmable = _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.CheckPetGlassTintIsClaimableByBondID, BondId, GlassInfo, IsYiSe)
+                    if not isClanmable then
+                      return PetCloseState.IsXuanCaiANotReward
+                    end
                   end
                 end
               end
@@ -677,6 +689,9 @@ function UMG_RelationTree_Item_Pet_C:GetDefaultEnumOpation(Opation)
             return PetCloseState.IsEmpty
           end
           if IsHave then
+            if isLowLevel then
+              return PetCloseState.IsHaveButNoInteract
+            end
             return PetCloseState.IsHave
           else
             local SutId = _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.GetSuitIdFromBondId, BondId)
@@ -722,8 +737,8 @@ function UMG_RelationTree_Item_Pet_C:GetDefaultEnumOpation(Opation)
       end
     elseif self.State == PetCloseState.IsNotBuyTime then
       _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.interactiontree_badge_not_during_purchase)
-    elseif self.State == PetCloseState.IsEmpty then
-    elseif self.State == PetCloseState.IsYiSeANotReward then
+    elseif self.State == PetCloseState.IsEmpty or self.State == PetCloseState.IsHaveButNoInteract then
+    elseif self.State == PetCloseState.IsYiSeANotReward or self.State == PetCloseState.IsYiSeLowLevelNotReward then
       local PetData = _G.NRCModuleManager:DoCmd(RelationTreeCmd.GetPetInfoData)
       if PetData then
         local BaseId = PetData.base_conf_id or 0
@@ -737,7 +752,9 @@ function UMG_RelationTree_Item_Pet_C:GetDefaultEnumOpation(Opation)
         local BaseId = PetData.base_conf_id or 0
         local fashion_bond_id = _G.NRCModuleManager:DoCmd(_G.RelationTreeCmd.GetPetFashionBondID, BaseId)
         local IsHasAnim = _G.NRCModuleManager:DoCmd(_G.RelationTreeCmd.GetBondInteractID, fashion_bond_id)
-        if IsHasAnim then
+        local fashionBondConf = _G.DataConfigManager:GetFashionBondConf(fashion_bond_id)
+        local isLowLevel = self:IsPetBaseLowLevel(BaseId, fashionBondConf)
+        if IsHasAnim and not isLowLevel then
           local PetNpc = ParamData and ParamData.PetInfo and ParamData.PetInfo or nil
           if not PetNpc or not PetNpc:CanInteract() then
             self:ShowPetIsBusy()
@@ -750,7 +767,7 @@ function UMG_RelationTree_Item_Pet_C:GetDefaultEnumOpation(Opation)
           _G.NRCEventCenter:DispatchEvent(RelationTreeEvent.OnPetInfoRideSuccessClose, true)
         end
       end
-    elseif self.State == PetCloseState.IsXuanCaiANotReward then
+    elseif self.State == PetCloseState.IsXuanCaiANotReward or self.State == PetCloseState.IsXuanCaiLowLevelNotReward then
       local PetData = _G.NRCModuleManager:DoCmd(RelationTreeCmd.GetPetInfoData)
       if PetData then
         local BaseId = PetData.base_conf_id or 0
@@ -763,8 +780,10 @@ function UMG_RelationTree_Item_Pet_C:GetDefaultEnumOpation(Opation)
       if PetData then
         local BaseId = PetData.base_conf_id or 0
         local BondId = _G.NRCModuleManager:DoCmd(RelationTreeCmd.GetPetFashionBondID, BaseId)
+        local fashionBondConf = _G.DataConfigManager:GetFashionBondConf(BondId)
         local IsHasAnim = _G.NRCModuleManager:DoCmd(_G.RelationTreeCmd.GetBondInteractID, BondId)
-        if IsHasAnim then
+        local isLowLevel = self:IsPetBaseLowLevel(BaseId, fashionBondConf)
+        if IsHasAnim and not isLowLevel then
           local PetNpc = ParamData and ParamData.PetInfo and ParamData.PetInfo or nil
           if PetNpc and not PetNpc:CanInteract() then
             self:ShowPetIsBusy()
@@ -774,7 +793,7 @@ function UMG_RelationTree_Item_Pet_C:GetDefaultEnumOpation(Opation)
         else
           local GlassInfo = PetData.glass_info or nil
           local IsYiSe = PetMutationUtils.GetMutationValue(PetData.mutation_type, _G.Enum.MutationDiffType.MDT_SHINING) or PetUtils.CheckIsShiningGlass(PetData.mutation_type) or PetUtils.CheckIsHiddenShiningGlass(PetData.mutation_type, PetData.glass_info) or PetUtils.CheckIsShiningChaos(PetData.mutation_type)
-          _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.SendClaimGlassTintReq, BondId, IsYiSe, GlassInfo)
+          _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.SendClaimGlassTintReq, BondId, IsYiSe, GlassInfo, nil, PetData)
         end
       end
     end

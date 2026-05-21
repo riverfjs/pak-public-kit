@@ -38,6 +38,7 @@ end
 
 function UmgCacheInfo:Release()
   self.isInUse = false
+  self.hasAddParent = false
   if self.umg then
     if self.umg.Reset then
       self.umg:Reset()

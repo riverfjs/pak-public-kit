@@ -163,12 +163,6 @@ function TreasureHuntActivityObject:OnSvrUpdateActivityData(_cmdId, _updateData,
           local worldMapActivityConf = _G.DataConfigManager:GetWorldMapActivityConf(activityConf.world_map_activity_conf_id)
           if not worldMapActivityConf then
           else
-            if self.DigForTreasure and v.reward_state == _G.ProtoEnum.PlayerActivityInfo.ActivityRewardState.ARS_WAIT then
-              self.DigForTreasure.RewardBtn.RedDot:SetVisibility(UE4.ESlateVisibility.Visible)
-              self.DigForTreasure.RewardBtn.RedDot.RedPointImage:SetVisibility(UE4.ESlateVisibility.Visible)
-              self.DigForTreasure.RewardBtn.RedDot:EnableAnimation()
-              self.DigForTreasure.RewardBtn.RedDot:PlayAnimation(self.DigForTreasure.RewardBtn.RedDot.In)
-            end
             local worldMapConf = _G.DataConfigManager:GetWorldMapConf(worldMapActivityConf.world_map_id)
             rawset(worldMapConf, "IconRadius", worldMapActivityConf.radius)
             local conf = self:getTreasureConf(v.activity_sub_id)
@@ -200,6 +194,7 @@ function TreasureHuntActivityObject:OnSvrUpdateActivityData(_cmdId, _updateData,
               self.enterLeaveActivityAreaData.activity_id = self:GetActivityId()
               self.enterLeaveActivityAreaData.activity_sub_id = v.activity_sub_id
               self.enterLeaveActivityAreaData.is_enter = true
+              self.triggerG6TimeThreshold = _G.DataConfigManager:GetActivityTreasureHuntConf(v.activity_sub_id).G6_show_time / 1000
               _G.UpdateManager:Register(self)
               _G.DelayManager:DelayFrames(150, self.OnEnterOrLeaveActivityArea, self, self.enterLeaveActivityAreaData)
             elseif self.inAreaData[v.activity_sub_id] and self.inAreaData[v.activity_sub_id].TaskObject then
@@ -248,6 +243,7 @@ function TreasureHuntActivityObject:OnEnterOrLeaveActivityArea(_protoData)
             local desc, now, need = taskObj:GetGoalDetail(1)
             self.CachedGoalNow = now
           end
+          self.triggerG6TimeThreshold = _G.DataConfigManager:GetActivityTreasureHuntConf(v.activity_sub_id).G6_show_time / 1000
           _G.UpdateManager:Register(self)
           self.tickElapsedTime = 0
           self.showProtectTime = 0

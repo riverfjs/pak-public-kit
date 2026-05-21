@@ -8,6 +8,7 @@ local FsmUtils = require("NewRoco.Modules.Core.Fsm.FsmUtils")
 local LineTraceUtils = require("NewRoco.Modules.Core.Battle.Common.LineTraceUtils")
 local BattleConst = require("NewRoco.Modules.Core.Battle.Common.BattleConst")
 local ActivityModuleCmd = require("NewRoco.Modules.System.Activity.ActivityModuleCmd")
+local RocoSkillLuaCustomEvent = require("NewRoco.Utils.RocoSkillLuaCustomEvent")
 local Base = BattleActionBase
 local BattleTerritoryTrialShowResultUiAction = Base:Extend("BattleTerritoryTrialShowResultUiAction")
 
@@ -91,6 +92,12 @@ local function PlayOverSkillTask(self, callback)
     self:SkillStart(event, internalSkill)
     callback(true, event, internalSkill)
   end)
+  skill:RegisterEventCallback(RocoSkillLuaCustomEvent.StartFailed, self, function(event, internalSkill)
+    callback(false, "skill start failed")
+  end)
+  skill:RegisterEventCallback(RocoSkillLuaCustomEvent.Interrupt, self, function(event, internalSkill)
+    callback(false, "skill interrupt")
+  end)
   local blackboard = skill:GetBlackboard()
   if blackboard and UE.UObject.IsValid(blackboard) then
     if self.ShowPlayer.roleInfo.base.sex == _G.ProtoEnum.ESexValue.SEX_MALE then
@@ -102,7 +109,10 @@ local function PlayOverSkillTask(self, callback)
   skill:SetCharacters(Characters)
   skill.BattleGenderType = self.ShowPlayer.roleInfo.base.sex
   skill:SetCaster(self.ShowPlayer.model)
-  self.SkillComponent:PlaySkill(skill)
+  local skillStartResult = self.SkillComponent:PlaySkill(skill)
+  if skillStartResult ~= UE.ESkillStartResult.Success then
+    callback(false, "skill start result is not success")
+  end
 end
 
 BattleTerritoryTrialShowResultUiAction.PlayOverSkillTask = a.wrap(PlayOverSkillTask)

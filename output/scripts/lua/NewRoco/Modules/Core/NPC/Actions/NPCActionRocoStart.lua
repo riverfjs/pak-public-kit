@@ -45,7 +45,7 @@ function NPCActionRocoStart:OnRocoStartup(Queue, Success)
   self.NPCView:SetupAction(self)
   NPC.serverData.npc_base.npc_content_cfg_id = self.ContentId
   local rot = self.PosAndRot.rotation_xyz
-  NPC:SetActorRotation(UE.FRotator(rot[1], rot[2], rot[3]))
+  NPC:SetActorRotation(UE.FRotator(rot[2], rot[3], rot[1]))
 end
 
 function NPCActionRocoStart:PlayStartSkill()

@@ -148,6 +148,10 @@ function UMG_Battle_HPBar_C:OnBattleEvent(eventName, ...)
     self:CheckBtnBuff()
     return true
   elseif eventName == BattleEvent.DIRECT_UPDATE_UI then
+    local ignoreOptions = (...)
+    if ignoreOptions and ignoreOptions.ignoreHp and self.battlePet and self.battlePet.guid and ignoreOptions.ignoreHp[self.battlePet.guid] then
+      return true
+    end
     self:OnRoundStart()
     return true
   elseif eventName == BattleEvent.PET_TYPES_CHANGED then
@@ -235,7 +239,7 @@ function UMG_Battle_HPBar_C:SetPetInfo(battlePet, card)
   if battlePet.teamEnm == BattleEnum.Team.ENUM_ENEMY then
     self:SetLvTextColor(card.lv)
   end
-  _G.DelayManager:DelayFrames(1, self.ResetLv, self)
+  self:DelayFrames(1, self.ResetLv, self)
   local txtLevelPos = self.TxtLevel.RenderTransform.Translation
   Log.Debug("UMG_Battle_HPBar_C txtLevelPos:", txtLevelPos)
   if self.battlePet.card.petState:GetMimic() then
@@ -247,6 +251,13 @@ function UMG_Battle_HPBar_C:SetPetInfo(battlePet, card)
     end
     self.TxtPetName:SetText("???")
     self:SafeCall(self.CanvasPanel_130, "SetVisibility", UE4.ESlateVisibility.Collapsed)
+  elseif self.battlePet.card.petState:GetSurpriseBox() then
+    self.Unknown:SetRenderOpacity(0)
+    self.bIsMimic = false
+    self:SetHeadIconMutation(card, true)
+    self.TxtPetName:SetText(card.name)
+    self.name = card.name
+    self:SafeCall(self.CanvasPanel_130, "SetVisibility", UE4.ESlateVisibility.SelfHitTestInvisible)
   else
     self.Unknown:SetRenderOpacity(0)
     self.bIsMimic = false
@@ -351,7 +362,7 @@ function UMG_Battle_HPBar_C:Show(visibility)
     end)
   end
   if self.bResetLv then
-    _G.DelayManager:DelayFrames(1, self.ResetLv, self)
+    self:DelayFrames(1, self.ResetLv, self)
   end
   if self.bIsLight then
     self:PlayAnimation(self.BigAndLight)
@@ -474,7 +485,11 @@ end
 
 function UMG_Battle_HPBar_C:SetTypes()
   local card = self.battlePet.card
-  if BattleUtils.IsPartialShow(card) then
+  local IsSurpriseBox
+  if card.petState then
+    IsSurpriseBox = card.petState:GetSurpriseBox()
+  end
+  if BattleUtils.IsPartialShow(card) or IsSurpriseBox then
     self.Attr1:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.Attr2:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.Attr3:SetVisibility(UE4.ESlateVisibility.Collapsed)

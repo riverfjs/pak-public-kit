@@ -12,15 +12,17 @@ local PlayerCompassComponent = require("NewRoco.Modules.Core.Scene.Component.Pla
 local PlayerAttackedInteractionComponent = require("NewRoco.Modules.Core.Scene.Component.Interaction.PlayerAttackedInteractionComponent")
 local AFKComponent = require("NewRoco.Modules.Core.Scene.Component.Interaction.AFKComponent")
 local PlayerHomeInteractionComponent = require("NewRoco.Modules.Core.Scene.Component.Home.PlayerHomeInteractionComponent")
+local PlayerToyComponent = require("NewRoco.Modules.Core.Scene.Component.Interaction.PlayerToyComponent")
 local FarmComponent = require("NewRoco.Modules.Core.Scene.Component.Home.Farm.FarmComponent")
 local SceneUtils = require("NewRoco.Modules.Core.Scene.Common.SceneUtils")
 local HomeUtils = require("NewRoco.Modules.System.Home.IndoorSandbox.HomeUtils")
 local ChatBubbleComponent = require("NewRoco.Modules.Core.Scene.Component.ChatBubble.ChatBubbleComponent")
 local MagicReplayModuleEvent = require("NewRoco.Modules.System.MagicReplay.MagicReplayModuleEvent")
 local MainUIModuleEnum = require("NewRoco.Modules.System.MainUI.MainUIModuleEnum")
+local ActionPosePlayer = require("NewRoco.Modules.System.TakePhotos.Helper.ActionPosePlayer")
+local EmojiPlayer = require("NewRoco.Modules.System.TakePhotos.Helper.EmojiPlayer")
 local ScenePlayerBase = Base:Extend("ScenePlayerBase")
 ScenePlayerBase:SetMemberCount(32)
-local HALF_HEIGHT = 85
 
 function ScenePlayerBase:PreCtor(module)
   Base.PreCtor(self, module)
@@ -30,11 +32,20 @@ function ScenePlayerBase:PreCtor(module)
   self.collisionFlag = 0
   self.uin = 0
   self.avatarLoaded = false
+  self.bFirstAvatarLoadComplete = false
   self.PlayerLoc = nil
   self.PlayerRot = nil
+  self.EmojiPlayer = EmojiPlayer(self)
+  self.PosePlayer = ActionPosePlayer(self)
 end
 
 function ScenePlayerBase:Destroy()
+  if self.AvatarID and UE.UObject.IsValid(self.avatarSystem) then
+    self.avatarSystem:StopSwitchAvatarSuit(self.AvatarID)
+    self.AvatarID = nil
+  end
+  self.EmojiPlayer:OnDestruct()
+  self.PosePlayer:OnDestruct()
   self:SendEvent(PlayerModuleEvent.ON_PLAYER_DESTROY, self)
   _G.NRCEventCenter:DispatchEvent(PlayerModuleEvent.ON_PLAYER_DESTROY, self)
   if UE.UObject.IsValid(self.viewObj) and self.viewObj.BP_RideComponent and self.viewObj.BP_RideComponent.RidePet then
@@ -84,6 +95,11 @@ function ScenePlayerBase:InitActor(url, pos, rotation)
       viewObj.bSimGravityDisabled = true
     end
   end
+  if self.isLocal then
+    _G.NRCAudioManager:SetEmitterSwitch("Player", "Host", self.viewObj)
+  else
+    _G.NRCAudioManager:SetEmitterSwitch("Player", "Else", self.viewObj)
+  end
 end
 
 function ScenePlayerBase:UpdateServerData(ServerData)
@@ -98,6 +114,8 @@ function ScenePlayerBase:InitComponent()
   self:EnsureComponent(AFKComponent)
   self.playerHomeInteractionComponent = PlayerHomeInteractionComponent()
   self:AddComponent(self.playerHomeInteractionComponent)
+  self.playerToyComponent = PlayerToyComponent()
+  self:AddComponent(self.playerToyComponent)
   self.playerAttackedInteractionComponent = PlayerAttackedInteractionComponent()
   if not self.isLocal then
     self:EnsureComponent(PlayerCompassComponent)
@@ -384,23 +402,26 @@ function ScenePlayerBase:SetDefaultSuit(playerMesh, gender, fashionItems, salonI
 end
 
 function ScenePlayerBase:OnAvatarCallback(ID, isLocal)
-  if not UE.UObject.IsValid(self.viewObj) then
-    Log.Error("Avatar\229\138\160\232\189\189\229\174\140\230\136\144\230\151\182\239\188\140\228\184\187\232\167\146\229\183\178\232\162\171\233\148\128\230\175\129")
-    return
-  end
   if isLocal then
     if ID == self.AvatarID then
       self.avatarSystem.OnSwitchAvatarSuitComplete:Remove(self.avatarSystem, self.OnAvatarCompleteFunction)
     else
       return
     end
-  else
+  elseif UE.UObject.IsValid(self.viewObj) then
     self.viewObj.AvatarComponent.OnSwitchAvatarSuitComplete:Remove(self.avatarSystem, self.OnAvatarCompleteFunction2)
+  end
+  if not UE.UObject.IsValid(self.viewObj) then
+    Log.Error("Avatar\229\138\160\232\189\189\229\174\140\230\136\144\230\151\182\239\188\140\228\184\187\232\167\146\229\183\178\232\162\171\233\148\128\230\175\129")
+    return
   end
   self:OnAvatarComplete()
   self:SendEvent(PlayerModuleEvent.ON_AVATAR_READY)
   if _G.MagicReplayModuleCmd and self:IsMagicReplayActor() then
-    _G.NRCEventCenter:DispatchEvent(MagicReplayModuleEvent.OnMagicSeqPlayerSpawned, self.viewObj)
+    _G.NRCEventCenter:DispatchEvent(MagicReplayModuleEvent.OnMagicSeqPlayerSpawned, self.viewObj, self.bFirstAvatarLoadComplete)
+  end
+  if not self.bFirstAvatarLoadComplete then
+    self.bFirstAvatarLoadComplete = true
   end
 end
 
@@ -792,7 +813,7 @@ function ScenePlayerBase:OnVisibleChanged(Visible, Reason)
   self:SendEvent(PlayerModuleEvent.ON_PLAYER_VISIBLE_CHANGE, Visible)
 end
 
-function ScenePlayerBase:PlaySuitRelax(skillId, petBaseId, petServerId, mutationType, glassInfo, nature)
+function ScenePlayerBase:PlaySuitRelax(skillId, petBaseId, petServerId, mutationType, glassInfo, nature, ball_id)
   if self.abilityComponent:IsSuitPerforming() then
     Log.Debug("ScenePlayer:PlaySuitRelax: SuitPerforming ")
     return
@@ -807,7 +828,7 @@ function ScenePlayerBase:PlaySuitRelax(skillId, petBaseId, petServerId, mutation
       return
     end
   end
-  self.abilityComponent:StartSuitPerform(skillId, petBaseId, petServerId, mutationType, glassInfo, nature)
+  self.abilityComponent:StartSuitPerform(skillId, petBaseId, petServerId, mutationType, glassInfo, nature, ball_id)
 end
 
 function ScenePlayerBase:BreakSuitRelax()
@@ -934,19 +955,27 @@ function ScenePlayerBase:CheckPlayerInSeat()
         if not Conf then
           return
         end
-        local SpecialG6 = Conf["special_pos_" .. SeatIdx]
-        local Immediately = SpecialG6 or Conf["flash_sit_" .. SeatIdx]
+        local SpecialG6 = Conf["special_start_" .. SeatIdx]
         local SeatSlot = string.format("seat_%s", SeatIdx)
-        if Conf["flash_sit_specialeffect_" .. SeatIdx] then
-          SceneUtils.PlayerFlashSkillForSceneSeat(self, SeatNPC.viewObj, SpecialG6, function()
-            SceneUtils.PlayerSitToSceneSeat(SeatNPC, SeatSlot, self, Immediately, SpecialG6)
-          end)
-        else
-          SceneUtils.PlayerSitToSceneSeat(SeatNPC, SeatSlot, self, Immediately, SpecialG6)
-        end
+        self.playerToyComponent:PlayerSitToSceneSeat(SeatNPC, SeatSlot, SpecialG6, nil, Conf.scene_sit_blur_type)
       end
     end
   end
+end
+
+function ScenePlayerBase:CheckPlayerInBox()
+  if not self:IsLogicStatus(_G.Enum.SpaceActorLogicStatus.SALS_PLAYER_IN_BLINDBOX) then
+    return
+  end
+  if not self.serverData or not self.serverData.roleplay_prop_info and not not self.serverData.roleplay_prop_info.entered_prop_info then
+    return
+  end
+  local PropInfo = self.serverData.roleplay_prop_info.entered_prop_info
+  local BoxNPC = _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.GetNpcByServerID, PropInfo.entered_npc_id)
+  if not BoxNPC then
+    return
+  end
+  self:SetVisible(false)
 end
 
 function ScenePlayerBase:SetLink(isLink, reason)
@@ -969,6 +998,26 @@ function ScenePlayerBase:IsTogetherMove2P()
   end
   if UE.UObject.IsValid(self.viewObj) and self.viewObj.BP_RideComponent then
     return self.viewObj.BP_RideComponent.bIsDoubleRide2p
+  end
+  return false
+end
+
+function ScenePlayerBase:IsInStartTransforming()
+  if self.buffComponent and self.buffComponent:HasBuff("Transform_Buff") then
+    local transformBuff = self.buffComponent:GetBuff("Transform_Buff")
+    if transformBuff and transformBuff._isInStartPerform then
+      return transformBuff._isInStartPerform
+    end
+  end
+  return false
+end
+
+function ScenePlayerBase:IsInEndTransforming()
+  if self.buffComponent and self.buffComponent:HasBuff("Transform_Buff") then
+    local transformBuff = self.buffComponent:GetBuff("Transform_Buff")
+    if transformBuff and transformBuff.IsInEndPerform then
+      return transformBuff:IsInEndPerform()
+    end
   end
   return false
 end
@@ -1090,15 +1139,16 @@ function ScenePlayerBase:RecoverPlayerPos(RecoverLimit)
     Log.Warning("\228\189\141\231\189\174\230\129\162\229\164\141\230\151\165\229\191\151: \232\183\157\231\166\187\232\182\133\232\183\157\239\188\140\230\151\160\230\179\149\230\129\162\229\164\141\228\189\141\231\189\174", RecoverDist)
     return
   end
-  if self.movementComponent and self.movementComponent.lastMainMoveData then
-    self.PlayerLoc = SceneUtils.ServerPos2ClientPos(self.movementComponent.lastMainMoveData.to_pos)
-    self.PlayerRot = SceneUtils.ServerPos2ClientRotator(self.movementComponent.lastMainMoveData.to_rot)
-  end
   self:SetActorLocation(self.PlayerLoc)
   self:SetActorRotation(self.PlayerRot)
   if self.PlayerLoc then
     Log.Debug("\228\189\141\231\189\174\230\129\162\229\164\141\230\151\165\229\191\151: RecoverPlayerPos", RecoverDist, self.isLocal, self.PlayerLoc.X, self.PlayerLoc.Y, self.PlayerLoc.Z)
   end
+  self.PlayerLoc = nil
+  self.PlayerRot = nil
+end
+
+function ScenePlayerBase:ForgetPlayerPos()
   self.PlayerLoc = nil
   self.PlayerRot = nil
 end
@@ -1186,44 +1236,37 @@ function ScenePlayerBase:Land()
   end
 end
 
-function ScenePlayerBase:ClientPos2PlayerPos(clientPos, inPlayerPos)
-  if not clientPos then
-    Log.Error("ScenePlayerBase:ClientPos2PlayerPos clientPos is nil")
-    return nil
+function ScenePlayerBase:OnFallOff()
+  if self.FallOffHandle then
+    return
   end
-  if not inPlayerPos then
-    inPlayerPos = UE.FVector(clientPos.X, clientPos.Y, clientPos.Z + HALF_HEIGHT)
+  self.statusComponent:ApplyStatus(ProtoEnum.WorldPlayerStatusType.WPST_FALLOFF)
+  self.FallOffHandle = DelayManager:DelaySeconds(1.5, function()
+    self.FallOffHandle = nil
+    self.statusComponent:RemoveStatus(ProtoEnum.WorldPlayerStatusType.WPST_FALLOFF)
+  end)
+end
+
+function ScenePlayerBase:LandPos(pos)
+  local PlatformActorID = self.serverData.base.platform_actor_id or 0
+  if 0 == PlatformActorID then
+    if self.statusComponent:HasStatus(Enum.WorldPlayerStatusType.WPST_RIDEALL) or self.statusComponent:HasStatus(Enum.WorldPlayerStatusType.WPST_CLIMB) then
+      Log.Debug("[SceneLocalPlayer]   OnPlayerBorn Skip Land When Ride or Climb")
+    else
+      if UE.UObject.IsValid(self.viewObj) then
+        local bLanded = self.viewObj.CharacterMovement:Abs_Land(pos)
+        if not bLanded then
+          Log.Debug("[SceneLocalPlayer]   OnPlayerBorn LandPos Failed", pos)
+          return false
+        end
+      end
+      Log.Debug("[SceneLocalPlayer] platform_actor_id = 0, OnPlayerBorn LandPos ", pos, PlatformActorID)
+      return true
+    end
   else
-    inPlayerPos.X = clientPos.X
-    inPlayerPos.Y = clientPos.Y
-    inPlayerPos.Z = clientPos.Z + HALF_HEIGHT
+    Log.Debug("[SceneLocalPlayer]   OnPlayerBorn LandPos PlatformActorID", PlatformActorID)
   end
-  return inPlayerPos
-end
-
-function ScenePlayerBase:PlayerPos2ClientPos(playerPos, inClientPos)
-  if not playerPos then
-    Log.Error("ScenePlayerBase:PlayerPos2ClientPos playerPos is nil")
-    return nil
-  end
-  if not inClientPos then
-    inClientPos = UE.FVector(playerPos.X, playerPos.Y, playerPos.Z - HALF_HEIGHT)
-  else
-    inClientPos.X = playerPos.X
-    inClientPos.Y = playerPos.Y
-    inClientPos.Z = playerPos.Z - HALF_HEIGHT
-  end
-  return inClientPos
-end
-
-function ScenePlayerBase:ServerPos2PlayerPos(serverPos, factor, inPlayerPos)
-  local clientPos = SceneUtils.ServerPos2ClientPos(serverPos, factor, inPlayerPos)
-  return self:ClientPos2PlayerPos(clientPos, inPlayerPos)
-end
-
-function ScenePlayerBase:PlayerPos2ServerPos(playerPos, factor, InServePos)
-  local clientPos = self:PlayerPos2ClientPos(playerPos, InServePos)
-  return SceneUtils.ClientPos2ServerPos(clientPos, factor, InServePos)
+  return false
 end
 
 return ScenePlayerBase

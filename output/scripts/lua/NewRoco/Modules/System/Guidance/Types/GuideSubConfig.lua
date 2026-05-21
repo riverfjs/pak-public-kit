@@ -204,15 +204,11 @@ function GuideSubConfig:CheckConditionSatisfied(condition, condType, param1, par
   if not self:CheckParam1(condition, param1) then
     return false
   end
-  if condition.type == GuideConfigTypes.ConditionType.Panel then
-    if type(param1) ~= "number" then
-      local panel = _G.NRCPanelManager:GetPanel(param1.moduleName, param1.panelName)
-      if not self:CheckPanelCustomMatch(panel, condition) then
-        return false
-      end
+  if condition.type == GuideConfigTypes.ConditionType.Panel and type(param1) ~= "number" then
+    local panel = _G.NRCPanelManager:GetPanel(param1.moduleName, param1.panelName)
+    if not self:CheckPanelCustomMatch(panel, condition) then
+      return false
     end
-  elseif condition.type == GuideConfigTypes.ConditionType.PetBag then
-    return param2 >= condition.param2
   end
   if condition.param2 ~= param2 then
     return false
@@ -362,7 +358,7 @@ function GuideSubConfig:DoWatchTargetButtonClick(completion, targetButton)
       completion.watchedClickCallback = callbackNoReply
       targetButton.OnGuidanceScrollLeft:Add(targetButton, completion.watchedClickCallback)
     end
-  elseif completion.param2 == Enum.GuideActionType.GAT_SCROLL_RIGT and targetButton.OnGuidanceScrollRight then
+  elseif completion.param2 == Enum.GuideActionType.GAT_SCROLL_RIGHT and targetButton.OnGuidanceScrollRight then
     completion.watchedClickCallback = callbackNoReply
     targetButton.OnGuidanceScrollRight:Add(targetButton, completion.watchedClickCallback)
   end
@@ -419,7 +415,7 @@ function GuideSubConfig:ClearButtonWatch(completion)
       if watchedWidget.OnGuidanceScrollLeft then
         watchedWidget.OnGuidanceScrollLeft:Remove(watchedWidget, completion.watchedClickCallback)
       end
-    elseif completion.param2 == Enum.GuideActionType.GAT_SCROLL_RIGT and watchedWidget.OnGuidanceScrollRight then
+    elseif completion.param2 == Enum.GuideActionType.GAT_SCROLL_RIGHT and watchedWidget.OnGuidanceScrollRight then
       watchedWidget.OnGuidanceScrollRight:Remove(watchedWidget, completion.watchedClickCallback)
     end
     completion.watchedWidget = nil
@@ -518,13 +514,14 @@ function GuideSubConfig:JudgeIAMatch(iaName, keyName)
   if not iaName then
     return false
   end
+  local realKeyName = GuideConfigTypes.GetRealMatchKeyName(keyName)
   local keyUIName = _G.NRCModuleManager:DoCmd(_G.SystemSettingModuleCmd.GetKeyUIName, keyName)
   
   local function checkKeyMatch(name)
     if "" ~= keyUIName then
       return keyUIName == name
     end
-    return keyName == name
+    return realKeyName == name
   end
   
   local keyText, _ = _G.NRCModuleManager:DoCmd(_G.SystemSettingModuleCmd.GetMappingKeyUIName, iaName)
@@ -568,19 +565,36 @@ function GuideSubConfig:CheckIfTargetPanelClosed(panelData)
   if not self.styleConfig then
     return
   end
-  if self.styleConfig.style_type ~= GuideConfigTypes.GuideStyleType.Focus then
+  local styleType = self.styleConfig.style_type
+  local styleId = self.styleConfig.type_id
+  local panelName
+  if styleType == GuideConfigTypes.GuideStyleType.Focus then
+    local focusConf = _G.DataConfigManager:GetGuideFocusConf(styleId, true)
+    if not focusConf then
+      return
+    end
+    if not focusConf.ui_path then
+      return
+    end
+    panelName = focusConf.ui_path[1]
+  elseif styleType == GuideConfigTypes.GuideStyleType.Banner then
+    local bannerConf = _G.DataConfigManager:GetGuideBannerConf(styleId, true)
+    if not bannerConf then
+      return
+    end
+    panelName = GuideConfigTypes.GetTargetPanelName(bannerConf.show_panel)
+  elseif styleType == GuideConfigTypes.GuideStyleType.Drag then
+    local dragConf = _G.DataConfigManager:GetGuideDragConf(styleId, true)
+    if not dragConf then
+      return
+    end
+    panelName = GuideConfigTypes.GetTargetPanelName(dragConf.show_panel)
+  end
+  if not panelName then
     return
   end
-  local focusConf = _G.DataConfigManager:GetGuideFocusConf(self.styleConfig.type_id, true)
-  if not focusConf then
-    return
-  end
-  if not focusConf.ui_path then
-    return
-  end
-  local panelName = focusConf.ui_path[1]
   local widgetName = GuideConfigTypes.GetWidgetNameFromPanelData(panelData)
-  Log.Debug("GuideSubConfig:CheckIfTargetPanelClosed", panelName, widgetName)
+  Log.Debug("GuideSubConfig:CheckIfTargetPanelClosed", styleType, styleId, panelName, widgetName)
   if panelName ~= widgetName then
     return
   end
@@ -679,7 +693,7 @@ end
 function GuideSubConfig:IsCompleteWithButtonScrollRight()
   local types = self:GetButtonCompletionType()
   for _, type in pairs(types) do
-    if type == Enum.GuideActionType.GAT_SCROLL_RIGT then
+    if type == Enum.GuideActionType.GAT_SCROLL_RIGHT then
       return true
     end
   end
@@ -689,7 +703,7 @@ end
 function GuideSubConfig:IsCompleteWithButtonScroll()
   local types = self:GetButtonCompletionType()
   for _, type in pairs(types) do
-    if type == Enum.GuideActionType.GAT_SCROLL_UP or type == Enum.GuideActionType.GAT_SCROLL_DOWN or type == Enum.GuideActionType.GAT_SCROLL_LEFT or type == Enum.GuideActionType.GAT_SCROLL_RIGT then
+    if type == Enum.GuideActionType.GAT_SCROLL_UP or type == Enum.GuideActionType.GAT_SCROLL_DOWN or type == Enum.GuideActionType.GAT_SCROLL_LEFT or type == Enum.GuideActionType.GAT_SCROLL_RIGHT then
       return true
     end
   end

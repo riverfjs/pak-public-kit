@@ -35,6 +35,14 @@ function UMG_CandidateTips_C:OnActive(SortType, OpenType)
         InitSelect = InitSelect,
         panel = self
       })
+    elseif OpenType == PetUIModuleEnum.OpenSortType.BattleRogue then
+      if v.sequence_default ~= Enum.PetSequenceDefault.SEQUENCE_CHEER_POINT_DOWN then
+        table.insert(self.DefaultSort, {
+          data = v,
+          InitSelect = InitSelect,
+          panel = self
+        })
+      end
     elseif v.sequence_default ~= Enum.PetSequenceDefault.SEQUENCE_CHEER_POINT_DOWN then
       table.insert(self.DefaultSort, {
         data = v,

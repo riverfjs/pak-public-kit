@@ -47,6 +47,10 @@ function UMG_Privilege_IntroductionPopUp_C:UpdatePopupBox()
   self.PopUp:SetPanelInfo(CommonPopUpData)
 end
 
+function UMG_Privilege_IntroductionPopUp_C:OnPcClose()
+  self:OnClose()
+end
+
 function UMG_Privilege_IntroductionPopUp_C:OnCancel()
   self:OnClose()
 end

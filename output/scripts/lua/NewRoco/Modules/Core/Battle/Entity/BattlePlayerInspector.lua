@@ -9,10 +9,10 @@ local BattlePlayerInspector = Base:Extend("BattlePlayerSpector")
 function BattlePlayerInspector:Ctor()
   Base.Ctor(self)
   self.name = ""
-  self.idleAnimationNameList = {
-    "RolePlayCheer",
-    "RolePlayCheer"
-  }
+  local animationNameListStringConf = _G.DataConfigManager:GetBattleGlobalConfig("around_player_animation_name")
+  local animationNameListString = animationNameListStringConf and animationNameListStringConf.str or ""
+  local animationNameList = string.split(animationNameListString, ";")
+  self.idleAnimationNameList = animationNameList
 end
 
 function BattlePlayerInspector:SetInfo(uin, fashionInfo, attachPointInField)
@@ -68,7 +68,7 @@ function BattlePlayerInspector:PostInit()
 end
 
 function BattlePlayerInspector:PostShowWithFadeAndAnim()
-  self:StartPlayIdleSkill()
+  self:StartPlayIdleAnim()
 end
 
 function BattlePlayerInspector:SetFashionSuit(callback)
@@ -93,9 +93,9 @@ function BattlePlayerInspector:SetVisibility(isVisible)
 end
 
 function BattlePlayerInspector:GetPlayAnimDelayTime()
-  local showTimeIntervalConfig = _G.DataConfigManager:GetBattleGlobalConfig("player_show_time interval")
+  local showTimeIntervalConfig = _G.DataConfigManager:GetBattleGlobalConfig("around_player_animation_time interval")
   local showTimeInterval = showTimeIntervalConfig and showTimeIntervalConfig.num or 0
-  local showTimeIntervalRandomDeviationConfig = _G.DataConfigManager:GetBattleGlobalConfig("player_show_time interval_random_deviation")
+  local showTimeIntervalRandomDeviationConfig = _G.DataConfigManager:GetBattleGlobalConfig("around_player_animation interval_random_deviation")
   local showTimeIntervalRandomDeviation = showTimeIntervalRandomDeviationConfig and showTimeIntervalRandomDeviationConfig.num or 0
   local min = showTimeInterval - showTimeIntervalRandomDeviation
   local max = showTimeInterval + showTimeIntervalRandomDeviation
@@ -111,10 +111,21 @@ function BattlePlayerInspector:StartPlayIdleAnim()
     _G.DelayManager:CancelDelayById(cdDelayId)
     self.currentPlayAnimContext = nil
   end
+  local model = self.model
+  local rocoAnim = model and model.RocoAnim
   local animName
-  if #self.idleAnimationNameList > 0 then
-    local randomIndex = math.random(#self.idleAnimationNameList)
-    animName = self.idleAnimationNameList[randomIndex]
+  local idleAnimationNameList = self.idleAnimationNameList or {}
+  local idleAnimationNameListFiltered = {}
+  if UE.UObject.IsValid(rocoAnim) then
+    for i, animationName in ipairs(idleAnimationNameList) do
+      if rocoAnim and rocoAnim:HasAnimation(animationName) then
+        table.insert(idleAnimationNameListFiltered, animationName)
+      end
+    end
+  end
+  if #idleAnimationNameListFiltered > 0 then
+    local randomIndex = math.random(#idleAnimationNameListFiltered)
+    animName = idleAnimationNameListFiltered[randomIndex]
   end
   local animSeconds = 0
   if UE.UObject.IsValid(self.model) and animName then
@@ -155,6 +166,16 @@ function BattlePlayerInspector:OnLoadIdleSkillComplete(isLoadSucceed, skillPath,
   CastParam.ResID = skillPath
   CastParam:SetIsPassive(true)
   CastParam:SetCaster(model)
+  CastParam:SetCallbackOwner(self)
+  CastParam:SetSkillBreakCallback(function(owner)
+    Log.Info("BattlePlayerInspector:OnLoadIdleSkillComplete skill break")
+  end)
+  CastParam:SetOnInterruptCallback(function(owner)
+    Log.Info("BattlePlayerInspector:OnLoadIdleSkillComplete skill Interrupt")
+  end)
+  CastParam:SetStartFailedCallback(function(owner)
+    Log.Info("BattlePlayerInspector:OnLoadIdleSkillComplete skill start failed")
+  end)
   if UE.UObject.IsValid(model) then
     local skillComponent = model and model.RocoSkill
     local _, skillObject = _G.BattleSkillManager:PrepareSkill(self, skillComponent, CastParam)
@@ -174,7 +195,7 @@ function BattlePlayerInspector:OnPlayAnimCdComplete(context)
     return
   end
   self.currentPlayAnimContext = nil
-  self:StartPlayIdleSkill()
+  self:StartPlayIdleAnim()
 end
 
 function BattlePlayerInspector:Destroy()

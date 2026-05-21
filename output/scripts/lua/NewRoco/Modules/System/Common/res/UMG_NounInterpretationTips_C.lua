@@ -38,6 +38,12 @@ function UMG_NounInterpretationTips_C:SetDesc(descText, id)
   self.List:InitList(self.descItems)
 end
 
+function UMG_NounInterpretationTips_C:SetDescList(desc_list)
+  self.descItems = desc_list
+  self:PlayInAnim()
+  self.List:InitList(self.descItems)
+end
+
 function UMG_NounInterpretationTips_C:PlayInAnim()
   if self:IsAnimationPlaying(self.Tips_out) then
     self:StopAllAnimations()

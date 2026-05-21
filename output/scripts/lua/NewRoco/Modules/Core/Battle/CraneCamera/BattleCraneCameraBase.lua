@@ -334,6 +334,10 @@ function BattleCraneCameraBase:GetSpringCameraEndLocation()
 end
 
 function BattleCraneCameraBase:Abs_GetSpringCameraEndLocation()
+  if not self.CameraActor then
+    Log.Error("BattleCraneCameraBase:Abs_GetSpringCameraEndLocation, \230\136\152\230\150\151\231\155\184\230\156\186\228\184\186\231\169\186\239\188\140\231\155\184\230\156\186\229\183\178\232\162\171\233\148\128\230\175\129\239\188\140\230\136\152\229\156\186\228\184\141\229\173\152\229\156\168\239\188\140\230\163\128\230\159\165\233\128\187\232\190\145\228\184\141\229\186\148\232\175\165\229\156\168\230\136\152\229\156\186\228\185\139\229\164\150\228\189\191\231\148\168\230\136\152\229\156\186\231\155\184\230\156\186\233\128\187\232\190\145")
+    return nil
+  end
   local CameraActorPos = self.CameraActor:K2_GetActorLocation()
   local ArmRot = self.CurSprintArmRotation
   ArmRot:Normalize()
@@ -343,8 +347,19 @@ end
 
 function BattleCraneCameraBase:GetCamComponentTransform()
   local location = self:Abs_GetSpringCameraEndLocation()
+  local camTransform
+  if not location then
+    Log.Error("BattleCraneCameraBase:GetCamComponentTransform, \230\136\152\230\150\151\231\155\184\230\156\186\228\184\186\231\169\186\239\188\140\231\155\184\230\156\186\229\183\178\232\162\171\233\148\128\230\175\129\239\188\140\230\136\152\229\156\186\228\184\141\229\173\152\229\156\168\239\188\140\230\163\128\230\159\165\233\128\187\232\190\145\228\184\141\229\186\148\232\175\165\229\156\168\230\136\152\229\156\186\228\185\139\229\164\150\228\189\191\231\148\168\230\136\152\229\156\186\231\155\184\230\156\186\233\128\187\232\190\145")
+    camTransform = UE4.UKismetMathLibrary.MakeTransform(location, UE4.FRotator(0, 0, 0), UE4.FVector(1, 1, 1))
+    return camTransform
+  end
+  if not self.CameraComponent then
+    Log.Error("BattleCraneCameraBase:GetCamComponentTransform, \230\136\152\230\150\151\231\155\184\230\156\186\228\184\186\231\169\186\239\188\140\231\155\184\230\156\186self.CameraComponent\229\183\178\232\162\171\233\148\128\230\175\129\239\188\140\230\136\152\229\156\186\228\184\141\229\173\152\229\156\168\239\188\140\230\163\128\230\159\165\233\128\187\232\190\145\228\184\141\229\186\148\232\175\165\229\156\168\230\136\152\229\156\186\228\185\139\229\164\150\228\189\191\231\148\168\230\136\152\229\156\186\231\155\184\230\156\186\233\128\187\232\190\145")
+    camTransform = UE4.UKismetMathLibrary.MakeTransform(location, UE4.FRotator(0, 0, 0), UE4.FVector(1, 1, 1))
+    return camTransform
+  end
   local rot = self.CameraComponent:K2_GetComponentRotation()
-  local camTransform = UE4.UKismetMathLibrary.MakeTransform(location, rot, UE4.FVector(1, 1, 1))
+  camTransform = UE4.UKismetMathLibrary.MakeTransform(location, rot, UE4.FVector(1, 1, 1))
   return camTransform
 end
 
@@ -372,6 +387,35 @@ function BattleCraneCameraBase:SetControlEnabled(enable)
   if not enable then
     self.SetControlEnabledTimer = false
     self:ChangeCamParent(false, true)
+  end
+end
+
+function BattleCraneCameraBase:RecordFormDataCameraByCurveParam()
+  local Position = UE.FVector()
+  local Rotation = UE.FRotator()
+  local FOV
+  local localPlayer = NRCModuleManager:DoCmd(PlayerModuleCmd.GET_LOCAL_PLAYER)
+  local playerController = localPlayer:GetUEController()
+  local curCamActor = playerController:GetViewTarget()
+  if curCamActor then
+    local curCamComponent = curCamActor:GetComponentByClass(UE4.UCameraComponent)
+    if curCamComponent then
+      Rotation = curCamComponent:K2_GetComponentRotation()
+      Position = curCamComponent:K2_GetComponentLocation()
+      FOV = curCamComponent.FieldOfView
+      self.CameraComponent:K2_SetWorldLocationAndRotation(Position, Rotation, false, nil, false)
+      self.CameraComponent.FieldOfView = FOV
+      self.lastCameraComponentRotation = Rotation
+      self.lastCameraComponentLocation = Position
+      self.lastFov = FOV
+    end
+  end
+end
+
+function BattleCraneCameraBase:RestoreCameraFromData()
+  if self.CameraComponent then
+    self.CameraComponent:K2_SetWorldLocationAndRotation(self.lastCameraComponentLocation, self.lastCameraComponentRotation, false, nil, false)
+    self.CameraComponent.FieldOfView = self.lastFov
   end
 end
 

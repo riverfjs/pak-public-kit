@@ -5,7 +5,9 @@ local ThrowSessionStatusEnum = require("NewRoco.Modules.Core.NPC.ThrowSessionSta
 local PetBallComponent = require("NewRoco.Modules.Core.Scene.Component.Interaction.PetBallComponent")
 local WeakPointRevealComponent = require("NewRoco.Modules.Core.Scene.Component.Boss.WeakPointRevealComponent")
 local CatchPetComponent = require("NewRoco.Modules.Core.Scene.Component.Interaction.CatchPetComponent")
+local HiddenComponent = require("NewRoco.Modules.Core.Scene.Component.Hidden.HiddenComponent")
 local NPCLuaUtils = require("NewRoco.Modules.Core.NPC.NPCLuaUtils")
+local SceneUtils = require("NewRoco.Modules.Core.Scene.Common.SceneUtils")
 
 local function GetSquaredGlobalConf(key, default)
   local confID = _G.DataConfigManager.ConfigTableId.NPC_GLOBAL_CONFIG
@@ -193,6 +195,7 @@ function BP_NPCItemBase_C:OnThrowStart()
   else
     self.floating = false
   end
+  self:SetupCollisionIgnore()
 end
 
 function BP_NPCItemBase_C:OnSphereOverlap(selfComp, otherActor, otherComp, otherBodyIndex, bFromSweep, result)
@@ -213,7 +216,11 @@ function BP_NPCItemBase_C:OnSphereOverlap(selfComp, otherActor, otherComp, other
     return
   end
   if SceneModule:CheckIsPlayer(OtherSceneCharacter:GetServerId()) then
-    if not OtherSceneCharacter.isLocal then
+    local togetherMovePlayer = self:GetAnotherTogetherMovePlayer()
+    local isTogetherMovePlayer = togetherMovePlayer and togetherMovePlayer == OtherSceneCharacter
+    local ownerPlayer = self:GetOwnerPlayer()
+    local isOwnerPlayer = ownerPlayer and ownerPlayer == OtherSceneCharacter
+    if not isOwnerPlayer and not isTogetherMovePlayer then
       self:SimulateBounce(selfComp, otherActor, otherComp, result)
     end
     return
@@ -393,11 +400,21 @@ function BP_NPCItemBase_C:ReceiveHit(MyComp, Other, OtherComp, SelfMoved, HitLoc
   if OtherSceneCharacter and OtherSceneCharacter.isLocal then
     return
   end
+  local hiddenComp = OtherSceneCharacter and OtherSceneCharacter:GetComponent(HiddenComponent)
+  local isHidden = hiddenComp and hiddenComp:IsHidden()
+  if isHidden then
+    Other = OtherSceneCharacter and OtherSceneCharacter.viewObj or Other
+    OtherComp = Other:K2_GetRootComponent()
+  end
   local Distance = Session:GetFlyDistance()
   if not Session.bNotFirstHit and Distance > ReleaseMaxDistance * 0.04 then
     Log.Debug("\232\167\166\229\143\145\229\188\186\229\138\155\230\138\149\230\142\183 @", Distance)
     local Position = self:Abs_K2_GetActorLocation()
-    _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.SendSenseEvent, Position, Enum.DotsAIWorldEventType.DAWET_BALL_DROP)
+    local player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GetPlayerByServerID, Session.owner_id)
+    if player and player.IsMagicReplayActor and player:IsMagicReplayActor() then
+    else
+      _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.SendSenseEvent, Position, Enum.DotsAIWorldEventType.DAWET_BALL_DROP)
+    end
     Session.bNotFirstHit = true
   end
   if OtherSceneCharacter and not Other.ThrowSession then
@@ -507,6 +524,8 @@ function BP_NPCItemBase_C:ThrowRecycle(Blend)
   Skill:RegisterEventCallback("Fly", self, self.StartFly)
   Skill:RegisterEventCallback("Destroy", self, self.MarkThrowDestroyed)
   Skill:RegisterEventCallback("PreStart", self, self.InjectBall)
+  local PlayRate = SceneUtils.CalculateFlyBackPlayRate(self, playerView, 1.5)
+  Skill:SetPlayRate(PlayRate)
   SkillComponent:StopCurrentSkill()
   Skill:PlaySkill()
 end
@@ -597,7 +616,7 @@ function BP_NPCItemBase_C:MakeCollectable()
     Comp:SetSimulatePhysics(true)
     Comp:SetLinearDamping(LinearDamping)
     Comp:SetAngularDamping(AngularDamping)
-    _G.DelayManager:DelaySeconds(2, self.OnProjectileStopped, self)
+    self.DelayId = _G.DelayManager:DelaySeconds(2, self.OnProjectileStopped, self)
   elseif self.ProjectileMovement:IsVelocityUnderSimulationThreshold() then
     self:OnProjectileStopped()
   else
@@ -684,9 +703,17 @@ function BP_NPCItemBase_C:Recycle()
   else
     Log.Error("\230\137\190\228\184\141\229\136\176DropFX\231\154\132Deactivate")
   end
+  if self.DelayId then
+    _G.DelayManager:CancelDelayById(self.DelayId)
+    self.DelayId = nil
+  end
   self.RocoFX:Deactivate()
   self.ThrowTrail:Deactivate()
   self:CleanupFX()
+  local RootComponent = self:K2_GetRootComponent()
+  if UE.UObject.IsValid(RootComponent) then
+    RootComponent:ClearMoveIgnoreActors()
+  end
   Base.Recycle(self)
 end
 
@@ -781,7 +808,7 @@ function BP_NPCItemBase_C:PlayBeamEffect()
     Base.PlayBeamEffect(self)
     return
   end
-  if self.sceneCharacter:IsControlledByPlayer() then
+  if not self.sceneCharacter.ThrowSession then
     Base.PlayBeamEffect(self)
   else
   end
@@ -905,6 +932,47 @@ end
 
 function BP_NPCItemBase_C:QuickOverdue()
   self.overdue_recycling_time_long = self.overdue_recycling_time_long / 2
+end
+
+function BP_NPCItemBase_C:SetupCollisionIgnore()
+  local player = self:GetOwnerPlayer()
+  if not player then
+    return
+  end
+  local RootComponent = self:K2_GetRootComponent()
+  if not UE.UObject.IsValid(RootComponent) then
+    return
+  end
+  local playerView = player.viewObj
+  if playerView and UE.UObject.IsValid(playerView) then
+    RootComponent:IgnoreActorWhenMoving(playerView, true)
+  end
+  local otherPlayer = player:GetAnotherTogetherMovePlayer()
+  if otherPlayer then
+    local otherPlayerView = otherPlayer.viewObj
+    if otherPlayerView and UE.UObject.IsValid(otherPlayerView) then
+      RootComponent:IgnoreActorWhenMoving(otherPlayerView, true)
+    end
+  end
+  local RidePetBp = player:GetRidePetBP()
+  if RidePetBp and UE.UObject.IsValid(RidePetBp) then
+    RootComponent:IgnoreActorWhenMoving(RidePetBp, true)
+  end
+end
+
+function BP_NPCItemBase_C:GetOwnerPlayer()
+  local throwSession = self.ThrowSession
+  if not throwSession then
+    return nil
+  end
+  local player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GetPlayerByServerID, throwSession.owner_id)
+  return player
+end
+
+function BP_NPCItemBase_C:GetAnotherTogetherMovePlayer()
+  local ownerPlayer = self:GetOwnerPlayer()
+  local anotherMovePlayer = ownerPlayer and ownerPlayer:GetAnotherTogetherMovePlayer()
+  return anotherMovePlayer
 end
 
 return BP_NPCItemBase_C

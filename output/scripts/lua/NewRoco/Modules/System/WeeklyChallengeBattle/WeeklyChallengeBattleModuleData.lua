@@ -102,19 +102,12 @@ function WeeklyChallengeBattleModuleData:_IsThisWeekCatchPet(petData)
   if not eventConf or type(eventConf.start_time) ~= "string" then
     return false
   end
-  local year, month, day, hour, min, sec = string.match(eventConf.start_time, "(%d+)-(%d+)-(%d+) (%d+):(%d+):(%d+)")
-  if not year then
+  local TimeUtils = require("NewRoco.Modules.System.EnvSystem.TimeUtils")
+  local startTimestamp = TimeUtils.ToTimeStamp(eventConf.start_time)
+  if 0 == startTimestamp then
+    Log.Error("WeeklyChallengeBattleModuleData:_IsThisWeekCatchPet: Failed to parse start_time:", eventConf.start_time)
     return false
   end
-  local startTimeTable = {
-    year = tonumber(year),
-    month = tonumber(month),
-    day = tonumber(day),
-    hour = tonumber(hour),
-    min = tonumber(min),
-    sec = tonumber(sec)
-  }
-  local startTimestamp = os.time(startTimeTable)
   return startTimestamp < petData.add_time
 end
 

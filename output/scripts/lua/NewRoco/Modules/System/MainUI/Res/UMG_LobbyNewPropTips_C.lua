@@ -80,7 +80,9 @@ function UMG_LobbyNewPropTips_C:StartQueue()
   local ItemConf, PropName, PropIcon, ContainerIcon, Quality, Desc, Prompt, Owner = Current:Resolve()
   NRCModuleManager:DoCmd(TipsModuleCmd.Tips_MiracleExchange, Current)
   if ItemConf then
-    flavor = ItemConf.flavor_text
+    if Current.type == Enum.GoodsType.GT_BAGITEM then
+      flavor = ItemConf.flavor_text
+    end
     if Desc then
       local des = string.gsub(Desc, "\n", "")
       if flavor then
@@ -110,11 +112,11 @@ function UMG_LobbyNewPropTips_C:StartQueue()
     self.PromptCrafting:SetVisibility(UE4.ESlateVisibility.Visible)
     self.Prompt:SetText(Prompt)
     self.Icon:SetPath(Current:GetCardIconPath())
-  elseif ItemConf and ItemConf.type == Enum.BagItemType.BI_FURNITURE and _G.DataConfigManager:GetExchangeConf(ItemConf.id, true) then
+  elseif ItemConf and Current.type ~= ProtoEnum.GoodsType.GT_SHARE_FORM and ItemConf.type == Enum.BagItemType.BI_FURNITURE and _G.DataConfigManager:GetExchangeConf(ItemConf.id, true) then
     self.PromptCrafting:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     self.Prompt:SetText(string.format(LuaText.Furniture_build_get_blueprint_text, ItemConf.name))
     self.Icon:SetPath("PaperSprite'/Game/NewRoco/Modules/System/MainUI/Raw/Atlas/MainUI/Frames/img_jiajudazao_png.img_jiajudazao_png'")
-  elseif ItemConf and ItemConf.type == Enum.BagItemType.BI_MUSIC then
+  elseif ItemConf and Current.type ~= ProtoEnum.GoodsType.GT_SHARE_FORM and ItemConf.type == Enum.BagItemType.BI_MUSIC then
     self.PromptCrafting:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     self.Prompt:SetText(LuaText.music_set_interface_main_desc)
     self.Icon:SetPath("PaperSprite'/Game/NewRoco/Modules/System/MainUI/Raw/Atlas/MainUI/Frames/img_Music_png.img_Music_png'")
@@ -126,6 +128,10 @@ function UMG_LobbyNewPropTips_C:StartQueue()
     self.PromptCrafting:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     self.Prompt:SetText(LuaText.BossEvoItem_Tips)
     self.Icon:SetPath("PaperSprite'/Game/NewRoco/Modules/System/MainUI/Raw/Atlas/MainUI/Frames/img_shouling_png.img_shouling_png'")
+  elseif ItemConf and ItemConf.type == Enum.BagItemType.BI_CAMERA_SKIN then
+    self.PromptCrafting:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    self.Prompt:SetText(LuaText.takephoto_camera_skin_bottom_tips)
+    self.Icon:SetPath("PaperSprite'/Game/NewRoco/Modules/System/MainUI/Raw/Atlas/MainUI/Frames/img_xiangji_png.img_xiangji_png'")
   else
     self.PromptCrafting:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end

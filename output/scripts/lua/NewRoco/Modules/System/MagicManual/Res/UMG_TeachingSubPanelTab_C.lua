@@ -63,11 +63,6 @@ function UMG_TeachingSubPanelTab_C:OnItemSelected(_bSelected)
     else
       self:PlayAnimation(self.Select)
     end
-    if self.RedPoint:IsRed() then
-      local req = _G.ProtoMessage:newZoneTypeAdvantageTeachingReadReq()
-      req.id = self.data.id
-      _G.ZoneServer:Send(_G.ProtoCMD.ZoneSvrCmd.ZONE_TYPE_ADVANTAGE_TEACHING_READ_REQ, req)
-    end
   else
     self:StopAllAnimations()
     if self.data and not self.data.is_unlock then
@@ -80,6 +75,11 @@ end
 
 function UMG_TeachingSubPanelTab_C:OnTouchEnded(MyGeometry, InTouchEvent)
   Base.OnTouchEnded(self, MyGeometry, InTouchEvent)
+  if self.RedPoint:IsRed() then
+    local req = _G.ProtoMessage:newZoneTypeAdvantageTeachingReadReq()
+    req.id = self.data.id
+    _G.ZoneServer:Send(_G.ProtoCMD.ZoneSvrCmd.ZONE_TYPE_ADVANTAGE_TEACHING_READ_REQ, req)
+  end
   _G.NRCAudioManager:PlaySound2DAuto(41401003, "UMG_TeachingSubPanelTab_C:OnTouchEnded")
   return UE4.UWidgetBlueprintLibrary.Unhandled()
 end

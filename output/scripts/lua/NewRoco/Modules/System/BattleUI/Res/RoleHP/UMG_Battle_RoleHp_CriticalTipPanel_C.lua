@@ -93,7 +93,7 @@ function UMG_Battle_RoleHp_CriticalTipPanel_C:OnAnimationFinished(Animation)
   if Animation == self.open then
     self:StopAllAnimations()
     self:PlayAnimation(self.loop, 0, 0)
-    _G.DelayManager:DelaySeconds(BattleConst.Show.RoleHpCriticalShowTime, self.Hide, self)
+    self:DelaySeconds(BattleConst.Show.RoleHpCriticalShowTime, self.Hide, self)
     return
   elseif Animation == self.close then
     self:SetVisibility(UE4.ESlateVisibility.Hidden)

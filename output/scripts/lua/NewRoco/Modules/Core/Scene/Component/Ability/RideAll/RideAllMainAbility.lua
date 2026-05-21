@@ -17,7 +17,11 @@ local RideTypeMap = {
   [ProtoEnum.SceneRideAllActiveType.SRAA_GRAPPLE] = "NewRoco.Modules.Core.Scene.Component.Buff.RideAllMain.RideAllBuff_Grapple",
   [ProtoEnum.SceneRideAllActiveType.SRAA_SWIMJUMP] = "NewRoco.Modules.Core.Scene.Component.Buff.RideAllMain.RideAllBuff_Jump",
   [ProtoEnum.SceneRideAllActiveType.SRAA_DOUBLERIDE] = "NewRoco.Modules.Core.Scene.Component.Buff.RideAllMain.RideAllBuff_DoubleRide",
-  [ProtoEnum.SceneRideAllActiveType.SRAA_CLIMB_WATER_JUMP] = "NewRoco.Modules.Core.Scene.Component.Buff.RideAllMain.RideAllBuff_ClimbWaterJump"
+  [ProtoEnum.SceneRideAllActiveType.SRAA_CLIMB_WATER_JUMP] = "NewRoco.Modules.Core.Scene.Component.Buff.RideAllMain.RideAllBuff_ClimbWaterJump",
+  [ProtoEnum.SceneRideAllActiveType.SRAA_KEEP_BALANCE] = "NewRoco.Modules.Core.Scene.Component.Buff.RideAllMain.RideAllBuff_KeepBalance",
+  [ProtoEnum.SceneRideAllActiveType.SRAA_DASH_WITHOUT_VITALITY] = "NewRoco.Modules.Core.Scene.Component.Buff.RideAllMain.RideAllBuff_DashWithoutVitality",
+  [ProtoEnum.SceneRideAllActiveType.SRAA_DASH_DASHFORWARD] = "NewRoco.Modules.Core.Scene.Component.Buff.RideAllMain.RideAllBuff_DashForward",
+  [ProtoEnum.SceneRideAllActiveType.SRAA_SMASH] = "NewRoco.Modules.Core.Scene.Component.Buff.RideAllMain.RideAllBuff_Smash"
 }
 
 function RideAllMainAbility:AwakeFromPool(owner)
@@ -59,7 +63,11 @@ function RideAllMainAbility:Interrupt()
 end
 
 function RideAllMainAbility:Recover()
-  self:Start()
+  if self.caster.isLocal then
+    self.caster.statusComponent:RemoveStatus(ProtoEnum.WorldPlayerStatusType.WPST_RIDEALL_ABILITY)
+  else
+    self:Start()
+  end
 end
 
 function RideAllMainAbility:Finish(Force)

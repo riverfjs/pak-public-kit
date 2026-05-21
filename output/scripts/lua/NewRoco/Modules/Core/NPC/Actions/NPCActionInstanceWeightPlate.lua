@@ -7,12 +7,8 @@ function NPCActionInstanceWeightPlate:Ctor(Owner, Config, Info)
 end
 
 function NPCActionInstanceWeightPlate:Execute()
+  Log.Error("NPCActionInstanceWeightPlate \229\183\178\231\187\143\229\186\159\229\188\131\239\188\140\229\166\130\233\156\128\229\144\175\231\148\168\232\175\183\230\143\144\233\156\128\230\177\130")
   Base.Execute(self)
-end
-
-function NPCActionInstanceWeightPlate:OnSubmit(rsp)
-  Base.OnSubmit(self, rsp)
-  DelayManager:DelaySeconds(3, self.Finish, self)
 end
 
 return NPCActionInstanceWeightPlate

@@ -1,6 +1,7 @@
 local Base = require("NewRoco.Modules.System.MainUI.Res.Ability.UMG_Ability_Slot_C")
 local UMG_Ability_Slot_PetCare1_C = Base:Extend("UMG_Ability_Slot_PetCare1_C")
 local HomeModuleEvent = require("NewRoco.Modules.System.Home.HomeModuleEvent")
+local BagModuleEvent = require("NewRoco.Modules.System.Bag.BagModuleEvent")
 local OptionHighlightMaterial = "/Game/ArtRes/Effects/Texture/Outline/Material/MI_FX_Perception_Outline_001.MI_FX_Perception_Outline_001"
 local PlayerModuleEvent = require("NewRoco.Modules.Core.PlayerModule.PlayerModuleEvent")
 
@@ -23,6 +24,30 @@ function UMG_Ability_Slot_PetCare1_C:AddEventListener()
     homeModule:RegisterEvent(self, HomeModuleEvent.OnExitHomeMap, self.RefreshUI)
   end
   _G.FunctionBanManager:AddFunctionStateListener(Enum.PlayerFunctionBanType.PFBT_HOME_PET_FOOD, self, self.OnFunctionBan)
+  _G.NRCEventCenter:RegisterEvent("UMG_Ability_Slot_PetCare1_C", self, BagModuleEvent.BagItemUpdate, self.OnBagItemUpdate)
+  _G.NRCEventCenter:RegisterEvent("UMG_Ability_Slot_PetCare1_C", self, BagModuleEvent.BagItemAdd, self.OnBagItemAdd)
+end
+
+function UMG_Ability_Slot_PetCare1_C:OnBagItemAdd(id)
+  if id ~= self.equipFoodId then
+    return
+  end
+  local equipItem = _G.NRCModuleManager:DoCmd(_G.BagModuleCmd.GetBagItemByID, self.equipFoodId)
+  if equipItem and equipItem.num then
+    self.equipFoodNum = equipItem.num
+    self:RefreshUI()
+  end
+end
+
+function UMG_Ability_Slot_PetCare1_C:OnBagItemUpdate(id)
+  if id ~= self.equipFoodId then
+    return
+  end
+  local equipItem = _G.NRCModuleManager:DoCmd(_G.BagModuleCmd.GetBagItemByID, self.equipFoodId)
+  if equipItem and equipItem.num then
+    self.equipFoodNum = equipItem.num
+    self:RefreshUI()
+  end
 end
 
 function UMG_Ability_Slot_PetCare1_C:OnEnterHomeMap()
@@ -89,6 +114,15 @@ function UMG_Ability_Slot_PetCare1_C:RefreshFoodIcon()
   end
 end
 
+function UMG_Ability_Slot_PetCare1_C:IsPanelOnTop()
+  local topPanel = _G.NRCPanelManager:GetTopVisiblePanel()
+  if not topPanel then
+    return false
+  end
+  local parentPanel = _G.NRCUtils.GetParentPanelUserWidget(self)
+  return topPanel == parentPanel or topPanel == self
+end
+
 function UMG_Ability_Slot_PetCare1_C:PlayRemindAnim()
   local equipableFood = _G.NRCModuleManager:DoCmd(_G.BagModuleCmd.CheckHasBagItemByType, _G.Enum.BagItemType.BI_HOME_PET_FEED)
   if not equipableFood then
@@ -108,8 +142,13 @@ function UMG_Ability_Slot_PetCare1_C:PlayRemindAnim()
   for _, pet in ipairs(homePet) do
     if pet.base and pet.base.actor_id then
       local npc = _G.NRCModuleManager:DoCmd(NPCModuleCmd.GetNpcByServerID, pet.base.actor_id)
-      if npc and npc:IsLogicStatus(Enum.SpaceActorLogicStatus.SALS_HOME_PET_WAIT_PRODUCT) and not self:IsAnimationPlaying(self.AbilitySlot_PetCare_Remind) then
-        self:PlayAnimation(self.AbilitySlot_PetCare_Remind, 0, 99999)
+      if npc and npc:IsLogicStatus(Enum.SpaceActorLogicStatus.SALS_HOME_PET_WAIT_PRODUCT) then
+        if not self:IsPanelOnTop() then
+          return
+        end
+        if not self:IsAnimationPlaying(self.AbilitySlot_PetCare_Remind) then
+          self:PlayAnimation(self.AbilitySlot_PetCare_Remind, 0, 99999)
+        end
       end
     end
   end
@@ -213,6 +252,8 @@ function UMG_Ability_Slot_PetCare1_C:RemoveListener()
     homeModule:UnRegisterEvent(self, HomeModuleEvent.OnExitHomeMap)
   end
   _G.FunctionBanManager:RemoveFunctionStateListener(Enum.PlayerFunctionBanType.PFBT_HOME_PET_FOOD, self, self.OnFunctionBan)
+  _G.NRCEventCenter:UnRegisterEvent(self, BagModuleEvent.BagItemUpdate, self.OnBagItemUpdate)
+  _G.NRCEventCenter:UnRegisterEvent(self, BagModuleEvent.BagItemAdd, self.OnBagItemAdd)
 end
 
 function UMG_Ability_Slot_PetCare1_C:OnDestruct()

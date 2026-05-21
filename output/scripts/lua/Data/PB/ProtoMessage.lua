@@ -112,7 +112,8 @@ end
 function ProtoMessage:newBuffData_93()
   return {
     energy_info = {},
-    is_triggered = nil
+    is_triggered = nil,
+    selected_buffbase_id = nil
   }
 end
 
@@ -269,7 +270,26 @@ end
 
 function ProtoMessage:newBuffData_64()
   return {
-    data = {}
+    data = {},
+    history_start_index = nil
+  }
+end
+
+function ProtoMessage:newBuffData_146_sks()
+  return {skill_a_id = nil, skill_b_id = nil}
+end
+
+function ProtoMessage:newBuffData_146_PetBuffMaps()
+  return {
+    pet_id = nil,
+    buff_id = nil,
+    skill_maps = {}
+  }
+end
+
+function ProtoMessage:newBuffData_146_Common()
+  return {
+    entries = {}
   }
 end
 
@@ -316,7 +336,8 @@ function ProtoMessage:newCommonBuffData()
     b93 = ProtoMessage:newBuffData_93_Common(),
     b119 = ProtoMessage:newBuffData_119_Common(),
     b132 = ProtoMessage:newBuffData_132_Common(),
-    b102 = ProtoMessage:newBuffData_102_Common()
+    b102 = ProtoMessage:newBuffData_102_Common(),
+    b146 = ProtoMessage:newBuffData_146_Common()
   }
 end
 
@@ -412,6 +433,7 @@ function ProtoMessage:newPetSkillData()
     is_learned = nil,
     is_equipped = nil,
     pos = nil,
+    season_id = nil,
     unlock_need_lv = nil,
     raw_id = nil,
     carryon_info = ProtoMessage:newPetCarryonInfo(),
@@ -509,6 +531,45 @@ function ProtoMessage:newCheerMonsterInitInfo()
     pre_act_tag = nil,
     pre_act_param = nil,
     monster_diff_info = ProtoMessage:newMonsterDiffInfo()
+  }
+end
+
+function ProtoMessage:newBoxMonsterInfo()
+  return {
+    box_type = ProtoEnum.BoxType.BOX_TYPE_INVALID,
+    is_shiny = nil,
+    is_fantastic = nil,
+    box_conf_id = nil,
+    pet_content_id = nil,
+    is_nightmare = nil,
+    belong_season = nil,
+    name = nil,
+    monster_id = nil,
+    pet_rarity_type = ProtoEnum.PetRarityType.PET_RARITY_TYPE_INVALID,
+    pet_mutation_type = ProtoEnum.PetMutationType.PET_MUTATION_TYPE_INVALID,
+    pet_nature = nil,
+    gender = nil,
+    height = nil,
+    weight = nil,
+    voice = nil,
+    refresh_batch_id = nil
+  }
+end
+
+function ProtoMessage:newSeasonPetInfo()
+  return {
+    is_nightmare = nil,
+    is_shiny = nil,
+    is_fantastic = nil,
+    mix_blood = nil,
+    refresh_batch_id = nil
+  }
+end
+
+function ProtoMessage:newSeasonBattleInfo()
+  return {
+    box_info = ProtoMessage:newBoxMonsterInfo(),
+    season_pet_info = ProtoMessage:newSeasonPetInfo()
   }
 end
 
@@ -617,6 +678,10 @@ function ProtoMessage:newObtainShinyFashionInfo()
   return {obtain_time = nil, pet_base_id = nil}
 end
 
+function ProtoMessage:newPetBackTrackRecordInfo()
+  return {last_backtrack_time = nil}
+end
+
 function ProtoMessage:newPetKeyExperience()
   return {
     evolute_info = {},
@@ -624,7 +689,8 @@ function ProtoMessage:newPetKeyExperience()
     legend_first_win_alone_info = ProtoMessage:newLegendFirstWinAloneInfo(),
     blessing_info = ProtoMessage:newBlessingInfo(),
     obtain_shiny_fashion_info = ProtoMessage:newObtainShinyFashionInfo(),
-    text_desc = {}
+    text_desc = {},
+    backtrack_record_info = ProtoMessage:newPetBackTrackRecordInfo()
   }
 end
 
@@ -675,6 +741,29 @@ function ProtoMessage:newPetCheerPointInfo()
   }
 end
 
+function ProtoMessage:newPetLLMTagHistoryInfo()
+  return {timestamp = nil, tag_desc = nil}
+end
+
+function ProtoMessage:newPetLLMSingleNatureTagInfo()
+  return {
+    nature_tag = nil,
+    tag_val = nil,
+    tag_history_max_val = nil,
+    tag_history = {}
+  }
+end
+
+function ProtoMessage:newPetLLMNatureTagInfo()
+  return {
+    tag_info_list = {},
+    main_nature_tag = nil,
+    llm_interaction_count = nil,
+    last_base_week_decay_time = nil,
+    last_quick_week_decay_time = nil
+  }
+end
+
 function ProtoMessage:newPetSceneInfo()
   return {
     npc_id = nil,
@@ -682,7 +771,8 @@ function ProtoMessage:newPetSceneInfo()
     interact_quantity_threshold = nil,
     can_trig_bond_name = nil,
     can_trig_bond_none = nil,
-    interact_count = nil
+    interact_count = nil,
+    llm_nature_tag = ProtoMessage:newPetLLMNatureTagInfo()
   }
 end
 
@@ -773,7 +863,9 @@ function ProtoMessage:newPetData()
     nature_desc_id = nil,
     hide_shine = nil,
     patch_version = nil,
-    scene_info = ProtoMessage:newPetSceneInfo()
+    scene_info = ProtoMessage:newPetSceneInfo(),
+    season_add_info = ProtoMessage:newSeasonBattleInfo(),
+    llm_nature_tag = ProtoMessage:newPetLLMNatureTagInfo()
   }
 end
 
@@ -912,6 +1004,8 @@ function ProtoMessage:newPetBriefInfo()
     mutation_type = nil,
     blood_id = nil,
     talent_rank = nil,
+    changed_nature_pos_attr_type = nil,
+    changed_nature_neg_attr_type = nil,
     caught_camp = nil,
     attr_version = nil,
     skill_version = nil,
@@ -925,6 +1019,7 @@ function ProtoMessage:newPetBriefInfo()
     real_speciality_ids = {},
     glass_info = ProtoMessage:newGlassInfo(),
     together_catch_info = ProtoMessage:newTogetherCatchInfo(),
+    nature_attr_change_way = ProtoEnum.PetNatureAttrChangeWay.EM_PET_NATURE_ATTR_CHANGE_WAY_BEGIN,
     inspire_lv = nil,
     patch_version = nil
   }
@@ -940,7 +1035,25 @@ function ProtoMessage:newPetBacktrack()
     last_breakthrough_lv = nil,
     grow_times = nil,
     inspire_lv = nil,
-    snapshot_write_db = nil
+    snapshot_write_db = nil,
+    show_info = ProtoMessage:newPetBacktrackShowInfo()
+  }
+end
+
+function ProtoMessage:newPetBacktrackShowInfo()
+  return {
+    base_conf_id = nil,
+    level = nil,
+    skill_dam_type = {},
+    blood_id = nil,
+    last_breakthrough_lv = nil,
+    inspire_lv = nil,
+    mutation_type = nil,
+    glass_info = ProtoMessage:newGlassInfo(),
+    has_filled_show_info = nil,
+    name = nil,
+    name_src = ProtoEnum.PetNameSource.PNS_PET_BASE,
+    conf_id = nil
   }
 end
 
@@ -1056,6 +1169,10 @@ function ProtoMessage:newPetReportInfo()
   }
 end
 
+function ProtoMessage:newPetReportBriefInfo()
+  return {pet_report_info_version = nil, record_size = nil}
+end
+
 function ProtoMessage:newPetHabitGroup()
   return {
     group_id = nil,
@@ -1103,7 +1220,8 @@ function ProtoMessage:newPetBox()
     mark_type = ProtoEnum.WarehouseMarkType.WMT_DEFAULT,
     pet_gid = {},
     vacancy_num = nil,
-    box_name = nil
+    box_name = nil,
+    lock = nil
   }
 end
 
@@ -1112,7 +1230,8 @@ function ProtoMessage:newPetBackpackInfo()
     egg_gid = {},
     boxes = {},
     last_open_box_id = nil,
-    mark_unlock_info = nil
+    mark_unlock_info = nil,
+    tidy_rules = {}
   }
 end
 
@@ -1208,7 +1327,14 @@ function ProtoMessage:newSceneBasePetData()
     voice = nil,
     closeness_exp = nil,
     scene_info = ProtoMessage:newPetSceneInfo(),
-    name_src = ProtoEnum.PetNameSource.PNS_PET_BASE
+    name_src = ProtoEnum.PetNameSource.PNS_PET_BASE,
+    llm_nature_tag = ProtoMessage:newPetLLMNatureTagInfo()
+  }
+end
+
+function ProtoMessage:newPvp_MuteGroups()
+  return {
+    mute_group = {}
   }
 end
 
@@ -1232,10 +1358,13 @@ function ProtoMessage:newMatchInfo()
     pvp_rank_order = nil,
     pvp_rank_season_max_star = nil,
     welfare_team_role_magic_id = nil,
+    welfare_team_cnt = nil,
     state = ProtoEnum.PvpMatchState.PMS_NONE,
     max_sec = nil,
     pve_succ_ut = nil,
-    pvp_team_score = nil
+    pvp_team_score = nil,
+    self_mute_groups = ProtoMessage:newPvp_MuteGroups(),
+    same_team_mute_groups = {}
   }
 end
 
@@ -1253,7 +1382,8 @@ function ProtoMessage:newMatchSuccInfo()
     lose_streak = nil,
     pvp_rank_master_score = nil,
     pvp_rank_season_max_star = nil,
-    welfare_team_role_magic_id = nil
+    welfare_team_role_magic_id = nil,
+    welfare_team_cnt = nil
   }
 end
 
@@ -1264,7 +1394,8 @@ end
 function ProtoMessage:newGlassTintChange()
   return {
     fashion_item_id = nil,
-    glass = ProtoMessage:newGlassInfo()
+    glass = ProtoMessage:newGlassInfo(),
+    show_gid = nil
   }
 end
 
@@ -1345,7 +1476,8 @@ function ProtoMessage:newPlayerAppearanceInfo()
   return {
     fashion_info = ProtoMessage:newPlayerAppearanceInfo_FashionInfo(),
     salon_info = ProtoMessage:newPlayerAppearanceInfo_SalonInfo(),
-    fashion_bond_info = ProtoMessage:newPlayerAppearanceInfo_BondInfo()
+    fashion_bond_info = ProtoMessage:newPlayerAppearanceInfo_BondInfo(),
+    patch_version = nil
   }
 end
 
@@ -1450,6 +1582,14 @@ function ProtoMessage:newPlayerCardBriefInfo_AppearanceInfo()
   }
 end
 
+function ProtoMessage:newPlayerCardBriefInfo_PetInfo()
+  return {
+    version = nil,
+    collected_shining_pet_count = nil,
+    collected_glass_pet_count = nil
+  }
+end
+
 function ProtoMessage:newPlayerBusinessCardInfo()
   return {
     cur_card = nil,
@@ -1459,7 +1599,8 @@ function ProtoMessage:newPlayerBusinessCardInfo()
     last_card_url = nil,
     apply_daily_changes = nil,
     photo_upload_time = nil,
-    photo_upload_counts = nil
+    photo_upload_counts = nil,
+    cur_card_md5 = nil
   }
 end
 
@@ -1475,7 +1616,8 @@ function ProtoMessage:newPlayerCardBriefInfo()
     card_music_id = nil,
     card_collect_info = ProtoMessage:newPlayerCardBriefInfo_CollectInfo(),
     business_card_info = ProtoMessage:newPlayerBusinessCardInfo(),
-    card_fashion_bond_collect_num = nil
+    card_fashion_bond_collect_num = nil,
+    card_pet_info = ProtoMessage:newPlayerCardBriefInfo_PetInfo()
   }
 end
 
@@ -1497,7 +1639,11 @@ function ProtoMessage:newPlayerAdditionalData()
     online_state_update_times = nil,
     battle_pass_brief_info = ProtoMessage:newPlayerBattlePassBriefInfo(),
     reg_game_channel = nil,
-    start_up_privilege_info = ProtoMessage:newPlayerStartUpPrivilegeInfo()
+    start_up_privilege_info = ProtoMessage:newPlayerStartUpPrivilegeInfo(),
+    player_tags = {},
+    together_starlight_bonus_ratio = nil,
+    plat_nick_name = nil,
+    plat_avatar_url = nil
   }
 end
 
@@ -1516,7 +1662,8 @@ function ProtoMessage:newPlayerSettingBriefInfo()
     can_be_searched = nil,
     can_be_sugguested = nil,
     can_be_add_friend = nil,
-    can_stranger_visit = nil
+    can_stranger_visit = nil,
+    ai_coach_status = ProtoEnum.AiCoachStatus.ACS_CLOSED
   }
 end
 
@@ -1593,6 +1740,26 @@ function ProtoMessage:newPlayerCoreAdditionalBriefInfo()
   }
 end
 
+function ProtoMessage:newHomeBanInfo()
+  return {
+    is_banned = nil,
+    begin_time = nil,
+    end_time = nil,
+    ban_reason = nil
+  }
+end
+
+function ProtoMessage:newHomeViolationInfo()
+  return {is_violation = nil, begin_time = nil}
+end
+
+function ProtoMessage:newHomeAccessInfo()
+  return {
+    ban_info = ProtoMessage:newHomeBanInfo(),
+    violation_info = ProtoMessage:newHomeViolationInfo()
+  }
+end
+
 function ProtoMessage:newPlayerHomeBriefInfo()
   return {
     home_name = nil,
@@ -1601,6 +1768,7 @@ function ProtoMessage:newPlayerHomeBriefInfo()
     room_level = nil,
     home_comfort_level = nil,
     room_expansion_info = ProtoMessage:newRoomExpansionInfo(),
+    access_info = ProtoMessage:newHomeAccessInfo(),
     unlocked_furniture_list = {}
   }
 end
@@ -1693,6 +1861,13 @@ function ProtoMessage:newInvitedUser()
     role_level = nil,
     register_time = nil,
     plat_nick_name = nil
+  }
+end
+
+function ProtoMessage:newPlayerPhotoAlbumInfo()
+  return {
+    pet_base_id_list = {},
+    include_myself = nil
   }
 end
 
@@ -2056,7 +2231,8 @@ function ProtoMessage:newSceneSeasonInfo()
   return {
     season_id = nil,
     season_adv_shining_extra_weight = nil,
-    season_adv_catch_prob_add = nil
+    season_adv_catch_prob_add = nil,
+    is_open = nil
   }
 end
 
@@ -2074,6 +2250,15 @@ function ProtoMessage:newVItem()
   return {
     goods_type = ProtoEnum.GoodsType.GT_NONE,
     goods_num = nil
+  }
+end
+
+function ProtoMessage:newOfflineOperationConsumeState()
+  return {
+    consume_offset = nil,
+    last_consume_time = nil,
+    legacy_message_consume_index = nil,
+    consume_all_legacy_message = nil
   }
 end
 
@@ -2260,6 +2445,14 @@ function ProtoMessage:newSceneFriendInfo()
   return {friend_uin = nil}
 end
 
+function ProtoMessage:newSceneFriendInfoCache()
+  return {
+    cache_inited = nil,
+    game_friends = {},
+    plat_friends = {}
+  }
+end
+
 function ProtoMessage:newFlowerSeedBossData()
   return {
     seed_npc_logic_id = nil,
@@ -2322,7 +2515,8 @@ function ProtoMessage:newPetTeam()
     team_idx = nil,
     mirror_friend_uin = nil,
     mirror_friend_card_icon_selected = nil,
-    mirror_magic_id = nil
+    mirror_magic_id = nil,
+    mirror_boss_evo_items = {}
   }
 end
 
@@ -2418,7 +2612,8 @@ function ProtoMessage:newFriendPetTeamBufferFriendInfo()
   return {
     name = nil,
     level = nil,
-    card_icon_selected = nil
+    card_icon_selected = nil,
+    note = nil
   }
 end
 
@@ -2553,7 +2748,8 @@ function ProtoMessage:newTaskContentItem()
     last_update_seq = nil,
     options = ProtoMessage:newTaskContentOptionList(),
     sale_lock = nil,
-    is_openorclose = nil
+    is_openorclose = nil,
+    reward_cnt = nil
   }
 end
 
@@ -2850,7 +3046,8 @@ function ProtoMessage:newPlayerActivityInfo_ActivityPartData()
     activity_part_id = nil,
     state = ProtoEnum.PlayerActivityInfo.ActivityPartState.APS_NONE,
     param = ProtoMessage:newPlayerActivityInfo_ActivityPartData_ActivityPartParam(),
-    open_timestamp = nil
+    open_timestamp = nil,
+    last_refresh_time = nil
   }
 end
 
@@ -3061,7 +3258,6 @@ function ProtoMessage:newPlayerActivityInfo_ActivityPetCollectionData()
   return {
     disposable_reward_taken_time = nil,
     collection_pet = {},
-    collection_pet_rewards = {},
     pet_rewards = {}
   }
 end
@@ -3105,6 +3301,64 @@ function ProtoMessage:newPlayerActivityInfo_ActivitySpringFestivalData()
   }
 end
 
+function ProtoMessage:newActivityPetTripData_CurPetTripInfo()
+  return {
+    pet_base_id = nil,
+    trip_start_time = nil,
+    trip_max_time = nil,
+    pet_gid = nil
+  }
+end
+
+function ProtoMessage:newActivityPetTripData_PetTripRecordInfo()
+  return {
+    pet_base_id = nil,
+    trip_start_time = nil,
+    trip_max_time = nil,
+    trip_end_time = nil,
+    get_happy_value = nil,
+    pet_gid = nil,
+    glass_info = ProtoMessage:newGlassInfo(),
+    mutation_type = nil
+  }
+end
+
+function ProtoMessage:newActivityPetTripData_PetTripFormationInfo()
+  return {
+    pet_base_id = nil,
+    pet_gid = nil,
+    max_trip_time = nil,
+    formation_time = nil
+  }
+end
+
+function ProtoMessage:newActivityPetTripData_LotteryResult()
+  return {
+    result = nil,
+    recieved_award = nil,
+    goods_type = ProtoEnum.GoodsType.GT_NONE,
+    goods_id = nil,
+    goods_num = nil
+  }
+end
+
+function ProtoMessage:newPlayerActivityInfo_ActivityPetTripData()
+  return {
+    happy_value = nil,
+    max_pet_num = nil,
+    cur_pet_trip_info = {},
+    pet_trip_record_info = {},
+    pet_formation_info = {},
+    auto_trip = nil,
+    wish_choice = nil,
+    received_reward_stage = nil,
+    rel_wish_choice = nil,
+    lottery_result = ProtoMessage:newActivityPetTripData_LotteryResult(),
+    wish_shard_id = nil,
+    rand_num = nil
+  }
+end
+
 function ProtoMessage:newInviteeInfo()
   return {
     uin = nil,
@@ -3121,7 +3375,51 @@ end
 
 function ProtoMessage:newPlayerActivityInfo_ActivityInviteRegisterData()
   return {
-    invitee_list = {}
+    invitee_list = {},
+    inviter_uin = nil
+  }
+end
+
+function ProtoMessage:newPlayerActivityInfo_ActivityRecallStarlightData()
+  return {open_timestamp = nil, is_show_recall_tag = nil}
+end
+
+function ProtoMessage:newRecallBPTask()
+  return {
+    task_id = nil,
+    state = ProtoEnum.PlayerActivityInfo.ActivityRewardState.ARS_UNOPEN,
+    is_daily = nil
+  }
+end
+
+function ProtoMessage:newRecallBPReward()
+  return {
+    bp_level = nil,
+    reward1_state = ProtoEnum.PlayerActivityInfo.ActivityRewardState.ARS_UNOPEN,
+    reward2_state = ProtoEnum.PlayerActivityInfo.ActivityRewardState.ARS_UNOPEN
+  }
+end
+
+function ProtoMessage:newPlayerActivityInfo_ActivityRecallBPData()
+  return {
+    open_timestamp = nil,
+    bp_exp = nil,
+    is_paid = nil,
+    task_list = {},
+    reward_list = {}
+  }
+end
+
+function ProtoMessage:newPlayerActivityInfo_ActivityRecallData()
+  return {
+    active = nil,
+    recall_class = nil,
+    open_timestamp = nil,
+    close_timestamp = nil,
+    is_disposable_reward_taken = nil,
+    is_pet_egg_taken = nil,
+    pet_egg_id = nil,
+    begin_taskid = nil
   }
 end
 
@@ -3157,6 +3455,84 @@ function ProtoMessage:newPlayerActivityInfo_ActivityPetPhotoData()
   }
 end
 
+function ProtoMessage:newPlayerActivityInfo_ActivityPhotoContest_Phase()
+  return {
+    phase_id = nil,
+    photo_url = nil,
+    photo_md5 = nil,
+    mini_photo_url = nil,
+    mini_photo_md5 = nil,
+    total_like_count = nil,
+    is_disposable_reward_taken = nil,
+    total_hot_count = nil
+  }
+end
+
+function ProtoMessage:newPlayerActivityInfo_ActivitySignRewardData()
+  return {
+    reward_obtainable = nil,
+    reward_received_time = nil,
+    last_reset_time = nil,
+    pending_reward_count = nil,
+    next_refresh_time = nil
+  }
+end
+
+function ProtoMessage:newPlayerActivityInfo_ActivityWeekendChallengeData()
+  return {
+    recommend_pet_teams = {}
+  }
+end
+
+function ProtoMessage:newPlayerActivityInfo_ActivityGlobalChallengeData_Progress()
+  return {
+    belong_sign = nil,
+    progress = nil,
+    received_challenge_ids = {}
+  }
+end
+
+function ProtoMessage:newPlayerActivityInfo_ActivityGlobalChallengeData()
+  return {
+    challenge_progress = {}
+  }
+end
+
+function ProtoMessage:newPlayerActivityInfo_ActivityPhotoContest_PhotoInfo()
+  return {
+    uin = nil,
+    recommend_time = nil,
+    like_limit = nil,
+    shard_id = nil
+  }
+end
+
+function ProtoMessage:newPlayerActivityInfo_ActivityPhotoContest()
+  return {
+    phases = {},
+    current_phase_id = nil,
+    recommend_count = nil,
+    history_photos = {},
+    last_recommend_time = nil,
+    skip_count = nil,
+    last_skip_time = nil,
+    accuracy_score = nil,
+    reward_ids = {},
+    last_submit_time = nil,
+    last_like_uin = nil,
+    is_red_point_cleaned = nil
+  }
+end
+
+function ProtoMessage:newPlayerActivityInfo_PreDownloadData()
+  return {
+    resource_prepared = nil,
+    already_download = nil,
+    rewarded = nil,
+    book_download = nil
+  }
+end
+
 function ProtoMessage:newPlayerActivityInfo_ActivityData()
   return {
     activity_id = nil,
@@ -3171,6 +3547,7 @@ function ProtoMessage:newPlayerActivityInfo_ActivityData()
     score_reward_comp_data = ProtoMessage:newActivityScoreRewardCompData(),
     login_accelerate_days = nil,
     last_refresh_content_timestamp = nil,
+    popup_played = nil,
     activity_open_time = nil,
     stage_data = ProtoMessage:newPlayerActivityInfo_ActivityStageData(),
     part_data = {},
@@ -3197,7 +3574,17 @@ function ProtoMessage:newPlayerActivityInfo_ActivityData()
     invite_register_data = ProtoMessage:newPlayerActivityInfo_ActivityInviteRegisterData(),
     territory_trial_data = ProtoMessage:newPlayerActivityInfo_ActivityTerritoryTrialData(),
     pet_photo_data = ProtoMessage:newPlayerActivityInfo_ActivityPetPhotoData(),
-    pet_certification_data = ProtoMessage:newPlayerActivityInfo_ActivityPetCertificationData()
+    pet_certification_data = ProtoMessage:newPlayerActivityInfo_ActivityPetCertificationData(),
+    photo_contest_data = ProtoMessage:newPlayerActivityInfo_ActivityPhotoContest(),
+    global_challenge_data = ProtoMessage:newPlayerActivityInfo_ActivityGlobalChallengeData(),
+    sign_reward_data = ProtoMessage:newPlayerActivityInfo_ActivitySignRewardData(),
+    weekend_challenge_data = ProtoMessage:newPlayerActivityInfo_ActivityWeekendChallengeData(),
+    pet_trip_data = ProtoMessage:newPlayerActivityInfo_ActivityPetTripData(),
+    recall_starlight_data = ProtoMessage:newPlayerActivityInfo_ActivityRecallStarlightData(),
+    recall_bp_data = ProtoMessage:newPlayerActivityInfo_ActivityRecallBPData(),
+    recall_data = ProtoMessage:newPlayerActivityInfo_ActivityRecallData(),
+    base_mix_data = ProtoMessage:newPlayerActivityInfo_ActivityBaseMixData(),
+    pre_download_data = ProtoMessage:newPlayerActivityInfo_PreDownloadData()
   }
 end
 
@@ -3328,6 +3715,22 @@ function ProtoMessage:newPlayerActivityInfo_ActivityMixData()
   }
 end
 
+function ProtoMessage:newPlayerActivityInfo_ActivityBaseMixSlotData()
+  return {
+    slot_id = nil,
+    slot_part_datas = {},
+    slot_function_type = nil,
+    state = ProtoEnum.PlayerActivityInfo.ActivityPartState.APS_NONE
+  }
+end
+
+function ProtoMessage:newPlayerActivityInfo_ActivityBaseMixData()
+  return {
+    is_must_do_tasks_done = nil,
+    slot_datas = {}
+  }
+end
+
 function ProtoMessage:newPlayerActivityLoginHistory()
   return {
     history_data = {},
@@ -3370,7 +3773,8 @@ function ProtoMessage:newSeasonPlayerGrowth()
   return {
     id = nil,
     pet_gid = nil,
-    feature_skill_id = nil
+    feature_skill_id = nil,
+    new_pet_conf_id = nil
   }
 end
 
@@ -3388,7 +3792,8 @@ function ProtoMessage:newSeasonInfo()
     season_pve_id = nil,
     season_part_datas = {},
     season_pv_time = nil,
-    season_pop_windows_time = nil
+    season_pop_windows_time = nil,
+    season_legendary_id = nil
   }
 end
 
@@ -3591,6 +3996,14 @@ function ProtoMessage:newTerritoryTrialPetInfo()
   }
 end
 
+function ProtoMessage:newPetRealInfo()
+  return {
+    conf_id = nil,
+    base_conf_id = nil,
+    name = nil
+  }
+end
+
 function ProtoMessage:newMonsterCreateInfo()
   return {
     conf_id = nil,
@@ -3618,7 +4031,10 @@ function ProtoMessage:newBattleNpcInfo()
     belong_camp = nil,
     creater_uin = nil,
     is_continous_catch_bonus = nil,
-    create_visiting_uins = {}
+    create_visiting_uins = {},
+    owner_uin = nil,
+    npc_refresh_conf_id = nil,
+    season_add_info = ProtoMessage:newSeasonBattleInfo()
   }
 end
 
@@ -3694,7 +4110,8 @@ function ProtoMessage:newBattleMonsterInfo()
     in_battle_when_finish = nil,
     pet_medal_cond_data = ProtoMessage:newPetMedalConditionData(),
     glass_info = ProtoMessage:newGlassInfo(),
-    pet_id = nil
+    pet_id = nil,
+    refresh_type = nil
   }
 end
 
@@ -3721,7 +4138,8 @@ function ProtoMessage:newPvpModeCtl()
     welfare_enemy_pvp_rank_star = nil,
     welfare_enemy_pvp_rank_order = nil,
     welfare_enemy_pvp_rank_name = nil,
-    show_enemy_pet = nil
+    show_enemy_pet = nil,
+    light_pk = nil
   }
 end
 
@@ -3746,7 +4164,8 @@ function ProtoMessage:newPvpFightHis()
     pet_info_self = {},
     pvp_rank_star_self = nil,
     pvp_rank_order_self = nil,
-    start_time = nil
+    start_time = nil,
+    season_id = nil
   }
 end
 
@@ -3889,8 +4308,14 @@ end
 function ProtoMessage:newGmBattleNpc()
   return {
     npc_cfg_id = nil,
-    monster_ids = {}
+    monster_ids = {},
+    fashion_id = nil,
+    sex = nil
   }
+end
+
+function ProtoMessage:newGrassBadgeTrialInfo()
+  return {pet_gid = nil, energy_ceiling = nil}
 end
 
 function ProtoMessage:newWorldCombatExtraReward()
@@ -3943,6 +4368,8 @@ function ProtoMessage:newCreateBattleInfo()
     del_npc_aft_win = nil,
     battle_radius = nil,
     battle_difficult_id = nil,
+    season_add_info = ProtoMessage:newSeasonBattleInfo(),
+    visit_uins = {},
     uin = nil,
     bfid = nil,
     replay_bfid = nil,
@@ -3962,6 +4389,8 @@ function ProtoMessage:newCreateBattleInfo()
     disable_anti_cheat = nil,
     ai_training = nil,
     guide_battle = nil,
+    dynamic_attacker_npcs = {},
+    grass_trial_info = ProtoMessage:newGrassBadgeTrialInfo(),
     monster_pet_base_id_list = {}
   }
 end
@@ -3993,7 +4422,9 @@ function ProtoMessage:newBattlePveInfo()
     cheer_point = nil,
     cheer_point_this_week = nil,
     can_take_photo = nil,
-    guide_id = nil
+    guide_id = nil,
+    had_season_talent = nil,
+    legendary_battle_id = nil
   }
 end
 
@@ -4068,7 +4499,8 @@ function ProtoMessage:newBattleSettleInfo()
     battle_tasks = {},
     battle_difficult_id = nil,
     trial_settle_info = ProtoMessage:newTerritoryTrialSettleInfo(),
-    enter_battle_time = nil
+    enter_battle_time = nil,
+    npc_option_id = nil
   }
 end
 
@@ -4083,7 +4515,8 @@ function ProtoMessage:newInnerBattlePetDisplay()
     mutation_type = nil,
     glass_info = ProtoMessage:newGlassInfo(),
     npc_obj_id = nil,
-    battle_pet_id = nil
+    battle_pet_id = nil,
+    ball_id = nil
   }
 end
 
@@ -4317,7 +4750,9 @@ function ProtoMessage:newPlayerPkInfo()
     is_mirror = nil,
     mirror_magic_id = nil,
     bfid = nil,
-    rotate = nil
+    rotate = nil,
+    light_pk = nil,
+    light_pk_option_id = nil
   }
 end
 
@@ -4358,7 +4793,8 @@ function ProtoMessage:newPvpRecord()
     season_win_count = nil,
     season_max_win_streak = nil,
     prev_season_star = nil,
-    pvp_win_or_lose_streak = nil
+    pvp_win_or_lose_streak = nil,
+    same_team_mute_groups = {}
   }
 end
 
@@ -4374,12 +4810,10 @@ function ProtoMessage:newRankSeasonInfo()
     max_win_streak = nil,
     pet_use_info = {},
     magic_used = {},
-    rank_star = nil
+    rank_star = nil,
+    rank_order = nil,
+    master_score = nil
   }
-end
-
-function ProtoMessage:newPvpPetDamageInfo()
-  return {idx = nil, damage_out = nil}
 end
 
 function ProtoMessage:newTopMasterRankInfo()
@@ -4388,6 +4822,10 @@ function ProtoMessage:newTopMasterRankInfo()
     top_master_order = nil,
     last_display_type = nil
   }
+end
+
+function ProtoMessage:newPvpPetDamageInfo()
+  return {idx = nil, damage_out = nil}
 end
 
 function ProtoMessage:newPlayerPvpData()
@@ -4409,10 +4847,15 @@ function ProtoMessage:newPlayerPvpData()
   }
 end
 
+function ProtoMessage:newSpecBattleDifficultyItemInfo()
+  return {item_id = nil, win_times = nil}
+end
+
 function ProtoMessage:newSpecBattleDifficultyInfo()
   return {
     battle_difficulty_id = nil,
-    won_battle_cfg_ids = {}
+    won_battle_cfg_ids = {},
+    won_difficults = {}
   }
 end
 
@@ -4462,7 +4905,8 @@ function ProtoMessage:newSkillCastRecord()
     perform_flag = nil,
     is_award_cast = nil,
     adapt_damage_type = nil,
-    original_skill_id = nil
+    original_skill_id = nil,
+    season_id = nil
   }
 end
 
@@ -4594,7 +5038,8 @@ function ProtoMessage:newEnhanceEffectInfo()
   return {
     effect_id = nil,
     target_type = nil,
-    cm = nil
+    cm = nil,
+    add_round = nil
   }
 end
 
@@ -4634,7 +5079,8 @@ function ProtoMessage:newSkillBuffInfo()
     multiply = nil,
     multiply_by = nil,
     priority = nil,
-    cast_cnt = nil
+    cast_cnt = nil,
+    trans_time = nil
   }
 end
 
@@ -4712,7 +5158,8 @@ function ProtoMessage:newPetSkillRoundData()
     damage_type = nil,
     cost_energy_buff_mul_10000 = nil,
     cost_energy_buff_factor_list = {},
-    cd_outfield_round = nil
+    cd_outfield_round = nil,
+    season_id = nil
   }
 end
 
@@ -4875,13 +5322,18 @@ function ProtoMessage:newBattleInsidePetInfo()
     used_original_skill = {},
     last_position = ProtoMessage:newPosition(),
     trial_pet_info = ProtoMessage:newTerritoryTrialPetInfo(),
+    box_info = ProtoMessage:newBoxMonsterInfo(),
     owner_uin = nil,
     last_up_round = nil,
     last_down_round = nil,
     feature_resonance = ProtoMessage:newFeatureResonance(),
+    real_info = ProtoMessage:newPetRealInfo(),
     charging_skill_energy = nil,
     height = nil,
-    weight = nil
+    weight = nil,
+    buff145_source_pet = nil,
+    last_deal_damage_round = nil,
+    season_attr_add_percent = {}
   }
 end
 
@@ -4985,7 +5437,9 @@ function ProtoMessage:newBattleRoleMagicOpInfo()
     name = nil,
     ret_info = nil,
     boss_petbase_id = nil,
-    need_pre_calc = nil
+    need_pre_calc = nil,
+    random_seed_recorded = nil,
+    random_seed = nil
   }
 end
 
@@ -5135,7 +5589,11 @@ function ProtoMessage:newB1FinalBattleInfo()
 end
 
 function ProtoMessage:newLegendaryBattleInfo()
-  return {is_season_battle = nil, season_battle_id = nil}
+  return {
+    is_season_battle = nil,
+    season_battle_id = nil,
+    legendary_battle_id = nil
+  }
 end
 
 function ProtoMessage:newBattleSpecialMoveInfo()
@@ -5237,7 +5695,8 @@ function ProtoMessage:newBattlePerformInfo()
     runaway = ProtoMessage:newBattleRunawayInfo(),
     prepare_to_battle = ProtoMessage:newBattlePrepareToBattle(),
     bag_to_prepare = ProtoMessage:newBattleBagToPrepare(),
-    feature_resonance = ProtoMessage:newBattleFeatureResonance()
+    feature_resonance = ProtoMessage:newBattleFeatureResonance(),
+    box_shield_break = ProtoMessage:newBattleBoxShieldBreak()
   }
 end
 
@@ -5421,7 +5880,8 @@ function ProtoMessage:newBattleSkillCast()
     is_interupt = nil,
     change_target_id = nil,
     perform_flag = nil,
-    resonance_pet_id = nil
+    resonance_pet_id = nil,
+    season_id = nil
   }
 end
 
@@ -5474,6 +5934,22 @@ end
 
 function ProtoMessage:newBattleFeatureResonance()
   return {pet_id = nil}
+end
+
+function ProtoMessage:newBattleBoxShieldBreak()
+  return {
+    pet_id = nil,
+    base_conf_id = nil,
+    name = nil,
+    old_base_conf_id = nil,
+    is_shiny = nil,
+    is_fantastic = nil,
+    is_nightmare = nil,
+    belong_season = nil,
+    pet_rarity_type = ProtoEnum.PetRarityType.PET_RARITY_TYPE_INVALID,
+    pet_mutation_type = ProtoEnum.PetMutationType.PET_MUTATION_TYPE_INVALID,
+    pet_attr_type = ProtoEnum.PetAttrType.PET_ATTR_TYPE_INVALID
+  }
 end
 
 function ProtoMessage:newBattleBuffChange()
@@ -5709,7 +6185,8 @@ function ProtoMessage:newBattlePetSyncInfo()
     height_change = nil,
     height_result = nil,
     triggered_buffs = {},
-    mutation_type = nil
+    mutation_type = nil,
+    max_energy = nil
   }
 end
 
@@ -6041,12 +6518,18 @@ function ProtoMessage:newAreaHandbookInfo()
   }
 end
 
+function ProtoMessage:newPetHandbookSeasonInfo()
+  return {season_id = nil, getted_reward = nil}
+end
+
 function ProtoMessage:newPetHandbook()
   return {
     record_collection = {},
     cover_candidate_data = {},
     area_hb_infos = {},
-    topic_version = nil
+    topic_version = nil,
+    season_info = {},
+    belong_area_version = nil
   }
 end
 
@@ -6157,7 +6640,8 @@ function ProtoMessage:newPetEggBrief()
     skill_dam_type = {},
     precious_egg_type = ProtoEnum.PreciousEggType.PET_NONE,
     ball_id = nil,
-    egg_piece_id = nil
+    egg_piece_id = nil,
+    talent_rank = nil
   }
 end
 
@@ -6241,7 +6725,8 @@ function ProtoMessage:newPetMedal()
   return {
     conf_id = nil,
     hash_id = nil,
-    detail = ProtoMessage:newPetMedalDetail()
+    detail = ProtoMessage:newPetMedalDetail(),
+    trigger_pet_gid = nil
   }
 end
 
@@ -6382,7 +6867,8 @@ function ProtoMessage:newClientTokenInfo()
     access_token = nil,
     pay_token = nil,
     pf = nil,
-    tpns_token = nil
+    tpns_token = nil,
+    wg_login_info = nil
   }
 end
 
@@ -6621,6 +7107,10 @@ function ProtoMessage:newSceneIdipActionNpcList()
   }
 end
 
+function ProtoMessage:newWegameAuthResult()
+  return {error_code = nil, error_message = nil}
+end
+
 function ProtoMessage:newRewardState()
   return {
     id = nil,
@@ -6697,7 +7187,10 @@ function ProtoMessage:newGoodsItem()
     is_together_catch_gift = nil,
     egg_info = ProtoMessage:newPetEggBrief(),
     egg_core = ProtoMessage:newPetEggCore(),
-    gids = {}
+    gids = {},
+    npc_refresh_type = nil,
+    npc_obj_id = nil,
+    battle_id = nil
   }
 end
 
@@ -7073,26 +7566,6 @@ function ProtoMessage:newHomeRareLayEggBanInfo()
   return {lay_egg_ban_time = nil, lay_egg_ban_probability = nil}
 end
 
-function ProtoMessage:newHomeBanInfo()
-  return {
-    is_banned = nil,
-    begin_time = nil,
-    end_time = nil,
-    ban_reason = nil
-  }
-end
-
-function ProtoMessage:newHomeViolationInfo()
-  return {is_violation = nil, begin_time = nil}
-end
-
-function ProtoMessage:newHomeAccessInfo()
-  return {
-    ban_info = ProtoMessage:newHomeBanInfo(),
-    violation_info = ProtoMessage:newHomeViolationInfo()
-  }
-end
-
 function ProtoMessage:newRoomFurnitureDetails()
   return {
     furniture_guid = nil,
@@ -7100,7 +7573,8 @@ function ProtoMessage:newRoomFurnitureDetails()
     item_gid = nil,
     config_id = nil,
     position = ProtoMessage:newPoint(),
-    npc_id = nil
+    npc_id = nil,
+    dynamic_npc_ids = {}
   }
 end
 
@@ -7334,7 +7808,8 @@ function ProtoMessage:newHomePetBriefInfo()
     home_pet_info = ProtoMessage:newHomePetInfo(),
     display_info = ProtoMessage:newHomePetDisplayInfo(),
     can_steal = nil,
-    have_egg = nil
+    have_egg = nil,
+    predicted_egg_time = nil
   }
 end
 
@@ -7548,7 +8023,8 @@ function ProtoMessage:newThrowTargetNpcInfo()
     weakness_pos_name = nil,
     gain_expose_pos_name = nil,
     is_back_stab = nil,
-    npc_logic_id = nil
+    npc_logic_id = nil,
+    npc_refresh_type = nil
   }
 end
 
@@ -7584,19 +8060,31 @@ end
 
 function ProtoMessage:newSceneCatchResult()
   return {
-    is_catched = nil,
+    catch_success = nil,
+    ball_conf_id = nil,
     probability = nil,
-    monter_level = nil,
-    diff_info = ProtoMessage:newMonsterDiffInfo(),
     is_tech_satisfied = nil,
-    is_detected = nil,
-    caught_camp = nil,
-    is_visiting = nil,
-    visit_owner_name = nil,
-    caught_weather = nil,
+    npc_id = nil,
+    npc_cfg_id = nil,
+    npc_logic_id = nil,
     caught_ai_status = nil,
+    caught_ai_behavior = nil,
+    is_detected = nil,
+    is_back_stab = nil,
+    refresh_source = nil,
+    avatar_pt = ProtoMessage:newPoint(),
+    is_visiting = nil,
+    is_visiting_owner = nil,
+    visit_owner_name = nil,
+    caught_camp = nil,
+    caught_weather = nil,
+    is_throw_together = nil,
+    diff_info = ProtoMessage:newMonsterDiffInfo(),
+    monster_level = nil,
+    monster_id = nil,
     gender = nil,
-    use_visit_catch_time = nil
+    pet_base_id = nil,
+    season_pet_info = ProtoMessage:newSeasonPetInfo()
   }
 end
 
@@ -7616,6 +8104,12 @@ function ProtoMessage:newThrowMagicCreateNPCResult()
   return {npc_obj_id = nil}
 end
 
+function ProtoMessage:newThrowStarMagicResult()
+  return {
+    star_magic_fail_avatar_uins = {}
+  }
+end
+
 function ProtoMessage:newThrowSeatInfoOne()
   return {
     npc_cfg_id = nil,
@@ -7627,6 +8121,28 @@ end
 function ProtoMessage:newThrowSeatInfo()
   return {
     seat_info_list = {}
+  }
+end
+
+function ProtoMessage:newCreatedRoleplayProp()
+  return {
+    npc_cfg_id = nil,
+    npc_id = nil,
+    is_call_out = nil
+  }
+end
+
+function ProtoMessage:newCreatedRoleplayPropData()
+  return {
+    created_roleplay_props = {}
+  }
+end
+
+function ProtoMessage:newEnteredRoleplayPropData()
+  return {
+    npc_id = nil,
+    slot_idx = nil,
+    prop_type = nil
   }
 end
 
@@ -7863,7 +8379,8 @@ function ProtoMessage:newFriendSessionInfo()
     regist_date = nil,
     world_level = nil,
     offline_msg_num = nil,
-    visit_info = ProtoMessage:newFriendVisitInfo()
+    visit_info = ProtoMessage:newFriendVisitInfo(),
+    pos_info = ProtoMessage:newFriendPositionInfo()
   }
 end
 
@@ -7943,7 +8460,10 @@ function ProtoMessage:newWorldMapNpcInfo()
     status = nil,
     create_avatar_id = nil,
     create_avatar_name = nil,
-    layer_id = nil
+    layer_id = nil,
+    glass_info = ProtoMessage:newGlassInfo(),
+    mutation_type = nil,
+    npc_born_time = nil
   }
 end
 
@@ -7956,9 +8476,7 @@ function ProtoMessage:newWorldMapEntry_Npc()
     world_map_cfg_id = nil,
     world_map_npc_infos = {},
     next_npc_refresh_time = nil,
-    pos = ProtoMessage:newPosition(),
-    glass_info = ProtoMessage:newGlassInfo(),
-    mutation_type = nil
+    pos = ProtoMessage:newPosition()
   }
 end
 
@@ -8096,6 +8614,34 @@ function ProtoMessage:newSelfActorAdjustData()
   return {platform_actor_id = nil}
 end
 
+function ProtoMessage:newFriendInteractEvent()
+  return {
+    recommend_uin = nil,
+    ev_type = ProtoEnum.FriendInteractEventType.FRIEND_INTERACT_EVENT_TYPE_NONE
+  }
+end
+
+function ProtoMessage:newFriendInteractRecord()
+  return {
+    recommend_uin = nil,
+    ev_type = ProtoEnum.FriendInteractEventType.FRIEND_INTERACT_EVENT_TYPE_NONE,
+    ev_time = nil
+  }
+end
+
+function ProtoMessage:newFriendInteractRecordList()
+  return {
+    source = ProtoEnum.FriendSource.FRIEND_SOURCE_NONE,
+    records = {}
+  }
+end
+
+function ProtoMessage:newFriendRecommendInfo()
+  return {
+    record_lists = {}
+  }
+end
+
 function ProtoMessage:newStoryFlagChangeType()
   return {}
 end
@@ -8174,12 +8720,22 @@ function ProtoMessage:newPlayerSocialBattleInfo()
   return {battle_state = nil, battle_conf_id = nil}
 end
 
+function ProtoMessage:newPlayerBattlePassSocialInfo()
+  return {
+    battle_pass_id = nil,
+    theme_id = nil,
+    gift_grade = ProtoEnum.BattlePassGiftGrade.BPGG_FREE
+  }
+end
+
 function ProtoMessage:newPlayerSocialAdditionalInfo()
   return {
     cli_login_channel = nil,
     start_up_privilege_info = ProtoMessage:newPlayerStartUpPrivilegeInfo(),
     setting_brief_info = ProtoMessage:newPlayerSettingBriefInfo(),
-    deletion_info = ProtoMessage:newPlayerDeletionInfo()
+    deletion_info = ProtoMessage:newPlayerDeletionInfo(),
+    player_tags = {},
+    battle_pass_info = ProtoMessage:newPlayerBattlePassSocialInfo()
   }
 end
 
@@ -8227,6 +8783,403 @@ function ProtoMessage:newPlayerSocialInfo()
   }
 end
 
+function ProtoMessage:newSnapshoot_WorldCombatSkillActionJump()
+  return {
+    begin_pos = ProtoMessage:newPosition(),
+    target_pos = ProtoMessage:newPosition(),
+    apex_pos = ProtoMessage:newPosition()
+  }
+end
+
+function ProtoMessage:newSnapshoot_WorldCombatSkillActionRcd()
+  return {
+    begin_pos = ProtoMessage:newPosition(),
+    target_pos = ProtoMessage:newPosition(),
+    cur_ray_length = nil,
+    ex_target_pos = ProtoMessage:newPosition(),
+    ex_target_id = nil
+  }
+end
+
+function ProtoMessage:newWorldCombatDotsSkillMissileLaunchInfo_Curve()
+  return {
+    launch_pos = ProtoMessage:newPosition(),
+    curve_fly_time = nil
+  }
+end
+
+function ProtoMessage:newWorldCombatDotsSkillMissileLaunchInfo_Trace()
+  return {
+    accelerate_speed = nil,
+    max_speed = nil,
+    angle_speed = nil,
+    cancel_trace_dist = nil,
+    trace_dur_time = nil,
+    is_keep_land_height = nil,
+    land_height = nil
+  }
+end
+
+function ProtoMessage:newWorldCombatDotsSkillMissileLaunchInfo_Normal()
+  return {
+    accelerate_speed = nil,
+    max_speed = nil,
+    is_keep_land_height = nil,
+    land_height = nil
+  }
+end
+
+function ProtoMessage:newSnapshoot_WorldCombatSkillActionMissile()
+  return {
+    master_id = nil,
+    cur_speed = nil,
+    accelerate_speed = nil,
+    max_speed = nil,
+    angle_speed = nil,
+    cancel_trace_dist = nil,
+    trace_dur_time = nil,
+    is_keep_land_height = nil,
+    land_height = nil,
+    cur_launch_time = nil,
+    target_pos = ProtoMessage:newPosition(),
+    target_id = nil,
+    missile_type = nil,
+    curve_bullet = ProtoMessage:newWorldCombatDotsSkillMissileLaunchInfo_Curve(),
+    trace_bullet = ProtoMessage:newWorldCombatDotsSkillMissileLaunchInfo_Trace(),
+    normal_bullet = ProtoMessage:newWorldCombatDotsSkillMissileLaunchInfo_Normal()
+  }
+end
+
+function ProtoMessage:newSnapshoot_WorldCombatSkillActionCrush()
+  return {
+    begin_pos = ProtoMessage:newPosition(),
+    target_pos = ProtoMessage:newPosition()
+  }
+end
+
+function ProtoMessage:newSnapshoot_WorldCombatSkillActionShowHide()
+  return {
+    show_hide_info = ProtoMessage:newWorldCombatDotsSkillShowHideInfo()
+  }
+end
+
+function ProtoMessage:newActorInfo_WorldCombatSkillAction()
+  return {
+    GUID = nil,
+    skill_begin_time = nil,
+    skill_action_type = ProtoEnum.SkillActionType.WorldCombatDotsSkillJump,
+    jump_snapshoot = ProtoMessage:newSnapshoot_WorldCombatSkillActionJump(),
+    rcd_snapshoot = ProtoMessage:newSnapshoot_WorldCombatSkillActionRcd(),
+    missile_snapshoot = ProtoMessage:newSnapshoot_WorldCombatSkillActionMissile(),
+    crush_snapshoot = ProtoMessage:newSnapshoot_WorldCombatSkillActionCrush(),
+    show_hide_snapshoot = ProtoMessage:newSnapshoot_WorldCombatSkillActionShowHide()
+  }
+end
+
+function ProtoMessage:newWorldCombatDotsSkillCastInfo()
+  return {
+    skill_id = nil,
+    target_id = nil,
+    target_pos = ProtoMessage:newPoint()
+  }
+end
+
+function ProtoMessage:newWorldCombatDotsSkillEndInfo()
+  return {skill_id = nil, end_reason = nil}
+end
+
+function ProtoMessage:newWorldCombatDotsSkillCrushInfo()
+  return {
+    skill_id = nil,
+    rotator = ProtoMessage:newPosition(),
+    crush_duration = nil,
+    GUID = nil,
+    crush_final_pos = ProtoMessage:newPosition(),
+    time_stamp = nil
+  }
+end
+
+function ProtoMessage:newWorldCombatDotsSkillCrushEndInfo()
+  return {
+    skill_id = nil,
+    GUID = nil,
+    stop_point = ProtoMessage:newPoint(),
+    action_time = nil,
+    time_stamp = nil
+  }
+end
+
+function ProtoMessage:newWorldCombatDotsSkillHitInfo()
+  return {
+    skill_id = nil,
+    target_id = nil,
+    hit_point = ProtoMessage:newPoint(),
+    GUID = nil,
+    block_type = ProtoEnum.BlockType.BLOCK_NONE,
+    hit_type = ProtoEnum.SkillHitType.NORMAL,
+    hit_perform_type = nil
+  }
+end
+
+function ProtoMessage:newWorldCombatDotsSkillRotateInfo()
+  return {
+    skill_id = nil,
+    rotator = ProtoMessage:newPosition(),
+    GUID = nil
+  }
+end
+
+function ProtoMessage:newWorldCombatDotsSkillLookAtInfo()
+  return {
+    skill_id = nil,
+    target_id = nil,
+    attach_point_type = nil,
+    GUID = nil,
+    target_pos = ProtoMessage:newPosition()
+  }
+end
+
+function ProtoMessage:newWorldCombatDotsSkillMissileLaunchInfo()
+  return {
+    skill_id = nil,
+    GUID = nil,
+    launch_bullet_id = nil,
+    target_id = nil,
+    speed = nil,
+    accelerate_speed = nil,
+    max_speed = nil,
+    angle_speed = nil,
+    cancel_trace_dist = nil,
+    trace_dur_time = nil,
+    is_keep_land_height = nil,
+    land_height = nil,
+    cur_launch_time = nil,
+    target_pos = ProtoMessage:newPosition(),
+    missile_type = nil,
+    curve_bullet = ProtoMessage:newWorldCombatDotsSkillMissileLaunchInfo_Curve(),
+    trace_bullet = ProtoMessage:newWorldCombatDotsSkillMissileLaunchInfo_Trace(),
+    normal_bullet = ProtoMessage:newWorldCombatDotsSkillMissileLaunchInfo_Normal()
+  }
+end
+
+function ProtoMessage:newWorldCombatDotsSkillMissileStopTraceInfo()
+  return {
+    skill_id = nil,
+    GUID = nil,
+    pt = ProtoMessage:newPoint(),
+    cur_launch_time = nil,
+    launch_bullet_id = nil
+  }
+end
+
+function ProtoMessage:newWorldCombatDotsSkillMissileDestroyInfo()
+  return {
+    skill_id = nil,
+    GUID = nil,
+    launch_bullet_id = nil
+  }
+end
+
+function ProtoMessage:newWorldCombatDotsSkillJumpInfo()
+  return {
+    skill_id = nil,
+    GUID = nil,
+    target_pos = ProtoMessage:newPosition(),
+    apex_pos = ProtoMessage:newPosition()
+  }
+end
+
+function ProtoMessage:newWorldCombatDotsSkillJumpCancelInfo()
+  return {
+    skill_id = nil,
+    GUID = nil,
+    cur_pos = ProtoMessage:newPosition(),
+    falling_pos = ProtoMessage:newPosition()
+  }
+end
+
+function ProtoMessage:newWorldCombatDotsSkillJumpEndInfo()
+  return {skill_id = nil, GUID = nil}
+end
+
+function ProtoMessage:newWorldCombatDotsSkillRcdInfo()
+  return {
+    skill_id = nil,
+    GUID = nil,
+    target_id = nil,
+    target_pos = ProtoMessage:newPosition(),
+    ray_end_need_move = nil,
+    ex_target_id = nil,
+    ex_target_pos = ProtoMessage:newPosition()
+  }
+end
+
+function ProtoMessage:newWorldCombatDotsSkillRcdEndInfo()
+  return {skill_id = nil, GUID = nil}
+end
+
+function ProtoMessage:newWorldCombatDotsSkillSelectPosInfo()
+  return {
+    skill_id = nil,
+    GUID = nil,
+    select_pos = {}
+  }
+end
+
+function ProtoMessage:newSelectPosInfo()
+  return {
+    point_idx = nil,
+    target_pos = ProtoMessage:newPosition()
+  }
+end
+
+function ProtoMessage:newWorldCombatDotsSkillHiddenInfo()
+  return {
+    skill_id = nil,
+    GUID = nil,
+    show_state = nil
+  }
+end
+
+function ProtoMessage:newWorldCombatDotsSkillHiddenEndInfo()
+  return {
+    skill_id = nil,
+    GUID = nil,
+    show_state = nil
+  }
+end
+
+function ProtoMessage:newWorldCombatDotsSkillShowHideCompInfo()
+  return {
+    comp_name = nil,
+    show_state = nil,
+    propagate_to_children = nil
+  }
+end
+
+function ProtoMessage:newWorldCombatDotsSkillShowHideInfo()
+  return {
+    show_state = nil,
+    comp_list = {}
+  }
+end
+
+function ProtoMessage:newWorldCombatDotsSkillPosLerpSyncInfo()
+  return {
+    type = ProtoEnum.WorldCombatDotsSkillPosLerpSyncInfo.Type.Skill,
+    node_index = nil,
+    skill_id = nil,
+    GUID = nil,
+    cast_point = ProtoMessage:newPoint(),
+    lerp_duration = nil,
+    pos_threshold = nil,
+    dir_threshold = nil,
+    lerp_animation_name = nil
+  }
+end
+
+function ProtoMessage:newWorldCombatDotsSkillAnimCancelInfo()
+  return {
+    skill_id = nil,
+    GUID = nil,
+    anim_cancel_pos = ProtoMessage:newPoint()
+  }
+end
+
+function ProtoMessage:newWorldCombatSkillCastInfo()
+  return {skill_id = nil}
+end
+
+function ProtoMessage:newWorldCombatSkillSpawnNpcInfo()
+  return {
+    skill_id = nil,
+    action_idx = nil,
+    content_id = nil,
+    init_pos = ProtoMessage:newPosition(),
+    init_dir = ProtoMessage:newPosition(),
+    refresh_type = nil
+  }
+end
+
+function ProtoMessage:newWorldCombatSkillSpawnBulletInfo()
+  return {
+    skill_id = nil,
+    action_idx = nil,
+    caster_id = nil,
+    init_pos = ProtoMessage:newPosition(),
+    init_dir = ProtoMessage:newPosition(),
+    target_id = nil,
+    target_pos = ProtoMessage:newPosition(),
+    bullet_id = nil
+  }
+end
+
+function ProtoMessage:newWorldCombatSkillFireBulletInfo()
+  return {skill_id = nil, bullet_id = nil}
+end
+
+function ProtoMessage:newWorldCombatSkillBuffInfo()
+  return {
+    skill_id = nil,
+    operate_type = nil,
+    buff_id = nil,
+    action_idx = nil,
+    caster_id = nil,
+    target_id = nil,
+    duration_change = nil,
+    duration = nil,
+    effect_tick_interval = nil
+  }
+end
+
+function ProtoMessage:newWorldCombatSkillEndInfo()
+  return {skill_id = nil, end_reason = nil}
+end
+
+function ProtoMessage:newWorldCombatHitInfo()
+  return {
+    skill_id = nil,
+    action_idx = nil,
+    attacker_id = nil,
+    hit_dir = ProtoMessage:newPosition(),
+    impact_force = nil,
+    block_type = ProtoEnum.BlockType.BLOCK_NONE
+  }
+end
+
+function ProtoMessage:newWorldCombatSkillJumpInfo()
+  return {
+    skill_id = nil,
+    action_idx = nil,
+    caster_id = nil
+  }
+end
+
+function ProtoMessage:newWorldCombatSkillJumpEndInfo()
+  return {
+    skill_id = nil,
+    action_idx = nil,
+    caster_id = nil,
+    pos = ProtoMessage:newPoint()
+  }
+end
+
+function ProtoMessage:newWorldCombatSkillRcdInfo()
+  return {
+    skill_id = nil,
+    action_idx = nil,
+    caster_id = nil
+  }
+end
+
+function ProtoMessage:newWorldCombatSkillPetCollisionInfo()
+  return {
+    skill_id = nil,
+    action_idx = nil,
+    block_skill_id = nil
+  }
+end
+
 function ProtoMessage:newActorInfo_BornDie()
   return {
     skill_or_anim = nil,
@@ -8256,6 +9209,27 @@ function ProtoMessage:newActorInfo_Base()
     gender = nil,
     born_die_info = ProtoMessage:newActorInfo_BornDie(),
     platform_actor_id = nil
+  }
+end
+
+function ProtoMessage:newCompExtendData()
+  return {
+    comp_type = nil,
+    i64_data1 = nil,
+    i64_data2 = nil,
+    i64_data3 = nil,
+    bytes1 = nil,
+    bytes2 = nil,
+    bytes3 = nil,
+    bytes_array1 = {},
+    bytes_array2 = {},
+    bytes_array3 = {}
+  }
+end
+
+function ProtoMessage:newCompExtendDatas()
+  return {
+    datas = {}
   }
 end
 
@@ -8294,7 +9268,8 @@ function ProtoMessage:newActorInfo_NpcBase()
     initial_affectionate = nil,
     create_visiting_uins = {},
     create_avatar_name = nil,
-    habitat_id = nil
+    habitat_id = nil,
+    owl_sanctuary_content_cfg_id = nil
   }
 end
 
@@ -8356,6 +9331,13 @@ function ProtoMessage:newActorInfo_AvatarInteract()
   }
 end
 
+function ProtoMessage:newResonanceInfo()
+  return {
+    dancing = nil,
+    player_id = {}
+  }
+end
+
 function ProtoMessage:newPlayerRideStatusParams()
   return {
     ride_pet_id = nil,
@@ -8374,7 +9356,9 @@ function ProtoMessage:newPlayerRideStatusParams()
     ride_npc_id = nil,
     owner_id = nil,
     pet_voice = nil,
-    pet_gid = nil
+    pet_gid = nil,
+    resonance_info = ProtoMessage:newResonanceInfo(),
+    option_id = nil
   }
 end
 
@@ -8403,11 +9387,21 @@ function ProtoMessage:newPlayerTransformStatusParams()
   }
 end
 
+function ProtoMessage:newCircusPetParams()
+  return {
+    balance_stage = nil,
+    balance_roll = nil,
+    balance_pitch = nil,
+    is_moving_on_ground = nil
+  }
+end
+
 function ProtoMessage:newPlayerRideSkillStatusParams()
   return {
     skill_id = nil,
     skill_stage = nil,
-    target_pos = ProtoMessage:newPosition()
+    target_pos = ProtoMessage:newPosition(),
+    circus_pet_params = ProtoMessage:newCircusPetParams()
   }
 end
 
@@ -8421,7 +9415,8 @@ function ProtoMessage:newPlayerRolePlayStatusParams()
     glass_info = ProtoMessage:newGlassInfo(),
     skill_interact_id = nil,
     skill_type = ProtoEnum.RolePlaySkillType.RPST_NONE,
-    is_stop_loop = nil
+    is_stop_loop = nil,
+    ball_id = nil
   }
 end
 
@@ -8481,7 +9476,8 @@ function ProtoMessage:newActorInfo_AvatarDetailStatus()
     status_list = {},
     sub_status_list = {},
     avatar_status_params = {},
-    end_transform_time = nil
+    end_transform_time = nil,
+    player_tags = {}
   }
 end
 
@@ -8523,7 +9519,9 @@ function ProtoMessage:newActorInfo_NpcOptionInfo()
     cur_action_info = ProtoMessage:newActorInfo_NpcActionInfo(),
     succ_exec_times = nil,
     first_dialog_id = nil,
-    is_shared_opt = nil
+    is_shared_opt = nil,
+    whitelist_uins = {},
+    blacklist_uins = {}
   }
 end
 
@@ -8542,6 +9540,16 @@ function ProtoMessage:newActorInfo_NpcInteract()
     option_infos = {},
     visitor_only_option_infos = {},
     seat_info = ProtoMessage:newActorInfo_NpcSeatInfo()
+  }
+end
+
+function ProtoMessage:newNpcPropSlotInfo()
+  return {slot_idx = nil, holder_avatar_id = nil}
+end
+
+function ProtoMessage:newActorInfo_NpcProp()
+  return {
+    npc_prop_slot_infos = {}
   }
 end
 
@@ -8593,7 +9601,8 @@ function ProtoMessage:newActorInfo_Aura()
     dir = nil,
     params = {},
     radius = nil,
-    create_avatar_id = nil
+    create_avatar_id = nil,
+    avatar_white_list = {}
   }
 end
 
@@ -8751,7 +9760,8 @@ function ProtoMessage:newActorInfo_NpcMisc()
     throw_id = nil,
     cannot_be_seen = nil,
     box_extra_reward_info_list = {},
-    npc_hide_flag = nil
+    npc_hide_flag = nil,
+    size_scale = nil
   }
 end
 
@@ -8845,99 +9855,6 @@ function ProtoMessage:newActorInfo_WorldCombatSkill()
   }
 end
 
-function ProtoMessage:newSnapshoot_WorldCombatSkillActionJump()
-  return {
-    begin_pos = ProtoMessage:newPosition(),
-    target_pos = ProtoMessage:newPosition(),
-    apex_pos = ProtoMessage:newPosition()
-  }
-end
-
-function ProtoMessage:newSnapshoot_WorldCombatSkillActionRcd()
-  return {
-    begin_pos = ProtoMessage:newPosition(),
-    target_pos = ProtoMessage:newPosition(),
-    cur_ray_length = nil,
-    ex_target_pos = ProtoMessage:newPosition(),
-    ex_target_id = nil
-  }
-end
-
-function ProtoMessage:newWorldCombatDotsSkillMissileLaunchInfo_Curve()
-  return {
-    launch_pos = ProtoMessage:newPosition(),
-    curve_fly_time = nil
-  }
-end
-
-function ProtoMessage:newWorldCombatDotsSkillMissileLaunchInfo_Trace()
-  return {
-    accelerate_speed = nil,
-    max_speed = nil,
-    angle_speed = nil,
-    cancel_trace_dist = nil,
-    trace_dur_time = nil,
-    is_keep_land_height = nil,
-    land_height = nil
-  }
-end
-
-function ProtoMessage:newWorldCombatDotsSkillMissileLaunchInfo_Normal()
-  return {
-    accelerate_speed = nil,
-    max_speed = nil,
-    is_keep_land_height = nil,
-    land_height = nil
-  }
-end
-
-function ProtoMessage:newSnapshoot_WorldCombatSkillActionMissile()
-  return {
-    master_id = nil,
-    cur_speed = nil,
-    accelerate_speed = nil,
-    max_speed = nil,
-    angle_speed = nil,
-    cancel_trace_dist = nil,
-    trace_dur_time = nil,
-    is_keep_land_height = nil,
-    land_height = nil,
-    cur_launch_time = nil,
-    target_pos = ProtoMessage:newPosition(),
-    target_id = nil,
-    missile_type = nil,
-    curve_bullet = ProtoMessage:newWorldCombatDotsSkillMissileLaunchInfo_Curve(),
-    trace_bullet = ProtoMessage:newWorldCombatDotsSkillMissileLaunchInfo_Trace(),
-    normal_bullet = ProtoMessage:newWorldCombatDotsSkillMissileLaunchInfo_Normal()
-  }
-end
-
-function ProtoMessage:newSnapshoot_WorldCombatSkillActionCrush()
-  return {
-    begin_pos = ProtoMessage:newPosition(),
-    target_pos = ProtoMessage:newPosition()
-  }
-end
-
-function ProtoMessage:newSnapshoot_WorldCombatSkillActionShowHide()
-  return {
-    show_hide_info = ProtoMessage:newWorldCombatDotsSkillShowHideInfo()
-  }
-end
-
-function ProtoMessage:newActorInfo_WorldCombatSkillAction()
-  return {
-    GUID = nil,
-    skill_begin_time = nil,
-    skill_action_type = ProtoEnum.SkillActionType.WorldCombatDotsSkillJump,
-    jump_snapshoot = ProtoMessage:newSnapshoot_WorldCombatSkillActionJump(),
-    rcd_snapshoot = ProtoMessage:newSnapshoot_WorldCombatSkillActionRcd(),
-    missile_snapshoot = ProtoMessage:newSnapshoot_WorldCombatSkillActionMissile(),
-    crush_snapshoot = ProtoMessage:newSnapshoot_WorldCombatSkillActionCrush(),
-    show_hide_snapshoot = ProtoMessage:newSnapshoot_WorldCombatSkillActionShowHide()
-  }
-end
-
 function ProtoMessage:newActorInfo_NpcGuide()
   return {
     guide_infos = {}
@@ -8989,6 +9906,16 @@ function ProtoMessage:newActorInfo_CatchRecordInfo()
   }
 end
 
+function ProtoMessage:newAvatarEnterdPropInfo()
+  return {entered_npc_id = nil, slot_idx = nil}
+end
+
+function ProtoMessage:newActorInfo_RoleplayPropInfo()
+  return {
+    entered_prop_info = ProtoMessage:newAvatarEnterdPropInfo()
+  }
+end
+
 function ProtoMessage:newCellInfo_HomePlantInfo()
   return {
     home_plant_land_list = {}
@@ -9029,6 +9956,23 @@ function ProtoMessage:newActorInfo_RelationInteract()
   }
 end
 
+function ProtoMessage:newActorInfo_AvatarCamera()
+  return {
+    skin_id = nil,
+    unlock_skin_ids = {}
+  }
+end
+
+function ProtoMessage:newAIMutualPerformStateInfo()
+  return {mutual_perform_id = nil, npc_obj_id = nil}
+end
+
+function ProtoMessage:newActorInfo_AvatarAI()
+  return {
+    mutual_changed_list = {}
+  }
+end
+
 function ProtoMessage:newActorInfo_Npc()
   return {
     base = ProtoMessage:newActorInfo_Base(),
@@ -9051,7 +9995,8 @@ function ProtoMessage:newActorInfo_Npc()
     world_combat_info = ProtoMessage:newActorInfo_WorldCombat(),
     world_combat_skill_info = ProtoMessage:newActorInfo_WorldCombatSkill(),
     home_pet = ProtoMessage:newActorInfo_HomePet(),
-    attach_item_info = ProtoMessage:newActorInfo_AttachItem()
+    attach_item_info = ProtoMessage:newActorInfo_AttachItem(),
+    npc_prop = ProtoMessage:newActorInfo_NpcProp()
   }
 end
 
@@ -9088,7 +10033,10 @@ function ProtoMessage:newActorInfo_Avatar()
     relation_interact = ProtoMessage:newActorInfo_RelationInteract(),
     uin_owl_sanctuary_info = {},
     catch_record_info = ProtoMessage:newActorInfo_CatchRecordInfo(),
-    wearing_item = {}
+    wearing_item = {},
+    roleplay_prop_info = ProtoMessage:newActorInfo_RoleplayPropInfo(),
+    camera_info = ProtoMessage:newActorInfo_AvatarCamera(),
+    avatar_ai_info = ProtoMessage:newActorInfo_AvatarAI()
   }
 end
 
@@ -9253,7 +10201,7 @@ function ProtoMessage:newNpcInteractResult()
   }
 end
 
-function ProtoMessage:newSceneRequiredPlayerInfo()
+function ProtoMessage:newOldFlavorSceneRequiredPlayerInfo()
   return {
     name = nil,
     lv = nil,
@@ -9293,6 +10241,24 @@ function ProtoMessage:newSceneRequiredPlayerInfo()
     current_select_pet_gid = nil,
     big_world_pet_data = {},
     main_team_gids = {}
+  }
+end
+
+function ProtoMessage:newSceneRequiredPlayerInfo()
+  return {
+    player_tags = {},
+    daily_online_time = nil,
+    together_starlight_bonus_ratio = nil
+  }
+end
+
+function ProtoMessage:newTransformStoryFlagData()
+  return {need_delete_story_flag = nil}
+end
+
+function ProtoMessage:newSceneCorrectedPlayerInfo()
+  return {
+    dungeon_corrected_player_info = ProtoMessage:newSceneDungeonCorrectedPlayerInfo()
   }
 end
 
@@ -9366,7 +10332,9 @@ function ProtoMessage:newActorPartData_NpcBase()
     attach_item_id = nil,
     voice = nil,
     create_visiting_uins = {},
-    create_avatar_name = nil
+    create_avatar_name = nil,
+    npc_belong_owl_content_id = nil,
+    refresh_batch_id = nil
   }
 end
 
@@ -9538,7 +10506,8 @@ function ProtoMessage:newAvatarNpcRefreshInfo_Refresh()
     reset_contents = {},
     flower_seed_boss_datas = {},
     exhausted_contents = {},
-    opened_content_ids = {}
+    opened_content_ids = {},
+    rand_rule_reseting = nil
   }
 end
 
@@ -9549,7 +10518,8 @@ function ProtoMessage:newOwlContentMetaData()
     is_owl_sanctuary_content_advantage = nil,
     owl_sanctuary_content_area_id = nil,
     owl_sanctuary_refresh_max_num = nil,
-    owl_sanctuary_refresh_storage_num = nil
+    owl_sanctuary_refresh_storage_num = nil,
+    owl_sanctuary_habitat_id = nil
   }
 end
 
@@ -9651,12 +10621,20 @@ function ProtoMessage:newSubmitItemFreeList()
   }
 end
 
+function ProtoMessage:newNpcOptionData_CooldownInfo()
+  return {cooldown_enter_time = nil, remaining_times = nil}
+end
+
 function ProtoMessage:newNpcOptionExtraData()
   return {
     submit_item_free_list = {},
     battle_difficulty_id = nil,
     battle_cfg_id = nil
   }
+end
+
+function ProtoMessage:newNpcOptionStashExtraData()
+  return {action_reward_id = nil}
 end
 
 function ProtoMessage:newNpcOptionData()
@@ -9687,7 +10665,11 @@ function ProtoMessage:newNpcOptionData()
     task_disable_flag = nil,
     dynamic_select_id = nil,
     extra_data = ProtoMessage:newNpcOptionExtraData(),
-    need_permanent_npc = nil
+    need_permanent_npc = nil,
+    cooldown_info = ProtoMessage:newNpcOptionData_CooldownInfo(),
+    stash_extra_data = ProtoMessage:newNpcOptionStashExtraData(),
+    white_list_uins = {},
+    black_list_uins = {}
   }
 end
 
@@ -9845,9 +10827,14 @@ function ProtoMessage:newActorCompData_AvatarMisc()
     card_music_id = nil,
     magic_create_npcs = {},
     camera_npc_id = nil,
+    camera_skin_id = nil,
+    unlock_skin_ids = {},
     cave_area_func_id = nil,
     difficulty_infos = {},
-    nightmare_records = {}
+    nightmare_records = {},
+    consume_states = ProtoMessage:newOfflineOperationConsumeState(),
+    scene_required_player_info = ProtoMessage:newSceneRequiredPlayerInfo(),
+    trans_form_story_flag_data = ProtoMessage:newTransformStoryFlagData()
   }
 end
 
@@ -9857,6 +10844,16 @@ function ProtoMessage:newPedalData()
     pet_npc_id = nil,
     avatar_id = nil,
     option_id = nil
+  }
+end
+
+function ProtoMessage:newBoxData()
+  return {
+    other_box_npc_ids = {},
+    inner_npc_content_id = nil,
+    bonus_type = nil,
+    box_type = ProtoEnum.BoxType.BOX_TYPE_INVALID,
+    certain_box_info = ProtoMessage:newBoxMonsterInfo()
   }
 end
 
@@ -9875,7 +10872,11 @@ function ProtoMessage:newActorCompData_NpcMisc()
     pet_catched_ball_id = nil,
     npc_hide_flag = nil,
     property_types = {},
-    is_fixed = nil
+    is_fixed = nil,
+    box_data = ProtoMessage:newBoxData(),
+    season_pet_info = ProtoMessage:newSeasonPetInfo(),
+    size_scale = nil,
+    skip_attr_reset = nil
   }
 end
 
@@ -9978,7 +10979,8 @@ end
 function ProtoMessage:newActorCompData_NpcTrace()
   return {
     npc_trace_datas = {},
-    query_info = ProtoMessage:newNpcTraceQueryInfo()
+    query_info = ProtoMessage:newNpcTraceQueryInfo(),
+    fix_data_time = nil
   }
 end
 
@@ -10137,7 +11139,8 @@ end
 function ProtoMessage:newActorCompData_AuraMgr()
   return {
     max_aura_id = nil,
-    aura_infos = {}
+    aura_infos = {},
+    born_aura_infos = {}
   }
 end
 
@@ -10170,6 +11173,14 @@ function ProtoMessage:newThrowedBagItemInfo()
   }
 end
 
+function ProtoMessage:newThrowCatchResultData()
+  return {
+    throw_id = nil,
+    catch_begin_time = nil,
+    scene_catch_result = ProtoMessage:newSceneCatchResult()
+  }
+end
+
 function ProtoMessage:newActorCompData_Thrower()
   return {
     throw_pet_info = {},
@@ -10178,7 +11189,8 @@ function ProtoMessage:newActorCompData_Thrower()
     throwing_magic_info = {},
     bagitem_infos_thrown_in_visiting = {},
     wait_pet_interact_gids = {},
-    throw_seat_info = ProtoMessage:newThrowSeatInfo()
+    throw_seat_info = ProtoMessage:newThrowSeatInfo(),
+    throw_catch_result_datas = {}
   }
 end
 
@@ -10348,7 +11360,8 @@ function ProtoMessage:newActorCompData_Minigame()
   return {
     minigame_data = ProtoMessage:newPlayingMinigameData(),
     last_minigame_trigger = ProtoMessage:newMinigameTriggerData(),
-    opened_minigame_cfg_ids = {}
+    opened_minigame_cfg_ids = {},
+    mate_uin = nil
   }
 end
 
@@ -10432,10 +11445,17 @@ function ProtoMessage:newBonusEventPoolPetCondRecord()
   }
 end
 
+function ProtoMessage:newBonusContainerCfgRecord()
+  return {
+    bonus_container_cfg_id = {}
+  }
+end
+
 function ProtoMessage:newBonusEventPoolPetCondInfo()
   return {
     catch_times = nil,
-    cond_satisfied_record = {}
+    cond_satisfied_record = {},
+    bonus_container_record = {}
   }
 end
 
@@ -10508,6 +11528,36 @@ function ProtoMessage:newActionBonusPityInfo()
   }
 end
 
+function ProtoMessage:newC1PersistData()
+  return {
+    c1_bonus_count = nil,
+    c1_shining_count = nil,
+    c1_inj = nil,
+    c1_reset_threshold = nil,
+    bonus_shinning_stg_cfg_id = nil
+  }
+end
+
+function ProtoMessage:newBonusGiftConditionTypeData()
+  return {cur_activity_days = nil, last_activity_day = nil}
+end
+
+function ProtoMessage:newC2GiftCondData()
+  return {
+    gift_conf_id = nil,
+    activity_day_shining = ProtoMessage:newBonusGiftConditionTypeData()
+  }
+end
+
+function ProtoMessage:newC2PersistData()
+  return {
+    c2_judge_gift_set_num = nil,
+    c2_factor = nil,
+    c2_shining_num = nil,
+    c2_gift_cond_data = {}
+  }
+end
+
 function ProtoMessage:newActorCompData_ActionBonus()
   return {
     action_bonuses = {},
@@ -10518,12 +11568,18 @@ function ProtoMessage:newActorCompData_ActionBonus()
     c1_inj = nil,
     c1_reset_threshold = nil,
     bonus_shinning_stg_cfg_id = nil,
+    c2_persist_data = ProtoMessage:newC2PersistData(),
     catch_times_until_bonus = nil,
     visiting_catch_times_until_bonus = nil,
     together_catch_times_until_bonus = nil,
     catch_times_until_shin_bonus = nil,
-    bonus_timestamp = nil
+    bonus_timestamp = nil,
+    bonus_cnt = nil
   }
+end
+
+function ProtoMessage:newActorCompData_CatchBonusCtrl()
+  return {}
 end
 
 function ProtoMessage:newSceneObjectInfo()
@@ -10683,6 +11739,13 @@ function ProtoMessage:newActorCompData_Buff()
   return {
     max_buff_id = nil,
     buff_infos = {}
+  }
+end
+
+function ProtoMessage:newActorCompData_RoleplayProp()
+  return {
+    created_roleplay_data = ProtoMessage:newCreatedRoleplayPropData(),
+    entered_roleplay_data = ProtoMessage:newEnteredRoleplayPropData()
   }
 end
 
@@ -10966,19 +12029,61 @@ function ProtoMessage:newNpcGuardData()
   return {guard_cfg_id = nil, num = nil}
 end
 
+function ProtoMessage:newNpcGuardLimitData()
+  return {
+    guard_cfg_id = nil,
+    is_open = nil,
+    daily_max_count = nil
+  }
+end
+
 function ProtoMessage:newActorCompData_NpcGuard()
   return {
     guard_data = {},
     last_clear_time = nil,
     ban_func_list = {},
     npc_refresh_ban_time = nil,
-    npc_refresh_ban_probability = nil
+    npc_refresh_ban_probability = nil,
+    guard_limit_data = {}
   }
 end
 
 function ProtoMessage:newActorCompData_NpcBattle()
   return {
-    fighting_uins = {}
+    fighting_uins = {},
+    catched_by_uins = {}
+  }
+end
+
+function ProtoMessage:newNpcPropSlotData()
+  return {holder_avatar_id = nil}
+end
+
+function ProtoMessage:newActorCompData_NpcProp()
+  return {
+    slot_datas = {}
+  }
+end
+
+function ProtoMessage:newActorCompData_AbnormalStatus()
+  return {}
+end
+
+function ProtoMessage:newNpcInfoChangeData()
+  return {content_id = nil, change_detail_cfg_id = nil}
+end
+
+function ProtoMessage:newNpcInfoChangeRetryData()
+  return {change_detail_cfg_id = nil}
+end
+
+function ProtoMessage:newActorCompData_NpcInfoChange()
+  return {
+    wild_mutation_change_num = nil,
+    last_check_time = nil,
+    changed_content_list = {},
+    wait_change_content_list = {},
+    retry_change_content_list = {}
   }
 end
 
@@ -10988,6 +12093,7 @@ function ProtoMessage:newActorData_Npc()
     npc_base = ProtoMessage:newActorPartData_NpcBase(),
     drop_item_data = ProtoMessage:newActorPartData_DropItem(),
     trigger_data = ProtoMessage:newActorPartData_Trigger(),
+    comp_extend_datas = ProtoMessage:newCompExtendDatas(),
     installed_comps = ProtoMessage:newSpaceObjPartData_InstalledComp(),
     comp_data_test = ProtoMessage:newActorCompData_Test(),
     comp_data_broadcaster = ProtoMessage:newActorCompData_Broadcaster(),
@@ -11023,7 +12129,8 @@ function ProtoMessage:newActorData_Npc()
     comp_data_home_pet = ProtoMessage:newActorCompData_HomePet(),
     comp_data_home_plant_npc = ProtoMessage:newActorCompData_HomePlantNpc(),
     comp_data_home_pet_egg = ProtoMessage:newActorCompData_HomePetEgg(),
-    comp_data_npc_battle = ProtoMessage:newActorCompData_NpcBattle()
+    comp_data_npc_battle = ProtoMessage:newActorCompData_NpcBattle(),
+    comp_data_npc_prop = ProtoMessage:newActorCompData_NpcProp()
   }
 end
 
@@ -11091,7 +12198,8 @@ function ProtoMessage:newActorCompData_NpcRefresher()
     last_glass_reset_time = nil,
     create_glass_npc_num = nil,
     last_nightmare_reset_time = nil,
-    create_nightmare_npc_num = nil
+    create_nightmare_npc_num = nil,
+    high_value_npc_num = nil
   }
 end
 
@@ -11142,7 +12250,9 @@ function ProtoMessage:newActorCompData_Season()
     boss_is_refresh = nil,
     season_adv_shining_extra_weight = nil,
     season_adv_catch_prob_add = nil,
-    season_boss_id = nil
+    season_boss_id = nil,
+    boss_battle_rule_infos = {},
+    next_refresh_word_timestamp = nil
   }
 end
 
@@ -11170,8 +12280,16 @@ function ProtoMessage:newActorCompData_TravelingMerchant()
   }
 end
 
+function ProtoMessage:newAvatarFriendRecommendInfo()
+  return {
+    recommend_info = ProtoMessage:newFriendRecommendInfo()
+  }
+end
+
 function ProtoMessage:newActorCompData_AvatarFriendProxy()
-  return {}
+  return {
+    friend_recommend_info = ProtoMessage:newAvatarFriendRecommendInfo()
+  }
 end
 
 function ProtoMessage:newActorCompData_Exchange()
@@ -11186,6 +12304,7 @@ function ProtoMessage:newActorData_Avatar()
   return {
     base = ProtoMessage:newActorPartData_Base(),
     avatar_base = ProtoMessage:newActorPartData_AvatarBase(),
+    comp_extend_datas = ProtoMessage:newCompExtendDatas(),
     installed_comps = ProtoMessage:newSpaceObjPartData_InstalledComp(),
     comp_data_test = ProtoMessage:newActorCompData_Test(),
     comp_data_broadcaster = ProtoMessage:newActorCompData_Broadcaster(),
@@ -11228,6 +12347,7 @@ function ProtoMessage:newActorData_Avatar()
     comp_data_weather = ProtoMessage:newActorCompData_Weather(),
     comp_data_exchange = ProtoMessage:newActorCompData_Exchange(),
     comp_data_action_bonus = ProtoMessage:newActorCompData_ActionBonus(),
+    comp_data_catch_bonus_ctrl = ProtoMessage:newActorCompData_CatchBonusCtrl(),
     comp_data_object_award = ProtoMessage:newActorCompData_ObjectAward(),
     comp_data_area_detector = ProtoMessage:newActorCompData_AreaDetector(),
     comp_data_appearance = ProtoMessage:newActorCompData_Appearance(),
@@ -11278,7 +12398,11 @@ function ProtoMessage:newActorData_Avatar()
     comp_data_catch_refresh_record = ProtoMessage:newActorCompData_CatchRefreshRecord(),
     comp_data_social_info_reporter = ProtoMessage:newActorCompData_SocialInfoReporter(),
     comp_data_npc_guard = ProtoMessage:newActorCompData_NpcGuard(),
-    comp_data_night_mode = ProtoMessage:newActorCompData_NightMode()
+    comp_data_night_mode = ProtoMessage:newActorCompData_NightMode(),
+    comp_data_llm_agent = ProtoMessage:newActorCompData_LlmAgent(),
+    comp_data_roleplay_prop = ProtoMessage:newActorCompData_RoleplayProp(),
+    comp_data_abnormal_status = ProtoMessage:newActorCompData_AbnormalStatus(),
+    comp_data_npc_info_change = ProtoMessage:newActorCompData_NpcInfoChange()
   }
 end
 
@@ -11376,10 +12500,6 @@ function ProtoMessage:newCellCompData_VisibleZoneMgr()
   }
 end
 
-function ProtoMessage:newCellCompData_EffectDetector()
-  return {}
-end
-
 function ProtoMessage:newVisibleCircleMemberData()
   return {
     uin = nil,
@@ -11447,6 +12567,7 @@ end
 function ProtoMessage:newCellData_Normal()
   return {
     base = ProtoMessage:newCellPartData_Base(),
+    comp_extend_datas = ProtoMessage:newCompExtendDatas(),
     installed_comps = ProtoMessage:newSpaceObjPartData_InstalledComp(),
     comp_data_test = ProtoMessage:newCellCompData_Test(),
     comp_data_action_player = ProtoMessage:newCellCompData_ActionPlayer(),
@@ -11458,7 +12579,6 @@ function ProtoMessage:newCellData_Normal()
     comp_data_asset_bundle = ProtoMessage:newCellCompData_AssetBundle(),
     comp_data_mfbt_debug = ProtoMessage:newCellCompData_MfbtDebug(),
     comp_data_visible_zone_mgr = ProtoMessage:newCellCompData_VisibleZoneMgr(),
-    comp_data_detector = ProtoMessage:newCellCompData_EffectDetector(),
     comp_data_visible_circle = ProtoMessage:newCellCompData_VisibleCircle(),
     comp_data_broadcaster = ProtoMessage:newCellCompData_MsgBroadcaster(),
     comp_data_normalized_pos = ProtoMessage:newCellCompData_NormalizedPos(),
@@ -11471,7 +12591,8 @@ function ProtoMessage:newCellData_Normal()
     comp_data_home_plant = ProtoMessage:newCellCompData_HomePlant(),
     comp_data_home_brief = ProtoMessage:newCellCompData_HomeBrief(),
     comp_data_home = ProtoMessage:newCellCompData_Home(),
-    comp_data_invoke_relay = ProtoMessage:newCellCompData_InvokeRelay()
+    comp_data_invoke_relay = ProtoMessage:newCellCompData_InvokeRelay(),
+    comp_data_area_detector = ProtoMessage:newCellCompData_AreaDetector()
   }
 end
 
@@ -11511,7 +12632,8 @@ function ProtoMessage:newCellCompData_HomePet()
     fetch_home_pet_award_cnt = nil,
     next_egg_time = nil,
     lay_egg_miss_cnt = nil,
-    high_value_pet_lay_records = {}
+    high_value_pet_lay_records = {},
+    lay_egg_seed = nil
   }
 end
 
@@ -11586,9 +12708,14 @@ function ProtoMessage:newHomePlant_StealExpel()
   return {avatar_id = nil, expel_time = nil}
 end
 
+function ProtoMessage:newCellCompData_AreaDetector()
+  return {}
+end
+
 function ProtoMessage:newSceneData_Normal()
   return {
     scene_id = nil,
+    comp_extend_datas = ProtoMessage:newCompExtendDatas(),
     installed_comps = ProtoMessage:newSpaceObjPartData_InstalledComp()
   }
 end
@@ -11619,6 +12746,7 @@ end
 
 function ProtoMessage:newSceneMgrData_Normal()
   return {
+    comp_extend_datas = ProtoMessage:newCompExtendDatas(),
     installed_comps = ProtoMessage:newSpaceObjPartData_InstalledComp(),
     comp_data_ai_sub_system = ProtoMessage:newSceneMgrCompData_AISubsystem(),
     comp_data_teleporter = ProtoMessage:newSceneMgrCompData_Teleporter(),
@@ -11735,6 +12863,15 @@ function ProtoMessage:newPlayerDialogueSyncInfo()
   }
 end
 
+function ProtoMessage:newTakePhotoEmojiPoseSyncInfo()
+  return {
+    photo_emoji_id = nil,
+    photo_pose_id = nil,
+    is_end = nil,
+    is_mirror = nil
+  }
+end
+
 function ProtoMessage:newClientOperation()
   return {
     operator_id = nil,
@@ -11746,7 +12883,8 @@ function ProtoMessage:newClientOperation()
     player_perform_info = ProtoMessage:newPlayerPerformSyncInfo(),
     cinematic_info = ProtoMessage:newPlayerCinematicSyncInfo(),
     movie_info = ProtoMessage:newPlayerMovieSyncInfo(),
-    dialogue_info = ProtoMessage:newPlayerDialogueSyncInfo()
+    dialogue_info = ProtoMessage:newPlayerDialogueSyncInfo(),
+    photo_info = ProtoMessage:newTakePhotoEmojiPoseSyncInfo()
   }
 end
 
@@ -11755,310 +12893,6 @@ function ProtoMessage:newSpaceBaseData()
     space_time_ms = nil,
     operator_obj_id = nil,
     mask = nil
-  }
-end
-
-function ProtoMessage:newWorldCombatSkillCastInfo()
-  return {skill_id = nil}
-end
-
-function ProtoMessage:newWorldCombatSkillSpawnNpcInfo()
-  return {
-    skill_id = nil,
-    action_idx = nil,
-    content_id = nil,
-    init_pos = ProtoMessage:newPosition(),
-    init_dir = ProtoMessage:newPosition(),
-    refresh_type = nil
-  }
-end
-
-function ProtoMessage:newWorldCombatSkillSpawnBulletInfo()
-  return {
-    skill_id = nil,
-    action_idx = nil,
-    caster_id = nil,
-    init_pos = ProtoMessage:newPosition(),
-    init_dir = ProtoMessage:newPosition(),
-    target_id = nil,
-    target_pos = ProtoMessage:newPosition(),
-    bullet_id = nil
-  }
-end
-
-function ProtoMessage:newWorldCombatSkillFireBulletInfo()
-  return {skill_id = nil, bullet_id = nil}
-end
-
-function ProtoMessage:newWorldCombatSkillBuffInfo()
-  return {
-    skill_id = nil,
-    operate_type = nil,
-    buff_id = nil,
-    action_idx = nil,
-    caster_id = nil,
-    target_id = nil,
-    duration_change = nil,
-    duration = nil,
-    effect_tick_interval = nil
-  }
-end
-
-function ProtoMessage:newWorldCombatSkillEndInfo()
-  return {skill_id = nil, end_reason = nil}
-end
-
-function ProtoMessage:newWorldCombatHitInfo()
-  return {
-    skill_id = nil,
-    action_idx = nil,
-    attacker_id = nil,
-    hit_dir = ProtoMessage:newPosition(),
-    impact_force = nil,
-    block_type = ProtoEnum.BlockType.BLOCK_NONE
-  }
-end
-
-function ProtoMessage:newWorldCombatSkillJumpInfo()
-  return {
-    skill_id = nil,
-    action_idx = nil,
-    caster_id = nil
-  }
-end
-
-function ProtoMessage:newWorldCombatSkillJumpEndInfo()
-  return {
-    skill_id = nil,
-    action_idx = nil,
-    caster_id = nil,
-    pos = ProtoMessage:newPoint()
-  }
-end
-
-function ProtoMessage:newWorldCombatSkillRcdInfo()
-  return {
-    skill_id = nil,
-    action_idx = nil,
-    caster_id = nil
-  }
-end
-
-function ProtoMessage:newWorldCombatSkillPetCollisionInfo()
-  return {
-    skill_id = nil,
-    action_idx = nil,
-    block_skill_id = nil
-  }
-end
-
-function ProtoMessage:newWorldCombatDotsSkillCastInfo()
-  return {
-    skill_id = nil,
-    target_id = nil,
-    target_pos = ProtoMessage:newPoint()
-  }
-end
-
-function ProtoMessage:newWorldCombatDotsSkillEndInfo()
-  return {skill_id = nil, end_reason = nil}
-end
-
-function ProtoMessage:newWorldCombatDotsSkillCrushInfo()
-  return {
-    skill_id = nil,
-    rotator = ProtoMessage:newPosition(),
-    crush_duration = nil,
-    GUID = nil,
-    crush_final_pos = ProtoMessage:newPosition(),
-    time_stamp = nil
-  }
-end
-
-function ProtoMessage:newWorldCombatDotsSkillCrushEndInfo()
-  return {
-    skill_id = nil,
-    GUID = nil,
-    stop_point = ProtoMessage:newPoint(),
-    action_time = nil,
-    time_stamp = nil
-  }
-end
-
-function ProtoMessage:newWorldCombatDotsSkillHitInfo()
-  return {
-    skill_id = nil,
-    target_id = nil,
-    hit_point = ProtoMessage:newPoint(),
-    GUID = nil,
-    block_type = ProtoEnum.BlockType.BLOCK_NONE,
-    hit_type = ProtoEnum.SkillHitType.NORMAL,
-    hit_perform_type = nil
-  }
-end
-
-function ProtoMessage:newWorldCombatDotsSkillRotateInfo()
-  return {
-    skill_id = nil,
-    rotator = ProtoMessage:newPosition(),
-    GUID = nil
-  }
-end
-
-function ProtoMessage:newWorldCombatDotsSkillLookAtInfo()
-  return {
-    skill_id = nil,
-    target_id = nil,
-    attach_point_type = nil,
-    GUID = nil,
-    target_pos = ProtoMessage:newPosition()
-  }
-end
-
-function ProtoMessage:newWorldCombatDotsSkillMissileLaunchInfo()
-  return {
-    skill_id = nil,
-    GUID = nil,
-    launch_bullet_id = nil,
-    target_id = nil,
-    speed = nil,
-    accelerate_speed = nil,
-    max_speed = nil,
-    angle_speed = nil,
-    cancel_trace_dist = nil,
-    trace_dur_time = nil,
-    is_keep_land_height = nil,
-    land_height = nil,
-    cur_launch_time = nil,
-    target_pos = ProtoMessage:newPosition(),
-    missile_type = nil,
-    curve_bullet = ProtoMessage:newWorldCombatDotsSkillMissileLaunchInfo_Curve(),
-    trace_bullet = ProtoMessage:newWorldCombatDotsSkillMissileLaunchInfo_Trace(),
-    normal_bullet = ProtoMessage:newWorldCombatDotsSkillMissileLaunchInfo_Normal()
-  }
-end
-
-function ProtoMessage:newWorldCombatDotsSkillMissileStopTraceInfo()
-  return {
-    skill_id = nil,
-    GUID = nil,
-    pt = ProtoMessage:newPoint(),
-    cur_launch_time = nil,
-    launch_bullet_id = nil
-  }
-end
-
-function ProtoMessage:newWorldCombatDotsSkillMissileDestroyInfo()
-  return {
-    skill_id = nil,
-    GUID = nil,
-    launch_bullet_id = nil
-  }
-end
-
-function ProtoMessage:newWorldCombatDotsSkillJumpInfo()
-  return {
-    skill_id = nil,
-    GUID = nil,
-    target_pos = ProtoMessage:newPosition(),
-    apex_pos = ProtoMessage:newPosition()
-  }
-end
-
-function ProtoMessage:newWorldCombatDotsSkillJumpCancelInfo()
-  return {
-    skill_id = nil,
-    GUID = nil,
-    cur_pos = ProtoMessage:newPosition(),
-    falling_pos = ProtoMessage:newPosition()
-  }
-end
-
-function ProtoMessage:newWorldCombatDotsSkillJumpEndInfo()
-  return {skill_id = nil, GUID = nil}
-end
-
-function ProtoMessage:newWorldCombatDotsSkillRcdInfo()
-  return {
-    skill_id = nil,
-    GUID = nil,
-    target_id = nil,
-    target_pos = ProtoMessage:newPosition(),
-    ray_end_need_move = nil,
-    ex_target_id = nil,
-    ex_target_pos = ProtoMessage:newPosition()
-  }
-end
-
-function ProtoMessage:newWorldCombatDotsSkillRcdEndInfo()
-  return {skill_id = nil, GUID = nil}
-end
-
-function ProtoMessage:newWorldCombatDotsSkillSelectPosInfo()
-  return {
-    skill_id = nil,
-    GUID = nil,
-    select_pos = {}
-  }
-end
-
-function ProtoMessage:newSelectPosInfo()
-  return {
-    point_idx = nil,
-    target_pos = ProtoMessage:newPosition()
-  }
-end
-
-function ProtoMessage:newWorldCombatDotsSkillHiddenInfo()
-  return {
-    skill_id = nil,
-    GUID = nil,
-    show_state = nil
-  }
-end
-
-function ProtoMessage:newWorldCombatDotsSkillHiddenEndInfo()
-  return {
-    skill_id = nil,
-    GUID = nil,
-    show_state = nil
-  }
-end
-
-function ProtoMessage:newWorldCombatDotsSkillShowHideCompInfo()
-  return {
-    comp_name = nil,
-    show_state = nil,
-    propagate_to_children = nil
-  }
-end
-
-function ProtoMessage:newWorldCombatDotsSkillShowHideInfo()
-  return {
-    show_state = nil,
-    comp_list = {}
-  }
-end
-
-function ProtoMessage:newWorldCombatDotsSkillPosLerpSyncInfo()
-  return {
-    type = ProtoEnum.WorldCombatDotsSkillPosLerpSyncInfo.Type.Skill,
-    node_index = nil,
-    skill_id = nil,
-    GUID = nil,
-    cast_point = ProtoMessage:newPoint(),
-    lerp_duration = nil,
-    pos_threshold = nil,
-    dir_threshold = nil,
-    lerp_animation_name = nil
-  }
-end
-
-function ProtoMessage:newWorldCombatDotsSkillAnimCancelInfo()
-  return {
-    skill_id = nil,
-    GUID = nil,
-    anim_cancel_pos = ProtoMessage:newPoint()
   }
 end
 
@@ -12165,6 +12999,38 @@ function ProtoMessage:newActorCompData_NightMode()
   return {}
 end
 
+function ProtoMessage:newLlmAgent_AvatarInfo()
+  return {}
+end
+
+function ProtoMessage:newLlmAgent_PetInfo()
+  return {
+    llm_pet_ids = {}
+  }
+end
+
+function ProtoMessage:newActorCompData_LlmAgent()
+  return {
+    avatar_info = ProtoMessage:newLlmAgent_AvatarInfo(),
+    pet_info = ProtoMessage:newLlmAgent_PetInfo()
+  }
+end
+
+function ProtoMessage:newLLMPetBehaviorGroupInfo()
+  return {
+    world_text = nil,
+    emoji_text = nil,
+    llm_pet_behavior_id = nil
+  }
+end
+
+function ProtoMessage:newSceneDungeonCorrectedPlayerInfo()
+  return {
+    dungeon_cfg_id = nil,
+    stages = {}
+  }
+end
+
 function ProtoMessage:newZoneBattleLoadFinishReq()
   return {
     pos_info = {},
@@ -12225,7 +13091,7 @@ function ProtoMessage:newZoneBattleCmdPopbackRsp()
 end
 
 function ProtoMessage:newZoneBattlePlayerRunawayReq()
-  return {}
+  return {runaway_type = nil}
 end
 
 function ProtoMessage:newZoneBattlePlayerRunawayRsp()
@@ -12235,7 +13101,7 @@ function ProtoMessage:newZoneBattlePlayerRunawayRsp()
 end
 
 function ProtoMessage:newZoneBattlePlayerExitReq()
-  return {}
+  return {battle_id = nil}
 end
 
 function ProtoMessage:newZoneBattlePlayerExitRsp()
@@ -12397,7 +13263,8 @@ function ProtoMessage:newPvpScoreRecord()
     blood = nil,
     carry_fantastic_skill = nil,
     type = ProtoMessage:newPetTypeInfo(),
-    defend_pet_gid = nil
+    defend_pet_gid = nil,
+    raw_score = nil
   }
 end
 
@@ -12405,12 +13272,17 @@ function ProtoMessage:newObserverPvpScoreRecord()
   return {
     uin = nil,
     score = nil,
-    watch_duration = nil
+    watch_duration = nil,
+    get_pvp_score = nil
   }
 end
 
 function ProtoMessage:newBattleFinishObtainMedalInfo()
-  return {pet_gid = nil, petbase_id = nil}
+  return {
+    pet_gid = nil,
+    petbase_id = nil,
+    normal_task_reward_id = nil
+  }
 end
 
 function ProtoMessage:newBattlePvpScoreInfo()
@@ -12780,7 +13652,8 @@ function ProtoMessage:newMonthCardData()
     last_sign_time = nil,
     continue_time = nil,
     reset_time = nil,
-    daily_rewards = nil
+    daily_rewards = nil,
+    daily_tips_show = nil
   }
 end
 
@@ -12821,7 +13694,12 @@ function ProtoMessage:newMidasFailRetryPresentList()
 end
 
 function ProtoMessage:newMidasDistriBillInfo()
-  return {billno = nil, update_time = nil}
+  return {
+    billno = nil,
+    update_time = nil,
+    goods_id = nil,
+    create_time = nil
+  }
 end
 
 function ProtoMessage:newMidasDistriBillList()
@@ -12962,46 +13840,6 @@ function ProtoMessage:newNavFindPathInfo()
   }
 end
 
-function ProtoMessage:newDebugDrawColor()
-  return {
-    R = nil,
-    G = nil,
-    B = nil,
-    A = nil
-  }
-end
-
-function ProtoMessage:newNavMeshDebugDraw()
-  return {
-    tiles = {}
-  }
-end
-
-function ProtoMessage:newNavMeshBoundary()
-  return {
-    begin_pos = ProtoMessage:newPosition(),
-    end_pos = ProtoMessage:newPosition()
-  }
-end
-
-function ProtoMessage:newNavMeshPoly()
-  return {
-    flag = nil,
-    color = ProtoMessage:newDebugDrawColor(),
-    verts = {}
-  }
-end
-
-function ProtoMessage:newNavMeshTile()
-  return {
-    polys = {},
-    inner_boundaries = {},
-    inner_color = ProtoMessage:newDebugDrawColor(),
-    outer_boundaries = {},
-    outer_color = ProtoMessage:newDebugDrawColor()
-  }
-end
-
 function ProtoMessage:newHomePetGmStealInfo()
   return {
     pet_gid = nil,
@@ -13056,7 +13894,8 @@ function ProtoMessage:newMailRecvBrief()
     guard_id = nil,
     add_time = nil,
     expire_at = nil,
-    mail_serial_num = nil
+    mail_serial_num = nil,
+    mail_sub_type = nil
   }
 end
 
@@ -13193,6 +14032,183 @@ function ProtoMessage:newPlayerSettings()
   }
 end
 
+function ProtoMessage:newGrassTrialFusedSkillData()
+  return {
+    base_skill_id = nil,
+    fused_power = nil,
+    fused_energy_cost = nil,
+    fusion_count = nil,
+    fusion_max = nil,
+    skill_type = nil,
+    merged_skill_ids = {},
+    slot_pos = nil
+  }
+end
+
+function ProtoMessage:newGrassTrialPet()
+  return {
+    pet_gid = nil,
+    base_conf_id = nil,
+    current_hp = nil,
+    max_hp = nil,
+    level = nil,
+    energy_ceiling = nil,
+    growth = nil,
+    skills = {},
+    acquired_feature_ids = {},
+    acquired_shard_effect_ids = {}
+  }
+end
+
+function ProtoMessage:newGrassTrialNodeRecord()
+  return {
+    chapter_id = nil,
+    node_index = nil,
+    event_conf_id = nil,
+    opponent_monster_id = nil,
+    is_completed = nil
+  }
+end
+
+function ProtoMessage:newGrassTrialNodeEvent()
+  return {
+    slot_index = nil,
+    event_conf_id = nil,
+    reward_id = nil,
+    event_refresh_cost = nil,
+    reward_refresh_cost = nil,
+    random_skills = {},
+    level = nil
+  }
+end
+
+function ProtoMessage:newGrassTrialNodeSelection()
+  return {
+    node_events = {},
+    event_refresh_count = nil,
+    reward_refresh_count = nil
+  }
+end
+
+function ProtoMessage:newGrassTrialEventSelected()
+  return {
+    event_conf_id = nil,
+    reward_id = nil,
+    is_waiting_recieve = nil
+  }
+end
+
+function ProtoMessage:newGrassTrialChallengeData()
+  return {
+    state = nil,
+    trial_conf_id = nil,
+    current_chapter_id = nil,
+    current_node_index = nil,
+    trial_pet_data = ProtoMessage:newGrassTrialPet(),
+    initial_skill_id = nil,
+    remaining_coin = nil,
+    active_trial_effect_ids = {},
+    completed_nodes = {},
+    chapter_event_pool = {},
+    current_selection = ProtoMessage:newGrassTrialNodeSelection(),
+    challenge_start_time = nil,
+    accumulated_score = nil,
+    discovered_monster_ids = {},
+    fusion_type = nil,
+    event_selected = ProtoMessage:newGrassTrialEventSelected(),
+    first_dungeon_id = nil,
+    leaved_second_scene = nil
+  }
+end
+
+function ProtoMessage:newGrassTrialReviewRecord()
+  return {
+    settle_timestamp = nil,
+    petbase_conf_id = nil,
+    pet_level = nil,
+    pet_growth = nil,
+    trial_conf_id = nil,
+    is_victory = nil,
+    challenge_duration = nil,
+    node_records = {},
+    review_skills = {},
+    review_feature_ids = {},
+    review_shard_ids = {}
+  }
+end
+
+function ProtoMessage:newGrassTrialReviewSkillInfo()
+  return {
+    base_skill_id = nil,
+    fusion_count = nil,
+    merged_skill_ids = {}
+  }
+end
+
+function ProtoMessage:newGrassTrialHandbookSlotReward()
+  return {
+    trial_conf_id = nil,
+    reward_id = nil,
+    reward_count = nil
+  }
+end
+
+function ProtoMessage:newGrassTrialHandbookSlotState()
+  return {
+    pet_base_id = nil,
+    slot_index = nil,
+    slot_type = nil,
+    slot_reward = {}
+  }
+end
+
+function ProtoMessage:newGrassTrialLogSceneRecord()
+  return {
+    log_conf_id = nil,
+    discovered_monster_ids = {},
+    final_reward_claimed = nil
+  }
+end
+
+function ProtoMessage:newGrassTrialPeriodReward()
+  return {
+    required_score = nil,
+    state = ProtoMessage:newRewardState()
+  }
+end
+
+function ProtoMessage:newGrassTrialPeriodData()
+  return {
+    period_conf_id = nil,
+    period_reward = {},
+    current_period_score = nil
+  }
+end
+
+function ProtoMessage:newGrassTrialProgressData()
+  return {
+    cleared_trial_ids = {},
+    first_reward_claimed_trial_ids = {},
+    handbook_slots = {},
+    review_records = {},
+    log_records = {}
+  }
+end
+
+function ProtoMessage:newGrassTrialData()
+  return {
+    challenge_data = ProtoMessage:newGrassTrialChallengeData(),
+    progress_data = ProtoMessage:newGrassTrialProgressData(),
+    period_data = ProtoMessage:newGrassTrialPeriodData()
+  }
+end
+
+function ProtoMessage:newBadgeTrialData()
+  return {
+    grass_trial_data = ProtoMessage:newGrassTrialData()
+  }
+end
+
 function ProtoMessage:newDungeonInfo()
   return {
     dungeon_id = nil,
@@ -13252,6 +14268,25 @@ function ProtoMessage:newGuideGroup()
   }
 end
 
+function ProtoMessage:newActivityPetTripLotteryRecord()
+  return {
+    activity_id = nil,
+    result = nil,
+    lottery_id = nil,
+    total_happy_value = nil,
+    wish_choice = nil,
+    total_record_num = nil,
+    goods_id = nil,
+    goods_type = nil,
+    num = nil,
+    pet_gift_num = nil
+  }
+end
+
+function ProtoMessage:newSeasonCatchRewardInfo()
+  return {reward_refresh_time = nil, reward_daily_num = nil}
+end
+
 function ProtoMessage:newPlayerMiscInfo()
   return {
     cur_selected_throw_item = ProtoMessage:newThrowItemInfo(),
@@ -13277,7 +14312,11 @@ function ProtoMessage:newPlayerMiscInfo()
     gift_code = nil,
     plat_friend_num_cache = nil,
     video_recording = nil,
-    player_rp_behavior_using_list = {}
+    player_rp_behavior_using_list = {},
+    activity_lottery_records = {},
+    offline_operation_consume_state = ProtoMessage:newOfflineOperationConsumeState(),
+    has_aicoach_shown_notify = nil,
+    season_catch_reward_info = ProtoMessage:newSeasonCatchRewardInfo()
   }
 end
 
@@ -13397,7 +14436,8 @@ function ProtoMessage:newPlayerBattleData_ObserveBattleData()
   return {
     uin = nil,
     flag = nil,
-    backup_scene = ProtoMessage:newPlayerSceneInfo()
+    backup_scene = ProtoMessage:newPlayerSceneInfo(),
+    observe_start_time = nil
   }
 end
 
@@ -13421,6 +14461,16 @@ end
 
 function ProtoMessage:newPlayerMailDataInfo()
   return {mail_cache_num = nil, last_marquee_check_time = nil}
+end
+
+function ProtoMessage:newIdipMailSerialInfo()
+  return {serial = nil, update_time = nil}
+end
+
+function ProtoMessage:newIdipMailSerialList()
+  return {
+    serials = {}
+  }
 end
 
 function ProtoMessage:newPlayerSvrDataInfo()
@@ -13479,7 +14529,12 @@ function ProtoMessage:newPlayerSvrDataInfo()
     liabilities_mail_send_info = ProtoMessage:newDailySendMailList(),
     season_adventure = ProtoMessage:newPlayerSeasonAdventureData(),
     teaching_tab_info = ProtoMessage:newPlayerTeachingTabInfo(),
-    mail_info = ProtoMessage:newPlayerMailDataInfo()
+    mail_info = ProtoMessage:newPlayerMailDataInfo(),
+    npc_lottery_data = {},
+    badge_trial_data = ProtoMessage:newBadgeTrialData(),
+    idip_mail_serials = ProtoMessage:newIdipMailSerialList(),
+    opt_reward_info = ProtoMessage:newOptReWardNumList(),
+    flow_gid = nil
   }
 end
 
@@ -13545,7 +14600,8 @@ function ProtoMessage:newPlayerPetInfo()
     pet_medal_info = ProtoMessage:newCliPetMedalInfo(),
     pet_task_info = ProtoMessage:newPetTaskInfo(),
     monitor_info = ProtoMessage:newPlayerPetMonitorInfo(),
-    current_select_pet_gid = nil
+    current_select_pet_gid = nil,
+    report_brief_info = ProtoMessage:newPetReportBriefInfo()
   }
 end
 
@@ -13655,6 +14711,22 @@ function ProtoMessage:newPlayerBagItemIdFlagList()
   }
 end
 
+function ProtoMessage:newBagItemExpireInfo()
+  return {
+    id = nil,
+    expire_time = nil,
+    num = nil,
+    gid = nil,
+    is_finish_conver = nil
+  }
+end
+
+function ProtoMessage:newBagItemExpireList()
+  return {
+    items = {}
+  }
+end
+
 function ProtoMessage:newPlayerBagInfo()
   return {
     gid = nil,
@@ -13669,7 +14741,8 @@ function ProtoMessage:newPlayerBagInfo()
     drop_weight_info = {},
     mask_bag_list = {},
     last_check_mask_time = nil,
-    bag_item_id_flag = ProtoMessage:newPlayerBagItemIdFlagList()
+    bag_item_id_flag = ProtoMessage:newPlayerBagItemIdFlagList(),
+    bag_item_expire_list = ProtoMessage:newBagItemExpireList()
   }
 end
 
@@ -13791,6 +14864,16 @@ function ProtoMessage:newDailyGetItemLimitInfo()
   return {
     id = nil,
     reason_gets = {}
+  }
+end
+
+function ProtoMessage:newOptReWardNumInfo()
+  return {opt_id = nil, num = nil}
+end
+
+function ProtoMessage:newOptReWardNumList()
+  return {
+    items = {}
   }
 end
 
@@ -13990,6 +15073,28 @@ function ProtoMessage:newPlayerTeachingTabInfo()
   }
 end
 
+function ProtoMessage:newLotteryRewardRecord()
+  return {
+    reward_conf_id = nil,
+    total_claimed = nil,
+    daily_claimed = nil,
+    last_claim_day = nil,
+    weely_claimed = nil
+  }
+end
+
+function ProtoMessage:newPlayerNpcLotteryData()
+  return {
+    logic_id = nil,
+    logic_version = nil,
+    lottery_pool_id = nil,
+    reward_records = {},
+    logic_ver = nil,
+    daily_reset_time = nil,
+    weely_reset_time = nil
+  }
+end
+
 function ProtoMessage:newVisibleAvatarInfo()
   return {
     uin = nil,
@@ -14007,12 +15112,290 @@ function ProtoMessage:newVisiblePlanInfo()
   }
 end
 
+function ProtoMessage:newRankboardKey()
+  return {
+    rank_type = ProtoEnum.RankListType.RANK_LIST_TYPE_INVALID,
+    rank_id = nil
+  }
+end
+
+function ProtoMessage:newCSRankUser()
+  return {
+    rank = nil,
+    user_info = ProtoMessage:newRankUserInfo(),
+    estimated = ProtoMessage:newRankEstimatedData()
+  }
+end
+
+function ProtoMessage:newRankUserInfo()
+  return {
+    info_id = nil,
+    score = nil,
+    sort_field1 = nil,
+    sort_field2 = nil,
+    sort_field3 = nil,
+    sort_field4 = nil,
+    sort_field5 = nil,
+    ext_data = ProtoMessage:newRankExtData()
+  }
+end
+
+function ProtoMessage:newRankEstimatedData()
+  return {total_count = nil, rank = nil}
+end
+
+function ProtoMessage:newRankExtData()
+  return {
+    base_data = ProtoMessage:newBaseRankExtData(),
+    pvp_data = ProtoMessage:newPvpRankExtData(),
+    photo_contest = ProtoMessage:newPhotoContestRankExtData()
+  }
+end
+
+function ProtoMessage:newBaseRankExtData()
+  return {
+    game_app_id = nil,
+    plat_info = ProtoMessage:newPlatInfo(),
+    openid = nil,
+    name = nil,
+    level = nil,
+    card_icon_selected = nil
+  }
+end
+
+function ProtoMessage:newPvpRankExtData()
+  return {
+    rd = nil,
+    vol = nil,
+    r = nil
+  }
+end
+
+function ProtoMessage:newPhotoContestRankExtData()
+  return {
+    photo_url = nil,
+    photo_md5 = nil,
+    mini_photo_url = nil,
+    mini_photo_md5 = nil,
+    activity_id = nil,
+    like_count = nil
+  }
+end
+
+function ProtoMessage:newDebugDrawParams()
+  return {owner_uin = nil, zone_buspp_inst_id = nil}
+end
+
+function ProtoMessage:newDebugDrawColor()
+  return {
+    R = nil,
+    G = nil,
+    B = nil,
+    A = nil
+  }
+end
+
+function ProtoMessage:newDebugDrawRotator()
+  return {
+    x = nil,
+    y = nil,
+    z = nil,
+    w = nil
+  }
+end
+
+function ProtoMessage:newDebugDrawPointData()
+  return {
+    point_pos = ProtoMessage:newPosition(),
+    point_size = nil,
+    color = ProtoMessage:newDebugDrawColor(),
+    show_time = nil
+  }
+end
+
+function ProtoMessage:newDebugDrawLineData()
+  return {
+    start_pos = ProtoMessage:newPosition(),
+    end_pos = ProtoMessage:newPosition(),
+    color = ProtoMessage:newDebugDrawColor(),
+    show_time = nil,
+    thickness = nil,
+    arrow_size = nil
+  }
+end
+
+function ProtoMessage:newDebugDrawSphereData()
+  return {
+    center = ProtoMessage:newPosition(),
+    radius = nil,
+    segments = nil,
+    color = ProtoMessage:newDebugDrawColor(),
+    show_time = nil,
+    thickness = nil
+  }
+end
+
+function ProtoMessage:newDebugDrawBoxData()
+  return {
+    center = ProtoMessage:newPosition(),
+    extent = ProtoMessage:newPosition(),
+    color = ProtoMessage:newDebugDrawColor(),
+    rotator = ProtoMessage:newDebugDrawRotator(),
+    show_time = nil,
+    thickness = nil
+  }
+end
+
+function ProtoMessage:newDebugDrawCapsuleData()
+  return {
+    center = ProtoMessage:newPosition(),
+    half_height = nil,
+    radius = nil,
+    rotator = ProtoMessage:newDebugDrawRotator(),
+    color = ProtoMessage:newDebugDrawColor(),
+    show_time = nil,
+    thickness = nil
+  }
+end
+
+function ProtoMessage:newDebugDrawMeshData()
+  return {
+    verts = {},
+    indices = {},
+    color = ProtoMessage:newDebugDrawColor(),
+    show_time = nil
+  }
+end
+
+function ProtoMessage:newDebugDrawWireFrame()
+  return {
+    start_pos = ProtoMessage:newPosition(),
+    end_pos = ProtoMessage:newPosition()
+  }
+end
+
+function ProtoMessage:newDebugDrawWireFrameData()
+  return {
+    lines = {},
+    color = ProtoMessage:newDebugDrawColor(),
+    show_time = nil,
+    thickness = nil,
+    arrow_size = nil
+  }
+end
+
+function ProtoMessage:newDebugDrawPointSetData()
+  return {
+    verts = {},
+    point_size = nil,
+    color = ProtoMessage:newDebugDrawColor(),
+    show_time = nil
+  }
+end
+
+function ProtoMessage:newNavMeshDebugDraw()
+  return {
+    tiles = {}
+  }
+end
+
+function ProtoMessage:newNavMeshBoundary()
+  return {
+    begin_pos = ProtoMessage:newPosition(),
+    end_pos = ProtoMessage:newPosition()
+  }
+end
+
+function ProtoMessage:newNavMeshPoly()
+  return {
+    flag = nil,
+    color = ProtoMessage:newDebugDrawColor(),
+    verts = {}
+  }
+end
+
+function ProtoMessage:newNavMeshTile()
+  return {
+    polys = {},
+    inner_boundaries = {},
+    inner_color = ProtoMessage:newDebugDrawColor(),
+    outer_boundaries = {},
+    outer_color = ProtoMessage:newDebugDrawColor()
+  }
+end
+
+function ProtoMessage:newDebugDrawNavMeshData()
+  return {
+    raw_data = ProtoMessage:newNavMeshDebugDraw(),
+    inner_line_thickness = nil,
+    outer_line_thickness = nil,
+    show_time = nil
+  }
+end
+
+function ProtoMessage:newDebugDrawCylinderData()
+  return {
+    center_pos = ProtoMessage:newPosition(),
+    half_height = nil,
+    radius = nil,
+    segments = nil,
+    color = ProtoMessage:newDebugDrawColor(),
+    show_time = nil,
+    thickness = nil
+  }
+end
+
+function ProtoMessage:newDebugDrawCircleData()
+  return {
+    center_pos = ProtoMessage:newPosition(),
+    radius = nil,
+    segments = nil,
+    color = ProtoMessage:newDebugDrawColor(),
+    show_time = nil,
+    thickness = nil
+  }
+end
+
+function ProtoMessage:newDebugDrawTextData()
+  return {
+    pos = ProtoMessage:newPosition(),
+    text = nil,
+    color = ProtoMessage:newDebugDrawColor(),
+    show_time = nil
+  }
+end
+
+function ProtoMessage:newSceneGmDebugDrawCall()
+  return {
+    type = ProtoEnum.DEBUG_DRAW_CALL_TYPE.POINT,
+    point_data = ProtoMessage:newDebugDrawPointData(),
+    line_data = ProtoMessage:newDebugDrawLineData(),
+    sphere_data = ProtoMessage:newDebugDrawSphereData(),
+    box_data = ProtoMessage:newDebugDrawBoxData(),
+    capsule_data = ProtoMessage:newDebugDrawCapsuleData(),
+    mesh_data = ProtoMessage:newDebugDrawMeshData(),
+    wire_frame_data = ProtoMessage:newDebugDrawWireFrameData(),
+    point_set_data = ProtoMessage:newDebugDrawPointSetData(),
+    nav_mesh_data = ProtoMessage:newDebugDrawNavMeshData(),
+    cylinder_data = ProtoMessage:newDebugDrawCylinderData(),
+    circle_data = ProtoMessage:newDebugDrawCircleData(),
+    text_data = ProtoMessage:newDebugDrawTextData()
+  }
+end
+
+function ProtoMessage:newZoneSceneGmDebugDrawCall()
+  return {
+    draws = {}
+  }
+end
+
 function ProtoMessage:newClientAiCommandInfo()
   return {
     actor_id = nil,
     action_id = nil,
     pos = ProtoMessage:newPosition(),
-    command_param = nil
+    command_param = nil,
+    string_param = nil
   }
 end
 
@@ -14025,6 +15408,21 @@ function ProtoMessage:newSceneAiReportInfo()
     attack_obj_id = nil,
     dialog_id = nil
   }
+end
+
+function ProtoMessage:newLLM_PETS_FollowPetInfo()
+  return {
+    npc_actor_id = nil,
+    pos = ProtoMessage:newPosition()
+  }
+end
+
+function ProtoMessage:newLLM_PETS_BehaviorReportInfo()
+  return {npc_actor_id = nil, succ = nil}
+end
+
+function ProtoMessage:newAvatarAbnormalStatusInfo()
+  return {abnormal_status_id = nil, abnormal_status_duration = nil}
 end
 
 function ProtoMessage:newDotsLabelTag()
@@ -14118,7 +15516,8 @@ function ProtoMessage:newZoneMagicFeedInfo()
     grid_id = nil,
     ext_info = nil,
     category = nil,
-    music_id = nil
+    music_id = nil,
+    sub_type = nil
   }
 end
 
@@ -14265,7 +15664,8 @@ function ProtoMessage:newFriendRoleInfo()
     is_chat_node_unlock = nil,
     unlocked_rel_node_num = nil,
     pos_info = ProtoMessage:newFriendPositionInfo(),
-    visit_info = ProtoMessage:newFriendVisitInfo()
+    visit_info = ProtoMessage:newFriendVisitInfo(),
+    tags = {}
   }
 end
 
@@ -14484,7 +15884,8 @@ function ProtoMessage:newMailInfo()
     cond_type = nil,
     reward_id = nil,
     guard_id = nil,
-    mail_serial_num = nil
+    mail_serial_num = nil,
+    mail_sub_type = nil
   }
 end
 
@@ -14650,169 +16051,6 @@ function ProtoMessage:newZoneSceneReviveTeleportNotify()
   return {teleport_id = nil, teleport_reason = nil}
 end
 
-function ProtoMessage:newDebugDrawRotator()
-  return {
-    x = nil,
-    y = nil,
-    z = nil,
-    w = nil
-  }
-end
-
-function ProtoMessage:newDebugDrawPointData()
-  return {
-    point_pos = ProtoMessage:newPosition(),
-    point_size = nil,
-    color = ProtoMessage:newDebugDrawColor(),
-    show_time = nil
-  }
-end
-
-function ProtoMessage:newDebugDrawLineData()
-  return {
-    start_pos = ProtoMessage:newPosition(),
-    end_pos = ProtoMessage:newPosition(),
-    color = ProtoMessage:newDebugDrawColor(),
-    show_time = nil,
-    thickness = nil,
-    arrow_size = nil
-  }
-end
-
-function ProtoMessage:newDebugDrawSphereData()
-  return {
-    center = ProtoMessage:newPosition(),
-    radius = nil,
-    segments = nil,
-    color = ProtoMessage:newDebugDrawColor(),
-    show_time = nil,
-    thickness = nil
-  }
-end
-
-function ProtoMessage:newDebugDrawBoxData()
-  return {
-    center = ProtoMessage:newPosition(),
-    extent = ProtoMessage:newPosition(),
-    color = ProtoMessage:newDebugDrawColor(),
-    rotator = ProtoMessage:newDebugDrawRotator(),
-    show_time = nil,
-    thickness = nil
-  }
-end
-
-function ProtoMessage:newDebugDrawCapsuleData()
-  return {
-    center = ProtoMessage:newPosition(),
-    half_height = nil,
-    radius = nil,
-    rotator = ProtoMessage:newDebugDrawRotator(),
-    color = ProtoMessage:newDebugDrawColor(),
-    show_time = nil,
-    thickness = nil
-  }
-end
-
-function ProtoMessage:newDebugDrawMeshData()
-  return {
-    verts = {},
-    indices = {},
-    color = ProtoMessage:newDebugDrawColor(),
-    show_time = nil
-  }
-end
-
-function ProtoMessage:newDebugDrawWireFrame()
-  return {
-    start_pos = ProtoMessage:newPosition(),
-    end_pos = ProtoMessage:newPosition()
-  }
-end
-
-function ProtoMessage:newDebugDrawWireFrameData()
-  return {
-    lines = {},
-    color = ProtoMessage:newDebugDrawColor(),
-    show_time = nil,
-    thickness = nil,
-    arrow_size = nil
-  }
-end
-
-function ProtoMessage:newDebugDrawPointSetData()
-  return {
-    verts = {},
-    point_size = nil,
-    color = ProtoMessage:newDebugDrawColor(),
-    show_time = nil
-  }
-end
-
-function ProtoMessage:newDebugDrawNavMeshData()
-  return {
-    raw_data = ProtoMessage:newNavMeshDebugDraw(),
-    inner_line_thickness = nil,
-    outer_line_thickness = nil,
-    show_time = nil
-  }
-end
-
-function ProtoMessage:newDebugDrawCylinderData()
-  return {
-    center_pos = ProtoMessage:newPosition(),
-    half_height = nil,
-    radius = nil,
-    segments = nil,
-    color = ProtoMessage:newDebugDrawColor(),
-    show_time = nil,
-    thickness = nil
-  }
-end
-
-function ProtoMessage:newDebugDrawCircleData()
-  return {
-    center_pos = ProtoMessage:newPosition(),
-    radius = nil,
-    segments = nil,
-    color = ProtoMessage:newDebugDrawColor(),
-    show_time = nil,
-    thickness = nil
-  }
-end
-
-function ProtoMessage:newDebugDrawTextData()
-  return {
-    pos = ProtoMessage:newPosition(),
-    text = nil,
-    color = ProtoMessage:newDebugDrawColor(),
-    show_time = nil
-  }
-end
-
-function ProtoMessage:newSceneGmDebugDrawCall()
-  return {
-    type = ProtoEnum.DEBUG_DRAW_CALL_TYPE.POINT,
-    point_data = ProtoMessage:newDebugDrawPointData(),
-    line_data = ProtoMessage:newDebugDrawLineData(),
-    sphere_data = ProtoMessage:newDebugDrawSphereData(),
-    box_data = ProtoMessage:newDebugDrawBoxData(),
-    capsule_data = ProtoMessage:newDebugDrawCapsuleData(),
-    mesh_data = ProtoMessage:newDebugDrawMeshData(),
-    wire_frame_data = ProtoMessage:newDebugDrawWireFrameData(),
-    point_set_data = ProtoMessage:newDebugDrawPointSetData(),
-    nav_mesh_data = ProtoMessage:newDebugDrawNavMeshData(),
-    cylinder_data = ProtoMessage:newDebugDrawCylinderData(),
-    circle_data = ProtoMessage:newDebugDrawCircleData(),
-    text_data = ProtoMessage:newDebugDrawTextData()
-  }
-end
-
-function ProtoMessage:newZoneSceneGmDebugDrawCall()
-  return {
-    draws = {}
-  }
-end
-
 function ProtoMessage:newZoneSceneStaminaChangeNotify()
   return {
     change_reason = ProtoEnum.STAMINA_CHANGE_REASON.SCR_NONE,
@@ -14853,7 +16091,8 @@ end
 function ProtoMessage:newZoneSceneCommonTipsNotify()
   return {
     localization_id = nil,
-    source = ProtoEnum.CommonTipsSource.CTS_COMBINE_NPC
+    source = ProtoEnum.CommonTipsSource.CTS_COMBINE_NPC,
+    param_list = {}
   }
 end
 
@@ -15055,6 +16294,12 @@ function ProtoMessage:newSpaceAct_ClientSwitchToServerAINty()
   }
 end
 
+function ProtoMessage:newSpaceAct_AIMutualPerformStateChanged()
+  return {
+    mutual_changed_list = {}
+  }
+end
+
 function ProtoMessage:newSpaceAct_PlayVoice()
   return {
     actor_id = nil,
@@ -15095,6 +16340,15 @@ function ProtoMessage:newSpaceAct_RemoveStoryFlags()
   }
 end
 
+function ProtoMessage:newSpaceAct_OptionBlackOrWhiteListUinsChgNtf()
+  return {
+    option_id = nil,
+    whitelist_uins = {},
+    blacklist_uins = {},
+    npc_id = nil
+  }
+end
+
 function ProtoMessage:newSpaceAct_NpcOptionInfoChange()
   return {
     npc_id = nil,
@@ -15106,7 +16360,8 @@ function ProtoMessage:newSpaceAct_NpcOptionInfoChange()
     succ_exec_times = nil,
     first_dialog_id = nil,
     avatar_id = nil,
-    ineteracting_avatar_id = nil
+    ineteracting_avatar_id = nil,
+    is_cancel = nil
   }
 end
 
@@ -15668,7 +16923,9 @@ function ProtoMessage:newSpaceAct_WorldAttack()
     sync_common_info = ProtoMessage:newSvrAISyncCommonInfo(),
     use_specific_pos = nil,
     specific_pos = ProtoMessage:newPosition(),
-    hit_perform_type = ProtoEnum.PlayerAttackPerformType.PAPT_Light
+    hit_perform_type = ProtoEnum.PlayerAttackPerformType.PAPT_Light,
+    abnormal_type = nil,
+    abnormal_duration = nil
   }
 end
 
@@ -15692,6 +16949,16 @@ function ProtoMessage:newSpaceAct_MfbtDebug_InnerEventData()
     event_type = ProtoEnum.E_SCENE_MFBT_DEBUG_EVENT_TYPE.E_MFBT_TreeAssetCreatedEvent,
     event_data = {}
   }
+end
+
+function ProtoMessage:newSpaceAct_LLMDebug()
+  return {
+    datas = {}
+  }
+end
+
+function ProtoMessage:newSpaceAct_LLMDebug_InnerData()
+  return {spirit_id = nil, str = nil}
 end
 
 function ProtoMessage:newSpaceAct_CollisionCancelRecover()
@@ -15809,6 +17076,16 @@ function ProtoMessage:newSpaceAct_OptActionNtf()
   }
 end
 
+function ProtoMessage:newSpaceAct_RoleplayHoldInfoChgNtf()
+  return {
+    npc_id = nil,
+    slot_idx = nil,
+    is_client_req_cancel_hold = nil,
+    reason = ProtoEnum.RoleplayHoldInfoChangeReason.RHICR_NONE,
+    op_avatar_uin = nil
+  }
+end
+
 function ProtoMessage:newSpaceAct_HomePetInfoChangeNotify()
   return {
     action_type = nil,
@@ -15893,6 +17170,7 @@ function ProtoMessage:newSpaceActionCollection()
     move_mode = ProtoMessage:newSpaceAct_AIMoveMode(),
     inform_client_switch_ai = ProtoMessage:newSpaceAct_InformClientSwitchAINty(),
     client_switch_to_server_ai = ProtoMessage:newSpaceAct_ClientSwitchToServerAINty(),
+    mutual_perform_state_changed = ProtoMessage:newSpaceAct_AIMutualPerformStateChanged(),
     cast_scene_skill = ProtoMessage:newSpaceAct_CastSceneSkill(),
     friend_ride = ProtoMessage:newSpaceAct_FriendRide(),
     collision_cancel_or_recover = ProtoMessage:newSpaceAct_CollisionCancelRecover(),
@@ -15956,6 +17234,10 @@ function ProtoMessage:newSpaceActionCollection()
     catch_record_info_change = ProtoMessage:newSpaceAct_CatchRecordInfoChange(),
     habitat_neighbor_info_change = ProtoMessage:newSpaceAct_HabitatNeighborInfoChange(),
     all_habitat_neighbor_info = ProtoMessage:newSpaceAct_AllHabitatNeighborInfo(),
+    play_chat_buble = ProtoMessage:newSpaceAct_PlayChatBubble(),
+    player_tags_change = ProtoMessage:newSpaceAct_PlayerTagsChange(),
+    abnormal_status_change_ntf = ProtoMessage:newSpaceAct_AbnormalStatusChangeNtf(),
+    bonus_catch_limit_tips = ProtoMessage:newSpaceAct_BonusCatchLimitTips(),
     world_combat_enter = ProtoMessage:newSpaceAct_WorldCombatEnter(),
     world_combat_exit = ProtoMessage:newSpaceAct_WorldCombatExit(),
     world_combat_text_prompts = ProtoMessage:newSpaceAct_WorldCombatTextPrompts(),
@@ -16012,7 +17294,15 @@ function ProtoMessage:newSpaceActionCollection()
     pet_voice = ProtoMessage:newSpaceAct_PetVoice(),
     visible_circle = ProtoMessage:newSpaceAct_VisibleCircle(),
     story_flags = ProtoMessage:newSpaceAct_AvatarStoryFlags(),
-    ai_seq_id_notify = ProtoMessage:newSpaceAct_AISeqIdNotify()
+    ai_seq_id_notify = ProtoMessage:newSpaceAct_AISeqIdNotify(),
+    llm_pets_query_pets = ProtoMessage:newSpaceAct_LLM_PETS_QueryPets(),
+    llm_pets_behavior_notify = ProtoMessage:newSpaceAct_LLM_PETS_BehaviorNotify(),
+    llm_debug = ProtoMessage:newSpaceAct_LLMDebug(),
+    npc_size_scale_change = ProtoMessage:newSpaceAct_NpcSizeScaleChange(),
+    camera_skin_change = ProtoMessage:newSpaceAct_CameraSkinChange(),
+    npc_mutation_info_change = ProtoMessage:newSpaceAct_NpcMutationInfoChange(),
+    roleplay_hold_info_chg_ntf = ProtoMessage:newSpaceAct_RoleplayHoldInfoChgNtf(),
+    option_b_or_w_list_uins_chg_ntf = ProtoMessage:newSpaceAct_OptionBlackOrWhiteListUinsChgNtf()
   }
 end
 
@@ -16680,6 +17970,17 @@ function ProtoMessage:newSpaceAct_CameraFlash()
   return {actor_id = nil, camera_npc_id = nil}
 end
 
+function ProtoMessage:newSpaceAct_CameraSkinChange()
+  return {
+    actor_id = nil,
+    camera_npc_id = nil,
+    camera_skin_id = nil,
+    unlock_skin_ids = {},
+    new_skin_id = nil,
+    bag_item_id = nil
+  }
+end
+
 function ProtoMessage:newSpaceAct_AISeqIdNotify()
   return {
     actor_id_list = {},
@@ -16695,7 +17996,8 @@ function ProtoMessage:newSpaceAct_IdleSkill()
     mutation_type = nil,
     glass_info = ProtoMessage:newGlassInfo(),
     nature = nil,
-    pet_actor_id = nil
+    pet_actor_id = nil,
+    gid = nil
   }
 end
 
@@ -16728,6 +18030,68 @@ function ProtoMessage:newSpaceAct_AllHabitatNeighborInfo()
   return {
     actor_id = nil,
     all_habitat_neighbor_datas = ProtoMessage:newHabitatNeighborRelationInfo()
+  }
+end
+
+function ProtoMessage:newSpaceAct_PlayChatBubble()
+  return {
+    actor_id = nil,
+    sync_common_info = ProtoMessage:newSvrAISyncCommonInfo(),
+    message_str = nil,
+    play_time = nil
+  }
+end
+
+function ProtoMessage:newSpaceAct_PlayerTagsChange()
+  return {
+    actor_id = nil,
+    player_tags = {}
+  }
+end
+
+function ProtoMessage:newSpaceAct_AbnormalStatusChangeNtf()
+  return {
+    actor_id = nil,
+    status_conf_id = nil,
+    start_time_ms = nil
+  }
+end
+
+function ProtoMessage:newSpaceAct_LLM_PETS_QueryPets()
+  return {
+    pet_gid = {}
+  }
+end
+
+function ProtoMessage:newSpaceAct_LLM_PETS_BehaviorNotify()
+  return {
+    behaviors = {},
+    is_cd = nil,
+    request_id = nil
+  }
+end
+
+function ProtoMessage:newBehaviorInfo()
+  return {
+    npc_actor_id = nil,
+    behavoir_group_id = {},
+    behavior_group_infos = {}
+  }
+end
+
+function ProtoMessage:newSpaceAct_NpcSizeScaleChange()
+  return {npc_id = nil, size_scale = nil}
+end
+
+function ProtoMessage:newSpaceAct_BonusCatchLimitTips()
+  return {tips_id = nil, current_count = nil}
+end
+
+function ProtoMessage:newSpaceAct_NpcMutationInfoChange()
+  return {
+    npc_obj_id = nil,
+    mutation_type = nil,
+    glass_info = ProtoMessage:newGlassInfo()
   }
 end
 
@@ -16772,37 +18136,6 @@ function ProtoMessage:newZonePlayerMultiStoryFlagChangeNotify()
     change_type = nil,
     change_val = {},
     version = nil
-  }
-end
-
-function ProtoMessage:newZoneSceneBeginSyncWorldMapInfoReq()
-  return {world_map_entry_types = nil}
-end
-
-function ProtoMessage:newZoneSceneBeginSyncWorldMapInfoRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo(),
-    entries = ProtoMessage:newWorldMapEntries()
-  }
-end
-
-function ProtoMessage:newZoneSceneEndSyncWorldMapInfoReq()
-  return {}
-end
-
-function ProtoMessage:newZoneSceneEndSyncWorldMapInfoRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo()
-  }
-end
-
-function ProtoMessage:newZoneSceneTickWorldMapInfoSyncReq()
-  return {}
-end
-
-function ProtoMessage:newZoneSceneTickWorldMapInfoSyncRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo()
   }
 end
 
@@ -16928,21 +18261,8 @@ function ProtoMessage:newZoneLoginRsp()
     need_reconnect = nil,
     ban_info = ProtoMessage:newBanInfo(),
     feature_data = ProtoMessage:newPlayerSecLightFeatureData(),
-    svr_time_zone = nil
-  }
-end
-
-function ProtoMessage:newZoneLogoutReq()
-  return {
-    uin = nil,
-    dev_info = ProtoMessage:newClientDevInfo(),
-    is_notify_cli = nil
-  }
-end
-
-function ProtoMessage:newZoneLogoutRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo()
+    svr_time_zone = nil,
+    wg_auth_result = ProtoMessage:newWegameAuthResult()
   }
 end
 
@@ -16963,17 +18283,6 @@ function ProtoMessage:newZoneRegisterRsp()
     uin = nil,
     regist_beg_time = nil,
     regist_end_time = nil
-  }
-end
-
-function ProtoMessage:newZoneHeartbeatReq()
-  return {}
-end
-
-function ProtoMessage:newZoneHeartbeatRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo(),
-    svr_time = nil
   }
 end
 
@@ -16999,6 +18308,7 @@ function ProtoMessage:newZoneEnterSceneRsp()
     scene_inst_id = nil,
     home_room_level = nil,
     home_name = nil,
+    online_visiting_owner = nil,
     self_info = ProtoMessage:newActorInfo()
   }
 end
@@ -17036,21 +18346,6 @@ function ProtoMessage:newZoneSceneInteractMoveReq()
 end
 
 function ProtoMessage:newZoneSceneInteractMoveRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo()
-  }
-end
-
-function ProtoMessage:newZoneSceneCastSceneSkillReq()
-  return {
-    time_stamp = nil,
-    skill_id = nil,
-    skill_status_type = nil,
-    is_add_status = nil
-  }
-end
-
-function ProtoMessage:newZoneSceneCastSceneSkillRsp()
   return {
     ret_info = ProtoMessage:newRetInfo()
   }
@@ -17211,7 +18506,18 @@ function ProtoMessage:newZoneSceneEndThrowRsp()
     catch_result = ProtoMessage:newZoneCatchResult(),
     random_result = {},
     throw_pet_result = ProtoMessage:newThrowPetResult(),
-    throw_magic_create_npc_result = ProtoMessage:newThrowMagicCreateNPCResult()
+    throw_magic_create_npc_result = ProtoMessage:newThrowMagicCreateNPCResult(),
+    throw_star_magic_result = ProtoMessage:newThrowStarMagicResult()
+  }
+end
+
+function ProtoMessage:newZoneSceneThrowCatchFinishReq()
+  return {throw_id = nil}
+end
+
+function ProtoMessage:newZoneSceneThrowCatchFinishRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo()
   }
 end
 
@@ -17256,25 +18562,6 @@ end
 function ProtoMessage:newZoneSceneRecycleThrowPetRsp()
   return {
     ret_info = ProtoMessage:newRetInfo()
-  }
-end
-
-function ProtoMessage:newZoneSceneThrowCollisionReq()
-  return {
-    throw_type = ProtoEnum.ThrowType.NONE,
-    gid = nil,
-    throw_id = nil,
-    collision_pos = ProtoMessage:newPosition(),
-    fly_distance = nil,
-    item_conf_id = nil
-  }
-end
-
-function ProtoMessage:newZoneSceneThrowCollisionRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo(),
-    is_broken = nil,
-    throw_power = nil
   }
 end
 
@@ -17329,31 +18616,6 @@ function ProtoMessage:newZoneChangeRoleMagicItemReq()
 end
 
 function ProtoMessage:newZoneChangeRoleMagicItemRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo()
-  }
-end
-
-function ProtoMessage:newZoneSceneNpcBattleSeriesReq()
-  return {
-    npc_id_list = {}
-  }
-end
-
-function ProtoMessage:newZoneSceneNpcBattleSeriesRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo()
-  }
-end
-
-function ProtoMessage:newZoneSceneGeneralOpReq()
-  return {
-    op_type = nil,
-    param_list = {}
-  }
-end
-
-function ProtoMessage:newZoneSceneGeneralOpRsp()
   return {
     ret_info = ProtoMessage:newRetInfo()
   }
@@ -17583,19 +18845,6 @@ function ProtoMessage:newZoneModifyBagItemFlagsRsp()
   }
 end
 
-function ProtoMessage:newZoneModifyBagListSortReq()
-  return {
-    item_type = ProtoEnum.BagItemType.BI_ITEM,
-    sort_type = ProtoEnum.Sequence.SEQUENCE_DEFAULT
-  }
-end
-
-function ProtoMessage:newZoneModifyBagListSortRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo()
-  }
-end
-
 function ProtoMessage:newCSExchangeItem()
   return {
     id = nil,
@@ -17677,55 +18926,6 @@ function ProtoMessage:newZonePetEvoluteRsp()
   }
 end
 
-function ProtoMessage:newZonePetUseBagItemReq()
-  return {
-    pet_gid = nil,
-    bag_item_info = {},
-    pet_train_type = ProtoEnum.PetTrainType.PTT_NONE
-  }
-end
-
-function ProtoMessage:newBagItemInfo()
-  return {id = nil, num = nil}
-end
-
-function ProtoMessage:newZonePetUseBagItemRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo()
-  }
-end
-
-function ProtoMessage:newZonePetBasePointAssignReq()
-  return {
-    base_point_info = {},
-    pet_gid = nil
-  }
-end
-
-function ProtoMessage:newBasePointInfo()
-  return {
-    attribute_type = ProtoEnum.AttributeType.AT_NONE,
-    add_num = nil
-  }
-end
-
-function ProtoMessage:newZonePetBasePointAssignRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo()
-  }
-end
-
-function ProtoMessage:newZonePetSetFollowReq()
-  return {gid = nil}
-end
-
-function ProtoMessage:newZonePetSetFollowRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo(),
-    gid = nil
-  }
-end
-
 function ProtoMessage:newZonePetEquipSkillReq()
   return {
     equip_info = {},
@@ -17735,16 +18935,6 @@ function ProtoMessage:newZonePetEquipSkillReq()
 end
 
 function ProtoMessage:newZonePetEquipSkillRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo()
-  }
-end
-
-function ProtoMessage:newZonePetDeleteReq()
-  return {gid = nil}
-end
-
-function ProtoMessage:newZonePetDeleteRsp()
   return {
     ret_info = ProtoMessage:newRetInfo()
   }
@@ -17894,17 +19084,6 @@ function ProtoMessage:newZoneTaskQueryRsp()
   }
 end
 
-function ProtoMessage:newZoneTaskTraceReq()
-  return {task_id = nil, use_trace = nil}
-end
-
-function ProtoMessage:newZoneTaskTraceRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo(),
-    task_info_list = {}
-  }
-end
-
 function ProtoMessage:newZoneTaskTrackReq()
   return {curr_track_task = nil, new_track_task = nil}
 end
@@ -17994,19 +19173,6 @@ function ProtoMessage:newZoneRewardAdventureChapterRsp()
   }
 end
 
-function ProtoMessage:newZoneQueryAdventureChapterReq()
-  return {}
-end
-
-function ProtoMessage:newZoneQueryAdventureChapterRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo(),
-    chapter_id = nil,
-    rewarded = nil,
-    region_id = nil
-  }
-end
-
 function ProtoMessage:newZoneSceneQueryBossNpcInfoReq()
   return {friend_uin = nil}
 end
@@ -18049,16 +19215,6 @@ function ProtoMessage:newZoneReportTaskReq()
 end
 
 function ProtoMessage:newZoneReportTaskRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo()
-  }
-end
-
-function ProtoMessage:newZoneCancelTaskRedPointReq()
-  return {task_id = nil}
-end
-
-function ProtoMessage:newZoneCancelTaskRedPointRsp()
   return {
     ret_info = ProtoMessage:newRetInfo()
   }
@@ -18405,18 +19561,6 @@ function ProtoMessage:newZoneExitDungeonRsp()
   }
 end
 
-function ProtoMessage:newZoneSyncTempReq()
-  return {world_temp = nil, field_temp = nil}
-end
-
-function ProtoMessage:newZoneSyncTempRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo(),
-    body_temp_final_val = nil,
-    reach_final_time = nil
-  }
-end
-
 function ProtoMessage:newZoneAutoSupplyCarryonReq()
   return {is_auto_supply = nil, pet_gid = nil}
 end
@@ -18689,21 +19833,6 @@ function ProtoMessage:newZoneHandbookStatChangeNotify()
   }
 end
 
-function ProtoMessage:newZoneGetHandbookStatReq()
-  return {page = nil, version = nil}
-end
-
-function ProtoMessage:newZoneGetHandbookStatRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo(),
-    hb_coll = {},
-    total_page = nil,
-    req_page = nil,
-    page_cap = nil,
-    version = nil
-  }
-end
-
 function ProtoMessage:newZoneGetPetStatReq()
   return {
     version = nil,
@@ -18747,6 +19876,21 @@ function ProtoMessage:newZoneGetHandbookTopicAwardRsp()
   }
 end
 
+function ProtoMessage:newZoneGetHandbookSeasonAwardReq()
+  return {
+    season_id = nil,
+    pet_type = ProtoEnum.PetHandbookSeasonPetType.PHSPT_NONE
+  }
+end
+
+function ProtoMessage:newZoneGetHandbookSeasonAwardRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo(),
+    season_id = nil,
+    pet_type = ProtoEnum.PetHandbookSeasonPetType.PHSPT_NONE
+  }
+end
+
 function ProtoMessage:newZoneGetPetHabitatReq()
   return {pet_base_id = nil}
 end
@@ -18767,20 +19911,6 @@ function ProtoMessage:newZoneSceneAIModifyLogicStatusReq()
 end
 
 function ProtoMessage:newZoneSceneAIModifyLogicStatusRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo()
-  }
-end
-
-function ProtoMessage:newZoneSceneStrongStormNty()
-  return {enter = nil}
-end
-
-function ProtoMessage:newZoneTlogReportReq()
-  return {tlog_tag = nil, tlog_content = nil}
-end
-
-function ProtoMessage:newZoneTlogReportRsp()
   return {
     ret_info = ProtoMessage:newRetInfo()
   }
@@ -18897,7 +20027,8 @@ function ProtoMessage:newZoneFriendSearchPlayerRsp()
     player_info = ProtoMessage:newFriendRoleInfo(),
     is_friend = nil,
     is_black_role = nil,
-    ban_info = ProtoMessage:newBanInfo()
+    ban_info = ProtoMessage:newBanInfo(),
+    can_be_add_friend = nil
   }
 end
 
@@ -19095,7 +20226,7 @@ function ProtoMessage:newZoneFriendBatchRemoveFriendRsp()
 end
 
 function ProtoMessage:newZoneFriendGetRecommendFriendListReq()
-  return {count = nil}
+  return {count = nil, source = nil}
 end
 
 function ProtoMessage:newZoneFriendGetRecommendFriendListRsp()
@@ -19142,7 +20273,8 @@ end
 function ProtoMessage:newZoneAddPetRecordReq()
   return {
     base_id = nil,
-    reason = ProtoEnum.ZoneAddPetRecordReq.Reason.UNKOWN
+    reason = ProtoEnum.ZoneAddPetRecordReq.Reason.UNKOWN,
+    npc_actor_id = nil
   }
 end
 
@@ -19239,7 +20371,8 @@ function ProtoMessage:newZoneChatGetChatMessageRsp()
     chat_message_list = {},
     uin = nil,
     offset = nil,
-    count = nil
+    count = nil,
+    all_msg_fetched = nil
   }
 end
 
@@ -19269,64 +20402,6 @@ end
 
 function ProtoMessage:newCollectionInfo()
   return {collecttion_type = nil, collection_num = nil}
-end
-
-function ProtoMessage:newZoneJudgePayReq()
-  return {openid = nil, pay_amount = nil}
-end
-
-function ProtoMessage:newZoneJudgePayRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo(),
-    instruction = ProtoMessage:newHopeInstruction()
-  }
-end
-
-function ProtoMessage:newZoneSceneApplyVisitReq()
-  return {visit_uin = nil}
-end
-
-function ProtoMessage:newZoneSceneApplyVisitRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo(),
-    extra_data = nil
-  }
-end
-
-function ProtoMessage:newZoneSceneApplyVisitConfirmReq()
-  return {
-    apply_uin = nil,
-    agree = nil,
-    pos = ProtoMessage:newPosition()
-  }
-end
-
-function ProtoMessage:newZoneSceneApplyVisitConfirmRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo()
-  }
-end
-
-function ProtoMessage:newZoneSceneApplyVisitListQueryReq()
-  return {}
-end
-
-function ProtoMessage:newZoneSceneApplyVisitListQueryRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo(),
-    apply_list = {}
-  }
-end
-
-function ProtoMessage:newApplyInfo()
-  return {
-    icon = nil,
-    level = nil,
-    name = nil,
-    uin = nil,
-    apply_time = nil,
-    card_info = ProtoMessage:newPlayerCardBriefInfo()
-  }
 end
 
 function ProtoMessage:newZoneSceneKickOutVisitReq()
@@ -19410,6 +20485,24 @@ function ProtoMessage:newZoneSelectBattlePassThemeRsp()
   return {
     ret_info = ProtoMessage:newRetInfo(),
     battle_pass_info = ProtoMessage:newPlayerBattlePassInfo()
+  }
+end
+
+function ProtoMessage:newZoneGetSelectAnotherBattlePassThemeFriendsReq()
+  return {is_get_detail = nil, theme_id = nil}
+end
+
+function ProtoMessage:newSelectBattlePassThemeFriendsInfo()
+  return {theme_id = nil, friend_num = nil}
+end
+
+function ProtoMessage:newZoneGetSelectAnotherBattlePassThemeFriendsRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo(),
+    friend_role_list = {},
+    pack_index = nil,
+    is_end = nil,
+    friend_info = ProtoMessage:newSelectBattlePassThemeFriendsInfo()
   }
 end
 
@@ -19581,7 +20674,8 @@ function ProtoMessage:newZoneGetPlayerCardBriefInfoRsp()
     pinned_time = nil,
     friend_type = nil,
     plat_nick_name = nil,
-    start_up_privilege_info = ProtoMessage:newPlayerStartUpPrivilegeInfo()
+    start_up_privilege_info = ProtoMessage:newPlayerStartUpPrivilegeInfo(),
+    topic_point = nil
   }
 end
 
@@ -19632,7 +20726,8 @@ function ProtoMessage:newZonePlayerShareInfoReq()
   return {
     share_base_id = nil,
     share_part_id = nil,
-    opt = nil
+    opt = nil,
+    activity_id = nil
   }
 end
 
@@ -19640,29 +20735,8 @@ function ProtoMessage:newZonePlayerShareInfoRsp()
   return {
     ret_info = ProtoMessage:newRetInfo(),
     reward_received = nil,
-    opt = nil
-  }
-end
-
-function ProtoMessage:newZoneVodVideoSignatureReq()
-  return {}
-end
-
-function ProtoMessage:newZoneVodVideoSignatureRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo(),
-    signature = nil,
-    file_name = nil
-  }
-end
-
-function ProtoMessage:newZonePublishVideoToWechatReq()
-  return {video_file_id = nil}
-end
-
-function ProtoMessage:newZonePublishVideoToWechatRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo()
+    opt = nil,
+    share_url = nil
   }
 end
 
@@ -19682,11 +20756,11 @@ function ProtoMessage:newZoneCrackEggRsp()
   }
 end
 
-function ProtoMessage:newZoneClearDungeonReq()
+function ProtoMessage:newZoneGmClearDungeonReq()
   return {dungeon_cfg_id = nil}
 end
 
-function ProtoMessage:newZoneClearDungeonRsp()
+function ProtoMessage:newZoneGmClearDungeonRsp()
   return {
     ret_info = ProtoMessage:newRetInfo()
   }
@@ -19852,19 +20926,6 @@ function ProtoMessage:newZoneSceneSetOwlSanctuaryFruitRsp()
   }
 end
 
-function ProtoMessage:newZoneGetCampFruitNpcInfosReq()
-  return {
-    camp_content_ids = {}
-  }
-end
-
-function ProtoMessage:newZoneGetCampFruitNpcInfosRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo(),
-    camp_fruit_npc_infos = {}
-  }
-end
-
 function ProtoMessage:newZoneGetOwlSanctuaryFruitInfoReq()
   return {content_id = nil}
 end
@@ -20013,149 +21074,6 @@ function ProtoMessage:newZoneSceneWorldCombatExitRsp()
   }
 end
 
-function ProtoMessage:newZoneSceneWorldCombatSkillCastReq()
-  return {
-    npc_id = nil,
-    skill_info = ProtoMessage:newWorldCombatSkillCastInfo()
-  }
-end
-
-function ProtoMessage:newZoneSceneWorldCombatSkillCastRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo()
-  }
-end
-
-function ProtoMessage:newZoneSceneWorldCombatSkillSpawnNpcReq()
-  return {
-    npc_id = nil,
-    skill_spawn_npc_info = ProtoMessage:newWorldCombatSkillSpawnNpcInfo()
-  }
-end
-
-function ProtoMessage:newZoneSceneWorldCombatSkillSpawnNpcRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo()
-  }
-end
-
-function ProtoMessage:newZoneSceneWorldCombatSkillSpawnBulletReq()
-  return {
-    npc_id = nil,
-    skill_spawn_bullet_info = ProtoMessage:newWorldCombatSkillSpawnBulletInfo()
-  }
-end
-
-function ProtoMessage:newZoneSceneWorldCombatSkillSpawnBulletRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo()
-  }
-end
-
-function ProtoMessage:newZoneSceneWorldCombatSkillFireBulletReq()
-  return {
-    npc_id = nil,
-    skill_fire_bullet_info = ProtoMessage:newWorldCombatSkillFireBulletInfo()
-  }
-end
-
-function ProtoMessage:newZoneSceneWorldCombatSkillFireBulletRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo()
-  }
-end
-
-function ProtoMessage:newZoneSceneWorldCombatSkillBuffReq()
-  return {
-    npc_id = nil,
-    skill_buff_info = ProtoMessage:newWorldCombatSkillBuffInfo()
-  }
-end
-
-function ProtoMessage:newZoneSceneWorldCombatSkillBuffRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo()
-  }
-end
-
-function ProtoMessage:newZoneSceneWorldCombatSkillEndReq()
-  return {
-    npc_id = nil,
-    skill_end_info = ProtoMessage:newWorldCombatSkillEndInfo()
-  }
-end
-
-function ProtoMessage:newZoneSceneWorldCombatSkillEndRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo()
-  }
-end
-
-function ProtoMessage:newZoneSceneWorldCombatHitReq()
-  return {
-    victim_id = nil,
-    hit_info = ProtoMessage:newWorldCombatHitInfo()
-  }
-end
-
-function ProtoMessage:newZoneSceneWorldCombatHitRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo()
-  }
-end
-
-function ProtoMessage:newZoneSceneWorldCombatSkillJumpReq()
-  return {
-    npc_id = nil,
-    skill_jump_info = ProtoMessage:newWorldCombatSkillJumpInfo()
-  }
-end
-
-function ProtoMessage:newZoneSceneWorldCombatSkillJumpRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo()
-  }
-end
-
-function ProtoMessage:newZoneSceneWorldCombatSkillJumpEndReq()
-  return {
-    npc_id = nil,
-    skill_jump_end_info = ProtoMessage:newWorldCombatSkillJumpEndInfo()
-  }
-end
-
-function ProtoMessage:newZoneSceneWorldCombatSkillJumpEndRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo()
-  }
-end
-
-function ProtoMessage:newZoneSceneWorldCombatSkillRcdReq()
-  return {
-    npc_id = nil,
-    skill_rcd_info = ProtoMessage:newWorldCombatSkillRcdInfo()
-  }
-end
-
-function ProtoMessage:newZoneSceneWorldCombatSkillRcdRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo()
-  }
-end
-
-function ProtoMessage:newZoneSceneWorldCombatSkillPetCollisionReq()
-  return {
-    npc_id = nil,
-    skill_pet_collision = ProtoMessage:newWorldCombatSkillPetCollisionInfo()
-  }
-end
-
-function ProtoMessage:newZoneSceneWorldCombatSkillPetCollisionRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo()
-  }
-end
-
 function ProtoMessage:newZoneSceneLeaveWorldCombatAreaReq()
   return {npc_id = nil}
 end
@@ -20202,22 +21120,6 @@ function ProtoMessage:newZoneSceneGetStaminaInfoRsp()
   }
 end
 
-function ProtoMessage:newZoneSceneChangeMoveModeReq()
-  return {
-    move_id = nil,
-    stamina = nil,
-    need_start_cost = nil
-  }
-end
-
-function ProtoMessage:newZoneSceneChangeMoveModeRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo(),
-    server_stamina = nil,
-    server_move_id = nil
-  }
-end
-
 function ProtoMessage:newZoneSceneUnstuckTeleportReq()
   return {ignore_cooldown = nil}
 end
@@ -20226,17 +21128,6 @@ function ProtoMessage:newZoneSceneUnstuckTeleportRsp()
   return {
     ret_info = ProtoMessage:newRetInfo(),
     cooldown = nil
-  }
-end
-
-function ProtoMessage:newZoneGetSubTaskTokenTriggeredTaskInfoReq()
-  return {}
-end
-
-function ProtoMessage:newZoneGetSubTaskTokenTriggeredTaskInfoRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo(),
-    sub_task_token_triggered_task_info = {}
   }
 end
 
@@ -20498,7 +21389,8 @@ function ProtoMessage:newActivityBriefInfo()
     activity_id = nil,
     activity_name = nil,
     maintab_id = nil,
-    priority = nil
+    priority = nil,
+    popup_played = nil
   }
 end
 
@@ -20609,7 +21501,8 @@ end
 
 function ProtoMessage:newZoneReceivePlayerActivityDisposableRewardRsp()
   return {
-    ret_info = ProtoMessage:newRetInfo()
+    ret_info = ProtoMessage:newRetInfo(),
+    reward_id = nil
   }
 end
 
@@ -20626,6 +21519,10 @@ function ProtoMessage:newZonePlayerBattlePassInfoNotify()
   }
 end
 
+function ProtoMessage:newZonePlayerBattlePassExpNotify()
+  return {level = nil, exp = nil}
+end
+
 function ProtoMessage:newZoneReceivePlayerActivityPetCatchRewardRsp()
   return {
     ret_info = ProtoMessage:newRetInfo()
@@ -20638,6 +21535,54 @@ function ProtoMessage:newZonePlayerNewActivityRewardNotify()
     activity_reward_id = nil,
     activity_stage_id = nil
   }
+end
+
+function ProtoMessage:newZoneActivityPetTripAddPetReq()
+  return {
+    activity_id = nil,
+    pet_gids = {}
+  }
+end
+
+function ProtoMessage:newZoneActivityPetTripAddPetRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo()
+  }
+end
+
+function ProtoMessage:newZoneActivityPetTripAutoTripReq()
+  return {activity_id = nil, auto_trip = nil}
+end
+
+function ProtoMessage:newZoneActivityPetTripAutoTripRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo()
+  }
+end
+
+function ProtoMessage:newZoneActivityPetTripSetWishChoiceReq()
+  return {activity_id = nil, wish_choice = nil}
+end
+
+function ProtoMessage:newZoneActivityPetTripSetWishChoiceRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo()
+  }
+end
+
+function ProtoMessage:newZoneActivityPetTripGetWishChoiceCountReq()
+  return {activity_id = nil}
+end
+
+function ProtoMessage:newZoneActivityPetTripGetWishChoiceCountRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo(),
+    wish_choice_counts = {}
+  }
+end
+
+function ProtoMessage:newWishChoiceCountInfo()
+  return {wish_choice = nil, count = nil}
 end
 
 function ProtoMessage:newZoneSceneReportAvatarAroundNpcReq()
@@ -20700,19 +21645,6 @@ function ProtoMessage:newZoneScenePerceivingNpcReq()
 end
 
 function ProtoMessage:newZoneScenePerceivingNpcRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo()
-  }
-end
-
-function ProtoMessage:newZoneSceneSetAvatarPosReq()
-  return {
-    pos = ProtoMessage:newPoint(),
-    reason = nil
-  }
-end
-
-function ProtoMessage:newZoneSceneSetAvatarPosRsp()
   return {
     ret_info = ProtoMessage:newRetInfo()
   }
@@ -20840,6 +21772,20 @@ function ProtoMessage:newZoneGetPetInfoByPageRsp()
   }
 end
 
+function ProtoMessage:newZoneGetPetInfoByGidReq()
+  return {
+    gids = {}
+  }
+end
+
+function ProtoMessage:newZoneGetPetInfoByGidRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo(),
+    not_exist_gids = {},
+    pet_list = ProtoMessage:newPetDataInfoList()
+  }
+end
+
 function ProtoMessage:newZoneClientReportData2Req()
   return {report_data = nil, type = nil}
 end
@@ -20948,43 +21894,12 @@ function ProtoMessage:newZoneBookGetRewardRsp()
   }
 end
 
-function ProtoMessage:newZoneGetTaskSwitchDataReq()
-  return {}
-end
-
-function ProtoMessage:newZoneGetTaskSwitchDataRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo(),
-    task_switch = ProtoMessage:newPlayerTaskSwitchData()
-  }
-end
-
-function ProtoMessage:newZoneChangeTaskSwitchDataReq()
-  return {switch_id = nil, is_open = nil}
-end
-
-function ProtoMessage:newZoneChangeTaskSwitchDataRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo(),
-    task_switch = ProtoMessage:newPlayerTaskSwitchData()
-  }
-end
-
-function ProtoMessage:newZoneTssMessageCheckReq()
-  return {
-    message = nil,
-    message_type = ProtoEnum.TssMsgType.TMT_PERSONAL_INFO
-  }
-end
-
-function ProtoMessage:newZoneTssMessageCheckRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo()
-  }
-end
-
 function ProtoMessage:newZoneSceneCancelPlayerTransformReq()
-  return {cancel_reason = nil}
+  return {
+    cancel_reason = nil,
+    transform_avatar = nil,
+    eagle_uin = nil
+  }
 end
 
 function ProtoMessage:newZoneSceneCancelPlayerTransformRsp()
@@ -21096,7 +22011,8 @@ function ProtoMessage:newZoneBuyGoodsByMidasRsp()
     midas_goods_id = nil,
     type = nil,
     shop_id = nil,
-    shop_data = ProtoMessage:newShopData()
+    shop_data = ProtoMessage:newShopData(),
+    create_time = nil
   }
 end
 
@@ -21538,17 +22454,6 @@ function ProtoMessage:newZoneReportSafetyDataRsp()
   }
 end
 
-function ProtoMessage:newZoneGetAppearanceInfoReq()
-  return {}
-end
-
-function ProtoMessage:newZoneGetAppearanceInfoRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo(),
-    appearance_info = ProtoMessage:newPlayerAppearanceInfo()
-  }
-end
-
 function ProtoMessage:newZoneNewFashionItemNotify()
   return {
     fashion_item_ids = {},
@@ -21570,17 +22475,6 @@ function ProtoMessage:newZoneNewFashionBondNotify()
   }
 end
 
-function ProtoMessage:newZoneCheckColorSuitStateReq()
-  return {fashion_bond_id = nil}
-end
-
-function ProtoMessage:newZoneCheckColorSuitStateRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo(),
-    color_suit_state = ProtoEnum.FashionBondColorSuitState.FBCSS_LOCKED
-  }
-end
-
 function ProtoMessage:newZoneClaimColorSuitReq()
   return {fashion_bond_id = nil, pet_gid = nil}
 end
@@ -21595,17 +22489,6 @@ function ProtoMessage:newZoneColorSuitStateChangeNty()
   return {
     fashion_bond_id = nil,
     color_suit_state = ProtoEnum.FashionBondColorSuitState.FBCSS_LOCKED
-  }
-end
-
-function ProtoMessage:newZoneGetClaimableGlassTintReq()
-  return {fashion_bond_id = nil, is_shining = nil}
-end
-
-function ProtoMessage:newZoneGetClaimableGlassTintRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo(),
-    claimable_glass = {}
   }
 end
 
@@ -21637,7 +22520,8 @@ function ProtoMessage:newZoneSceneNpcControlReq()
     operate_type = nil,
     content_id = nil,
     npc_id = nil,
-    point = ProtoMessage:newPoint()
+    point = ProtoMessage:newPoint(),
+    skin_id = nil
   }
 end
 
@@ -21820,17 +22704,6 @@ end
 function ProtoMessage:newZoneSceneWorldCombatSkillPosLerpSyncRsp()
   return {
     ret_info = ProtoMessage:newRetInfo()
-  }
-end
-
-function ProtoMessage:newZoneQuerySceneTaskStatReq()
-  return {uin = nil}
-end
-
-function ProtoMessage:newZoneQuerySceneTaskStatRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo(),
-    scene_state_data = ProtoMessage:newTaskScenesvrStateData()
   }
 end
 
@@ -22351,20 +23224,6 @@ function ProtoMessage:newZoneHomePetFetchAwardRsp()
   }
 end
 
-function ProtoMessage:newZoneHomePetFoodCompoundReq()
-  return {
-    food_cfg_id = nil,
-    food_num = nil,
-    cost_item_cfg_id = {}
-  }
-end
-
-function ProtoMessage:newZoneHomePetFoodCompoundRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo()
-  }
-end
-
 function ProtoMessage:newZoneSetNavigationModeTypeReq()
   return {mode_type = nil}
 end
@@ -22437,20 +23296,6 @@ function ProtoMessage:newZoneFixedBadgeChallengeCardRsp()
   }
 end
 
-function ProtoMessage:newZoneRefreshBadgeChallengeCardReq()
-  return {}
-end
-
-function ProtoMessage:newZoneRefreshBadgeChallengeCardRsp()
-  return {
-    event_infos = {},
-    remain_coin = nil,
-    ret_info = ProtoMessage:newRetInfo(),
-    refresh_need_coin = nil,
-    pet_unit_type = {}
-  }
-end
-
 function ProtoMessage:newZoneCombineBadgeChallengeCardReq()
   return {
     indexes = {}
@@ -22464,26 +23309,149 @@ function ProtoMessage:newZoneCombineBadgeChallengeCardRsp()
   }
 end
 
-function ProtoMessage:newZoneBadgeChallengeSelectUpgradeReq()
-  return {
-    index = {}
-  }
+function ProtoMessage:newZoneGrassTrialGetInfoReq()
+  return {}
 end
 
-function ProtoMessage:newZoneBadgeChallengeSelectUpgradeRsp()
+function ProtoMessage:newZoneGrassTrialGetInfoRsp()
   return {
     ret_info = ProtoMessage:newRetInfo(),
-    upgrade_ids = {}
+    trial_data = ProtoMessage:newGrassTrialData()
   }
 end
 
-function ProtoMessage:newZoneBadgeChallengeEnterReq()
-  return {node_id = nil}
+function ProtoMessage:newZoneGrassTrialStartChallengeReq()
+  return {
+    trial_conf_id = nil,
+    pet_gid = nil,
+    initial_skill_id = nil,
+    first_dungeon_id = nil
+  }
 end
 
-function ProtoMessage:newZoneBadgeChallengeEnterRsp()
+function ProtoMessage:newZoneGrassTrialStartChallengeRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo(),
+    challenge_data = ProtoMessage:newGrassTrialChallengeData()
+  }
+end
+
+function ProtoMessage:newZoneGrassTrialEnterSceneReq()
+  return {trial_conf_id = nil, chapter_id = nil}
+end
+
+function ProtoMessage:newZoneGrassTrialEnterSceneRsp()
   return {
     ret_info = ProtoMessage:newRetInfo()
+  }
+end
+
+function ProtoMessage:newZoneGrassTrialNextNodeReq()
+  return {chapter_id = nil, node_index = nil}
+end
+
+function ProtoMessage:newZoneGrassTrialNextNodeRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo(),
+    node_selection = ProtoMessage:newGrassTrialNodeSelection()
+  }
+end
+
+function ProtoMessage:newZoneGrassTrialSelectEventReq()
+  return {event_index = nil}
+end
+
+function ProtoMessage:newZoneGrassTrialSelectEventRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo(),
+    battle_id = nil
+  }
+end
+
+function ProtoMessage:newZoneGrassTrialNodeRefreshReq()
+  return {
+    node_index = nil,
+    slot_index = nil,
+    refresh_type = nil
+  }
+end
+
+function ProtoMessage:newZoneGrassTrialNodeRefreshRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo(),
+    refresh_type = nil,
+    new_selection = ProtoMessage:newGrassTrialNodeSelection(),
+    remaining_coin = nil
+  }
+end
+
+function ProtoMessage:newZoneGrassTrialHandleRewardNotify()
+  return {
+    event_conf_id = nil,
+    reward_id = nil,
+    cur_coin = nil
+  }
+end
+
+function ProtoMessage:newZoneGrassTrialHandleRewardReq()
+  return {
+    action = nil,
+    reward_id = nil,
+    target_slot_pos = nil
+  }
+end
+
+function ProtoMessage:newZoneGrassTrialHandleRewardRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo(),
+    updated_pet = ProtoMessage:newGrassTrialPet(),
+    remaining_coin = nil
+  }
+end
+
+function ProtoMessage:newZoneGrassTrialPauseChallengeReq()
+  return {}
+end
+
+function ProtoMessage:newZoneGrassTrialPauseChallengeRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo()
+  }
+end
+
+function ProtoMessage:newZoneGrassTrialResumeChallengeReq()
+  return {}
+end
+
+function ProtoMessage:newZoneGrassTrialResumeChallengeRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo(),
+    challenge_data = ProtoMessage:newGrassTrialChallengeData()
+  }
+end
+
+function ProtoMessage:newZoneGrassTrialAbandonChallengeReq()
+  return {}
+end
+
+function ProtoMessage:newZoneGrassTrialAbandonChallengeRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo()
+  }
+end
+
+function ProtoMessage:newZoneGrassTrialChallengeSettleNotify()
+  return {
+    review = ProtoMessage:newGrassTrialReviewRecord(),
+    total_score = nil,
+    weekly_score = nil,
+    first_clear = nil
+  }
+end
+
+function ProtoMessage:newZoneGrassTrialChallengeDataSyncNotify()
+  return {
+    challenge_data = ProtoMessage:newGrassTrialChallengeData()
   }
 end
 
@@ -22493,7 +23461,8 @@ function ProtoMessage:newZoneFeedMagicCreateReq()
     content = nil,
     create_pos = ProtoMessage:newPosition(),
     ext_info = nil,
-    music_id = nil
+    music_id = nil,
+    sub_type = nil
   }
 end
 
@@ -22702,23 +23671,6 @@ function ProtoMessage:newZoneFeedVideoCreateRsp()
   }
 end
 
-function ProtoMessage:newZoneFeedVideoFeedbackReq()
-  return {
-    uin = nil,
-    feed_id = nil,
-    comment_content = nil
-  }
-end
-
-function ProtoMessage:newZoneFeedVideoFeedbackRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo(),
-    feed = ProtoMessage:newZoneMagicFeedInfo(),
-    ban_info = ProtoMessage:newBanInfo(),
-    comment_info = ProtoMessage:newFeedCommentInfo()
-  }
-end
-
 function ProtoMessage:newZoneGetFeedDetailReq()
   return {feed_id = nil}
 end
@@ -22738,17 +23690,6 @@ end
 function ProtoMessage:newZoneFeedVideoEndRsp()
   return {
     ret_info = ProtoMessage:newRetInfo()
-  }
-end
-
-function ProtoMessage:newZoneFeedVideoDelUploadFileReq()
-  return {file_name = nil}
-end
-
-function ProtoMessage:newZoneFeedVideoDelUploadFileRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo(),
-    video_upload_info = ProtoMessage:newFeedVideoUploadInfo()
   }
 end
 
@@ -22864,7 +23805,9 @@ function ProtoMessage:newZoneOpenMagicBookSheetRsp()
 end
 
 function ProtoMessage:newZoneSetTaskRecoverAllReq()
-  return {}
+  return {
+    bonus_relocate_positions = {}
+  }
 end
 
 function ProtoMessage:newZoneSetTaskRecoverAllRsp()
@@ -23041,7 +23984,8 @@ function ProtoMessage:newRelationshipTreePeerInfo()
     signature = nil,
     battle_state = ProtoEnum.PlayerBattleState.PLAYER_BATTLE_STATE_IDLE,
     battle_brief_info = ProtoMessage:newPlayerBattleBriefInfo(),
-    card_icon_selected = nil
+    card_icon_selected = nil,
+    tags = {}
   }
 end
 
@@ -23099,6 +24043,29 @@ function ProtoMessage:newZoneScenePetTreeInteractHoldReq()
 end
 
 function ProtoMessage:newZoneScenePetTreeInteractHoldRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo()
+  }
+end
+
+function ProtoMessage:newZoneSceneCreateRoleplayPropReq()
+  return {
+    roleplay_prop_config_id = nil,
+    create_pts = {}
+  }
+end
+
+function ProtoMessage:newZoneSceneCreateRoleplayPropRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo()
+  }
+end
+
+function ProtoMessage:newZoneSceneRecycleRoleplayPropReq()
+  return {recycle_npc_id = nil}
+end
+
+function ProtoMessage:newZoneSceneRecycleRoleplayPropRsp()
   return {
     ret_info = ProtoMessage:newRetInfo()
   }
@@ -23294,7 +24261,11 @@ function ProtoMessage:newZoneSetSeasonPopupRsp()
 end
 
 function ProtoMessage:newZoneLightSeasonTalentPointReq()
-  return {point_id = nil, pet_gid = nil}
+  return {
+    point_id = nil,
+    pet_gid = nil,
+    new_pet_conf_id = nil
+  }
 end
 
 function ProtoMessage:newZoneLightSeasonTalentPointRsp()
@@ -23371,7 +24342,11 @@ function ProtoMessage:newZoneWishingStarExchangeRsp()
 end
 
 function ProtoMessage:newZonePhotoAlbumUploadUrlReq()
-  return {album_type = nil, photo_name = nil}
+  return {
+    album_type = nil,
+    photo_name = nil,
+    photo_md5 = nil
+  }
 end
 
 function ProtoMessage:newZonePhotoAlbumUploadUrlRsp()
@@ -23413,7 +24388,11 @@ function ProtoMessage:newZonePhotoAlbumPreviewRsp()
 end
 
 function ProtoMessage:newPhotoFile()
-  return {photo_name = nil, photo_md5 = nil}
+  return {
+    photo_name = nil,
+    photo_md5 = nil,
+    photo_info = ProtoMessage:newPlayerPhotoAlbumInfo()
+  }
 end
 
 function ProtoMessage:newZonePhotoAlbumDeleteReq()
@@ -23430,7 +24409,11 @@ function ProtoMessage:newZonePhotoAlbumDeleteRsp()
 end
 
 function ProtoMessage:newZonePhotoAlbumUploadSuccessReq()
-  return {photo_name = nil, photo_md5 = nil}
+  return {
+    photo_name = nil,
+    photo_md5 = nil,
+    photo_info = ProtoMessage:newPlayerPhotoAlbumInfo()
+  }
 end
 
 function ProtoMessage:newZonePhotoAlbumUploadSuccessRsp()
@@ -23440,7 +24423,7 @@ function ProtoMessage:newZonePhotoAlbumUploadSuccessRsp()
 end
 
 function ProtoMessage:newZoneBusinessCardUploadSuccessReq()
-  return {photo_name = nil}
+  return {photo_name = nil, photo_md5 = nil}
 end
 
 function ProtoMessage:newZoneBusinessCardUploadSuccessRsp()
@@ -23590,7 +24573,8 @@ function ProtoMessage:newZoneSceneGetFollowInfoRsp()
     follow_id = nil,
     task_id = nil,
     new_state = nil,
-    conf_id = nil
+    conf_id = nil,
+    confirm_talk_id = nil
   }
 end
 
@@ -23603,6 +24587,50 @@ function ProtoMessage:newZoneTogetherCatchPetForGiftingRsp()
     ret_info = ProtoMessage:newRetInfo(),
     is_for_check = nil,
     pet_gid = nil
+  }
+end
+
+function ProtoMessage:newZoneBacktrackPetReq()
+  return {pet_gid = nil, is_for_check = nil}
+end
+
+function ProtoMessage:newZoneBacktrackPetRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo(),
+    is_for_check = nil,
+    pet_gid = nil,
+    reward_list = {},
+    show_info = ProtoMessage:newPetBacktrackShowInfo()
+  }
+end
+
+function ProtoMessage:newRewardItem()
+  return {
+    id = nil,
+    num = nil,
+    type = ProtoEnum.GoodsType.GT_NONE
+  }
+end
+
+function ProtoMessage:newZoneQueryBacktrackPetRewardReq()
+  return {
+    pet_gid = {}
+  }
+end
+
+function ProtoMessage:newZoneQueryBacktrackPetRewardRsp()
+  return {
+    pet_gid = {},
+    reward_list = {},
+    ret_info = ProtoMessage:newRetInfo()
+  }
+end
+
+function ProtoMessage:newRewardItem()
+  return {
+    id = nil,
+    num = nil,
+    type = ProtoEnum.GoodsType.GT_NONE
   }
 end
 
@@ -23655,7 +24683,11 @@ end
 
 function ProtoMessage:newZoneSecondaryPasswordCheckRsp()
   return {
-    ret_info = ProtoMessage:newRetInfo()
+    ret_info = ProtoMessage:newRetInfo(),
+    status = ProtoEnum.SecondaryPasswordStatus.SPS_None,
+    status_timestamp = nil,
+    default_free = nil,
+    waiting_duration = nil
   }
 end
 
@@ -23668,27 +24700,11 @@ end
 function ProtoMessage:newZoneSecondaryPasswordForceDisableRsp()
   return {
     ret_info = ProtoMessage:newRetInfo(),
-    action_type = ProtoEnum.ZoneSecondaryPasswordForceDisable.SPFD_None
-  }
-end
-
-function ProtoMessage:newZoneSecondaryPasswordCancelFreeReq()
-  return {}
-end
-
-function ProtoMessage:newZoneSecondaryPasswordCancelFreeRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo()
-  }
-end
-
-function ProtoMessage:newZoneSecondaryPasswordActionCheckReq()
-  return {action = nil}
-end
-
-function ProtoMessage:newZoneSecondaryPasswordActionCheckRsp()
-  return {
-    ret_info = ProtoMessage:newRetInfo()
+    action_type = ProtoEnum.ZoneSecondaryPasswordForceDisable.SPFD_None,
+    status = ProtoEnum.SecondaryPasswordStatus.SPS_None,
+    status_timestamp = nil,
+    default_free = nil,
+    waiting_duration = nil
   }
 end
 
@@ -23776,6 +24792,20 @@ function ProtoMessage:newZoneGetRecommendPetTeamRsp()
   return {
     ret_info = ProtoMessage:newRetInfo(),
     recommend_pet_team = {}
+  }
+end
+
+function ProtoMessage:newZoneActivitySaveRecommendPetTeamReq()
+  return {
+    activity_id = nil,
+    recommend_pet_team = ProtoMessage:newRecommendPetTeamInfo()
+  }
+end
+
+function ProtoMessage:newZoneActivitySaveRecommendPetTeamRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo(),
+    recommend_pet_team = ProtoMessage:newRecommendPetTeamInfo()
   }
 end
 
@@ -23956,6 +24986,14 @@ function ProtoMessage:newZoneOpenSeasonAdventureRsp()
   }
 end
 
+function ProtoMessage:newZonePlayerSeasonAdvBadgeEffectNotify()
+  return {
+    badge_lvl = nil,
+    season_adv_prob_add = nil,
+    season_adv_shining_extra_weight = nil
+  }
+end
+
 function ProtoMessage:newZoneSceneSwitchLookAtTargetReq()
   return {target_actor_id = nil, enable = nil}
 end
@@ -23985,7 +25023,7 @@ function ProtoMessage:newZonePetBoxLastOpenBoxRsp()
 end
 
 function ProtoMessage:newZonePetBoxUnlockReq()
-  return {box_id = nil}
+  return {box_id = nil, unlock_group = nil}
 end
 
 function ProtoMessage:newZonePetBoxUnlockRsp()
@@ -23996,14 +25034,18 @@ function ProtoMessage:newZonePetBoxUnlockRsp()
 end
 
 function ProtoMessage:newZonePetBoxTidyReq()
-  return {last_open_box_id = nil}
+  return {
+    last_open_box_id = nil,
+    tidy_rules = {}
+  }
 end
 
 function ProtoMessage:newZonePetBoxTidyRsp()
   return {
     ret_info = ProtoMessage:newRetInfo(),
     box_info = {},
-    last_open_box_id = nil
+    last_open_box_id = nil,
+    tidy_rules = {}
   }
 end
 
@@ -24037,7 +25079,8 @@ function ProtoMessage:newZonePetBoxSetMarkTypeReq()
   return {
     box_id = nil,
     mark_type = ProtoEnum.WarehouseMarkType.WMT_DEFAULT,
-    box_name = nil
+    box_name = nil,
+    lock = nil
   }
 end
 
@@ -24046,7 +25089,8 @@ function ProtoMessage:newZonePetBoxSetMarkTypeRsp()
     ret_info = ProtoMessage:newRetInfo(),
     box_id = nil,
     mark_type = ProtoEnum.WarehouseMarkType.WMT_DEFAULT,
-    box_name = nil
+    box_name = nil,
+    lock = nil
   }
 end
 
@@ -24076,6 +25120,75 @@ function ProtoMessage:newZoneGetInviteUserListRsp()
   return {
     ret_info = ProtoMessage:newRetInfo(),
     invited_users = {}
+  }
+end
+
+function ProtoMessage:newZoneActivityPopupPlayedReq()
+  return {activity_id = nil}
+end
+
+function ProtoMessage:newZoneActivityPopupPlayedRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo(),
+    activity_id = nil
+  }
+end
+
+function ProtoMessage:newZoneActivityRecallTagSwitchReq()
+  return {activity_id = nil, is_show = nil}
+end
+
+function ProtoMessage:newZoneActivityRecallTagSwitchRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo(),
+    activity_id = nil
+  }
+end
+
+function ProtoMessage:newZoneGetActivityOptionalPetsReq()
+  return {activity_id = nil}
+end
+
+function ProtoMessage:newZoneGetActivityOptionalPetsRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo(),
+    activity_id = nil,
+    optional_pets_id = {}
+  }
+end
+
+function ProtoMessage:newZoneReceiveActivityRecallBpExpReq()
+  return {activity_id = nil, task_id = nil}
+end
+
+function ProtoMessage:newZoneReceiveActivityRecallBpExpRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo(),
+    activity_id = nil,
+    task_id = nil
+  }
+end
+
+function ProtoMessage:newZoneReceiveActivityRecallBpLevelRewardReq()
+  return {activity_id = nil, bp_level = nil}
+end
+
+function ProtoMessage:newZoneReceiveActivityRecallBpLevelRewardRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo(),
+    activity_id = nil,
+    reward_id_list = {}
+  }
+end
+
+function ProtoMessage:newZoneUnlockActivityRecallPaidRewardReq()
+  return {activity_id = nil}
+end
+
+function ProtoMessage:newZoneUnlockActivityRecallPaidRewardRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo(),
+    activity_id = nil
   }
 end
 
@@ -24286,9 +25399,398 @@ function ProtoMessage:newZoneGetBagItemIdFlagRsp()
   }
 end
 
+function ProtoMessage:newZoneActivityPhotoContestSubmitReq()
+  return {
+    activity_id = nil,
+    activity_sub_id = nil,
+    photo_name = nil,
+    photo_md5 = nil,
+    mini_photo_name = nil,
+    mini_photo_md5 = nil
+  }
+end
+
+function ProtoMessage:newZoneActivityPhotoContestSubmitRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo(),
+    phase_data = ProtoMessage:newPlayerActivityInfo_ActivityPhotoContest_Phase(),
+    last_submit_time = nil,
+    ban_info = ProtoMessage:newBanInfo()
+  }
+end
+
+function ProtoMessage:newZoneActivityPhotoContestSubmitRewardNotify()
+  return {
+    activity_id = nil,
+    activity_sub_id = nil,
+    rank_no = nil,
+    estimated = ProtoMessage:newRankEstimatedData(),
+    reward_id = nil,
+    hot_value = nil
+  }
+end
+
+function ProtoMessage:newZoneActivityPhotoContestEvaluationReq()
+  return {
+    activity_id = nil,
+    activity_sub_id = nil,
+    skip_like = nil
+  }
+end
+
+function ProtoMessage:newZoneActivityPhotoContestEvaluationRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo(),
+    ban_info = ProtoMessage:newBanInfo()
+  }
+end
+
+function ProtoMessage:newZoneActivityPhotoContestEvaluationNotify()
+  return {
+    activity_sub_id = nil,
+    photos = {},
+    skip_count = nil,
+    recommend_count = nil
+  }
+end
+
+function ProtoMessage:newPhotoInfo()
+  return {
+    uin = nil,
+    photo_url = nil,
+    photo_md5 = nil,
+    mini_photo_url = nil,
+    mini_photo_md5 = nil
+  }
+end
+
+function ProtoMessage:newZoneActivityPhotoContestLikeReq()
+  return {
+    activity_id = nil,
+    activity_sub_id = nil,
+    like_photo_uin = nil
+  }
+end
+
+function ProtoMessage:newZoneActivityPhotoContestLikeRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo(),
+    ban_info = ProtoMessage:newBanInfo()
+  }
+end
+
+function ProtoMessage:newZoneActivityPhotoContestLikeNotify()
+  return {
+    activity_sub_id = nil,
+    photos = {},
+    accuracy_score = nil
+  }
+end
+
+function ProtoMessage:newPhotoLikeInfo()
+  return {uin = nil, like_count = nil}
+end
+
+function ProtoMessage:newZoneActivityPhotoContestHotReq()
+  return {activity_id = nil, activity_sub_id = nil}
+end
+
+function ProtoMessage:newZoneActivityPhotoContestHotRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo(),
+    uin = nil,
+    photo_url = nil,
+    photo_md5 = nil,
+    mini_photo_url = nil,
+    mini_photo_md5 = nil,
+    hot_count = nil,
+    activity_id = nil,
+    activity_sub_id = nil,
+    rank_no = nil
+  }
+end
+
+function ProtoMessage:newZoneActivityPetTripReceiveLotteryRewardReq()
+  return {activity_id = nil}
+end
+
+function ProtoMessage:newZoneActivityPetTripReceiveLotteryRewardRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo()
+  }
+end
+
+function ProtoMessage:newZoneActivityPetTripGetLotteryResultReq()
+  return {}
+end
+
+function ProtoMessage:newZoneActivityPetTripGetLotteryResultRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo(),
+    lottery_records = {}
+  }
+end
+
+function ProtoMessage:newZoneGetRankUserReq()
+  return {
+    key = ProtoMessage:newRankboardKey(),
+    info_id = nil,
+    is_image = nil
+  }
+end
+
+function ProtoMessage:newZoneGetRankUserRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo(),
+    key = ProtoMessage:newRankboardKey(),
+    info_id = nil,
+    view_count = nil,
+    rank_user = ProtoMessage:newCSRankUser()
+  }
+end
+
+function ProtoMessage:newZoneGetRankUserListReq()
+  return {
+    key = ProtoMessage:newRankboardKey(),
+    from = nil,
+    count = nil,
+    is_image = nil
+  }
+end
+
+function ProtoMessage:newZoneGetRankUserListRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo(),
+    key = ProtoMessage:newRankboardKey(),
+    view_count = nil,
+    rank_user_list = {}
+  }
+end
+
+function ProtoMessage:newZoneLlmPetsAvailablePetsReq()
+  return {
+    pets = {}
+  }
+end
+
+function ProtoMessage:newZoneLlmPetsAvailablePetsRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo()
+  }
+end
+
+function ProtoMessage:newZoneLlmPetsBehaviorReportReq()
+  return {
+    report_infos = {}
+  }
+end
+
+function ProtoMessage:newZoneLlmPetsBehaviorReportRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo()
+  }
+end
+
 function ProtoMessage:newZoneTokenInvalidNotify()
   return {
     ret_info = ProtoMessage:newRetInfo()
+  }
+end
+
+function ProtoMessage:newZoneAiCoachWhiteListReq()
+  return {request_id = nil}
+end
+
+function ProtoMessage:newZoneAiCoachWhiteListRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo(),
+    is_whitelist = nil,
+    version = nil
+  }
+end
+
+function ProtoMessage:newZoneAiCoachSetStatusReq()
+  return {
+    request_id = nil,
+    status = ProtoEnum.AiCoachStatus.ACS_CLOSED
+  }
+end
+
+function ProtoMessage:newZoneAiCoachSetStatusRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo(),
+    status = ProtoEnum.AiCoachStatus.ACS_CLOSED
+  }
+end
+
+function ProtoMessage:newZoneAiCoachRecommendLineupReq()
+  return {
+    session_id = nil,
+    request_id = nil,
+    query_text = nil,
+    query_round_idx = nil,
+    scene_type = nil,
+    lineup_data = nil
+  }
+end
+
+function ProtoMessage:newZoneAiCoachRecommendLineupNotify()
+  return {
+    session_id = nil,
+    request_id = nil,
+    event = nil,
+    data = nil
+  }
+end
+
+function ProtoMessage:newZoneAiCoachRecommendLineupRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo(),
+    session_id = nil,
+    request_id = nil
+  }
+end
+
+function ProtoMessage:newZoneAiCoachRequestCancelReq()
+  return {session_id = nil, request_id = nil}
+end
+
+function ProtoMessage:newZoneAiCoachRequestCancelRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo(),
+    session_id = nil,
+    request_id = nil,
+    cancelled = nil
+  }
+end
+
+function ProtoMessage:newZoneGetAreaIdReq()
+  return {}
+end
+
+function ProtoMessage:newZoneGetAreaIdRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo(),
+    area_id = nil
+  }
+end
+
+function ProtoMessage:newZoneSceneChangeNpcSizeScaleReq()
+  return {
+    npc_id = nil,
+    npc_content_id = nil,
+    type = nil,
+    param = nil,
+    scale_size_min = nil,
+    scale_size_max = nil,
+    snow_npc_id = nil
+  }
+end
+
+function ProtoMessage:newZoneSceneChangeNpcSizeScaleRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo()
+  }
+end
+
+function ProtoMessage:newZoneActivityPredownloadReadyReq()
+  return {
+    activity_id = nil,
+    resource_prepared = nil,
+    already_download = nil,
+    book_download = nil
+  }
+end
+
+function ProtoMessage:newZoneActivityPredownloadReadyRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo(),
+    act_data = ProtoMessage:newPlayerActivityInfo_PreDownloadData()
+  }
+end
+
+function ProtoMessage:newZonePlayerActivityDropAreaNotify()
+  return {activity_id = nil, action_type = nil}
+end
+
+function ProtoMessage:newZoneAiAttackAbnormalStatusReq()
+  return {
+    actor_id = nil,
+    abnormal_status_info = ProtoMessage:newAvatarAbnormalStatusInfo()
+  }
+end
+
+function ProtoMessage:newZoneAiAttackAbnormalStatusRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo()
+  }
+end
+
+function ProtoMessage:newZoneBagItemExpireConvertReq()
+  return {}
+end
+
+function ProtoMessage:newZoneBagItemExpireConvertRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo(),
+    bag_item_expire_list = ProtoMessage:newBagItemExpireList()
+  }
+end
+
+function ProtoMessage:newZoneBagItemExpireCheckReq()
+  return {
+    gids = {}
+  }
+end
+
+function ProtoMessage:newZoneBagItemExpireCheckRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo(),
+    bag_item_expire_list = ProtoMessage:newBagItemExpireList()
+  }
+end
+
+function ProtoMessage:newZoneRptMonthCardTipsShowReq()
+  return {}
+end
+
+function ProtoMessage:newZoneRptMonthCardTipsShowRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo()
+  }
+end
+
+function ProtoMessage:newZoneGetDistributeBillReq()
+  return {}
+end
+
+function ProtoMessage:newZoneGetDistributeBillRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo(),
+    bill_list = ProtoMessage:newMidasDistriBillList()
+  }
+end
+
+function ProtoMessage:newZoneReportDistributeReq()
+  return {
+    goods_id = nil,
+    create_time = nil,
+    op_type = nil,
+    ret = nil
+  }
+end
+
+function ProtoMessage:newZoneReportDistributeRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo()
+  }
+end
+
+function ProtoMessage:newZoneDistributeBillNotify()
+  return {
+    ret_info = ProtoMessage:newRetInfo(),
+    goods_id = nil,
+    create_time = nil
   }
 end
 
@@ -24431,6 +25933,7 @@ function ProtoMessage:newZoneSceneTeleportNotify()
     teleport_reason = nil,
     teleport_id = nil,
     teleport_rule_id = nil,
+    is_cross_scene = nil,
     home_room_level = nil,
     home_name = nil
   }
@@ -24687,7 +26190,8 @@ end
 
 function ProtoMessage:newZoneFuncBlockingConfsChangeNotify()
   return {
-    func_blocking_confs_list = {}
+    func_blocking_confs_list = {},
+    is_audit = nil
   }
 end
 
@@ -24702,7 +26206,11 @@ function ProtoMessage:newZoneRelationshipTreeChangedNotify()
 end
 
 function ProtoMessage:newZoneRelationshipReqUnlockNotify()
-  return {req_uin = nil, relationship_type = nil}
+  return {
+    req_uin = nil,
+    relationship_type = nil,
+    reset_unlocked_data = nil
+  }
 end
 
 function ProtoMessage:newZoneRelationshipCancelUnlockNotify()
@@ -24809,6 +26317,15 @@ function ProtoMessage:newZoneChooseNewFactionNotify()
   return {
     activity_id = nil,
     finished_faction = {}
+  }
+end
+
+function ProtoMessage:newZonePlayerNpcLotteryGoodsRewardNotify()
+  return {
+    ret_info = ProtoMessage:newRetInfo(),
+    lottery_pool_type = nil,
+    pool_reward_id = nil,
+    npc_id = nil
   }
 end
 
@@ -25049,6 +26566,7 @@ function ProtoMessage:newZoneGmCreateBattleReq()
     dynamic_npcs = {},
     disable_anti_cheat = nil,
     skill_tool_mode = nil,
+    dynamic_attacker_npcs = {},
     ai_type = nil,
     first_pet = nil,
     replay_bfid = nil
@@ -25060,7 +26578,8 @@ function ProtoMessage:newZoneGmQueryBattleFieldReq()
     battle_conf_id = nil,
     full_station = nil,
     avatar_pt = ProtoMessage:newPosition(),
-    npc_pt = ProtoMessage:newPosition()
+    npc_pt = ProtoMessage:newPosition(),
+    data_layer = nil
   }
 end
 
@@ -25533,6 +27052,22 @@ function ProtoMessage:newZoneGmAddTestPlatFriendReq()
 end
 
 function ProtoMessage:newZoneGmAddTestPlatFriendRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo()
+  }
+end
+
+function ProtoMessage:newZoneGMTestSuggestionPlayerOne()
+  return {uin = nil, ev_type = nil}
+end
+
+function ProtoMessage:newZoneGmAddTestSuggestionPlayersReq()
+  return {
+    test_players = {}
+  }
+end
+
+function ProtoMessage:newZoneGmAddTestSuggestionPlayersRsp()
   return {
     ret_info = ProtoMessage:newRetInfo()
   }
@@ -26072,6 +27607,34 @@ function ProtoMessage:newZoneGmShowTipsNotify()
   return {tips_str = nil}
 end
 
+function ProtoMessage:newZoneGmExecClientGmReq()
+  return {type = nil, params = nil}
+end
+
+function ProtoMessage:newZoneGmExecClientGmRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo()
+  }
+end
+
+function ProtoMessage:newZoneGmClientNotify()
+  return {
+    request_id = nil,
+    type = nil,
+    params = nil
+  }
+end
+
+function ProtoMessage:newZoneGmClientResponseReq()
+  return {request_id = nil, result = nil}
+end
+
+function ProtoMessage:newZoneGmClientResponseRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo()
+  }
+end
+
 function ProtoMessage:newZoneGmDotsSkillCastByAssetReq()
   return {
     actor_id = nil,
@@ -26139,6 +27702,20 @@ function ProtoMessage:newZoneGmDotsMfbtCastByAssetReq()
 end
 
 function ProtoMessage:newZoneGmDotsMfbtCastByAssetRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo()
+  }
+end
+
+function ProtoMessage:newZoneGmLlmPetsBehaviorEvalReq()
+  return {
+    request_id = nil,
+    eval = nil,
+    param = nil
+  }
+end
+
+function ProtoMessage:newZoneGmLlmPetsBehaviorEvalRsp()
   return {
     ret_info = ProtoMessage:newRetInfo()
   }
@@ -26285,6 +27862,34 @@ function ProtoMessage:newZoneGmUnlockAllTeachingTabRsp()
   }
 end
 
+function ProtoMessage:newZoneGmSetGlobalChallengeProgressReq()
+  return {
+    activity_id = nil,
+    belong_sign = nil,
+    value = nil
+  }
+end
+
+function ProtoMessage:newZoneGmSetGlobalChallengeProgressRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo(),
+    activity_id = nil,
+    belong_sign = nil,
+    old_value = nil,
+    new_value = nil
+  }
+end
+
+function ProtoMessage:newZoneGmDistrGoodsReq()
+  return {shop_id = nil, goods_id = nil}
+end
+
+function ProtoMessage:newZoneGmDistrGoodsRsp()
+  return {
+    ret_info = ProtoMessage:newRetInfo()
+  }
+end
+
 function ProtoMessage:newZoneMailGetListReq()
   return {}
 end
@@ -26371,7 +27976,8 @@ end
 function ProtoMessage:newGetFailGoodsInfo()
   return {
     goods_id = nil,
-    type = ProtoEnum.GoodsType.GT_NONE
+    type = ProtoEnum.GoodsType.GT_NONE,
+    pet_base_id = nil
   }
 end
 

@@ -1,24 +1,17 @@
 require("UnLuaEx")
+local NpcSkillPlayComponent = require("NewRoco.Modules.Core.NPC.ViewNPCComponent.NpcSkillPlayComponent")
 local BP_Thorns_Box_Lock_C = NRCClass()
 
 function BP_Thorns_Box_Lock_C:PlayDestroyEffect(DestroyedByFire)
-  Log.Error("BP_Thorns_Box_Lock_C:PlayDestroyEffect")
-  local SkillClass
+  Log.Debug("BP_Thorns_Box_Lock_C:PlayDestroyEffect")
+  local SkillClass = self.CutSKill
   if DestroyedByFire then
-    SkillClass = UE4.UKismetSystemLibrary.LoadClassAsset_Blocking(self.BurnSkill)
-  else
-    SkillClass = UE4.UKismetSystemLibrary.LoadClassAsset_Blocking(self.CutSKill)
+    SkillClass = self.BurnSkill
   end
-  if not SkillClass then
-    Log.Warning("BP_Thorns_Box_Lock_C:PlayDestroyEffect skill not found")
+  if self.skillPlayComponent == nil then
+    self.skillPlayComponent = NpcSkillPlayComponent(self)
   end
-  local Skill = self.RocoSkill:FindOrAddSkillObj(SkillClass)
-  if not Skill then
-    return
-  end
-  Skill:SetCaster(self)
-  Skill:RegisterEventCallback("End", self, self.OnSkillComplete)
-  self.RocoSkill:PlaySkill(Skill)
+  self.skillPlayComponent:PlaySkillByClass(SkillClass, self, nil, nil, self.OnSkillComplete, false)
 end
 
 function BP_Thorns_Box_Lock_C:OnSkillComplete(Name, Skill)

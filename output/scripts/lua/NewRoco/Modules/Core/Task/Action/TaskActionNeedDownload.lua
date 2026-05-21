@@ -21,7 +21,7 @@ function TaskActionNeedDownload:TempCheckIfNeedDownloadBaseRes()
     self:SendFinishReq()
     return
   end
-  local NeedToDownloadBasePakList, SizeNeedToDownload, LargestSize = _G.PufferUpdateResTask:GetBasePakListNeedToDownload()
+  local NeedToDownloadBasePakList, SizeNeedToDownload, LargestSize = _G.PufferUpdateResTask:GetBasePakListWithPatchNeedToDownload()
   if NeedToDownloadBasePakList and #NeedToDownloadBasePakList > 0 then
     Log.Debug("[TaskActionNeedDownload:TempCheckIfNeedDownloadBaseRes]Need To Download Base Paks")
     local DialogContext = require("NewRoco.Modules.System.TipsModule.DialogContext")
@@ -79,7 +79,7 @@ function TaskActionNeedDownload:SendFinishReq()
   if bFlag then
     local Req = ProtoMessage:newZoneTaskConditionTriggerReq()
     Req.taskid = self.Task.Config.id
-    Req.condition_type = self.Conf.type
+    Req.condition_type = ProtoEnum.TaskKeyType.TKT_MINI_PACKAGE_DONE
     Req.task_condition_idx = CondIndex
     Log.Debug("[TaskActionNeedDownload:SendFinishReq] Send Finish Req")
     _G.ZoneServer:SendWithHandler(ProtoCMD.ZoneSvrCmd.ZONE_TASK_CONDITION_TRIGGER_REQ, Req, self, self.OnSendFinish, false, false)

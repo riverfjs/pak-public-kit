@@ -1,6 +1,5 @@
 require("UnLuaEx")
 local Base = require("NewRoco.Modules.Core.NPC.ViewNPCBase")
-local NpcOptionEvent = require("NewRoco.Modules.Core.NPC.Executors.NpcOptionEvent")
 local PetHUDComponent = require("NewRoco.Modules.Core.Scene.Component.HUD.PetHUDComponent")
 local BP_NPCHealGrassForTrace_C = Base:Extend("BP_NPCHealGrassForTrace_C")
 
@@ -9,7 +8,7 @@ function BP_NPCHealGrassForTrace_C:Init()
   self.bActivated = false
 end
 
-function BP_NPCHealGrassForTrace_C:OnFrameLoad()
+function BP_NPCHealGrassForTrace_C:OnFrameLoad(distanceRatio)
   local npc = self.sceneCharacter
   local hudClass = _G.NRCBigWorldPreloader:Get("PET_HUD")
   if not hudClass then
@@ -37,6 +36,21 @@ function BP_NPCHealGrassForTrace_C:OnFrameLoad()
     hudComp:OnSetViewObj()
     hudComp:ForceUpdate()
   end
+  Base.OnFrameLoad(self, distanceRatio)
+end
+
+function BP_NPCHealGrassForTrace_C:OnLeaveBattle()
+  Base.OnLeaveBattle(self)
+  local npc = self.sceneCharacter
+  if not npc then
+    return
+  end
+  local hudComp = npc:EnsureComponent(PetHUDComponent)
+  local Hud = hudComp._headHud
+  if not Hud then
+    return
+  end
+  Hud:ShowTopMessage(true, npc)
 end
 
 return BP_NPCHealGrassForTrace_C

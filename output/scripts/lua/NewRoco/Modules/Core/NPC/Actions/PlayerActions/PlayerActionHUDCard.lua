@@ -1,16 +1,13 @@
-local PlayerActionHUDCard = Class("PlayerActionHUDCard")
 local FriendEnum = require("NewRoco.Modules.System.Friend.FriendEnum")
-
-function PlayerActionHUDCard:Ctor(Owner, Config)
-  self.Owner = Owner
-  self.Config = Config
-end
+local Base = require("NewRoco.Modules.Core.NPC.Actions.PlayerActions.PlayerActionBase")
+local PlayerActionHUDCard = Base:Extend("PlayerActionHUDCard")
 
 function PlayerActionHUDCard:Execute()
   if not self.Owner then
     return
   end
-  _G.NRCModuleManager:DoCmd(FriendModuleCmd.OpenStudentCardPanel, self.Owner.owner.serverData, FriendEnum.AdminFriendType.Others, FriendEnum.Source.Scene, FriendEnum.SELECT_TAB.FaceToFaceInteraction)
+  Base.Execute(self)
+  _G.NRCModuleManager:DoCmd(FriendModuleCmd.OpenStudentCardPanel, self.Owner.owner.serverData, FriendEnum.AdminFriendType.Others, FriendEnum.Source.Scene, FriendEnum.SELECT_TAB.FaceToFaceInteraction, nil, nil, nil, self)
 end
 
 function PlayerActionHUDCard:ShouldShowOnUI()
@@ -25,6 +22,10 @@ function PlayerActionHUDCard:ShouldShowOnUI()
   if player:IsLogicStatus(ProtoEnum.SpaceActorLogicStatus.SALS_OBSERVING) then
     return false
   end
+  return true
+end
+
+function PlayerActionHUDCard:HasLocalPerform()
   return true
 end
 

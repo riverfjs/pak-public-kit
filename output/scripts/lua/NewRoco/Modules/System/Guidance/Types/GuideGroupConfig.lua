@@ -139,6 +139,7 @@ function GuideGroupConfig:CheckCondition(type, param1, param2)
         _G.NRCModuleManager:DoCmd(_G.GuidanceModuleCmd.GuideTriggerSatisfied, subConfig)
       end
     elseif subConfig.state == GuideConfigTypes.SubConfigState.Completed then
+      completedMask = completedMask | 1 << idx - 1
     end
   end
   if #notTriggerConfig > 0 or #newTriggerConfig > 0 then
@@ -199,7 +200,7 @@ function GuideGroupConfig:HasCompleted()
 end
 
 function GuideGroupConfig:OnInterrupted()
-  self:ClearSkippedSubConfigs()
+  self:ClearFlags()
   if not self.subConfigs then
     return
   end
@@ -216,8 +217,8 @@ function GuideGroupConfig:OnInterrupted()
   end
 end
 
-function GuideGroupConfig:OnReconnect()
-  self:ClearSkippedSubConfigs()
+function GuideGroupConfig:OnReconnect(bFromLostPanel)
+  self:ClearFlags(bFromLostPanel)
   if not self.subConfigs then
     return
   end
@@ -279,6 +280,10 @@ function GuideGroupConfig:OnRecover()
       subConfig.state = GuideConfigTypes.SubConfigState.Pending
       _G.NRCModuleManager:DoCmd(_G.GuidanceModuleCmd.GuideTriggerSatisfied, subConfig)
     elseif subConfig.state == GuideConfigTypes.SubConfigState.Pending then
+      _G.NRCModuleManager:DoCmd(_G.GuidanceModuleCmd.GuideTriggerSatisfied, subConfig)
+    elseif subConfig.state == GuideConfigTypes.SubConfigState.Triggered then
+      subConfig:Reset()
+      subConfig.state = GuideConfigTypes.SubConfigState.Pending
       _G.NRCModuleManager:DoCmd(_G.GuidanceModuleCmd.GuideTriggerSatisfied, subConfig)
     end
   end
@@ -366,7 +371,7 @@ function GuideGroupConfig:Reset()
       subConfig:Reset()
     end
   end
-  self:ClearSkippedSubConfigs()
+  self:ClearFlags()
 end
 
 function GuideGroupConfig:ForceCompleted()
@@ -381,7 +386,7 @@ function GuideGroupConfig:ForceCompleted()
     end
   end
   self.currentSubId = #self.subIds + 1
-  self:ClearSkippedSubConfigs()
+  self:ClearFlags()
 end
 
 function GuideGroupConfig:GetSubGuideWithState(state)
@@ -414,7 +419,7 @@ function GuideGroupConfig:ResetSubGuide(subGuideIdx)
     subConfig:Reset()
   end
   self.currentSubId = 1
-  self:ClearSkippedSubConfigs()
+  self:ClearFlags()
 end
 
 function GuideGroupConfig:FocusTargetLostOnce()
@@ -448,12 +453,18 @@ function GuideGroupConfig:CheckIsPreviousSkipped(subConfig)
   return true
 end
 
-function GuideGroupConfig:ClearSkippedSubConfigs()
-  if not self.submittingSubIds then
-    return
+function GuideGroupConfig:ClearFlags(bFromLostPanel)
+  if not bFromLostPanel then
+    self.focusTargetLostTimes = nil
   end
-  table.clear(self.submittingSubIds)
-  self.submittingSubIds = {}
+  if self.submittingSubIds then
+    table.clear(self.submittingSubIds)
+    self.submittingSubIds = {}
+  end
+  if self.skippedSubConfigs then
+    table.clear(self.skippedSubConfigs)
+    self.skippedSubConfigs = {}
+  end
 end
 
 return GuideGroupConfig

@@ -125,9 +125,9 @@ function UMG_PhotoCropping_C:OnConfirm()
   if self.bUploadToCard then
     TempPhotos = UE.UBlueprintPathsLibrary.Combine({
       UE4.UBlueprintPathsLibrary.ProjectPersistentDownloadDir(),
+      "CommonUrlImages",
       "CardPhotos"
     })
-    self.module.PhotoServer:ConditionReleaseCachedCardPhotos()
   end
   if not UE.UNRCStatics.DirectoryExists(TempPhotos) then
     UE.UNRCStatics.MakeDirectory(TempPhotos)

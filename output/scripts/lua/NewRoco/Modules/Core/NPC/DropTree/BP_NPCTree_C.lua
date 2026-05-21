@@ -63,6 +63,26 @@ function BP_NPCTree_C:Recycle()
   self:DestroyAllFruits()
   self:ClearHandlers()
   Base.Recycle(self)
+  if self.FruitDelayId then
+    _G.DelayManager:CancelDelayById(self.FruitDelayId)
+    self.FruitDelayId = nil
+  end
+  if self.GPUDumpingDelayId then
+    _G.DelayManager:CancelDelayById(self.GPUDumpingDelayId)
+    self.GPUDumpingDelayId = nil
+  end
+  if self.DelayId then
+    _G.DelayManager:CancelDelayById(self.DelayId)
+    self.DelayId = nil
+  end
+  if self.PreShakeDelayId then
+    _G.DelayManager:CancelDelayById(self.PreShakeDelayId)
+    self.PreShakeDelayId = nil
+  end
+  if self.RestoreDelayId then
+    _G.DelayManager:CancelDelayById(self.RestoreDelayId)
+    self.RestoreDelayId = nil
+  end
 end
 
 function BP_NPCTree_C:ClearHandlers()
@@ -396,7 +416,7 @@ function BP_NPCTree_C:Shake()
   self.bIsShake = UE.UNRCQualityLibrary.GetImageQuality() > UE.ENRCImageQuality.Low
   if self.bGPUDamping then
     self:SetActorTickEnabled(self.bIsShake)
-    _G.DelayManager:DelaySeconds(5, self.CloseTick, self)
+    self.GPUDumpingDelayId = _G.DelayManager:DelaySeconds(5, self.CloseTick, self)
   end
 end
 
@@ -531,17 +551,17 @@ function BP_NPCTree_C:Show()
     return
   end
   self.bShowing = true
-  _G.DelayManager:DelaySeconds(2, self.RestoreFlags, self)
+  self.RestoreDelayId = _G.DelayManager:DelaySeconds(2, self.RestoreFlags, self)
   local fruits = self.sceneCharacter.luaObj:GetChildrenNPCViews()
   if #fruits > 0 then
-    _G.DelayManager:DelaySeconds(1.67, self.UnlockMoveAndBattle, self)
+    self.FruitDelayId = _G.DelayManager:DelaySeconds(1.67, self.UnlockMoveAndBattle, self)
   else
     self:UnlockMoveAndBattle()
   end
   if self.InteractType == NPCModuleEnum.InteractType.PET_BULL_RUSH then
     self:PreShake(fruits)
   else
-    _G.DelayManager:DelaySeconds(0.33, self.PreShake, self, fruits)
+    self.PreShakeDelayId = _G.DelayManager:DelaySeconds(0.33, self.PreShake, self, fruits)
   end
   if self.InteractType == NPCModuleEnum.InteractType.PET_BULL_RUSH then
     self.InteractType = NPCModuleEnum.InteractType.PLAYER
@@ -557,7 +577,7 @@ function BP_NPCTree_C:PreShake(fruits)
   self:Shake()
   self.Item_Tree:Activate(true)
   _G.NRCAudioManager:PlaySound3DAtLocationAuto(1051, self:K2_GetActorLocation())
-  _G.DelayManager:DelaySeconds(0.1, self.DropFruits, self, fruits)
+  self.DelayId = _G.DelayManager:DelaySeconds(0.1, self.DropFruits, self, fruits)
 end
 
 function BP_NPCTree_C:RestoreFlags()

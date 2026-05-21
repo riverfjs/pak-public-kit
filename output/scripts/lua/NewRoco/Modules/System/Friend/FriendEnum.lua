@@ -121,4 +121,5 @@ FriendEnum.TypingFlag = {
   MultiChannelChatFlag = 2,
   AllFlag = 3
 }
+FriendEnum.VoiceInputScene = {Default = 0, AICoach = 1}
 return FriendEnum

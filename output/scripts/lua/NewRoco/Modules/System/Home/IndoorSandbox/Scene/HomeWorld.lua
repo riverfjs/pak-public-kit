@@ -53,11 +53,20 @@ function HomeWorld:GetStyleEnvSystemSettingByStyleId(StyleId, RoomId)
   if Info then
     local RoomStyleTOD = Info.RoomIdOverrideEnvSystemSetting[RoomId]
     local RoomStyleTODLow = Info.RoomIdOverrideEnvSystemSettingLow[RoomId]
-    if not RoomStyleTOD then
+    if RoomStyleTOD then
+      if RoomStyleTODLow then
+        return RoomStyleTOD, RoomStyleTODLow
+      else
+        return RoomStyleTOD
+      end
+    elseif RoomStyleTODLow then
+      RoomStyleTOD = self.HomeAssetRegistry.InteriorFinishConfig.DefaultEnvSystemSetting:Find(RoomId)
+      return RoomStyleTOD, RoomStyleTODLow
+    else
       RoomStyleTOD = self.HomeAssetRegistry.InteriorFinishConfig.DefaultEnvSystemSetting:Find(RoomId)
       RoomStyleTODLow = self.HomeAssetRegistry.InteriorFinishConfig.DefaultEnvSystemSettingLow:Find(RoomId)
+      return RoomStyleTOD, RoomStyleTODLow
     end
-    return RoomStyleTOD, RoomStyleTODLow
   end
 end
 

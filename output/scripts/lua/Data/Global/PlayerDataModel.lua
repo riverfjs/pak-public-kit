@@ -28,6 +28,12 @@ function PlayerDataModel:Ctor()
   self.playerInfo = nil
   self.loginData = nil
   self.DataModelMgr = _G.DataModelMgr
+  self.SelfStoryFlagsMap = nil
+  self.SelfStoryFlagsMapCount = 0
+  self.HomeOwnerStoryFlagsMap = nil
+  self.HomeOwnerStoryFlagsMapCount = 0
+  self.LastSelfStoryFlagsConsistencyErrorMsTime = -1
+  self.LastHomeOwnerStoryFlagsMapConsistencyErrorMsTime = -1
   self.CachePool = {}
   self:RegisterNotify()
   self.envMask = 0
@@ -264,6 +270,9 @@ function PlayerDataModel:SetPlayerMarkInfo(_mark_info_list)
 end
 
 function PlayerDataModel:SetPlayerBigWorldPetTeamMainIndex(team_Index)
+  if team_Index < 0 then
+    return
+  end
   for index = 1, #self.playerInfo.pet_info.team_infos do
     if self.playerInfo.pet_info.team_infos[index].team_type == _G.ProtoEnum.PlayerTeamType.PTT_BIG_WORLD then
       self.playerInfo.pet_info.team_infos[index].main_team_idx = team_Index
@@ -448,13 +457,15 @@ function PlayerDataModel:GetIsBigWorldMainTeamIndexByGid(_gid)
   local teamIndex = -1
   local gid
   local retPets = {}
+  local petInTeamIndex
   if PetTeams and PetTeams.teams and #PetTeams.teams > 0 then
     for i, team in ipairs(PetTeams.teams) do
       gid = PetUtils.PetTeamGetPetGidList(team)
       if gid then
-        for _, v in ipairs(gid) do
+        for j, v in ipairs(gid) do
           if v == _gid then
             teamIndex = i
+            petInTeamIndex = j
             break
           end
         end
@@ -464,7 +475,7 @@ function PlayerDataModel:GetIsBigWorldMainTeamIndexByGid(_gid)
       end
     end
   end
-  return teamIndex == PetTeams.main_team_idx + 1, teamIndex - 1
+  return teamIndex == PetTeams.main_team_idx + 1, teamIndex - 1, petInTeamIndex
 end
 
 function PlayerDataModel:GetPlayerBattleTeamIndexByGid(_gid)
@@ -967,16 +978,16 @@ function PlayerDataModel:GetPetHandbookDataWithTypeFilter(petTypeFilterList)
               local isNormalType = false
               local isShiningType = false
               local isOtherType = false
+              local shiningMutationType = 0
               if recordData.catch_mutation then
                 for i = 1, #recordData.catch_mutation do
                   local type = recordData.catch_mutation[i]
                   if type == _G.Enum.MutationDiffType.MDT_NONE then
                     isNormalType = true
-                  end
-                  if type == _G.Enum.MutationDiffType.MDT_SHINING then
+                  elseif PetMutationUtils.GetMutationValue(type, _G.Enum.MutationDiffType.MDT_SHINING) then
                     isShiningType = true
-                  end
-                  if type ~= _G.Enum.MutationDiffType.MDT_NONE and type ~= _G.Enum.MutationDiffType.MDT_SHINING then
+                    shiningMutationType = type
+                  else
                     isOtherType = true
                   end
                 end
@@ -984,7 +995,7 @@ function PlayerDataModel:GetPetHandbookDataWithTypeFilter(petTypeFilterList)
               if isShiningType then
                 local handbookData = {
                   pet_base_id = recordData.pet_base_id,
-                  mutation_type = _G.Enum.MutationDiffType.MDT_SHINING,
+                  mutation_type = shiningMutationType,
                   skill_dam_type = mainPetType,
                   handbook_id = record.handbook_id
                 }
@@ -1140,24 +1151,7 @@ function PlayerDataModel:GetHandbookInfoByPetBaseId(baseId)
 end
 
 function PlayerDataModel:IsAssignStoryFlags(story_flags)
-  if self:IsUseSelfStoryFlag(story_flags) then
-    if self.playerInfo and self.playerInfo.story_flag_info and self.playerInfo.story_flag_info.story_flags then
-      for _, item in ipairs(self.playerInfo.story_flag_info.story_flags) do
-        if item == story_flags then
-          return true
-        end
-      end
-    end
-    return false
-  end
-  if self.HomeOwnerStoryFlags then
-    for _, item in ipairs(self.HomeOwnerStoryFlags) do
-      if item == story_flags then
-        return true
-      end
-    end
-  end
-  return false
+  return self:HasStoryFlag(story_flags)
 end
 
 function PlayerDataModel:IsUseSelfStoryFlag(story_flags)
@@ -1244,7 +1238,7 @@ function PlayerDataModel:_SetVItemCount(VItemID, count, updateFlag)
       end
       self:SendEvent(ENUM_PLAYER_DATA_EVENT.PLAYER_EXP_CHANGED)
     elseif VItemID == _G.Enum.VisualItem.VI_DIAMOND or VItemID == _G.Enum.VisualItem.VI_BRAVE_STAR then
-      self:SendEvent(ENUM_PLAYER_DATA_EVENT.UPDATE_DATA)
+      self:SendEvent(ENUM_PLAYER_DATA_EVENT.UPDATE_DATA, VItemID)
     elseif VItemID == _G.Enum.VisualItem.VI_GP then
       self:SendEvent(ENUM_PLAYER_DATA_EVENT.ON_VITEM_GP_CHANGED, preValue, count)
     end
@@ -1253,6 +1247,7 @@ end
 
 function PlayerDataModel:SetPlayerInfo(playerInfo)
   self.playerInfo = playerInfo
+  self:InitSelfStoryFlagsMap(playerInfo and playerInfo.story_flag_info and playerInfo.story_flag_info.story_flags)
   self.privilegeInfo = playerInfo and playerInfo.start_up_privilege_info
   self:RebuildPetIndexMaps()
   if RedPointModuleCmd then
@@ -1699,12 +1694,16 @@ function PlayerDataModel:OnStoryFlagChangeNotify(rsp)
       end
     end
     table.insert(PlayerInfo.story_flag_info.story_flags, rsp.change_val)
+    self:AddToSelfStoryFlagsMap(rsp.change_val)
+    Log.DebugFormat("PlayerDataModel:OnStoryFlagChangeNotify after Add StoryFlag %d, listCount = %d, mapCount = %d", rsp.change_val, #PlayerInfo.story_flag_info.story_flags, self.SelfStoryFlagsMapCount)
     self:SendEvent(ENUM_PLAYER_DATA_EVENT.STORY_FLAG_ADDED, rsp.change_val)
     self:SendEvent(ENUM_PLAYER_DATA_EVENT.STORY_FLAG_CHANGE, rsp.change_val)
   elseif rsp.change_type == ProtoEnum.StoryFlagChangeType.ENUM.Delete then
     for index, StoryFlag in ipairs(PlayerInfo.story_flag_info.story_flags) do
       if rsp.change_val == StoryFlag then
         table.remove(PlayerInfo.story_flag_info.story_flags, index)
+        self:RemoveFromSelfStoryFlagsMap(rsp.change_val)
+        Log.DebugFormat("PlayerDataModel:OnStoryFlagChangeNotify after Remove StoryFlag %d, listCount = %d, mapCount = %d", rsp.change_val, #PlayerInfo.story_flag_info.story_flags, self.SelfStoryFlagsMapCount)
         self:SendEvent(ENUM_PLAYER_DATA_EVENT.STORY_FLAG_REMOVED, rsp.change_val)
         self:SendEvent(ENUM_PLAYER_DATA_EVENT.STORY_FLAG_CHANGE, rsp.change_val)
         return
@@ -1729,11 +1728,13 @@ function PlayerDataModel:UpdateHomeOwnerStoryFlags(Rep)
   end
   if not self.HomeOwnerStoryFlags then
     self.HomeOwnerStoryFlags = Rep.visit_owner_story_flags or {}
+    self:InitHomeOwnerStoryFlagsMap(self.HomeOwnerStoryFlags)
     self:SendEvent(ENUM_PLAYER_DATA_EVENT.ON_HOME_OWNER_STORY_FLAG_CHANGED, true)
     return
   end
   local OldFlags = self.HomeOwnerStoryFlags or {}
   self.HomeOwnerStoryFlags = Rep.visit_owner_story_flags or {}
+  self:InitHomeOwnerStoryFlagsMap(self.HomeOwnerStoryFlags)
   local OldSet = {}
   for _, Flag in ipairs(OldFlags) do
     OldSet[Flag] = true
@@ -1803,6 +1804,9 @@ function PlayerDataModel:OnBattleHandbookChangeNotify(notify)
   local petInfo = self:GetPlayerPetInfo()
   if not petInfo then
     return nil
+  end
+  if not notify.ret_info then
+    return
   end
   local BattlePetChangeInfo = notify.ret_info.goods_change_info
   if BattlePetChangeInfo.changes and #BattlePetChangeInfo.changes > 0 then
@@ -1875,7 +1879,7 @@ function PlayerDataModel:OnPetDatChangedHandler(item, CmdID)
           self:UpdatePetIndexMaps(k, true)
           table.remove(petInfo.pet_data, i)
           CurPetDataUpdateReasonType = PetUIModuleEnum.PetDataUpdateReason.Free
-          goto lbl_164
+          goto lbl_172
         end
         do
           local Old = petInfo.pet_data[i]
@@ -1899,6 +1903,9 @@ function PlayerDataModel:OnPetDatChangedHandler(item, CmdID)
           if Old.last_breakthrough_lv ~= New.last_breakthrough_lv then
             CurPetDataUpdateReasonType = PetUIModuleEnum.PetDataUpdateReason.BreakThrough
           end
+          if self:CheckPetIsTraceBack(Old, New) then
+            CurPetDataUpdateReasonType = PetUIModuleEnum.PetDataUpdateReason.TraceBack
+          end
           if Old.pet_status_flags ~= New.pet_status_flags then
             self:SendEvent(ENUM_PLAYER_DATA_EVENT.PET_FLAG_CHANGE, New, Old)
             if item.change_reason == ProtoEnum.FlowReason.FLOW_REASON_MIRACLE_CHANGE_TIMEOUT then
@@ -1906,7 +1913,7 @@ function PlayerDataModel:OnPetDatChangedHandler(item, CmdID)
             end
           end
         end
-        goto lbl_164
+        goto lbl_172
       end
     end
     if item.type == ProtoEnum.GoodsType.GT_PET then
@@ -1916,7 +1923,7 @@ function PlayerDataModel:OnPetDatChangedHandler(item, CmdID)
       PetUtils.PlayerPetInfoSetTeamInfo(petInfo, teamInfo, teamInfo.team_type)
     end
   end
-  ::lbl_164::
+  ::lbl_172::
   if self.PetDataChangeItemList == nil then
     self.PetDataChangeItemList = {}
   end
@@ -1929,6 +1936,23 @@ function PlayerDataModel:OnPetDatChangedHandler(item, CmdID)
   if not self.delayRefreshPlayerPetId then
     self.delayRefreshPlayerPetId = _G.DelayManager:DelayFrames(1, self.DelayRefreshPlayerPet, self)
   end
+end
+
+function PlayerDataModel:CheckPetIsTraceBack(OldPetData, NewPetData)
+  local IsTraceBack = false
+  local OldTraceBackTime, NewTraceBackTime
+  if OldPetData.key_experience and OldPetData.key_experience.backtrack_record_info and OldPetData.key_experience.backtrack_record_info.last_backtrack_time then
+    OldTraceBackTime = OldPetData.key_experience.backtrack_record_info.last_backtrack_time
+  end
+  if NewPetData.key_experience and NewPetData.key_experience.backtrack_record_info and NewPetData.key_experience.backtrack_record_info.last_backtrack_time then
+    NewTraceBackTime = NewPetData.key_experience.backtrack_record_info.last_backtrack_time
+  end
+  if nil == OldTraceBackTime and nil ~= NewTraceBackTime then
+    IsTraceBack = true
+  elseif nil ~= OldTraceBackTime and nil ~= NewTraceBackTime then
+    IsTraceBack = OldTraceBackTime < NewTraceBackTime
+  end
+  return IsTraceBack
 end
 
 function PlayerDataModel:OnPetExpChanged(item)
@@ -1965,12 +1989,14 @@ function PlayerDataModel:OnPetExpChanged(item)
   if not self.delayRefreshPlayerPetId then
     self.delayRefreshPlayerPetId = _G.DelayManager:DelayFrames(1, self.DelayRefreshPlayerPet, self)
   end
-  if ChangePetData and ChangePetData.pet_data then
-    _G.NRCModuleManager:GetModule("MainUIModule"):DispatchEvent(MainUIModuleEvent.UI_Refresh_MainPet, 5, ChangePetData)
+  if not ChangePetData or ChangePetData.pet_data then
   end
 end
 
 function PlayerDataModel:DelayRefreshPlayerPet()
+  if self.delayRefreshPlayerPetId then
+    _G.DelayManager:CancelDelayById(self.delayRefreshPlayerPetId)
+  end
   self.delayRefreshPlayerPetId = nil
   self:SendEvent(ENUM_PLAYER_DATA_EVENT.UPDATE_DATA, _G.Enum.GoodsType.GT_PET, self.PetDataChangeItemList)
   self.PetDataChangeItemList = nil
@@ -2220,6 +2246,14 @@ function PlayerDataModel:GetPetByGid(gid)
   return pet
 end
 
+function PlayerDataModel:ResetPetFriendRideState()
+  for id, pet in pairs(self.pets) do
+    if pet then
+      pet.rideFriendUin = nil
+    end
+  end
+end
+
 function PlayerDataModel:GetPetByBaseId(baseId)
   local petData = self:GetPetDataByPetBaseId(baseId)
   if petData then
@@ -2311,7 +2345,7 @@ function PlayerDataModel:GetPlayerBondInfo()
   }
 end
 
-function PlayerDataModel:UpdatePlayerBondInfo(bondInfos)
+function PlayerDataModel:UpdatePlayerBondInfo(bondInfos, isdeduct)
   local fashionBondItems = self.playerInfo.svr_data_info.appearance_info.fashion_bond_info and self.playerInfo.svr_data_info.appearance_info.fashion_bond_info.fashion_bond_item or nil
   if nil == fashionBondItems then
     if not self.playerInfo.svr_data_info.appearance_info.fashion_bond_info then
@@ -2335,8 +2369,16 @@ function PlayerDataModel:UpdatePlayerBondInfo(bondInfos)
         end
       end
       for k, v in ipairs(bondInfos) do
-        if not HaveList[v.id] then
-          table.insert(fashionBondItems, v)
+        if not isdeduct then
+          if not HaveList[v.id] then
+            table.insert(fashionBondItems, v)
+          end
+        elseif #fashionBondItems > 0 then
+          for index, info in pairs(fashionBondItems) do
+            if info.id == v.id then
+              table.remove(fashionBondItems, index)
+            end
+          end
         end
       end
       _G.NRCEventCenter:DispatchEvent(_G.NRCGlobalEvent.UPDATE_PLAYER_BOND_INFO)
@@ -2347,6 +2389,11 @@ end
 function PlayerDataModel:GetPlayerFashionInfo()
   if self.playerInfo.svr_data_info.appearance_info == nil then
     self.playerInfo.svr_data_info.appearance_info = {}
+    self.playerInfo.svr_data_info.appearance_info.fashion_info = {
+      suit_info = {}
+    }
+  end
+  if self.playerInfo.svr_data_info.appearance_info and nil == self.playerInfo.svr_data_info.appearance_info.fashion_info then
     self.playerInfo.svr_data_info.appearance_info.fashion_info = {
       suit_info = {}
     }
@@ -2401,6 +2448,11 @@ end
 function PlayerDataModel:SetPlayerFashionWardrobeInfo(wardrobeIndex, wardrobeData)
   local playerFashionInfo = self.playerInfo.svr_data_info.appearance_info.fashion_info
   if wardrobeIndex >= 0 then
+    if not playerFashionInfo.wardrobe_data then
+      for i = 1, 10 do
+        playerFashionInfo.wardrobe_data[i] = {}
+      end
+    end
     if playerFashionInfo.wardrobe_data[wardrobeIndex] == nil then
       playerFashionInfo.wardrobe_data[wardrobeIndex] = {}
     end
@@ -2430,25 +2482,44 @@ function PlayerDataModel:GetPlayerOwnedSalon()
   return self.playerInfo.svr_data_info.appearance_info.salon_info.item_owned_id
 end
 
-function PlayerDataModel:AddPlayerOwnedFashionInfo(fashionInfo)
+function PlayerDataModel:AddPlayerOwnedFashionInfo(fashionInfo, isdeduct)
   if fashionInfo and #fashionInfo > 0 then
     local fashionData = self.playerInfo.svr_data_info.appearance_info.fashion_info
     for k, v in ipairs(fashionInfo) do
       if fashionData.owned_item_info == nil then
         fashionData.owned_item_info = {}
       end
-      local temp = {item_id = v}
-      table.insert(fashionData.owned_item_info, temp)
+      if not isdeduct then
+        local temp = {item_id = v}
+        table.insert(fashionData.owned_item_info, temp)
+      elseif #fashionData.owned_item_info > 0 then
+        for index, info in pairs(fashionData.owned_item_info) do
+          if info.item_id == v then
+            table.remove(fashionData.owned_item_info, index)
+          end
+        end
+      end
     end
   end
 end
 
-function PlayerDataModel:AddPlayerOwnedSalonInfo(salonInfo)
+function PlayerDataModel:AddPlayerOwnedSalonInfo(salonInfo, isdeduct)
   for k, v in ipairs(salonInfo) do
-    if self.playerInfo.svr_data_info.appearance_info.salon_info.item_owned_id == nil then
+    if self.playerInfo.svr_data_info.appearance_info.salon_info == nil then
+      self.playerInfo.svr_data_info.appearance_info.salon_info = {}
+    end
+    if nil == self.playerInfo.svr_data_info.appearance_info.salon_info.item_owned_id then
       self.playerInfo.svr_data_info.appearance_info.salon_info.item_owned_id = {}
     end
-    table.insert(self.playerInfo.svr_data_info.appearance_info.salon_info.item_owned_id, v)
+    if not isdeduct then
+      table.insert(self.playerInfo.svr_data_info.appearance_info.salon_info.item_owned_id, v)
+    elseif #self.playerInfo.svr_data_info.appearance_info.salon_info.item_owned_id > 0 then
+      for index, id in pairs(self.playerInfo.svr_data_info.appearance_info.salon_info.item_owned_id) do
+        if v == id then
+          table.remove(self.playerInfo.svr_data_info.appearance_info.salon_info.item_owned_id, index)
+        end
+      end
+    end
   end
 end
 
@@ -2533,21 +2604,74 @@ function PlayerDataModel:SetDataByDefaultSuit()
   end
 end
 
-function PlayerDataModel:HasStoryFlag(Flag)
-  if self:IsUseSelfStoryFlag(Flag) then
-    local Info = self.playerInfo
-    local FlagInfo = Info and Info.story_flag_info
-    local Flags = FlagInfo and FlagInfo.story_flags
-    if not Flags or 0 == #Flags then
-      return false
-    end
-    return table.include(Flags, Flag)
+function PlayerDataModel:CheckStoryFlagsMapConsistency(bIsSelf)
+  local MapCount, ListCount
+  if bIsSelf then
+    MapCount = self.SelfStoryFlagsMap and self.SelfStoryFlagsMapCount or 0
+    local Flags = self:GetStoryFlags()
+    ListCount = Flags and #Flags or 0
+  else
+    MapCount = self.HomeOwnerStoryFlagsMap and self.HomeOwnerStoryFlagsMapCount or 0
+    local Flags = self.HomeOwnerStoryFlags
+    ListCount = Flags and #Flags or 0
   end
-  local Flags = self.HomeOwnerStoryFlags
-  if not Flags or 0 == #Flags then
+  if MapCount ~= ListCount then
+    local LastErrorMsTime
+    if bIsSelf then
+      LastErrorMsTime = self.LastSelfStoryFlagsConsistencyErrorMsTime
+    else
+      LastErrorMsTime = self.LastHomeOwnerStoryFlagsMapConsistencyErrorMsTime
+    end
+    local CurMsTime = os.msTime()
+    if LastErrorMsTime < CurMsTime then
+      if bIsSelf then
+        self.LastSelfStoryFlagsConsistencyErrorMsTime = CurMsTime + 1000
+      else
+        self.LastHomeOwnerStoryFlagsMapConsistencyErrorMsTime = CurMsTime + 1000
+      end
+      if _G.RocoEnv.IS_SHIPPING then
+        local LogLevel = Log.GetLogLevel()
+        if LogLevel <= Log.LOG_LEVEL.ELogWarn then
+          local ShippingMapName = bIsSelf and "Self" or "HomeOwner"
+          local ShippingErrorMsg = string.format("[PlayerDataModel] %s StoryFlag\230\149\176\233\135\143\228\184\141\228\184\128\232\135\180! MapCount=%d, ListCount=%d", ShippingMapName, MapCount, ListCount)
+          Log.Warning(ShippingErrorMsg)
+        end
+      else
+        local MapName = bIsSelf and "Self" or "HomeOwner"
+        local ErrorMsg = string.format("[PlayerDataModel] %s StoryFlag\230\149\176\233\135\143\228\184\141\228\184\128\232\135\180! MapCount=%d, ListCount=%d", MapName, MapCount, ListCount)
+        Log.Error(ErrorMsg)
+        local Ctx = _G.DialogContext()
+        Ctx:SetTitle("\233\157\158Shipping\231\137\136\230\156\172\228\184\147\229\177\158\228\184\165\233\135\141\233\148\153\232\175\175\230\143\144\231\164\186")
+        Ctx:SetContent(ErrorMsg .. "\n\232\175\183\229\176\134\230\173\164\230\136\170\229\155\190\229\143\145\231\187\153\229\174\162\230\136\183\231\171\175\229\188\128\229\143\145\230\142\146\230\159\165\239\188\140\229\185\182\230\143\144\228\190\155\229\174\162\230\136\183\231\171\175\230\151\165\229\191\151\239\188\140\232\176\162\232\176\162\239\188\129")
+        Ctx:SetMode(_G.DialogContext.Mode.OK)
+        Ctx:SetButtonText("\229\129\156\230\173\162\230\184\184\230\136\143", "\229\129\156\230\173\162\230\184\184\230\136\143")
+        Ctx:SetCallback(nil, function()
+          UE.UNRCStatics.QuitGame()
+        end)
+        _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.Dialog_OpenDialog, Ctx)
+      end
+    end
     return false
   end
-  return table.include(Flags, Flag)
+  return true
+end
+
+function PlayerDataModel:HasStoryFlag(Flag)
+  if not Flag then
+    return false
+  end
+  if self:IsUseSelfStoryFlag(Flag) then
+    if self:CheckStoryFlagsMapConsistency(true) then
+      return self.SelfStoryFlagsMap and self.SelfStoryFlagsMap[Flag] == true or false
+    end
+    local Flags = self:GetStoryFlags()
+    return Flags and table.include(Flags, Flag) or false
+  end
+  if self:CheckStoryFlagsMapConsistency(false) then
+    return self.HomeOwnerStoryFlagsMap and true == self.HomeOwnerStoryFlagsMap[Flag] or false
+  end
+  local Flags = self.HomeOwnerStoryFlags
+  return Flags and table.include(Flags, Flag) or false
 end
 
 function PlayerDataModel:GetStoryFlags()
@@ -2561,13 +2685,69 @@ function PlayerDataModel:GetStoryFlags()
   return Info.story_flag_info.story_flags
 end
 
+function PlayerDataModel:InitSelfStoryFlagsMap(Flags)
+  self.SelfStoryFlagsMap = {}
+  self.SelfStoryFlagsMapCount = 0
+  local listCount = 0
+  if Flags then
+    for _, Flag in ipairs(Flags) do
+      self.SelfStoryFlagsMap[Flag] = true
+      self.SelfStoryFlagsMapCount = self.SelfStoryFlagsMapCount + 1
+    end
+    listCount = #Flags
+  end
+  Log.DebugFormat("PlayerDataModel:InitSelfStoryFlagsMap initialized! MapCount=%d, ListCount=%d", self.SelfStoryFlagsMapCount, listCount)
+end
+
+function PlayerDataModel:AddToSelfStoryFlagsMap(Flag)
+  if not self.SelfStoryFlagsMap then
+    self.SelfStoryFlagsMap = {}
+  end
+  if not self.SelfStoryFlagsMap[Flag] then
+    self.SelfStoryFlagsMap[Flag] = true
+    self.SelfStoryFlagsMapCount = self.SelfStoryFlagsMapCount + 1
+  elseif _G.RocoEnv.IS_SHIPPING then
+    Log.WarningFormat("[PlayerDataModel:_AddToSelfStoryFlagsMap] \229\176\157\232\175\149\230\183\187\229\138\160\229\183\178\229\173\152\229\156\168\231\154\132Flag\229\136\176SelfStoryFlagsMap! Flag=%d", Flag)
+  else
+    Log.ErrorFormat("[PlayerDataModel:_AddToSelfStoryFlagsMap] \229\176\157\232\175\149\230\183\187\229\138\160\229\183\178\229\173\152\229\156\168\231\154\132Flag\229\136\176SelfStoryFlagsMap! Flag=%d", Flag)
+  end
+end
+
+function PlayerDataModel:RemoveFromSelfStoryFlagsMap(Flag)
+  if not self.SelfStoryFlagsMap then
+    self.SelfStoryFlagsMap = {}
+  end
+  if self.SelfStoryFlagsMap[Flag] then
+    self.SelfStoryFlagsMap[Flag] = nil
+    self.SelfStoryFlagsMapCount = self.SelfStoryFlagsMapCount - 1
+  elseif _G.RocoEnv.IS_SHIPPING then
+    Log.WarningFormat("[PlayerDataModel:_RemoveFromSelfStoryFlagsMap] \229\176\157\232\175\149\229\136\160\233\153\164\228\184\141\229\173\152\229\156\168\231\154\132Flag\228\187\142SelfStoryFlagsMap! Flag=%d", Flag)
+  else
+    Log.ErrorFormat("[PlayerDataModel:_RemoveFromSelfStoryFlagsMap] \229\176\157\232\175\149\229\136\160\233\153\164\228\184\141\229\173\152\229\156\168\231\154\132Flag\228\187\142SelfStoryFlagsMap! Flag=%d", Flag)
+  end
+end
+
 function PlayerDataModel:GetHomeOwnerStoryFlags()
   return self.HomeOwnerStoryFlags or {}
+end
+
+function PlayerDataModel:InitHomeOwnerStoryFlagsMap(Flags)
+  self.HomeOwnerStoryFlagsMap = {}
+  self.HomeOwnerStoryFlagsMapCount = 0
+  if Flags then
+    for _, Flag in ipairs(Flags) do
+      self.HomeOwnerStoryFlagsMap[Flag] = true
+      self.HomeOwnerStoryFlagsMapCount = self.HomeOwnerStoryFlagsMapCount + 1
+    end
+  end
+  Log.DebugFormat("PlayerDataModel:InitHomeOwnerStoryFlagsMap initialized! MapCount=%d, ListCount=%d", self.HomeOwnerStoryFlagsMapCount, Flags and #Flags or 0)
 end
 
 function PlayerDataModel:ClearHomeOwnerStoryFlag()
   Log.Debug("PlayerDataModel:ClearHomeOwnerStoryFlag")
   self.HomeOwnerStoryFlags = nil
+  self.HomeOwnerStoryFlagsMap = nil
+  self.HomeOwnerStoryFlagsMapCount = 0
   self:SendEvent(ENUM_PLAYER_DATA_EVENT.ON_HOME_OWNER_STORY_FLAG_CHANGED, false)
   if self:ShouldSendOutOfStuckReq() then
     self.bIsShouldSendOutOfStuckReq = true
@@ -2709,7 +2889,18 @@ function PlayerDataModel:SetCardAppearanceInfo(CardAppearanceInfo)
 end
 
 function PlayerDataModel:SetPlayerOpenid(name)
+  Log.Debug("PlayerDataModel:SetPlayerOpenid", name)
   self.playerInfo.brief_info.name = name
+  self.playerInfo.brief_info.home_brief_info.home_name = name
+  local player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
+  if player and player.serverData then
+    if player.serverData.brief_info and player.serverData.brief_info.home_brief_info then
+      player.serverData.brief_info.home_brief_info.home_name = name
+    end
+    if player.serverData.home_basic_info and player.serverData.home_basic_info.my_home_info then
+      player.serverData.home_basic_info.my_home_info.home_name = name
+    end
+  end
 end
 
 function PlayerDataModel:UpdatePlayerSkinData(AvatarData)
@@ -2878,16 +3069,28 @@ function PlayerDataModel:RebuildOwlSanctuaryInfoCache()
         }
         local npc_pos_Param_Conf = _G.DataConfigManager:GetNpcRefreshContentConf(owlSanctuary.npc_content_id)
         if npc_pos_Param_Conf and npc_pos_Param_Conf.refresh_param then
+          local RefreshType = npc_pos_Param_Conf.refresh_type
           local ObjectConf
-          if npc_pos_Param_Conf.refresh_type == _G.Enum.RefreshType.RFT_AREA then
+          if RefreshType == _G.Enum.RefreshType.RFT_AREA then
             ObjectConf = _G.DataConfigManager:GetAreaConf(npc_pos_Param_Conf.refresh_param)
-          elseif npc_pos_Param_Conf.refresh_type == _G.Enum.RefreshType.RFT_BYTAGID then
+            if ObjectConf and ObjectConf.pos and ObjectConf.pos[1] then
+              local pos = ObjectConf.pos[1].position_xyz
+              if pos then
+                npc_pos.x = pos[1]
+                npc_pos.y = pos[2]
+                npc_pos.z = pos[3]
+              end
+            end
+          elseif RefreshType == _G.Enum.RefreshType.RFT_BYTAGID then
             ObjectConf = _G.DataConfigManager:GetSceneObjectConf(npc_pos_Param_Conf.refresh_param)
-          end
-          if ObjectConf and ObjectConf.position_xyz then
-            npc_pos.x = ObjectConf.position_xyz[1]
-            npc_pos.y = ObjectConf.position_xyz[2]
-            npc_pos.z = ObjectConf.position_xyz[3]
+            if ObjectConf then
+              local pos = ObjectConf.position_xyz
+              if pos then
+                npc_pos.x = pos[1]
+                npc_pos.y = pos[2]
+                npc_pos.z = pos[3]
+              end
+            end
           end
         end
         if owlSanctuary.detect_info and next(owlSanctuary.detect_info) then
@@ -2932,13 +3135,21 @@ function PlayerDataModel:RebuildOwlSanctuaryInfoCache()
               local ObjectConf
               if npc_pos_Param_Conf.refresh_type == _G.Enum.RefreshType.RFT_AREA then
                 ObjectConf = _G.DataConfigManager:GetAreaConf(npc_pos_Param_Conf.refresh_param)
+                if ObjectConf and ObjectConf.pos and ObjectConf.pos[1] then
+                  local pos = ObjectConf.pos[1].position_xyz
+                  if pos then
+                    npc_pos.x = pos[1]
+                    npc_pos.y = pos[2]
+                    npc_pos.z = pos[3]
+                  end
+                end
               elseif npc_pos_Param_Conf.refresh_type == _G.Enum.RefreshType.RFT_BYTAGID then
                 ObjectConf = _G.DataConfigManager:GetSceneObjectConf(npc_pos_Param_Conf.refresh_param)
-              end
-              if ObjectConf and ObjectConf.position_xyz then
-                npc_pos.x = ObjectConf.position_xyz[1]
-                npc_pos.y = ObjectConf.position_xyz[2]
-                npc_pos.z = ObjectConf.position_xyz[3]
+                if ObjectConf and ObjectConf.position_xyz then
+                  npc_pos.x = ObjectConf.position_xyz[1]
+                  npc_pos.y = ObjectConf.position_xyz[2]
+                  npc_pos.z = ObjectConf.position_xyz[3]
+                end
               end
             end
             if owlSanctuary.detect_info and next(owlSanctuary.detect_info) and owlSanctuary.detect_info.visitor_detect_info and next(owlSanctuary.detect_info.visitor_detect_info) then
@@ -2960,7 +3171,7 @@ function PlayerDataModel:RebuildOwlSanctuaryInfoCache()
             for key, fruitData in ipairs(visitorData.fruit_data) do
               local briefInfo = ProtoMessage:newOwlSanctuaryFruitBriefInfo()
               briefInfo.fruit_id = fruitData.fruit_id or 0
-              briefInfo.npc_id = fruitData.npc_id or {}
+              briefInfo.npc_id = fruitData.npc_ids or {}
               briefInfo.fruit_active_timestamp = fruitData.fruit_active_timestamp
               briefInfo.slot_active_timestamp = fruitData.slot_active_timestamp
               briefInfo.fruit_gid = fruitData.fruit_gid
@@ -3005,6 +3216,31 @@ function PlayerDataModel:GetOwlSanctuaryNpcInfo()
     end
   end
   return nil
+end
+
+function PlayerDataModel:RefreshPetGidAndNum(gids, totalNum)
+  local player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
+  if not player or not player.serverData then
+    return
+  end
+  if not player.serverData.steal_home_info then
+    player.serverData.steal_home_info = ProtoMessage:newStealHomeInfo()
+  end
+  player.serverData.steal_home_info.total_steal_num = totalNum
+  if player.serverData.steal_home_info.steal_of_home_pets then
+    table.clear(player.serverData.steal_home_info.steal_of_home_pets)
+  end
+  if nil == gids or table.isEmpty(gids) then
+    return
+  end
+  for _, gid in ipairs(gids) do
+    local newStealPet = ProtoMessage:newStealHomePetInfo()
+    newStealPet.pet_gid = gid
+    if not player.serverData.steal_home_info.steal_of_home_pets then
+      player.serverData.steal_home_info.steal_of_home_pets = {}
+    end
+    table.insert(player.serverData.steal_home_info.steal_of_home_pets, newStealPet)
+  end
 end
 
 function PlayerDataModel:UpdateStealHomePetInfo(petGid)
@@ -3283,6 +3519,12 @@ function PlayerDataModel:ClearPanelMusicList()
   end
 end
 
+function PlayerDataModel:GetPlayerSettingData()
+  if self.loginData and self.loginData.player_info and self.loginData.player_info.brief_info and self.loginData.player_info.brief_info.additional_data then
+    return self.loginData.player_info.brief_info.additional_data.setting_brief_info
+  end
+end
+
 function PlayerDataModel:GetStateGroupByApplyEnum(ApplyTypeEnum, ApplyEnum)
   if self.playerInfo and self.playerInfo.music_info and self.playerInfo.music_info.apply_list then
     local ApplyId
@@ -3320,6 +3562,9 @@ function PlayerDataModel:HasPanelMusic(ApplyEnum)
 end
 
 function PlayerDataModel:AddPanelMusic(ApplyTypeEnum, ApplyEnum)
+  if self:HasPanelMusic(ApplyEnum) then
+    return
+  end
   table.insert(self.PanelMusicList, ApplyEnum)
   local CloseUIBgmState = true
   if self.playerInfo and self.playerInfo.music_info and self.playerInfo.music_info.apply_list then
@@ -3505,7 +3750,12 @@ function PlayerDataModel:OnVisitRemainCatchTimesNotify(notify)
     else
       self.playerInfo.pet_info.visit_remain_catch_times = 1
     end
+    if self.delayRefreshUIHandle then
+      _G.DelayManager:CancelDelayById(self.delayRefreshUIHandle)
+      self.delayRefreshUIHandle = nil
+    end
     self.delayRefreshUIHandle = DelayManager:DelaySeconds(2, function()
+      self.delayRefreshUIHandle = nil
       _G.BattleEventCenter:Dispatch(BattleEvent.RefreshVisitCatch)
     end)
   end
@@ -4177,6 +4427,33 @@ function PlayerDataModel:OnMedalDataChange(item)
     end
     _G.NRCEventCenter:DispatchEvent(PetUIModuleEvent.PetWearMedalEvent)
   end
+end
+
+function PlayerDataModel:GetMedalInfoByItem(item)
+  if not (item and item.medal) or not item.medal.detail then
+    return nil
+  end
+  local petMedalInfo = self:GetPetMedalInfo()
+  if not petMedalInfo or not petMedalInfo.collection then
+    return nil
+  end
+  local conf_id = item.medal.conf_id
+  local hash_id = item.medal.hash_id
+  local medalDetail = item.medal.detail
+  for _, record in pairs(petMedalInfo.collection) do
+    if record and record.medal_conf_id == conf_id then
+      for _, bucket in pairs(record.buckets or {}) do
+        if bucket and bucket.hash_id == hash_id then
+          for _, detail in pairs(bucket.detail_list or {}) do
+            if detail and detail.owner_id == medalDetail.owner_id then
+              return false, detail.complete_cnt
+            end
+          end
+        end
+      end
+    end
+  end
+  return true, nil
 end
 
 function PlayerDataModel:GetMedalListAndWearMedalByPetGid(gid)

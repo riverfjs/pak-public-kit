@@ -170,8 +170,11 @@ function UMG_Shop_CollectProgress_C:OnClickBtnApparel()
         salonIds = _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.GetAvatarDefaultSalonIdsByGender, gender)
       end
     end
-    local fashionIds = self.suitConf.item_id
+    local fashionIds = {}
     local wandId = _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.GetCurSuitWandId)
+    for k, v in ipairs(self.suitConf.item_id) do
+      table.insert(fashionIds, v)
+    end
     table.insert(fashionIds, wandId)
     _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.BuyAndWearSuitReq, curSelectedIndex, fashionIds, salonIds)
   else

@@ -7,7 +7,7 @@ function BP_NPCFakeMessagePenForTrace_C:Init()
   Base.Init(self)
 end
 
-function BP_NPCFakeMessagePenForTrace_C:OnFrameLoad()
+function BP_NPCFakeMessagePenForTrace_C:OnFrameLoad(distanceRatio)
   local npc = self.sceneCharacter
   if npc then
     local hudClass = _G.NRCBigWorldPreloader:Get("PET_HUD")
@@ -37,6 +37,7 @@ function BP_NPCFakeMessagePenForTrace_C:OnFrameLoad()
       self.hudComp:ForceUpdate()
     end
   end
+  Base.OnFrameLoad(self, distanceRatio)
 end
 
 return BP_NPCFakeMessagePenForTrace_C

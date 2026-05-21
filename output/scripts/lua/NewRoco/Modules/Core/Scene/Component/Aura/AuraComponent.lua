@@ -83,6 +83,14 @@ function AuraComponent:UpdateAura(Info)
 end
 
 function AuraComponent:AddAura(Info)
+  local VisibleList = Info and Info.avatar_white_list
+  if VisibleList and #VisibleList > 0 then
+    local UIN = _G.PlayerModuleCmd and _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_UIN)
+    if not table.contains(VisibleList, UIN) then
+      Log.Debug("AuraComponent:AddAura local player not in visible list, skip add", Info.id, Info.aura_conf_id)
+      return nil
+    end
+  end
   local Aura = AuraObject(self, Info)
   if not Aura then
     Log.Error("AuraComponent:AddAura can't find proper aura")

@@ -38,7 +38,7 @@ function UMG_BagUseItem_C:SetData()
         end
       end
     else
-      local LevelSkillConf = _G.DataConfigManager:GetLevelSkillConf(self.data.base_conf_id)
+      local LevelSkillConf = _G.NRCModeManager:DoCmd(_G.PetUIModuleCmd.GetLevelSkillConfByPetBaseId, self.data.base_conf_id)
       skillConf = self:GetSkillData(petBloodConf.id, LevelSkillConf)
     end
     self.Attr:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)

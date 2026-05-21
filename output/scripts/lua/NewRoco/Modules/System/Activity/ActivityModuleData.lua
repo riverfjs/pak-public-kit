@@ -2,6 +2,7 @@ local ActivityModuleData = _G.NRCData:Extend("ActivityModuleData")
 local ActivityEnum = require("NewRoco.Modules.System.Activity.ActivityEnum")
 local ActivityUtils = require("NewRoco.Modules.System.Activity.ActivityUtils")
 local ActivityModuleEvent = require("NewRoco.Modules.System.Activity.ActivityModuleEvent")
+local JsonUtils = require("Common.JsonUtils")
 
 function ActivityModuleData:Ctor()
   NRCData.Ctor(self)
@@ -11,9 +12,12 @@ function ActivityModuleData:Ctor()
   self.waitingActiveActivities = {}
   self.inDisplayingActivities = {}
   self.shieldingActivities = {}
+  self.waitingConditionActivities = {}
   self.removedActivities = {}
   self.svrActivityBriefInfo = {}
   self.LotteryResultList = {}
+  self._CommonOpenTipState = {}
+  self.activityAnimFlag = nil
 end
 
 function ActivityModuleData:InitClientActiveActivities(serverTime)
@@ -47,6 +51,13 @@ function ActivityModuleData:InitClientActiveActivities(serverTime)
       local disappearTimestamp = ActivityUtils.ToTimestamp(_conf.disappear_time)
       if serverTime >= disappearTimestamp then
         enabled = false
+      end
+    end
+    if enabled and _conf.appear_world_level_require and _conf.appear_world_level_require > 0 then
+      local worldLevel = _G.DataModelMgr.PlayerDataModel:GetPlayerWorldLevel() or 0
+      if worldLevel < _conf.appear_world_level_require then
+        enabled = false
+        self.waitingConditionActivities[_conf.id] = _conf
       end
     end
     if enabled then
@@ -122,6 +133,23 @@ function ActivityModuleData:AddActivityToWaitingActive(_activityId)
 end
 
 function ActivityModuleData:RefreshActivities()
+  if table.isNotEmpty(self.waitingConditionActivities) then
+    for _, _activityInst in ipairs(self.waitingActiveActivities) do
+      self.waitingConditionActivities[_activityInst:GetActivityId()] = nil
+    end
+    local worldLevel = _G.DataModelMgr.PlayerDataModel:GetPlayerWorldLevel() or 0
+    for _activityId, _activityCfg in pairs(self.waitingConditionActivities) do
+      if _activityCfg and _activityCfg.appear_world_level_require and worldLevel >= _activityCfg.appear_world_level_require then
+        local _activityInst = self:GetOrCreateActivityInst(_activityId)
+        if _activityInst then
+          table.insert(self.waitingActiveActivities, _activityInst)
+        end
+      end
+    end
+    for _, _activityInst in ipairs(self.waitingActiveActivities) do
+      self.waitingConditionActivities[_activityInst:GetActivityId()] = nil
+    end
+  end
   local activateParameter = ActivityUtils.CreateActivityActivateParameter()
   local displayingActivitiesChange = ActivityUtils.RemoveElements(self.inDisplayingActivities, function(_activityInst, _activateParameter)
     _activityInst:RefreshActivityStatus(_activateParameter)
@@ -601,6 +629,18 @@ function ActivityModuleData:DumpActivityDetail()
     DebugDataRet[string.format("%s(%d)", k, cnt)] = v
   end
   return DebugDataRet
+end
+
+local _ActivityAnimFlagFileName = "NrcActivityAnimFlag"
+
+function ActivityModuleData:LoadActivityAnimFlag()
+  self.activityAnimFlag = JsonUtils.LoadSaved(_ActivityAnimFlagFileName, {})
+end
+
+function ActivityModuleData:SaveActivityAnimFlag()
+  if self.activityAnimFlag then
+    JsonUtils.DumpSaved(_ActivityAnimFlagFileName, self.activityAnimFlag)
+  end
 end
 
 return ActivityModuleData

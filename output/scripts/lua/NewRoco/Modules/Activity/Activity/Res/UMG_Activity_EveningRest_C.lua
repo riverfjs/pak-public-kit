@@ -18,7 +18,8 @@ function UMG_Activity_EveningRest_C:OnConstruct()
   Base.OnConstruct(self)
   local _activityInst = self.activityInst
   local mix_conf = _activityInst:GetMixCfg()
-  local dropConf = _G.DataConfigManager:GetActivityDropConf(mix_conf.slot_group[1].param)
+  local drop_base_id = _G.DataConfigManager:GetActivityConf(mix_conf.slot_group[1].param).base_id[1]
+  local dropConf = _G.DataConfigManager:GetActivityDropConf(drop_base_id)
   self.dayLimit = dropConf.day_got_limit
   local path = ActivityUtils.GetItemIconAndQuality(dropConf.goods_type, dropConf.goods_id)
   self.TextDesc:SetText(dropConf.drop_num_tips)

@@ -47,6 +47,9 @@ function UpdateUIModuleHead:OnConstruct()
   self:BindCmd(_G.UpdateUIModuleCmd.CheckIfPreDownloadBasePaksIsNeeded, "CheckIfPreDownloadBasePaksIsNeeded")
   self:BindCmd(_G.UpdateUIModuleCmd.StartPreDownloadBasePaks, "StartPreDownloadBasePaks")
   self:BindCmd(_G.UpdateUIModuleCmd.CheckIfNeedRestratApp, "CheckIfNeedRestratApp")
+  self:BindCmd(_G.UpdateUIModuleCmd.CheckLocalPreDownloadConfig, "CheckLocalPreDownloadConfig")
+  self:BindCmd(_G.UpdateUIModuleCmd.DownloadPreDownloadConfig, "DownloadPreDownloadConfig")
+  self:BindCmd(_G.UpdateUIModuleCmd.InitPreDownloadPufferTask, "InitPreDownloadPufferTask")
 end
 
 return UpdateUIModuleHead

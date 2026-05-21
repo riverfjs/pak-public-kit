@@ -216,10 +216,13 @@ local SimpleClassOptimization = true
 local CopyOrRecurse = false
 local AutoAdjustPreAllocSize = true
 local MakeSimpleClass
+local WithPool = _G.RocoEnv.IS_EDITOR
+local ClassPool = {}
+local FromPool, ToPool
 AutoAdjustPreAllocSize = AutoAdjustPreAllocSize and UE.NRCLuaUtils.GetHashSize ~= nil
 
-local function ExtendSimpleClass(InParentKlass, SubClassName)
-  local SubClass = MakeSimpleClass(SubClassName, InParentKlass)
+local function ExtendSimpleClass(InParentKlass, SubClassName, PoolSize)
+  local SubClass = MakeSimpleClass(SubClassName, InParentKlass, PoolSize)
   return SubClass
 end
 
@@ -245,6 +248,10 @@ end
 local function DestructInstance(Instance)
   if Instance and Instance.__Dctor then
     Instance:__Dctor()
+  end
+  local Klass = Instance.class
+  if WithPool and Klass.UsePool then
+    ToPool(Instance)
   end
 end
 
@@ -275,9 +282,58 @@ local function MakeAndAnalyzeInstance(InKlass, ...)
 end
 
 local CallableFunc = AutoAdjustPreAllocSize and MakeAndAnalyzeInstance or MakeInstance
-local CallableMetatable = {__call = CallableFunc}
 
-function MakeSimpleClass(Name, Parent)
+local function CallableWithPool(InKlass, ...)
+  if WithPool and InKlass.UsePool then
+    return FromPool(InKlass, ...)
+  else
+    return CallableFunc(InKlass, ...)
+  end
+end
+
+local CallableMetatable = {__call = CallableWithPool}
+
+function FromPool(Klass, ...)
+  local Pool = ClassPool[Klass]
+  if Pool and next(Pool) then
+    local Instance = table.remove(Pool)
+    local PreCtor = Klass.PreCtor or DefaultPreCtorFunc
+    PreCtor(Instance, ...)
+    setmetatable(Instance, Klass)
+    InitializeFuncWithoutRebind(Instance, ...)
+    return Instance
+  else
+    return CallableFunc(Klass, ...)
+  end
+end
+
+function ToPool(Instance)
+  local Klass = Instance.class
+  if not Klass then
+    return
+  end
+  if not Klass.UsePool then
+    return
+  end
+  if not Klass.PoolSize or Klass.PoolSize <= 0 then
+    return
+  end
+  local Pool = ClassPool[Klass]
+  if not Pool then
+    Pool = table.new(Klass.PoolSize, 0)
+    ClassPool[Klass] = Pool
+  end
+  local PoolSize = #Pool
+  if PoolSize > Klass.PoolSize then
+    Log.Warning("[ClassPool] Instance count is larger than PoolSize, discard", Klass.className, PoolSize)
+    return
+  end
+  setmetatable(Instance, nil)
+  table.reset(Instance)
+  Pool[PoolSize + 1] = Instance
+end
+
+function MakeSimpleClass(Name, Parent, PoolSize)
   local Klass = table.new(0, 16)
   if Parent and CopyOrRecurse then
     table.copy(Parent, Klass, true)
@@ -294,8 +350,10 @@ function MakeSimpleClass(Name, Parent)
   Klass.autoIncreasePreAllocSize = AutoAdjustPreAllocSize
   Klass.PreAllocSize = 4
   Klass.SetMemberCount = DefaultSetPreAllocSizeFunc
+  Klass.UsePool = PoolSize and true or Parent and Parent.UsePool or false
+  Klass.PoolSize = PoolSize and PoolSize or Parent and Parent.PoolSize or 16
   if Parent and not CopyOrRecurse then
-    setmetatable(Klass, {__call = CallableFunc, __index = Parent})
+    setmetatable(Klass, {__call = CallableWithPool, __index = Parent})
   else
     setmetatable(Klass, CallableMetatable)
   end

@@ -24,11 +24,20 @@ end
 
 function WeGameObserver:RailEventSessionTicketGetSessionTicket(accountInfo)
   Log.Debug("RailEventSessionTicketGetSessionTicket invoked with accountInfo")
-  NRCModuleManager:DoCmd(LoginModuleCmd.SetConditionInData, LoginEnum.Conditions.LoginResCode, accountInfo.error_code)
-  NRCModuleManager:DoCmd(LoginModuleCmd.CleanTimeoutTimer)
+  if _G.NRCModuleManager:GetModule("LoginModule") then
+    NRCModuleManager:DoCmd(LoginModuleCmd.SetConditionInData, LoginEnum.Conditions.LoginResCode, accountInfo.error_code)
+    NRCModuleManager:DoCmd(LoginModuleCmd.CleanTimeoutTimer)
+  end
   local LoginFsm = LoginUtils.GetMainFsm()
   if not LoginFsm then
-    NRCEventCenter:DispatchEvent(LoginModuleEvent.OnReceiveLoginRetOutside)
+    if accountInfo and 0 == accountInfo.error_code then
+      Log.Debug("WeGameObserver RailEventSessionTicketGetSessionTicket accountInfo.error_code == 0")
+    else
+      if accountInfo and accountInfo.error_code then
+        Log.Error("OnReceiveLoginRetOutside with error_code:", accountInfo.error_code)
+      end
+      NRCEventCenter:DispatchEvent(LoginModuleEvent.OnReceiveLoginRetOutside)
+    end
     return
   end
   if 0 == accountInfo.error_code then
@@ -40,6 +49,11 @@ function WeGameObserver:RailEventSessionTicketGetSessionTicket(accountInfo)
     local OpenID = tostring(accountInfo.open_id:data())
     local Token = tostring(accountInfo.token:data())
     local Channel = tostring(accountInfo.channel:data())
+    local ExtraStr = tostring(accountInfo.ext_str:data())
+    if string.IsNilOrEmpty(ExtraStr) then
+      Log.Error("ExtraStr is nil")
+      ExtraStr = ""
+    end
     LoginUtils.GetLoginData():SetOpenID(OpenID)
     LoginUtils.GetLoginData():SetChannel(Channel)
     LoginUtils.GetLoginData():SetToken(Token)
@@ -47,7 +61,8 @@ function WeGameObserver:RailEventSessionTicketGetSessionTicket(accountInfo)
     NRCModuleManager:DoCmd(OnlineModuleCmd.SetUserAccountInfo, OpenID, Token, Channel, "", "")
     if accountInfo.picture_url:data() then
       local extraLoginInfo = {
-        avatarUrl = tostring(accountInfo.picture_url:data())
+        avatarUrl = tostring(accountInfo.picture_url:data()),
+        ctt = ExtraStr
       }
       LoginUtils.GetLoginData():SetExtraInfo(extraLoginInfo)
     else
@@ -91,7 +106,6 @@ function WeGameObserver:QueryFriendsListResult(friendsInfo)
   if friends and table.len(friends) > 0 then
     local friendInfosTable = {}
     for _, friend in ipairs(friends) do
-      Log.Warning("QueryFriendsListResult with friend info " .. friend.openID .. ", state: " .. friend.state .. " , nickName: " .. friend.nickName)
       table.insert(friendInfosTable, {
         openID = friend.OpenID,
         onlineState = friend.State,

@@ -301,7 +301,6 @@ function PetBallComponent:QueryStandPoint(QueryType, Querier, InnerRadius, Outer
   end
   local Session = self:GetThrowSession()
   local PetData = Session and Session.petData
-  local ModelID = Session.ScenePet.config.model_conf
   if not Session or not PetData then
     Log.Warning("PetBallComponent:QueryStandPoint")
     return
@@ -316,6 +315,7 @@ function PetBallComponent:QueryStandPoint(QueryType, Querier, InnerRadius, Outer
     Session:RecycleAllRes()
     return
   end
+  local ModelID = Session.ScenePet.config.model_conf
   local QuerierLocation
   if QueryType == EQSQueryType.None then
     if not Querier then
@@ -584,6 +584,10 @@ function PetBallComponent:ReleasePetComplete(Name, SkillObject)
       return
     end
     if self.CurrentThrowSession.Status == ThrowSessionStatusEnum.Recycling then
+      return
+    end
+    if not pet or pet.isDestroy then
+      self.CurrentThrowSession:RecycleAllRes()
       return
     end
   end

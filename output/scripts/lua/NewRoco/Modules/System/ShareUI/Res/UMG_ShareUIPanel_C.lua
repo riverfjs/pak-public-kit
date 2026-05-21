@@ -3,6 +3,7 @@ local NRCSDKManagerEvent = require("Core.Service.SDKManager.NRCSDKManagerEvent")
 local TimeoutEventListener = require("Common.TimeoutEventListener")
 local ShareUIModuleEvent = reload("NewRoco.Modules.System.ShareUI.ShareUIModuleEvent")
 local CommonUtils = require("NewRoco.Utils.CommonUtils")
+local ShareVerifier = require("NewRoco.Modules.System.Share.ShareVerifier")
 
 function UMG_ShareUIPanel_C:OnActive()
   self.CanClose = false
@@ -10,25 +11,34 @@ function UMG_ShareUIPanel_C:OnActive()
   self.IsShareLock = false
   self.ShareChannelData = nil
   self.IsBanQRCode = false
+  self.IsBanInfo = false
   self.IsPlaySubPanelCardAnim = false
   self.IsPlaySubPanelVideoAnim = false
   self.IsPlayPetPhotoAnim = false
+  self.IsPlayHBPhotoAnim = false
   self.IsChannelQRCodeChange = false
+  self.IsShowPlayerInfo = true
   self.LockEventListener = TimeoutEventListener()
   self.ChannelQRCodeEventListener = TimeoutEventListener()
   self:OnAddEventListener()
   self:InitShareWayList()
   self:InitSubUmg()
   self:InitReward()
+  self:InitPlayerInfo()
   self:PlayInAnim()
   self:ShowCloseMoreBtn(false)
   self:BindInputAction()
+  local sharePartButtonType = _G.NRCModuleManager:DoCmd(ShareUIModuleCmd.GetSharePartButtonType)
+  if sharePartButtonType == _G.Enum.ShareButtonType.SBT_PET_VIDEO then
+    _G.NRCModuleManager:DoCmd(_G.ShareUIModuleCmd.SetIsSharingPetVideo, false)
+  end
 end
 
 function UMG_ShareUIPanel_C:OnDeactive()
   self:RemoveButtonListener(self.CloseBtn.btnClose)
   self:RemoveButtonListener(self.CloseMoreBtn)
   _G.NRCSDKManager:RemoveEventListener(self, NRCSDKManagerEvent.OnDeliverMessageNotify, self.OnShareSuccess)
+  self.Button.OnClicked:Remove(self, self.OnShowPlayInfo)
 end
 
 function UMG_ShareUIPanel_C:OnAddEventListener()
@@ -36,6 +46,7 @@ function UMG_ShareUIPanel_C:OnAddEventListener()
   self:AddButtonListener(self.CloseMoreBtn, self.OnCloseMoreBtn)
   self.WidgetLoader.OnLoadPanelCallbackDelegate:Add(self, self.OnLoadWidgetCallback)
   _G.NRCSDKManager:AddEventListener(self, NRCSDKManagerEvent.OnDeliverMessageNotify, self.OnShareSuccess)
+  self.Button.OnClicked:Add(self, self.OnShowPlayInfo)
 end
 
 function UMG_ShareUIPanel_C:InitTitle()
@@ -71,8 +82,7 @@ function UMG_ShareUIPanel_C:InitShareWayList()
     if shareWayData.name == "more" then
       moreShareWayData = {
         share_icon = shareWayData.share_icon,
-        name = shareWayData.name,
-        isShareBase = true
+        name = shareWayData.name
       }
     elseif shareWayData.name == "imageQRcode" then
       local channelBanId = shareWayData.system_control_limit
@@ -80,13 +90,18 @@ function UMG_ShareUIPanel_C:InitShareWayList()
       if channelBanId and not _G.NRCModuleManager:DoCmd(_G.ShareUIModuleCmd.CheckShareChannelIsOpen, channelBanId) then
         self.IsBanQRCode = true
       end
+    elseif shareWayData.name == "information" then
+      local channelBanId = shareWayData.system_control_limit
+      self.IsBanInfo = false
+      if channelBanId and not _G.NRCModuleManager:DoCmd(_G.ShareUIModuleCmd.CheckShareChannelIsOpen, channelBanId) then
+        self.IsBanInfo = true
+      end
     else
       local isOpen = _G.NRCModuleManager:DoCmd(ShareUIModuleCmd.CheckShareChannelOpen, shareWayData, shareType)
       if isOpen then
         local data = {
           share_icon = shareWayData.share_icon,
           name = shareWayData.name,
-          isShareBase = true,
           qrcodeShow = shareWayData.qrcode_scenario,
           qrcodeLink = shareWayData.qrcode_link
         }
@@ -153,11 +168,16 @@ function UMG_ShareUIPanel_C:InitSubUmg()
     local softClassPath = UE4.UKismetSystemLibrary.MakeSoftClassPath(widgetClass)
     self.WidgetLoader:SetWidgetClass(softClassPath)
     self.data.CurShareData.IsBanQRCode = self.IsBanQRCode
+    self.data.CurShareData.IsBanInfo = self.IsBanInfo
     if self.data.CurShareData.shareBaseId == _G.Enum.ShareButtonType.SBT_PET then
-      local petData = {}
-      table.deepCopy(self.data.CurShareData.petData, petData)
-      local newPetData = self:GetNewPetData(petData)
-      self.data.CurShareData.petData = newPetData
+      if self.data.CurShareData.petData and next(self.data.CurShareData.petData) then
+        local petData = {}
+        table.deepCopy(self.data.CurShareData.petData, petData)
+        local newPetData = self:GetNewPetData(petData)
+        self.data.CurShareData.petData = newPetData
+      else
+        self.data.CurShareData.petData = {}
+      end
     end
     self.WidgetLoader:LoadPanel(self, self.data.CurShareData)
   end
@@ -222,6 +242,9 @@ function UMG_ShareUIPanel_C:OnAnimationFinished(Animation)
     if shareBaseButtonType == _G.Enum.ShareButtonType.SBT_PET then
       _G.NRCModuleManager:DoCmd(PetUIModuleCmd.SetPetMainPanelVisibility, false)
     end
+    if sharePartButtonType == _G.Enum.ShareButtonType.SBT_PET_PICTURE then
+      _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.SetPetMainPanelPetImage3DActive, true)
+    end
     self:PlayAnimation(self.Loop)
     self.CanClose = true
   elseif Animation == self.Loop then
@@ -229,7 +252,8 @@ function UMG_ShareUIPanel_C:OnAnimationFinished(Animation)
   elseif Animation == self.Out or Animation == self.Out_Card then
     local sharePartButtonType = _G.NRCModuleManager:DoCmd(ShareUIModuleCmd.GetSharePartButtonType)
     if _G.NRCModuleManager:DoCmd(PetUIModuleCmd.IsShareRecordVideo) and sharePartButtonType == _G.Enum.ShareButtonType.SBT_PET_VIDEO then
-      _G.NRCModuleManager:DoCmd(ShareModuleCmd.EndRecordVideo, self.data.CurShareData.petData.gid)
+      local gid = self:GetPetShareGid()
+      _G.NRCModuleManager:DoCmd(ShareModuleCmd.EndRecordVideo, gid)
     end
     self:CancelDelayId()
     self:OnClose()
@@ -241,6 +265,7 @@ function UMG_ShareUIPanel_C:OnClickCloseBtn(isRePlayVideo)
     return
   end
   self.CanClose = false
+  _G.NRCAudioManager:PlaySound2DAuto(41401014, "UMG_ShareUIPanel_C:OnClickCloseBtn")
   local shareBaseButtonType = _G.NRCModuleManager:DoCmd(ShareUIModuleCmd.GetShareBaseButtonType)
   if shareBaseButtonType == _G.Enum.ShareButtonType.SBT_PET then
     if _G.GlobalConfig.DebugOpenUI then
@@ -261,6 +286,10 @@ function UMG_ShareUIPanel_C:OnClickCloseBtn(isRePlayVideo)
     self:PlayAnimation(self.Out)
     local subSharePanel = self.WidgetLoader:GetPanel()
     subSharePanel:PlayOutAnim()
+  elseif sharePartButtonType == _G.Enum.ShareButtonType.SBT_HB_PHOTO then
+    self:PlayAnimation(self.Out)
+    local subSharePanel = self.WidgetLoader:GetPanel()
+    subSharePanel:PlayOutAnim()
   else
     self:PlayAnimation(self.Out)
   end
@@ -275,8 +304,11 @@ function UMG_ShareUIPanel_C:OnCloseMoreBtn()
     self.ShareUIMore:PlayOutAnim()
   end
   local subSharePanel = self.WidgetLoader:GetPanel()
-  if subSharePanel.PhotoSub.ComboBox_Popup and subSharePanel.PhotoSub.ComboBox_Popup:GetVisibility() == UE4.ESlateVisibility.SelfHitTestInvisible then
+  local shareBaseButtonType = _G.NRCModuleManager:DoCmd(ShareUIModuleCmd.GetShareBaseButtonType)
+  if shareBaseButtonType == _G.Enum.ShareButtonType.SBT_ROLE_CARD then
     subSharePanel:ShowSelectBox(false)
+  elseif shareBaseButtonType == _G.Enum.ShareButtonType.SBT_PVP_RECORD then
+    subSharePanel:HideSelectBoxByShare()
   end
 end
 
@@ -304,6 +336,7 @@ function UMG_ShareUIPanel_C:ExecuteSave()
   if self:CheckIsShareLock() then
     return
   end
+  self:HideCloseMoreBtnByShare()
   self:SetShareLock(true)
   self.LockEventListener:StartGlobalEventListener(2, "UMG_ShareUIPanel_C", self, ShareUIModuleEvent.RELEASE_SHARE_LOCK, self.OnReleaseLock)
   self:SendShareTLog()
@@ -321,6 +354,7 @@ function UMG_ShareUIPanel_C:ExecuteShare()
   if self:CheckIsShareLock() then
     return
   end
+  self:HideCloseMoreBtnByShare()
   self:SetShareLock(true)
   self.LockEventListener:StartGlobalEventListener(2, "UMG_PartnerAndPeer_C", self, ShareUIModuleEvent.RELEASE_SHARE_LOCK, self.OnReleaseLock)
   self:SendShareTLog()
@@ -415,7 +449,7 @@ function UMG_ShareUIPanel_C:GetPhotoPath()
   end
   local GUID = UE.UKismetGuidLibrary.NewGuid()
   local FileNameTmp = UE.UKismetGuidLibrary.Conv_GuidToString(GUID)
-  local FileName = FileNameTmp .. ".png"
+  local FileName = FileNameTmp .. ".jpg"
   local PhotoPath = UE.UBlueprintPathsLibrary.Combine({TempPhotos, FileName})
   PhotoPath = UE4.UBlueprintPathsLibrary.ConvertRelativePathToFull(PhotoPath)
   local WaterMaskPhotoPath = UE.UBlueprintPathsLibrary.Combine({TempPhotos, FileName})
@@ -432,7 +466,7 @@ function UMG_ShareUIPanel_C:SavePhoto(isSaveLocal)
     local shareBaseId = self.data.CurShareData.shareBaseId
     local sharePartId = self.data.CurShareData.sharePartId
     local subSharePanel = self.WidgetLoader:GetPanel()
-    if subSharePanel.ShowShareChannelCode then
+    if not self.data.CurShareData.IsBanQRCode and subSharePanel.ShowShareChannelCode then
       self.IsChannelQRCodeChange = true
       self.ChannelQRCodeEventListener:StartGlobalEventListener(2, "UMG_ShareUIPanel_C", self, ShareUIModuleEvent.RELEASE_SHARE_LOCK, self.ResetChannelShareQRCode)
       subSharePanel:ShowShareChannelCode(self.ShareChannelData.qrcodeShow, self.ShareChannelData.qrcodeLink)
@@ -505,14 +539,40 @@ function UMG_ShareUIPanel_C:CancelDelayId()
 end
 
 function UMG_ShareUIPanel_C:ExecuteShareByPicture()
-  local PhotoPath, _ = self:GetPhotoPath()
+  local PhotoPath, WaterMaskPhotoPath = self:GetPhotoPath()
   self:SavePhoto(false)
   local absolutePath = UE.UNRCStatics.ConvertToAbsolutePath(PhotoPath, true)
   if UE.UNRCStatics.FileExists(PhotoPath) then
+    if not self:VerifyShareFileOrTips(absolutePath, ShareVerifier.FileKind.Pic) then
+      self:SetShareLock(false)
+      return
+    end
     NRCModuleManager:DoCmd(ShareModuleCmd.SharePic, absolutePath, self.ShareChannelData.name)
   else
     local sharePanel = self:GetSavePhotoShareUmg()
-    if UE.UPlatformImageLibrary.SaveUserWidgetToImage(UE4Helper.GetCurrentWorld(), sharePanel, PhotoPath) then
+    local shareBaseId = self.data.CurShareData.shareBaseId
+    local sharePartId = self.data.CurShareData.sharePartId
+    local result
+    local writtenPath = PhotoPath
+    if sharePartId == _G.Enum.ShareButtonType.SBT_PET_CARD then
+      result = UE.UPlatformImageLibrary.SaveUserWidgetToImage(UE4Helper.GetCurrentWorld(), sharePanel, PhotoPath, false, 2)
+    elseif shareBaseId == _G.Enum.ShareButtonType.SBT_PHOTO then
+      local subSharePanel = self.WidgetLoader:GetPanel()
+      local Width = subSharePanel.FileTexture:Blueprint_GetSizeX()
+      local Height = subSharePanel.FileTexture:Blueprint_GetSizeY()
+      local DesiredSize = UE.FVector2D(Width, Height)
+      result = UE.UPlatformImageLibrary.SaveUserWidgetToImageByCustomSize(UE4Helper.GetCurrentWorld(), sharePanel, WaterMaskPhotoPath, DesiredSize)
+      writtenPath = WaterMaskPhotoPath
+    else
+      result = UE.UPlatformImageLibrary.SaveUserWidgetToImage(UE4Helper.GetCurrentWorld(), sharePanel, PhotoPath)
+    end
+    if result then
+      local writtenAbs = UE.UNRCStatics.ConvertToAbsolutePath(writtenPath, true)
+      ShareVerifier.Register(writtenAbs)
+      if not self:VerifyShareFileOrTips(absolutePath, ShareVerifier.FileKind.Pic) then
+        self:SetShareLock(false)
+        return
+      end
       NRCModuleManager:DoCmd(ShareModuleCmd.SharePic, absolutePath, self.ShareChannelData.name)
     else
       Log.Error("save widget error")
@@ -522,10 +582,25 @@ function UMG_ShareUIPanel_C:ExecuteShareByPicture()
   self:SetShareLock(false)
 end
 
+function UMG_ShareUIPanel_C:VerifyShareFileOrTips(absPath, kind)
+  local ok, reason = ShareVerifier.Verify(absPath, kind)
+  if ok then
+    return true
+  end
+  Log.Error("[Share] Verify failed", absPath, kind, reason)
+  _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.share_fail_tips, nil, nil, 2)
+  return false
+end
+
 function UMG_ShareUIPanel_C:ExecuteShareByVideo()
   local sharePartId = self.data.CurShareData.sharePartId
+  local SharePartConf = _G.DataConfigManager:GetSharePartConf(sharePartId, true)
   if sharePartId == _G.Enum.ShareButtonType.SBT_PET_VIDEO then
-    NRCModuleManager:DoCmd(ShareModuleCmd.ShareLocalVideo, self.ShareChannelData.name, self.data.CurShareData.petData.gid)
+    local gid = self:GetPetShareGid()
+    NRCModuleManager:DoCmd(ShareModuleCmd.ShareLocalVideo, self.ShareChannelData.name, gid)
+  elseif SharePartConf and SharePartConf.share_button_type == _G.Enum.ShareButtonType.SBT_RECORD_VIDEO then
+    local shareVideoName = self.data.CurShareData.shareVideoName
+    NRCModuleManager:DoCmd(ShareModuleCmd.ShareLocalVideo, self.ShareChannelData.name, shareVideoName)
   end
 end
 
@@ -608,8 +683,13 @@ end
 
 function UMG_ShareUIPanel_C:ExecuteSaveByVideo()
   local sharePartId = self.data.CurShareData.sharePartId
+  local SharePartConf = _G.DataConfigManager:GetSharePartConf(sharePartId, true)
   if sharePartId == _G.Enum.ShareButtonType.SBT_PET_VIDEO then
-    NRCModuleManager:DoCmd(ShareModuleCmd.SaveVideoToAlbum, self.data.CurShareData.petData.gid)
+    local gid = self:GetPetShareGid()
+    NRCModuleManager:DoCmd(ShareModuleCmd.SaveVideoToAlbum, gid)
+  elseif SharePartConf and SharePartConf.share_button_type == _G.Enum.ShareButtonType.SBT_RECORD_VIDEO then
+    local shareVideoName = self.data.CurShareData.shareVideoName
+    _G.NRCModuleManager:DoCmd(_G.ShareModuleCmd.SaveVideoToAlbum, shareVideoName)
   end
 end
 
@@ -674,9 +754,12 @@ function UMG_ShareUIPanel_C:OnLoadWidgetCallback(Panel)
       subSharePanel:PlayStampInAnim()
     end
     if self.IsPlayPetPhotoAnim then
-      self:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
       self.IsPlayPetPhotoAnim = false
-      self:PlayAnimation(self.In_Photo)
+      local subSharePanel = self.WidgetLoader:GetPanel()
+      subSharePanel:PlayInAnim()
+    end
+    if self.IsPlayHBPhotoAnim then
+      self.IsPlayHBPhotoAnim = false
       local subSharePanel = self.WidgetLoader:GetPanel()
       subSharePanel:PlayInAnim()
     end
@@ -685,7 +768,7 @@ end
 
 function UMG_ShareUIPanel_C:GetNewPetData(petData)
   if not petData then
-    Log.Error("UMG_SharePanel_C:GetNewPetData petdata is nil")
+    Log.Error("UMG_ShareUIPanel_C:GetNewPetData petdata is nil")
     return petData
   end
   local battlePetList = _G.DataModelMgr.PlayerDataModel:GetPlayerBattlePetInfo()
@@ -759,14 +842,19 @@ end
 function UMG_ShareUIPanel_C:PlayInAnim()
   local sharePartButtonType = _G.NRCModuleManager:DoCmd(ShareUIModuleCmd.GetSharePartButtonType)
   if sharePartButtonType == _G.Enum.ShareButtonType.SBT_PET_VIDEO then
-    self:PlayAnimation(self.In_Video)
+    self:PlayAnimation(self.In_Video, 0)
+    self:PauseAnimation(self.In_Video)
     self.IsPlaySubPanelVideoAnim = true
   elseif sharePartButtonType == _G.Enum.ShareButtonType.SBT_PET_CARD then
     self:PlayAnimation(self.In_Card)
     self.IsPlaySubPanelCardAnim = true
   elseif sharePartButtonType == _G.Enum.ShareButtonType.SBT_PET_PICTURE then
-    self:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.SetPetMainPanelPetImage3DActive, false)
+    self:PlayAnimation(self.In_Photo)
     self.IsPlayPetPhotoAnim = true
+  elseif sharePartButtonType == _G.Enum.ShareButtonType.SBT_HB_PHOTO then
+    self:PlayAnimation(self.In_Photo)
+    self.IsPlayHBPhotoAnim = true
   else
     self:PlayAnimation(self.In_Photo)
   end
@@ -785,6 +873,58 @@ function UMG_ShareUIPanel_C:ResetChannelShareQRCode()
       subSharePanel:ResetShareChannelCode()
     end
   end
+end
+
+function UMG_ShareUIPanel_C:InitPlayerInfo()
+  local sharePartConf = _G.DataConfigManager:GetSharePartConf(self.data.CurShareData.sharePartId)
+  local isNeedShowPlayerInfo = sharePartConf.is_need_information
+  if self.IsBanInfo or not isNeedShowPlayerInfo then
+    self.Show:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  else
+    self.Show:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  end
+end
+
+function UMG_ShareUIPanel_C:OnShowPlayInfo()
+  if self.IsShowPlayerInfo then
+    self.Check:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.IsShowPlayerInfo = false
+  else
+    self.Check:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    self.IsShowPlayerInfo = true
+  end
+  local subSharePanel = self.WidgetLoader:GetPanel()
+  if subSharePanel and subSharePanel.ShowPlayerInfoPanel then
+    subSharePanel:ShowPlayerInfoPanel(self.IsShowPlayerInfo)
+  end
+end
+
+function UMG_ShareUIPanel_C:HideCloseMoreBtnByShare()
+  if self.CloseMoreBtn:GetVisibility() == UE4.ESlateVisibility.Visible then
+    self:ShowCloseMoreBtn(false)
+    if self.ShareUIMore:GetVisibility() == UE4.ESlateVisibility.SelfHitTestInvisible then
+      self.ShareUIMore:PlayOutAnim()
+    end
+    local subSharePanel = self.WidgetLoader:GetPanel()
+    local shareBaseButtonType = _G.NRCModuleManager:DoCmd(ShareUIModuleCmd.GetShareBaseButtonType)
+    if shareBaseButtonType == _G.Enum.ShareButtonType.SBT_ROLE_CARD then
+      subSharePanel:HideSelectBoxByShare()
+    elseif shareBaseButtonType == _G.Enum.ShareButtonType.SBT_PVP_RECORD then
+      subSharePanel:HideSelectBoxByShare()
+    end
+  end
+end
+
+function UMG_ShareUIPanel_C:PlayPetVideoShareInAnim()
+  self:StopAllAnimations()
+  self:PlayAnimation(self.In_Video)
+end
+
+function UMG_ShareUIPanel_C:GetPetShareGid()
+  if self.data.CurShareData.petData and self.data.CurShareData.petData.gid then
+    return self.data.CurShareData.petData.gid
+  end
+  return 0
 end
 
 return UMG_ShareUIPanel_C

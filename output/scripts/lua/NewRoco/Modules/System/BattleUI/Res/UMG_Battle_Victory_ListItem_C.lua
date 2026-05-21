@@ -13,12 +13,16 @@ function UMG_Battle_Victory_ListItem_C:OnAnimationFinished(animation)
 end
 
 function UMG_Battle_Victory_ListItem_C:OnDestruct()
+  if self.delayId then
+    _G.DelayManager:CancelDelay(self.delayId)
+    self.delayId = nil
+  end
 end
 
 function UMG_Battle_Victory_ListItem_C:OnItemUpdate(_data, datalist, index)
   self.NRCImage_Badge:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.data = _data
-  _G.DelayManager:DelaySeconds(0.3 * (index - 1), self.ShowIcon, self)
+  self.delayId = _G.DelayManager:DelaySeconds(0.3 * (index - 1), self.ShowIcon, self)
 end
 
 function UMG_Battle_Victory_ListItem_C:ShowIcon()

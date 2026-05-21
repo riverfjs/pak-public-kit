@@ -32,7 +32,7 @@ function RocoBattleCameraTransAction:OnActionStart()
   if battleCameraManager then
     battleCameraManager:PetSelectIndexUpdate(selectIndex)
   end
-  if self.bIsClearPosCache then
+  if self.bIsClearPosCache and battleCameraManager then
     battleCameraManager:CalcPosCache()
     battleCameraManager:ClearTemporaryPosData()
   end
@@ -55,7 +55,7 @@ function RocoBattleCameraTransAction:OnActionStart()
       }
       local cameraTag = self.m_CameraTagTo
       if self.bUseCurrentPerformCamera then
-        if BattleUtils.IsNpcAssist() then
+        if BattleUtils.IsNpcAssist() or BattleUtils.IsFriendAssist() then
           cameraTag = UE4.EBattleCameraTags.PlayerNpcAssistPerformSkill
         elseif BattleUtils.IsFinalBattleP1() then
           cameraTag = UE4.EBattleCameraTags.A1FBPerformSkill
@@ -67,6 +67,10 @@ function RocoBattleCameraTransAction:OnActionStart()
           cameraTag = UE4.EBattleCameraTags.B1FBPerformSkillP2
         elseif BattleUtils.IsB1FinalBattleP3() then
           cameraTag = UE4.EBattleCameraTags.B1FBPerformSkillP3
+        elseif BattleUtils.Is1VN() then
+          cameraTag = UE4.EBattleCameraTags.OneVsAll_PerformSkill
+        elseif BattleUtils.IsTerritoryTrialBattle() then
+          cameraTag = UE4.EBattleCameraTags.TerritoryTrial_PerformSkill
         else
           cameraTag = UE4.EBattleCameraTags.PlayerSkill
         end

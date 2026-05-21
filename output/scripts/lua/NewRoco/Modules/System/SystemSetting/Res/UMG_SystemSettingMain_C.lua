@@ -10,6 +10,7 @@ local NRCSDKManagerEnum = require("Core.Service.SDKManager.NRCSDKManagerEnum")
 local PlayerDataEvent = require("Data.Global.PlayerDataEvent")
 local BattleUtils = require("NewRoco.Modules.Core.Battle.Common.BattleUtils")
 local CommonUtils = require("NewRoco.Utils.CommonUtils")
+local SceneUtils = require("NewRoco.Modules.Core.Scene.Common.SceneUtils")
 
 local function OpenURLByPlatform(url)
   if RocoEnv.PLATFORM == "PLATFORM_OPENHARMONY" then
@@ -129,6 +130,10 @@ function UMG_SystemSettingMain_C:OnDestruct()
     UE.UNRCPermissionMgr.CancelRequestPermissionCallback(self._permissionNotificationRequestID)
     self._permissionNotificationRequestID = nil
   end
+  if self.DelayId then
+    _G.DelayManager:CancelDelayById(self.DelayId)
+    self.DelayId = nil
+  end
 end
 
 function UMG_SystemSettingMain_C:OnUploadLogLevelChanged(Tag)
@@ -229,10 +234,11 @@ function UMG_SystemSettingMain_C:RefreshLogLevels()
   end
 end
 
-function UMG_SystemSettingMain_C:OnActive(tabIndex)
+function UMG_SystemSettingMain_C:OnActive(tabIndex, reqParam, PlayerSettingsRsp)
   UE4Helper.SetDesiredShowCursor(true, "UMG_SystemSettingMain_C")
   local NavigationMode = _G.DataModelMgr.PlayerDataModel:GetNavigationMode()
   local hasNavigation = _G.DataModelMgr.PlayerDataModel:GetNavigationMode()
+  self.openPlayerSettingRsp = PlayerSettingsRsp
   if not NRCEnv:IsCreatePlayerMode() then
     self.Navigationmode:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     local Padding = UE4.FMargin()
@@ -269,6 +275,7 @@ function UMG_SystemSettingMain_C:OnActive(tabIndex)
   _G.NRCModuleManager:DoCmd(_G.SystemSettingModuleCmd.ReqQueryPlayerSettings)
   self.IsRepBindPhone = false
   _G.NRCModuleManager:DoCmd(_G.SystemSettingModuleCmd.ReqGetMobileBindInfo, true)
+  _G.NRCModuleManager:DoCmd(_G.SystemSettingModuleCmd.ReqSecondaryPasswordGetInfo)
 end
 
 function UMG_SystemSettingMain_C:OnPlayerSettingUpdate()
@@ -397,10 +404,10 @@ function UMG_SystemSettingMain_C:OnNavigationModeUpdate(mode, IsReConnect)
     return
   end
   if mode == ProtoEnum.NavigationModeType.NMT_COMPASS then
-    local text = string.format("\229\183\178\229\136\135\230\141\162\232\135\179%s\230\168\161\229\188\143", LuaText.navigation_mode_compass_name)
+    local text = string.format(LuaText.setting_image_30, LuaText.navigation_mode_compass_name)
     _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, text)
   elseif mode == ProtoEnum.NavigationModeType.NMT_MINIMAP then
-    local text = string.format("\229\183\178\229\136\135\230\141\162\232\135\179%s\230\168\161\229\188\143", LuaText.navigation_mode_map_name)
+    local text = string.format(LuaText.setting_image_30, LuaText.navigation_mode_map_name)
     _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, text)
   end
 end
@@ -539,11 +546,6 @@ function UMG_SystemSettingMain_C:InitUI(tabIndex)
   for i = 1, num do
     table.insert(self.TabIcons, self.GridView_TabIcon:GetItemByIndex(i - 1))
   end
-  if tabIndex then
-    self.GridView_TabIcon:SelectItemByIndex(tabIndex - 1)
-  else
-    self.GridView_TabIcon:SelectItemByIndex(0)
-  end
   if 2 == GlobalConfig.OpenMainPanelFromDebugBtn then
     self:OnSelecedTabIndex(2, true)
   elseif 3 == GlobalConfig.OpenMainPanelFromDebugBtn then
@@ -567,8 +569,10 @@ function UMG_SystemSettingMain_C:InitUI(tabIndex)
   self:SetupSoundTab()
   self:SetLensTab()
   if tabIndex then
+    self.GridView_TabIcon:SelectItemByIndex(tabIndex - 1)
     self.Switcher:SetActiveWidgetIndex(tabIndex - 1)
   else
+    self.GridView_TabIcon:SelectItemByIndex(0)
     self.Switcher:SetActiveWidgetIndex(0)
   end
 end
@@ -578,7 +582,7 @@ function UMG_SystemSettingMain_C:SetUpMainInfo()
     local tabIconItem = self.TabIcons[i]
     if 1 == tabIconItem.TabType then
       local data = {
-        itemTitle = "\228\186\174\229\186\166",
+        itemTitle = LuaText.setting_image_37,
         itemType = 1,
         Call = self
       }
@@ -617,7 +621,7 @@ function UMG_SystemSettingMain_C:SetUpMainInfo()
           bIsJoystickOption = true
         })
         joystickData = {
-          itemTitle = "\230\145\135\230\157\134\230\168\161\229\188\143",
+          itemTitle = LuaText.setting_image_38,
           itemType = 3,
           Call = self,
           DropDownListInfo = joystickOptions,
@@ -638,7 +642,7 @@ function UMG_SystemSettingMain_C:SetUpMainInfo()
           bIsJoystickOption = true
         })
         joystickData = {
-          itemTitle = "\230\145\135\230\157\134\230\168\161\229\188\143",
+          itemTitle = LuaText.setting_image_38,
           itemType = 3,
           Call = self,
           DropDownListInfo = joystickOptions,
@@ -651,6 +655,30 @@ function UMG_SystemSettingMain_C:SetUpMainInfo()
       if not self:IsPCMode() then
         table.insert(modeItemList, joystickData)
       end
+      local propPlaceOptions = {}
+      table.insert(propPlaceOptions, {
+        Name = LuaText.prop_put_auto,
+        Value = 0,
+        bIsJoystickOption = true
+      })
+      table.insert(propPlaceOptions, {
+        Name = LuaText.prop_put_free,
+        Value = 1,
+        bIsJoystickOption = true
+      })
+      local propPlaceData = {}
+      local propPlaceMode = _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.GetPropPlaceMode)
+      propPlaceData = {
+        itemTitle = LuaText.prop_put_set,
+        itemType = 3,
+        Call = self,
+        DropDownListInfo = propPlaceOptions,
+        DropDownListKey = "propPlaceMode",
+        DropDownListSelectValue = propPlaceMode,
+        CloseSelectionBtn = self.HitTestBgBtn,
+        CloseAnnotationBtn = self.HitTestBgBtn_1
+      }
+      table.insert(modeItemList, propPlaceData)
       local level = UE4.UNRCQualityLibrary.GetFrameQuality()
       local selectIndex = 0
       local config = self.module.data:GetGraphicConfigByKey("FPS")
@@ -668,7 +696,7 @@ function UMG_SystemSettingMain_C:SetUpMainInfo()
         end
       end
       table.insert(modeItemList, {
-        itemTitle = "\229\184\167\231\142\135",
+        itemTitle = LuaText.setting_image_61,
         itemType = 3,
         Call = self,
         DropDownListInfo = Options,
@@ -679,12 +707,18 @@ function UMG_SystemSettingMain_C:SetUpMainInfo()
       })
       if UE4Helper.IsPCMode() then
         local APIOptions = {
-          {Name = "DirectX11", Value = 0},
-          {Name = "DirectX12", Value = 1}
+          {
+            Name = LuaText.setting_image_73,
+            Value = 0
+          },
+          {
+            Name = LuaText.setting_image_82,
+            Value = 1
+          }
         }
         local apiSelectValue = UE4.UNRCQualityLibrary.IsPreferD3D12() and 1 or 0
         table.insert(modeItemList, {
-          itemTitle = "\229\155\190\229\189\162API",
+          itemTitle = LuaText.setting_image_39,
           itemType = 3,
           Call = self,
           DropDownListInfo = APIOptions,
@@ -732,7 +766,7 @@ function UMG_SystemSettingMain_C:SetUpMainInfo()
       end
       if bShowItem then
         table.insert(modeItemList, {
-          itemTitle = "\229\136\134\232\190\168\231\142\135",
+          itemTitle = LuaText.setting_image_40,
           itemType = 3,
           Call = self,
           DropDownListInfo = Options,
@@ -754,7 +788,7 @@ function UMG_SystemSettingMain_C:SetUpMainInfo()
         end
       end
       table.insert(settingItemList, {
-        itemTitle = "\231\148\187\233\157\162\229\147\129\232\180\168",
+        itemTitle = LuaText.setting_image_44,
         itemType = 3,
         Call = self,
         DropDownListInfo = Options,
@@ -840,12 +874,12 @@ function UMG_SystemSettingMain_C:SetUpMainInfo()
           local reflectionItemList = {}
           local reflectionItemListKey = self:GetReflectionItemListKey(qualityItem)
           table.insert(reflectionItemList, {
-            btnText = "\229\188\128",
+            btnText = LuaText.setting_image_33,
             selectHandler = FPartial(OnReflectionItemClicked, qualityItem.GroupName, qualityItem.Options[2].Value),
             Call = self
           })
           table.insert(reflectionItemList, {
-            btnText = "\229\133\179",
+            btnText = LuaText.setting_image_45,
             selectHandler = FPartial(OnReflectionItemClicked, qualityItem.GroupName, qualityItem.Options[1].Value),
             Call = self
           })
@@ -881,7 +915,8 @@ function UMG_SystemSettingMain_C:SetUpMainInfo()
             DLSSConfig = JsonUtils.LoadSaved(_DLSSConfigFilename, {}) or {}
             if bOpen then
               local antiAliasLevel = UE4.UNRCQualityLibrary.GetGroupQualityLevel(qualityItem.GroupName)
-              _G.NRCModuleManager:DoCmd(_G.SystemSettingModuleCmd.ApplyConfig, qualityItem.GroupName, antiAliasLevel, nil, true)
+              UE4.UNRCQualityLibrary.SetImageQuality(UE4.ENRCImageQuality.Custom)
+              UE4.UNRCQualityLibrary.SetGroupQualityLevel(qualityItem.GroupName, antiAliasLevel)
               DLSSConfig.AntiAliasing = 0
             else
               UE4.UNRCStatics.ExecConsoleCommand("r.MobileMSAA 1")
@@ -892,17 +927,17 @@ function UMG_SystemSettingMain_C:SetUpMainInfo()
           end
           
           table.insert(reflectionItemList, {
-            btnText = "\229\188\128",
+            btnText = LuaText.setting_image_33,
             selectHandler = FPartial(OnAntiAliasingQualityItemClicked, true),
             Call = self
           })
           table.insert(reflectionItemList, {
-            btnText = "\229\133\179",
+            btnText = LuaText.setting_image_45,
             selectHandler = FPartial(OnAntiAliasingQualityItemClicked, false),
             Call = self
           })
           table.insert(settingItemList, {
-            itemTitle = "\230\138\151\233\148\175\233\189\191\229\188\128\229\133\179",
+            itemTitle = LuaText.setting_image_46,
             itemType = 4,
             Call = self,
             switchBtnListInfo = reflectionItemList,
@@ -912,7 +947,7 @@ function UMG_SystemSettingMain_C:SetUpMainInfo()
           })
           if qualityItem.Annotation then
             table.insert(settingItemList, {
-              itemTitle = "\230\138\151\233\148\175\233\189\191\231\173\137\231\186\167",
+              itemTitle = LuaText.setting_image_47,
               bNeedDescribe = true,
               describeText = qualityItem.Annotation,
               itemType = 3,
@@ -925,7 +960,7 @@ function UMG_SystemSettingMain_C:SetUpMainInfo()
             })
           else
             table.insert(settingItemList, {
-              itemTitle = "\230\138\151\233\148\175\233\189\191\231\173\137\231\186\167",
+              itemTitle = LuaText.setting_image_47,
               itemType = 3,
               Call = self,
               DropDownListInfo = qualityItem.Options,
@@ -964,7 +999,7 @@ function UMG_SystemSettingMain_C:SetUpMainInfo()
       self.ImageList:InitGridView(settingItemList)
       for j = 1, self.ImageList:GetItemCount() do
         local item = self.ImageList:GetItemByIndex(j - 1)
-        if "\230\138\151\233\148\175\233\189\191\231\173\137\231\186\167" == item.uiData.itemTitle then
+        if item.uiData.itemTitle == LuaText.setting_image_47 then
           local DLSSConfig = JsonUtils.LoadSaved(_DLSSConfigFilename, {}) or {}
           local bIsAntiAliasing = DLSSConfig.AntiAliasing or 0
           if 0 == bIsAntiAliasing then
@@ -1008,25 +1043,25 @@ function UMG_SystemSettingMain_C:SetUpMainInfo()
     elseif 3 == tabIconItem.TabType then
       local soundItemList = {}
       table.insert(soundItemList, {
-        itemTitle = "\228\184\187\233\159\179\233\135\143",
+        itemTitle = LuaText.setting_image_48,
         itemType = 1,
         Call = self,
         sliderHandler = self.OnMainSoundChanged
       })
       table.insert(soundItemList, {
-        itemTitle = "\233\159\179\228\185\144\233\159\179\233\135\143",
+        itemTitle = LuaText.setting_image_65,
         itemType = 1,
         Call = self,
         sliderHandler = self.OnMusicSoundChanged
       })
       table.insert(soundItemList, {
-        itemTitle = "\233\159\179\230\149\136\233\159\179\233\135\143",
+        itemTitle = LuaText.setting_image_80,
         itemType = 1,
         Call = self,
         sliderHandler = self.OnEffectSoundChanged
       })
       table.insert(soundItemList, {
-        itemTitle = "\231\178\190\231\129\181\229\143\171\229\163\176",
+        itemTitle = LuaText.setting_image_84,
         itemType = 1,
         Call = self,
         sliderHandler = self.OnYellSoundChanged
@@ -1049,12 +1084,12 @@ function UMG_SystemSettingMain_C:SetUpMainInfo()
         end
         
         table.insert(soundMuteList, {
-          btnText = "\229\188\128",
+          btnText = LuaText.setting_image_33,
           selectHandler = FPartial(OnMusicMuteStateChanged, true),
           Call = self
         })
         table.insert(soundMuteList, {
-          btnText = "\229\133\179",
+          btnText = LuaText.setting_image_45,
           selectHandler = FPartial(OnMusicMuteStateChanged, false),
           Call = self
         })
@@ -1077,9 +1112,9 @@ function UMG_SystemSettingMain_C:SetUpMainInfo()
         playerName = nil
       end
       table.insert(accountInfo, {
-        itemTitle = "\232\180\166\229\143\183",
+        itemTitle = LuaText.setting_image_49,
         itemName = playerName,
-        settingBtnText = "\229\136\135\230\141\162\232\180\166\229\143\183",
+        settingBtnText = LuaText.setting_image_66,
         bNeedSettingBtnIcon = true,
         settingBtnHandler = self.SwitchAccount,
         itemType = 2,
@@ -1092,8 +1127,8 @@ function UMG_SystemSettingMain_C:SetUpMainInfo()
       local hideCdKey = _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.CheckUIFunctionBan, _G.Enum.FunctionEntrance.FE_CDK, false)
       if not hideCdKey then
         table.insert(otherItemList, {
-          itemTitle = "\229\133\145\230\141\162\231\160\129",
-          settingBtnText = "\229\137\141\229\190\128",
+          itemTitle = LuaText.setting_image_50,
+          settingBtnText = LuaText.setting_image_67,
           bNeedSettingBtnIcon = true,
           settingBtnHandler = self.OnCDKEYClick,
           itemType = 2,
@@ -1103,8 +1138,8 @@ function UMG_SystemSettingMain_C:SetUpMainInfo()
         })
       end
       table.insert(otherItemList, {
-        itemTitle = "\229\174\162\230\156\141",
-        settingBtnText = "\229\137\141\229\190\128",
+        itemTitle = LuaText.setting_image_17,
+        settingBtnText = LuaText.setting_image_67,
         bNeedSettingBtnIcon = true,
         settingBtnHandler = self.OnCustomClicked,
         itemType = 2,
@@ -1113,8 +1148,8 @@ function UMG_SystemSettingMain_C:SetUpMainInfo()
         CloseAnnotationBtn = self.HitTestBgBtn_1
       })
       table.insert(otherItemList, {
-        itemTitle = "\228\184\138\230\138\165\230\151\165\229\191\151",
-        settingBtnText = "\228\184\138\228\188\160\230\151\165\229\191\151",
+        itemTitle = LuaText.setting_image_18,
+        settingBtnText = LuaText.setting_image_51,
         settingBtnHandler = self.OnReqUploadLogs,
         itemType = 2,
         Call = self,
@@ -1181,7 +1216,7 @@ function UMG_SystemSettingMain_C:SetUpMainInfo()
         Call = self
       })
       table.insert(otherItemList, {
-        itemTitle = "\230\183\177\229\186\166\230\151\165\229\191\151",
+        itemTitle = LuaText.setting_image_19,
         bNeedDescribe = true,
         describeText = LuaText.repairtools_upload_5,
         switchBtnListInfo = switchItemList,
@@ -1238,8 +1273,8 @@ function UMG_SystemSettingMain_C:SetUpMainInfo()
       local personalList = {}
       if _G.CommonPopUpModuleCmd and _G.FriendModuleCmd then
         table.insert(personalList, {
-          itemTitle = "\228\184\170\228\186\186\228\191\161\230\129\175\231\174\161\231\144\134",
-          settingBtnText = "\228\191\161\230\129\175\231\174\161\231\144\134",
+          itemTitle = LuaText.setting_image_20,
+          settingBtnText = LuaText.setting_image_53,
           bNeedSettingBtnIcon = true,
           settingBtnHandler = self.OnInformationManagementBtnClicked,
           itemType = 2,
@@ -1254,8 +1289,8 @@ function UMG_SystemSettingMain_C:SetUpMainInfo()
           local phoneInfo = _G.DataModelMgr.PlayerDataModel:GetPlayerMobileBindInfo()
           if phoneInfo and phoneInfo.mobile_num and "" ~= phoneInfo.mobile_num then
             table.insert(personalList, {
-              itemTitle = "\230\137\139\230\156\186\229\143\183",
-              settingBtnText = "\232\167\163\233\153\164\231\187\145\229\174\154",
+              itemTitle = LuaText.setting_image_21,
+              settingBtnText = LuaText.setting_image_69,
               itemName = self.module.data:GetEncryptPhoneNum(phoneInfo.mobile_num),
               bNeedSettingBtnIcon = true,
               settingBtnHandler = self.OnBindPhone,
@@ -1266,8 +1301,8 @@ function UMG_SystemSettingMain_C:SetUpMainInfo()
             })
           else
             table.insert(personalList, {
-              itemTitle = "\230\137\139\230\156\186\229\143\183",
-              settingBtnText = "\229\137\141\229\190\128\231\187\145\229\174\154",
+              itemTitle = LuaText.setting_image_21,
+              settingBtnText = LuaText.setting_image_81,
               itemName = LuaText.Setting_UnBound_Phone_Tips,
               bNeedSettingBtnIcon = true,
               settingBtnHandler = self.OnBindPhone,
@@ -1279,8 +1314,8 @@ function UMG_SystemSettingMain_C:SetUpMainInfo()
           end
         else
           table.insert(personalList, {
-            itemTitle = "\230\137\139\230\156\186\229\143\183",
-            settingBtnText = "\229\137\141\229\190\128\231\187\145\229\174\154",
+            itemTitle = LuaText.setting_image_21,
+            settingBtnText = LuaText.setting_image_81,
             itemName = LuaText.Bind_Phone_Tips,
             bNeedSettingBtnIcon = true,
             settingBtnHandler = self.OnBindPhone,
@@ -1307,10 +1342,10 @@ function UMG_SystemSettingMain_C:SetUpMainInfo()
           local timeStamp = secondaryPasswordInfo.status_timestamp
           if secondaryPasswordInfo.status then
             if secondaryPasswordInfo.status == ProtoEnum.SecondaryPasswordStatus.SPS_None or secondaryPasswordInfo.status == ProtoEnum.SecondaryPasswordStatus.SPS_Unset then
-              titleText = "\228\186\140\231\186\167\229\175\134\231\160\129(\230\156\170\229\188\128\229\144\175)"
+              titleText = LuaText.setting_image_55
               switchKey = 1
-            elseif secondaryPasswordInfo.status == ProtoEnum.SecondaryPasswordStatus.SPS_Set or secondaryPasswordInfo.status == ProtoEnum.SecondaryPasswordStatus.SPS_Disable or secondaryPasswordInfo.status == ProtoEnum.SecondaryPasswordStatus.SPS_Waiting then
-              titleText = "\228\186\140\231\186\167\229\175\134\231\160\129(\229\183\178\229\188\128\229\144\175)"
+            elseif secondaryPasswordInfo.status == ProtoEnum.SecondaryPasswordStatus.SPS_Set or secondaryPasswordInfo.status == ProtoEnum.SecondaryPasswordStatus.SPS_Disable or secondaryPasswordInfo.status == ProtoEnum.SecondaryPasswordStatus.SPS_Waiting or secondaryPasswordInfo.status == ProtoEnum.SecondaryPasswordStatus.SPS_Free then
+              titleText = LuaText.setting_image_70
               switchKey = 0
             end
           end
@@ -1324,12 +1359,12 @@ function UMG_SystemSettingMain_C:SetUpMainInfo()
           end
           
           table.insert(secondarySwitchItemList, {
-            btnText = "\229\188\128",
+            btnText = LuaText.setting_image_33,
             selectHandler = OnOpenSecondaryPasswordSetClicked,
             Call = self
           })
           table.insert(secondarySwitchItemList, {
-            btnText = "\229\133\179",
+            btnText = LuaText.setting_image_45,
             selectHandler = OnCloseSecondaryPasswordSetClicked,
             Call = self
           })
@@ -1347,10 +1382,10 @@ function UMG_SystemSettingMain_C:SetUpMainInfo()
             _G.NRCModuleManager:DoCmd(_G.SystemSettingModuleCmd.OpenSecondaryPasswordModify)
           end
           
-          if secondaryPasswordInfo.status and secondaryPasswordInfo.status == ProtoEnum.SecondaryPasswordStatus.SPS_Set or secondaryPasswordInfo.status == ProtoEnum.SecondaryPasswordStatus.SPS_Disable or secondaryPasswordInfo.status == ProtoEnum.SecondaryPasswordStatus.SPS_Waiting then
+          if secondaryPasswordInfo.status and secondaryPasswordInfo.status == ProtoEnum.SecondaryPasswordStatus.SPS_Set or secondaryPasswordInfo.status == ProtoEnum.SecondaryPasswordStatus.SPS_Disable or secondaryPasswordInfo.status == ProtoEnum.SecondaryPasswordStatus.SPS_Waiting or secondaryPasswordInfo.status == ProtoEnum.SecondaryPasswordStatus.SPS_Free then
             table.insert(secondaryList, {
-              itemTitle = "\228\191\174\230\148\185\229\175\134\231\160\129",
-              settingBtnText = "\229\137\141\229\190\128",
+              itemTitle = LuaText.setting_image_79,
+              settingBtnText = LuaText.setting_image_77,
               bNeedSettingBtnIcon = true,
               settingBtnHandler = OnOpenSecondaryPasswordModify,
               itemType = 2,
@@ -1366,10 +1401,11 @@ function UMG_SystemSettingMain_C:SetUpMainInfo()
           
           if secondaryPasswordInfo.status and secondaryPasswordInfo.status == ProtoEnum.SecondaryPasswordStatus.SPS_Disable then
             table.insert(secondaryList, {
-              itemTitle = "\229\188\186\229\136\182\229\133\179\233\151\173\228\186\140\231\186\167\229\175\134\231\160\129",
-              settingBtnText = "\230\146\164\233\148\128",
+              itemTitle = LuaText.setting_image_85,
+              settingBtnText = LuaText.setting_image_86,
               settingBtnHandler = OnOpenSecondaryPasswordCancelForceDisable,
               countDownTimeStamp = timeStamp,
+              isSecondaryPasswordCountdown = true,
               itemType = 2,
               Call = self,
               CloseSelectionBtn = self.HitTestBgBtn,
@@ -1381,8 +1417,12 @@ function UMG_SystemSettingMain_C:SetUpMainInfo()
       else
         self.SecondaryPassword:SetVisibility(UE4.ESlateVisibility.Collapsed)
       end
-      local req = _G.ProtoMessage:newZoneQueryPlayerSettingsReq()
-      _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_QUERY_PLAYER_SETTINGS_REQ, req, self, self.OnQueryPlayerSettingsRsp, false, true)
+      if self.openPlayerSettingRsp and 0 == self.openPlayerSettingRsp.ret_info.ret_code then
+        self:OnQueryPlayerSettingsRsp(self.openPlayerSettingRsp)
+      else
+        local req = _G.ProtoMessage:newZoneQueryPlayerSettingsReq()
+        _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_QUERY_PLAYER_SETTINGS_REQ, req, self, self.OnQueryPlayerSettingsRsp, false, true)
+      end
       local policyList = {}
       local privacyText = ""
       local index = 1
@@ -1503,8 +1543,8 @@ function UMG_SystemSettingMain_C:OnQueryPlayerSettingsRsp(rsp)
     local privacyList = {}
     if not RocoEnv.PLATFORM_WINDOWS then
       table.insert(privacyList, {
-        itemTitle = "\233\154\144\231\167\129\230\142\136\230\157\131\231\174\161\231\144\134",
-        settingBtnText = "\229\137\141\229\190\128\229\188\128\229\144\175",
+        itemTitle = LuaText.setting_image_23,
+        settingBtnText = LuaText.setting_image_71,
         bNeedSettingBtnIcon = true,
         settingBtnHandler = self.OpenPrivilegeAuthorization,
         itemType = 2,
@@ -1541,17 +1581,17 @@ function UMG_SystemSettingMain_C:OnQueryPlayerSettingsRsp(rsp)
       end
       
       table.insert(privacyItemList, {
-        btnText = "\229\188\128",
+        btnText = LuaText.setting_image_33,
         selectHandler = FPartial(OnWatchBattleCheckStateChanged, true),
         Call = self
       })
       table.insert(privacyItemList, {
-        btnText = "\229\133\179",
+        btnText = LuaText.setting_image_45,
         selectHandler = FPartial(OnWatchBattleCheckStateChanged, false),
         Call = self
       })
       table.insert(privacyList, {
-        itemTitle = "\232\167\130\230\136\152\232\174\190\231\189\174",
+        itemTitle = LuaText.setting_image_24,
         bNeedDescribe = true,
         describeText = LuaText.privacy_setting_35,
         switchBtnListInfo = privacyItemList,
@@ -1581,17 +1621,17 @@ function UMG_SystemSettingMain_C:OnQueryPlayerSettingsRsp(rsp)
       end
       
       table.insert(privacyItemList1, {
-        btnText = "\229\188\128",
+        btnText = LuaText.setting_image_33,
         selectHandler = FPartial(OnFriendSearchStateChanged, true),
         Call = self
       })
       table.insert(privacyItemList1, {
-        btnText = "\229\133\179",
+        btnText = LuaText.setting_image_45,
         selectHandler = FPartial(OnFriendSearchStateChanged, false),
         Call = self
       })
       table.insert(privacyList, {
-        itemTitle = "\229\165\189\229\143\139\230\144\156\231\180\162",
+        itemTitle = LuaText.setting_image_25,
         bNeedDescribe = true,
         describeText = LuaText.privacy_setting_8,
         switchBtnListInfo = privacyItemList1,
@@ -1621,17 +1661,17 @@ function UMG_SystemSettingMain_C:OnQueryPlayerSettingsRsp(rsp)
       end
       
       table.insert(privacyItemList2, {
-        btnText = "\229\188\128",
+        btnText = LuaText.setting_image_33,
         selectHandler = FPartial(OnFriendSuggestCheckStateChanged, true),
         Call = self
       })
       table.insert(privacyItemList2, {
-        btnText = "\229\133\179",
+        btnText = LuaText.setting_image_45,
         selectHandler = FPartial(OnFriendSuggestCheckStateChanged, false),
         Call = self
       })
       table.insert(privacyList, {
-        itemTitle = "\229\165\189\229\143\139\230\142\168\232\141\144",
+        itemTitle = LuaText.setting_image_26,
         bNeedDescribe = true,
         describeText = LuaText.privacy_setting_9,
         switchBtnListInfo = privacyItemList2,
@@ -1661,17 +1701,17 @@ function UMG_SystemSettingMain_C:OnQueryPlayerSettingsRsp(rsp)
       end
       
       table.insert(privacyItemList3, {
-        btnText = "\229\188\128",
+        btnText = LuaText.setting_image_33,
         selectHandler = FPartial(OnFriendAddCheckStateChanged, true),
         Call = self
       })
       table.insert(privacyItemList3, {
-        btnText = "\229\133\179",
+        btnText = LuaText.setting_image_45,
         selectHandler = FPartial(OnFriendAddCheckStateChanged, false),
         Call = self
       })
       table.insert(privacyList, {
-        itemTitle = "\229\165\189\229\143\139\230\183\187\229\138\160",
+        itemTitle = LuaText.setting_image_27,
         bNeedDescribe = true,
         describeText = LuaText.privacy_setting_38,
         switchBtnListInfo = privacyItemList3,
@@ -1721,17 +1761,17 @@ function UMG_SystemSettingMain_C:OnQueryPlayerSettingsRsp(rsp)
       end
       
       table.insert(privacyItemList5, {
-        btnText = "\229\188\128",
+        btnText = LuaText.setting_image_33,
         selectHandler = FPartial(OnRecommendStateChanged, true),
         Call = self
       })
       table.insert(privacyItemList5, {
-        btnText = "\229\133\179",
+        btnText = LuaText.setting_image_45,
         selectHandler = FPartial(OnRecommendStateChanged, false),
         Call = self
       })
       table.insert(privacyList, {
-        itemTitle = "\228\184\170\230\128\167\230\142\168\232\141\144",
+        itemTitle = LuaText.setting_image_28,
         bNeedDescribe = true,
         describeText = LuaText.setting_personalized_recommendations_tips,
         switchBtnListInfo = privacyItemList5,
@@ -1755,7 +1795,7 @@ end
 function UMG_SystemSettingMain_C:PersonalRecommedPopUpCloseCallback()
   for i = 1, self.PrivacyList:GetItemCount() do
     local item = self.PrivacyList:GetItemByIndex(i - 1)
-    if item.uiData.itemTitle == "\228\184\170\230\128\167\230\142\168\232\141\144" then
+    if item.uiData.itemTitle == LuaText.setting_image_28 then
       if item:IsSwtichBtnSelected(0) then
         item:RefreshSwitchBtnList(1)
         break
@@ -1883,10 +1923,10 @@ function UMG_SystemSettingMain_C:SetUpNotificationList()
   local hideWechatSubscribe = _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.CheckUIFunctionBan, _G.Enum.FunctionEntrance.FE_MSG_NOTIFICATION_WX_SUB, false)
   if not hideWechatSubscribe then
     table.insert(notificationList, {
-      itemTitle = "\229\190\174\228\191\161\232\174\162\233\152\133\231\174\161\231\144\134",
+      itemTitle = LuaText.setting_image_29,
       bNeedDescribe = true,
       describeText = LuaText.setting_privacy_notice,
-      settingBtnText = "\229\137\141\229\190\128\229\188\128\229\144\175",
+      settingBtnText = LuaText.setting_image_72,
       bNeedSettingBtnIcon = true,
       settingBtnHandler = self.OpenUserSubscribeTpl,
       itemType = 2,
@@ -1900,7 +1940,7 @@ function UMG_SystemSettingMain_C:SetUpNotificationList()
   if not hideHatchEgg then
     local notificationSwitchItemList = {}
     local notificationItemListKey = 1
-    if defaultPlayerSettings.userSubscribe then
+    if defaultPlayerSettings and defaultPlayerSettings.userSubscribe then
       if true == defaultPlayerSettings.userSubscribe.hatch_egg then
         notificationItemListKey = 0
       elseif defaultPlayerSettings.userSubscribe.hatch_egg == false then
@@ -1914,12 +1954,12 @@ function UMG_SystemSettingMain_C:SetUpNotificationList()
       UniqueType = Enum.UserSubscribeType.USER_SUBSCRIBE_TYPE_HATCH_EGG
     }
     table.insert(notificationSwitchItemList, {
-      btnText = "\229\188\128",
+      btnText = LuaText.setting_image_33,
       selectHandler = FPartial(OnUserSubscribeChanged, self, data, true),
       Call = self
     })
     table.insert(notificationSwitchItemList, {
-      btnText = "\229\133\179",
+      btnText = LuaText.setting_image_45,
       selectHandler = FPartial(OnUserSubscribeChanged, self, data, false),
       Call = self
     })
@@ -1938,7 +1978,7 @@ function UMG_SystemSettingMain_C:SetUpNotificationList()
   if not hideTravel then
     local notificationSwitchItemList1 = {}
     local notificationItemList1Key = 1
-    if defaultPlayerSettings.userSubscribe then
+    if defaultPlayerSettings and defaultPlayerSettings.userSubscribe then
       if true == defaultPlayerSettings.userSubscribe.travel then
         notificationItemList1Key = 0
       elseif false == defaultPlayerSettings.userSubscribe.travel then
@@ -1952,12 +1992,12 @@ function UMG_SystemSettingMain_C:SetUpNotificationList()
       UniqueType = Enum.UserSubscribeType.USER_SUBSCRIBE_TYPE_TRAVEL
     }
     table.insert(notificationSwitchItemList1, {
-      btnText = "\229\188\128",
+      btnText = LuaText.setting_image_33,
       selectHandler = FPartial(OnUserSubscribeChanged, self, data1, true),
       Call = self
     })
     table.insert(notificationSwitchItemList1, {
-      btnText = "\229\133\179",
+      btnText = LuaText.setting_image_45,
       selectHandler = FPartial(OnUserSubscribeChanged, self, data1, false),
       Call = self
     })
@@ -1976,7 +2016,7 @@ function UMG_SystemSettingMain_C:SetUpNotificationList()
   if not hideDebrisFull then
     local notificationSwitchItemList2 = {}
     local notificationItemList2Key = 1
-    if defaultPlayerSettings.userSubscribe then
+    if defaultPlayerSettings and defaultPlayerSettings.userSubscribe then
       if true == defaultPlayerSettings.userSubscribe.debris_full then
         notificationItemList2Key = 0
       elseif false == defaultPlayerSettings.userSubscribe.debris_full then
@@ -1990,12 +2030,12 @@ function UMG_SystemSettingMain_C:SetUpNotificationList()
       UniqueType = Enum.UserSubscribeType.USER_SUBSCRIBE_TYPE_DEBRIS_FULL
     }
     table.insert(notificationSwitchItemList2, {
-      btnText = "\229\188\128",
+      btnText = LuaText.setting_image_33,
       selectHandler = FPartial(OnUserSubscribeChanged, self, data2, true),
       Call = self
     })
     table.insert(notificationSwitchItemList2, {
-      btnText = "\229\133\179",
+      btnText = LuaText.setting_image_45,
       selectHandler = FPartial(OnUserSubscribeChanged, self, data2, false),
       Call = self
     })
@@ -2014,7 +2054,7 @@ function UMG_SystemSettingMain_C:SetUpNotificationList()
   if not hideFriendBattle then
     local notificationSwitchItemList3 = {}
     local notificationItemList3Key = 1
-    if defaultPlayerSettings.userSubscribe then
+    if defaultPlayerSettings and defaultPlayerSettings.userSubscribe then
       if true == defaultPlayerSettings.userSubscribe.friend_battle then
         notificationItemList3Key = 0
       elseif false == defaultPlayerSettings.userSubscribe.friend_battle then
@@ -2028,12 +2068,12 @@ function UMG_SystemSettingMain_C:SetUpNotificationList()
       UniqueType = Enum.UserSubscribeType.USER_SUBSCRIBE_TYPE_FRIEND_BATTLE
     }
     table.insert(notificationSwitchItemList3, {
-      btnText = "\229\188\128",
+      btnText = LuaText.setting_image_33,
       selectHandler = FPartial(OnUserSubscribeChanged, self, data3, true),
       Call = self
     })
     table.insert(notificationSwitchItemList3, {
-      btnText = "\229\133\179",
+      btnText = LuaText.setting_image_45,
       selectHandler = FPartial(OnUserSubscribeChanged, self, data3, false),
       Call = self
     })
@@ -2052,7 +2092,7 @@ function UMG_SystemSettingMain_C:SetUpNotificationList()
   if not hideNewActivity then
     local notificationSwitchItemList4 = {}
     local notificationItemList4Key = 1
-    if defaultPlayerSettings.userSubscribe then
+    if defaultPlayerSettings and defaultPlayerSettings.userSubscribe then
       if true == defaultPlayerSettings.userSubscribe.new_activity then
         notificationItemList4Key = 0
       elseif false == defaultPlayerSettings.userSubscribe.new_activity then
@@ -2066,12 +2106,12 @@ function UMG_SystemSettingMain_C:SetUpNotificationList()
       UniqueType = Enum.UserSubscribeType.USER_SUBSCRIBE_TYPE_NEW_ACTIVITY
     }
     table.insert(notificationSwitchItemList4, {
-      btnText = "\229\188\128",
+      btnText = LuaText.setting_image_33,
       selectHandler = FPartial(OnUserSubscribeChanged, self, data4, true),
       Call = self
     })
     table.insert(notificationSwitchItemList4, {
-      btnText = "\229\133\179",
+      btnText = LuaText.setting_image_45,
       selectHandler = FPartial(OnUserSubscribeChanged, self, data4, false),
       Call = self
     })
@@ -2090,7 +2130,7 @@ function UMG_SystemSettingMain_C:SetUpNotificationList()
   if not hideExchangeEgg then
     local notificationSwitchItemList5 = {}
     local notificationItemList5Key = 1
-    if defaultPlayerSettings.userSubscribe then
+    if defaultPlayerSettings and defaultPlayerSettings.userSubscribe then
       if true == defaultPlayerSettings.userSubscribe.exchange_egg then
         notificationItemList5Key = 0
       elseif false == defaultPlayerSettings.userSubscribe.exchange_egg then
@@ -2104,12 +2144,12 @@ function UMG_SystemSettingMain_C:SetUpNotificationList()
       UniqueType = Enum.UserSubscribeType.USER_SUBSCRIBE_TYPE_EXCHANGE_EGG
     }
     table.insert(notificationSwitchItemList5, {
-      btnText = "\229\188\128",
+      btnText = LuaText.setting_image_33,
       selectHandler = FPartial(OnUserSubscribeChanged, self, data5, true),
       Call = self
     })
     table.insert(notificationSwitchItemList5, {
-      btnText = "\229\133\179",
+      btnText = LuaText.setting_image_45,
       selectHandler = FPartial(OnUserSubscribeChanged, self, data5, false),
       Call = self
     })
@@ -2128,7 +2168,7 @@ function UMG_SystemSettingMain_C:SetUpNotificationList()
   if not hideFriendVisit then
     local notificationSwitchItemList6 = {}
     local notificationItemList6Key = 1
-    if defaultPlayerSettings.userSubscribe then
+    if defaultPlayerSettings and defaultPlayerSettings.userSubscribe then
       if true == defaultPlayerSettings.userSubscribe.friend_visit then
         notificationItemList6Key = 0
       elseif false == defaultPlayerSettings.userSubscribe.friend_visit then
@@ -2142,12 +2182,12 @@ function UMG_SystemSettingMain_C:SetUpNotificationList()
       UniqueType = Enum.UserSubscribeType.USER_SUBSCRIBE_TYPE_FRIEND_VISIT
     }
     table.insert(notificationSwitchItemList6, {
-      btnText = "\229\188\128",
+      btnText = LuaText.setting_image_33,
       selectHandler = FPartial(OnUserSubscribeChanged, self, data6, true),
       Call = self
     })
     table.insert(notificationSwitchItemList6, {
-      btnText = "\229\133\179",
+      btnText = LuaText.setting_image_45,
       selectHandler = FPartial(OnUserSubscribeChanged, self, data6, false),
       Call = self
     })
@@ -2204,8 +2244,14 @@ function UMG_SystemSettingMain_C:SetupDropDownList()
   end
   if UE4Helper.IsPCMode() then
     Options = {
-      {Name = "DirectX11", Value = 0},
-      {Name = "DirectX12", Value = 1}
+      {
+        Name = LuaText.setting_image_73,
+        Value = 0
+      },
+      {
+        Name = LuaText.setting_image_82,
+        Value = 1
+      }
     }
     local apiSelectValue = UE4.UNRCQualityLibrary.IsPreferD3D12() and 1 or 0
     local APIItem = self:GetModeListItemByDropDownListKey("GraphicsAPI")
@@ -2226,6 +2272,15 @@ function UMG_SystemSettingMain_C:RefreshDropDownList(key, value, extraKey, bIsRe
   local isBanSwitchBtnListRefresh = true
   if true == bIsResetGraphic then
     isBanSwitchBtnListRefresh = false
+    if self.DropDownList then
+      for _, dd in ipairs(self.DropDownList) do
+        if true == dd.IsOpenMenu then
+          dd.IsOpenMenu = false
+          dd:SwitchState(false, false)
+        end
+      end
+      self:ShowDropDownListCallback({IsOpenMenu = false})
+    end
   end
   local level = UE4.UNRCQualityLibrary.GetFrameQuality()
   local selectIndex = 0
@@ -2281,7 +2336,7 @@ function UMG_SystemSettingMain_C:RefreshDropDownList(key, value, extraKey, bIsRe
     end
   end
   table.insert(settingItemList, {
-    itemTitle = "\231\148\187\233\157\162\229\147\129\232\180\168",
+    itemTitle = LuaText.setting_image_44,
     itemType = 3,
     Call = self,
     DropDownListInfo = Options,
@@ -2368,12 +2423,12 @@ function UMG_SystemSettingMain_C:RefreshDropDownList(key, value, extraKey, bIsRe
       local reflectionItemList = {}
       local reflectionItemListKey = self:GetReflectionItemListKey(qualityItem)
       table.insert(reflectionItemList, {
-        btnText = "\229\188\128",
+        btnText = LuaText.setting_image_33,
         selectHandler = FPartial(OnReflectionItemClicked, qualityItem.GroupName, qualityItem.Options[2].Value),
         Call = self
       })
       table.insert(reflectionItemList, {
-        btnText = "\229\133\179",
+        btnText = LuaText.setting_image_45,
         selectHandler = FPartial(OnReflectionItemClicked, qualityItem.GroupName, qualityItem.Options[1].Value),
         Call = self
       })
@@ -2422,7 +2477,8 @@ function UMG_SystemSettingMain_C:RefreshDropDownList(key, value, extraKey, bIsRe
         DLSSConfig = JsonUtils.LoadSaved(_DLSSConfigFilename, {}) or {}
         if bOpen then
           local antiAliasLevel = UE4.UNRCQualityLibrary.GetGroupQualityLevel(qualityItem.GroupName)
-          _G.NRCModuleManager:DoCmd(_G.SystemSettingModuleCmd.ApplyConfig, qualityItem.GroupName, antiAliasLevel, nil, true)
+          UE4.UNRCQualityLibrary.SetImageQuality(UE4.ENRCImageQuality.Custom)
+          UE4.UNRCQualityLibrary.SetGroupQualityLevel(qualityItem.GroupName, antiAliasLevel)
           DLSSConfig.AntiAliasing = 0
         else
           UE4.UNRCStatics.ExecConsoleCommand("r.MobileMSAA 1")
@@ -2433,17 +2489,17 @@ function UMG_SystemSettingMain_C:RefreshDropDownList(key, value, extraKey, bIsRe
       end
       
       table.insert(reflectionItemList, {
-        btnText = "\229\188\128",
+        btnText = LuaText.setting_image_33,
         selectHandler = FPartial(OnAntiAliasingQualityItemClicked, true),
         Call = self
       })
       table.insert(reflectionItemList, {
-        btnText = "\229\133\179",
+        btnText = LuaText.setting_image_45,
         selectHandler = FPartial(OnAntiAliasingQualityItemClicked, false),
         Call = self
       })
       table.insert(settingItemList, {
-        itemTitle = "\230\138\151\233\148\175\233\189\191\229\188\128\229\133\179",
+        itemTitle = LuaText.setting_image_46,
         itemType = 4,
         Call = self,
         switchBtnListInfo = reflectionItemList,
@@ -2454,7 +2510,7 @@ function UMG_SystemSettingMain_C:RefreshDropDownList(key, value, extraKey, bIsRe
       })
       if qualityItem.Annotation then
         table.insert(settingItemList, {
-          itemTitle = "\230\138\151\233\148\175\233\189\191\231\173\137\231\186\167",
+          itemTitle = LuaText.setting_image_47,
           bNeedDescribe = true,
           describeText = qualityItem.Annotation,
           itemType = 3,
@@ -2468,7 +2524,7 @@ function UMG_SystemSettingMain_C:RefreshDropDownList(key, value, extraKey, bIsRe
         })
       else
         table.insert(settingItemList, {
-          itemTitle = "\230\138\151\233\148\175\233\189\191\231\173\137\231\186\167",
+          itemTitle = LuaText.setting_image_47,
           itemType = 3,
           Call = self,
           DropDownListInfo = qualityItem.Options,
@@ -2510,7 +2566,7 @@ function UMG_SystemSettingMain_C:RefreshDropDownList(key, value, extraKey, bIsRe
   self.ImageList:InitGridView(settingItemList)
   for j = 1, self.ImageList:GetItemCount() do
     local item = self.ImageList:GetItemByIndex(j - 1)
-    if "\230\138\151\233\148\175\233\189\191\231\173\137\231\186\167" == item.uiData.itemTitle then
+    if item.uiData.itemTitle == LuaText.setting_image_47 then
       local DLSSConfig = JsonUtils.LoadSaved(_DLSSConfigFilename, {}) or {}
       local bIsAntiAliasing = DLSSConfig.AntiAliasing or 0
       if 0 == bIsAntiAliasing then
@@ -2521,6 +2577,7 @@ function UMG_SystemSettingMain_C:RefreshDropDownList(key, value, extraKey, bIsRe
     end
   end
   self:RefreshJoystickMode(key, value)
+  self:RefreshPropPlaceMode(key, value)
   local DeviceLoadPercent = UE4.UNRCQualityLibrary.GetDeviceLoad() / 100
   self.LoadSchedule:SetPercent(DeviceLoadPercent)
   if DeviceLoadPercent < 0.66 then
@@ -2543,6 +2600,12 @@ function UMG_SystemSettingMain_C:RefreshDropDownList(key, value, extraKey, bIsRe
     end)
     self.InvalidationBox_0:SetCanCache(false)
     Log.Debug("UMG_SystemSettingMain_C SetCanCache false")
+  end
+end
+
+function UMG_SystemSettingMain_C:RefreshPropPlaceMode(key, value)
+  if "propPlaceMode" == key then
+    _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.SetPropPlaceMode, 1 == value)
   end
 end
 
@@ -2570,7 +2633,7 @@ function UMG_SystemSettingMain_C:RefreshSecondaryList()
   local limitLevel = _G.DataConfigManager:GetActivityGlobalConfig("secondary_password_unlocks_level_restriction").num
   if playerLv >= limitLevel then
     self.SecondaryPassword:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-    _G.DelayManager:DelayFrames(1, function()
+    self.DelayId = _G.DelayManager:DelayFrames(1, function()
       local secondaryList = {}
       local secondaryPasswordInfo = _G.NRCModuleManager:DoCmd(_G.SystemSettingModuleCmd.GetSecondaryPasswordInfo)
       if secondaryPasswordInfo then
@@ -2580,10 +2643,10 @@ function UMG_SystemSettingMain_C:RefreshSecondaryList()
         local timeStamp = secondaryPasswordInfo.status_timestamp
         if secondaryPasswordInfo.status then
           if secondaryPasswordInfo.status == ProtoEnum.SecondaryPasswordStatus.SPS_None or secondaryPasswordInfo.status == ProtoEnum.SecondaryPasswordStatus.SPS_Unset then
-            titleText = "\228\186\140\231\186\167\229\175\134\231\160\129(\230\156\170\229\188\128\229\144\175)"
+            titleText = LuaText.setting_image_55
             switchKey = 1
-          elseif secondaryPasswordInfo.status == ProtoEnum.SecondaryPasswordStatus.SPS_Set or secondaryPasswordInfo.status == ProtoEnum.SecondaryPasswordStatus.SPS_Disable or secondaryPasswordInfo.status == ProtoEnum.SecondaryPasswordStatus.SPS_Waiting then
-            titleText = "\228\186\140\231\186\167\229\175\134\231\160\129(\229\183\178\229\188\128\229\144\175)"
+          elseif secondaryPasswordInfo.status == ProtoEnum.SecondaryPasswordStatus.SPS_Set or secondaryPasswordInfo.status == ProtoEnum.SecondaryPasswordStatus.SPS_Disable or secondaryPasswordInfo.status == ProtoEnum.SecondaryPasswordStatus.SPS_Waiting or secondaryPasswordInfo.status == ProtoEnum.SecondaryPasswordStatus.SPS_Free then
+            titleText = LuaText.setting_image_70
             switchKey = 0
           end
         end
@@ -2597,12 +2660,12 @@ function UMG_SystemSettingMain_C:RefreshSecondaryList()
         end
         
         table.insert(secondarySwitchItemList, {
-          btnText = "\229\188\128",
+          btnText = LuaText.setting_image_33,
           selectHandler = OnOpenSecondaryPasswordSetClicked,
           Call = self
         })
         table.insert(secondarySwitchItemList, {
-          btnText = "\229\133\179",
+          btnText = LuaText.setting_image_45,
           selectHandler = OnCloseSecondaryPasswordSetClicked,
           Call = self
         })
@@ -2620,10 +2683,10 @@ function UMG_SystemSettingMain_C:RefreshSecondaryList()
           _G.NRCModuleManager:DoCmd(_G.SystemSettingModuleCmd.OpenSecondaryPasswordModify)
         end
         
-        if secondaryPasswordInfo.status and secondaryPasswordInfo.status == ProtoEnum.SecondaryPasswordStatus.SPS_Set or secondaryPasswordInfo.status == ProtoEnum.SecondaryPasswordStatus.SPS_Disable or secondaryPasswordInfo.status == ProtoEnum.SecondaryPasswordStatus.SPS_Waiting then
+        if secondaryPasswordInfo.status and secondaryPasswordInfo.status == ProtoEnum.SecondaryPasswordStatus.SPS_Set or secondaryPasswordInfo.status == ProtoEnum.SecondaryPasswordStatus.SPS_Disable or secondaryPasswordInfo.status == ProtoEnum.SecondaryPasswordStatus.SPS_Waiting or secondaryPasswordInfo.status == ProtoEnum.SecondaryPasswordStatus.SPS_Free then
           table.insert(secondaryList, {
-            itemTitle = "\228\191\174\230\148\185\229\175\134\231\160\129",
-            settingBtnText = "\229\137\141\229\190\128",
+            itemTitle = LuaText.setting_image_79,
+            settingBtnText = LuaText.setting_image_77,
             bNeedSettingBtnIcon = true,
             settingBtnHandler = OnOpenSecondaryPasswordModify,
             itemType = 2,
@@ -2639,10 +2702,11 @@ function UMG_SystemSettingMain_C:RefreshSecondaryList()
         
         if secondaryPasswordInfo.status and secondaryPasswordInfo.status == ProtoEnum.SecondaryPasswordStatus.SPS_Disable then
           table.insert(secondaryList, {
-            itemTitle = "\229\188\186\229\136\182\229\133\179\233\151\173\228\186\140\231\186\167\229\175\134\231\160\129",
-            settingBtnText = "\230\146\164\233\148\128",
+            itemTitle = LuaText.setting_image_85,
+            settingBtnText = LuaText.setting_image_86,
             settingBtnHandler = OnOpenSecondaryPasswordCancelForceDisable,
             countDownTimeStamp = timeStamp,
+            isSecondaryPasswordCountdown = true,
             itemType = 2,
             Call = self,
             CloseSelectionBtn = self.HitTestBgBtn,
@@ -2706,8 +2770,6 @@ function UMG_SystemSettingMain_C:OnSelecedTabIndex(index, skipSound)
     return
   end
   if not skipSound then
-    self:StopAnimation(self.Change)
-    self:PlayAnimation(self.Change)
   end
   self.Switcher:SetActiveWidgetIndex(index - 1)
   for i, tabIcon in ipairs(self.TabIcons) do
@@ -3179,7 +3241,7 @@ end
 function UMG_SystemSettingMain_C:OnBrightSliderEnd()
   local ParamSet = {}
   ParamSet.QualityId = -1
-  ParamSet.QualityName = "\228\186\174\229\186\166"
+  ParamSet.QualityName = LuaText.setting_image_37
   ParamSet.QualityLevel = tonumber(string.match(self.Brightness.Text:GetText(), "%d+"))
   _G.GEMPostManager:SendOptionChangeTLog(ParamSet)
 end
@@ -3276,14 +3338,40 @@ function UMG_SystemSettingMain_C:OnDataRestorationClick()
 end
 
 function UMG_SystemSettingMain_C:SendDataRestorationReq()
+  local NPCModule = _G.NRCModuleManager:GetModule("NPCModule")
+  if NPCModule and _G.ZoneServer:IsEnteredCell() then
+    NPCModule:QueryPosForServer(self, self.OnQueryPosForServer)
+  end
+end
+
+function UMG_SystemSettingMain_C:OnQueryPosForServer(Result)
+  local Locations = {}
+  if Result and Result.bSuccess then
+    Locations = Result.ResultLocations:ToTable()
+  end
   local Req = ProtoMessage:newZoneSetTaskRecoverAllReq()
-  _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_SET_TASK_RECOVER_ALL_REQ, Req, self, self.OnDataRestorationRsp, true, false)
+  if Locations and #Locations > 0 then
+    for _, v in ipairs(Locations) do
+      local absPos = SceneUtils.ConvertRelativeToAbsolute(v)
+      local svrPos = SceneUtils.ClientPos2ServerPos(absPos)
+      table.insert(Req.bonus_relocate_positions, svrPos)
+    end
+  end
+  Log.Debug("UMG_SystemSettingMain_C:OnQueryPosForServer", Result.bSuccess, #Req.bonus_relocate_positions)
+  _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_SET_TASK_RECOVER_ALL_REQ, Req, self, self.OnDataRestorationRsp, true, true)
 end
 
 function UMG_SystemSettingMain_C:OnDataRestorationRsp(rsp)
   if 0 ~= rsp.ret_info.ret_code then
     Log.Error("\230\149\176\230\141\174\228\191\174\229\164\141\229\164\177\232\180\165", rsp.ret_info.ret_code)
-    _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.taskdata_repair_failed)
+    if rsp.ret_info.ret_code == ProtoEnum.MOBA_RET.ZoneErr.ERR_ZONE_TASK_RECOVER_ALL_IN_CD then
+      local Key = string.format("Error_Code_%d", rsp.ret_info.ret_code)
+      local ErrorText = _G.DataConfigManager:GetLocalizationConf(Key, true)
+      ErrorText = ErrorText and ErrorText.msg
+      _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, ErrorText)
+    else
+      _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.taskdata_repair_failed)
+    end
     return
   end
   self:BackToLogin()
@@ -3316,10 +3404,17 @@ function UMG_SystemSettingMain_C:CopyCurOptions(Options, MaxValue, QualityID, Ig
 end
 
 function UMG_SystemSettingMain_C:CheckIsCreatePlayerLevel()
-  local CurLevelName = LevelHelper:GetLevelName()
-  if "Plot_A1_LearnMagic_New_Release" == CurLevelName then
-    self.inInCreatePlayerLevel = true
+  local CurWorld = UE4Helper.GetCurrentWorld()
+  if CurWorld then
+    local GameMode = UE4.UGameplayStatics.GetGameMode(CurWorld)
+    local ModeName = GameMode and GameMode:GetName() or ""
+    Log.Debug("UMG_SystemSettingMain_C:CheckIsCreatePlayerLevel", ModeName)
+    if "" ~= ModeName and string.match(ModeName, "BP_NRCCreatePlayerMode") then
+      self.inInCreatePlayerLevel = true
+      return
+    end
   end
+  self.inInCreatePlayerLevel = false
 end
 
 function UMG_SystemSettingMain_C:OnCDKEYClick()
@@ -3364,18 +3459,18 @@ function UMG_SystemSettingMain_C:ShowBindPhoneText(isHide)
     local phoneInfo = _G.DataModelMgr.PlayerDataModel:GetPlayerMobileBindInfo()
     if phoneInfo and phoneInfo.mobile_num and phoneInfo.mobile_num ~= "" then
       data = {
-        settingBtnText = "\232\167\163\233\153\164\231\187\145\229\174\154",
+        settingBtnText = LuaText.setting_image_69,
         itemName = self.module.data:GetEncryptPhoneNum(phoneInfo.mobile_num)
       }
     else
       data = {
-        settingBtnText = "\229\137\141\229\190\128\231\187\145\229\174\154",
+        settingBtnText = LuaText.setting_image_81,
         itemName = LuaText.Setting_UnBound_Phone_Tips
       }
     end
     for i = 1, self.PersonalList:GetItemCount() do
       local item = self.PersonalList:GetItemByIndex(i - 1)
-      if item.uiData.itemTitle == "\230\137\139\230\156\186\229\143\183" then
+      if item.uiData.itemTitle == LuaText.setting_image_21 then
         item:UpdatePhoneArea(data)
         break
       end
@@ -3498,6 +3593,7 @@ function UMG_SystemSettingMain_C:OnClickResetGraphic()
     UMG_SystemSettingMain:InitLight()
     UMG_SystemSettingMain:SetupDropDownList()
     UMG_SystemSettingMain:RefreshDropDownList(nil, nil, nil, true)
+    UMG_SystemSettingMain:RefreshSecondaryList()
   end)
   NRCModuleManager:DoCmd(TipsModuleCmd.Dialog_OpenDialog, Ctx)
 end

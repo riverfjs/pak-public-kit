@@ -2,9 +2,14 @@ local Base = require("NewRoco.TUI.BP_NRCItemBase_C")
 local UMG_DriveList_C = Base:Extend("UMG_DriveList_C")
 
 function UMG_DriveList_C:OnConstruct()
+  self.UpdateHandler = nil
 end
 
 function UMG_DriveList_C:OnDestruct()
+  if self.UpdateHandler then
+    _G.DelayManager:CancelDelayById(self.UpdateHandler)
+  end
+  self.UpdateHandler = nil
 end
 
 function UMG_DriveList_C:OnItemUpdate(_data, datalist, index)
@@ -22,7 +27,8 @@ function UMG_DriveList_C:OnItemUpdate(_data, datalist, index)
       if _data.delayTime > 0 then
         self:PlayAnimation(self.empty)
       end
-      _G.DelayManager:DelaySeconds(_data.delayTime, function()
+      self.UpdateHandler = _G.DelayManager:DelaySeconds(_data.delayTime, function()
+        self.UpdateHandler = nil
         self:SetVisibility(UE4.ESlateVisibility.Visible)
         self:StopAllAnimations()
         self:PlayAnimation(self.get)

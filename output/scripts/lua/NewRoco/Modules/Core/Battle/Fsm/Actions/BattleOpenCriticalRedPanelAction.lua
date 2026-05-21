@@ -16,7 +16,7 @@ end
 function BattleOpenCriticalRedPanelAction:OnEnter()
   self.isUINeed = false
   local player = self.BattleManager.battlePawnManager:GetPlayerMyTeam()
-  if player and not BattleUtils.IsTeam() then
+  if player and not BattleUtils.IsTeam() and not BattleUtils.IsFinalBattle() then
     local hp = player.roleInfo.base.hp or 100
     local cards = player.team:GetInBattleCards()
     local hp_need = 0

@@ -233,7 +233,7 @@ function SkillSeqProxy:DestroyActor(Key)
   self.Actors[Key] = nil
 end
 
-function SkillSeqProxy:GetActor(Key)
+function SkillSeqProxy:GetActor(Key, bNoEnsure)
   if not Key then
     return
   end
@@ -241,6 +241,9 @@ function SkillSeqProxy:GetActor(Key)
   if Actor then
     self.RunningActors[Key] = Actor
     return Actor
+  end
+  if bNoEnsure then
+    return
   end
   local Res = self.ResourceMap[Key]
   if not Res then

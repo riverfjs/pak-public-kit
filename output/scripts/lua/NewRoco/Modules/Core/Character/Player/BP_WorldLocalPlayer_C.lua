@@ -119,9 +119,10 @@ end
 function BP_WorldLocalPlayer_C:CanClimb()
   local player = self.sceneCharacter
   if player and player.ClimbComponent then
-    return player.ClimbComponent:CanClimb()
+    local canClimb, Reason = player.ClimbComponent:CanClimb()
+    return Reason, canClimb
   end
-  return true
+  return "", true
 end
 
 function BP_WorldLocalPlayer_C:TiredCheck()
@@ -215,9 +216,7 @@ function BP_WorldLocalPlayer_C:TrySuitRelax()
 end
 
 function BP_WorldLocalPlayer_C:SetFadeAlpha(alpha)
-  if self.Controller then
-    self.Controller.PlayerCameraManager.BP_FadeComponent:SetCharacterAlpha(alpha, self.Mesh)
-  end
+  UE.URocoPlayerBlueprintFunctionLibrary.SetCharacterAlpha(self.Mesh, alpha)
 end
 
 function BP_WorldLocalPlayer_C:IgnoreCameraCollision()
@@ -294,6 +293,11 @@ function BP_WorldLocalPlayer_C:CallOverriddenFunc(functionName, ...)
     return
   end
   self.Overridden[functionName](...)
+end
+
+function BP_WorldLocalPlayer_C:OnJumped()
+  self:CallOverriddenFunc("OnJumped", self)
+  self.sceneCharacter:SendEvent(PlayerModuleEvent.ON_PLAYER_JUMPED)
 end
 
 function BP_WorldLocalPlayer_C:TrySyncJump()

@@ -379,11 +379,6 @@ function BP_CinematicPlayer_C:ToggleFadeComp(Enable)
   if not CameraManager then
     return
   end
-  local FadeComp = CameraManager.BP_FadeComponent
-  if not FadeComp then
-    return
-  end
-  FadeComp:SetEnable(Enable)
 end
 
 function BP_CinematicPlayer_C:ProcessSubtitleStart(SubtitleID)

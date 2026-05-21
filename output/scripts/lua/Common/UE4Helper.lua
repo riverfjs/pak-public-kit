@@ -46,7 +46,7 @@ function UE4Helper.PrintScreenMsgRed(Msg)
 end
 
 function UE4Helper.PrintScreenMsgBlue(Msg)
-  UE4.UKismetSystemLibrary.PrintString(UE4Helper.GetCurrentWorld(), Msg, true, true, UE4.FLinearColor(0, 0, 1, 1), 20)
+  UE4.UKismetSystemLibrary.PrintString(UE4Helper.GetCurrentWorld(), Msg, true, true, UE4.FLinearColor(0, 0.4, 1, 1), 20)
 end
 
 local WorldRenderingPersistentFlag = _G.MakeWeakTable({}, "k")

@@ -3,7 +3,7 @@ local PetUtils = require("NewRoco.Utils.PetUtils")
 local UMG_BattleRogue_Main_C = _G.NRCPanelBase:Extend("UMG_BattleRogue_Main_C")
 
 function UMG_BattleRogue_Main_C:OnConstruct()
-  self.data = self.module:GetData("BattleRogueModuleData")
+  self.Data = self.module:GetData("BattleRogueModuleData")
   self:OnAddEventListener()
 end
 
@@ -33,7 +33,7 @@ function UMG_BattleRogue_Main_C:SetPanelInfo()
   self:SetNodeList()
   self:SetCurrentNodeList()
   self:RandomSDI()
-  self:SetRogueCoin(self.data:GetRogueCoinNum())
+  self:SetRogueCoin(self.Data:GetRogueCoinNum())
   self:OpenSettlementTips()
   self:OpenBuffTips()
 end
@@ -79,14 +79,14 @@ function UMG_BattleRogue_Main_C:SetMagic()
 end
 
 function UMG_BattleRogue_Main_C:SetPetList()
-  local PetInfoList = self.data:GetPetInfo()
+  local PetInfoList = self.Data.PetInfo
   self.PetHeadList:InitGridView(PetInfoList)
   local Index = _G.NRCModuleManager:DoCmd(PetUIModuleCmd.GetPetSelectIndex) or 1
   self.PetHeadList:SelectItemByIndex(Index - 1)
 end
 
 function UMG_BattleRogue_Main_C:OpenBuffTips()
-  local CurBuffDatas = self.data:GetCurBuffDatas()
+  local CurBuffDatas = self.Data:GetCurBuffDatas()
   if CurBuffDatas and #CurBuffDatas > 0 then
     self.module:OpenBuffTips(CurBuffDatas)
   end
@@ -112,13 +112,13 @@ function UMG_BattleRogue_Main_C:OnUpdateCoinNum(RogueCoin, RefreshNeedCoinNum)
 end
 
 function UMG_BattleRogue_Main_C:SetCurrentNodeList()
-  local UIEventDatas = self.data:GetUIEventDatas()
+  local UIEventDatas = self.Data:GetUIEventDatas()
   self.SDIList_2:InitGridView(UIEventDatas)
 end
 
 function UMG_BattleRogue_Main_C:RandomSDI()
-  local IsOpenSettlementTips = self.data:GetIsOpenSettlementTips()
-  local UINodeInfo = self.data:GetCurrentUINodeInfo()
+  local IsOpenSettlementTips = self.Data:GetIsOpenSettlementTips()
+  local UINodeInfo = self.Data:GetCurrentUINodeInfo()
   if not UINodeInfo.NodeUIEventData and not IsOpenSettlementTips then
     self.module:OpenBattleRogueCardTips()
     self:ShowOrHideMainInfo(true)
@@ -126,7 +126,7 @@ function UMG_BattleRogue_Main_C:RandomSDI()
 end
 
 function UMG_BattleRogue_Main_C:OpenSettlementTips()
-  local IsOpenSettlementTips = self.data:GetIsOpenSettlementTips()
+  local IsOpenSettlementTips = self.Data:GetIsOpenSettlementTips()
   if IsOpenSettlementTips then
     self.module:OpenSettlement_Tips()
     self:OpenSettlementTipsPanelChange(true)
@@ -134,7 +134,7 @@ function UMG_BattleRogue_Main_C:OpenSettlementTips()
 end
 
 function UMG_BattleRogue_Main_C:SetNodeList()
-  local LevelInfo = self.data:GetLevelInfo()
+  local LevelInfo = self.Data:GetLevelInfo()
   self.SDIList:InitGridView(LevelInfo.Nodes)
 end
 

@@ -42,8 +42,8 @@ function UMG_CountdownSeedMaturity_C:PCKeySetting()
       self.PCKey:SetText(text)
     end
     self.PCKey:SetKeyVisibility(false)
+    self.PCKey:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
-  self.PCKey:SetVisibility(UE4.ESlateVisibility.Collapsed)
 end
 
 function UMG_CountdownSeedMaturity_C:OnTick()
@@ -247,11 +247,11 @@ function UMG_CountdownSeedMaturity_C:UpdateHarvestIcon()
         self.Harvest:SetPath(iconPath)
         self.Harvest:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
       end
-    elseif self.HarvestIconPath ~= iconPath then
+    elseif self.HarvestIconPath ~= iconPath or not self.HarvestIconPath and not iconPath then
       self.HarvestIconPath = iconPath
       self.Harvest:SetVisibility(UE4.ESlateVisibility.Collapsed)
     end
-  elseif self.HarvestIconPath ~= iconPath then
+  elseif self.HarvestIconPath ~= iconPath or not self.HarvestIconPath and not iconPath then
     self.HarvestIconPath = iconPath
     self.Harvest:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end

@@ -29,7 +29,7 @@ function UMG_BloodPulse_Tips_C:SetPaneInfo()
       end
     end
   end
-  local LevelSkillConf = _G.DataConfigManager:GetLevelSkillConf(self.petData.base_conf_id)
+  local LevelSkillConf = _G.NRCModeManager:DoCmd(_G.PetUIModuleCmd.GetLevelSkillConfByPetBaseId, self.petData.base_conf_id)
   if LevelSkillConf then
     local skillConf = self:GetSkillData(self.petData.blood_id, LevelSkillConf)
     if skillConf then

@@ -26,7 +26,7 @@ function UMG_Appearance_SuitItem_C:OnItemUpdate(_data, datalist, index)
   self.data = _data
   self.index = index
   self:UpdateItemInfo()
-  if self.data.Clicked == false then
+  if self.data and self.data.Clicked == false then
     self:PlayAnimation(self.Rename_In)
   end
 end
@@ -47,7 +47,7 @@ function UMG_Appearance_SuitItem_C:UpdateItemInfo()
     return
   end
   self.Dazzling:UpdateState(false)
-  if (self.data.current_wardrobe_data_index or 0) + 1 ~= self.index then
+  if (self.data.current_wardrobe_data_index or 0) + 1 ~= self.index and not self.bIsSelected then
     self.NamePanel:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
   if not string.IsNilOrEmpty(self.data.fashion_data.name) then
@@ -104,6 +104,7 @@ function UMG_Appearance_SuitItem_C:OnItemClicked(bClicked)
 end
 
 function UMG_Appearance_SuitItem_C:OnItemSelected(_bSelected)
+  self.bIsSelected = _bSelected
   if _bSelected then
     self:OnItemClicked(_bSelected)
     self.NamePanel:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
@@ -117,6 +118,7 @@ function UMG_Appearance_SuitItem_C:OnItemSelected(_bSelected)
     end
     _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.ClearFashionItemSelection)
   else
+    self:StopAllAnimations()
     self.NamePanel:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self:PlayAnimation(self.Rename_Out)
     self.Bg:SetColorAndOpacity(UE4.UNRCStatics.HexToLinearColor("1E1F21FF"))
@@ -134,6 +136,9 @@ end
 
 function UMG_Appearance_SuitItem_C:OnAnimationFinished(anim)
   if anim == self.Rename_Out then
+  end
+  if anim == self.Rename_In and self.bIsSelected then
+    self:PlayAnimation(self.Selected_loop, 0.0, 0, UE4.EUMGSequencePlayMode.Forward, 1.0, false)
   end
 end
 

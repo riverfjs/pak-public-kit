@@ -108,6 +108,11 @@ function UMG_Update_UI_C:OnActive()
   self.TxtResVersion:SetText(AppMain:GetResVersion())
   self.TxtBuild:SetText(AppMain:GetResRevision())
   self:PlayAnimation(self.LogoOut, 0, 1, UE4.EUMGSequencePlayMode.Reverse, 1.0, false)
+  if AppMain:GetFormalPipeline() then
+    self.Text:SetText("")
+  else
+    self.Text:SetText("\231\160\148\229\143\145\228\184\173\231\137\136\230\156\172 \228\184\141\228\187\163\232\161\168\230\184\184\230\136\143\230\156\128\231\187\136\229\147\129\232\180\168")
+  end
 end
 
 function UMG_Update_UI_C:OnHaltDownloading()

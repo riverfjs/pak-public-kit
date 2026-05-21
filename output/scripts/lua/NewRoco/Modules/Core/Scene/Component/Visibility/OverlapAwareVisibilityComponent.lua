@@ -105,7 +105,9 @@ function OverlapAwareVisibilityComponent:PushLocalPlayer()
   if not self:IsOutBound(self.owner.squaredDis2Local) then
     Log.Debug("[NpcAOI] overlapAwareComp is In bound", self.owner:DebugNPCNameAndID(), "deltaDist=", deltaDist)
     local localPlayer = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
-    if localPlayer and UE.UObject.IsValid(localPlayer.viewObj) then
+    local statusComponent = localPlayer and localPlayer.statusComponent
+    local isHandInHand2P = statusComponent and statusComponent:HasAnyStatus(_G.ProtoEnum.WorldPlayerStatusType.WPST_HAND_IN_HAND_2P) or false
+    if localPlayer and UE.UObject.IsValid(localPlayer.viewObj) and not isHandInHand2P then
       localPlayer:ToSafePos(deltaDist)
       localPlayer:ForceSendMoveReq(true, nil)
     end

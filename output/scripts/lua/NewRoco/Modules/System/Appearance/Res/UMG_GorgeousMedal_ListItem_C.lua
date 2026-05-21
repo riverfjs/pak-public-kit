@@ -34,7 +34,6 @@ function UMG_GorgeousMedal_ListItem_C:OnItemUpdate(_data, datalist, index)
     end
   end)
   self.uiData = _data
-  self.bSelected = false
   self.Image_Icon:SetPath(_data.conf.fashion_bond_icon)
   self.Cucoloris_Icon:SetPath(_data.conf.fashion_bond_icon)
   self.Image_Icon:SetVisibility(_data.state == AppearanceModuleEnum.FashionMedalState.NotUnLockable and UE4.ESlateVisibility.Collapsed or UE4.ESlateVisibility.SelfHitTestInvisible)

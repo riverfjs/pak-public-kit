@@ -376,4 +376,23 @@ function OnLookerCrowdShowComponent:UpdateWithFrameData(data)
   end
 end
 
+function OnLookerCrowdShowComponent:Destroy()
+  Base.Destroy(self)
+  local playIdleAnimationContext = self.playIdleAnimationContext
+  local delaySwitchId = playIdleAnimationContext and playIdleAnimationContext.delaySwitchId
+  if delaySwitchId then
+    _G.DelayManager:CancelDelayById(delaySwitchId)
+  end
+  local playCheerAnimationContext = self.playCheerAnimationContext
+  delaySwitchId = playCheerAnimationContext and playCheerAnimationContext.delaySwitchId
+  if delaySwitchId then
+    _G.DelayManager:CancelDelayById(delaySwitchId)
+  end
+  local playEmotionContext = self.playEmotionContext
+  delaySwitchId = playEmotionContext and playEmotionContext.delayPlayEmotionDelayId
+  if delaySwitchId then
+    _G.DelayManager:CancelDelayById(delaySwitchId)
+  end
+end
+
 return OnLookerCrowdShowComponent

@@ -127,7 +127,6 @@ function BattleResourceManager:LoadUClassAsync(caller, assetPath, successCallbac
   end
   Log.Info("[BattleResourceManager] class path:", classPath)
   local promise = {
-    _requester = debug.getinfo(2),
     _requestHandle = nil,
     _promiseUClass = nil,
     GetUClass = nil,

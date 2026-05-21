@@ -4,12 +4,6 @@ local UMG_ExperienceAcquisition_C = _G.NRCPanelBase:Extend("UMG_ExperienceAcquis
 function UMG_ExperienceAcquisition_C:OnActive()
 end
 
-function UMG_ExperienceAcquisition_C:OnDeactive()
-end
-
-function UMG_ExperienceAcquisition_C:OnAddEventListener()
-end
-
 function UMG_ExperienceAcquisition_C:OnConstruct()
   self:SetVisibility(UE4.ESlateVisibility.Collapsed)
 end
@@ -93,6 +87,9 @@ function UMG_ExperienceAcquisition_C:NoUpgrade(expInfo, targetMaxExp)
 end
 
 function UMG_ExperienceAcquisition_C:OnTick(InDeltaTime)
+  if self.tipsPaused then
+    return
+  end
   if self.LerpToNewFillAmount and self.DeltaTimer and self.FinishTime then
     self.DeltaTimer = self.DeltaTimer + InDeltaTime
     local ratio = self.DeltaTimer / self.FinishTime
@@ -131,6 +128,16 @@ function UMG_ExperienceAcquisition_C:OnAnimationFinished(Anim)
     self:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.ParentPanel:ConsumeNext()
   end
+end
+
+function UMG_ExperienceAcquisition_C:SetPaused(pause, desireRecoverable)
+  self.tipsPaused = pause
+  if pause then
+    self:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  else
+    self:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  end
+  return true
 end
 
 return UMG_ExperienceAcquisition_C

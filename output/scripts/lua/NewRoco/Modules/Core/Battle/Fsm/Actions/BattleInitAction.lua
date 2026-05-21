@@ -101,6 +101,9 @@ function BattleInitAction:CheckIsReconnect()
 end
 
 function BattleInitAction:CheckIsDebugConnect()
+  if _G.IsEnterBattleByDebug then
+    return false
+  end
   if not self.BattleManager.battleRuntimeData:HasValidNPC() then
     return true
   end

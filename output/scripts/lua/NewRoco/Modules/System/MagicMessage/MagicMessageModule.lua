@@ -32,7 +32,6 @@ function MagicMessageModule:OnConstruct()
   self.SceneFlag = true
   self.IsFullHp = true
   self.IsFullEnergy = true
-  self.FirstReceive = true
   self.uinToName = {}
   self.BeforeEnsure = {}
   self.TraceOnWater = _G.MakeWeakTable()
@@ -371,10 +370,7 @@ function MagicMessageModule:OnReceiveFeedNotify(Notify)
     self.Player = nil
   end
   self.Player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
-  if self.FirstReceive then
-    self:CheckPlayerHPFull()
-    self.FirstReceive = false
-  end
+  self:CheckPlayerHPFull()
   self.Player:AddEventListener(self, PlayerModuleEvent.ON_ROLE_HP_CHANGE_RAW, self.CheckPlayerHPFull)
   local IsEnteringOrSwitching = _G.ZoneServer:IsEnteringOrSwitchingCell()
   if IsEnteringOrSwitching then
@@ -550,8 +546,13 @@ function MagicMessageModule:OnReceiveVideoEvent()
         if npc then
           npc.serverData.base.videoUploading = true
           if npc.viewObj then
+            npc.viewObj:Select()
             npc.viewObj:SetTopMessageVisible()
+          else
+            self:CreateUploadingVideo(file)
           end
+        else
+          self:CreateUploadingVideo(file)
         end
       else
         self:CreateUploadingVideo(file)
@@ -703,15 +704,14 @@ end
 
 function MagicMessageModule:MagicVideoUploading(viewObj)
   if viewObj then
+    viewObj:Select()
     local npc = viewObj.sceneCharacter
     if not npc then
       return
     end
+    npc.serverData.base.videoUploading = true
+    viewObj:SetTopMessageVisible()
     npc:RemoveEventListener(self, NPCModuleEvent.VIEW_LOADED, self.MagicVideoUploading)
-    if viewObj.hudComp and viewObj.hudComp._headHud then
-      npc.serverData.base.videoUploading = true
-      viewObj:SetTopMessageVisible()
-    end
   end
 end
 
@@ -756,7 +756,7 @@ function MagicMessageModule:SceneNpcLoadOver(viewObj)
     end
     MagicMessageUtils.NpcSnapToGround(npc, true)
     self:CreateFakeOptionInfo(npc)
-    viewObj:SetPenMat()
+    viewObj.NRCChildActor:GetChildActor():SetPenMat()
     viewObj:SetTopMessageVisible()
   end
 end
@@ -797,7 +797,7 @@ function MagicMessageModule:MagicVideoLoadOver(viewObj)
     end
     MagicMessageUtils.NpcSnapToGround(npc, true)
     self:CreateFakeOptionInfo(npc)
-    viewObj:SetHourglassMat()
+    viewObj.NRCChildActor:GetChildActor():SetHourglassMat()
     viewObj:SetTopMessageVisible()
   end
 end
@@ -993,16 +993,43 @@ function MagicMessageModule:DeleteNpcByGridAndFeedId(Grid_Id, Feed_Id, FeedType)
       if feed.MessageNpc then
         local viewObj = feed.MessageNpc.viewObj
         if viewObj then
-          self.TempGridId = Grid_Id
-          self.TempFeedId = Feed_Id
+          local ChildActor = viewObj.NRCChildActor:GetChildActor()
           if viewObj.sceneCharacter.InteractionComponent then
             viewObj.sceneCharacter.InteractionComponent:TryDisableInteraction()
           end
           viewObj:SetHidden()
           local SkillComp = viewObj.RocoSkill
           SkillComp:StopCurrentSkill()
-          local Skill = RocoSkillProxy.Create("/Game/ArtRes/Effects/G6Skill/SceneEffect/Messages/G6_Scene_Messages_Hidden.G6_Scene_Messages_Hidden", SkillComp, PriorityEnum.Active_Player_Action)
-          Skill:SetCaster(viewObj)
+          local path = "'/Game/ArtRes/Effects/G6Skill/SceneEffect/Messages/G6_Scene_Messages_Hidden.G6_Scene_Messages_Hidden'"
+          local FeedInfo = feed.MessageNpc.serverData.MagicFeedInfo
+          if FeedInfo and FeedInfo.sub_type then
+            local config = _G.DataConfigManager:GetTable(DataConfigManager.ConfigTableId.MARK_MESSAGE_CHILD_CONF):GetAllDatas()
+            local wand_id
+            for _, value in pairs(config) do
+              if value.child_type == FeedInfo.sub_type then
+                wand_id = value.wand_id
+                break
+              end
+            end
+            if wand_id then
+              local wandConf = _G.DataConfigManager:GetFashionWandConf(wand_id, true)
+              if wandConf then
+                local magicId = wandConf.magic_list[ProtoEnum.SceneMagicType.SMT_CREATE_MAGIC_MASSAGE]
+                local avatarSystem = UE4.USubsystemBlueprintLibrary.GetGameInstanceSubsystem(_G.UE4Helper.GetCurrentWorld(), UE4.UAvatarSubsystem)
+                local AvatarConfig = avatarSystem:GetAvatarConfig()
+                local RowKey = AvatarConfig:GetWandDataRowKeyByMagic(magicId, ProtoEnum.SceneMagicType.SMT_CREATE_MAGIC_MASSAGE)
+                local wandData = UE4.FAvatarWandInfo_Message()
+                UE.UDataTableFunctionLibrary.GetTableDataRowFromName(AvatarConfig.AvatarWandDataMap:Find(ProtoEnum.SceneMagicType.SMT_CREATE_MAGIC_MASSAGE), RowKey, wandData)
+                local magicConfig = wandData.MessageMagicResource
+                if magicConfig then
+                  path = UE4.UNRCStatics.GetSoftObjPath(magicConfig.HiddenSkill)
+                end
+              end
+            end
+          end
+          local Skill = RocoSkillProxy.Create(path, SkillComp, PriorityEnum.Active_Player_Action)
+          Skill:SetAdditions("NPC", feed.MessageNpc)
+          Skill:SetCaster(ChildActor)
           Skill:RegisterEventCallback("End", self, self.PlayHiddenSkillFinish)
           Skill:PlaySkill(self, self.OnHiddenSkillCallBack)
         end
@@ -1029,16 +1056,43 @@ function MagicMessageModule:DeleteNpcByGridAndFeedId(Grid_Id, Feed_Id, FeedType)
       if feed.VideoNpc then
         local viewObj = feed.VideoNpc.viewObj
         if viewObj then
-          self.VideoGridId = Grid_Id
-          self.VideoFeedId = Feed_Id
+          local ChildActor = viewObj.NRCChildActor:GetChildActor()
           if viewObj.sceneCharacter.InteractionComponent then
             viewObj.sceneCharacter.InteractionComponent:TryDisableInteraction()
           end
           viewObj:SetHidden()
           local SkillComp = viewObj.RocoSkill
           SkillComp:StopCurrentSkill()
-          local Skill = RocoSkillProxy.Create("/Game/ArtRes/Effects/G6Skill/SceneEffect/MovieMagic/G6_Scene_MovieMagic_Hidden.G6_Scene_MovieMagic_Hidden", SkillComp, PriorityEnum.Active_Player_Action)
-          Skill:SetCaster(viewObj)
+          local path = "'/Game/ArtRes/Effects/G6Skill/SceneEffect/MovieMagic/G6_Scene_MovieMagic_Hidden.G6_Scene_MovieMagic_Hidden'"
+          local FeedInfo = feed.VideoNpc.serverData.MagicFeedInfo
+          if FeedInfo and FeedInfo.sub_type then
+            local config = _G.DataConfigManager:GetTable(DataConfigManager.ConfigTableId.MARK_MESSAGE_CHILD_CONF):GetAllDatas()
+            local wand_id
+            for _, value in pairs(config) do
+              if value.child_type == FeedInfo.sub_type then
+                wand_id = value.wand_id
+                break
+              end
+            end
+            if wand_id then
+              local wandConf = _G.DataConfigManager:GetFashionWandConf(wand_id, true)
+              if wandConf then
+                local magicId = wandConf.magic_list[ProtoEnum.SceneMagicType.SMT_CREATE_MAGIC_VIDEO]
+                local avatarSystem = UE4.USubsystemBlueprintLibrary.GetGameInstanceSubsystem(_G.UE4Helper.GetCurrentWorld(), UE4.UAvatarSubsystem)
+                local AvatarConfig = avatarSystem:GetAvatarConfig()
+                local RowKey = AvatarConfig:GetWandDataRowKeyByMagic(magicId, ProtoEnum.SceneMagicType.SMT_CREATE_MAGIC_VIDEO)
+                local wandData = UE4.FAvatarWandInfo_Video()
+                UE.UDataTableFunctionLibrary.GetTableDataRowFromName(AvatarConfig.AvatarWandDataMap:Find(ProtoEnum.SceneMagicType.SMT_CREATE_MAGIC_VIDEO), RowKey, wandData)
+                local magicConfig = wandData.VideoMagicResource
+                if magicConfig then
+                  path = UE4.UNRCStatics.GetSoftObjPath(magicConfig.HiddenSkill)
+                end
+              end
+            end
+          end
+          local Skill = RocoSkillProxy.Create(path, SkillComp, PriorityEnum.Active_Player_Action)
+          Skill:SetAdditions("NPC", feed.VideoNpc)
+          Skill:SetCaster(ChildActor)
           Skill:RegisterEventCallback("End", self, self.PlayHiddenVideoFinish)
           Skill:PlaySkill(self, self.OnHiddenVideoCallBack)
         end
@@ -1067,32 +1121,24 @@ function MagicMessageModule:OnHiddenVideoCallBack(skillProxy, result)
   end
 end
 
-function MagicMessageModule:PlayHiddenVideoFinish()
-  local feed = self:GetFeedByGridAndFeedId(self.VideoGridId, self.VideoFeedId, TraceType.Video)
-  if feed then
-    local npc = feed.VideoNpc
-    if npc then
-      MagicMessageUtils.DeleteLocalNpc(npc)
-    end
-    self.FeedsByGrid[self.VideoGridId].VideoList[self.VideoFeedId] = nil
-    self.TraceOnWater[self.VideoFeedId] = nil
+function MagicMessageModule:PlayHiddenVideoFinish(Name, Skill)
+  local NPC = Skill:GetAddition("NPC")
+  if NPC then
+    local MagicFeedInfo = NPC.serverData.MagicFeedInfo
+    MagicMessageUtils.DeleteLocalNpc(NPC)
+    self.FeedsByGrid[MagicFeedInfo.grid_id].VideoList[MagicFeedInfo.feed_id] = nil
+    self.TraceOnWater[MagicFeedInfo.feed_id] = nil
   end
-  self.VideoFeedId = nil
-  self.VideoGridId = nil
 end
 
-function MagicMessageModule:PlayHiddenSkillFinish()
-  local feed = self:GetFeedByGridAndFeedId(self.TempGridId, self.TempFeedId, TraceType.Message)
-  if feed then
-    local npc = feed.MessageNpc
-    if npc then
-      MagicMessageUtils.DeleteLocalNpc(npc)
-    end
-    self.FeedsByGrid[self.TempGridId].MessageList[self.TempFeedId] = nil
-    self.TraceOnWater[self.TempFeedId] = nil
+function MagicMessageModule:PlayHiddenSkillFinish(Name, Skill)
+  local NPC = Skill:GetAddition("NPC")
+  if NPC then
+    local MagicFeedInfo = NPC.serverData.MagicFeedInfo
+    MagicMessageUtils.DeleteLocalNpc(NPC)
+    self.FeedsByGrid[MagicFeedInfo.grid_id].MessageList[MagicFeedInfo.feed_id] = nil
+    self.TraceOnWater[MagicFeedInfo.feed_id] = nil
   end
-  self.TempFeedId = nil
-  self.TempGridId = nil
 end
 
 function MagicMessageModule:UpdateNpcByGridAndFeedId(Grid_ID, Feed_Id, FeedInfo)
@@ -1184,21 +1230,33 @@ function MagicMessageModule:DeleteNpcBeforeEnsure(Fake_Id, FeedType)
     local viewObj = npc.viewObj
     if viewObj then
       if FeedType == TraceType.Message then
+        local ChildActor = viewObj.NRCChildActor:GetChildActor()
         self.DeleteTempFakeId = Fake_Id
         viewObj:SetCancel()
         local SkillComp = viewObj.RocoSkill
         SkillComp:StopCurrentSkill()
-        local Skill = RocoSkillProxy.Create("/Game/ArtRes/Effects/G6Skill/SceneEffect/Messages/G6_Scene_Messages_cancel.G6_Scene_Messages_Cancel", SkillComp, PriorityEnum.Active_Player_Action)
-        Skill:SetCaster(viewObj)
+        local wandData = MagicMessageUtils.GetAvatarWandConfig(ProtoEnum.MarkGameplay.MK_MAGIC_MESSAGE)
+        local path = "'/Game/ArtRes/Effects/G6Skill/SceneEffect/Messages/G6_Scene_Messages_cancel.G6_Scene_Messages_Cancel'"
+        if wandData then
+          path = UE4.UNRCStatics.GetSoftObjPath(wandData.CancelSkill)
+        end
+        local Skill = RocoSkillProxy.Create(path, SkillComp, PriorityEnum.Active_Player_Action)
+        Skill:SetCaster(ChildActor)
         Skill:RegisterEventCallback("End", self, self.PlaySkillFinish)
         Skill:PlaySkill(self, self.OnSkillCallBack)
       elseif FeedType == TraceType.Video then
+        local ChildActor = viewObj.NRCChildActor:GetChildActor()
         self.DeleteVideoFakeId = Fake_Id
         viewObj:SetCancel()
         local SkillComp = viewObj.RocoSkill
         SkillComp:StopCurrentSkill()
-        local Skill = RocoSkillProxy.Create("/Game/ArtRes/Effects/G6Skill/SceneEffect/MovieMagic/G6_Scene_MovieMagic_Cancel.G6_Scene_MovieMagic_Cancel", SkillComp, PriorityEnum.Active_Player_Action)
-        Skill:SetCaster(viewObj)
+        local wandData = MagicMessageUtils.GetAvatarWandConfig(ProtoEnum.MarkGameplay.MK_MAGIC_VIDEO)
+        local path = "'/Game/ArtRes/Effects/G6Skill/SceneEffect/MovieMagic/G6_Scene_MovieMagic_Cancel.G6_Scene_MovieMagic_Cancel'"
+        if wandData then
+          path = UE4.UNRCStatics.GetSoftObjPath(wandData.CancelSkill)
+        end
+        local Skill = RocoSkillProxy.Create(path, SkillComp, PriorityEnum.Active_Player_Action)
+        Skill:SetCaster(ChildActor)
         Skill:RegisterEventCallback("End", self, self.PlayVideoFinish)
         Skill:PlaySkill(self, self.OnVideoCallBack)
       end
@@ -1246,9 +1304,18 @@ function MagicMessageModule:RegisterPreperform(npc)
   self.BeforeEnsure[actor_id] = npc
 end
 
-function MagicMessageModule:AddLocalNpcToList(rsp, fake_id)
+function MagicMessageModule:AddLocalNpcToList(rsp, fake_id, file_name)
   local FakeId = fake_id
   local npc = self.BeforeEnsure[FakeId]
+  if not npc then
+    for _, v in pairs(self.BeforeEnsure) do
+      if v.serverData.base.filename == file_name then
+        npc = v
+        FakeId = v.serverData.base.actor_id
+        break
+      end
+    end
+  end
   if npc and rsp then
     npc.serverData.MagicFeedInfo = rsp
     npc.serverData.pet_info = nil
@@ -1268,13 +1335,19 @@ function MagicMessageModule:AddLocalNpcToList(rsp, fake_id)
       npc:AddEventListener(self, NPCModuleEvent.On_NPC_Destroy, self.DeleteNPCFromList)
       local viewObj = npc.viewObj
       if viewObj then
+        local ChildActor = viewObj.NRCChildActor:GetChildActor()
         local SkillComp = viewObj.RocoSkill
         if not SkillComp then
           return
         end
         SkillComp:StopCurrentSkill()
-        local Skill = RocoSkillProxy.Create("/Game/ArtRes/Effects/G6Skill/SceneEffect/Messages/G6_Scene_Messages_Change.G6_Scene_Messages_Change", SkillComp, PriorityEnum.Active_Player_Action)
-        Skill:SetCaster(viewObj)
+        local wandData = MagicMessageUtils.GetAvatarWandConfig(ProtoEnum.MarkGameplay.MK_MAGIC_MESSAGE)
+        local path = "'/Game/ArtRes/Effects/G6Skill/SceneEffect/Messages/G6_Scene_Messages_Change.G6_Scene_Messages_Change'"
+        if wandData then
+          path = UE4.UNRCStatics.GetSoftObjPath(wandData.ChangeSkill)
+        end
+        local Skill = RocoSkillProxy.Create(path, SkillComp, PriorityEnum.Active_Player_Action)
+        Skill:SetCaster(ChildActor)
         Skill:RegisterEventCallback("End", self, self.AddLocalNpcFinish)
         Skill:PlaySkill(self, self.OnSkillCallBack)
       end
@@ -1285,13 +1358,19 @@ function MagicMessageModule:AddLocalNpcToList(rsp, fake_id)
       npc:AddEventListener(self, NPCModuleEvent.On_NPC_Destroy, self.DeleteNPCFromList)
       local viewObj = npc.viewObj
       if viewObj then
+        local ChildActor = viewObj.NRCChildActor:GetChildActor()
         local SkillComp = viewObj.RocoSkill
         if not SkillComp then
           return
         end
         SkillComp:StopCurrentSkill()
-        local Skill = RocoSkillProxy.Create("/Game/ArtRes/Effects/G6Skill/SceneEffect/MovieMagic/G6_Scene_MovieMagic_Change.G6_Scene_MovieMagic_Change", SkillComp, PriorityEnum.Active_Player_Action)
-        Skill:SetCaster(viewObj)
+        local wandData = MagicMessageUtils.GetAvatarWandConfig(ProtoEnum.MarkGameplay.MK_MAGIC_VIDEO)
+        local path = "'/Game/ArtRes/Effects/G6Skill/SceneEffect/MovieMagic/G6_Scene_MovieMagic_Change.G6_Scene_MovieMagic_Change'"
+        if wandData then
+          path = UE4.UNRCStatics.GetSoftObjPath(wandData.ChangeSkill)
+        end
+        local Skill = RocoSkillProxy.Create(path, SkillComp, PriorityEnum.Active_Player_Action)
+        Skill:SetCaster(ChildActor)
         Skill:RegisterEventCallback("End", self, self.AddVideoNpcFinish)
         Skill:PlaySkill(self, self.OnVideoCallBack)
       end

@@ -57,6 +57,9 @@ function GameSetting:Init()
   if not RocoEnv.IS_EDITOR and SaveData.UploadLogLevel and SaveData.UploadLogLevel >= 0 then
     self:SetLogLevel(SaveData.UploadLogLevel)
   end
+  if not UE.UNRCStatics.IsOpenLuaDebug() then
+    self:DisableTraceBack()
+  end
 end
 
 function GameSetting:SetLogLevel(logLevel)
@@ -166,6 +169,9 @@ end
 function GameSetting:SyncUploadLogTag(LogTag)
   if SaveData then
     SaveData.UploadLogTag = LogTag
+  end
+  if _G.NRCSDKManager then
+    _G.NRCSDKManager:SetUploadLogTag(LogTag)
   end
 end
 

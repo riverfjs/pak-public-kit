@@ -177,6 +177,12 @@ function UMG_Shop_Exchange_C:SendExchangeReq()
     return
   end
   local UseItemType = self.ExchangeConf.cost_item[1].cost_goods_id[1]
+  if UseItemType == Enum.VisualItem.VI_COUPON then
+    local isBan = _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.CheckUIFunctionBan, _G.Enum.FunctionEntrance.FE_DIAMOND_EXCHANGE, true)
+    if isBan then
+      return
+    end
+  end
   if self.bEnough then
     if UseItemType == Enum.VisualItem.VI_COUPON then
       _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, _G.DataConfigManager:GetLocalizationConf("shop_exchange_limit").msg)

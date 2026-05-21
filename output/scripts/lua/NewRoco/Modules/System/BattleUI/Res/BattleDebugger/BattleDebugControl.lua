@@ -271,7 +271,6 @@ function BattleDebugControl:Reset()
   self.battleManager = nil
   self.pawnManager = nil
   self.enterBattleState = EnterBattleState.WaitStart
-  self.autoPlaySkillControl = nil
 end
 
 function BattleDebugControl:OnBattleEvent(eventName, ...)
@@ -279,6 +278,9 @@ function BattleDebugControl:OnBattleEvent(eventName, ...)
     return
   end
   if self.isInAutoTest then
+    return
+  end
+  if self.isInAutoPlaySkill then
     return
   end
   if eventName == BattleEvent.ROUND_SELECT_START then
@@ -320,20 +322,6 @@ function BattleDebugControl:OnExitBattleEvent()
     JsonUtils.DumpSaved("BattleDebugParam" .. os.date("%Y-%m-%d_%H_%M_%S", os.time()), self.cacheBattleParamsToSave)
   end
   _G.BattleManager.battleRuntimeData.battleDebugControl = nil
-end
-
-function BattleDebugControl.LoadAutoPlayConfigFromSaved(fileName)
-  local data = JsonUtils.LoadSaved(fileName, {})
-  if next(data) == nil then
-    return nil
-  end
-  return data
-end
-
-function BattleDebugControl:StartAutoPlaySkill(configData)
-  local BattleDebugSkillAutoPlayControl = require("NewRoco.Modules.Core.Battle.BattleCore.AutoTest.BattleDebugSkillAutoPlayControl")
-  self.autoPlaySkillControl = BattleDebugSkillAutoPlayControl()
-  self.autoPlaySkillControl:EnterBattle(configData)
 end
 
 function BattleDebugControl:GetAllPetList()
@@ -499,7 +487,7 @@ function BattleDebugControl:OnSceneLoaded()
   if self.enterBattleState ~= EnterBattleState.TeleportToBattleCenter then
     return
   end
-  DelayManager:DelaySeconds(1, function()
+  self.delayId = DelayManager:DelaySeconds(1, function()
     self:SetPlayerSex()
   end)
 end
@@ -519,12 +507,20 @@ function BattleDebugControl:SetPlayerSex()
   GlobalConfig.ForceLocalMode = true
   player:SetCharacterGender(gender)
   GlobalConfig.ForceLocalMode = false
-  DelayManager:DelaySeconds(1, function()
+  if self.delayId then
+    _G.DelayManager:CancelDelayById(self.delayId)
+    self.delayId = nil
+  end
+  self.delayId = DelayManager:DelaySeconds(1, function()
     self:SetRoleMagicLevel()
   end)
 end
 
 function BattleDebugControl:SetRoleMagicLevel()
+  if self.delayId then
+    _G.DelayManager:CancelDelayById(self.delayId)
+    self.delayId = nil
+  end
   local Req = ProtoMessage:newZoneGmSetPlayerLevelReq()
   Req.uin = _G.DataModelMgr.PlayerDataModel.playerInfo.brief_info.uin
   Req.level = 40
@@ -738,7 +734,7 @@ end
 function BattleDebugControl:SendMagicReq()
   self.curCompleteMagicCount = self.curCompleteMagicCount + 1
   if self.curCompleteMagicCount > #self.cacheRoundParams.playerMagicCMDs then
-    DelayManager:DelayFrames(3, function()
+    self.magicDelay = DelayManager:DelayFrames(3, function()
       self:OnUseMagicEnd()
     end)
     self.curCompleteMagicCount = 0
@@ -767,6 +763,10 @@ function BattleDebugControl:OnUseMagicRsp(retInfo)
 end
 
 function BattleDebugControl:OnUseMagicEnd()
+  if self.magicDelay then
+    _G.DelayManager:CancelDelayById(self.magicDelay)
+    self.magicDelay = nil
+  end
   self.curSkillIdx = 0
   self:HandleEnemySkill()
 end
@@ -915,7 +915,7 @@ function BattleDebugControl:CheckCanAutoSupplyPet()
 end
 
 function BattleDebugControl:NeedAutoSupplyPet()
-  if not self.isInBattleTest and (not self.autoPlaySkillControl or not self.autoPlaySkillControl.isInBattleTest) then
+  if not self.isInBattleTest then
     return false
   end
   local canSummer = {}

@@ -14,7 +14,7 @@ end
 function UMG_PetTeam_Quantity_C:OnItemSelected(_bSelected)
   if _bSelected then
     self:OnSwitcherSwitcher(1)
-    self:PlayAnimation(self.ON)
+    self:PlayAnimation(self.Cut_1)
   else
     self:OnSwitcherSwitcher(0)
     self:PlayAnimation(self.OFF)

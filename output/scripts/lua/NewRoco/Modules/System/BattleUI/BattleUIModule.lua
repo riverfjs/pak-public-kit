@@ -172,6 +172,7 @@ function BattleUIModule:OnConstruct()
   self:RegisterCmd(BattleUIModuleCmd.OpenBattlePopUpTips, self.OnCmdOpenBattlePopUpTips)
   self:RegisterCmd(BattleUIModuleCmd.CloseBattlePopUpTips, self.OnCmdCloseBattlePopUpTips)
   self:RegisterCmd(BattleUIModuleCmd.ShowOrHideBattlePopUpTips, self.OnCmdShowOrHideBattlePopUpTips)
+  self:RegisterCmd(BattleUIModuleCmd.OpenBattlePopUpDiscoveringDifferentlyColoredPetTips, self.OnCmdOpenBattlePopUpDiscoveringDifferentlyColoredPetTips)
   self:RegisterCmd(BattleUIModuleCmd.OpenHudPerceptionPanel, self.OnCmdOpenHudPerceptionPanel)
   self:RegisterCmd(BattleUIModuleCmd.GetHudPerceptionPanel, self.OnCmdGetHudPerceptionPanel)
   self:RegisterCmd(BattleUIModuleCmd.OpenBattleRunAwayTip, self.OnCmdOpenBattleRunAwayTip)
@@ -305,6 +306,7 @@ function BattleUIModule:OnConstruct()
   self:RegPanel("BattleControllerPanel", "/Game/NewRoco/Modules/Core/Battle/LocalBattleRes/UMG_BattleControllerPanel", _G.Enum.UILayerType.UI_LAYER_POPUP)
   self:RegPanel("BattlePvpHintPanel", "/Game/NewRoco/Modules/System/BattleUI/Res/UMG_PVP_Hint", _G.Enum.UILayerType.UI_LAYER_POPUP)
   self:RegPanel("BattlePopUpTips", "/Game/NewRoco/Modules/System/BattleUI/Res/PopupItem/UMG_Battle_Popup_CommandMgr", _G.Enum.UILayerType.UI_LAYER_TOP)
+  self:RegPanel("BattlePopUpDiscoveringDifferentlyColoredPet", "/Game/NewRoco/Modules/System/BattleUI/Res/PopupItem/UMG_Battle_Popup_DiscoveringDifferentlyColoredPet", _G.Enum.UILayerType.UI_LAYER_TOP)
   self:RegPanel("HudPerceptionPanel", "/Game/NewRoco/Modules/System/MainUI/Res/UMG_Hud_PerceptionPanel", _G.Enum.UILayerType.UI_LAYER_POPUP)
   self:RegPanel("BattleRunAwayTip", "/Game/NewRoco/Modules/System/BattleUI/Res/HUD/UMG_Battle_RunAway", _G.Enum.UILayerType.UI_LAYER_POPUP)
   self:RegPanel("BattleClickTip", "/Game/NewRoco/Modules/System/BattleUI/Res/HUD/UMG_Battle_ClickTipUI_V", _G.Enum.UILayerType.UI_LAYER_POPUP)
@@ -335,6 +337,12 @@ function BattleUIModule:OnConstruct()
   end
   _G.ZoneServer:AddProtocolListener(self, _G.ProtoCMD.ZoneSvrCmd.ZONE_BATTLE_ROLE_LEAVE_NOTIFY, self.OnBattlePlayerLeaveNotify)
   self.DontDisablePanelList = {}
+  local moduleData = self.data
+  if moduleData then
+    local popupDiscoveringDifferentlyColoredPetState = {}
+    popupDiscoveringDifferentlyColoredPetState.isShow = false
+    moduleData.popupDiscoveringDifferentlyColoredPetState = popupDiscoveringDifferentlyColoredPetState
+  end
 end
 
 function BattleUIModule:RefWidget(widgetName, widget)
@@ -642,6 +650,7 @@ function BattleUIModule:HideMainWindowWithOption(option)
   elseif type == BattleEnum.MainWindowHideAllType.RoundPlay then
     hideAllOption = {
       excludeDeck = true,
+      excludeChatButton = true,
       excludeRecordButton = true,
       excludeSkillTransmissionItems = true,
       excludeTerritoryTrialUi = true,
@@ -651,6 +660,7 @@ function BattleUIModule:HideMainWindowWithOption(option)
   elseif type == BattleEnum.MainWindowHideAllType.TeamEnterCatch then
     hideAllOption = {
       excludeDeck = false,
+      excludeChatButton = true,
       excludeRecordButton = false,
       excludeSkillTransmissionItems = false,
       withAnim = true,
@@ -1099,7 +1109,8 @@ end
 function BattleUIModule:OnCmdBattleMainSetOpacity(Opacity)
   local Panel = self:GetPanel("BattleMain")
   if Panel then
-    Panel:SetRenderOpacity(Opacity or 1)
+    local renderOpacity = Opacity or 1
+    Panel:SetPanelRenderOpacityState(renderOpacity)
   end
 end
 
@@ -1127,10 +1138,13 @@ function BattleUIModule:OnCmdOpen_Battle_Evolution_Select()
 end
 
 function BattleUIModule:OnCmdClose_Battle_Evolution_Select()
-  local isOpening, _ = self:HasPanel("Battle_Evolution_Select")
-  if isOpening then
+  local isPanelOpened, _ = self:HasPanel("Battle_Evolution_Select")
+  local isPanelOpening, _ = self:IsPanelInOpening("Battle_Evolution_Select")
+  if isPanelOpened then
     local panel = self:GetPanel("Battle_Evolution_Select")
     panel:DoClose()
+  elseif isPanelOpening then
+    self:ClosePanel("Battle_Evolution_Select")
   end
 end
 
@@ -1861,6 +1875,98 @@ function BattleUIModule:OnCmdShowOrHideBattlePopUpTips(_IsShow)
   end
 end
 
+function BattleUIModule:OnCmdOpenBattlePopUpDiscoveringDifferentlyColoredPetTips(openTimeSeconds)
+  openTimeSeconds = openTimeSeconds or 2
+  local currState, nextState = self:GetCurrAndNextBattlePopUpDiscoveringDifferentlyColoredPetState()
+  local currDelayId = currState and currState.delayCloseId
+  if currDelayId then
+    _G.DelayManager:CancelDelayById(currDelayId)
+  end
+  nextState.isShow = true
+  openTimeSeconds = math.max(openTimeSeconds, 0.1)
+  local delayId = _G.DelayManager:DelaySeconds(openTimeSeconds, function()
+    self:OnDelayBattlePopUpDiscoveringDifferentlyColoredPetCloseTimeout()
+  end)
+  nextState.delayCloseId = delayId
+  self:SetBattlePopUpDiscoveringDifferentlyColoredPetState(nextState)
+end
+
+function BattleUIModule:OnCmdCloseBattlePopUpDiscoveringDifferentlyColoredPetTips()
+  local _, nextState = self:GetCurrAndNextBattlePopUpDiscoveringDifferentlyColoredPetState()
+  nextState.isShow = false
+  self:SetBattlePopUpDiscoveringDifferentlyColoredPetState(nextState)
+end
+
+function BattleUIModule:OnDelayBattlePopUpDiscoveringDifferentlyColoredPetCloseTimeout()
+  local _, nextState = self:GetCurrAndNextBattlePopUpDiscoveringDifferentlyColoredPetState()
+  nextState.delayCloseId = nil
+  self:SetBattlePopUpDiscoveringDifferentlyColoredPetState(nextState)
+  self:OnCmdCloseBattlePopUpDiscoveringDifferentlyColoredPetTips()
+end
+
+function BattleUIModule:GetBattlePopUpDiscoveringDifferentlyColoredPetState()
+  local moduleData = self.data
+  local state = moduleData and moduleData.popupDiscoveringDifferentlyColoredPetState or {}
+  return state
+end
+
+function BattleUIModule:SetBattlePopUpDiscoveringDifferentlyColoredPetState(nextState)
+  local moduleData = self.data
+  local prevState = moduleData and moduleData.popupDiscoveringDifferentlyColoredPetState or {}
+  if moduleData then
+    moduleData.popupDiscoveringDifferentlyColoredPetState = nextState
+  end
+  self:OnBattlePopUpDiscoveringDifferentlyColoredPetStateUpdate(prevState, nextState)
+end
+
+function BattleUIModule:GetCurrAndNextBattlePopUpDiscoveringDifferentlyColoredPetState()
+  local moduleData = self.data
+  local currState = moduleData and moduleData.popupDiscoveringDifferentlyColoredPetState or {}
+  local nextState = {}
+  table.copy(currState, nextState)
+  return currState, nextState
+end
+
+function BattleUIModule:OnBattlePopUpDiscoveringDifferentlyColoredPetStateUpdate(prevState, currState)
+  local prevIsShow = prevState and prevState.isShow or false
+  local currIsShow = currState and currState.isShow or false
+  local panelName = "BattlePopUpDiscoveringDifferentlyColoredPet"
+  if self:HasPanel(panelName) then
+    local panel = self:GetPanel(panelName)
+    self:RenderBattlePopUpDiscoveringDifferentlyColoredPet(panel, currState)
+  end
+  if prevIsShow ~= currIsShow and currIsShow and not self:HasPanel(panelName) then
+    local OnActiveCallback = _G.MakeWeakFunctor(self, self.OnBattlePopUpDiscoveringDifferentlyColoredPetTipsActive)
+    self:OpenPanel(panelName, OnActiveCallback)
+  end
+end
+
+function BattleUIModule:RenderBattlePopUpDiscoveringDifferentlyColoredPet(panel, state)
+  if UE.UObject.IsValid(panel) then
+    local isShow = state and state.isShow or false
+    local props = {}
+    props.isShow = isShow
+    props.OnIsShowDisplayChanged = _G.MakeWeakFunctor(self, self.OnBattlePopUpDiscoveringDifferentlyColoredPetTipsIsShowDisplayChanged)
+    panel:SetProps(props)
+  end
+end
+
+function BattleUIModule:OnBattlePopUpDiscoveringDifferentlyColoredPetTipsActive(panelInstance)
+  local state = self:GetBattlePopUpDiscoveringDifferentlyColoredPetState()
+  self:RenderBattlePopUpDiscoveringDifferentlyColoredPet(panelInstance, state)
+end
+
+function BattleUIModule:OnBattlePopUpDiscoveringDifferentlyColoredPetTipsIsShowDisplayChanged(currIsDisplay)
+  currIsDisplay = currIsDisplay or false
+  local moduleData = self.data
+  local currData = moduleData and moduleData.popupDiscoveringDifferentlyColoredPetState or {}
+  local currIsShow = currData and currData.isShow or false
+  local panelName = "BattlePopUpDiscoveringDifferentlyColoredPet"
+  if not currIsDisplay and not currIsShow and self:HasPanel(panelName) then
+    self:ClosePanel(panelName)
+  end
+end
+
 function BattleUIModule:OnCmdOpenHudPerceptionPanel()
   self:OpenPanel("HudPerceptionPanel")
 end
@@ -1927,7 +2033,7 @@ function BattleUIModule:OnCmdOpenBattleTutorial(num, guideWidget)
     if 1 == num then
       panel:OnGetContent()
     elseif 2 == num then
-      panel:CallOutNameTutorial2()
+      panel:CallOutNameTutorial2(true)
     end
   end
 end
@@ -1993,7 +2099,8 @@ function BattleUIModule:OnCmdShowDanStars(oldStarNum, newStarNum, bFastShow, onF
   end
 end
 
-function BattleUIModule:DoDebug(old_pvp_rank_star, new_pvp_rank_star, random_pet_addtional_rank_star, win_streak_addtional_rank_star, old_pvp_rank_order, new_pvp_rank_order, old_pvp_rank_master_score, new_pvp_rank_master_score)
+function BattleUIModule:DoDebug(season_id, old_pvp_rank_star, new_pvp_rank_star, random_pet_addtional_rank_star, win_streak_addtional_rank_star, old_pvp_rank_order, new_pvp_rank_order, old_pvp_rank_master_score, new_pvp_rank_master_score)
+  _G.NRCModuleManager:GetModule("PVPRankedMatchModule").data:DebugSeasonId(season_id)
   local pvp_rank_settle_info = {}
   pvp_rank_settle_info.old_pvp_rank_star = old_pvp_rank_star or 89
   pvp_rank_settle_info.new_pvp_rank_star = new_pvp_rank_star or 90
@@ -2003,7 +2110,32 @@ function BattleUIModule:DoDebug(old_pvp_rank_star, new_pvp_rank_star, random_pet
   pvp_rank_settle_info.new_pvp_rank_master_score = new_pvp_rank_master_score or 150
   pvp_rank_settle_info.random_pet_addtional_rank_star = random_pet_addtional_rank_star or 0
   pvp_rank_settle_info.win_streak_addtional_rank_star = win_streak_addtional_rank_star or 0
-  self:OnCmdOpenPVPDanGradingPanel(pvp_rank_settle_info)
+  self:OnCmdOpenPVPDanGradingPanel(pvp_rank_settle_info, season_id or 9)
+end
+
+function BattleUIModule:DisablePvpResultUiMaskCamera(isDisable)
+  local moduleData = self.data
+  if moduleData then
+    moduleData.__disablePvpResultUiMaskCamera = isDisable
+  end
+end
+
+function BattleUIModule:EnableBattleVictoryTitleFillImage(isEnable)
+  local moduleData = self.data
+  if moduleData then
+    moduleData.__enableBattleVictoryTitleFillImage = isEnable
+  end
+end
+
+function BattleUIModule:SetFantasticBackgroundPathOverride(value)
+  local moduleData = self.data
+  if moduleData then
+    if value and value > 0 then
+      moduleData.__fantasticBackgroundPathOverride = value
+    else
+      moduleData.__fantasticBackgroundPathOverride = nil
+    end
+  end
 end
 
 function BattleUIModule:OnCmdOpenPVPCeleritCarnetyPanel(...)

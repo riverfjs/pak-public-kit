@@ -104,70 +104,8 @@ function BattleShowTeamBeastCatchUIAction:SendEscapeReq()
     Log.Error("zgx BattleShowTeamBeastCatchUIAction is finished")
     return
   end
-  _G.BattleNetManager:SendEscapeReqWithHandle(self, self.GetEscapeRsp)
+  _G.BattleNetManager:SendEscapeReqWithHandle(self, self.GetEscapeRsp, BattleEnum.RunAwayType.TeamBeastNoCatch)
   self:SafeDelaySeconds("d_ReSendEscapeReq", 3, self.SendEscapeReq, self)
-end
-
-function BattleShowTeamBeastCatchUIAction:CheckCoin()
-  local needLegendaryItem = _G.DataConfigManager:GetLegendaryGlobalConfig("ticket_cost").num
-  local costItemId = _G.DataConfigManager:GetLegendaryGlobalConfig("beast_challenge_ticket_id").num
-  local bagItem = _G.NRCModuleManager:DoCmd(_G.BagModuleCmd.GetBagItemByID, costItemId)
-  local curLegendaryCoinItemNum = 0
-  if nil == bagItem then
-    curLegendaryCoinItemNum = 0
-  else
-    curLegendaryCoinItemNum = bagItem.num
-  end
-  return needLegendaryItem <= curLegendaryCoinItemNum
-end
-
-function BattleShowTeamBeastCatchUIAction:GetCheckGoToShopCtx()
-  local Ctx = DialogContext()
-  local tips = string.format(LuaText.legendary_battle_tips_7, LuaText.covenant_seal)
-  Ctx:SetTitle(LuaText.TIPS)
-  Ctx:SetContent(tips)
-  Ctx:SetMode(DialogContext.Mode.OK_CANCEL)
-  Ctx:SetButtonText(LuaText.YES, LuaText.NO)
-  Ctx:SetBanFullScreenBtn()
-  Ctx:SetCallback(self, self.GoToShopCallBack)
-  return Ctx
-end
-
-function BattleShowTeamBeastCatchUIAction:GoToShopCallBack(isEnter)
-  if false == isEnter then
-    local Ctx = DialogContext()
-    local consumeTicket = DataConfigManager:GetLegendaryGlobalConfig("ticket_cost").num
-    local tips = string.format(LuaText.legendary_battle_tips_1, consumeTicket)
-    Ctx:SetTitle(LuaText.TIPS)
-    Ctx:SetContent(tips)
-    Ctx:SetMode(DialogContext.Mode.OK_CANCEL)
-    Ctx:SetConsumeItem(Enum.VisualItem.VI_LEGENDARY_COIN, consumeTicket)
-    Ctx:SetButtonText(LuaText.umg_bag_13, LuaText.umg_minigame_giveup_1)
-    Ctx:SetBanFullScreenBtn()
-    Ctx:SetReOpenFunc(OpenLegendIFCatchPanelFunc)
-    Ctx:SetCallback(self, self.CloseIFCatchPanel)
-    self:SafeDelaySeconds("d_Dialog_OpenDialog2", 0.2, function()
-      NRCModuleManager:DoCmd(TipsModuleCmd.Dialog_OpenDialog2, Ctx)
-    end)
-    return
-  end
-  _G.NRCModuleManager:DoCmd(_G.StarChainModuleCmd.OpenRecoveryTime, false, StarChainEnum.OpenType.LegendaryBattle, true)
-  local OpenLegendIFCatchPanelFunc = function()
-    local Ctx = DialogContext()
-    local consumeTicket = DataConfigManager:GetLegendaryGlobalConfig("ticket_cost").num
-    local tips = string.format(LuaText.legendary_battle_tips_1, consumeTicket)
-    Ctx:SetTitle(LuaText.TIPS)
-    Ctx:SetContent(tips)
-    Ctx:SetMode(DialogContext.Mode.OK_CANCEL)
-    Ctx:SetConsumeItem(Enum.VisualItem.VI_LEGENDARY_COIN, consumeTicket)
-    Ctx:SetButtonText(LuaText.umg_bag_13, LuaText.umg_minigame_giveup_1)
-    Ctx:SetBanFullScreenBtn()
-    Ctx:SetReOpenFunc(OpenLegendIFCatchPanelFunc)
-    Ctx:SetCallback(self, self.CloseIFCatchPanel)
-    NRCModuleManager:DoCmd(TipsModuleCmd.Dialog_OpenDialog2, Ctx)
-  end
-  _G.NRCModuleManager:DoCmd(_G.StarChainModuleCmd.SetShopSourceReturnFlag, true)
-  _G.NRCModuleManager:DoCmd(_G.StarChainModuleCmd.SetShopSourceReturnFunc, OpenLegendIFCatchPanelFunc)
 end
 
 function BattleShowTeamBeastCatchUIAction:GetEscapeRsp(rsp)
@@ -179,12 +117,14 @@ end
 function BattleShowTeamBeastCatchUIAction:GetBattleCatchConfirmRsp(rsp)
   self:SafeCancelDelayById("d_ReSendCatchConfirm")
   if not self.GetCatchConfirmRsp then
-    self.ZoneBattleCatchConfirmRsp = rsp
-    self.GetCatchConfirmRsp = true
     if 0 == rsp.ret_info.ret_code then
+      self.ZoneBattleCatchConfirmRsp = rsp
+      self.GetCatchConfirmRsp = true
       _G.BattleManager.battlePawnManager.TeamatePlayer.itemInfo = rsp.items
       if rsp.boss_shiny and rsp.boss_shiny > 0 and self.BossPet then
-        self.BossPet.card:ReplaceByServerPetData(rsp.boss_data)
+        self.BossPet.card:InternalOverwriteByServer({
+          battle_common_pet_info = rsp.boss_data
+        })
         self.BossPet.card:RefreshByServerPetData()
         self.BossPet.card:ClearBuffs()
         self.BossPet.card.petInfo.battle_inside_pet_info.kill_info = nil
@@ -197,6 +137,7 @@ function BattleShowTeamBeastCatchUIAction:GetBattleCatchConfirmRsp(rsp)
       _G.NRCModuleManager:DoCmd(_G.LegendaryBattleModuleCmd.SetTicketID, self.ticket_id)
     else
       Log.Error("zgx GetBattleCatchConfirmRsp error code", rsp.ret_info.ret_code)
+      self:ReOpenLegendIFCatchPanel()
     end
   end
 end

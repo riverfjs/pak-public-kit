@@ -35,7 +35,6 @@ function TemperatureComponent:Attach(owner)
   self.isPaused = false
   self.deltaTimeAcc = 0
   self.syncDltaTimeAcc = 0
-  self.syncTempReq = ProtoMessage:newZoneSyncTempReq()
   self.civilCalculator = CivilCalculator()
   self.body_temp_final_val = 0
   self.reach_final_time = 0
@@ -137,26 +136,8 @@ function TemperatureComponent:CheckNeedSyncTempImmediately()
   return preC < _COLD_TEMP_UP and c >= _COLD_TEMP_UP or preC >= _COLD_TEMP_UP and c < _COLD_TEMP_UP or preC < _HOT_TEMP_DOWN and c >= _HOT_TEMP_DOWN or preC >= _HOT_TEMP_DOWN and c < _HOT_TEMP_DOWN
 end
 
-function TemperatureComponent:SendZoneSyncTempReq()
-  self.syncTempReq.world_temp = self.c
-  self.syncTempReq.field_temp = self.k
-  _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_SYNC_TEMP_REQ, self.syncTempReq, self, self.OnZoneSyncTempRsp, false, true)
-end
-
-function TemperatureComponent:OnZoneSyncTempRsp(rsp)
-  if self.isGMBt then
-    return
-  end
-  if 0 == rsp.ret_info.ret_code then
-    self.body_temp_final_val = rsp.body_temp_final_val
-    self.reach_final_time = rsp.reach_final_time
-    self.bValidReachFinalTime = true
-  elseif self.isDebug then
-    Log.Error("\229\144\142\229\143\176\229\155\158\229\164\141\230\184\169\229\186\166\229\175\185\228\184\141\228\184\138", rsp.ret_info.ret_code)
-  end
-end
-
 function TemperatureComponent:OnRecBodyTempNofity(notify)
+  Log.Debug("TemperatureComponent:OnRecBodyTempNofity", notify.body_temp_final_val, notify.reach_final_time, self.body_temp_final_val, self.reach_final_time, self.bt)
   if self.isGMBt then
     return
   end
@@ -203,6 +184,7 @@ function TemperatureComponent:GetCurSurfaceTemperature()
 end
 
 function TemperatureComponent:SetBodyTempDirect(BodyTemp)
+  Log.Debug("TemperatureComponent:SetBodyTempDirect", BodyTemp, self.bt, self.bIsDead, self.body_temp_final_val, self.bSyncTemp)
   if self.isGMBt then
     return
   end
@@ -279,19 +261,6 @@ function TemperatureComponent:ShowOrHideUiByState(curState, newState)
   end
   Log.Debug("State Changed", table.getKeyName(TemperatureEnum.BodyState, curState), table.getKeyName(TemperatureEnum.BodyState, newState))
   if _G.MainUIModuleCmd then
-    if curState == TemperatureEnum.BodyState.HOT then
-      _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.ShowTemperatureHot, false)
-    elseif curState == TemperatureEnum.BodyState.COLD then
-      _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.ShowTemperatureCold, false)
-    end
-    if newState == TemperatureEnum.BodyState.HOT then
-      _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.ShowTemperatureHot, true)
-    elseif newState == TemperatureEnum.BodyState.COLD then
-      _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.ShowTemperatureCold, true)
-    else
-      _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.ShowTemperatureHot, false)
-      _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.ShowTemperatureCold, false)
-    end
   end
 end
 
@@ -304,6 +273,7 @@ function TemperatureComponent:GetTempBt()
 end
 
 function TemperatureComponent:OnReceiveServerData(temp)
+  Log.Debug("TemperatureComponent:OnReceiveServerData", self.c, temp)
   self.c = temp
   self.owner:SetTemperature(temp)
 end

@@ -1,3 +1,4 @@
+local MusicCollectionUtils = require("NewRoco.Modules.System.MusicCollection.MusicCollectionUtils")
 local EnhancedInputModuleEvent = require("NewRoco.Modules.Core.EnhancedInput.EnhancedInputModuleEvent")
 local UMG_Pass_Accomplish_C = _G.NRCPanelBase:Extend("UMG_Pass_Accomplish_C")
 
@@ -28,9 +29,7 @@ function UMG_Pass_Accomplish_C:OnAddEventListener()
 end
 
 function UMG_Pass_Accomplish_C:SetThemeRes()
-  local path = _G.NRCModuleManager:DoCmd(_G.BattlePassModuleCmd.GetThemeResPath)
-  local BgPath = path .. "/img_renwuwancheng_png.img_renwuwancheng_png"
-  self.Bg:SetPath(BgPath)
+  _G.NRCModuleManager:DoCmd(_G.BattlePassModuleCmd.ChangeThemeColor, "UMG_Pass_Accomplish", self)
 end
 
 function UMG_Pass_Accomplish_C:OnConstruct()
@@ -62,8 +61,7 @@ end
 
 function UMG_Pass_Accomplish_C:OnClickButton_57()
   local taskId = self.taskConf.id
-  _G.NRCAudioManager:SetStateByName("UI_Type", "ShanYaoDaSai")
-  _G.NRCAudioManager:SetStateByName("UI_Music", "UI_Music")
+  MusicCollectionUtils.GetBgmStateGroupByApplyType(Enum.MusicApplyType.MAT_UI, Enum.InterfaceType.IT_BP)
   _G.NRCModeManager:DoCmd(_G.BattlePassModuleCmd.OpenPassAwardMainPanel, taskId)
   self.CanvasPanel_22:SetVisibility(UE4.ESlateVisibility.Hidden)
   self:PlayAnimation(self.Out)

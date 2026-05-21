@@ -33,6 +33,7 @@ function UMG_LeaderItemPanel_C:OnAddEventListener()
   self:RegisterEvent(self, PetUIModuleEvent.SelectLeaderItemEvent, self.OnLeaderItemSelected)
   self:RegisterEvent(self, PetUIModuleEvent.ShowOrHideLeaderRight, self.ShowOrHideRight)
   self:RegisterEvent(self, PetUIModuleEvent.OnPetSkillChange, self.OnPetSkillChange)
+  self.ItemList:SetItemSelectedCallback(self.OnItemSelected, self)
 end
 
 function UMG_LeaderItemPanel_C:SetLeaderItemList()
@@ -48,9 +49,22 @@ function UMG_LeaderItemPanel_C:SetLeaderItemList()
     table.insert(self.LeaderItemList, {
       BagItemConf = LeaderItem,
       IsHas = IsHas,
-      itemData = BagItem
+      itemData = BagItem,
+      parentView = self
     })
   end
+end
+
+function UMG_LeaderItemPanel_C:OnItemSelected(item, rawIndex, userClick)
+  self:SetCurSelectItemIndex(rawIndex + 1)
+end
+
+function UMG_LeaderItemPanel_C:SetCurSelectItemIndex(index)
+  self.CurSelectItemIndex = index
+end
+
+function UMG_LeaderItemPanel_C:GetCurSelectItemIndex()
+  return self.CurSelectItemIndex
 end
 
 function UMG_LeaderItemPanel_C:SetPanelInfo()
@@ -76,9 +90,9 @@ function UMG_LeaderItemPanel_C:SetRightPanelInfo(ItemInfo)
   self.ItemWay:SetText(ItemInfo.BagItemConf.type_desc)
   if ItemInfo.IsHas then
     local Time = os.date(LuaText.medal_text_5, ItemInfo.itemData.update_time)
-    self.GetTime:SetText(string.format("%s%s", Time, "\232\142\183\229\190\151"))
+    self.GetTime:SetText(string.format("%s%s", Time, LuaText.BossEvoItemTime_02))
   else
-    self.GetTime:SetText("\230\154\130\230\156\170\232\142\183\229\190\151")
+    self.GetTime:SetText(LuaText.BossEvoItemTime_01)
   end
   self.ItemImage:SetPath(ItemInfo.BagItemConf.big_icon)
   self.ItemDescribe:SetText(ItemInfo.BagItemConf.flavor_text)

@@ -263,6 +263,7 @@ function UMG_EnergyView_C:CheckB1FinalBattleP1UI()
   self.Point:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.Point_1:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.Infinite:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  self.CanvasPanel_117:SetVisibility(UE4.ESlateVisibility.Collapsed)
 end
 
 return UMG_EnergyView_C

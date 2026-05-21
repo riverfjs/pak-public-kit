@@ -302,6 +302,9 @@ function UMG_ClaimReward_C:OnGoToPhotoButtonClicked()
       Log.Warning("\230\178\161\230\156\137NpcData\230\149\176\230\141\174,\232\175\183\230\159\165\231\156\139\229\142\159\229\155\160")
     end
   end
+  if self.PhotoReward.state == ProtoEnum.PlayerActivityInfo.ActivityRewardState.ARS_WAIT then
+    _G.NRCModuleManager:DoCmd(_G.WeeklyChallengeBattleModuleCmd.SendReceiveRewardReq, activityId, self.PhotoReward.star_required_num, self.PhotoReward, ProtoEnum.ActivityType.ATP_WEEKLY_CHALLENGE_EVENT)
+  end
 end
 
 function UMG_ClaimReward_C:OnGoToTakingPhoto()

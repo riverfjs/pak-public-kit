@@ -21,7 +21,7 @@ function DialogueTimelineNPCPerformAnimAction:OnEnter()
   if DialogueUtils.SkipDialogue then
     return
   end
-  local actor = self:GetActor(self.OwnerActorID)
+  local actor = self:GetActor(self.OwnerActorID, self.NPCContentID)
   local View = DialogueUtils.ExtraActorView(Actor)
   if View then
     actor.DialogueTimelineTransformCache = View:GetTransform()
@@ -43,7 +43,7 @@ function DialogueTimelineNPCPerformAnimAction:ConsumeActorPerform(Actor)
 end
 
 function DialogueTimelineNPCPerformAnimAction:OnFinish()
-  local actor = self:GetActor(self.OwnerActorID)
+  local actor = self:GetActor(self.OwnerActorID, self.NPCContentID)
   if actor then
     actor.DialogueTimelineTransformCache = nil
   end

@@ -442,7 +442,7 @@ function SystemSettingModuleData:BuildKeyUINameMap()
   local allUIKeyNameConvertConf = uiKeyNameConvertConf:GetAllDatas()
   for _, conf in pairs(allUIKeyNameConvertConf) do
     if conf.UE_button_name then
-      if conf.UI_button_name then
+      if not string.IsNilOrEmpty(conf.UI_button_name) then
         local targetString = self:ExtraTargetString(conf.UI_button_name)
         self.KeyUINameMap[conf.UE_button_name] = targetString
       elseif conf.UI_button_path then

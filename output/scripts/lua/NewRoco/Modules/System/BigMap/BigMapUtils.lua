@@ -1,6 +1,15 @@
 local BigMapUtils = {}
 local SceneUtils = require("NewRoco.Modules.Core.Scene.Common.SceneUtils")
+local PetMutationUtils = require("NewRoco.Utils.PetMutationUtils")
 BigMapUtils.TotalPieceCount = 16
+
+function BigMapUtils.SetImageNodeVisible(TUIWidget, bVisible)
+  if bVisible then
+    TUIWidget:SetRenderOpacity(1)
+  else
+    TUIWidget:SetRenderOpacity(0)
+  end
+end
 
 function BigMapUtils.SetupDottedEdgeImage(TUIWidget, NrcImageNode, Path)
   if not UE.UObject.IsValid(NrcImageNode) then
@@ -10,7 +19,10 @@ function BigMapUtils.SetupDottedEdgeImage(TUIWidget, NrcImageNode, Path)
     return NrcImageNode:SetPath(Path, TUIWidget)
   end
   if NrcImageNode.SetPath then
-    NrcImageNode:SetPath(Path)
+    BigMapUtils.SetImageNodeVisible(TUIWidget, false)
+    NrcImageNode:SetPathWithCallBack(Path, function()
+      BigMapUtils.SetImageNodeVisible(TUIWidget, true)
+    end)
   elseif NrcImageNode.SetIconPath then
     NrcImageNode:SetIconPath(Path)
   end
@@ -176,17 +188,26 @@ function BigMapUtils.GetSceneResIdByPos(posX, posY, sceneResId)
 end
 
 function BigMapUtils.GetSceneResIdByRefreshId(refreshId)
-  local refreshContentConf = _G.DataConfigManager:GetNpcRefreshContentConf(refreshId)
-  if refreshContentConf then
-    local areaId = refreshContentConf.refresh_param
-    if refreshContentConf.refresh_type == Enum.RefreshType.RFT_AREA then
-      local areaConf = _G.DataConfigManager:GetAreaConf(areaId)
-      if areaConf then
-        return areaConf.scene_res_id
+  local refreshContentConf = DataConfigManager:GetNpcRefreshContentConf(refreshId)
+  if not refreshContentConf then
+    return nil
+  end
+  if refreshContentConf.refresh_type == Enum.RefreshType.RFT_AREA then
+    local areaConf = DataConfigManager:GetAreaConf(refreshContentConf.refresh_param)
+    if areaConf then
+      return areaConf.scene_res_id
+    end
+  end
+  if refreshContentConf.refresh_type == Enum.RefreshType.RFT_BYTAG or refreshContentConf.refresh_type == Enum.RefreshType.RFT_BYTAGID then
+    local sceneObjConf = DataConfigManager:GetSceneObjectConf(refreshContentConf.refresh_param, true)
+    if sceneObjConf then
+      local sceneConf = DataConfigManager:GetSceneConf(sceneObjConf.scene_cfg_id)
+      if sceneConf then
+        return sceneConf.scene_res_id
       end
     end
   end
-  return 10003
+  return nil
 end
 
 function BigMapUtils.GetLoadPiecesByImagePosition(piecePixel, showWndSize, centerPos, imageScale)
@@ -410,7 +431,7 @@ function BigMapUtils.GetSceneIdBySceneResId(sceneResId)
   return 103
 end
 
-function BigMapUtils.GetNpcIconLayer(_npcInfo)
+function BigMapUtils.GetNpcIconLayer(_npcInfo, _bMiniMap)
   if nil == _npcInfo then
     Log.Error("BigMapUtils.GetNpcIconLayer, npcInfo is nil")
     return nil
@@ -435,7 +456,31 @@ function BigMapUtils.GetNpcIconLayer(_npcInfo)
   if _npcInfo.npcCfg and _npcInfo.npcCfg.genre == Enum.ClientNpcType.CNT_CAMP then
     layerIndex = 2
   end
+  if not _bMiniMap and worldMapCfg.map_tips_show_type == Enum.MapTipsShowType.MAP_TIPS_CHALLENGE then
+    layerIndex = 7
+  end
   return layerIndex
+end
+
+function BigMapUtils.CheckShowRongDuanIcon(worldMapConf, mutationType)
+  if nil == worldMapConf then
+    return false
+  end
+  if nil == mutationType then
+    return false
+  end
+  if worldMapConf.default_track_type == Enum.DefaultTrackType.DTT_SHINE and not PetMutationUtils.GetMutationValue(mutationType, Enum.MutationDiffType.MDT_SHINING) then
+    return true
+  end
+  return false
+end
+
+function BigMapUtils.IsFullPath(path)
+  local param = string.split(path, "/")
+  if #param > 1 then
+    return true
+  end
+  return false
 end
 
 return BigMapUtils

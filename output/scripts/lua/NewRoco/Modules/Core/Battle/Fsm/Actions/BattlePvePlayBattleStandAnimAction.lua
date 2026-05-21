@@ -37,7 +37,7 @@ function BattlePvePlayBattleStandAnimAction:OnSetSkillObj(skillObj)
   if skillObj then
     local blackboard = skillObj:GetBlackboard()
     if blackboard then
-      Log.Error("BattlePvePlayBattleStandAnimAction OnSetSkillObj")
+      Log.Msg("BattlePvePlayBattleStandAnimAction OnSetSkillObj")
       blackboard:SetValueAsInt("IsSkip", 1)
       local player = NRCModeManager:DoCmd(PlayerModuleCmd.GET_LOCAL_PLAYER)
       local cameraManager = player.viewObj:GetController().PlayerCameraManager
@@ -87,7 +87,7 @@ end
 
 function BattlePvePlayBattleStandAnimAction:OnFinish()
   Base.OnFinish(self)
-  Log.Error("BattlePvePlayBattleStandAnimAction OnFinish")
+  Log.Msg("BattlePvePlayBattleStandAnimAction OnFinish")
   if self.CameraPos then
     self.fsm:SetProperty(BattleConst.BattleStand.CameraRoot, self.CameraPos)
   end

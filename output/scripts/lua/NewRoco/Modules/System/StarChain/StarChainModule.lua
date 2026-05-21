@@ -175,10 +175,12 @@ function StarChainModule:SendExchangeReq(exchangeId, exchangeNum, Type, actor_id
       goods_num = costItem.cost_goods_num * exchangeNum
     })
   end
+  Log.Debug("StarChainModule:SendExchangeReq", exchangeId)
   _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_EXCHANGE_REQ, req, self, self.OnZoneExchangeRsp, true, true)
 end
 
 function StarChainModule:OnZoneExchangeRsp(_rsp)
+  Log.Debug(_rsp.ret_info.ret_code, "StarChainModule:OnZoneExchangeRsp")
   if 0 == _rsp.ret_info.ret_code then
     local itemInfos = {}
     local rewards = _rsp.ret_info.goods_reward.rewards
@@ -203,6 +205,9 @@ function StarChainModule:OnZoneExchangeRsp(_rsp)
     _G.NRCModuleManager:GetModule("NPCShopUIModule"):DispatchEvent(StarChainModuleEvent.PurchaseSucceed)
   elseif _rsp.ret_info.ret_code == ProtoEnum.MOBA_RET.ZoneErr.ERR_ZONE_EXCHANGE_TIMES_LIMIT then
     _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.umg_starchain_3)
+  else
+    local key = string.format("Error_Code_%d", _rsp.ret_info.ret_code)
+    _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText[key])
   end
 end
 

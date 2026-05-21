@@ -87,6 +87,17 @@ end
 function UMG_Friend_Expression_C:InitEmoList(EmoType)
   local EmoIdList = self.typeEmoList[EmoType]
   if EmoIdList then
+    table.sort(EmoIdList, function(a, b)
+      local a_conf = _G.DataConfigManager:GetChatEmojiConf(a)
+      local b_conf = _G.DataConfigManager:GetChatEmojiConf(b)
+      if a_conf and b_conf then
+        if a_conf.sort == b_conf.sort then
+          return a < b
+        end
+        return a_conf.sort < b_conf.sort
+      end
+      return a < b
+    end)
     self.List:InitGridView(EmoIdList)
   end
   if self.NeedEraseRedTab then
@@ -177,6 +188,14 @@ function UMG_Friend_Expression_C:GetEmoIdListByGroup(index)
   end
   EmoIdList = self.typeEmoList[Enum.EmojiTopic.EMOJI_TOPIC_DEFAULT] or {}
   table.sort(EmoIdList, function(a, b)
+    local a_conf = _G.DataConfigManager:GetChatEmojiConf(a)
+    local b_conf = _G.DataConfigManager:GetChatEmojiConf(b)
+    if a_conf and b_conf then
+      if a_conf.sort == b_conf.sort then
+        return a < b
+      end
+      return a_conf.sort < b_conf.sort
+    end
     return a < b
   end)
   if self.EmoTabList and #self.EmoTabList > 1 then

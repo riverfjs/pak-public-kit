@@ -43,6 +43,14 @@ function TakePhotoProxy:OnBurstOptionChanged()
   end
 end
 
+function TakePhotoProxy:RefreshBurstDesc()
+  local SettingNum = self.Settings:GetTakePhotoBurstNum()
+  local DesiredNum = self:GetDesiredPhotoBurstNum()
+  if SettingNum > 0 then
+    self.BurstNumText:SetText(string.format(LuaText.takephoto_burst_num_text, DesiredNum))
+  end
+end
+
 function TakePhotoProxy:OnCountDownOptionChanged()
   local DelaySeconds = self.Settings:GetTakePhotoCountDownSeconds()
   if DelaySeconds > 0 then
@@ -231,7 +239,7 @@ function TakePhotoProxy:DisplayPhotos()
   local PhotoData = self.PhotoListThisSection[1]
   if PhotoData then
     self.Panel.Adapter:ResetKeys()
-    self.Panel:GetModule():PopupPhotoFileView(PhotoData)
+    self.Panel:GetModule():PopupTakingPhotoFileView(PhotoData)
   end
 end
 

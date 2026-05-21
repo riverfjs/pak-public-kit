@@ -22,7 +22,7 @@ function WeeklyChallengeBattleModule:OnConstruct()
   self:RegPanel("BlackBar", "UMG_BlackBar", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, true, false, true)
   self:RegPanel("ChangePanelCurtain", "UMG_WeeklyChallengeBattle_Curtain", _G.Enum.UILayerType.UI_LAYER_TOP)
   self:RegPanel("ChangePanelEffect", "UMG_ExcessiveAnimationEffects", _G.Enum.UILayerType.UI_LAYER_TOP)
-  self:RegPanel("CheerUpPointTips", "UMG_PetCheer_Tips", _G.Enum.UILayerType.UI_LAYER_POPUP)
+  self:RegPanel("CheerUpPointTips", "UMG_PetCheer_Tips", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, true, false, true)
   self.DontDisablePanelList = {}
   self.npcAction = nil
   self.bCanClearBgm = true
@@ -50,6 +50,7 @@ function WeeklyChallengeBattleModule:AddEventListener()
   _G.NRCEventCenter:RegisterEvent("WeeklyChallengeBattleModule", self, WeeklyChallengeBattleModuleEvent.EntryHudSkillStartPlayerEvent, self.OnCmdClearWeeklyChallengeLevelSequencePlayer)
   _G.NRCEventCenter:RegisterEvent("WeeklyChallengeBattleModule", self, WeeklyChallengeBattleModuleEvent.OnActivityUpdate, self.OnActivityUpdate)
   _G.NRCEventCenter:RegisterEvent("WeeklyChallengeBattleModule", self, PetUIModuleEvent.RefreshAdjustPetPanel, self.OnPetAdjust)
+  _G.NRCEventCenter:RegisterEvent("WeeklyChallengeBattleModule", self, SceneEvent.OnPreTeleportNotify, self.OnPreTeleportNotify)
 end
 
 function WeeklyChallengeBattleModule:OnCloseLoadingCurtainEvent(shouldOpenCameraEffect)
@@ -89,6 +90,7 @@ function WeeklyChallengeBattleModule:RemoveEventListener()
   _G.NRCEventCenter:UnRegisterEvent(self, PetUIModuleEvent.PetTeamEquipPetMagicRsp, self.OnPetTeamEquipPetMagicRsp)
   _G.NRCEventCenter:UnRegisterEvent(self, WeeklyChallengeBattleModuleEvent.OnActivityUpdate, self.OnActivityUpdate)
   _G.NRCEventCenter:UnRegisterEvent(self, PetUIModuleEvent.RefreshAdjustPetPanel, self.OnPetAdjust)
+  _G.NRCEventCenter:UnRegisterEvent(self, SceneEvent.OnPreTeleportNotify, self.OnPreTeleportNotify)
 end
 
 function WeeklyChallengeBattleModule:OnReLoginUpdate()
@@ -404,7 +406,7 @@ end
 function WeeklyChallengeBattleModule:OnCmdReplacePetByNewPetData(petData, position, bIgnoreSave)
   local teamList = self.data:GetCurrentTeamPetList()
   if teamList and teamList[position] and teamList[position].gid and 0 ~= teamList[position].gid then
-    self:OnCmdRemovePetFromTeam(teamList[position].gid, bIgnoreSave)
+    self:OnCmdRemovePetFromTeam(teamList[position].gid, true)
   end
   self:OnCmdAddPetToTeam(petData, position, bIgnoreSave)
 end
@@ -502,9 +504,6 @@ function WeeklyChallengeBattleModule:UpdatePetResetInfoSkills(petGid, skillIds)
     return
   end
   local petData = self.data.AllPetBalancedDataMap[petGid]
-  if self.data.bIsNeedBalance then
-    petData = _G.DataModelMgr.PlayerDataModel:GetPetDataByGid(petGid)
-  end
   if not petData then
     Log.Warning(string.format("WeeklyChallengeBattleModule:UpdatePetResetInfoSkills \230\137\190\228\184\141\229\136\176\231\178\190\231\129\181\233\135\141\231\189\174\230\149\176\230\141\174. PetGid: %s", tostring(petGid)))
     return
@@ -670,7 +669,7 @@ function WeeklyChallengeBattleModule:GetCurrentEventRewardList()
     return {}
   end
   local weeklyChallengeData = WeeklyChallengeEventActivityObject[1]:GetWeeklyChallengeData()
-  local finishedStarNum = weeklyChallengeData.challenge_info.highest_cheer_point or 0
+  local finishedStarNum = weeklyChallengeData and weeklyChallengeData.challenge_info and weeklyChallengeData.challenge_info.highest_cheer_point or 0
   local rewardList = {}
   if weeklyChallengeData and weeklyChallengeData.rewards and #weeklyChallengeData.rewards > 0 then
     for k, v in ipairs(weeklyChallengeData.rewards) do
@@ -867,6 +866,27 @@ function WeeklyChallengeBattleModule:ClosePhotoPanel()
     local panel = self:GetPanel("StarlightPhoto")
     if panel then
       panel:DoClose()
+    end
+  end
+end
+
+function WeeklyChallengeBattleModule:OnPreTeleportNotify()
+  local bIsPhotoOpening, _ = self:HasPanel("StarlightPhoto")
+  if bIsPhotoOpening then
+    local panel = self:GetPanel("StarlightPhoto")
+    if panel and panel.npcAction and panel.npcAction.Finish then
+      panel.npcAction:Finish()
+      panel.npcAction = nil
+    end
+  end
+  local panelNames = {
+    "StarlightPhoto",
+    "StarlightShowDown"
+  }
+  for _, panelName in ipairs(panelNames) do
+    local bIsOpening, _ = self:HasPanel(panelName)
+    if bIsOpening then
+      self:ClosePanel(panelName)
     end
   end
 end
@@ -1390,7 +1410,7 @@ function WeeklyChallengeBattleModule:GetResetSkillByGid(petGid)
   if balancedPetData and balancedPetData.skill and balancedPetData.skill.skill_data then
     local posToIdDic = {}
     for _, skillData in ipairs(balancedPetData.skill.skill_data) do
-      if skillData.is_equipped and skillData.pos and skillData.pos > 0 then
+      if skillData.is_equipped and skillData.pos and skillData.pos > 0 and skillData.pos < 5 then
         posToIdDic[skillData.pos] = skillData.id
       end
     end

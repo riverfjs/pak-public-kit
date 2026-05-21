@@ -15,7 +15,7 @@ function NpcChallengeObject:Ctor(id)
   local cfg = _G.DataConfigManager:GetSpecBattleUi(id, true)
   if cfg then
     for _, group in pairs(cfg.difficult_group) do
-      self.battleFieldItems[group.battle_id] = {}
+      self.battleFieldItems[group.difficult_id] = {}
     end
   end
   self.eventDispatcher = NRCClass()
@@ -34,27 +34,28 @@ function NpcChallengeObject:UpdateFieldItem(fieldItem)
   return changed
 end
 
-function NpcChallengeObject:Refresh(fieldItem)
-  if self:UpdateFieldItem(fieldItem) then
-    self.eventDispatcher:SendEvent(NpcChallengeHandler.EventType.ChallengeStateChange)
+function NpcChallengeObject:Refresh(fieldItems)
+  if not fieldItems then
+    return
   end
-end
-
-function NpcChallengeObject:BatchRefresh(fieldItems)
   local hasChanged = false
-  for _, fieldItem in ipairs(fieldItems) do
-    if self:UpdateFieldItem(fieldItem) then
-      hasChanged = true
+  if table.isArray(fieldItems) then
+    for _, fieldItem in ipairs(fieldItems) do
+      if self:UpdateFieldItem(fieldItem) then
+        hasChanged = true
+      end
     end
+  else
+    hasChanged = self:UpdateFieldItem(fieldItems)
   end
   if hasChanged then
     self.eventDispatcher:SendEvent(NpcChallengeHandler.EventType.ChallengeStateChange)
   end
 end
 
-function NpcChallengeObject:SetBattleFinished(battleId)
+function NpcChallengeObject:SetBattleFinished(difficultId)
   local fieldItem = {}
-  fieldItem.battle_id = battleId
+  fieldItem.battle_id = difficultId
   fieldItem.finish = true
   self:Refresh(fieldItem)
 end
@@ -91,7 +92,7 @@ function NpcChallengeHandler:AddOrRefreshChallengeItem(challengeData)
   local id = challengeData.id
   if id then
     local npcChallengeObject = self:GetOrAddChallengeItem(id)
-    npcChallengeObject:BatchRefresh(challengeData.battle_field_items)
+    npcChallengeObject:Refresh(challengeData.battle_field_items)
     return npcChallengeObject
   end
 end

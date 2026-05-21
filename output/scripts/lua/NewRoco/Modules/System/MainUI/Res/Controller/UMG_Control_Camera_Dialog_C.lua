@@ -59,7 +59,13 @@ function UMG_Control_Camera_Dialog_C:LuaOnTouchMoved(finger, dir)
 end
 
 function UMG_Control_Camera_Dialog_C:LuaOnTouchEnded(finger)
+  self.TouchIndex = -1
   self:TryCallPlayerModule(PlayerModuleEvent.ON_INPUT_TOUCH_END, false)
+end
+
+function UMG_Control_Camera_Dialog_C:OnMouseCaptureLost()
+  Log.Debug("[OnMouseCaptureLost] UMG_Control_Camera_Dialog_C")
+  self:LuaOnTouchEnded(0)
 end
 
 function UMG_Control_Camera_Dialog_C:Tick(MyGeometry, InDeltaTime)

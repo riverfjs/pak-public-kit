@@ -40,7 +40,10 @@ function ScenePlayerPrepareWindBuff:OnBegin(owner, MagicInfo)
       _G.PlayerResourceManager:LoadResources_PlayerPerform(self, chargeEffectWaterPath, true, self.OnLoadEffectWaterSuccess, self.OnLoadEffectWaterFailed, nil, 10)
     end
   end
-  _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.SendSenseEvent, self.owner:GetActorLocationFrameCache(), Enum.DotsAIWorldEventType.DAWET_MAGIC_WIND_UPLEVEL, nil, 1)
+  if self.owner.IsMagicReplayActor and self.owner:IsMagicReplayActor() then
+  else
+    _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.SendSenseEvent, self.owner:GetActorLocationFrameCache(), Enum.DotsAIWorldEventType.DAWET_MAGIC_WIND_UPLEVEL, nil, 1)
+  end
   self.owner:SendEvent(PlayerModuleEvent.ON_CHARGE_VITALITY_BEGIN)
 end
 
@@ -105,7 +108,10 @@ function ScenePlayerPrepareWindBuff:OnCharged(newChargedLevel)
     customParams.throw_aim_param.charged_level = newChargedLevel
     self.owner.statusComponent:RefreshStatus(ProtoEnum.WorldPlayerStatusType.WPST_MAGIC, self.magicInfo.abilityHelper.config.add_status[1], ProtoEnum.WPST_OpCode.WPST_OPCODE_REFRESH, customParams)
   end
-  _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.SendSenseEvent, self.owner:GetActorLocationFrameCache(), Enum.DotsAIWorldEventType.DAWET_MAGIC_WIND_UPLEVEL, nil, self.chargedLevel + 1)
+  if self.owner.IsMagicReplayActor and self.owner:IsMagicReplayActor() then
+  else
+    _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.SendSenseEvent, self.owner:GetActorLocationFrameCache(), Enum.DotsAIWorldEventType.DAWET_MAGIC_WIND_UPLEVEL, nil, self.chargedLevel + 1)
+  end
   if 1 == newChargedLevel then
     self.magicInfo.mozhangBP:DelayPlayFX(self.magicInfo.mozhangBP.WindLoop1, 0.65, true)
     self.magicInfo.mozhangBP:PlayFX(self.magicInfo.mozhangBP.WindLoop1Start, true)

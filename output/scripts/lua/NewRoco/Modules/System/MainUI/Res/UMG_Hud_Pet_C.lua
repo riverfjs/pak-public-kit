@@ -9,7 +9,7 @@ local SubPanel = {
   TrackPanel = "UMG_Hud_Track",
   PerceptionPanel = "UMG_Hud_Perception",
   DialogPanel = "UMG_Hud_OpenDialogue",
-  HomeOutPutPanel = "UMG_HomeInspiration",
+  HomeOutPutPanel = "UMG_Home_Output",
   PlantStatusPanel = "UMG_Hud_HomePlantingStatus",
   CountdownExpansion = "UMG_UnderExpansion",
   FeedHud = "UMG_Hud_Feed",
@@ -40,10 +40,12 @@ function UMG_Hud_Pet_C:OnInitialized()
     [SubPanel.FeedHud] = self.FeedHud,
     [SubPanel.VeryIntimate] = self.VeryIntimate
   }
-  for _subPanel, _umgLoader in pairs(self.UmgLoaders) do
-    local _umgPool = _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.GetOrCreateSubHudPool, _subPanel)
-    if _umgPool then
-      _umgLoader:SetPool(_umgPool)
+  if _G.GlobalConfig.EnableSubHudPool then
+    for _subPanel, _umgLoader in pairs(self.UmgLoaders) do
+      local _umgPool = _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.GetOrCreateSubHudPool, _subPanel)
+      if _umgPool then
+        _umgLoader:SetPool(_umgPool)
+      end
     end
   end
 end
@@ -279,10 +281,12 @@ function UMG_Hud_Pet_C:SetTitleVisible(bVisible)
 end
 
 function UMG_Hud_Pet_C:SetOwnerName(ownerName)
-  self.MainConfData.ownerName = ownerName
-  self:CheckManuallyRedraw()
-  self:CheckPanelSize()
-  self:RefreshHudMainStatus(self.MainConfData)
+  if not self.MainConfData.ownerName or ownerName ~= self.MainConfData.ownerName then
+    self.MainConfData.ownerName = ownerName
+    self:CheckManuallyRedraw()
+    self:CheckPanelSize()
+    self:RefreshHudMainStatus(self.MainConfData)
+  end
 end
 
 function UMG_Hud_Pet_C:SetTraceNameVisible(bVisible)

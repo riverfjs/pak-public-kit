@@ -242,6 +242,7 @@ function BattleSupplyPetPlayer:OnSkillLoad(skillClass)
     Skill:RegisterEventCallback("End", self, self.SupplyEnd)
     Skill:RegisterEventCallback("PreEnd", self, self.SupplyEnd)
     Skill:RegisterEventCallback("AdjustCameraInMulti", self, self.AdjustCameraInMulti)
+    Skill.BattleGenderType = self.Players[1].roleInfo.base.sex
     player.model.RocoSkill:StopCurrentSkill()
     player:PlaySkillObject(Skill)
   end
@@ -303,6 +304,7 @@ function BattleSupplyPetPlayer:OnSupplyPostStart(name, skill)
   end
   for i, v in ipairs(self.PetArray) do
     v.card.IgnoreAnimCheck = true
+    v:ActiveSwimComponent(false)
     v.buffComponent:OnPetBeCatch()
     v:ShowPet()
     v:PrepareForG6()
@@ -369,6 +371,7 @@ function BattleSupplyPetPlayer:SupplyEnd()
   end
   for _, battlePet in ipairs(self.PetArray or {}) do
     battlePet.card.IgnoreAnimCheck = false
+    battlePet:ActiveSwimComponent(true)
     battlePet.buffComponent:RestartBattleState()
     battlePet:RecoverFromG6()
   end
@@ -452,20 +455,6 @@ function BattleSupplyPetPlayer:GetSkillPath()
       Log.Error("zgx \230\178\161\230\156\137\232\161\165\229\133\133\229\174\160\231\137\169\231\154\132\231\155\174\230\160\135")
     end
   end
-end
-
-function BattleSupplyPetPlayer:MakeCallback(callback, param)
-  if callback then
-    return function()
-      callback(self, param)
-    end
-  else
-    return nil
-  end
-end
-
-function BattleSupplyPetPlayer:Wait(time, callback)
-  _G.DelayManager:DelaySeconds(time, callback, self)
 end
 
 return BattleSupplyPetPlayer

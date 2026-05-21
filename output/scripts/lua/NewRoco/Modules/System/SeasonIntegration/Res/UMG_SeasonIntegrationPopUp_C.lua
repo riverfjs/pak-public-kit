@@ -1,7 +1,8 @@
+local PVPRankedMatchModuleUtils = require("NewRoco.Modules.System.PVPQualifier.PVPRankedMatchModuleUtils")
 local UMG_SeasonIntegrationPopUp_C = _G.NRCPanelBase:Extend("UMG_SeasonIntegrationPopUp_C")
 local SeasonIntegrationModuleEvent = require("NewRoco.Modules.System.SeasonIntegration.SeasonIntegrationModuleEvent")
 
-function UMG_SeasonIntegrationPopUp_C:OnActive(tipsId)
+function UMG_SeasonIntegrationPopUp_C:OnActive(tipsId, seasonId)
   local tipsConf = _G.DataConfigManager:GetSeasonTipsTabConf(tipsId)
   if tipsConf then
     self.PopUp.TitleText:SetText(tipsConf.tips_name)
@@ -13,6 +14,7 @@ function UMG_SeasonIntegrationPopUp_C:OnActive(tipsId)
     self.ListTab:InitGridView(tipsConf.tab_group)
     self.ListTab:SelectItemByIndex(0)
   end
+  self.seasonId = seasonId
 end
 
 function UMG_SeasonIntegrationPopUp_C:OnDeactive()
@@ -46,7 +48,8 @@ function UMG_SeasonIntegrationPopUp_C:ShowPVPTab(pageID)
   local seasonTipsPvpConf = _G.DataConfigManager:GetSeasonTipsPvpConf(pageID)
   if seasonTipsPvpConf then
     self.NRCImage_BannerImg:SetPath(seasonTipsPvpConf.banner_img)
-    local pvpRankSeasonConf = _G.DataConfigManager:GetPvpRankSeasonConf(seasonTipsPvpConf.pvp_season_id)
+    local pvpSeasonId = seasonTipsPvpConf and seasonTipsPvpConf.pvp_season_id
+    local pvpRankSeasonConf = _G.DataConfigManager:GetPvpRankSeasonConf(pvpSeasonId)
     if pvpRankSeasonConf then
       local year1, month1, day1, hour1, min1 = pvpRankSeasonConf.start_time:match("(%d+)-(%d+)-(%d+) (%d+):(%d+)")
       local year2, month2, day2, hour2, min2 = pvpRankSeasonConf.end_time1:match("(%d+)-(%d+)-(%d+) (%d+):(%d+)")
@@ -57,8 +60,11 @@ function UMG_SeasonIntegrationPopUp_C:ShowPVPTab(pageID)
       local classIcon = ""
       local classNumber = ""
       local pvpRankConf = _G.DataConfigManager:GetPvpRankConf(seasonTipsPvpConf.tab_group[i].rank)
+      local rankListItem = PVPRankedMatchModuleUtils.GetRankListBySeasonIdInRankConf(pvpRankConf, pvpSeasonId)
+      if rankListItem then
+        classIcon = rankListItem and rankListItem.mini
+      end
       if pvpRankConf then
-        classIcon = pvpRankConf.icon_mini
         classNumber = pvpRankConf.number
       end
       local rewardConf = _G.DataConfigManager:GetRewardConf(seasonTipsPvpConf.tab_group[i].reward)

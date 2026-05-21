@@ -32,7 +32,7 @@ function UMG_ClosetPanel_C:OnConstruct()
   functionBanUIController:Activate()
 end
 
-function UMG_ClosetPanel_C:OnActive(npcAction, bFastDressUp, bDirectToUpgrade, suitId, defaultUpgradeSelectIndex, defaultTabIndex, defaultSubTabIndex)
+function UMG_ClosetPanel_C:OnActive(npcAction, bFastDressUp, bDirectToUpgrade, suitId, defaultUpgradeSelectIndex, defaultTabIndex, defaultSubTabIndex, bSkipSaveOnExit)
   if self.module.animManager and not bDirectToUpgrade then
     local animPriorityTable = {
       ShiningMedalOpen = 2,
@@ -66,6 +66,7 @@ function UMG_ClosetPanel_C:OnActive(npcAction, bFastDressUp, bDirectToUpgrade, s
   self.originalFashion = nil
   self.bIsWandTabSelected = false
   self.bIsOpeningUpgradeComponent = false
+  self.bUpgradeZoomIn = false
   self.lastSelectHorizontalTabIndex = -1
   self.lastSelectTabType = 0
   self.data.curTryOnItemInfo = {
@@ -74,6 +75,7 @@ function UMG_ClosetPanel_C:OnActive(npcAction, bFastDressUp, bDirectToUpgrade, s
   }
   self.bCanUpdateCloset = true
   self.bClosetDirty = false
+  self:_CacheOwnedItemCount()
   if npcAction then
     self:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.module:CreateClosetAvatarPlayer(npcAction)
@@ -110,6 +112,7 @@ function UMG_ClosetPanel_C:OnActive(npcAction, bFastDressUp, bDirectToUpgrade, s
   self.bDirectToUpgrade = bDirectToUpgrade
   self.bDirectToUpgradeSuitId = suitId
   self.directToUpgradeDefaultIndex = defaultUpgradeSelectIndex
+  self.bSkipSaveOnExit = bSkipSaveOnExit or false
   if self.bDirectToUpgrade then
     self.NRCSafeZone_1:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.Suit:SetVisibility(UE4.ESlateVisibility.Collapsed)
@@ -373,7 +376,44 @@ function UMG_ClosetPanel_C:FastDressUpModelLoadSucceed(resRequest, modelClass)
   if self.fastDressUpAvatarWardrobe then
     self.fastDressUpAvatarWardrobe:SetActorHiddenInGame(true)
   end
-  self.module:SetFastDressUpAvatarPlayer(self.fastDressUpAvatarPlayer, self.fastDressUpAvatarWardrobe, true)
+  local fashionItems, salonIds
+  if self.bDirectToUpgrade then
+    local suitId = self.bDirectToUpgradeSuitId
+    local fashionSuitConf = _G.DataConfigManager:GetFashionSuitsConf(suitId)
+    fashionItems = {}
+    if fashionSuitConf then
+      for k, v in ipairs(fashionSuitConf.item_id) do
+        local temp = {
+          wearing_item_id = v,
+          wearing_glass = self.module:GetCurSelectedItemGlassMap(v)
+        }
+        table.insert(fashionItems, temp)
+      end
+    end
+    if self.data.SuitComponentData[suitId] then
+      for k, v in pairs(self.data.SuitComponentData[suitId]) do
+        if v.bFashion then
+          local temp = {
+            wearing_item_id = v.id,
+            wearing_glass = self.module:GetCurSelectedItemGlassMap(v.id)
+          }
+          table.insert(fashionItems, temp)
+        end
+      end
+    end
+    local player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
+    salonIds = player:GetSalonIds()
+    if self.data.SuitComponentData[suitId] then
+      for k, v in ipairs(self.data.SuitComponentData[suitId]) do
+        if not v.bFashion then
+          table.insert(salonIds, {
+            item_wear_id = v.id
+          })
+        end
+      end
+    end
+  end
+  self.module:SetFastDressUpAvatarPlayer(self.fastDressUpAvatarPlayer, self.fastDressUpAvatarWardrobe, true, fashionItems, salonIds)
   if self.bDirectToUpgrade then
     self:GoToSuitUpgrade(self.bDirectToUpgradeSuitId, true)
   end
@@ -390,6 +430,10 @@ function UMG_ClosetPanel_C:OnDeactive()
   else
     self.module:SyncClosetAvatar2Player()
     self.module:ShowClosetLocalPlayer()
+  end
+  local player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
+  if player then
+    player.viewObj:SetForceHidden(false)
   end
   if self.npcAction then
     self.npcAction:Finish(true)
@@ -434,6 +478,7 @@ function UMG_ClosetPanel_C:OnAddEventListener()
   NRCEventCenter:RegisterEvent("UMG_GorgeousMedal_C", self, BagModuleEvent.BagItemAdd, self.OnBagChange)
   NRCEventCenter:RegisterEvent("UMG_GorgeousMedal_C", self, BagModuleEvent.BagItemUpdate, self.OnBagChange)
   self:RegisterEvent(self, AppearanceModuleEvent.OnSelectEmptySuitIndex, self.OnSelectEmptySuitIndex)
+  self:RegisterEvent(self, AppearanceModuleEvent.SetAppearanceTabSelectedIndex, self.SetAppearanceTabSelectedIndex)
 end
 
 function UMG_ClosetPanel_C:OnRemoveEventListener()
@@ -451,6 +496,7 @@ function UMG_ClosetPanel_C:OnRemoveEventListener()
   NRCEventCenter:UnRegisterEvent(self, BagModuleEvent.BagItemAdd, self.OnBagChange)
   NRCEventCenter:UnRegisterEvent(self, BagModuleEvent.BagItemUpdate, self.OnBagChange)
   self:UnRegisterEvent(self, AppearanceModuleEvent.OnSelectEmptySuitIndex, self.OnSelectEmptySuitIndex)
+  self:UnRegisterEvent(self, AppearanceModuleEvent.SetAppearanceTabSelectedIndex, self.SetAppearanceTabSelectedIndex)
 end
 
 function UMG_ClosetPanel_C:OnReConnectStart()
@@ -477,7 +523,7 @@ function UMG_ClosetPanel_C:OnDestruct()
   if not self.bFastDressUp then
     _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.RemoveCondition, Enum.PlayerConditionType.PCT_OPTION)
   end
-  self.module:ClearRotAvatarPlayer()
+  self.module:ClearRotAvatarPlayer("Closet")
   self.data.closetChooseOutterTab = -1
   self.data.closetChooseTabType = -1
   self.data.bChooseClosetFashionTab = true
@@ -649,9 +695,15 @@ function UMG_ClosetPanel_C:OnPurchaseBtnClickCallback()
 end
 
 function UMG_ClosetPanel_C:ReturnBeginAppearance()
-  local lastWardrobeData, lastSalonWardrobeData = self.data:GetWardrobeDataByIndex(self.data.lastSelectedWardrobeIndex)
+  local currentSelectedIndex = self.Suit.Suit_List:GetSelectedIndex()
+  local lastWardrobeData, lastSalonWardrobeData = self.data:GetWardrobeDataByIndex(currentSelectedIndex)
   lastWardrobeData = lastWardrobeData or {}
   lastSalonWardrobeData = lastSalonWardrobeData or {}
+  if self.data.TempAppearData == nil and nil == self.data.TempBeautyData then
+    self:PlayAnimation(self.Btn_Press)
+    self:SetConfirmBtnState()
+    return false
+  end
   local SameNum = 0
   local change = false
   local wardrobeDataCount = #lastWardrobeData
@@ -754,20 +806,26 @@ end
 
 function UMG_ClosetPanel_C:OnReturnBtnClicked()
   _G.NRCAudioManager:PlaySound2DAuto(1179, "UMG_ClosetPanel_C:OnReturnBtnClicked")
-  local bChange = self:ReturnBeginAppearance()
-  if bChange then
-    local returnText = _G.DataConfigManager:GetLocalizationConf("fashion_return_text").msg
-    _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, returnText)
-  else
-    local returnText1 = _G.DataConfigManager:GetLocalizationConf("fashion_return_none_text").msg
-    _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, returnText1)
-  end
+  local CommonPopUpData = _G.NRCCommonPopUpData()
+  CommonPopUpData.RemindSwitch = 0
+  CommonPopUpData.ContentText = _G.LuaText.revert_dress_up_popup_text
+  CommonPopUpData.TitleText = LuaText.TIPS
+  CommonPopUpData.Btn_LeftText = LuaText.CANCEL
+  CommonPopUpData.Btn_RightText = LuaText.umg_bag_popup_2
+  CommonPopUpData.Call = self
+  CommonPopUpData.Btn_RightHandler = self.OnReturnConfirmed
+  CommonPopUpData.Btn_LeftHandler = self.OnPopUpCloseButton
+  CommonPopUpData.Btn_CloseHandler = self.OnPopUpCloseButton
+  CommonPopUpData.bPlayBtnSound = false
+  CommonPopUpData.FullScreen_Close = false
+  _G.NRCModeManager:DoCmd(CommonPopUpModuleCmd.OpenRemindPanel, CommonPopUpData)
+end
+
+function UMG_ClosetPanel_C:OnReturnConfirmed()
+  self:ReturnBeginAppearance()
   _G.NRCAudioManager:PlaySound2DAuto(1070, "UMG_Appearance_Main_C:OnReturnBtnClicked")
-  self.Buy_List:ClearSelection()
   self.lastTryOnId = 0
   self:ChooseClosetTab(self.curTabConfId, self.curTabInfo, true)
-  self:UpdateTitlesAndCurrentDetailId("", "", nil, false)
-  self:UpdateGorgeousMagicBtnVisible(false)
 end
 
 function UMG_ClosetPanel_C:OnClickBtnPressed()
@@ -803,20 +861,8 @@ function UMG_ClosetPanel_C:OnConfirmBtnClicked()
       end
     end
     if not bHasWand then
-      local fashionWardrobeIndex = _G.DataModelMgr.PlayerDataModel:GetPlayerFashionInfo().current_wardrobe_index + 1 or 0
-      local fashionInfo = _G.DataModelMgr.PlayerDataModel:GetPlayerFashionInfo().wardrobe_data[fashionWardrobeIndex]
-      if fashionInfo and fashionInfo.wearing_item and #fashionInfo.wearing_item > 0 then
-        for k, v in ipairs(fashionInfo.wearing_item) do
-          local itemConf = _G.DataConfigManager:GetFashionItemConf(v.wearing_item_id)
-          if itemConf and itemConf.type == _G.Enum.FashionLabelType.FLT_WAND then
-            bHasWand = true
-            table.insert(fashionIds, v.wearing_item_id)
-          end
-        end
-      end
-      if not bHasWand then
-        table.insert(fashionIds, 32500101)
-      end
+      local wandId = _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.GetCurSuitWandId)
+      table.insert(fashionIds, wandId)
     end
     if 0 == self.data.lastSelectedWardrobeIndex then
       self.data.lastSelectedWardrobeIndex = 1
@@ -947,6 +993,87 @@ function UMG_ClosetPanel_C:OnSaveFashionDataCallback(newFashionItems, newSalonId
   self.Suit:UpdateSuitBtnIconOnSelection(suitIconPath)
 end
 
+function UMG_ClosetPanel_C:UpdateListSelectionAfterSave()
+  local bFashion = self.data.bChooseClosetFashionTab
+  local typeEnum = self.data.closetChooseTabType
+  if nil == bFashion or nil == typeEnum then
+    return
+  end
+  local wearingId = 0
+  if bFashion then
+    if typeEnum == _G.Enum.FashionLabelType.FLT_SUIT then
+      wearingId = self.data:GetWearIdByType(true, _G.Enum.FashionLabelType.FLT_SUIT)
+    elseif self.data.TempAppearData then
+      for _, v in ipairs(self.data.TempAppearData) do
+        if v.FashionType == typeEnum and v.FashionId > 0 then
+          wearingId = v.FashionId
+          break
+        end
+      end
+    end
+  elseif self.data.TempBeautyData then
+    for _, v in ipairs(self.data.TempBeautyData) do
+      if v.SalonType == typeEnum and v.SalonId > 0 then
+        wearingId = v.SalonId
+        break
+      end
+    end
+  end
+  local itemCount = self.Buy_List:GetTotalItemNumber()
+  local chooseItemIndex = -1
+  for i = 0, itemCount - 1 do
+    local item = self.Buy_List:GetItemByIndex(i)
+    if item then
+      item:SetEnableSound(false)
+      item:SetEnableUpgradeButtonAnim(false)
+      if item.uiData then
+        if bFashion then
+          if item.uiData.id == wearingId and wearingId > 0 then
+            chooseItemIndex = i
+          end
+        elseif type(item.uiData.id) == "table" then
+          for _, subId in ipairs(item.uiData.id) do
+            if subId == wearingId and wearingId > 0 then
+              chooseItemIndex = i
+              break
+            end
+          end
+        elseif item.uiData.id == wearingId and wearingId > 0 then
+          chooseItemIndex = i
+        end
+      end
+    end
+  end
+  local curSelectedItem = self.Buy_List:GetSelectedItem()
+  local curSelectedIndex0Based = self.Buy_List:GetSelectedIndex() - 1
+  if curSelectedItem and curSelectedIndex0Based ~= chooseItemIndex then
+    curSelectedItem.bChose = false
+    curSelectedItem:ResetItemState()
+  end
+  if chooseItemIndex >= 0 then
+    if curSelectedIndex0Based == chooseItemIndex then
+    else
+      local targetItem = self.Buy_List:GetItemByIndex(chooseItemIndex)
+      if targetItem then
+        targetItem:IgnoreNextWear()
+      end
+      self.Buy_List:SelectItemByIndex(chooseItemIndex)
+    end
+  else
+    self.Buy_List:ClearSelection()
+    self:UpdateViewButtonState(false, false)
+    self:UpdateTitlesAndCurrentDetailId(nil, nil, nil, true)
+    self:UpdateGorgeousMagicBtnVisible(false)
+  end
+  for i = 0, itemCount - 1 do
+    local item = self.Buy_List:GetItemByIndex(i)
+    if item then
+      item:SetEnableSound(true)
+      item:SetEnableUpgradeButtonAnim(true)
+    end
+  end
+end
+
 function UMG_ClosetPanel_C:OnClickedGorgeousMagicBtn()
   _G.NRCAudioManager:PlaySound2DAuto(41401003, "UMG_ClosetPanel_C:OnClickedGorgeousMagicBtn")
   if 0 == self.NRCSwitcher_2:GetActiveWidgetIndex() then
@@ -963,6 +1090,16 @@ function UMG_ClosetPanel_C:OnClickedGorgeousMagicBtn()
     context.bIsPendanta = true
     context.context = {}
     context.context.itemId = self.curPendantaId
+    _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.OpenMagicWandPopUp, context)
+  elseif 3 == self.NRCSwitcher_2:GetActiveWidgetIndex() then
+    if not self.curWandId or 0 == self.curWandId then
+      Log.Error("\229\189\147\229\137\141\230\178\161\230\156\137\229\140\133\230\140\130\239\188\140\232\191\153\230\156\137\233\151\174\233\162\152\239\188\129")
+      return
+    end
+    local context = {}
+    context.bIsWand = true
+    context.context = {}
+    context.context.WandId = self.curWandId
     _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.OpenMagicWandPopUp, context)
   end
 end
@@ -985,6 +1122,10 @@ end
 
 function UMG_ClosetPanel_C:OnPlayerDataUpdate()
   self:UpdateMoney()
+  if not self:_HasOwnedItemChanged() then
+    return
+  end
+  self:_CacheOwnedItemCount()
   if self.bCanUpdateCloset then
     self.bClosetDirty = false
     if not self.module:HasPanel("AppearanceUpgrade") then
@@ -997,11 +1138,26 @@ function UMG_ClosetPanel_C:OnPlayerDataUpdate()
   end
 end
 
+function UMG_ClosetPanel_C:_CacheOwnedItemCount()
+  local fashionOwned = _G.DataModelMgr.PlayerDataModel:GetPlayerOwnedFashion()
+  local salonOwned = _G.DataModelMgr.PlayerDataModel:GetPlayerOwnedSalon()
+  self._cachedFashionCount = fashionOwned and #fashionOwned or 0
+  self._cachedSalonCount = salonOwned and #salonOwned or 0
+end
+
+function UMG_ClosetPanel_C:_HasOwnedItemChanged()
+  local fashionOwned = _G.DataModelMgr.PlayerDataModel:GetPlayerOwnedFashion()
+  local salonOwned = _G.DataModelMgr.PlayerDataModel:GetPlayerOwnedSalon()
+  local curFashionCount = fashionOwned and #fashionOwned or 0
+  local curSalonCount = salonOwned and #salonOwned or 0
+  return curFashionCount ~= (self._cachedFashionCount or 0) or curSalonCount ~= (self._cachedSalonCount or 0)
+end
+
 function UMG_ClosetPanel_C:OnBagChange()
   self:UpdateMoney()
 end
 
-function UMG_ClosetPanel_C:UpdateTitlesAndCurrentDetailId(petTitle, suitTitle, uiData, bShouldShowTitle)
+function UMG_ClosetPanel_C:UpdateTitlesAndCurrentDetailId(petTitle, suitTitle, uiData, bShouldShowTitle, btnIconPath, btnText)
   self.Particulars:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.PetTitle:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.SuitTitle:SetVisibility(UE4.ESlateVisibility.Collapsed)
@@ -1019,6 +1175,12 @@ function UMG_ClosetPanel_C:UpdateTitlesAndCurrentDetailId(petTitle, suitTitle, u
       self.SuitTitle:SetVisibility(UE4.ESlateVisibility.Collapsed)
     end
     self.curFashionUIData = uiData
+    if btnIconPath and not string.IsNilOrEmpty(btnIconPath) then
+      self.MagicIcon:SetPath(btnIconPath)
+    end
+    if btnText and not string.IsNilOrEmpty(btnText) then
+      self.NRCText_1:SetText(btnText)
+    end
   end
 end
 
@@ -1084,7 +1246,7 @@ function UMG_ClosetPanel_C:UpdateViewButtonState(bShouldShow, bIsUpdate, updateI
 end
 
 function UMG_ClosetPanel_C:_UpdateGorgeousBtn(bShouldShow, typeEnum)
-  if typeEnum ~= _G.Enum.FashionLabelType.FLT_PENDANTA then
+  if typeEnum ~= _G.Enum.FashionLabelType.FLT_PENDANTA and typeEnum ~= _G.Enum.FashionLabelType.FLT_WAND then
     self:UpdateGorgeousMagicBtnVisible(bShouldShow, 0)
   end
 end
@@ -1096,7 +1258,7 @@ function UMG_ClosetPanel_C:_UpdateHandInHandBtn(bShouldShow, index, pendantaId)
   self:UpdateGorgeousMagicBtnVisible(bShouldShow, index, pendantaId)
 end
 
-function UMG_ClosetPanel_C:UpdateGorgeousMagicBtnVisible(bShouldShow, index, pendantaId)
+function UMG_ClosetPanel_C:UpdateGorgeousMagicBtnVisible(bShouldShow, index, pendantaId, wandId)
   if nil == bShouldShow then
     local sgSuitId = self:FindSGSuitId()
     self.GorgeousMagicBtn:SetVisibility(sgSuitId and UE4.ESlateVisibility.Visible or UE4.ESlateVisibility.Collapsed)
@@ -1109,9 +1271,11 @@ function UMG_ClosetPanel_C:UpdateGorgeousMagicBtnVisible(bShouldShow, index, pen
     end
     self.GorgeousMagicBtn:SetVisibility(UE4.ESlateVisibility.Visible)
     self.curPendantaId = pendantaId
+    self.curWandId = wandId
   else
     self.GorgeousMagicBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.curPendantaId = nil
+    self.curWandId = nil
   end
 end
 
@@ -1149,7 +1313,7 @@ function UMG_ClosetPanel_C:LuaOnTouchMoved(dir)
 end
 
 function UMG_ClosetPanel_C:OnTouchEnded(MyGeometry, InTouchEvent)
-  if self.TouchStartTime < 0.3 then
+  if self.TouchStartTime < 0.3 and self.GlassDetailPanel then
     self.GlassDetailPanel:CheckOpenState()
   end
   self.TouchStartTime = 0
@@ -1544,7 +1708,7 @@ function UMG_ClosetPanel_C:UpdateListByType(bFashion, typeEnum, bIgnoreInit, bSk
     self.module:HideOrShowAppearanceById(true, curWandId, false)
   end
   if not bSkipTurnAround then
-    self.module:SetPlayerAngle(typeEnum, self.module.closetAvatarPlayer)
+    self.module:SetPlayerAngle(typeEnum, self.module.closetAvatarPlayer, "Closet")
   end
   self.NRCSwitcher_0:SetVisibility(UE4.ESlateVisibility.Collapsed)
   local showItemList = self.data:GetClosetShowItemList(bFashion, typeEnum)
@@ -1595,6 +1759,12 @@ end
 local function _GetSuitGroupKey(v)
   if v.originalSuitId and 0 ~= v.originalSuitId then
     return v.originalSuitId
+  elseif v.upgradeSrcSuitId and 0 ~= v.upgradeSrcSuitId then
+    local srcConf = _G.DataConfigManager:GetFashionSuitsConf(v.upgradeSrcSuitId)
+    if srcConf and srcConf.suits_original_id and 0 ~= srcConf.suits_original_id then
+      return srcConf.suits_original_id
+    end
+    return v.upgradeSrcSuitId
   else
     return v.id
   end
@@ -1620,20 +1790,34 @@ function UMG_ClosetPanel_C:_BuildSuitComparator(initSuitIdSet)
     if aGroup ~= bGroup then
       return aGroup < bGroup
     end
-    local aIsVariant = a.originalSuitId ~= nil and 0 ~= a.originalSuitId
-    local bIsVariant = b.originalSuitId ~= nil and 0 ~= b.originalSuitId
-    if aIsVariant ~= bIsVariant then
-      return not aIsVariant
+    
+    local function _GetSuitSortKey(v)
+      if v.upgradeSrcSuitId and 0 ~= v.upgradeSrcSuitId then
+        return v.upgradeSrcSuitId, 1
+      else
+        return v.id, 0
+      end
+    end
+    
+    local aSortKey, aIsUpgrade = _GetSuitSortKey(a)
+    local bSortKey, bIsUpgrade = _GetSuitSortKey(b)
+    if aSortKey ~= bSortKey then
+      return aSortKey < bSortKey
+    end
+    if aIsUpgrade ~= bIsUpgrade then
+      return aIsUpgrade < bIsUpgrade
     end
     return a.id < b.id
   end
 end
 
 function UMG_ClosetPanel_C:SortShowList(bFashion, typeEnum, showTable, bIgnoreInit)
+  self:UpdateTitlesAndCurrentDetailId(nil, nil, nil, true)
   if not self.bCanUpdateCloset then
     return
   end
   self.suitClaimable = false
+  local upgradeSuitSrcMap = {}
   for k, v in ipairs(showTable) do
     if v.bFashion then
       if v.typeEnum == _G.Enum.FashionLabelType.FLT_SUIT then
@@ -1647,12 +1831,27 @@ function UMG_ClosetPanel_C:SortShowList(bFashion, typeEnum, showTable, bIgnoreIn
         if suitConf and 0 ~= suitConf.suits_original_id then
           v.originalSuitId = suitConf.suits_original_id
         end
+        if suitConf and suitConf.lv_up_closet then
+          for _, closetItem in ipairs(suitConf.lv_up_closet) do
+            if closetItem.lv_item_type == _G.Enum.GoodsType.GT_FASHION_SUITS then
+              upgradeSuitSrcMap[closetItem.lv_item_id] = v.id
+            end
+          end
+        end
       else
         local hasFashion = _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.CheckHasOwned, _G.Enum.GoodsType.GT_FASHION, v.id)
         v.bHas = hasFashion
       end
     else
       v.bHas = true
+    end
+  end
+  for k, v in ipairs(showTable) do
+    if v.bFashion and v.typeEnum == _G.Enum.FashionLabelType.FLT_SUIT then
+      local srcId = upgradeSuitSrcMap[v.id]
+      if srcId then
+        v.upgradeSrcSuitId = srcId
+      end
     end
   end
   if bFashion then
@@ -1686,11 +1885,20 @@ function UMG_ClosetPanel_C:SortShowList(bFashion, typeEnum, showTable, bIgnoreIn
   self:UpdateViewButtonState()
   if bFashion then
     if typeEnum ~= Enum.FashionLabelType.FLT_SUIT or typeEnum ~= Enum.FashionLabelType.FLT_WAND then
-      local fashionId = self.data:GetWearIdByType(bFashion, typeEnum)
-      if fashionId > 0 then
+      local bUpgradeOpen = self.module:HasPanel("AppearanceUpgrade")
+      if bUpgradeOpen and typeEnum == Enum.FashionLabelType.FLT_SUIT and 0 ~= self.lastTryOnId then
         for k, v in ipairs(showTable) do
-          if v.id == fashionId then
+          if v.id == self.lastTryOnId then
             chooseItemIndex = k
+          end
+        end
+      else
+        local fashionId = self.data:GetWearIdByType(bFashion, typeEnum)
+        if fashionId > 0 then
+          for k, v in ipairs(showTable) do
+            if v.id == fashionId then
+              chooseItemIndex = k
+            end
           end
         end
       end
@@ -1710,8 +1918,10 @@ function UMG_ClosetPanel_C:SortShowList(bFashion, typeEnum, showTable, bIgnoreIn
       end
     end
   else
+    local bWearingHelmet = _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.IsClosetAvatarWearingHelmet)
+    local bSkipHairAutoSelect = typeEnum == _G.Enum.SalonLabelType.SLT_HAIR and bWearingHelmet
     local salonId = self.data:GetWearIdByType(bFashion, typeEnum)
-    if salonId > 0 then
+    if salonId > 0 and not bSkipHairAutoSelect then
       for k, v in ipairs(showTable) do
         if v.id and #v.id > 0 then
           if #v.id > 1 then
@@ -1738,9 +1948,7 @@ function UMG_ClosetPanel_C:SortShowList(bFashion, typeEnum, showTable, bIgnoreIn
   if chooseItemIndex > 0 then
     if bFashion and typeEnum == _G.Enum.FashionLabelType.FLT_SUIT then
       local item = self.Buy_List:GetItemByIndex(chooseItemIndex - 1)
-      if not self.bDirectToUpgrade then
-        item:IgnoreNextWear()
-      end
+      item:IgnoreNextWear()
       bIgnoreSelection = true
     end
     local size = 0
@@ -1802,8 +2010,8 @@ function UMG_ClosetPanel_C:SetUnlockListVisible(id)
   self.NRCSwitcher_0:SetVisibility(UE4.ESlateVisibility.Collapsed)
 end
 
-function UMG_ClosetPanel_C:SetCurSelectItem(labelType, id, colorIndex, bChoose, bIgnoreAnim, bRefreshBrand, glassInfo)
-  if self.data.bChooseClosetFashionTab == false then
+function UMG_ClosetPanel_C:SetCurSelectItem(labelType, id, colorIndex, bChoose, bIgnoreAnim, bRefreshBrand, glassInfo, bFashionType)
+  if self.data.bChooseClosetFashionTab == false and not bFashionType then
     if type(id) == "table" and #id > 0 then
       if #id > 1 and labelType ~= Enum.SalonLabelType.SLT_EYES then
         self:RefreshHairColorList(id)
@@ -1913,6 +2121,11 @@ function UMG_ClosetPanel_C:SetCurSelectItem(labelType, id, colorIndex, bChoose, 
       if not bIgnoreAnim then
         self.module:PlayReloadingSkill(self.module.closetAvatarPlayer)
       end
+      if self._pendingAfterSuitSwitch then
+        local pending = self._pendingAfterSuitSwitch
+        self._pendingAfterSuitSwitch = nil
+        pending()
+      end
     end)
     if not bIgnoreAnim and not self.bDirectToUpgrade then
       _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.PlayAvatarAnim, true, nil, self.module.closetAvatarPlayer)
@@ -1927,7 +2140,7 @@ function UMG_ClosetPanel_C:SetCurSelectItem(labelType, id, colorIndex, bChoose, 
     local fashionItemConf = _G.DataConfigManager:GetFashionItemConf(id)
     if fashionItemConf then
       if fashionItemConf.type == _G.Enum.FashionLabelType.FLT_PENDANTA and bChoose then
-        self.module:SetPlayerAngle(fashionItemConf.type, self.module.closetAvatarPlayer)
+        self.module:SetPlayerAngle(fashionItemConf.type, self.module.closetAvatarPlayer, "Closet")
       end
       if bRefreshBrand then
         if bChoose then
@@ -1991,6 +2204,17 @@ function UMG_ClosetPanel_C:RemoveExtraUnit()
   end
 end
 
+function UMG_ClosetPanel_C:OnHelmetAutoRemoved()
+  Log.Debug("UMG_ClosetPanel_C:OnHelmetAutoRemoved - Helmet auto-removed for hair selection")
+  if 0 ~= self.lastTryOnId then
+    local currentSuitId = self.data:GetWearIdByType(true, _G.Enum.FashionLabelType.FLT_SUIT)
+    if currentSuitId ~= self.lastTryOnId then
+      self.lastTryOnId = 0
+    end
+  end
+  self:UpdateLeftTabButtonState()
+end
+
 function UMG_ClosetPanel_C:SetConfirmBtnState()
   self.NRCSwitcher_44:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
   self.Ununlocked.TitleCanvas:SetVisibility(UE4.ESlateVisibility.Collapsed)
@@ -2011,7 +2235,11 @@ function UMG_ClosetPanel_C:RefreshHairColorList(ids)
   local colorList = {}
   for k, v in ipairs(ids) do
     local hasOwned = self.module:OnCmdCheckHasOwned(_G.Enum.GoodsType.GT_SALON, v)
-    table.insert(colorList, {salonConfId = v, lockState = hasOwned})
+    table.insert(colorList, {
+      salonConfId = v,
+      lockState = hasOwned,
+      ownedPanel = self
+    })
   end
   if #colorList > 0 then
     self.NRCSwitcher_0:SetActiveWidgetIndex(1)
@@ -2263,12 +2491,14 @@ function UMG_ClosetPanel_C:GetDefaultFashionData()
   if not self.originalFashion then
     self.originalFashion = {}
     local temp = self.module:OnCmdGetTempAppearOrBeautyData(_G.Enum.GoodsType.GT_FASHION)
-    for k, v in pairs(temp) do
-      table.insert(self.originalFashion, k, {
-        FashionGoodsId = v.FashionGoodsId,
-        FashionId = v.FashionId,
-        FashionType = v.FashionType
-      })
+    if temp then
+      for k, v in pairs(temp) do
+        table.insert(self.originalFashion, k, {
+          FashionGoodsId = v.FashionGoodsId,
+          FashionId = v.FashionId,
+          FashionType = v.FashionType
+        })
+      end
     end
   end
   return self.originalFashion
@@ -2418,6 +2648,22 @@ function UMG_ClosetPanel_C:OnClickLockButtonCallback(bIsOk)
   end
 end
 
+function UMG_ClosetPanel_C:GetUpgradeZoomIn()
+  return self.bUpgradeZoomIn
+end
+
+function UMG_ClosetPanel_C:SetUpgradeZoomIn(bZoomIn)
+  if self.bUpgradeZoomIn == bZoomIn then
+    return
+  end
+  self.bUpgradeZoomIn = bZoomIn
+  self.module:OnCmdPlayMeiRongSkillByType(not bZoomIn)
+end
+
+function UMG_ClosetPanel_C:RefreshUpgradeZoomState()
+  self.module:OnCmdPlayMeiRongSkillByType(not self.bUpgradeZoomIn)
+end
+
 function UMG_ClosetPanel_C:OnUpgradeComponentOpen()
   if self.NRCSafeZone_1:GetVisibility() == UE4.ESlateVisibility.Collapsed then
     return
@@ -2429,10 +2675,16 @@ end
 
 function UMG_ClosetPanel_C:OnUpgradeComponentClose(bSkipSetVisibility)
   self.bIsOpeningUpgradeComponent = false
+  if self.bDirectToUpgrade then
+    self.bUpgradeZoomIn = false
+    self:DoClose()
+    return
+  end
   local isOpen = _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.GorgeousMedalPanelIsOpen)
   if isOpen then
     return
   end
+  self.bUpgradeZoomIn = false
   if not bSkipSetVisibility then
     self.NRCSafeZone_1:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     self.Suit:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
@@ -2479,7 +2731,14 @@ function UMG_ClosetPanel_C:GoToSuitUpgrade(suitId, bIgnoreSelectionAnim, default
   if self.data.closetChooseTabType ~= Enum.FashionLabelType.FLT_SUIT then
     self:UpdateListByType(true, Enum.FashionLabelType.FLT_SUIT)
   end
-  if self.curFashionUIData and suitId ~= self.curFashionUIData.id then
+  local upgradeDefaultIndex = self.directToUpgradeDefaultIndex or defaultSelectIndex
+  local curSuitId = self.curFashionUIData and self.curFashionUIData.id
+  local bNeedSwitchSuit = nil == curSuitId or curSuitId ~= suitId
+  if bNeedSwitchSuit then
+    function self._pendingAfterSuitSwitch()
+      _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.OpenFashionUpgradePanel, suitId, self, upgradeDefaultIndex)
+    end
+    
     local index = 0
     local count = self.Buy_List:GetScrollViewLength()
     for i = 0, count - 1 do
@@ -2491,8 +2750,9 @@ function UMG_ClosetPanel_C:GoToSuitUpgrade(suitId, bIgnoreSelectionAnim, default
     end
     self.Buy_List:SetScrollOffset(0)
     self.Buy_List:SelectItemByIndex(index)
+  else
+    _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.OpenFashionUpgradePanel, suitId, self, upgradeDefaultIndex)
   end
-  _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.OpenFashionUpgradePanel, suitId, self, self.directToUpgradeDefaultIndex or defaultSelectIndex)
 end
 
 function UMG_ClosetPanel_C:OnRedPointChanged(notify)
@@ -2678,30 +2938,52 @@ function UMG_ClosetPanel_C:OnSelectEmptySuitIndex(selectedSuitIndex)
   self.Suit:UpdateSuitBtnIconOnSelection(nil)
 end
 
-function UMG_ClosetPanel_C:HasFashionConflict(newItemType, newItemTag)
-  if newItemType == _G.Enum.FashionLabelType.FLT_DRESSES or newItemType == _G.Enum.FashionLabelType.FLT_TOPS then
-    if newItemTag == _G.Enum.FashionTopsTag.FTT_SHORTTOPS or nil == newItemTag then
-      return false
-    end
-    if self.data.TempAppearData then
-      for k, v in ipairs(self.data.TempAppearData) do
-        if v.tag == _G.Enum.FashionRingsTag.FRT_LONGRINGS then
-          return true, v.FashionId, v.FashionType
+function UMG_ClosetPanel_C:HasFashionConflict(newItemType, newItemTag, newItemFashionId, bIncludeBodyType)
+  if not self.data.TempAppearData then
+    return false
+  end
+  if nil == bIncludeBodyType then
+    bIncludeBodyType = true
+  end
+  local AppearanceUtils = require("NewRoco.Modules.System.Appearance.AppearanceUtils")
+  local ids = {}
+  local types = {}
+  local newTagMap = AppearanceUtils.BuildTagMapFromAppearData(newItemType, newItemTag)
+  if next(newTagMap) then
+    for _, v in ipairs(self.data.TempAppearData) do
+      if v.tag then
+        local existTagMap = AppearanceUtils.BuildTagMapFromAppearData(v.FashionType, v.tag)
+        if AppearanceUtils.CheckTagConflict(newTagMap, existTagMap) then
+          table.insert(ids, v.FashionId)
+          table.insert(types, v.FashionType)
         end
       end
     end
   end
-  if newItemType == _G.Enum.FashionLabelType.FLT_RINGS then
-    if newItemTag == _G.Enum.FashionRingsTag.FRT_SHORTRINGS or nil == newItemTag then
-      return false
-    end
-    if self.data.TempAppearData then
-      for k, v in ipairs(self.data.TempAppearData) do
-        if v.tag == _G.Enum.FashionTopsTag.FTT_LONGTOPS then
-          return true, v.FashionId, v.FashionType
+  if bIncludeBodyType and newItemFashionId then
+    local newAvatarEnum = AppearanceUtils.GetAvatarEnumFromFashionId(newItemFashionId)
+    if newAvatarEnum then
+      local conflictBodyTypes = AppearanceUtils.GetConflictBodyTypes(newAvatarEnum)
+      if conflictBodyTypes and #conflictBodyTypes > 0 then
+        for _, v in ipairs(self.data.TempAppearData) do
+          if v.FashionId ~= newItemFashionId then
+            local existAvatarEnum = AppearanceUtils.GetAvatarEnumFromFashionId(v.FashionId)
+            if existAvatarEnum then
+              for _, conflictType in ipairs(conflictBodyTypes) do
+                if existAvatarEnum == conflictType then
+                  table.insert(ids, v.FashionId)
+                  table.insert(types, v.FashionType)
+                  break
+                end
+              end
+            end
+          end
         end
       end
     end
+  end
+  if #ids > 0 then
+    return true, ids, types
   end
   return false
 end
@@ -2776,24 +3058,23 @@ function UMG_ClosetPanel_C:HandleHeterochromeSuitConfirmButton()
     end
     local bHasShining = false
     local petGid = 0
-    local petbaseId = 0
-    if suitsConf.bond_id then
-      local bondConf = _G.DataConfigManager:GetFashionBondConf(suitsConf.bond_id)
-      if bondConf and bondConf.petbase_id and #bondConf.petbase_id > 0 then
-        petbaseId = bondConf.petbase_id[1]
-      end
-    elseif suitsConf.petbase_id and 0 ~= suitsConf.petbase_id[1] then
-      petbaseId = suitsConf.petbase_id[1]
-    end
-    if 0 ~= petbaseId then
-      local petData = _G.DataModelMgr.PlayerDataModel:GetPetDatasByPetBaseId(petbaseId)
-      for k, v in ipairs(petData) do
-        if 0 ~= v.mutation_type & _G.Enum.MutationDiffType.MDT_SHINING then
-          petGid = v.gid
-          bHasShining = true
+    if suitsConf and suitsConf.petbase_id then
+      for _, petBaseId in pairs(suitsConf.petbase_id or {}) do
+        local petData = _G.DataModelMgr.PlayerDataModel:GetPetDatasByPetBaseId(petBaseId)
+        for _, v in ipairs(petData) do
+          if 0 ~= v.mutation_type & _G.Enum.MutationDiffType.MDT_SHINING then
+            petGid = v.gid
+            bHasShining = true
+            break
+          end
+        end
+        if bHasShining then
           break
         end
       end
+    end
+    if not bHasShining and not petGid then
+      return
     end
     if not bHasShining then
       self.NRCSwitcher_44:SetActiveWidgetIndex(4)
@@ -2878,6 +3159,19 @@ function UMG_ClosetPanel_C:OnClickedClaimGlassTint()
     self.selectedGlassItemIndex = self.Buy_List:GetSelectedIndex() - 1
     _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.SendClaimGlassTintReq, nil, nil, nil, itemID)
   end
+end
+
+function UMG_ClosetPanel_C:RefreshCurrentConflictUIShow()
+  for i = 1, self.Buy_List:GetTotalItemNumber() do
+    self.Buy_List:OpItemByIndex(i, 2)
+  end
+end
+
+function UMG_ClosetPanel_C:SetAppearanceTabSelectedIndex(index)
+  if self.Appearance_Tab1:GetSelectedIndex() == index then
+    return
+  end
+  self.Appearance_Tab1:SelectItemByIndex(index)
 end
 
 return UMG_ClosetPanel_C

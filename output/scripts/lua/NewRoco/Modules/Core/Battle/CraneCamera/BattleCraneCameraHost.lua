@@ -13,7 +13,7 @@ function BattleCraneCameraHost.SendEnvParamToUmg()
   if _G.RocoEnv.IS_EDITOR then
     local BattleCraneCamera = BattleManager.vBattleField.battleCraneCamera
     local info = BattleCraneCamera.confData:GetEnvParam()
-    UE4.UCraneCameraEditorUserSettings.SendEnvParamToUmg(info.slope, info.slopeClamp, info.TeamPetHeight, info.TeamPetHeightClamp, info.EnemyPetHeight, info.EnemyPetHeightClamp, info.TeamEnemyRatio, info.TeamEnemyRatioClamp, info.DirectPitchAngle, info.DirectPitchAngleClamp)
+    UE4.UCraneCameraEditorUserSettings.SendEnvParamToUmg(info.slope, info.slopeClamp, info.TeamPetHeight, info.TeamPetHeightClamp, info.EnemyPetHeight, info.EnemyPetHeightClamp, info.TeamEnemyRatio, info.TeamEnemyRatioClamp, info.DirectPitchAngle, info.DirectPitchAngleClamp, info.slope2, info.slope2Clamp, info.TeamPet1Pet2HeightRatio, info.TeamPet1Pet2HeightRatioClamp)
   end
 end
 
@@ -28,7 +28,7 @@ end
 function BattleCraneCameraHost.SendCameraParamToUmg()
   if _G.RocoEnv.IS_EDITOR then
     local BattleCraneCamera = BattleManager.vBattleField.battleCraneCamera
-    if battleCraneCamera then
+    if BattleCraneCamera then
       local CameraLocation = BattleCraneCamera.CameraActor:K2_GetActorLocation()
       local TargetArmLength = BattleCraneCamera.SpringArmComponent.TargetArmLength
       local SpringArmRotation = BattleCraneCamera.SpringArmComponent:K2_GetComponentRotation()
@@ -84,6 +84,13 @@ function BattleCraneCameraHost.SendGlobalCfgToGame(SlopeX, SlopeY, TeamPetHeight
   local battleCraneCamera = _G.BattleManager.vBattleField.battleCraneCamera
   if battleCraneCamera then
     battleCraneCamera.confData:ResetGlobalInfo(SlopeX, SlopeY, TeamPetHeightX, TeamPetHeightY, EnemyPetHeightX, EnemyPetHeightY, HeightRatioX, HeightRatioY, PitchX, PitchY, YawX, YawY, XSpeed, YSpeed, PitchAngleX, PitchAngleY)
+  end
+end
+
+function BattleCraneCameraHost.SendGlobalCfg2ToGame(Slope2X, Slope2Y, MyPet1Pet2HeightRatioX, MyPet1Pet2HeightRatioY)
+  local battleCraneCamera = _G.BattleManager.vBattleField.battleCraneCamera
+  if battleCraneCamera then
+    battleCraneCamera.confData:ResetGlobalInfoTwo(Slope2X, Slope2Y, MyPet1Pet2HeightRatioX, MyPet1Pet2HeightRatioY)
     battleCraneCamera:ResetCamera()
   end
 end

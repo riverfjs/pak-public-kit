@@ -21,12 +21,12 @@ function EnterExitContext:CheckPreEnter()
   local bSuc, PoppedMsg = self.Module.ModeMgr.TakePhotosMode1P:PreCheck()
   if not bSuc then
     if not PoppedMsg then
-      _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.takephoto_pattern_change_fail)
+      _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.takephoto_open_fail_tips)
     end
     _G.NRCAudioManager:PlaySound2DAuto(1329, "TakePhotosModule:TryOpenMainPanel")
     return false
   elseif not self.Controller:CanSwitchMode() then
-    _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.takephoto_pattern_change_fail)
+    _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.takephoto_open_fail_tips)
     _G.NRCAudioManager:PlaySound2DAuto(1329, "TakePhotosModule:TryOpenMainPanel")
     Log.Error("[TakePhoto] cannot switch mode")
     return false
@@ -39,7 +39,7 @@ function EnterExitContext:TryEnter()
   local bSuc, PoppedMsg = self.Module.ModeMgr:TryEnter1PMode()
   if not bSuc then
     if not PoppedMsg then
-      _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.takephoto_pattern_change_fail)
+      _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.takephoto_open_fail_tips)
     end
     return false
   end

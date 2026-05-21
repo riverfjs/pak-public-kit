@@ -4,6 +4,7 @@ local HomePetAttributeComponent = require("NewRoco.Modules.System.Home.HomePetFe
 local Enum = require("Data.Config.Enum")
 local BattleEnum = require("NewRoco.Modules.Core.Battle.Common.BattleEnum")
 local BuffUtils = require("NewRoco.Modules.Core.Battle.Entity.Components.Buff.BuffUtils")
+local TimeUtils = require("NewRoco.Modules.System.EnvSystem.TimeUtils")
 local PetUtils = {}
 PetUtils.iconBallPath = {}
 PetUtils.iconBallPath[100002] = "PaperSprite'/Game/NewRoco/Modules/System/PetUI/Raw/Atlas/PetUI/Frames/img_icon1_png.img_icon1_png'"
@@ -247,6 +248,10 @@ function PetUtils.GetPetEggAppearanceType(EggGID)
       RetType = PetUIModuleEnum.PetEggAppearanceType.VisiblyShining
     elseif PreciousEggType == _G.Enum.PreciousEggType.PET_SHINING_GLASS then
       RetType = PetUIModuleEnum.PetEggAppearanceType.VisiblyGlassAndShining
+    elseif PreciousEggType == _G.Enum.PreciousEggType.PET_GLASS then
+      RetType = PetUIModuleEnum.PetEggAppearanceType.VisiblyGlass
+    elseif PreciousEggType == _G.Enum.PreciousEggType.PET_PARTNER then
+      RetType = PetUIModuleEnum.PetEggAppearanceType.VisiblyGlass
     elseif PreciousEggType == _G.Enum.PreciousEggType.PET_PRECIOUS then
       if EggData.mutation_type == _G.Enum.MutationDiffType.MDT_GLASS then
         RetType = PetUIModuleEnum.PetEggAppearanceType.VisiblyGlass
@@ -290,7 +295,10 @@ function PetUtils.CheckIsForbidSelectPetInFreeMode(PetGID, bShowTips)
     return IsForbidSelectPetInFreeMode
   end
   if _G.NRCModuleManager:DoCmd(PetUIModuleCmd.GetPetPortableBagReleaseLifeMode) then
-    local IsInHome = _G.NRCModuleManager:DoCmd(_G.HomeModuleCmd.GetPetIsInHome, PetGID)
+    local IsInHome = false
+    if PetData.business_identity and PetData.business_identity == _G.ProtoEnum.PetBusinessIdentity.PBI_HOME_PET then
+      IsInHome = true
+    end
     local IsInGuard = _G.NRCModuleManager:DoCmd(_G.HomeModuleCmd.GetHomePlantGuardPetGid) == PetGID
     if IsInHome or IsInGuard then
       IsForbidSelectPetInFreeMode = true
@@ -303,6 +311,13 @@ function PetUtils.CheckIsForbidSelectPetInFreeMode(PetGID, bShowTips)
       if bShowTips and PetData and PetData.base_conf_id then
         local petBaseConf = _G.DataConfigManager:GetPetbaseConf(PetData.base_conf_id)
         _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.umg_petbag_2 .. petBaseConf.name .. LuaText.umg_petbag_3)
+      end
+    end
+    local IsInActivity = _G.NRCModuleManager:DoCmd(_G.ActivityModuleCmd.IsPetInCurTripInfo, PetData.gid)
+    if IsInActivity then
+      IsForbidSelectPetInFreeMode = true
+      if bShowTips then
+        _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.pet_trip_54)
       end
     end
   end
@@ -381,7 +396,7 @@ end
 function PetUtils.IsPvp()
   local battleType = _G.BattleManager.battleRuntimeData.battleType
   local EBattleType = Enum.BattleType
-  return battleType == EBattleType.BT_PVP or battleType == EBattleType.BT_PVP_SRANDARD or battleType == EBattleType.BT_PVP_RANDOM or battleType == EBattleType.BT_PVP_WATER or battleType == EBattleType.BT_PVP_INSECT or battleType == EBattleType.BT_PVP_RANK or battleType == EBattleType.BT_PVP_THREE
+  return battleType == EBattleType.BT_PVP or battleType == EBattleType.BT_PVP_SRANDARD or battleType == EBattleType.BT_PVP_RANDOM or battleType == EBattleType.BT_PVP_WATER or battleType == EBattleType.BT_PVP_INSECT or battleType == EBattleType.BT_PVP_RANK or battleType == EBattleType.BT_PVP_THREE or battleType == EBattleType.BT_PVP_SCARE
 end
 
 function PetUtils.GetTeamEnum(petInfo)
@@ -445,7 +460,6 @@ function PetUtils.IsTeammate(petInfo)
 end
 
 function PetUtils.IsEnemy(petInfo)
-  local myTeam = _G.BattleManager.battlePawnManager.playerTeam
   local allEnemyTeam = _G.BattleManager.battlePawnManager.AllEnemyTeam
   if allEnemyTeam then
     for i = 1, #allEnemyTeam do
@@ -462,6 +476,9 @@ function PetUtils.GetBattleSkills(battle_inside_pet_info, bAllowHiddenSkill)
   local Skills = {}
   local PosMax = BattleConst.PET_MAX_EQUIP_SKILL_NUM
   if PetUtils.DoCheckIsMimic(battle_inside_pet_info) then
+    return Skills
+  end
+  if PetUtils.DoCheckIsSurpriseBox(battle_inside_pet_info) then
     return Skills
   end
   local battle_type = _G.BattleManager.battleRuntimeData and _G.BattleManager.battleRuntimeData.battleType or 0
@@ -506,6 +523,9 @@ function PetUtils.GetNightMareShield(insidePetInfo)
     Log.Warning("\230\149\176\230\141\174\229\188\130\229\184\184\239\188\154insidePetInfo.battle_attr is nil")
     return 999, 999
   else
+    if PetUtils.CheckIsSurpriseBoxPet(insidePetInfo.base_conf_id) then
+      return insidePetInfo.battle_attr[_G.ProtoEnum.AttributeType.AI_BOX_SHIELD_MAX + 1], insidePetInfo.battle_attr[_G.ProtoEnum.AttributeType.AI_BOX_SHIELD + 1]
+    end
     return insidePetInfo.battle_attr[_G.ProtoEnum.AttributeType.AT_NIGHTMARE_SHIELD_MAX + 1], insidePetInfo.battle_attr[_G.ProtoEnum.AttributeType.AT_NIGHTMARE_SHIELD + 1]
   end
 end
@@ -518,7 +538,46 @@ end
 
 function PetUtils.CheckHasNightMareShield(insidePetInfo)
   if insidePetInfo and insidePetInfo.battle_attr then
+    if PetUtils.CheckIsSurpriseBoxPet(insidePetInfo.base_conf_id) then
+      return (insidePetInfo.battle_attr[_G.ProtoEnum.AttributeType.AI_BOX_SHIELD + 1] or 0) > 0
+    end
     return (insidePetInfo.battle_attr[_G.ProtoEnum.AttributeType.AT_NIGHTMARE_SHIELD + 1] or 0) > 0
+  end
+end
+
+function PetUtils.GetSurpriseBoxShield(insidePetInfo)
+  if not insidePetInfo.battle_attr then
+    Log.Warning("\230\149\176\230\141\174\229\188\130\229\184\184\239\188\154insidePetInfo.battle_attr is nil")
+    return 999, 999
+  else
+    return insidePetInfo.battle_attr[_G.ProtoEnum.AttributeType.AI_BOX_SHIELD_MAX + 1], insidePetInfo.battle_attr[_G.ProtoEnum.AttributeType.AI_BOX_SHIELD + 1]
+  end
+end
+
+function PetUtils.CheckIsSurpriseBoxPet(confId)
+  if not confId then
+    return false
+  end
+  local boxPetConf = _G.DataConfigManager:GetBattleGlobalConfig("fantastic_box_petbase")
+  if not boxPetConf then
+    return false
+  end
+  local list = boxPetConf.numList
+  if not list then
+    return false
+  end
+  local Ids = boxPetConf.numList
+  for _, id in pairs(Ids) do
+    if id == confId then
+      return true
+    end
+  end
+  return false
+end
+
+function PetUtils.CheckHasSurpriseShield(insidePetInfo)
+  if insidePetInfo and insidePetInfo.battle_attr then
+    return (insidePetInfo.battle_attr[_G.ProtoEnum.AttributeType.AI_BOX_SHIELD + 1] or 0) > 0
   end
 end
 
@@ -1730,54 +1789,6 @@ function PetUtils.CalcRaceValue(petCfg, petData)
   return hp + atk + defense + speAtk + speDef + spd
 end
 
-function PetUtils.CalcIncreaseProperty(petCfg, petData, propertyType)
-  local pointConst = 0
-  local base_point = 0
-  if propertyType == Enum.AttributeType.AT_HPMAX then
-    pointConst = _G.DataConfigManager:GetAttrGlobalConfig("hp_max_base_point_constant").num
-    base_point = petData.attribute_info.hp.base_point
-  elseif propertyType == Enum.AttributeType.AT_PHYATK then
-    pointConst = _G.DataConfigManager:GetAttrGlobalConfig("phy_attack_base_point_constant").num
-    base_point = petData.attribute_info.attack.base_point
-  elseif propertyType == Enum.AttributeType.AT_PHYDEF then
-    pointConst = _G.DataConfigManager:GetAttrGlobalConfig("phy_defence_base_point_constant").num
-    base_point = petData.attribute_info.defense.base_point
-  elseif propertyType == Enum.AttributeType.AT_SPEATK then
-    pointConst = _G.DataConfigManager:GetAttrGlobalConfig("spe_attack_base_point_constant").num
-    base_point = petData.attribute_info.special_attack.base_point
-  elseif propertyType == Enum.AttributeType.AT_SPEDEF then
-    pointConst = _G.DataConfigManager:GetAttrGlobalConfig("spe_defence_base_point_constant").num
-    base_point = petData.attribute_info.special_defense.base_point
-  elseif propertyType == Enum.AttributeType.AT_SPEED then
-    pointConst = _G.DataConfigManager:GetAttrGlobalConfig("speed_base_point_constant").num
-    base_point = petData.attribute_info.speed.base_point
-  end
-  local factor = _G.DataConfigManager:GetGlobalConfigByKeyType("prob_calculate_param", _G.DataConfigManager.ConfigTableId.GLOBAL_CONFIG).num
-  local ret = base_point * (pointConst / factor)
-  return math.floor(ret)
-end
-
-function PetUtils.CalcBasePoint(basePoint, level, propertyType)
-  local pointConst = 0
-  if propertyType == Enum.AttributeType.AT_HPMAX then
-    pointConst = _G.DataConfigManager:GetAttrGlobalConfig("hp_max_base_point_constant").num
-  elseif propertyType == Enum.AttributeType.AT_PHYATK then
-    pointConst = _G.DataConfigManager:GetAttrGlobalConfig("phy_attack_base_point_constant").num
-  elseif propertyType == Enum.AttributeType.AT_PHYDEF then
-    pointConst = _G.DataConfigManager:GetAttrGlobalConfig("phy_defence_base_point_constant").num
-  elseif propertyType == Enum.AttributeType.AT_SPEATK then
-    pointConst = _G.DataConfigManager:GetAttrGlobalConfig("spe_attack_base_point_constant").num
-  elseif propertyType == Enum.AttributeType.AT_SPEDEF then
-    pointConst = _G.DataConfigManager:GetAttrGlobalConfig("spe_defence_base_point_constant").num
-  elseif propertyType == Enum.AttributeType.AT_SPEED then
-    pointConst = _G.DataConfigManager:GetAttrGlobalConfig("speed_base_point_constant").num
-  end
-  local factor = _G.DataConfigManager:GetGlobalConfigByKeyType("prob_calculate_param", _G.DataConfigManager.ConfigTableId.GLOBAL_CONFIG).num
-  local ret = basePoint * (pointConst / factor)
-  Log.Debug("ret", ret)
-  return math.floor(ret)
-end
-
 function PetUtils.CalcBasicProperty(petCfg, petData, propertyType)
   local groupValue = 0
   local talent = 0
@@ -1847,11 +1858,6 @@ function PetUtils.CalcBasicProperty(petCfg, petData, propertyType)
   return math.floor(ret + 0.5)
 end
 
-function PetUtils.CalcTotalPoint(petData)
-  local attribute = petData.attribute_info
-  return attribute.hp.base_point + attribute.attack.base_point + attribute.defense.base_point + attribute.special_attack.base_point + attribute.special_defense.base_point + attribute.speed.base_point + attribute.base_point_left
-end
-
 function PetUtils.GetLevelUpData(petData)
   local petLv = petData.level or 0
   local evolutionPetBaseId, evolutionIndex = PetUtils.GetEvolutionPetBaseId(petData)
@@ -1885,48 +1891,29 @@ function PetUtils.GetEvolutionPetBaseId(petData)
   local petBaseConf = _G.DataConfigManager:GetPetbaseConf(petData.base_conf_id)
   local petEvolutionList = petBaseConf.evolution_pet_id
   local petEquipSkillList = PetUtils.GetPetEquipSkills(petData)
-  local data1OK = false
-  local data2OK = false
-  if petEvolutionList then
-    for i = 1, #petEvolutionList do
-      local evolutionPetConf = _G.DataConfigManager:GetPetbaseConf(petEvolutionList[i])
-      local type1 = evolutionPetConf.evolution_need_type1
-      local type2 = evolutionPetConf.evolution_need_type2
-      if type1 then
-        if 0 == type1 then
-          data1OK = true
-        elseif 1 == type1 then
-          for i, skillData in ipairs(petEquipSkillList) do
-            local skillCfg = _G.DataConfigManager:GetSkillConf(skillData.id)
-            if skillCfg then
-              Log.Debug("UMG_PetBaseInfo_C:GetEvolutionPetBaseId", skillCfg.skill_dam_type, evolutionPetConf.evolution_need_data1)
-              if skillCfg.skill_dam_type == evolutionPetConf.evolution_need_data1 then
-                data1OK = true
-              end
-            end
+  local TargetEvoPetBaseId
+  local playerRedPointInfo = _G.DataModelMgr.PlayerDataModel:GetRedPointInfo()
+  for k, v in ipairs(playerRedPointInfo) do
+    if (v.reason_type == _G.Enum.RedPointReason.RPR_PET_EVOLVE_TEAM or v.reason_type == _G.Enum.RedPointReason.RPR_PET_EVOLVE_BACKPACK) and v.point_data and #v.point_data > 0 then
+      for key, val in ipairs(v.point_data) do
+        local dataList = string.Split(val, ".")
+        if petData and petData.gid == tonumber(dataList[1]) then
+          TargetEvoPetBaseId = dataList[2]
+          if "string" == type(TargetEvoPetBaseId) then
+            TargetEvoPetBaseId = tonumber(TargetEvoPetBaseId)
           end
+          break
         end
-      else
-        data1OK = true
-      end
-      if type2 then
-        if 0 == type2 then
-          data2OK = true
-        elseif 1 == type2 then
-          for i, skillData in ipairs(petEquipSkillList) do
-            if skillData.type == evolutionPetConf.evolution_need_data2 then
-              data2OK = true
-            end
-          end
-        end
-      else
-        data2OK = true
-      end
-      if data1OK and data2OK then
-        return petEvolutionList[i], i
-      else
       end
     end
+  end
+  if petEvolutionList then
+    for i = 1, #petEvolutionList do
+      if petEvolutionList[i] and TargetEvoPetBaseId == petEvolutionList[i] then
+        return TargetEvoPetBaseId, i
+      end
+    end
+    return nil
   end
 end
 
@@ -2226,6 +2213,26 @@ function PetUtils.IsCommonEvolution(petGid1, petGid2)
   else
     return petGid1 == petGid2
   end
+end
+
+function PetUtils.CheckPvpTeamIsMirror(team_index, TeamType)
+  Log.Debug(team_index, TeamType, "CheckPvpTeamIsMirror")
+  local teamInfo = _G.DataModelMgr.PlayerDataModel:GetPlayerPetTeamInfo()
+  if TeamType then
+    if TeamType == Enum.PlayerTeamType.PTT_BIG_WORLD then
+      teamInfo = _G.DataModelMgr.PlayerDataModel:GetPlayerPetTeamInfo()
+    else
+      teamInfo = _G.DataModelMgr.PlayerDataModel:GetPlayerPetTeamInfoByTeamType(TeamType)
+    end
+  end
+  if not teamInfo then
+    return
+  end
+  local InitTeam = teamInfo.teams[team_index + 1]
+  if not InitTeam then
+    return
+  end
+  return InitTeam.is_mirror
 end
 
 function PetUtils.CheckPvpTeamValid(Team, TeamType)
@@ -2870,50 +2877,7 @@ function PetUtils.CheckPetIsCanFree(petData, onlyCheck, bIgnorePvpOrPveTeam, App
   ApplyFreePvpOrPvePetCallback = ApplyFreePvpOrPvePetCallback or PetUtils.DefaultApplyFreePvpOrPvePetCallback
   FreeReasonType = FreeReasonType or PetUIModuleEnum.PetFreeReasonType.None
   local bCanFree = false
-  if _G.NRCModuleManager:IsModuleActive("TaskPetFollowModule") then
-    local bInFollow, Tip = _G.NRCModuleManager:DoCmd(_G.TaskPetFollowModuleCmd.CheckPetInTaskFollow, petData.gid, 3)
-    if bInFollow then
-      if not onlyCheck then
-        _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, Tip)
-      end
-      return bCanFree
-    end
-  end
-  local isTaskLock = petData.pet_status_flags and petData.pet_status_flags & ProtoEnum.PetStatusFlag.TASK_FORCE_LOCK > 0
-  if isTaskLock then
-    if not onlyCheck then
-      _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.Error_Code_2356)
-    end
-    return bCanFree
-  end
-  local IsInHome = _G.NRCModuleManager:DoCmd(_G.HomeModuleCmd.GetPetIsInHome, petData.gid)
-  local IsInGuard = _G.NRCModuleManager:DoCmd(_G.HomeModuleCmd.GetHomePlantGuardPetGid) == petData.gid
-  if IsInHome or IsInGuard then
-    if not onlyCheck then
-      _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.warehouse_pet_cannot_free)
-    end
-    return bCanFree
-  end
-  if petData.partner_mark and petData.partner_mark ~= ProtoEnum.PetPartnerMarkType.PPMT_NONE then
-    if not onlyCheck then
-      _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, _G.DataConfigManager:GetPetGlobalConfig("collection_cant_release").str)
-    end
-    return bCanFree
-  end
-  if not bIgnorePvpOrPveTeam then
-    local IsInPvpOrPveTeam = PetUtils.GetIsInPvpOrPveTeam(petData, onlyCheck, ApplyFreePvpOrPvePetCaller, ApplyFreePvpOrPvePetCallback, FreeReasonType)
-    if IsInPvpOrPveTeam then
-      return bCanFree
-    end
-  end
-  local petBaseConf = _G.DataConfigManager:GetPetbaseConf(petData.base_conf_id)
-  if nil == petBaseConf then
-    return bCanFree
-  end
-  if petBaseConf.ban_free and 1 == petBaseConf.ban_free then
-    if not onlyCheck then
-      _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.umg_petbag_2 .. petBaseConf.name .. LuaText.umg_petbag_3)
-    end
+  if not PetUtils.CommonPetHandleCheck(PetUIModuleEnum.PetCommonHandleCheckType.Free, petData, onlyCheck, bIgnorePvpOrPveTeam, ApplyFreePvpOrPvePetCaller, ApplyFreePvpOrPvePetCallback, FreeReasonType) then
     return bCanFree
   end
   if PetUtils.CheckPetIsInherited(petData.gid) then
@@ -2926,14 +2890,15 @@ function PetUtils.CheckPetIsCanFree(petData, onlyCheck, bIgnorePvpOrPveTeam, App
   return bCanFree
 end
 
-function PetUtils.GetIsInPvpOrPveTeam(petData, onlyCheck, ApplyFreePvpOrPvePetCaller, ApplyFreePvpOrPvePetCallback, FreeReasonType)
-  ApplyFreePvpOrPvePetCaller = ApplyFreePvpOrPvePetCaller or PetUtils
-  ApplyFreePvpOrPvePetCallback = ApplyFreePvpOrPvePetCallback or PetUtils.DefaultApplyFreePvpOrPvePetCallback
+function PetUtils.GetIsInPvpOrPveTeam(petData, onlyCheck, ApplyHandlePvpOrPvePetCaller, ApplyHandlePvpOrPvePetCallback, FreeReasonType, ReleaseTipsOpenType)
+  ApplyHandlePvpOrPvePetCaller = ApplyHandlePvpOrPvePetCaller or PetUtils
+  ApplyHandlePvpOrPvePetCallback = ApplyHandlePvpOrPvePetCallback or PetUtils.DefaultApplyFreePvpOrPvePetCallback
   FreeReasonType = FreeReasonType or PetUIModuleEnum.PetFreeReasonType.None
+  ReleaseTipsOpenType = ReleaseTipsOpenType or PetUIModuleEnum.ReleaseTipsOpenType.None
   local IsInTeam, teamInfo = PetUtils.GetIsInPvpOrPveTeamByGid(petData.gid)
   if IsInTeam then
-    if not onlyCheck and nil ~= ApplyFreePvpOrPvePetCallback then
-      _G.NRCModuleManager:DoCmd(PetUIModuleCmd.OpenPetReleaseTips, petData, teamInfo, {caller = ApplyFreePvpOrPvePetCaller, callback = ApplyFreePvpOrPvePetCallback}, true, FreeReasonType)
+    if not onlyCheck and nil ~= ApplyHandlePvpOrPvePetCallback then
+      _G.NRCModuleManager:DoCmd(PetUIModuleCmd.OpenPetReleaseTips, petData, teamInfo, {caller = ApplyHandlePvpOrPvePetCaller, callback = ApplyHandlePvpOrPvePetCallback}, true, FreeReasonType, ReleaseTipsOpenType)
     end
     return true
   else
@@ -2942,6 +2907,233 @@ function PetUtils.GetIsInPvpOrPveTeam(petData, onlyCheck, ApplyFreePvpOrPvePetCa
 end
 
 function PetUtils.DefaultApplyFreePvpOrPvePetCallback()
+end
+
+function PetUtils.CheckPetIsCanTraceBack(petData, onlyCheck, checkForShow, bIgnorePvpOrPveTeam, ApplyTraceBackPvpOrPvePetCaller, ApplyTraceBackPvpOrPvePetCallback)
+  Log.Debug("PetUtils.CheckPetIsCanTraceBack")
+  if nil == onlyCheck then
+    onlyCheck = true
+  end
+  checkForShow = checkForShow or false
+  bIgnorePvpOrPveTeam = bIgnorePvpOrPveTeam or false
+  ApplyTraceBackPvpOrPvePetCaller = ApplyTraceBackPvpOrPvePetCaller or PetUtils
+  ApplyTraceBackPvpOrPvePetCallback = ApplyTraceBackPvpOrPvePetCallback or PetUtils.DefaultApplyFreePvpOrPvePetCallback
+  local bCanTraceBack = false
+  if nil == petData then
+    Log.Error("PetUtils.CheckPetIsCanTraceBack petData is nil")
+    return bCanTraceBack
+  end
+  if not checkForShow then
+    if not PetUtils.CommonPetHandleCheck(PetUIModuleEnum.PetCommonHandleCheckType.TraceBack, petData, onlyCheck, bIgnorePvpOrPveTeam, ApplyTraceBackPvpOrPvePetCaller, ApplyTraceBackPvpOrPvePetCallback) then
+      return bCanTraceBack
+    end
+    if PetUtils.CheckPetIsInherited(petData.gid) then
+      bCanTraceBack = false
+      if not onlyCheck then
+        _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.pet_return_ban_activity)
+      end
+      return bCanTraceBack
+    end
+  end
+  if nil == petData.bitflag then
+    return bCanTraceBack
+  end
+  if nil == petData.base_conf_id then
+    Log.Error("PetUtils.CheckPetIsCanTraceBack petData.base_conf_id is nil")
+    return bCanTraceBack
+  end
+  local PetEvolutionIdMap = {}
+  local PetBaseConf = DataConfigManager:GetPetbaseConf(petData.base_conf_id)
+  if PetBaseConf then
+    for _, v in pairs(PetBaseConf.pet_evolution_id or {}) do
+      PetEvolutionIdMap[v] = true
+    end
+  end
+  if 0 == petData.bitflag & _G.ProtoEnum.PetDataBitFlag.PDBF_PET_HAS_BACKTRACK_SNAPSHOT then
+    bCanTraceBack = false
+    return bCanTraceBack
+  end
+  if 0 == petData.bitflag & _G.ProtoEnum.PetDataBitFlag.PDBF_PET_HAS_BACKTRACK_ITEMS then
+    bCanTraceBack = false
+    return bCanTraceBack
+  end
+  local TargetPetRollBackConfig
+  local TargetStartTimeStamp = 0
+  local PetRollBackConfigs = DataConfigManager:GetTable(DataConfigManager.ConfigTableId.PET_ROLLBACK_CONF):GetAllDatas()
+  for _, petRollBackConfig in pairs(PetRollBackConfigs or {}) do
+    if petRollBackConfig and petRollBackConfig.pet_evolution_id then
+      for _, petEvolutionId in pairs(petRollBackConfig.pet_evolution_id or {}) do
+        if PetEvolutionIdMap[petEvolutionId] then
+          local CurTimeStamp = _G.ZoneServer:GetServerTime() / 1000
+          local StartTimeStamp = TimeUtils.ToTimeStamp(petRollBackConfig.start_time or "")
+          local EndTimeStamp = TimeUtils.ToTimeStamp(petRollBackConfig.end_time or "")
+          if CurTimeStamp > StartTimeStamp and CurTimeStamp < EndTimeStamp then
+            TargetPetRollBackConfig = petRollBackConfig
+            TargetStartTimeStamp = StartTimeStamp
+            break
+          end
+        end
+      end
+    end
+  end
+  if nil == TargetPetRollBackConfig or 0 == TargetStartTimeStamp then
+    bCanTraceBack = false
+    if not onlyCheck then
+      _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.pet_return_tend_tip)
+    end
+    return bCanTraceBack
+  end
+  if petData.key_experience and petData.key_experience.backtrack_record_info and petData.key_experience.backtrack_record_info.last_backtrack_time then
+    local lastTraceBackTime = petData.key_experience.backtrack_record_info.last_backtrack_time
+    if TargetStartTimeStamp < lastTraceBackTime then
+      bCanTraceBack = false
+      return bCanTraceBack
+    end
+  end
+  bCanTraceBack = true
+  return bCanTraceBack
+end
+
+function PetUtils.CommonPetHandleCheck(checkType, petData, onlyCheck, bIgnorePvpOrPveTeam, ApplyHandlePvpOrPvePetCaller, ApplyHandlePvpOrPvePetCallback, FreeReasonType)
+  local bCanHandle = false
+  checkType = checkType or PetUIModuleEnum.PetCommonHandleCheckType.None
+  if nil == petData then
+    return bCanHandle
+  end
+  if _G.NRCModuleManager:IsModuleActive("TaskPetFollowModule") then
+    local bInFollow, Tip = _G.NRCModuleManager:DoCmd(_G.TaskPetFollowModuleCmd.CheckPetInTaskFollow, petData.gid, 3)
+    if bInFollow then
+      if not onlyCheck then
+        if checkType == PetUIModuleEnum.PetCommonHandleCheckType.Free then
+          _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, Tip)
+        elseif checkType == PetUIModuleEnum.PetCommonHandleCheckType.TraceBack then
+          _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.pet_return_ban_tongxing)
+        end
+      end
+      return bCanHandle
+    end
+  end
+  local isTaskLock = petData.pet_status_flags and petData.pet_status_flags & ProtoEnum.PetStatusFlag.TASK_FORCE_LOCK > 0
+  if isTaskLock then
+    if not onlyCheck then
+      _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.Error_Code_2356)
+    end
+    return bCanHandle
+  end
+  local IsInActivity = _G.NRCModuleManager:DoCmd(_G.ActivityModuleCmd.IsPetInCurTripInfo, petData.gid)
+  if IsInActivity then
+    if not onlyCheck then
+      _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.pet_trip_54)
+    end
+    return bCanHandle
+  end
+  local IsInHome = false
+  if petData.business_identity and petData.business_identity == _G.ProtoEnum.PetBusinessIdentity.PBI_HOME_PET then
+    IsInHome = true
+  end
+  local IsInGuard = _G.NRCModuleManager:DoCmd(_G.HomeModuleCmd.GetHomePlantGuardPetGid) == petData.gid
+  if IsInHome or IsInGuard then
+    if not onlyCheck then
+      if checkType == PetUIModuleEnum.PetCommonHandleCheckType.Free then
+        _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.warehouse_pet_cannot_free)
+      elseif checkType == PetUIModuleEnum.PetCommonHandleCheckType.TraceBack then
+        if IsInGuard then
+          _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.pet_return_ban_guard)
+        elseif IsInHome then
+          _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.pet_return_ban_home)
+        end
+      end
+    end
+    return bCanHandle
+  end
+  if petData.partner_mark and petData.partner_mark ~= ProtoEnum.PetPartnerMarkType.PPMT_NONE then
+    if not onlyCheck then
+      if checkType == PetUIModuleEnum.PetCommonHandleCheckType.Free then
+        _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, _G.DataConfigManager:GetPetGlobalConfig("collection_cant_release").str)
+      elseif checkType == PetUIModuleEnum.PetCommonHandleCheckType.TraceBack then
+        _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.pet_return_ban_tag)
+      end
+    end
+    return bCanHandle
+  end
+  if not bIgnorePvpOrPveTeam then
+    local IsInPvpOrPveTeam
+    if checkType == PetUIModuleEnum.PetCommonHandleCheckType.Free then
+      IsInPvpOrPveTeam = PetUtils.GetIsInPvpOrPveTeam(petData, onlyCheck, ApplyHandlePvpOrPvePetCaller, ApplyHandlePvpOrPvePetCallback, FreeReasonType, PetUIModuleEnum.ReleaseTipsOpenType.Free)
+    elseif checkType == PetUIModuleEnum.PetCommonHandleCheckType.TraceBack then
+      IsInPvpOrPveTeam = PetUtils.GetIsInPvpOrPveTeam(petData, onlyCheck, ApplyHandlePvpOrPvePetCaller, ApplyHandlePvpOrPvePetCallback, nil, PetUIModuleEnum.ReleaseTipsOpenType.TraceBack)
+    end
+    if IsInPvpOrPveTeam then
+      return bCanHandle
+    end
+  end
+  local petBaseConf = _G.DataConfigManager:GetPetbaseConf(petData.base_conf_id)
+  if nil == petBaseConf then
+    return bCanHandle
+  end
+  if petBaseConf.ban_free and 1 == petBaseConf.ban_free then
+    if not onlyCheck then
+      if checkType == PetUIModuleEnum.PetCommonHandleCheckType.Free then
+        _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.umg_petbag_2 .. petBaseConf.name .. LuaText.umg_petbag_3)
+      elseif checkType == PetUIModuleEnum.PetCommonHandleCheckType.TraceBack then
+        _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.pet_return_ban_special)
+      end
+    end
+    return bCanHandle
+  end
+  bCanHandle = true
+  return bCanHandle
+end
+
+function PetUtils.GetTargetPetRollBackConfig(petData)
+  local PetEvolutionIdMap = {}
+  local PetBaseConf = DataConfigManager:GetPetbaseConf(petData.base_conf_id)
+  if PetBaseConf then
+    for _, v in pairs(PetBaseConf.pet_evolution_id or {}) do
+      PetEvolutionIdMap[v] = true
+    end
+  end
+  local TargetPetRollBackConfig
+  local TargetStartTimeStamp = 0
+  local PetRollBackConfigs = DataConfigManager:GetTable(DataConfigManager.ConfigTableId.PET_ROLLBACK_CONF):GetAllDatas()
+  for _, petRollBackConfig in pairs(PetRollBackConfigs or {}) do
+    if petRollBackConfig and petRollBackConfig.pet_evolution_id then
+      for _, petEvolutionId in pairs(petRollBackConfig.pet_evolution_id or {}) do
+        if PetEvolutionIdMap[petEvolutionId] then
+          local CurTimeStamp = _G.ZoneServer:GetServerTime() / 1000
+          local StartTimeStamp = TimeUtils.ToTimeStamp(petRollBackConfig.start_time or "")
+          local EndTimeStamp = TimeUtils.ToTimeStamp(petRollBackConfig.end_time or "")
+          if CurTimeStamp > StartTimeStamp and CurTimeStamp < EndTimeStamp then
+            TargetPetRollBackConfig = petRollBackConfig
+            TargetStartTimeStamp = StartTimeStamp
+            break
+          end
+        end
+      end
+    end
+  end
+  return TargetPetRollBackConfig
+end
+
+function PetUtils.CheckCurIsInTraceBackTime()
+  local bInTraceBackTime = false
+  local TargetPetRollBackConfig
+  local TargetStartTimeStamp = 0
+  local PetRollBackConfigs = DataConfigManager:GetTable(DataConfigManager.ConfigTableId.PET_ROLLBACK_CONF):GetAllDatas()
+  for _, petRollBackConfig in pairs(PetRollBackConfigs or {}) do
+    if petRollBackConfig then
+      local CurTimeStamp = _G.ZoneServer:GetServerTime() / 1000
+      local StartTimeStamp = TimeUtils.ToTimeStamp(petRollBackConfig.start_time or "")
+      local EndTimeStamp = TimeUtils.ToTimeStamp(petRollBackConfig.end_time or "")
+      if CurTimeStamp > StartTimeStamp and CurTimeStamp < EndTimeStamp then
+        bInTraceBackTime = true
+        TargetPetRollBackConfig = petRollBackConfig
+        TargetStartTimeStamp = StartTimeStamp
+        break
+      end
+    end
+  end
+  return bInTraceBackTime
 end
 
 function PetUtils.CheckIsShiningGlass(mutation_type)
@@ -3388,8 +3580,53 @@ function PetUtils.IsFilteringCondition(AllCondition)
     return true
   elseif Check(AllCondition.FilterTimeCondition) then
     return true
+  elseif Check(AllCondition.FilterTraceBackCondition) then
+    return true
   end
   return false
+end
+
+function PetUtils.GetIncubationProgressItemList()
+  local Ret = {}
+  local PreciousItemList = _G.NRCModuleManager:DoCmd(_G.BagModuleCmd.GetBagItemArrayByLableType, _G.Enum.ItemLableType.ILT_PRECIOUS)
+  for _, item in pairs(PreciousItemList) do
+    if item and item.conf then
+      for i = 1, #item.conf.item_behavior do
+        if item.conf.item_behavior[i] and item.conf.item_behavior[i].use_action and item.conf.item_behavior[i].use_action == _G.Enum.ItemBehavior.IB_PET_HATCH_PROCESS_ADD and item.conf.item_behavior[i].ratio and item.conf.item_behavior[i].ratio[1] and item.conf.item_behavior[i].ratio[1] > 0 then
+          table.insert(Ret, item)
+          break
+        end
+      end
+    end
+  end
+  return Ret
+end
+
+function PetUtils.CheckPetEggIsHatchSecsMax(gid)
+  local bHatchSecsMax = false
+  if nil == gid then
+    Log.Debug("PetUtils.CheckPetEggIsHatchSecsMax gid is nil")
+    return bHatchSecsMax
+  end
+  local BagEggItem = _G.NRCModeManager:DoCmd(_G.BagModuleCmd.GetBagItemByGid, gid)
+  if nil == BagEggItem then
+    Log.Debug("PetUtils.CheckPetEggIsHatchSecsMax BagEggItem is nil")
+    return bHatchSecsMax
+  end
+  local hatchedSecs, hatchedMaxSecs
+  if BagEggItem.egg_data then
+    hatchedSecs = BagEggItem.egg_data.hatched_secs
+    if BagEggItem.egg_data and 0 == BagEggItem.egg_data.conf_id then
+      hatchedMaxSecs = BagEggItem.egg_data.max_hatched_secs
+    elseif BagEggItem.egg_data and 0 ~= BagEggItem.egg_data.conf_id then
+      local eggConf = _G.DataConfigManager:GetPetEggConf(BagEggItem.egg_data.conf_id)
+      hatchedMaxSecs = eggConf.hatch_data
+    end
+    if hatchedSecs and hatchedMaxSecs and hatchedSecs >= hatchedMaxSecs then
+      bHatchSecsMax = true
+    end
+  end
+  return bHatchSecsMax
 end
 
 function PetUtils.GetDefaultPetImage3DResListData()
@@ -3417,6 +3654,26 @@ function PetUtils.DoCheckIsMimic(battle_inside_pet_info)
       if config then
         for _, sign in ipairs(config.buff_groupsigns) do
           if (sign == ProtoEnum.BuffGroupSign.BGS_MIMIC or sign == ProtoEnum.BuffGroupSign.BGS_BATTLE_MIMIC) and buff.stack > 0 then
+            return true, sign, buff
+          end
+        end
+      end
+    end
+  end
+  return false
+end
+
+function PetUtils.DoCheckIsSurpriseBox(battle_inside_pet_info)
+  if not battle_inside_pet_info then
+    return false
+  end
+  local buffs = battle_inside_pet_info.buffs
+  if buffs then
+    for _, buff in ipairs(buffs) do
+      local config = _G.DataConfigManager:GetBuffConf(buff.buff_id)
+      if config then
+        for _, sign in ipairs(config.buff_groupsigns) do
+          if sign == ProtoEnum.BuffGroupSign.BGS_FANTASTIC_BOX and buff.stack > 0 then
             return true, sign, buff
           end
         end
@@ -3483,7 +3740,7 @@ function PetUtils.GetPetModelPath(info, petBaseConf)
   return ModelPath
 end
 
-function PetUtils.GetPetResourceScale(info, petBaseConf)
+function PetUtils.GetPetResourceScale(info, petBaseConf, isEnemy)
   local Scale = 1.0
   local InitScale = 1.0
   local battle_inside_pet_info = info.battle_inside_pet_info
@@ -3506,22 +3763,30 @@ function PetUtils.GetPetResourceScale(info, petBaseConf)
   end
   Scale = Scale * PetMutationUtils.GetHeightModelScaleByPetData(battle_common_pet_info)
   InitScale = Scale
-  if not PetUtils.IsEnemy(info) then
+  if nil == isEnemy then
+    isEnemy = PetUtils.IsEnemy(info)
+  end
+  if not isEnemy then
     return Scale, InitScale
   end
   if BattleUtils.IsBloodTeam() then
     Scale = BattleUtils.GetBloodTeamPetScale(battle_common_pet_info.height)
-  elseif BattleUtils.IsBeastTeam() then
-    if not BattleUtils.IsPlayerSelectCatchInBeast() then
-      Scale = Scale * BattleUtils.GetBeastTeamPetScale()
+  else
+    local isBeastCatch = false
+    if BattleUtils.IsBeastTeam() then
+      if not BattleUtils.IsPlayerSelectCatchInBeast() then
+        Scale = Scale * BattleUtils.GetBeastTeamPetScale()
+      else
+        isBeastCatch = true
+      end
     end
     local isMonster = false
     local config = _G.DataConfigManager:GetPetConf(battle_inside_pet_info.conf_id, true)
     if not config then
-      config = _G.DataConfigManager:GetMonsterConf(configID)
+      config = _G.DataConfigManager:GetMonsterConf(battle_inside_pet_info.conf_id)
       isMonster = true
     end
-    if not BattleUtils.IsPvp() and config and isMonster then
+    if not BattleUtils.IsPvp() and config and isMonster and not isBeastCatch then
       local monsterScale = config.model_scale or 100
       if monsterScale > 0 then
         Scale = Scale * (monsterScale / 100)
@@ -3626,6 +3891,42 @@ function PetUtils.GetHelpPetEquipSkills(LevelSkillConf, bloodId, lv, curBattleBa
     end
   end
   return petEquipSkills
+end
+
+function PetUtils.GetHandBookIdByPetBaseConfId(petBaseConfId)
+  local dataTable = _G.DataConfigManager:GetTable(DataConfigManager.ConfigTableId.PET_HANDBOOK)
+  local handbookConfs = dataTable and dataTable:GetAllDatas() or {}
+  local targetHandBookConfId
+  for _, handbookConf in ipairs(handbookConfs) do
+    local handBookConfId = handbookConf and handbookConf.id
+    local includePetBaseIdList = handbookConf and handbookConf.include_petbase_id or {}
+    for i, includePetBaseIdItem in ipairs(includePetBaseIdList) do
+      local petBaseIdList = includePetBaseIdItem and includePetBaseIdItem.petbase_id or {}
+      if table.contains(petBaseIdList, petBaseConfId) then
+        targetHandBookConfId = handBookConfId
+        goto lbl_57
+      end
+    end
+  end
+  ::lbl_57::
+  return targetHandBookConfId
+end
+
+function PetUtils.TryGetPetSkillSeasonId(petGid, skillId)
+  local dataModelManager = _G.DataModelMgr
+  local playerDataModel = dataModelManager and dataModelManager.PlayerDataModel
+  local petData = playerDataModel and playerDataModel:GetPetDataByGid(petGid)
+  local skillInfo = petData and petData.skill
+  local skillDataList = skillInfo and skillInfo.skill_data or {}
+  local seasonId
+  for i, skillData in ipairs(skillDataList) do
+    local skillDataId = skillData and skillData.id
+    if skillDataId and skillDataId == skillId then
+      seasonId = skillData and skillData.season_id
+      break
+    end
+  end
+  return seasonId
 end
 
 return PetUtils

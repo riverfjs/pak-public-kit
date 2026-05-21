@@ -185,4 +185,56 @@ function CloudGameUtil:DownloadCloudGameApp()
   end
 end
 
+function CloudGameUtil:GenerateEncryptFile()
+  Log.Debug("[CloudGameUtil:GenerateEncryptFile] ")
+  local JsonConfigFile = UE.UBlueprintPathsLibrary.Combine({
+    UE.UBlueprintPathsLibrary.ProjectSavedDir(),
+    CloudGameConfigName .. ".json"
+  })
+  if not UE4.UBlueprintPathsLibrary.FileExists(JsonConfigFile) then
+    Log.Warning("[CloudGameUtil:GenerateEncryptFile] Failed to find JsonConfigFile:", JsonConfigFile)
+    return false
+  end
+  Log.Debug("[CloudGameUtil:GenerateEncryptFile] JsonConfigFile:", JsonConfigFile)
+  JsonConfigFile = UE4.UBlueprintPathsLibrary.ConvertRelativePathToFull(JsonConfigFile)
+  Log.Debug("[CloudGameUtil:GenerateEncryptFile] ConvertRelativePathToFull JsonConfigFile:", JsonConfigFile)
+  local JsonContent, Success = UE4.UNRCStatics.LoadToString(JsonConfigFile)
+  if not Success then
+    Log.Error("[CloudGameUtil:GenerateEncryptFile] Failed to load JsonConfigFile:", JsonConfigFile)
+    return false
+  end
+  Log.Debug("[CloudGameUtil:GenerateEncryptFile] Success:", Success, "JsonContent:", JsonContent)
+  local EncryptPath = UE.UBlueprintPathsLibrary.Combine({
+    UE.UBlueprintPathsLibrary.ProjectSavedDir(),
+    CloudGameConfigName .. "_encrypt"
+  })
+  UE4.UCloudGameUtils.SaveEncryptedData(JsonContent, EncryptPath, CloudGameUtil.DEFAULT_ENCRYPTION_KEY)
+  return true
+end
+
+function CloudGameUtil:GenerateDecryptFile()
+  Log.Debug("[CloudGameUtil:GenerateDecryptFile] ")
+  local LocalFilePath = UE.UBlueprintPathsLibrary.Combine({
+    UE.UBlueprintPathsLibrary.ProjectSavedDir(),
+    CloudGameConfigName
+  })
+  if not UE4.UBlueprintPathsLibrary.FileExists(LocalFilePath) then
+    Log.Warning("[CloudGameUtil:GenerateDecryptFile] Failed to find config:", LocalFilePath)
+    return false
+  end
+  local Content = UE4.UCloudGameUtils.LoadDecryptedData(LocalFilePath, CloudGameUtil.DEFAULT_ENCRYPTION_KEY)
+  if not Content then
+    Log.Warning("[CloudGameUtil:GenerateDecryptFile] Failed to load config")
+    return false
+  end
+  Log.Debug("[CloudGameUtil:GenerateDecryptFile] Content:", Content)
+  local JsonConfigFile = UE.UBlueprintPathsLibrary.Combine({
+    UE.UBlueprintPathsLibrary.ProjectSavedDir(),
+    CloudGameConfigName .. "_check.json"
+  })
+  local Success = UE4.UNRCStatics.WriteToFile(JsonConfigFile, Content)
+  Log.Debug("[CloudGameUtil:GenerateDecryptFile] Success:", Success)
+  return true
+end
+
 return CloudGameUtil

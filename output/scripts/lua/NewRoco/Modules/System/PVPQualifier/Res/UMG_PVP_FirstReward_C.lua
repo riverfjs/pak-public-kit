@@ -1,8 +1,15 @@
 local PVPRankedMatchModuleUtils = require("NewRoco.Modules.System.PVPQualifier.PVPRankedMatchModuleUtils")
 local CommonModuleEvent = reload("NewRoco.Modules.System.Common.CommonModuleEvent")
+local WidgetStateManager = require("Common.UI.WidgetStateManager")
 local UMG_PVP_FirstReward_C = _G.NRCPanelBase:Extend("UMG_PVP_FirstReward_C")
 local PVPRankedMatchModuleEvent = require("NewRoco.Modules.System.PVPQualifier.PVPRankedMatchModuleEvent")
 local ShareUIModuleEvent = reload("NewRoco.Modules.System.ShareUI.ShareUIModuleEvent")
+local LoadSpineAssetContextPhase = {
+  LoadAssets = 1,
+  WaitingForAssetLoading = 2,
+  AssetLoaded = 3,
+  Complete = 4
+}
 
 function UMG_PVP_FirstReward_C:OnActive()
   _G.NRCAudioManager:PlaySound2DAuto(40004001, "UMG_PVP_FirstReward_C:OnActive")
@@ -91,9 +98,30 @@ end
 function UMG_PVP_FirstReward_C:OnConstruct()
   self.ShareDataSnapshot = {}
   self.ShareBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  local initState = {}
+  initState.isFlagShow = false
+  initState.isPvpQualifierStarShow = false
+  
+  function initState.getSelfIsTopMasterFn()
+    local data = self.data
+    local top_master_info = data and data:GetTopMaster()
+    local top_master_info_type = top_master_info and top_master_info.type
+    local is_top_master = top_master_info_type == _G.ProtoEnum.PVP_RANK_MASTER_TYPE.PVP_RANK_MASTER_TYPE_TOP_MASTER
+    return is_top_master
+  end
+  
+  self.stateManager = WidgetStateManager()
+  self.stateManager:Init({
+    owner = self,
+    RenderWidget = self.RenderWidget,
+    OnWidgetDidUpdate = self.OnWidgetDidUpdate,
+    UpdateDerivedState = self.UpdateDerivedState,
+    initState = initState
+  })
 end
 
 function UMG_PVP_FirstReward_C:OnDestruct()
+  self.stateManager:DeInit()
 end
 
 function UMG_PVP_FirstReward_C:OnAnimationFinished(anim)
@@ -137,20 +165,30 @@ function UMG_PVP_FirstReward_C:RefreshUI()
   })
   self.NRCImage_4:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.TextQuantity_1:SetVisibility(UE4.ESlateVisibility.Collapsed)
-  self.PVPQualifier_Star:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.RankName:SetText("")
   self.GridView:Clear()
   self.Popup_Downward:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.Popup_Downward:SetAutoCheckClose(true)
   self.AccessAuthorityBtn.OnClicked:Add(self, self.OnAccessAuthorityBtnClick)
-  self.SpineFlag:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self:StopAllAnimations()
   self:PlayAnimation(self.In)
 end
 
 function UMG_PVP_FirstReward_C:OnSelectedTabIndex(index)
+  local _, nextState = self:GetCurrAndNextState()
+  nextState.tabIndex = index
+  self:SetState(nextState)
+end
+
+function UMG_PVP_FirstReward_C:OnTabIndexChanged(index)
   if 1 == index then
-    self:ShowInSpineWidget(PVPRankedMatchModuleUtils.GetSelfRankStar())
+    local _, nextState = self:GetCurrAndNextState()
+    local seasonId = self.data:GetCurSeasonId()
+    local startCount = PVPRankedMatchModuleUtils.GetSelfRankStar()
+    nextState.selfStarCount = startCount
+    nextState.selfSeasonId = seasonId
+    nextState.selectRankSeasonInfo = nil
+    self:SetState(nextState)
     self:RefreshSeasonReward()
     self.NRCText_7:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.SeasonReward:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
@@ -160,7 +198,6 @@ function UMG_PVP_FirstReward_C:OnSelectedTabIndex(index)
   else
     self.NRCImage_4:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.TextQuantity_1:SetVisibility(UE4.ESlateVisibility.Collapsed)
-    self.PVPQualifier_Star:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.NRCText_7:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     self.SeasonReward:SetVisibility(UE4.ESlateVisibility.Collapsed)
     if self.ShareIsOpen then
@@ -194,17 +231,30 @@ function UMG_PVP_FirstReward_C:RefreshSeasonReward()
 end
 
 function UMG_PVP_FirstReward_C:UpdateStarUI()
-  self.PVPQualifier_Star:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
   local curRankConf = PVPRankedMatchModuleUtils.GetSelfPVPRankConf()
+  local starNum = curRankConf and curRankConf.star_num
   if PVPRankedMatchModuleUtils.IsSelfMaxRankStar() then
     self.NRCImage_4:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.TextQuantity_1:SetVisibility(UE4.ESlateVisibility.Collapsed)
-    self.PVPQualifier_Star:SwitcherStarIndex(0)
+    local option = self.PVPQualifier_Star.GetDefaultStartIndexOption(0)
+    self.PVPQualifier_Star:SwitcherStarIndex(option)
   else
     self.NRCImage_4:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     self.TextQuantity_1:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     self.TextQuantity_1:SetText(string.format("%d/%d", curRankConf.star_num, curRankConf.star_total))
-    self.PVPQualifier_Star:SwitcherStarIndex(curRankConf.star_num)
+    local option = self.PVPQualifier_Star.GetDefaultStartIndexOption(starNum)
+    self.PVPQualifier_Star:SwitcherStarIndex(option)
+  end
+end
+
+function UMG_PVP_FirstReward_C:RefreshSeasonRewardForRecord(tabIndex, selectRankSeasonInfo)
+  if 2 == tabIndex and selectRankSeasonInfo then
+    local rankStar = selectRankSeasonInfo and selectRankSeasonInfo.rank_star or 1
+    local isMaxRankStar = rankStar and PVPRankedMatchModuleUtils.IsMaxRankStar(rankStar)
+    if isMaxRankStar then
+      local option = self.PVPQualifier_Star.GetSeasonHistoryStartIndexOption(selectRankSeasonInfo)
+      self.PVPQualifier_Star:SwitcherStarIndex(option)
+    end
   end
 end
 
@@ -221,19 +271,24 @@ function UMG_PVP_FirstReward_C:SetTitle(season_id)
   end
 end
 
-function UMG_PVP_FirstReward_C:ShowInSpineWidget(rank_star, is_dan_grading)
+function UMG_PVP_FirstReward_C:SetupSpineWidget(atlasAsset, skeletonAsset)
+  local spineWidget = self.SpineFlag
+  spineWidget:ClearTrack(0)
+  spineWidget.skeletondata = skeletonAsset
+  spineWidget.atlas = atlasAsset
+  spineWidget:LuaSynchronizeProperties()
+end
+
+function UMG_PVP_FirstReward_C:ShowInSpineWidget(rank_star, is_dan_grading, is_top_master)
   if self.ShareDataSnapshot then
     self.ShareDataSnapshot.rank_star = rank_star
   end
   is_dan_grading = is_dan_grading or false
   rank_star = PVPRankedMatchModuleUtils.CorrectionRankStar(rank_star)
-  local top_master_info = self.data:GetTopMaster()
-  local is_top_master = top_master_info.type == _G.ProtoEnum.PVP_RANK_MASTER_TYPE.PVP_RANK_MASTER_TYPE_TOP_MASTER
   local incomingGradeAnimConf = self.data:GetGradingAnimConfig(rank_star, is_top_master, is_dan_grading)
   self.SpineFlag:SetToSetupPose()
   self.SpineFlag:SetAnimation(0, incomingGradeAnimConf.show, false)
   self.SpineFlag:AddAnimation(0, incomingGradeAnimConf.loop, true, 0)
-  self.SpineFlag:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
 end
 
 function UMG_PVP_FirstReward_C:ReceiveSeasonReward()
@@ -244,21 +299,21 @@ function UMG_PVP_FirstReward_C:RefreshNoneSeasonData()
   self.AccessAuthorityBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.Options:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.NRCText_54:SetVisibility(UE4.ESlateVisibility.Collapsed)
-  self.DataSwitcher:SetActiveWidgetIndex(1)
   self.NRCText_7:SetText(_G.DataConfigManager:GetLocalizationConf("PVP_rank_character4").msg)
   self:UpdateRank(1)
 end
 
 function UMG_PVP_FirstReward_C:RefreshSeasonRecord(record_season_data)
-  self.ShareDataSnapshot.TableDatas = self.data:GetSortSeasonDatas()
+  local data = self.data
+  self.ShareDataSnapshot.TableDatas = data and data:GetSortSeasonDatas() or {}
   self.ShareDataSnapshot.TableIndex = self.season_record_index
-  if not (self.sort_season_data and record_season_data) or record_season_data.season_id ~= self.sort_season_data.id then
-    return
-  end
   self.ShareDataSnapshot.CurSeasonData = record_season_data
-  self:SetTitle(self.sort_season_data.id)
+  local sort_season_data = self.sort_season_data
+  local sort_season_data_id = sort_season_data and sort_season_data.id or 1
+  self:SetTitle(sort_season_data_id)
   local is_dan_grading = false
-  local timestamp = PVPRankedMatchModuleUtils.GetTimestampFromTimeStr(self.sort_season_data.end_time)
+  local end_time = sort_season_data and sort_season_data.end_time or ""
+  local timestamp = PVPRankedMatchModuleUtils.GetTimestampFromTimeStr(end_time)
   local cur_timestamp = _G.ZoneServer:GetServerTime() / 1000
   if timestamp <= cur_timestamp then
     self.NRCText_7:SetText(_G.DataConfigManager:GetLocalizationConf("PVP_rank_character5").msg)
@@ -266,12 +321,15 @@ function UMG_PVP_FirstReward_C:RefreshSeasonRecord(record_season_data)
   else
     self.NRCText_7:SetText(_G.DataConfigManager:GetLocalizationConf("PVP_rank_character4").msg)
   end
-  if record_season_data.battle_cnt and record_season_data.battle_cnt > 0 then
-    self.DataSwitcher:SetActiveWidgetIndex(0)
-    self.SeasonMatchesText:SetText(tostring(record_season_data.battle_cnt))
-    self.VictoriesText:SetText(tostring(record_season_data.win_count))
-    self.WinningRateText:SetText(tostring(math.floor(record_season_data.win_count / record_season_data.battle_cnt * 100)) .. "%")
-    self.HighestWinningStreakText:SetText(tostring(record_season_data.max_win_streak))
+  local petListItemList = {}
+  local magicListItemList = {}
+  local battle_cnt = record_season_data and record_season_data.battle_cnt or 0
+  local DataSwitcherIndex = 1
+  local win_count = record_season_data and record_season_data.win_count or 0
+  local max_win_streak = record_season_data and record_season_data.max_win_streak or 0
+  local winRate = 0
+  if battle_cnt > 0 then
+    winRate = math.floor(win_count / battle_cnt * 100)
     local pet_use_info = {
       {},
       {},
@@ -280,24 +338,34 @@ function UMG_PVP_FirstReward_C:RefreshSeasonRecord(record_season_data)
       {},
       {}
     }
-    for i, v in ipairs(record_season_data.pet_use_info) do
+    local petUseInfo = record_season_data and record_season_data.pet_use_info or {}
+    for i, v in ipairs(petUseInfo) do
       pet_use_info[i] = v
     end
-    self.PetList:InitGridView(pet_use_info)
-    if record_season_data.magic_used then
-      self.MagicList:InitGridView(record_season_data.magic_used)
-    end
+    petListItemList = pet_use_info
+    magicListItemList = record_season_data and record_season_data.magic_used or {}
+    DataSwitcherIndex = 0
   end
-  local rank_star = 1
-  if record_season_data.rank_star then
-    rank_star = record_season_data.rank_star
+  self.SeasonMatchesText:SetText(tostring(battle_cnt))
+  self.VictoriesText:SetText(tostring(win_count))
+  self.WinningRateText:SetText(tostring(winRate) .. "%")
+  self.HighestWinningStreakText:SetText(tostring(max_win_streak))
+  self.PetList:InitGridView(petListItemList)
+  self.MagicList:InitGridView(magicListItemList)
+  self.DataSwitcher:SetActiveWidgetIndex(DataSwitcherIndex)
+  local rank_star = record_season_data and record_season_data.rank_star or 1
+  do
+    local _, nextState = self:GetCurrAndNextState()
+    nextState.isDanGrading = is_dan_grading or false
+    self:SetState(nextState)
   end
-  self:UpdateRank(rank_star, is_dan_grading)
+  if record_season_data then
+    self:UpdateRank(rank_star, is_dan_grading)
+  end
 end
 
 function UMG_PVP_FirstReward_C:UpdateRank(rank_star, is_dan_grading)
   is_dan_grading = is_dan_grading or false
-  self:ShowInSpineWidget(rank_star, is_dan_grading)
   local rank_conf = PVPRankedMatchModuleUtils.GetPvpRankConf(rank_star)
   if rank_conf then
     self.RankName:SetText(rank_conf.name)
@@ -306,7 +374,14 @@ end
 
 function UMG_PVP_FirstReward_C:OnSetPvpSeasonRecordData(data)
   self.season_record_data[data.season_id] = data
-  self:RefreshSeasonRecord(data)
+  local sort_season_data = self.sort_season_data
+  local sort_season_data_season_id = sort_season_data and sort_season_data.id
+  local dataSeasonId = data and data.season_id
+  if sort_season_data_season_id == dataSeasonId then
+    local _, nextState = self:GetCurrAndNextState()
+    nextState.selectRankSeasonInfo = data
+    self:SetState(nextState)
+  end
 end
 
 function UMG_PVP_FirstReward_C:OnAccessAuthorityBtnClick()
@@ -328,20 +403,21 @@ function UMG_PVP_FirstReward_C:OnSeasonRecordSelected(index, data_list)
   local e_year, e_month, e_day = string.match(self.sort_season_data.end_time, "(%d+)%-(%d+)%-(%d+)")
   self.NRCText_54:SetText(string.format("%s.%s.%s-%s.%s.%s", s_year, s_month, s_day, e_year, e_month, e_day))
   self.Popup_Downward:SetVisibility(UE4.ESlateVisibility.Collapsed)
-  self.DataSwitcher:SetActiveWidgetIndex(1)
-  self.PetList:Clear()
-  self.MagicList:Clear()
   local timestamp = PVPRankedMatchModuleUtils.GetTimestampFromTimeStr(self.sort_season_data.start_time)
   local cur_timestamp = _G.ZoneServer:GetServerTime() / 1000
-  if timestamp <= cur_timestamp then
-    if self.season_record_data[self.sort_season_data.id] == nil then
-      _G.NRCModuleManager:DoCmd(_G.PVPRankedMatchModuleCmd.SendPVPSeasonRecordQueryReq, self.sort_season_data.id)
-    else
-      self:RefreshSeasonRecord(self.season_record_data[self.sort_season_data.id])
-    end
+  local sortSeasonData = self.sort_season_data
+  local sortSeasonDataId = sortSeasonData and sortSeasonData.id
+  local seasonRecordData = self.season_record_data or {}
+  local recordSeasonData = seasonRecordData and sortSeasonDataId and seasonRecordData[sortSeasonDataId]
+  if timestamp <= cur_timestamp and nil == recordSeasonData then
+    _G.NRCModuleManager:DoCmd(_G.PVPRankedMatchModuleCmd.SendPVPSeasonRecordQueryReq, self.sort_season_data.id)
   else
-    self:RefreshSeasonRecord()
   end
+  goto lbl_81
+  ::lbl_81::
+  local _, nextState = self:GetCurrAndNextState()
+  nextState.selectRankSeasonInfo = recordSeasonData
+  self:SetState(nextState)
 end
 
 function UMG_PVP_FirstReward_C:CheckShowShareReward(data)
@@ -368,6 +444,459 @@ end
 function UMG_PVP_FirstReward_C:CheckShareIsOpen()
   self.shareBaseId = _G.Enum.ShareButtonType.SBT_PVP_RECORD
   self.ShareIsOpen = _G.NRCModuleManager:DoCmd(ShareUIModuleCmd.CheckIsOpen, self.shareBaseId)
+end
+
+function UMG_PVP_FirstReward_C.UpdateDerivedState(prevProps, currProps, prevState, currState, derivedState)
+  local prevStarCount = prevState and prevState.starCount
+  local currStarCount = currState and currState.starCount
+  local prevSelfStarCount = prevState and prevState.selfStarCount
+  local currSelfStarCount = currState and currState.selfStarCount
+  local prevSeasonId = prevState and prevState.seasonId
+  local currSeasonId = currState and currState.seasonId
+  local prevSelfSeasonId = prevState and prevState.selfSeasonId
+  local currSelfSeasonId = currState and currState.selfSeasonId
+  local prevLoadSpineAssetContext = prevState and prevState.loadSpineAssetContext
+  local currLoadSpineAssetContext = currState and currState.loadSpineAssetContext
+  local prevAtlasAsset = prevState and prevState.atlasAsset
+  local currAtlasAsset = currState and currState.atlasAsset
+  local prevSkeletonAsset = prevState and prevState.skeletonAsset
+  local currSkeletonAsset = currState and currState.skeletonAsset
+  local prevTabIndex = prevState and prevState.tabIndex
+  local currTabIndex = currState and currState.tabIndex
+  local prevSelectRankSeasonInfo = prevState and prevState.selectRankSeasonInfo
+  local currSelectRankSeasonInfo = currState and currState.selectRankSeasonInfo
+  local prevSelfIsTopMaster = prevState and prevState.selfIsTopMaster
+  local currSelfIsTopMaster = currState and currState.selfIsTopMaster
+  local prevIsSelectRankSeasonInfoTopMaster = prevState and prevState.isSelectRankSeasonInfoTopMaster
+  local currIsSelectRankSeasonInfoTopMaster = currState and currState.isSelectRankSeasonInfoTopMaster
+  local prevGetSelfIsTopMasterFn = prevState and prevState.getSelfIsTopMasterFn
+  local currGetSelfIsTopMasterFn = currState and currState.getSelfIsTopMasterFn
+  if prevStarCount ~= currStarCount or prevSeasonId ~= currSeasonId then
+    local pvpRankConf = PVPRankedMatchModuleUtils.GetPvpRankConf(currStarCount)
+    local atlasPath, skeletonDataPath
+    atlasPath, skeletonDataPath = PVPRankedMatchModuleUtils.GetSpineAssetPathsSeasonIdInRankConf(pvpRankConf, currSeasonId)
+    derivedState.atlasPath = atlasPath or UEPath.PVP_FlagSpineAtlasAsset
+    derivedState.skeletonDataPath = skeletonDataPath or UEPath.PVP_FlagSpineSkeletonDataAsset
+  end
+  if prevLoadSpineAssetContext ~= currLoadSpineAssetContext or prevAtlasAsset ~= currAtlasAsset or prevSkeletonAsset ~= currSkeletonAsset then
+    UMG_PVP_FirstReward_C.DeriveSpineFlagShow(currLoadSpineAssetContext, currAtlasAsset, currSkeletonAsset, derivedState)
+  end
+  if prevStarCount ~= currStarCount or prevTabIndex ~= currTabIndex then
+    UMG_PVP_FirstReward_C.DerivePvpQualifierStarShow(currTabIndex, currStarCount, derivedState)
+  end
+  if prevTabIndex ~= currTabIndex or prevSelfStarCount ~= currSelfStarCount or prevSelectRankSeasonInfo ~= currSelectRankSeasonInfo then
+    UMG_PVP_FirstReward_C.DeriveStarCount(currTabIndex, currSelfStarCount, currSelectRankSeasonInfo, derivedState)
+  end
+  if prevTabIndex ~= currTabIndex or prevSelfSeasonId ~= currSelfSeasonId or prevSelectRankSeasonInfo ~= currSelectRankSeasonInfo then
+    UMG_PVP_FirstReward_C.DeriveSeasonId(currTabIndex, currSelfSeasonId, currSelectRankSeasonInfo, derivedState)
+  end
+  if prevTabIndex ~= currTabIndex or prevGetSelfIsTopMasterFn ~= currGetSelfIsTopMasterFn then
+    UMG_PVP_FirstReward_C.DeriveSelfIsTopMaster(currTabIndex, currGetSelfIsTopMasterFn, derivedState)
+  end
+  if prevSelectRankSeasonInfo ~= currSelectRankSeasonInfo then
+    UMG_PVP_FirstReward_C.DeriveSelectSeasonInfoIsTopMaster(currSelectRankSeasonInfo, derivedState)
+  end
+  if prevTabIndex ~= currTabIndex or prevSelfIsTopMaster ~= currSelfIsTopMaster or prevIsSelectRankSeasonInfoTopMaster ~= currIsSelectRankSeasonInfoTopMaster then
+    UMG_PVP_FirstReward_C.DeriveIsTopMaster(currTabIndex, currSelfIsTopMaster, currIsSelectRankSeasonInfoTopMaster, derivedState)
+  end
+end
+
+function UMG_PVP_FirstReward_C.DeriveSpineFlagShow(loadAssetContext, atlasAsset, skeletonDataAsset, derivedState)
+  local isShow = false
+  if atlasAsset and skeletonDataAsset then
+    isShow = true
+  end
+  if loadAssetContext then
+    isShow = false
+  end
+  derivedState.isFlagShow = isShow
+end
+
+function UMG_PVP_FirstReward_C.DerivePvpQualifierStarShow(tabIndex, starCount, derivedState)
+  local isShow = false
+  if 1 == tabIndex then
+    isShow = true
+  else
+    local isMaxStar = PVPRankedMatchModuleUtils.IsMaxRankStar(starCount)
+    if isMaxStar then
+      isShow = true
+    end
+  end
+  derivedState.isPvpQualifierStarShow = isShow
+end
+
+function UMG_PVP_FirstReward_C.DeriveStarCount(tabIndex, selfStarCount, selectRankSeasonInfo, derivedState)
+  local starCount
+  if 1 == tabIndex then
+    if selfStarCount then
+      starCount = selfStarCount
+    end
+  elseif selectRankSeasonInfo then
+    starCount = selectRankSeasonInfo and selectRankSeasonInfo.rank_star or 1
+  end
+  if starCount then
+    derivedState.starCount = starCount
+  end
+end
+
+function UMG_PVP_FirstReward_C.DeriveSeasonId(tabIndex, selfSeasonId, selectRankSeasonInfo, derivedState)
+  local seasonId
+  if 1 == tabIndex then
+    if selfSeasonId then
+      seasonId = selfSeasonId
+    end
+  else
+    local rankSeasonId = selectRankSeasonInfo and selectRankSeasonInfo.season_id
+    if rankSeasonId then
+      seasonId = rankSeasonId
+    end
+  end
+  if seasonId then
+    derivedState.seasonId = seasonId
+  end
+end
+
+function UMG_PVP_FirstReward_C.DeriveSelfIsTopMaster(tabIndex, getSelfIsTopMasterFn, derivedState)
+  local selfIsTopMaster = false
+  if getSelfIsTopMasterFn then
+    selfIsTopMaster = getSelfIsTopMasterFn()
+  end
+  derivedState.selfIsTopMaster = selfIsTopMaster
+end
+
+function UMG_PVP_FirstReward_C.DeriveSelectSeasonInfoIsTopMaster(seasonInfo, derivedState)
+  local isSelectRankSeasonInfoTopMaster = false
+  local rankOrder = seasonInfo and seasonInfo.rank_order
+  local masterScore = seasonInfo and seasonInfo.master_score
+  local pvp_param12Conf = _G.DataConfigManager:GetBattleGlobalConfig("pvp_param12", false)
+  local minMasterScore = pvp_param12Conf and pvp_param12Conf.num
+  local pvp_param13Conf = _G.DataConfigManager:GetBattleGlobalConfig("pvp_param13", false)
+  local maxRankOrder = pvp_param13Conf and pvp_param13Conf.num
+  rankOrder = rankOrder or 0
+  if rankOrder <= 0 then
+    rankOrder = 10001
+  end
+  if minMasterScore and masterScore and masterScore >= minMasterScore and maxRankOrder and rankOrder and maxRankOrder >= rankOrder then
+    isSelectRankSeasonInfoTopMaster = true
+  end
+  derivedState.isSelectRankSeasonInfoTopMaster = isSelectRankSeasonInfoTopMaster
+end
+
+function UMG_PVP_FirstReward_C.DeriveIsTopMaster(tabIndex, selfIsTopMaster, isSelectSeasonInfoTopMaster, derivedState)
+  local isTopMaster = false
+  if 1 == tabIndex then
+    isTopMaster = selfIsTopMaster or false
+  else
+    isTopMaster = isSelectSeasonInfoTopMaster or false
+  end
+  derivedState.isTopMaster = isTopMaster
+end
+
+function UMG_PVP_FirstReward_C:RenderWidget(prevProps, currProps, prevState, currState)
+  local prevKey = prevProps and prevProps.key
+  local currKey = currProps and currProps.key
+  local prevIsFlagShow = prevState and prevState.isFlagShow or false
+  local currIsFlagShow = currState and currState.isFlagShow or false
+  local prevIsPvpQualifierStarShow = prevState and prevState.isPvpQualifierStarShow or false
+  local currIsPvpQualifierStarShow = currState and currState.isPvpQualifierStarShow or false
+  local prevSelectRankSeasonInfo = prevState and prevState.selectRankSeasonInfo
+  local currSelectRankSeasonInfo = currState and currState.selectRankSeasonInfo
+  if prevIsFlagShow ~= currIsFlagShow or prevKey ~= currKey then
+    self:RenderSpineFlagShow(currIsFlagShow)
+  end
+  if prevIsPvpQualifierStarShow ~= currIsPvpQualifierStarShow or prevKey ~= currKey then
+    self:RenderPvpQualifierStarShow(currIsPvpQualifierStarShow)
+  end
+end
+
+function UMG_PVP_FirstReward_C:RenderSpineFlagShow(isShow)
+  local visibility = UE.ESlateVisibility.Collapsed
+  if isShow then
+    visibility = UE.ESlateVisibility.SelfHitTestInvisible
+  end
+  self.SpineFlag:SetVisibility(visibility)
+end
+
+function UMG_PVP_FirstReward_C:RenderPvpQualifierStarShow(isShow)
+  local visibility = UE.ESlateVisibility.Collapsed
+  if isShow then
+    visibility = UE.ESlateVisibility.SelfHitTestInvisible
+  end
+  self.PVPQualifier_Star:SetVisibility(visibility)
+end
+
+function UMG_PVP_FirstReward_C:OnWidgetDidUpdate(prevProps, currProps, prevState, currState)
+  local prevKey = prevProps and prevProps.key
+  local currKey = currProps and currProps.key
+  local prevSkeletonDataPath = prevState and prevState.skeletonDataPath
+  local currSkeletonDataPath = currState and currState.skeletonDataPath
+  local prevAtlasPath = prevState and prevState.atlasPath
+  local currAtlasPath = currState and currState.atlasPath
+  local prevLoadSpineAssetContext = prevState and prevState.loadSpineAssetContext
+  local currLoadSpineAssetContext = currState and currState.loadSpineAssetContext
+  local prevAtlasAsset = prevState and prevState.atlasAsset
+  local currAtlasAsset = currState and currState.atlasAsset
+  local prevSkeletonAsset = prevState and prevState.skeletonAsset
+  local currSkeletonAsset = currState and currState.skeletonAsset
+  local prevStarCount = prevState and prevState.starCount
+  local currStarCount = currState and currState.starCount
+  local prevIsDanGrading = prevState and prevState.isDanGrading or false
+  local currIsDanGrading = currState and currState.isDanGrading or false
+  local prevTabIndex = prevState and prevState.tabIndex
+  local currTabIndex = currState and currState.tabIndex
+  local prevSelectRankSeasonInfo = prevState and prevState.selectRankSeasonInfo
+  local currSelectRankSeasonInfo = currState and currState.selectRankSeasonInfo
+  local prevShowSpineFlagAnimContext = prevState and prevState.showSpineFlagAnimContext
+  local currShowSpineFlagAnimContext = currState and currState.showSpineFlagAnimContext
+  if prevSkeletonDataPath ~= currSkeletonDataPath or prevAtlasPath ~= currAtlasPath then
+    self:OnSpineAssetPathChanged(currAtlasPath, currSkeletonDataPath)
+  end
+  if prevLoadSpineAssetContext ~= currLoadSpineAssetContext then
+    self:HandleLoadAssetContextChanged(prevLoadSpineAssetContext, currLoadSpineAssetContext)
+  end
+  if prevAtlasAsset ~= currAtlasAsset or prevSkeletonAsset ~= currSkeletonAsset then
+    self:OnSpineAssetChanged(currAtlasAsset, currSkeletonAsset)
+  end
+  if prevAtlasAsset ~= currAtlasAsset or prevSkeletonAsset ~= currSkeletonAsset or prevSelectRankSeasonInfo ~= currSelectRankSeasonInfo or prevTabIndex ~= currTabIndex or prevLoadSpineAssetContext ~= currLoadSpineAssetContext then
+    self:SyncStateForShowFlag()
+  end
+  if prevTabIndex ~= currTabIndex or prevSelectRankSeasonInfo ~= currSelectRankSeasonInfo then
+    self:RefreshSeasonRewardForRecord(currTabIndex, currSelectRankSeasonInfo)
+  end
+  if prevTabIndex ~= currTabIndex then
+    self:OnTabIndexChanged(currTabIndex)
+  end
+  if prevSelectRankSeasonInfo ~= currSelectRankSeasonInfo or prevKey ~= currKey then
+    self:RefreshSeasonRecord(currSelectRankSeasonInfo)
+  end
+  if prevShowSpineFlagAnimContext ~= currShowSpineFlagAnimContext then
+    self:HandleShowSpineFlagAnimContextChanged(currShowSpineFlagAnimContext)
+  end
+end
+
+function UMG_PVP_FirstReward_C:SyncStateForShowFlag()
+  local currState, nextState = self:GetCurrAndNextState()
+  local currLoadSpineAssetContext = currState and currState.loadSpineAssetContext
+  local currAtlasAsset = currState and currState.atlasAsset
+  local currSkeletonAsset = currState and currState.skeletonAsset
+  local currSelectRankSeasonInfo = currState and currState.selectRankSeasonInfo
+  local currTabIndex = currState and currState.tabIndex
+  if not currLoadSpineAssetContext and currAtlasAsset and currSkeletonAsset and (1 == currTabIndex or 2 == currTabIndex and currSelectRankSeasonInfo) then
+    local currShowSpineFlagAnimContext = currState and currState.showSpineFlagAnimContext
+    local currStarCountForFlag = currShowSpineFlagAnimContext and currShowSpineFlagAnimContext.starCount
+    local currIsDanGradingForFlag = currShowSpineFlagAnimContext and currShowSpineFlagAnimContext.isDanGrading
+    local currSeasonIdForFlag = currShowSpineFlagAnimContext and currShowSpineFlagAnimContext.seasonId
+    local currTabIndexForFlag = currShowSpineFlagAnimContext and currShowSpineFlagAnimContext.tabIndex
+    local currIsTopMasterForFlag = currShowSpineFlagAnimContext and currShowSpineFlagAnimContext.isTopMaster
+    local nextStarCountForFlag = currState and currState.starCount
+    local nextIsDanGradingForFlag = currState and currState.isDanGrading
+    local nextSeasonIdForFlag = currState and currState.seasonId
+    local nextTabIndexForFlag = currState and currState.tabIndex
+    local nextIsTopMasterForFlag = currState and currState.isTopMaster
+    if currStarCountForFlag ~= nextStarCountForFlag or currIsDanGradingForFlag ~= nextIsDanGradingForFlag or currSeasonIdForFlag ~= nextSeasonIdForFlag or currTabIndexForFlag ~= nextTabIndexForFlag or currIsTopMasterForFlag ~= nextIsTopMasterForFlag then
+      local nextContext = {}
+      table.copy(currShowSpineFlagAnimContext, nextContext)
+      nextContext.starCount = nextStarCountForFlag
+      nextContext.isDanGrading = nextIsDanGradingForFlag
+      nextContext.seasonId = nextSeasonIdForFlag
+      nextContext.tabIndex = nextTabIndexForFlag
+      nextContext.isTopMaster = nextIsTopMasterForFlag
+      nextState.showSpineFlagAnimContext = nextContext
+      self:SetState(nextState)
+    end
+  end
+end
+
+function UMG_PVP_FirstReward_C:OnSpineAssetPathChanged(atlasPath, skeletonDataPath)
+  if atlasPath and skeletonDataPath then
+    local context = {}
+    local contextId = os.msTime()
+    context.id = contextId
+    context.atlasPath = atlasPath
+    context.skeletonDataPath = skeletonDataPath
+    context.phase = LoadSpineAssetContextPhase.LoadAssets
+    local _, nextState = self:GetCurrAndNextState()
+    nextState.loadSpineAssetContext = context
+    nextState.atlasAsset = nil
+    nextState.skeletonAsset = nil
+    self:SetState(nextState)
+  end
+end
+
+function UMG_PVP_FirstReward_C:HandleLoadAssetContextChanged(prevContext, currContext)
+  if currContext then
+    self:HandleLoadAssetContextNextPhase(currContext)
+  end
+end
+
+function UMG_PVP_FirstReward_C:HandleLoadAssetContextNextPhase(context)
+  local phase = context and context.phase
+  if phase == LoadSpineAssetContextPhase.LoadAssets then
+    self:HandleLoadSpineAssets(context)
+  elseif phase == LoadSpineAssetContextPhase.WaitingForAssetLoading then
+    self:HandleWaitingForAssetLoading(context)
+  elseif phase == LoadSpineAssetContextPhase.AssetLoaded then
+    self:HandleSpineAssetLoaded(context)
+  elseif phase == LoadSpineAssetContextPhase.Complete then
+    self:HandleSpineAssetComplete(context)
+  end
+end
+
+function UMG_PVP_FirstReward_C:HandleLoadSpineAssets(context)
+  local currContextId = context and context.id
+  local nextContext = {}
+  table.copy(context, nextContext)
+  nextContext.phase = LoadSpineAssetContextPhase.WaitingForAssetLoading
+  nextContext.isLoadAtlasLoading = true
+  nextContext.isLoadSkeletonLoading = true
+  local _, nextState = self:GetCurrAndNextState()
+  nextState.loadSpineAssetContext = nextContext
+  self:SetState(nextState)
+  local atlasPath = context and context.atlasPath
+  local skeletonDataPath = context and context.skeletonDataPath
+  self:LoadPanelRes(atlasPath, 255, function(caller, request, asset)
+    self:LoadAtlasComplete(currContextId, true, asset)
+  end, function(caller, request, errorMessage)
+    self:LoadAtlasComplete(currContextId, false, errorMessage)
+  end)
+  self:LoadPanelRes(skeletonDataPath, 255, function(caller, request, asset)
+    self:LoadSkeletonDataComplete(currContextId, true, asset)
+  end, function(caller, request, errorMessage)
+    self:LoadSkeletonDataComplete(currContextId, false, errorMessage)
+  end)
+end
+
+function UMG_PVP_FirstReward_C:HandleWaitingForAssetLoading(context)
+  local currIsLoadAtlasCompleted = context and context.isLoadAtlasCompleted
+  local currIsLoadSkeletonCompleted = context and context.isLoadSkeletonCompleted
+  local currIsLoadingComplete = currIsLoadAtlasCompleted and currIsLoadSkeletonCompleted or false
+  if currIsLoadingComplete then
+    local _, nextState = self:GetCurrAndNextState()
+    local nextContext = {}
+    table.copy(context, nextContext)
+    nextContext.phase = LoadSpineAssetContextPhase.AssetLoaded
+    nextState.loadSpineAssetContext = nextContext
+    self:SetState(nextState)
+  end
+end
+
+function UMG_PVP_FirstReward_C:LoadAtlasComplete(contextId, ok, result1)
+  local currState, nextState = self:GetCurrAndNextState()
+  local currContext = currState and currState.loadSpineAssetContext
+  local currContextId = currContext and currContext.id
+  if contextId and currContextId == contextId then
+    local asset, errorMessage
+    if ok then
+      asset = result1
+    else
+      errorMessage = result1
+      Log.Error("[UMG_PVP_FirstReward_C:LoadAtlasComplete]", errorMessage)
+    end
+    local nextContext = {}
+    table.copy(currContext, nextContext)
+    nextContext.isLoadAtlasLoading = false
+    nextContext.isLoadAtlasCompleted = true
+    nextContext.atlasAsset = asset
+    nextState.loadSpineAssetContext = nextContext
+    Log.Info("UMG_PVP_FirstReward_C:LoadAtlasComplete", ok)
+    self:SetState(nextState)
+  end
+end
+
+function UMG_PVP_FirstReward_C:LoadSkeletonDataComplete(contextId, ok, result1)
+  local currState, nextState = self:GetCurrAndNextState()
+  local currContext = currState and currState.loadSpineAssetContext
+  local currContextId = currContext and currContext.id
+  if contextId and currContextId == contextId then
+    local asset, errorMessage
+    if ok then
+      asset = result1
+    else
+      errorMessage = result1
+      Log.Error("[UMG_PVP_FirstReward_C:LoadSkeletonDataComplete]", errorMessage)
+    end
+    local nextContext = {}
+    table.copy(currContext, nextContext)
+    nextContext.isLoadSkeletonLoading = false
+    nextContext.isLoadSkeletonCompleted = true
+    nextContext.skeletonAsset = asset
+    nextState.loadSpineAssetContext = nextContext
+    Log.Info("UMG_PVP_FirstReward_C:LoadSkeletonDataComplete", ok)
+    self:SetState(nextState)
+  end
+end
+
+function UMG_PVP_FirstReward_C:HandleSpineAssetLoaded(context)
+  local atlasAsset = context and context.atlasAsset
+  local skeletonAsset = context and context.skeletonAsset
+  local _, nextState = self:GetCurrAndNextState()
+  local nextContext = {}
+  table.copy(context, nextContext)
+  nextContext.phase = LoadSpineAssetContextPhase.Complete
+  nextState.loadSpineAssetContext = nextContext
+  if atlasAsset and skeletonAsset then
+    nextState.atlasAsset = atlasAsset
+    nextState.skeletonAsset = skeletonAsset
+  else
+    Log.Error("[UMG_PVP_FirstReward_C] Spine \232\181\132\230\186\144\229\138\160\232\189\189\229\164\177\232\180\165")
+    nextState.atlasAsset = nil
+    nextState.skeletonAsset = nil
+  end
+  Log.Info("UMG_PVP_FirstReward_C:HandleSpineAssetLoaded", atlasAsset, skeletonAsset)
+  self:SetState(nextState)
+end
+
+function UMG_PVP_FirstReward_C:HandleSpineAssetComplete(context)
+  local _, nextState = self:GetCurrAndNextState()
+  nextState.loadSpineAssetContext = nil
+  self:SetState(nextState)
+end
+
+function UMG_PVP_FirstReward_C:OnSpineAssetChanged(atlasAsset, skeletonAsset)
+  if atlasAsset and skeletonAsset then
+    self:SetupSpineWidget(atlasAsset, skeletonAsset)
+  end
+end
+
+function UMG_PVP_FirstReward_C:HandleShowSpineFlagAnimContextChanged(context)
+  local starCount = context and context.starCount
+  local isDanGrading = context and context.isDanGrading
+  local isTopMaster = context and context.isTopMaster
+  if starCount then
+    self:ShowInSpineWidget(starCount, isDanGrading, isTopMaster)
+  end
+end
+
+function UMG_PVP_FirstReward_C:GetProps()
+  local stateManager = self.stateManager
+  return stateManager and stateManager:GetProps() or {}
+end
+
+function UMG_PVP_FirstReward_C:GetState()
+  local stateManager = self.stateManager
+  return stateManager and stateManager:GetState() or {}
+end
+
+function UMG_PVP_FirstReward_C:GetCurrAndNextState()
+  local stateManager = self.stateManager
+  if stateManager then
+    return stateManager:GetCurrAndNextState()
+  end
+  return {}, {}
+end
+
+function UMG_PVP_FirstReward_C:SetProps(nextProps)
+  local stateManager = self.stateManager
+  if stateManager then
+    stateManager:SetProps(nextProps)
+  end
+end
+
+function UMG_PVP_FirstReward_C:SetState(nextState)
+  local stateManager = self.stateManager
+  if stateManager then
+    stateManager:SetState(nextState)
+  end
 end
 
 return UMG_PVP_FirstReward_C

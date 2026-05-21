@@ -42,7 +42,7 @@ function UMG_LiqueFactionLoader_C:OnConstruct()
 end
 
 function UMG_LiqueFactionLoader_C:OnLoadWidgetCallback()
-  self:OnCancel()
+  self:OnCancel(true)
 end
 
 function UMG_LiqueFactionLoader_C:OnWandChanged()
@@ -59,10 +59,10 @@ function UMG_LiqueFactionLoader_C:OnShow(LobbyMain)
   end
 end
 
-function UMG_LiqueFactionLoader_C:OnCancel(cancelType)
+function UMG_LiqueFactionLoader_C:OnCancel(bFromInit)
   local panelInst = self.AimUmgLoader:GetPanel()
   if panelInst and panelInst.OnCancel then
-    panelInst:OnCancel(cancelType)
+    panelInst:OnCancel(bFromInit)
   end
 end
 
@@ -77,7 +77,6 @@ function UMG_LiqueFactionLoader_C:ClearActorCache()
 end
 
 function UMG_LiqueFactionLoader_C:BindAimUMG()
-  self.AimUmgLoader:UnLoadPanel(true)
   self.player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
   if self.player then
     self.wandData = self.player:GetCurWandDataByMagicType(ProtoEnum.SceneMagicType.SMT_LIQUEFY)
@@ -91,7 +90,15 @@ function UMG_LiqueFactionLoader_C:LoadAimPanel(classPath)
   if not classPath then
     return
   end
-  local softClassPath = UE4.UKismetSystemLibrary.MakeSoftClassPath(tostring(classPath))
+  local packagePath = tostring(classPath)
+  local softClassPath = UE4.UKismetSystemLibrary.MakeSoftClassPath(packagePath)
+  if self.widgetClassPath == packagePath then
+    Log.Debug("UMG_LiqueFactionLoader_C:LoadAimPanel classPath is same skip load", packagePath)
+    return
+  end
+  Log.Debug("UMG_LiqueFactionLoader_C:LoadAimPanel new classPath", packagePath)
+  self.widgetClassPath = packagePath
+  self.AimUmgLoader:UnLoadPanel(true)
   self.AimUmgLoader:SetWidgetClass(softClassPath)
   self.AimUmgLoader:LoadPanel(nil)
 end
@@ -177,13 +184,16 @@ function UMG_LiqueFactionLoader_C:OnTick(InDeltaTime)
       end
     end
     local Ctrl = localPlayer:GetUEController()
-    local ScreenPos = UE.UWidgetLayoutLibrary.ProjectWorldLocationToWidgetPosition(Ctrl, self.LockedPlayer.viewObj:K2_GetActorLocation() + UpVector, nil, false)
+    local ScreenPos = UE4.FVector2D()
+    local ViewportPos = UE4.FVector2D()
+    local result = UE.UGameplayStatics.ProjectWorldToScreen(Ctrl, self.LockedPlayer.viewObj:K2_GetActorLocation() + UpVector, ScreenPos, false)
+    UE4.USlateBlueprintLibrary.ScreenToViewport(_G.UE4Helper.GetCurrentWorld(), ScreenPos, ViewportPos)
     if UE4Helper.IsPCMode() then
       local PCScale = UE4.FVector2D(0.88, 0.88)
       self:SetRenderScale(PCScale)
     end
     if self.LobbyMain then
-      self.LobbyMain.UMG_LiqueFaction.Slot:SetPosition(ScreenPos)
+      self.LobbyMain.UMG_LiqueFaction.Slot:SetPosition(ViewportPos)
     end
   else
     self.LastEnable = nil

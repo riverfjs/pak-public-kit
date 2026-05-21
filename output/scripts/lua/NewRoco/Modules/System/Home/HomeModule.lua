@@ -45,6 +45,8 @@ function HomeModule:OnConstruct()
   self:RegPanel("FriendFurniturePopup", "HomeFurnitureAtlas/UMG_FriendFurniture", _G.Enum.UILayerType.UI_LAYER_POPUP)
   self:RegPanel("FoodProcessingPanel", "FoodProcessing/UMG_FoodProcessingPanel", _G.Enum.UILayerType.UI_LAYER_FULLSCREEN, "In", nil, _G.NRCPanelEnum.PanelTypeEnum.PANEL_POPUP_TRANS)
   self:RegPanel("HomeownerWaitConfirmation", "UMG_EnterHome_HomeownerWaitConfirmation", _G.Enum.UILayerType.UI_LAYER_TOP)
+  self:RegPanel("FurnitureFilterPanel", "HomeFurnitureAtlas/UMG_FurnitureAtlasScreening", _G.Enum.UILayerType.UI_LAYER_POPUP)
+  self:RegPanel("FurniturePhotoView", "UMG_ViewPhoto", _G.Enum.UILayerType.UI_LAYER_POPUP)
 end
 
 function HomeModule:OnActive()
@@ -357,6 +359,7 @@ function HomeModule:TryLoadHomePlotStreamingLevel(Reason)
 end
 
 function HomeModule:OnEnterSceneFinishNtyAck(notify, isReconnecting, isEnteringCell, preMapId, mapID)
+  self.bNeedLandPosAll3pPlayers = false
   _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.SetLockOpenSubUI, false)
   local Module = NRCModuleManager:GetModule("SceneModule")
   if Module then
@@ -499,6 +502,8 @@ function HomeModule:OnHomeBasicInfoChangeNotify(action)
       end
       if Reason == ProtoEnum.ActorInfo_HomeBasicInfo.ReloadReason.RELOAD_REASON_LAYOUT_ROLLBACK then
         HomeIndoorSandbox.World:ReloadWorldConditionally(SelfHomeInfo)
+      elseif Reason == ProtoEnum.ActorInfo_HomeBasicInfo.ReloadReason.RELOAD_REASON_PLACE_PET_CHANGED then
+        HomeIndoorSandbox.Server.WorldData:UpdateFurnitureBindingInfo(SelfHomeInfo)
       end
       if HomeLevel ~= NewHomeLevel then
         HomeIndoorSandbox:DispatchEvent(HomeModuleEvent.OnVisitingRoomLevelChanged, NewHomeLevel)
@@ -599,6 +604,21 @@ function HomeModule:InMyHome()
   return self:InLocalMasterFarm() or HomeIndoorSandbox:InLocalMasterIndoor()
 end
 
+function HomeModule:LandPos_All3pPlayers(bEvalReloadCondition)
+  HomeIndoorSandbox:LogDebug("LandPos_All3pPlayers()", bEvalReloadCondition)
+  if bEvalReloadCondition and not self.bNeedLandPosAll3pPlayers then
+    return
+  end
+  self.bNeedLandPosAll3pPlayers = false
+  local LocalPlayer = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
+  local PlayerList = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_ALL_PLAYER)
+  for _, player in ipairs(PlayerList) do
+    if player ~= LocalPlayer then
+      player:LandPos(player:GetActorLocation())
+    end
+  end
+end
+
 function HomeModule:InternalNotifyReloadHomeIndoor(HomeInfo)
   local HomeName = HomeIndoorSandbox.Server.WorldData.HomeName
   local Title = LuaText.TIPS
@@ -608,6 +628,7 @@ function HomeModule:InternalNotifyReloadHomeIndoor(HomeInfo)
   Context:SetTitle(Title):SetContent(Content):SetMode(_G.DialogContext.Mode.OK_CANCEL):SetButtonText(LuaText.onlinemodule_11, nil):SetButtonText(LuaText.umg_dialog_2, LuaText.umg_dialog_1):SetCountdown(_G.DialogContext.Mode.OK, CountDown):SetCallback(nil, function(OK)
     if OK then
       self:StartTransitionUI(function()
+        self.bNeedLandPosAll3pPlayers = true
         HomeIndoorSandbox.World:ReloadWorldConditionally(HomeInfo)
         self.StopTransitionUIDelay = DelayManager:DelaySeconds(1, function()
           self.StopTransitionUIDelay = nil
@@ -829,14 +850,12 @@ function HomeModule:ReqEnterPlayerHomeIndoor(PlayUin, Callback, OnSuccess, OnFai
     end
   elseif homeOwnershipStatus == HomeEnum.HomeOwnershipStatus.OnLineOwnerOther then
     Title = LuaText.owner_enter_home_tips_title
-    local Friend = _G.NRCModuleManager:DoCmd(_G.FriendModuleCmd.GetLocalFindPlayerInfoByUin, _PlayUin)
-    local Name = Friend and Friend.name or ""
+    local Name = self:GetOnLinePlayerName(_PlayUin)
     Tips = string.format(LuaText.owner_enter_friends_home_tips_text, Name)
     OkBtnClickFunc = EnterHome
     NoBtnClickFunc = _OnFailed
   elseif homeOwnershipStatus == HomeEnum.HomeOwnershipStatus.OnLineMemberOther then
-    local Friend = _G.NRCModuleManager:DoCmd(_G.FriendModuleCmd.GetLocalFindPlayerInfoByUin, _PlayUin)
-    local Name = Friend and Friend.name or ""
+    local Name = self:GetOnLinePlayerName(_PlayUin)
     Title = LuaText.visitor_enter_home_tips_title
     Tips = string.format(LuaText.visitor_enter_home_tips_text, Name)
     OkBtnClickFunc = EnterHome
@@ -853,6 +872,7 @@ function HomeModule:ReqEnterPlayerHomeIndoor(PlayUin, Callback, OnSuccess, OnFai
   Ctx:SetMode(DialogContext.Mode.OK_CANCEL)
   Ctx:SetButtonText(OkBtnText, NoBtnText)
   Ctx:SetForceEnableFullScreenBtn()
+  Ctx:SetCancelAnyway(true)
   Ctx:SetCallback(self, function(_, IsOK, CancelType)
     if IsOK then
       if OkBtnClickFunc then
@@ -866,8 +886,12 @@ function HomeModule:ReqEnterPlayerHomeIndoor(PlayUin, Callback, OnSuccess, OnFai
       if NullClickFunc then
         NullClickFunc()
       end
-    elseif CancelType == CommonBtnEnum.DialogCancelType.CloseClickType and CloseBtnClickFunc then
-      CloseBtnClickFunc()
+    elseif CancelType == CommonBtnEnum.DialogCancelType.CloseClickType then
+      if CloseBtnClickFunc then
+        CloseBtnClickFunc()
+      end
+    elseif NullClickFunc then
+      NullClickFunc()
     end
   end)
   _G.NRCModuleManager:DoCmd(TipsModuleCmd.Dialog_OpenDialog, Ctx)
@@ -1280,6 +1304,7 @@ end
 
 function HomeModule:OnInteractWithHomePet(action, tag, baseData)
   if _G.HomeIndoorSandbox and _G.HomeIndoorSandbox:InOtherHomeIndoor() then
+    _G.DataModelMgr.PlayerDataModel:RefreshPetGidAndNum(action.home_pet_gids, action.total_steal_num)
     if action.interact_type == _G.ProtoEnum.SpaceAct_HomeInteractNotify.InteractType.ACTION_CROSS_DAY_RESET then
       _G.NRCModuleManager:DoCmd(_G.BigMapModuleCmd.SetHomePetNpcData, nil, _G.Enum.MapModuleDataUpdateReason.HOME_PET_TRIGGER_NUM_LIMIT)
     elseif action.interact_type == _G.ProtoEnum.SpaceAct_HomeInteractNotify.InteractType.ACTION_UPDATE_STEAL_INFO then
@@ -1583,6 +1608,17 @@ function HomeModule:OnUnlockedFurnitureInfoRsp(rsp)
           else
             furnitureData.reward_status = 2
           end
+        else
+          FurnitureAtlasInfo[handBookId] = {
+            id = handBookId,
+            unlock_time = v.unlock_timestamp
+          }
+          if v.reward_received then
+            FurnitureAtlasInfo[handBookId].reward_status = 3
+          else
+            FurnitureAtlasInfo[handBookId].reward_status = 2
+          end
+          self.data.FurnitureAtlasNum = self.data.FurnitureAtlasNum + 1
         end
       end
     end
@@ -1758,24 +1794,6 @@ end
 
 function HomeModule:OnCmdSendZoneHomePetFoodCompoundReq(foodConfId, productionNum, costItemIdList)
   self.data:SaveLastProcessingFoodId(foodConfId)
-  local req = _G.ProtoMessage:newZoneHomePetFoodCompoundReq()
-  req.food_cfg_id = foodConfId
-  req.food_num = productionNum
-  req.cost_item_cfg_id = costItemIdList
-  _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_HOME_PET_FOOD_COMPOUND_REQ, req, self, self.OnZoneHomePetFoodCompoundRsp, false, true)
-end
-
-function HomeModule:OnZoneHomePetFoodCompoundRsp(_rsp)
-  if 0 == _rsp.ret_info.ret_code then
-    local panel = self:GetPanel("FoodProcessingPanel")
-    if panel then
-      panel:RefreshRightView()
-    end
-    if (_rsp.ret_info.goods_reward or {}).rewards then
-      _G.NRCModuleManager:DoCmd(_G.NPCShopUIModuleCmd.OpenNPCShopItemRewardsPanel, _rsp.ret_info.goods_reward.rewards, "")
-    end
-    self:OnFoodProcessAdd(_rsp.ret_info.goods_reward.rewards)
-  end
 end
 
 function HomeModule:OnSystemFuncBlockingTypeChangeHandler(funcId, entranceBlockingType)
@@ -1941,13 +1959,6 @@ function HomeModule:OnZoneSceneHomeTeamUpdateNotify(notify)
         if selfInfo.status == ProtoEnum.HomeTeamMemberStatus.HOME_TEAM_MEMBER_STATUS_NONE or selfInfo.status == ProtoEnum.HomeTeamMemberStatus.HOME_TEAM_MEMBER_STATUS_INVITED then
           local ownerInfo = self:GetMemberByTeamInfo(teamInfo.team_leader_uin, teamInfo.members)
           self:TryOpenApplyVisitInfoHitHandle(teamInfo.team_type, ownerInfo)
-          if self.HomeTeamInvitationUICloseCountdown then
-            _G.DelayManager:CancelDelayById(self.HomeTeamInvitationUICloseCountdown)
-            self.HomeTeamInvitationUICloseCountdown = nil
-          end
-          self.HomeTeamInvitationUICloseCountdown = _G.DelayManager:DelaySeconds(10, function()
-            _G.NRCModuleManager:DoCmd(_G.FriendModuleCmd.OnCmdClosePlaneExchangeVisitsHint)
-          end, self)
         end
       end
     end
@@ -1962,6 +1973,14 @@ function HomeModule:OnZoneSceneHomeTeamUpdateNotify(notify)
     end
     _G.NRCModuleManager:DoCmd(_G.FriendModuleCmd.OnCmdClosePlaneExchangeVisitsHint)
   end
+  if self.HomeTeamInvitationUICloseCountdown then
+    _G.DelayManager:CancelDelayById(self.HomeTeamInvitationUICloseCountdown)
+    self.HomeTeamInvitationUICloseCountdown = nil
+  end
+  self.HomeTeamInvitationUICloseCountdown = _G.DelayManager:DelaySeconds(10, function()
+    _G.NRCModuleManager:DoCmd(_G.FriendModuleCmd.OnCmdClosePlaneExchangeVisitsHint)
+    self:CloseHomeownerWaitConfirmationPanel()
+  end, self)
 end
 
 function HomeModule:GetMemberByTeamInfo(memberUin, members)
@@ -2201,6 +2220,20 @@ function HomeModule:DrawPetLayEggArea()
     local sideLength = diagonalLength / math.sqrt(2)
     UE4.UKismetSystemLibrary.Abs_DrawDebugBox(_G.UE4Helper.GetCurrentWorld(), center, UE.FVector(sideLength, sideLength, 0), UE4.FLinearColor(1, 0, 0, 1), UE.FRotator(0, 0, 0), 0, 1)
   end
+end
+
+local TopKFurnitureEmptyCache = {}
+
+function HomeModule:OnCmdOpenFurnitureFilterPanel(...)
+  self:OpenPanel("FurnitureFilterPanel", ...)
+end
+
+function HomeModule:OnCmdCloseFurnitureFilterPanel()
+  self:ClosePanel("FurnitureFilterPanel")
+end
+
+function HomeModule:OpenFurniturePhotoView(DisplayData)
+  self:OpenPanel("FurniturePhotoView", DisplayData)
 end
 
 return HomeModule

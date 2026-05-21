@@ -75,22 +75,23 @@ function UMG_IconNpcPet_C:UpdateIcon()
       model = _G.DataConfigManager:GetModelConf(npcCfg.model_conf)
     end
     self.Crown:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    local npcCfg = self.uiData.npcCfg
     if self.uiData.status then
       if self.uiData.status == _G.ProtoEnum.LockStatus.ENUM.UNLOCKED then
         if self.WorldMapConfig.areaicon_explore then
           self:GetIconPath(self.WorldMapConfig.areaicon_explore)
         elseif self.WorldMapConfig.npcicon_unlock then
-          if self.uiData.npcCfg.genre == Enum.ClientNpcType.CNT_PETBOSS then
+          if npcCfg and npcCfg.genre == Enum.ClientNpcType.CNT_PETBOSS then
             self.Bg:SetPath(UEPath.MapIconNpcPetBg1)
             self:GetPetIconPath(self.WorldMapConfig.npcicon_unlock)
-          elseif self.uiData.npcCfg.genre == Enum.ClientNpcType.CNT_LEGENDARY_SPIRIT then
+          elseif npcCfg and npcCfg.genre == Enum.ClientNpcType.CNT_LEGENDARY_SPIRIT then
             self.Bg:SetPath(UEPath.MapIconNpcPetBg2)
             self:GetPetIconPath(self.WorldMapConfig.npcicon_unlock)
             self.Crown:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
           else
             self:GetPetIconPath(self.WorldMapConfig.npcicon_unlock)
           end
-        elseif self.uiData.npcCfg.genre and self.uiData.npcCfg.genre == _G.Enum.ClientNpcType.CNT_HOME_NPC and self.uiData.petInfo and self.uiData.petInfo.pet_gid then
+        elseif npcCfg and npcCfg.genre and npcCfg.genre == _G.Enum.ClientNpcType.CNT_HOME_NPC and self.uiData.petInfo and self.uiData.petInfo.pet_gid then
           local petData = HomeUtils.GetHomePetAdditionalInfo(self.uiData.petInfo.pet_gid)
           if petData then
             self.NRCpetIcon_1:SetIconPathAndMaterial(petData.base_conf_id, petData.mutation_type, petData.glass_info)
@@ -103,7 +104,7 @@ function UMG_IconNpcPet_C:UpdateIcon()
       elseif self.WorldMapConfig.npcicon_lock then
         self:GetIconPath(self.WorldMapConfig.npcicon_lock)
       elseif model then
-        if self.uiData.npcCfg.genre == Enum.ClientNpcType.CNT_PETBOSS then
+        if npcCfg and npcCfg.genre == Enum.ClientNpcType.CNT_PETBOSS then
           self.Pet:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
           self:SetPetPath(model.icon)
         else
@@ -114,7 +115,7 @@ function UMG_IconNpcPet_C:UpdateIcon()
       self.Pet:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
       self:SetPetPath(model.icon)
     end
-    if self.uiData.npcCfg.genre and self.uiData.npcCfg.genre == _G.Enum.ClientNpcType.CNT_HOME_NPC then
+    if npcCfg and npcCfg.genre and npcCfg.genre == _G.Enum.ClientNpcType.CNT_HOME_NPC then
       self:RefreshCornerIcon()
       self.NRCpetIcon_1:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
       self.NRCpetIcon:SetVisibility(UE4.ESlateVisibility.Collapsed)

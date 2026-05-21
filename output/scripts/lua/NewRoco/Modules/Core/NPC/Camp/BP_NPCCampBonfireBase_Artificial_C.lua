@@ -22,6 +22,14 @@ function BP_NPCCampBonfireBase_Artificial_C:UpdateData(ServerData, bIsReconnect)
   end
 end
 
+function BP_NPCCampBonfireBase_Artificial_C:OnRecycle()
+  self:ClearPet()
+end
+
+function BP_NPCCampBonfireBase_Artificial_C:UndoRecycle()
+  self:TryAppearLulu()
+end
+
 local CameraCheckExtent = UE4.FVector(15, 15, 15)
 
 function BP_NPCCampBonfireBase_Artificial_C:TryAdjustRotationOnTransfer()

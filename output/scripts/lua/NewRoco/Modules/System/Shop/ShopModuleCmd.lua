@@ -21,6 +21,7 @@ ShopModuleCmd.OnCmdGetShopSourceReturnFunc = "ShopModuleCmd.OnCmdGetShopSourceRe
 ShopModuleCmd.OnCmdSetShopSourceReturnFunc = "ShopModuleCmd.OnCmdSetShopSourceReturnFunc"
 ShopModuleCmd.OnCmdCloseRefreshBtn = "ShopModuleCmd.OnCmdCloseRefreshBtn"
 ShopModuleCmd.OnCmdGetClientMonthCardConf = "ShopModuleCmd.OnCmdGetClientMonthCardConf"
+ShopModuleCmd.TryOpenMonthCardTips = "ShopModuleCmd.TryOpenMonthCardTips"
 ShopModuleCmd.OnCmdGetMonthCardData = "ShopModuleCmd.OnCmdGetMonthCardData"
 ShopModuleCmd.OnCmdSetBuyingMonthCard = "ShopModuleCmd.OnCmdSetBuyingMonthCard"
 ShopModuleCmd.OnCmdCanBuyMonthCard = "ShopModuleCmd.OnCmdCanBuyMonthCard"

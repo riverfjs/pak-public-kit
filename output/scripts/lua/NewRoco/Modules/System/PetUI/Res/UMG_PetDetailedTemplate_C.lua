@@ -91,9 +91,6 @@ function UMG_PetDetailedTemplate_C:updateItemInfo(_data)
     self.Title_3:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
   local StriveLevel = _data[1].attrInfo.effort_add or 0
-  local StriveExp = _data[1].attrInfo.effort_exp or 0
-  local attrType = _data.conf.attribute
-  local Percent, CurExp, MaxExp = PetUtils.GetStrivePercent(attrType, StriveLevel, StriveExp)
   self.Text_Class:SetText(StriveLevel)
   self.Properbtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
 end

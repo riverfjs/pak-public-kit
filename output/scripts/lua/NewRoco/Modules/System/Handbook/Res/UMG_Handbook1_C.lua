@@ -29,10 +29,12 @@ function UMG_Handbook1_C:OnDestruct()
     _G.DataModelMgr.PlayerDataModel:RemovePanelMusic(Enum.MusicApplyType.MAT_UI, Enum.InterfaceType.IT_HANDBOOK)
   end
   _G.DataModelMgr.PlayerDataModel:RemoveEventListener(self, ENUM_PLAYER_DATA_EVENT.UPDATE_DATA, self.OnUpdateTopicPoint)
+  _G.NRCModuleManager:DoCmd(_G.HandbookModuleCmd.OnCloseAreaHandbookChangPanel, true)
 end
 
 function UMG_Handbook1_C:OnActive(arg)
   _G.NRCModuleManager:DoCmd(_G.TeachingManualModuleCmd.OnZoneUnlockTeachConditionReq, ProtoEnum.TeachClientTrigger.CT_PET_ALBUM)
+  _G.NRCModuleManager:DoCmd(_G.HandbookModuleCmd.AreaHandbookChangePanel, false)
   self.data = self.module:GetData("HandbookModuleData")
   self.module:UpdateSelectPageRedPoint()
   self:OnShowAwardText()
@@ -52,10 +54,6 @@ function UMG_Handbook1_C:OnActive(arg)
   self.NRCImage_3:SetPath(areaConf.cover_res)
   self.OpenIcon:SetPath(areaConf.cover_open_btn)
   self.OpenIcon_1:SetPath(areaConf.cover_open_btn_bg)
-  self.NRCText_166:SetText(LuaText.area_hb_entrance)
-  self.RedDot:SetupKey(125, {
-    areaConf.area_handbook_type
-  })
   self:UpdatePanelInfo()
   if arg and type(arg) == "table" and arg.isPlayCompass and _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.ShouldDisableForNow) then
     _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.OnLobbyMainInnerSubPanelLoaded)
@@ -174,25 +172,10 @@ function UMG_Handbook1_C:OnAddEventListener()
   self:AddButtonListener(self.Btnjiangbei, self.OnOpenCollectRewards)
   self:AddButtonListener(self.openBtn, self.OpenMainPanel)
   self:AddButtonListener(self.openBtn_1, self.OnOpenMainPanel)
-  self:AddButtonListener(self.BookButton, self.ClickChangeAreaBtn)
   self:AddButtonListener(self.CollectionProgressBtn, self.ClickCollectionProgressBtn)
   self:RegisterEvent(self, HandbookModuleEvent.OnUpdateHandbookCover, self.UpdateRewardText)
   self:RegisterEvent(self, HandbookModuleEvent.OnChangeAreaData, self.OnChangeArea)
   _G.DataModelMgr.PlayerDataModel:AddEventListener(self, ENUM_PLAYER_DATA_EVENT.UPDATE_DATA, self.OnUpdateTopicPoint)
-end
-
-function UMG_Handbook1_C:ClickChangeAreaBtn()
-  if self.AreaPanel == nil then
-    _G.NRCAudioManager:PlaySound2DAuto(1085, "UMG_Handbook1_C:ClickChangeAreaBtn")
-    local umgPath = "WidgetBlueprint'/Game/NewRoco/Modules/System/Handbook/Res/UMG_HandBook_RegionalSelection.UMG_HandBook_RegionalSelection_C'"
-    local resRequest = self:LoadPanelRes(umgPath, 255, self.OnAreaHandbookViewClassLoaded)
-  elseif self.AreaPanel:GetVisibility() == UE4.ESlateVisibility.Collapsed then
-    self.AreaPanel:SetVisibility(UE4.ESlateVisibility.Visible)
-    _G.NRCAudioManager:PlaySound2DAuto(1085, "UMG_Handbook1_C:ClickChangeAreaBtn")
-    self.AreaPanel:OnActive()
-  else
-    self.AreaPanel:OnClosePanel()
-  end
 end
 
 function UMG_Handbook1_C:ClickCollectionProgressBtn()
@@ -200,28 +183,9 @@ function UMG_Handbook1_C:ClickCollectionProgressBtn()
   _G.NRCModuleManager:DoCmd(_G.HandbookModuleCmd.OpenCollectionProgressTips)
 end
 
-function UMG_Handbook1_C:OnAreaHandbookViewClassLoaded(resRequest, viewClass)
-  local newAreaView = UE4.UWidgetBlueprintLibrary.Create(UE4Helper.GetCurrentWorld(), viewClass)
-  self:DynamicAddChildView(newAreaView)
-  local contentSlot = self.RegionalSelection:AddChild(newAreaView)
-  if contentSlot then
-    local anchors = UE4.FAnchors()
-    anchors.Minimum = UE4.FVector2D(0, 0)
-    anchors.Maximum = UE4.FVector2D(1, 1)
-    contentSlot:SetAnchors(anchors)
-    contentSlot:SetOffsets(UE4.FMargin())
-    contentSlot:SetAlignment(UE4.FVector2D(0.5, 0.5))
-  end
-  newAreaView:OnActive()
-  self.AreaPanel = newAreaView
-end
-
 function UMG_Handbook1_C:OnChangeArea(areaData)
   local redId = _G.NRCModuleManager:DoCmd(_G.HandbookModuleCmd.OnCmdGetCurAreaHandBookRedId, 0, 1)
   self.Dot:SetupKey(redId)
-  self.RedDot:SetupKey(125, {
-    areaData.conf.area_handbook_type
-  })
   self.cacheAreaData = areaData.conf
   self.OpenIcon:SetPath(areaData.conf.cover_open_btn)
   self.OpenIcon_1:SetPath(areaData.conf.cover_open_btn_bg)
@@ -255,6 +219,7 @@ function UMG_Handbook1_C:OpenMainPanel()
   self:Enable()
   UE4.UNRCAudioManager.Get():PlaySound2DAuto(40004001, "UMG_Handbook1_C:OpenMainPanel")
   self:PlayAnimation(self.Book_Open)
+  _G.NRCModuleManager:DoCmd(_G.HandbookModuleCmd.OnHideAreaHandbookChangPanel, true)
   _G.NRCModuleManager:DoCmd(HandbookModuleCmd.OpenHandbookPanel, {isShowBookAim = true})
   self.IsPlayAnimOpen = true
 end
@@ -265,6 +230,7 @@ function UMG_Handbook1_C:OnOpenMainPanel()
   end
   self:Enable()
   self:PlayAnimation(self.Book_Open)
+  _G.NRCModuleManager:DoCmd(_G.HandbookModuleCmd.OnHideAreaHandbookChangPanel, true)
   _G.NRCProfilerLog:NRCClickBtn(true, "HandbookMain")
   _G.NRCModuleManager:DoCmd(HandbookModuleCmd.OpenHandbookPanel, {isShowBookAim = true})
   self.IsPlayAnimOpen = true
@@ -273,6 +239,7 @@ end
 function UMG_Handbook1_C:OnOpenAimMainPanel()
   self:Enable()
   self:PlayAnimation(self.Book_Open)
+  _G.NRCModuleManager:DoCmd(_G.HandbookModuleCmd.OnHideAreaHandbookChangPanel, true)
   self.IsPlayAnimOpen = true
 end
 
@@ -280,6 +247,7 @@ function UMG_Handbook1_C:ReverseAnimation()
   self:UpdatePanelInfo()
   if self.enableView == false then
     self:PlayAnimationReverse(self.Book_Open)
+    _G.NRCModuleManager:DoCmd(_G.HandbookModuleCmd.OnHideAreaHandbookChangPanel, false)
   end
   self:Enable()
   self.IsPlayAnimOpen = false
@@ -300,6 +268,8 @@ function UMG_Handbook1_C:OnShowAwardText()
   if self.data == nil then
     return
   end
+  local handBookType = _G.NRCModuleManager:DoCmd(_G.HandbookModuleCmd.GetCurAreaHandbookEnum)
+  self.NRCSwitcher_0:SetActiveWidgetIndex(0)
   local isAward, isCollectAll = self.data:CheckAwardRedPoint()
   if isCollectAll then
     self.chengjiu:SetVisibility(UE4.ESlateVisibility.Collapsed)
@@ -316,27 +286,6 @@ function UMG_Handbook1_C:OnShowAwardText()
     self.chengjiu_1:SetText(_G.DataConfigManager:GetLocalizationConf("handbook_collect_progress_3").msg)
   end
   self.Quantity:SetText(self.data.CollectedCount)
-  local areaHandbookConfs = self.areaHandbookConfs
-  local handbookCount = 0
-  for i, v in pairs(self.areaHandbookConfs) do
-    handbookCount = handbookCount + 1
-  end
-  local unLockCoutn = 0
-  for _, conf in pairs(areaHandbookConfs) do
-    local isBan = true
-    local banId = conf.enter_ban_id
-    if nil == conf.enter_ban_id or 0 == conf.enter_ban_id then
-      isBan = false
-    else
-      local banConf = _G.DataConfigManager:GetUiEnterBanConf(banId)
-      isBan = _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.CheckUIFunctionBan, banConf.function_entrance, false)
-    end
-    if false == isBan then
-      unLockCoutn = unLockCoutn + 1
-    end
-  end
-  local testStr = string.format("%s/%s", unLockCoutn, handbookCount)
-  self.Text_quantity:SetText(testStr)
 end
 
 function UMG_Handbook1_C:OnClosePanel()
@@ -360,8 +309,13 @@ function UMG_Handbook1_C:OnAnimationFinished(anim)
   elseif anim == self.Change1 then
     self:OnChangeAnimationFinshed()
   elseif anim == self.Change2 then
-  elseif anim == self.Open and not self.bindActionSucceed then
-    self:BindInputAction()
+  elseif anim == self.Open then
+    if not self.bindActionSucceed then
+      self:BindInputAction()
+    end
+    if self.module:HasPanel("SeasonHandBookPhoto") then
+      self.module:ClosePanel("SeasonHandBookPhoto")
+    end
   end
 end
 
@@ -376,6 +330,12 @@ end
 function UMG_Handbook1_C:OnUpdateTopicPoint()
   local moneyCount = _G.DataModelMgr.PlayerDataModel:GetVItemCount(_G.Enum.VisualItem.VI_TOPIC_POINT)
   self.MoneyButton:SetInfo(_G.Enum.VisualItem.VI_TOPIC_POINT, moneyCount)
+end
+
+function UMG_Handbook1_C:OnClickedSeasonHandBook()
+  _G.NRCAudioManager:PlaySound2DAuto(41401003, "UMG_Handbook1_C:OnClickedSeasonHandBook")
+  _G.NRCModuleManager:DoCmd(_G.HandbookModuleCmd.OpenHandbookSeasonList)
+  _G.NRCModuleManager:DoCmd(_G.HandbookModuleCmd.OpenSeasonHandBook)
 end
 
 return UMG_Handbook1_C

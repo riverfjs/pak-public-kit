@@ -14,6 +14,7 @@ local ProtoMessage = require("Data.PB.ProtoMessage")
 local tcallForBattle = _G.tcallForBattle
 local AbilityID = require("NewRoco.Modules.Core.Scene.Component.Ability.AbilityID")
 local UIUtils = require("NewRoco.Utils.UIUtils")
+local LockWeatherReason = require("NewRoco.Modules.System.EnvSystem.LockWeatherReason")
 BattleUtils.BallThresholdCalculateData = {}
 BattleUtils.PCGCam = nil
 
@@ -59,20 +60,22 @@ function BattleUtils.CalculateCatchMonsterRate(ballId, monsterConfID, npcLevel, 
     local probCalculateParam = DataConfigManager:GetGlobalConfigNumByKeyType("prob_calculate_param", _G.DataConfigManager.ConfigTableId.GLOBAL_CONFIG, 10000) or 10000
     local historyTimeMaximum = DataConfigManager:GetGlobalConfigNumByKeyType("history_time_maximum", _G.DataConfigManager.ConfigTableId.BATTLE_GLOBAL_CONFIG, 27)
     catchTimes = math.min(catchTimes, historyTimeMaximum, petBaseCfg.Catch_Threshold_Bonustime)
-    local throwDistParamA = DataConfigManager:GetBattleGlobalConfig("min_throw_distance").num
-    local throwDistParamB = DataConfigManager:GetBattleGlobalConfig("throw_distance").num
-    throwDistParamB = throwDistParamB / probCalculateParam
-    local throwDistParamC = DataConfigManager:GetBattleGlobalConfig("throw_distance_reward").num
-    throwDistParamC = throwDistParamC / probCalculateParam
-    local throwDistParamD = DataConfigManager:GetBattleGlobalConfig("throw_distance_reward_max").num
-    throwDistParamD = throwDistParamD / probCalculateParam
-    local catchHardA = DataConfigManager:GetBattleGlobalConfig("catch_handicap").num / probCalculateParam
-    local levelParam = DataConfigManager:GetBattleGlobalConfig("level_modify").num / probCalculateParam
-    local detectedProb = 0
+    local isInSneakState = false
     if 0 == targetAIState & _G.ProtoEnum.ThrowTargetNpcAIStatus.DETECTED_AVATAR or dizzy then
-      detectedProb = DataConfigManager:GetBattleGlobalConfig("sneak_modify").num
-      detectedProb = detectedProb / probCalculateParam
+      isInSneakState = true
     end
+    local throwProb = 0
+    local ballActConf = _G.DataConfigManager:GetBallAct(ballId, true)
+    if ballActConf then
+      local calculatorDist = ballActConf.beyond_fly_distance
+      if throwDist > calculatorDist then
+        local addDist = throwDist - calculatorDist
+        local addProb = ballActConf.fly_growth_coefficient
+        local maxProb = ballActConf.fly_growth_max
+        throwProb = math.min(addDist % addProb, maxProb / probCalculateParam)
+      end
+    end
+    local sneakModify = BattleUtils.CalculateSneakModifyValue(false, isInSneakState, ballId, throwProb)
     local weatherType = _G.NRCModuleManager:DoCmd(EnvSystemModuleCmd.GetCurrentWeatherType)
     local ballThresholdData = {
       ballConfID = ballId,
@@ -82,16 +85,8 @@ function BattleUtils.CalculateCatchMonsterRate(ballId, monsterConfID, npcLevel, 
       bMatchBallAIState = bMatchBallState
     }
     local ballThreshold = BattleUtils.CalculateBallThresholdBattle(ballThresholdData) / probCalculateParam
-    local worldLevel = _G.DataModelMgr.PlayerDataModel:GetPlayerWorldLevel() + 1
-    local dizzyProb = 0
-    if dizzy then
-      dizzyProb = _G.DataConfigManager:GetBattleGlobalConfig("magicstar_catch_modify").num / probCalculateParam
-    end
-    local throwProb = math.max((1 - ((throwDist - throwDistParamA) * throwDistParamB + 1) ^ (-throwDistParamC)) * throwDistParamD, 0)
     local ballProb = BattleUtils.CalculateBallProb(ballThresholdData) / probCalculateParam
     local curHp = 1
-    local overThreshold = monsterCfg.Catch_difficulty_OverThreshold / probCalculateParam
-    local underThreshold = monsterCfg.Catch_difficulty_UnderThreshold / probCalculateParam
     local handBookReward, totalAwardCatch, totalAwardPetCatchChange = _G.NRCModuleManager:DoCmd(_G.HandbookModuleCmd.GetPetHandbookCurrentProgressTaskReward, monsterCfg.base_id)
     local handBookCatchChangeProb = 0
     local handBookProb = 0
@@ -104,28 +99,19 @@ function BattleUtils.CalculateCatchMonsterRate(ballId, monsterConfID, npcLevel, 
     elseif minThreshold > calcThresholdBefore then
       calcThresholdBefore = minThreshold
     end
-    local peerModify = 0
-    local localPlayer = NRCModuleManager:DoCmd(PlayerModuleCmd.GET_LOCAL_PLAYER)
-    if localPlayer then
-      local bAddPeerModify = localPlayer.statusComponent:HasStatus(ProtoEnum.WorldPlayerStatusType.WPST_HAND_IN_HAND) or localPlayer.statusComponent:HasStatus(ProtoEnum.WorldPlayerStatusType.WPST_HAND_IN_HAND_2P) or localPlayer.viewObj.BP_RideComponent:IsInDoubleRide()
-      if bAddPeerModify then
-        peerModify = DataConfigManager:GetBattleGlobalConfig("peer_modify").num / probCalculateParam
-      end
+    local peerModify = BattleUtils.CalculatePeerModify() / probCalculateParam
+    local petThreshold = calcThresholdBefore / probCalculateParam
+    local seasonModify = 0
+    local seasonProb = _G.NRCModeManager:DoCmd(_G.MagicManualModuleCmd.OnGetSeasonManualProbAdd)
+    if seasonProb and seasonProb.season_adv_prob_add then
+      seasonModify = seasonProb.season_adv_prob_add
     end
-    local calcThreshold = math.min(1, (calcThresholdBefore / probCalculateParam + handBookProb) * (1 + detectedProb + ballThreshold + peerModify))
-    local thresholdHp = calcThreshold
-    local tempProb = overThreshold * ballProb + handBookCatchChangeProb
-    if GlobalConfig.ShowCatchRate then
-      local GrowRate = monsterCatchConf.catch_guarant_rate / probCalculateParam
-      local lastGuaranteeRate = guaranteeRate * GrowRate
-      local ballGuaranteeProb = ballCfg.guarant_efficiency / probCalculateParam
-      Log.Error("\229\174\160\231\137\169\230\141\149\230\141\137\230\166\130\231\142\135\229\143\130\230\149\176", ballProb, detectedProb, thresholdHp, calcThresholdBefore, handBookProb, handBookCatchChangeProb, overThreshold, tempProb, guaranteeRate, lastGuaranteeRate, GrowRate, ballGuaranteeProb, lastCatchTime, peerModify)
-    end
-    return BattleUtils.CalculateFinalRate(ballId, monsterConfID, npcLevel, curHp, thresholdHp, handBookCatchChangeProb, ballProb, guaranteeRate, lastCatchTime)
+    local thresholdHp = BattleUtils.CalculatePetThresholdHp(petThreshold, ballThreshold, handBookProb, sneakModify, peerModify)
+    return BattleUtils.CalculateFinalRate(ballId, monsterConfID, npcLevel, curHp, thresholdHp, handBookCatchChangeProb, ballProb, guaranteeRate, lastCatchTime, seasonModify)
   end
 end
 
-function BattleUtils.CalculateFinalRate(ballId, monsterConfID, npcLevel, curHpPercent, thresholdHp, handBookCatchChangeProb, calcBallProb, guaranteeRate, lastCatchTime)
+function BattleUtils.CalculateFinalRate(ballId, monsterConfID, npcLevel, curHpPercent, thresholdHp, handBookCatchChangeProb, calcBallProb, guaranteeRate, lastCatchTime, seasonModify)
   if nil == npcLevel then
     Log.Error("BattleUtils.CalculateFinalRate npcLevel == nil\239\188\140\232\175\183\230\163\128\230\159\165")
     npcLevel = 0
@@ -141,6 +127,7 @@ function BattleUtils.CalculateFinalRate(ballId, monsterConfID, npcLevel, curHpPe
     Log.Error("BattleUtils CalculateCatchMonsterRate Error: MonsterCfg not found")
     return nil
   end
+  seasonModify = seasonModify or 0
   local probCalculateParam = DataConfigManager:GetGlobalConfigNumByKeyType("prob_calculate_param", _G.DataConfigManager.ConfigTableId.GLOBAL_CONFIG, 10000) or 10000
   if not probCalculateParam then
     Log.Error("BattleUtils CalculateCatchMonsterRate Error: probCalculateParam not found")
@@ -172,17 +159,45 @@ function BattleUtils.CalculateFinalRate(ballId, monsterConfID, npcLevel, curHpPe
   if -1 ~= ballCfg.static_catch_rate then
     rate = ballCfg.static_catch_rate / probCalculateParam
   else
-    rate = math.min(1, math.min((overThreshold + guaranteeRate * bZero) * ballProb + handBookCatchChangeProb, maxCatchRate) * math.min(1, catchHardA ^ (curHp / thresholdHp - 1)) / levelParam ^ math.max(0, npcLevel - petTopLevel))
+    rate = math.min(1, math.min((overThreshold + guaranteeRate * bZero) * ballProb + handBookCatchChangeProb + seasonModify, maxCatchRate) * math.min(1, catchHardA ^ (curHp / thresholdHp - 1)) / levelParam ^ math.max(0, npcLevel - petTopLevel))
   end
   if GlobalConfig.ShowCatchRate then
-    Log.Error("\229\174\160\231\137\169\230\141\149\230\141\137\230\166\130\231\142\135\228\184\186", rate, timeInterval)
+    Log.PrintScreenMsgRed("[\230\141\149\230\141\137\230\166\130\231\142\135]\230\136\144\229\138\159\231\142\135(%f) = MIN(1, MIN((\229\159\186\231\161\128\230\141\149\230\141\137\230\166\130\231\142\135:%f+\228\191\157\229\186\149\230\141\149\230\141\137\230\166\130\231\142\135:%f)*\231\144\131\231\167\141\228\191\174\230\173\163:%f+\229\155\190\233\137\180\230\166\130\231\142\135\228\191\174\230\173\163:%f+\232\181\155\229\173\163\230\137\139\229\134\140\230\166\130\231\142\135\228\191\174\230\173\163:%f, \230\156\128\229\164\167\230\141\149\230\141\137\231\142\135:%f)\n          * MIN(1, \229\133\168\229\177\128\230\141\149\230\141\137\233\154\190\229\186\166\229\184\184\230\149\176:%f^(\229\189\147\229\137\141\232\161\128\233\135\143HP:%f/\229\174\160\231\137\169\233\152\136\229\128\188HP:%f-1)) / (\231\173\137\231\186\167\228\191\174\230\173\163\229\143\130\230\149\176:%f^MAX(0\239\188\140\233\135\142\231\148\159\231\178\190\231\129\181\231\173\137\231\186\167:%f-\231\173\137\231\186\167\228\184\138\233\153\144:%f))", rate, overThreshold, guaranteeRate, ballProb, handBookCatchChangeProb, seasonModify, maxCatchRate, catchHardA, curHp, thresholdHp, levelParam, npcLevel, petTopLevel)
   end
   return rate
 end
 
-function BattleUtils.CalculatePetThresholdHpBattle(petThreshold, ballThreshold, handBookProb, detectedProb)
-  local calcThreshold = math.min(1, (petThreshold + handBookProb) * (1 + ballThreshold + detectedProb))
+function BattleUtils.CalculatePetThresholdHp(petThreshold, ballThreshold, handBookProb, detectedProb, peerModify)
+  local calcThreshold = math.min(1, (petThreshold + handBookProb) * (1 + ballThreshold + detectedProb + peerModify))
+  if GlobalConfig.ShowCatchRate then
+    Log.PrintScreenMsgRed("[\230\141\149\230\141\137\230\166\130\231\142\135]\229\174\160\231\137\169\233\152\136\229\128\188HP(%f) = math.min(1,(\229\159\186\231\161\128\233\152\136\229\128\188:%f + \229\155\190\233\137\180\233\152\136\229\128\188\228\191\174\230\173\163:%f) * (1 + \230\138\128\229\183\167\231\144\131\228\191\174\230\173\163:%f + \229\129\183\232\162\173\228\191\174\230\173\163:%f + \229\144\140\232\161\140\228\191\174\230\173\163:%f))", calcThreshold, petThreshold, handBookProb, ballThreshold, detectedProb, peerModify)
+  end
   return calcThreshold
+end
+
+function BattleUtils.CalculateSneakModifyValue(isInBattle, isBackStabState, ballConfID, remoteHitModify)
+  local sneakModifyResult = 0
+  local ballDefaultSneakModify = 0
+  local ballSneakModifyValue = 0
+  if ballConfID then
+    local probCalculateParam = DataConfigManager:GetGlobalConfigNumByKeyType("prob_calculate_param", _G.DataConfigManager.ConfigTableId.GLOBAL_CONFIG, 10000) or 10000
+    local ballActConf = _G.DataConfigManager:GetBallAct(ballConfID, true)
+    if ballActConf then
+      ballDefaultSneakModify = (ballActConf and ballActConf.default_sneak_modify ~= "" and ballActConf.default_sneak_modify or 0) / probCalculateParam
+      if isBackStabState then
+        ballSneakModifyValue = (ballActConf and ballActConf.sneak_modify or 0) / probCalculateParam
+      end
+    end
+  end
+  sneakModifyResult = math.max(sneakModifyResult, ballDefaultSneakModify)
+  sneakModifyResult = math.max(sneakModifyResult, ballSneakModifyValue)
+  if not isInBattle and remoteHitModify then
+    sneakModifyResult = math.max(sneakModifyResult, remoteHitModify)
+  end
+  if GlobalConfig.ShowCatchRate then
+    Log.PrintScreenMsgRed("[\230\141\149\230\141\137\230\166\130\231\142\135]\229\129\183\232\162\173\228\191\174\230\173\163(%f): \231\137\185\229\174\154\231\144\131\229\129\183\232\162\173\228\191\174\230\173\163(%f), \231\138\182\230\128\129\229\129\183\232\162\173\228\191\174\230\173\163(%f) \229\177\128\229\164\150\232\191\156\232\183\157\231\166\187\229\129\183\232\162\173\228\191\174\230\173\163(%f)", sneakModifyResult, ballDefaultSneakModify, ballSneakModifyValue, remoteHitModify)
+  end
+  return sneakModifyResult
 end
 
 function BattleUtils.CalculateBallProb(data)
@@ -195,91 +210,36 @@ function BattleUtils.CalculateBallProb(data)
     Log.Error("BattleUtils.CalculateBallThresholdBattle: ball cfg can not be found with id:", data.ballID)
     return 0
   end
-  if ballCfg.ball_type == ProtoEnum.BallType.BT_WEATHER then
-    if nil == data.weatherID then
-      Log.Error("BattleUtils.CalculateBallThresholdBattle: BallType.BT_WEATHER receive nil weatherID")
+  if ballCfg.ball_type == ProtoEnum.BallType.BT_CONDITION then
+    if BattleUtils.CalculateBallProb_CONDITION(data, ballCfg) then
+      return ballCfg.ball_prob
+    else
       return ballCfg.Noeffect_ball_prob
     end
-    local curWeatherType = Enum.WeatherType.WT_NONE
-    if data.isInBattle then
-      local weatherConf = _G.DataConfigManager:GetWeatherConf(_G.BattleManager.battleRuntimeData.curWeatherID)
-      if not weatherConf then
-        Log.Error("\230\148\182\229\136\176\230\156\170\229\174\154\228\185\137\231\154\132weather_id:", _G.BattleManager.battleRuntimeData.curWeatherID)
-        return ballCfg.Noeffect_ball_prob
-      end
-      curWeatherType = weatherConf.weather_type
-    else
-      curWeatherType = data.weatherID
-    end
-    for _, param in ipairs(ballCfg.param_weather) do
-      if param == curWeatherType then
-        return ballCfg.ball_prob
-      end
-    end
-    return ballCfg.Noeffect_ball_prob
-  elseif ballCfg.ball_type == ProtoEnum.BallType.BT_PETSDT then
-    if nil == data.petID then
-      Log.Error("BattleUtils.CalculateBallThresholdBattle: BallType.BT_PETSDT receive nil petID")
-      return ballCfg.Noeffect_ball_prob
-    end
-    local types = {}
-    if data.isInBattle then
-      local battlePet = _G.BattleManager.battlePawnManager:GetPetByGuid(data.petID)
-      types = battlePet.card:GetPetType()
-    else
-      local petBaseId = _G.DataConfigManager:GetMonsterConf(data.petID).base_id
-      types = _G.DataConfigManager:GetPetbaseConf(petBaseId).unit_type
-    end
-    for _, param in ipairs(ballCfg.param_skilldam) do
-      for _, type in ipairs(types) do
-        if type == param then
-          return ballCfg.ball_prob
-        end
-      end
-    end
-    return ballCfg.Noeffect_ball_prob
-  elseif ballCfg.ball_type == ProtoEnum.BallType.BT_PETACT then
-    if data.isInBattle then
-      if nil == data.petID then
-        Log.Error("BattleUtils.CalculateBallThresholdBattle: BallType.BT_PETACT receive nil petID")
-        return ballCfg.Noeffect_ball_prob
-      end
-      if nil == ballCfg.param_buff or 0 == #ballCfg.param_buff then
-        return ballCfg.Noeffect_ball_prob
-      end
-      local card = _G.BattleManager.battlePawnManager:GetCardByGuid(data.petID)
-      for _, param in ipairs(ballCfg.param_buff) do
-        local buffs = card.petInfo.battle_inside_pet_info.buffs
-        if buffs then
-          for _, buff in ipairs(buffs) do
-            local buffCfg = _G.DataConfigManager:GetBuffConf(buff.buff_id)
-            if buffCfg then
-              for _, sign in ipairs(buffCfg.buff_groupsigns) do
-                if sign == param then
-                  return ballCfg.ball_prob
-                end
-              end
-            end
-          end
-        else
-          return ballCfg.Noeffect_ball_prob
-        end
-      end
-    else
-      if nil == data.petID then
-        Log.Error("BattleUtils.CalculateBallThresholdBattle: BallType.BT_PETACT receive nil petID")
-        return ballCfg.Noeffect_ball_prob
-      end
-      if nil == ballCfg.param_buff or 0 == #ballCfg.param_buff then
-        return ballCfg.Noeffect_ball_prob
-      end
-      if data.bMatchBallAIState == true then
-        return ballCfg.ball_prob
-      end
-    end
-    return ballCfg.Noeffect_ball_prob
   elseif ballCfg.ball_type == ProtoEnum.BallType.BT_NORMAL then
-    return ballCfg.ball_prob
+    if BattleUtils.CalculateBallProb_Normal(data, ballCfg) then
+      return ballCfg.ball_prob
+    else
+      return ballCfg.Noeffect_ball_prob
+    end
+  elseif ballCfg.ball_type == ProtoEnum.BallType.BT_WEATHER then
+    if BattleUtils.CalculateBallProb_WEATHER(data, ballCfg) then
+      return ballCfg.ball_prob
+    else
+      return ballCfg.Noeffect_ball_prob
+    end
+  elseif ballCfg.ball_type == ProtoEnum.BallType.BT_PETSDT then
+    if BattleUtils.CalculateBallProb_PETSDT(data, ballCfg) then
+      return ballCfg.ball_prob
+    else
+      return ballCfg.Noeffect_ball_prob
+    end
+  elseif ballCfg.ball_type == ProtoEnum.BallType.BT_PETACT then
+    if BattleUtils.CalculateBallProb_PETACT(data, ballCfg) then
+      return ballCfg.ball_prob
+    else
+      return ballCfg.Noeffect_ball_prob
+    end
   end
   return ballCfg.Noeffect_ball_prob
 end
@@ -294,93 +254,147 @@ function BattleUtils.CalculateBallThresholdBattle(data)
     Log.Error("BattleUtils.CalculateBallThresholdBattle: ball cfg can not be found with id:", data.ballID)
     return 0
   end
-  if ballCfg.ball_type == ProtoEnum.BallType.BT_WEATHER then
-    if nil == data.weatherID then
-      Log.Error("BattleUtils.CalculateBallThresholdBattle: BallType.BT_WEATHER receive nil weatherID")
+  if ballCfg.ball_type == ProtoEnum.BallType.BT_CONDITION then
+    if BattleUtils.CalculateBallProb_CONDITION(data, ballCfg) then
+      return ballCfg.ball_threshold_modify
+    else
       return 0
     end
-    local curWeatherType = Enum.WeatherType.WT_NONE
-    if data.isInBattle then
-      local weatherConf = _G.DataConfigManager:GetWeatherConf(_G.BattleManager.battleRuntimeData.curWeatherID)
-      if not weatherConf then
-        Log.Error("\230\148\182\229\136\176\230\156\170\229\174\154\228\185\137\231\154\132weather_id:", _G.BattleManager.battleRuntimeData.curWeatherID)
-        return 0
-      end
-      curWeatherType = weatherConf.weather_type
+  elseif ballCfg.ball_type == ProtoEnum.BallType.BT_NORMAL then
+    if BattleUtils.CalculateBallProb_Normal(data, ballCfg) then
+      return ballCfg.ball_threshold_modify
     else
-      curWeatherType = data.weatherID
+      return 0
     end
-    for _, param in ipairs(ballCfg.param_weather) do
-      if param == curWeatherType then
-        return ballCfg.ball_threshold_modify
-      end
+  elseif ballCfg.ball_type == ProtoEnum.BallType.BT_WEATHER then
+    if BattleUtils.CalculateBallProb_WEATHER(data, ballCfg) then
+      return ballCfg.ball_threshold_modify
+    else
+      return 0
     end
-    return 0
   elseif ballCfg.ball_type == ProtoEnum.BallType.BT_PETSDT then
-    if nil == data.petID then
-      Log.Error("BattleUtils.CalculateBallThresholdBattle: BallType.BT_PETSDT receive nil petID")
+    if BattleUtils.CalculateBallProb_PETSDT(data, ballCfg) then
+      return ballCfg.ball_threshold_modify
+    else
       return 0
     end
-    local types = {}
-    if data.isInBattle then
-      local battlePet = _G.BattleManager.battlePawnManager:GetPetByGuid(data.petID)
-      types = battlePet.card:GetPetType()
-    else
-      local petBaseId = _G.DataConfigManager:GetMonsterConf(data.petID).base_id
-      types = _G.DataConfigManager:GetPetbaseConf(petBaseId).unit_type
-    end
-    for _, param in ipairs(ballCfg.param_skilldam) do
-      for _, type in ipairs(types) do
-        if type == param then
-          return ballCfg.ball_threshold_modify
-        end
-      end
-    end
-    return 0
   elseif ballCfg.ball_type == ProtoEnum.BallType.BT_PETACT then
-    if data.isInBattle then
-      if nil == data.petID then
-        Log.Error("BattleUtils.CalculateBallThresholdBattle: BallType.BT_PETACT receive nil petID")
-        return 0
-      end
-      if nil == ballCfg.param_buff or 0 == #ballCfg.param_buff then
-        return 0
-      end
-      local card = _G.BattleManager.battlePawnManager:GetCardByGuid(data.petID)
-      for _, param in ipairs(ballCfg.param_buff) do
-        local buffs = card.petInfo.battle_inside_pet_info.buffs
-        if buffs then
-          for _, buff in ipairs(buffs) do
-            local buffCfg = _G.DataConfigManager:GetBuffConf(buff.buff_id)
-            if buffCfg then
-              for _, sign in ipairs(buffCfg.buff_groupsigns) do
-                if sign == param then
-                  return ballCfg.ball_threshold_modify
-                end
+    if BattleUtils.CalculateBallProb_PETACT(data, ballCfg) then
+      return ballCfg.ball_threshold_modify
+    else
+      return 0
+    end
+  end
+  return 0
+end
+
+function BattleUtils.CalculateBallProb_Normal(data, ballCfg)
+  return true
+end
+
+function BattleUtils.CalculateBallProb_PETACT(data, ballCfg)
+  if data.isInBattle then
+    if data.petID == nil then
+      Log.Error("BattleUtils.CalculateBallThresholdBattle: BallType.BT_PETACT receive nil petID")
+      return false
+    end
+    if nil == ballCfg.param_buff or 0 == #ballCfg.param_buff then
+      return false
+    end
+    local card = _G.BattleManager.battlePawnManager:GetCardByGuid(data.petID)
+    for _, param in ipairs(ballCfg.param_buff) do
+      local buffs = card.petInfo.battle_inside_pet_info.buffs
+      if buffs then
+        for _, buff in ipairs(buffs) do
+          local buffCfg = _G.DataConfigManager:GetBuffConf(buff.buff_id)
+          if buffCfg then
+            for _, sign in ipairs(buffCfg.buff_groupsigns) do
+              if sign == param then
+                return true
               end
             end
           end
-        else
-          return 0
         end
-      end
-    else
-      if nil == data.petID then
-        Log.Error("BattleUtils.CalculateBallThresholdBattle: BallType.BT_PETACT receive nil petID")
-        return 0
-      end
-      if nil == ballCfg.param_buff or 0 == #ballCfg.param_buff then
-        return 0
-      end
-      if data.bMatchBallAIState == true then
-        return ballCfg.ball_threshold_modify
+      else
+        return false
       end
     end
-    return 0
-  elseif ballCfg.ball_type == ProtoEnum.BallType.BT_NORMAL then
-    return ballCfg.ball_threshold_modify or 0
+  else
+    if data.petID == nil then
+      Log.Error("BattleUtils.CalculateBallThresholdBattle: BallType.BT_PETACT receive nil petID")
+      return false
+    end
+    if nil == ballCfg.param_blackboard or 0 == #ballCfg.param_blackboard then
+      return false
+    end
+    if data.bMatchBallAIState == true then
+      return true
+    end
   end
-  return 0
+  return false
+end
+
+function BattleUtils.CalculateBallProb_PETSDT(data, ballCfg)
+  if data.petID == nil then
+    Log.Error("BattleUtils.CalculateBallThresholdBattle: BallType.BT_PETSDT receive nil petID")
+    return false
+  end
+  local types = {}
+  if data.isInBattle then
+    local battlePet = _G.BattleManager.battlePawnManager:GetPetByGuid(data.petID)
+    types = battlePet.card:GetPetType()
+  else
+    local petBaseId = _G.DataConfigManager:GetMonsterConf(data.petID).base_id
+    types = _G.DataConfigManager:GetPetbaseConf(petBaseId).unit_type
+  end
+  for _, param in ipairs(ballCfg.param_skilldam) do
+    for _, type in ipairs(types) do
+      if type == param then
+        return true
+      end
+    end
+  end
+  return false
+end
+
+function BattleUtils.CalculateBallProb_WEATHER(data, ballCfg)
+  if data.weatherID == nil then
+    Log.Error("BattleUtils.CalculateBallThresholdBattle: BallType.BT_WEATHER receive nil weatherID")
+    return false
+  end
+  local curWeatherType = Enum.WeatherType.WT_NONE
+  if data.isInBattle then
+    local weatherConf = _G.DataConfigManager:GetWeatherConf(_G.BattleManager.battleRuntimeData.curWeatherID)
+    if not weatherConf then
+      Log.Error("\230\148\182\229\136\176\230\156\170\229\174\154\228\185\137\231\154\132weather_id:", _G.BattleManager.battleRuntimeData.curWeatherID)
+      return false
+    end
+    curWeatherType = weatherConf.weather_type
+  else
+    curWeatherType = data.weatherID
+  end
+  for _, param in ipairs(ballCfg.param_weather) do
+    if param == curWeatherType then
+      return true
+    end
+  end
+  return false
+end
+
+function BattleUtils.CalculateBallProb_CONDITION(data, ballCfg)
+  return BattleUtils.CalculateBallProb_PETACT(data, ballCfg) or BattleUtils.CalculateBallProb_PETSDT(data, ballCfg) or BattleUtils.CalculateBallProb_WEATHER(data, ballCfg)
+end
+
+function BattleUtils.CalculatePeerModify()
+  local peerModify = 0
+  local localPlayer = NRCModuleManager:DoCmd(PlayerModuleCmd.GET_LOCAL_PLAYER)
+  if localPlayer then
+    local bAddPeerModify = localPlayer.statusComponent:HasStatus(ProtoEnum.WorldPlayerStatusType.WPST_HAND_IN_HAND) or localPlayer.statusComponent:HasStatus(ProtoEnum.WorldPlayerStatusType.WPST_HAND_IN_HAND_2P) or localPlayer.viewObj.BP_RideComponent:IsInDoubleRide()
+    if bAddPeerModify then
+      peerModify = DataConfigManager:GetBattleGlobalConfig("peer_modify").num
+    end
+  end
+  return peerModify
 end
 
 function BattleUtils.CalculateCatchMonsterRateBattle(ballConfID, petGUID)
@@ -408,33 +422,41 @@ function BattleUtils.CalculateCatchMonsterRateBattle(ballConfID, petGUID)
   local handBookProb = 0
   handBookProb = totalAwardCatch / probCalculateParam
   handBookCatchChangeProb = totalAwardPetCatchChange / probCalculateParam
-  local detectedProb = 0
-  if card.petState:GetBackStab() then
-    detectedProb = _G.DataConfigManager:GetBattleGlobalConfig("sneak_modify").num / probCalculateParam
+  local isInSneakState = false
+  local sneakBuffConf = _G.DataConfigManager:GetGlobalConfig("sneak_correction_battle")
+  if sneakBuffConf and sneakBuffConf.str then
+    local sneakBuffStrList = string.Split(sneakBuffConf.str, ";")
+    for _, param in ipairs(sneakBuffStrList) do
+      local buffs = card.petInfo.battle_inside_pet_info.buffs
+      if buffs then
+        for _, buff in ipairs(buffs) do
+          local buffCfg = _G.DataConfigManager:GetBuffConf(buff.buff_id)
+          if buffCfg then
+            for _, sign in ipairs(buffCfg.buff_groupsigns) do
+              if sign == Enum.BuffGroupSign[param] then
+                isInSneakState = true
+                break
+              end
+            end
+          end
+        end
+        if isInSneakState then
+          break
+        end
+      end
+    end
   end
-  local thresholdHP = BattleUtils.CalculatePetThresholdHpBattle(petThreshold, ballThresholdBattle, handBookProb, detectedProb)
+  local sneakModify = BattleUtils.CalculateSneakModifyValue(true, isInSneakState, ballConfID, 0)
+  local peerModify = BattleUtils.CalculatePeerModify() / probCalculateParam
+  local thresholdHP = BattleUtils.CalculatePetThresholdHp(petThreshold, ballThresholdBattle, handBookProb, sneakModify, peerModify)
   local monsterConfID = insidePetInfo.conf_id
   local level = card.petInfo.battle_common_pet_info.level
   local curHpPercent = card.hp / card.max_hp
   local catchGuaranteeRate = insidePetInfo.catch_guarantee_rate or 0
   local lastCatchTime = insidePetInfo.last_catch_time or 0
-  if GlobalConfig.ShowCatchRate then
-    local monsterCatchConf = DataConfigManager:GetMonsterCatchConf(monsterConfID)
-    if not monsterCatchConf then
-      Log.Error("BattleUtils CalculateCatchMonsterRate Error: monsterCatchConf not found")
-      return nil
-    end
-    local ballCfg = _G.DataConfigManager:GetBallConf(data.ballConfID)
-    if not ballCfg then
-      Log.Error("BattleUtils.CalculateBallThresholdBattle: ball cfg can not be found with id:", data.ballID)
-      return 0
-    end
-    local GrowRate = monsterCatchConf.catch_guarant_rate / probCalculateParam
-    local lastGuaranteeRate = catchGuaranteeRate * GrowRate
-    local ballGuaranteeProb = ballCfg.guarant_efficiency / probCalculateParam
-    Log.Error("\229\174\160\231\137\169\230\141\149\230\141\137\230\166\130\231\142\135\229\143\130\230\149\176", ballProb, detectedProb, thresholdHP, petThreshold, handBookProb, handBookCatchChangeProb, catchGuaranteeRate, lastGuaranteeRate, GrowRate, ballGuaranteeProb, lastCatchTime)
-  end
-  return BattleUtils.CalculateFinalRate(ballConfID, monsterConfID, level, curHpPercent, thresholdHP, handBookCatchChangeProb, ballProb, catchGuaranteeRate, lastCatchTime)
+  local CurBattlePlayer = BattleManager.battlePawnManager and BattleManager.battlePawnManager.TeamatePlayer
+  local seasonModify = CurBattlePlayer and CurBattlePlayer.roleInfo and CurBattlePlayer.roleInfo.base and CurBattlePlayer.roleInfo.base.season_adv_prob_add or 0
+  return BattleUtils.CalculateFinalRate(ballConfID, monsterConfID, level, curHpPercent, thresholdHP, handBookCatchChangeProb, ballProb, catchGuaranteeRate, lastCatchTime, seasonModify)
 end
 
 function BattleUtils.GetEnemyTeamEnum(TeamEnum)
@@ -951,11 +973,18 @@ function BattleUtils.IsTrainBattle()
   return _G.BattleManager.battleRuntimeData.battleType == Enum.BattleType.BT_TRAIN_BATTLE
 end
 
+function BattleUtils.isInSkillAutoTest()
+  return _G.BattleManager.battleRuntimeData.battleDebugControl and _G.BattleManager.battleRuntimeData.battleDebugControl.isInAutoTest
+end
+
+function BattleUtils.IsInBattleTest()
+  return _G.BattleManager.battleRuntimeData.battleDebugControl and _G.BattleManager.battleRuntimeData.battleDebugControl.isInBattleTest
+end
+
 function BattleUtils.IsWorldLeaderRewardRound()
   local initInfo = _G.BattleManager.battleRuntimeData.battleStartParam.battleInitInfo
   if initInfo and initInfo.world_leader_fight_info then
-    local battleType = _G.BattleManager.battleRuntimeData.battleType
-    return (battleType == Enum.BattleType.BT_WORLDLEADER or battleType == Enum.BattleType.BT_BOSS_CHALLENGE) and initInfo.world_leader_fight_info.execution_round
+    return BattleUtils.IsWorldLeaderFight() and initInfo.world_leader_fight_info.execution_round
   end
 end
 
@@ -1127,7 +1156,7 @@ end
 function BattleUtils.IsPvpWithForm()
   local battleType = _G.BattleManager.battleRuntimeData.battleType
   local EBattleType = Enum.BattleType
-  return battleType == EBattleType.BT_PVP_SRANDARD or battleType == EBattleType.BT_PVP_RANDOM or battleType == EBattleType.BT_PVP_WATER or battleType == EBattleType.BT_PVP_INSECT or battleType == EBattleType.BT_PVP_RANK or battleType == EBattleType.BT_PVP_THREE
+  return battleType == EBattleType.BT_PVP_SRANDARD or battleType == EBattleType.BT_PVP_RANDOM or battleType == EBattleType.BT_PVP_WATER or battleType == EBattleType.BT_PVP_INSECT or battleType == EBattleType.BT_PVP_RANK or battleType == EBattleType.BT_PVP_THREE or battleType == EBattleType.BT_PVP_SCARE
 end
 
 function BattleUtils.IsPvpRank()
@@ -1142,6 +1171,12 @@ function BattleUtils.IsPvpStandard()
   return battleType == EBattleType.BT_PVP_SRANDARD
 end
 
+function BattleUtils.IsPvpScare()
+  local battleType = _G.BattleManager.battleRuntimeData.battleType
+  local EBattleType = Enum.BattleType
+  return battleType == EBattleType.BT_PVP_SCARE
+end
+
 function BattleUtils.IsPvpRandom()
   local battleType = _G.BattleManager.battleRuntimeData.battleType
   local EBattleType = Enum.BattleType
@@ -1152,6 +1187,10 @@ function BattleUtils.IsPvpThree()
   local battleType = _G.BattleManager.battleRuntimeData.battleType
   local EBattleType = Enum.BattleType
   return battleType == EBattleType.BT_PVP_THREE
+end
+
+function BattleUtils.IsPvpScare()
+  return _G.BattleManager.battleRuntimeData.battleType == Enum.BattleType.BT_PVP_SCARE
 end
 
 function BattleUtils.IsPvpCanBattleAgain()
@@ -1199,7 +1238,7 @@ function BattleUtils.IsReplayMode()
 end
 
 function BattleUtils.IsFriendAssist()
-  return not BattleUtils.IsNpcAssist() and not BattleUtils.IsTeam() and not BattleUtils.IsB1FinalBattleP3() and #BattleManager.battlePawnManager.AllPlayerTeam > 1
+  return not BattleUtils.IsNpcAssist() and not BattleUtils.IsTeam() and not BattleUtils.IsB1FinalBattleP3() and 2 == #BattleManager.battlePawnManager.AllPlayerTeam
 end
 
 function BattleUtils.IsSpecialNoPc()
@@ -1256,9 +1295,9 @@ function BattleUtils.GetPetDefaultTypes(baseID)
     0
   }
   if conf and conf.unit_type then
-    for i = 3, 1, -1 do
+    for i = 1, 3 do
       if conf.unit_type[i] then
-        attrs[4 - i] = conf.unit_type[i]
+        attrs[i] = conf.unit_type[i]
       end
     end
   end
@@ -1579,6 +1618,14 @@ function BattleUtils.GetBattleRuleIds()
       end
     end
   end
+  local npc_challenge_info = _G.BattleManager:GetBattleNpcChallengeInfo()
+  if npc_challenge_info and npc_challenge_info.rule_ids then
+    for _, id in pairs(npc_challenge_info.rule_ids) do
+      if 0 ~= id then
+        table.insert(answer, id)
+      end
+    end
+  end
   return answer
 end
 
@@ -1653,6 +1700,17 @@ function BattleUtils.GetEnemyHasNightMareShield()
   return false
 end
 
+function BattleUtils.CheckEnemyIsSurpriseBoxPet()
+  local enemies = _G.BattleManager.battlePawnManager:GetInFieldAllPet(BattleEnum.Team.ENUM_ENEMY)
+  if #enemies > 1 then
+    return false
+  end
+  local enemy = enemies[1]
+  local baseConfId = enemy:GetPetID()
+  local ans = PetUtils.CheckIsSurpriseBoxPet(baseConfId)
+  return ans
+end
+
 function BattleUtils.RefreshCliSimplePetMutationTypeDataByConfig(simpleBattlePet)
   local card = simpleBattlePet and _G.BattleManager.battlePawnManager:GetCardByGuid(simpleBattlePet.pet_id)
   local isNightmareValue = card and card:GetMonsterConfigIsNightmareValue()
@@ -1672,12 +1730,20 @@ function BattleUtils.IsEscapeBattleMode()
   return useItemMode
 end
 
-function BattleUtils.IsCanChangePetBattleMode()
+function BattleUtils.GetCanChangePetConfig()
   if _G.GlobalConfig.DebugOpenUI then
-    return false
+    return 0
   end
-  local changePetMode = 1 == BattleUtils.GetBattleConfig().can_changepet
+  local changePetMode = BattleUtils.GetBattleConfig().can_changepet or 0
   return changePetMode
+end
+
+function BattleUtils.GetChangePetTipKey(key)
+  return "cant_change_pet" .. string.format("%02d", key)
+end
+
+function BattleUtils.IsCanChangePetBattleMode()
+  return BattleUtils.GetCanChangePetConfig() > 0
 end
 
 function BattleUtils.IsBattleWin(resultRaw)
@@ -2726,7 +2792,7 @@ function BattleUtils.GetPlayerModelId(roleInfo)
       return BattleConst.Human_Female
     end
   end
-  if roleInfo.base.state_bit & 1 << ProtoEnum.BATTLER_BIT_TYPE.BT_BATTLER_HUMAN > 0 or roleInfo.base.state_bit & 1 << ProtoEnum.BATTLER_BIT_TYPE.BT_NPC_IS_USE_HUMAN > 0 then
+  if BattleUtils.IsPlayerUseHumanResByBit(roleInfo.base.state_bit) then
     if roleInfo.base.sex == ProtoEnum.ESexValue.SEX_MALE then
       return BattleConst.Human_Male
     else
@@ -2739,6 +2805,21 @@ function BattleUtils.GetPlayerModelId(roleInfo)
     end
   end
   return 0
+end
+
+function BattleUtils.IsPlayerUseHumanRes(player)
+  if not player then
+    return false
+  end
+  local stateBit = player.roleInfo.base.state_bit
+  return BattleUtils.IsPlayerUseHumanResByBit(stateBit)
+end
+
+function BattleUtils.IsPlayerUseHumanResByBit(bit)
+  if not bit then
+    return false
+  end
+  return bit & 1 << ProtoEnum.BATTLER_BIT_TYPE.BT_BATTLER_HUMAN > 0 or bit & 1 << ProtoEnum.BATTLER_BIT_TYPE.BT_NPC_IS_USE_HUMAN > 0
 end
 
 function BattleUtils.GetHyperLinkIds(inputString)
@@ -3230,7 +3311,11 @@ function BattleUtils.HasLockChangePetState(battlePet)
 end
 
 function BattleUtils.TryUseItem(itemData)
-  if itemData.allowUseCntInBattle and itemData.allowUseCntInBattle <= 0 then
+  if itemData.canCharge and itemData.remainCnt <= 0 then
+    local text = _G.LuaText.alchemy_bottle_times_out or ""
+    _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, text)
+    return false
+  elseif itemData.allowUseCntInBattle and itemData.allowUseCntInBattle <= 0 then
     local text = _G.LuaText.bottle_time_tip or ""
     _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, text)
     return false
@@ -3239,9 +3324,6 @@ function BattleUtils.TryUseItem(itemData)
     return false
   elseif itemData.num and itemData.num <= 0 then
     _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.rounditemaction_3)
-    return false
-  elseif itemData.canCharge and itemData.remainCnt <= 0 then
-    _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, _G.LuaText.alchemy_bottle_times_out)
     return false
   elseif BattleUtils.IsPve() or BattleUtils.IsPvp() then
     local itemBattleCfg = _G.DataConfigManager:GetBattleItemConf(itemData.conf_id)
@@ -3263,11 +3345,16 @@ function BattleUtils.ContainTaskPerformControl(ControlType)
 end
 
 function BattleUtils.CloseBattleAndTaskBlackLoading()
-  local battleConf = BattleUtils.GetBattleConfig()
   if BattleUtils.ContainTaskPerformControl(Enum.TaskBattlePerformanceControl.TBPC_ENTER_BLACK) then
     _G.NRCEventCenter:DispatchEvent(NRCGlobalEvent.CLOSE_BLACK_SCREEN)
     if BattleUtils.HasUI("BattleLoading") then
-      local asyncData = {}
+      _G.NRCModuleManager:DoCmd(BattleUIModuleCmd.SetForbidCloseLoading, nil)
+      local asyncData = {
+        owner = self,
+        callback = function()
+          _G.NRCModuleManager:DoCmd(_G.BattleUIModuleCmd.ForceCloseLoading)
+        end
+      }
       NRCModuleManager:DoCmdAsync(asyncData, BattleUIModuleCmd.CloseLoading)
     else
       _G.NRCModuleManager:DoCmd(_G.BattleUIModuleCmd.ForceCloseLoading)
@@ -3642,12 +3729,19 @@ function BattleUtils.GetLegendaryTicketID()
   return nil
 end
 
+function BattleUtils.GetLegendaryBattleID()
+  if _G.BattleManager.battleRuntimeData and _G.BattleManager.battleRuntimeData.legendary_battle and _G.BattleManager.battleRuntimeData.legendary_battle.legendary_battle_id and 0 ~= _G.BattleManager.battleRuntimeData.legendary_battle.legendary_battle_id then
+    return _G.BattleManager.battleRuntimeData.legendary_battle.legendary_battle_id
+  end
+  return nil
+end
+
 function BattleUtils.IsTriggerAppearanceInField(AppearanceMode)
   if BattleManager.IsShowAppearanceAtStart ~= nil then
     return BattleManager.IsShowAppearanceAtStart
   end
   local BattleType = _G.BattleManager.battleRuntimeData.battleType
-  if AppearanceMode == BattleEnum.CheckAppearanceMode.LimitByBattleMode and not BattleUtils.IsPveType() and BattleType ~= Enum.BattleType.BT_PVP and BattleType ~= Enum.BattleType.BT_1VN and BattleType ~= Enum.BattleType.BT_1V1V1 and BattleType ~= Enum.BattleType.BT_PVP_RANDOM and BattleType ~= Enum.BattleType.BT_PVP_SRANDARD and BattleType ~= Enum.BattleType.BT_PVP_WATER and BattleType ~= Enum.BattleType.BT_PVP_INSECT and BattleType ~= Enum.BattleType.BT_PVP_RANK and BattleType ~= Enum.BattleType.BT_PVP_THREE and BattleType ~= Enum.BattleType.BT_ASSISTBOSSFIGHT then
+  if AppearanceMode == BattleEnum.CheckAppearanceMode.LimitByBattleMode and not BattleUtils.IsPveType() and BattleType ~= Enum.BattleType.BT_PVP and BattleType ~= Enum.BattleType.BT_PVP_SCARE and BattleType ~= Enum.BattleType.BT_1VN and BattleType ~= Enum.BattleType.BT_1V1V1 and BattleType ~= Enum.BattleType.BT_PVP_RANDOM and BattleType ~= Enum.BattleType.BT_PVP_SRANDARD and BattleType ~= Enum.BattleType.BT_PVP_WATER and BattleType ~= Enum.BattleType.BT_PVP_INSECT and BattleType ~= Enum.BattleType.BT_PVP_RANK and BattleType ~= Enum.BattleType.BT_PVP_THREE and BattleType ~= Enum.BattleType.BT_ASSISTBOSSFIGHT then
     BattleManager.IsShowAppearanceAtStart = false
     return BattleManager.IsShowAppearanceAtStart
   end
@@ -3747,6 +3841,14 @@ function BattleUtils.IsSkipRecycleBall()
   return false
 end
 
+function BattleUtils.EndBattleByNpc()
+  local battleConf = BattleUtils.GetBattleConfig()
+  if battleConf then
+    return 1 == battleConf.battle_end_no_npc
+  end
+  return false
+end
+
 function BattleUtils.CheckMyPlayerItemRemainCount(ItemId)
   local team = _G.BattleManager.battlePawnManager:GetTeam(BattleEnum.Team.ENUM_TEAM)
   if not team then
@@ -3764,8 +3866,8 @@ function BattleUtils.CheckMyPlayerItemRemainCount(ItemId)
 end
 
 function BattleUtils.IsDeathExist(card)
-  if card and card.isMonster then
-    return card.config and card.config.death_exist and 1 == card.config.death_exist
+  if card and card.isMonster and card.config and card.config.death_exist and card.config.death_exist >= 1 then
+    return card.config.death_exist
   end
 end
 
@@ -3852,11 +3954,14 @@ function BattleUtils.IsOwnerPet(pet_info)
   return pet_info.battle_inside_pet_info.owner_uin == _G.DataModelMgr.PlayerDataModel.playerInfo.brief_info.uin
 end
 
-function BattleUtils.GetPvpScoreItemInfo()
-  local moneyCount = _G.DataModelMgr.PlayerDataModel:GetVItemCount(tonumber(BattleConst.PvpScoreItemType))
+function BattleUtils.GetPvpScoreItemInfo(seasonId)
+  seasonId = seasonId or _G.NRCModuleManager:DoCmd(_G.PVPRankedMatchModuleCmd.CmdGetCurSeasonId)
+  local seasonConf = _G.DataConfigManager:GetPvpRankSeasonConf(seasonId, true)
+  local vItemType = seasonConf and seasonConf.vitem or BattleConst.PvpScoreItemType
+  local moneyCount = _G.DataModelMgr.PlayerDataModel:GetVItemCount(vItemType) or 0
   return {
     {
-      moneyType = BattleConst.PvpScoreItemType,
+      moneyType = vItemType,
       sum = moneyCount,
       IsShowBuyIcon = false
     }
@@ -3940,6 +4045,122 @@ function BattleUtils.FixClickByVolatileOnPC(InWidget)
     return
   end
   InWidget:ForceVolatile(true)
+end
+
+function BattleUtils.DirectUpdateUI(ignoreOptions)
+  if BattleManager:IsInBattle(true) then
+    BattleManager.bDirectUpdateUI = true
+    if ignoreOptions then
+      if not BattleManager.directUpdateUIIgnoreOptions then
+        BattleManager.directUpdateUIIgnoreOptions = {}
+      end
+      local opts = BattleManager.directUpdateUIIgnoreOptions
+      if ignoreOptions.ignoreHp then
+        if not opts.ignoreHp then
+          opts.ignoreHp = {}
+        end
+        for _, petId in ipairs(ignoreOptions.ignoreHp) do
+          opts.ignoreHp[petId] = true
+        end
+      end
+    end
+  end
+end
+
+function BattleUtils.GetFantasticBackgroundPathWithPetAndSkill(petId, skillId)
+  local battleManager = _G.BattleManager
+  local battlePawnManager = battleManager and battleManager.battlePawnManager
+  local card = battlePawnManager and battlePawnManager:GetCardByGuid(petId)
+  local skillRoundDataList = card and card.skillRoundData or {}
+  local skillRoundData
+  local checkSkillId = _G.SkillUtils.CheckSkillId(skillId)
+  for i, skillRoundDataItem in ipairs(skillRoundDataList) do
+    local skillRoundDataItemId = skillRoundDataItem and skillRoundDataItem.skill_id
+    if skillRoundDataItemId and skillRoundDataItemId == checkSkillId then
+      skillRoundData = skillRoundDataItem
+    end
+  end
+  local seasonId = skillRoundData and skillRoundData.season_id
+  local checkedSkillId = skillRoundData and skillRoundData.skill_id
+  return BattleUtils.GetFantasticBackgroundPathWithSkillAndSeason(checkedSkillId, seasonId)
+end
+
+function BattleUtils.GetFantasticBackgroundPathWithSkillAndSeason(skillId, seasonId)
+  local seasonConf = _G.DataConfigManager:GetSeasonConf(seasonId, true)
+  local season_skill_ui = seasonConf and seasonConf.season_skill_ui
+  local battleManager = _G.BattleManager
+  local runtimeData = battleManager and battleManager.battleRuntimeData
+  local fantasticBackgroundPathsDefault = runtimeData and runtimeData.fantasticBackgroundPathsDefault
+  local NRCModuleManager = _G.NRCModuleManager
+  local battleUiModule = NRCModuleManager and NRCModuleManager:GetModule("BattleUIModule")
+  local battleUiModuleData = battleUiModule and battleUiModule.data
+  local fantasticBackgroundPathOverride = battleUiModuleData and battleUiModuleData.__fantasticBackgroundPathOverride
+  local overridePaths
+  if fantasticBackgroundPathOverride then
+    overridePaths = BattleConst.FantasticBackgroundPathsDefaults[fantasticBackgroundPathOverride]
+  end
+  if overridePaths then
+    fantasticBackgroundPathsDefault = overridePaths
+  end
+  local squareNm3 = fantasticBackgroundPathsDefault and fantasticBackgroundPathsDefault.squareNm3
+  local stripNm3 = fantasticBackgroundPathsDefault and fantasticBackgroundPathsDefault.stripNm3
+  local cloudNm3 = fantasticBackgroundPathsDefault and fantasticBackgroundPathsDefault.cloudNm3
+  local cloudNm5 = fantasticBackgroundPathsDefault and fantasticBackgroundPathsDefault.cloudNm5
+  local cloudNor4 = fantasticBackgroundPathsDefault and fantasticBackgroundPathsDefault.cloudNor4
+  local cloudNor4Mask = fantasticBackgroundPathsDefault and fantasticBackgroundPathsDefault.cloudNor4Mask
+  local cloudNor4MaskUTiling = fantasticBackgroundPathsDefault and fantasticBackgroundPathsDefault.cloudNor4MaskUTiling
+  local cloudNor4MaskVTiling = fantasticBackgroundPathsDefault and fantasticBackgroundPathsDefault.cloudNor4MaskVTiling
+  local cloudNor4MaskUSpeed = fantasticBackgroundPathsDefault and fantasticBackgroundPathsDefault.cloudNor4MaskUSpeed
+  local cloudNor4MaskVSpeed = fantasticBackgroundPathsDefault and fantasticBackgroundPathsDefault.cloudNor4MaskVSpeed
+  local cloudNor5 = fantasticBackgroundPathsDefault and fantasticBackgroundPathsDefault.cloudNor5
+  local dataAssetPath = fantasticBackgroundPathsDefault and fantasticBackgroundPathsDefault.dataAssetPath
+  if season_skill_ui and not overridePaths then
+    dataAssetPath = season_skill_ui
+  end
+  local NRCBigWorldPreloader = _G.NRCBigWorldPreloader
+  local dataAsset = NRCBigWorldPreloader and NRCBigWorldPreloader:Get(dataAssetPath)
+  if UE.UObject.IsValid(dataAsset) then
+    local ui_item_nm_3 = dataAsset and dataAsset.ui_item_nm_3
+    squareNm3 = ui_item_nm_3 and ui_item_nm_3.AssetPathName or squareNm3
+    local ui_popup_nm_3 = dataAsset and dataAsset.ui_popup_nm_3
+    stripNm3 = ui_popup_nm_3 and ui_popup_nm_3.AssetPathName or stripNm3
+    local ui_equipment_nm_3 = dataAsset and dataAsset.ui_equipment_nm_3
+    cloudNm3 = ui_equipment_nm_3 and ui_equipment_nm_3.AssetPathName or cloudNm3
+    local ui_equipment_nm_5 = dataAsset and dataAsset.ui_equipment_nm_5
+    cloudNm5 = ui_equipment_nm_5 and ui_equipment_nm_5.AssetPathName or cloudNm5
+    local ui_equipment_nor_4 = dataAsset and dataAsset.ui_equipment_nor_4
+    cloudNor4 = ui_equipment_nor_4 and ui_equipment_nor_4.AssetPathName or cloudNor4
+    local ui_equipment_nor_4_mask = dataAsset and dataAsset.ui_equipment_nor_4_mask
+    cloudNor4Mask = ui_equipment_nor_4_mask and ui_equipment_nor_4_mask.AssetPathName or cloudNor4Mask
+    local ui_equipment_nor_4_mask_u_tiling = dataAsset and dataAsset.ui_equipment_nor_4_mask_u_tiling
+    cloudNor4MaskUTiling = ui_equipment_nor_4_mask_u_tiling or cloudNor4MaskUTiling
+    local ui_equipment_nor_4_mask_v_tiling = dataAsset and dataAsset.ui_equipment_nor_4_mask_v_tiling
+    cloudNor4MaskVTiling = ui_equipment_nor_4_mask_v_tiling or cloudNor4MaskVTiling
+    local ui_equipment_nor_4_mask_u_speed = dataAsset and dataAsset.ui_equipment_nor_4_mask_u_speed
+    cloudNor4MaskUSpeed = ui_equipment_nor_4_mask_u_speed or cloudNor4MaskUSpeed
+    local ui_equipment_nor_4_mask_v_speed = dataAsset and dataAsset.ui_equipment_nor_4_mask_v_speed
+    cloudNor4MaskVSpeed = ui_equipment_nor_4_mask_v_speed or cloudNor4MaskVSpeed
+    local ui_equipment_nor_5 = dataAsset and dataAsset.ui_equipment_nor_5
+    cloudNor5 = ui_equipment_nor_5 and ui_equipment_nor_5.AssetPathName or cloudNor5
+  end
+  local paths = {
+    squareNm3 = squareNm3,
+    stripNm3 = stripNm3,
+    cloudNm3 = cloudNm3,
+    cloudNm5 = cloudNm5,
+    cloudNor4 = cloudNor4,
+    cloudNor4Mask = cloudNor4Mask,
+    cloudNor4MaskUTiling = cloudNor4MaskUTiling,
+    cloudNor4MaskVTiling = cloudNor4MaskVTiling,
+    cloudNor4MaskUSpeed = cloudNor4MaskUSpeed,
+    cloudNor4MaskVSpeed = cloudNor4MaskVSpeed,
+    cloudNor5 = cloudNor5
+  }
+  return paths
+end
+
+function BattleUtils.ImmediateChangeWeatherForBattle(weatherId)
+  _G.NRCModuleManager:DoCmd(_G.EnvSystemModuleCmd.LockWeather, weatherId, LockWeatherReason.Battle, true)
 end
 
 return BattleUtils

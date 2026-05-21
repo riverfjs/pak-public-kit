@@ -17,7 +17,8 @@ function PassiveSkill_EnvBase:ParseConfig(config)
       stat_kvs[k] = tonumber(v)
     end
   end
-  self._stat_kvs[env_type] = stat_kvs
+  self._stat_kvs[env_type] = self._stat_kvs[env_type] or {}
+  table.insert(self._stat_kvs[env_type], stat_kvs)
 end
 
 function PassiveSkill_EnvBase:TryPlayEffect(envType)
@@ -26,8 +27,8 @@ function PassiveSkill_EnvBase:TryPlayEffect(envType)
   end
   self._cur_env_type = envType
   self:StopCommonEffect()
-  local stat_kv = self._stat_kvs[envType]
-  if not stat_kv then
+  local stat_kv_list = self._stat_kvs[envType]
+  if not stat_kv_list or table.isEmpty(stat_kv_list) then
     return
   end
   self:PlayCommonEffect()
@@ -39,8 +40,8 @@ function PassiveSkill_EnvBase:AddEnvBuff(envType)
   end
   self._cur_env_type = envType
   self:RemoveEnvBuff()
-  local stat_kv = self._stat_kvs[envType]
-  if not stat_kv then
+  local stat_kv_list = self._stat_kvs[envType]
+  if not stat_kv_list or table.isEmpty(stat_kv_list) then
     self:StopCommonEffect()
     return
   end
@@ -52,14 +53,16 @@ function PassiveSkill_EnvBase:AddEnvBuff(envType)
   local currentMovement = self.owner.viewObj.CharacterMovement.CurrentMovement
   currentMovement = currentMovement or self.owner.viewObj.CharacterMovement
   if statComponent and currentMovement then
-    for k, v in pairs(stat_kv) do
-      local statId = -1
-      if k == StatType.VITALITY_COST_RATIO then
-        statId = statComponent:ApplyStat(k, v)
-      else
-        statId = statComponent:ApplyStat(k, v, Stat.StatApplyType.BaseValueOverride, currentMovement)
+    for _, stat_kv in ipairs(stat_kv_list) do
+      for k, v in pairs(stat_kv) do
+        local statId = -1
+        if k == StatType.VITALITY_COST_RATIO then
+          statId = statComponent:ApplyStat(k, v)
+        else
+          statId = statComponent:ApplyStat(k, v, Stat.StatApplyType.BaseValueOverride, currentMovement)
+        end
+        self._stat_ids[k] = statId
       end
-      self._stat_ids[k] = statId
     end
   end
   if table.isNotEmpty(self._stat_ids) then

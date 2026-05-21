@@ -176,7 +176,7 @@ function UMG_PointOfInterestPanel_C:TickItem(item)
   local ScreenPos = UE4.FVector2D()
   local ViewportPos = UE4.FVector2D()
   local result = UE4.UNRCStatics.Abs_ProjectWorldToScreen(self.playerController, TargetPosition, ScreenPos)
-  UE4.USlateBlueprintLibrary.ScreenToViewport(self.World, ScreenPos, ViewportPos)
+  UE4.USlateBlueprintLibrary.ScreenToViewportConsiderBorder(self.World, ScreenPos, ViewportPos)
   local delta = ViewportPos - self.ViewportCenter
   local theta = math.atan(delta.Y, delta.X)
   if not result then

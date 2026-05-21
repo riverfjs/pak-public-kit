@@ -30,6 +30,9 @@ function UMG_PetRateTip_C:OnActive(data, openType)
   if openPetData and friendInfo and friendInfo.type ~= _G.ProtoEnum.PlayerRelationshipType.PRT_SELF then
     self.NRCSwitcher_1:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
+  if _G.NRCModuleManager:DoCmd(PetUIModuleCmd.GetPetPortableBagReleaseLifeMode) then
+    self.NRCSwitcher_1:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  end
   self:LoadAnimation(0)
   self:OnAddEventListener()
   self:BindInputAction()

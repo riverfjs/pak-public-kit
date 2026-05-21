@@ -68,6 +68,9 @@ function LimitTimeAppearActivityObject:GetConditionState(conditionId)
 end
 
 function LimitTimeAppearActivityObject:CanGetReward()
+  if not self:IsInProgress() then
+    return false
+  end
   local ids = self:GetConditionIds()
   if ids then
     for i, v in ipairs(ids) do

@@ -345,6 +345,9 @@ function GEMPostManager:SendPayFailEvent(errorCode, failReason)
     zoneAreaID = accountInfo.plat_info.world_id or 0
   end
   local tmpStr = "PayEvent|%s|%s|%s|%s|%s|%s|%s|%s|%d|%s"
+  failReason = tostring(failReason)
+  failReason = string.gsub(failReason, "|", "%%7C")
+  failReason = string.gsub(failReason, "\n", "%%0A")
   local value = string.format(tmpStr, svrID, os.date("%Y-%m-%d %H:%M:%S"), appID, platID, zoneAreaID, openID, uin, playerName, errorCode, failReason)
   self:SendNRCTLog(key, value)
 end

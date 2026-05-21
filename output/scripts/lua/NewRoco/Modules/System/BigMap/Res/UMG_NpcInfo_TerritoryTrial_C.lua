@@ -59,14 +59,31 @@ function UMG_NpcInfo_TerritoryTrial_C:OnEnable(props)
     else
       initData = rewardData
     end
-    self.TaskAwardList:InitList(initData)
+    self.TaskAwardList:InitGridView(initData)
   end
   if props.desc then
     self.TaskDesc:SetText(props.desc)
   end
 end
 
-function UMG_NpcInfo_TerritoryTrial_C:OnAddEventListener()
+function UMG_NpcInfo_TerritoryTrial_C:SetCloseTimestamp(closeTimestamp)
+  self.closeTimestamp = closeTimestamp
+  self:TickActivityLeftTime()
+end
+
+function UMG_NpcInfo_TerritoryTrial_C:TickActivityLeftTime()
+  local serverTimestamp = ActivityUtils.GetSvrTimestamp()
+  local leftTime = self.closeTimestamp - serverTimestamp
+  self.Text_Time:SetText(ActivityUtils.GetTimeFormatStr(math.max(leftTime, 0)))
+  if leftTime > 0 then
+    self.UpdateActivityLeftTimeId = _G.DelayManager:DelaySeconds(math.min(leftTime, 60), self.TickActivityLeftTime, self)
+  end
+end
+
+function UMG_NpcInfo_TerritoryTrial_C:OnDisable()
+  if self.UpdateActivityLeftTimeId then
+    _G.DelayManager:CancelDelayById(self.UpdateActivityLeftTimeId)
+  end
 end
 
 return UMG_NpcInfo_TerritoryTrial_C

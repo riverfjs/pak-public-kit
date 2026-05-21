@@ -46,4 +46,5 @@ TaskModuleEvent.OnHiddenTaskUpdated = "TaskModuleEvent.OnHiddenTaskUpdated"
 TaskModuleEvent.OnHiddenTaskRemoved = "TaskModuleEvent.OnHiddenTaskRemoved"
 TaskModuleEvent.OnImageFlowEnd = "TaskModuleEvent.OnImageFlowEnd"
 TaskModuleEvent.OnlyRefreshParagraphData = "TaskModuleEvet.OnlyRefreshParagraphData"
+TaskModuleEvent.OnWorldPetCatchFinish = "TaskModuleEvet.OnWorldPetCatchFinish"
 return TaskModuleEvent

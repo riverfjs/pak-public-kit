@@ -28,6 +28,7 @@ function UMG_Activity_ElfCollection_Item_C:OnItemUpdate(_data, datalist, index)
   self.TrailParam2 = _data.trail_param2
   self.Img = _data.img
   self.IsCollected = _data.isCollected
+  self.ActivityId = _data.activityId
   self.PetBaseConf = _G.DataConfigManager:GetPetbaseConf(self.PetBaseId)
   self:ShowPetIcon()
   self:ShowCollectBg()
@@ -64,6 +65,10 @@ function UMG_Activity_ElfCollection_Item_C:ShowPetInfoBtn()
 end
 
 function UMG_Activity_ElfCollection_Item_C:OnPetInfoBtnClick()
+  if self.ActivityId and _G.NRCModuleManager:DoCmd(_G.ActivityModuleCmd.CheckActivityExpired, self.ActivityId) then
+    ActivityUtils.ShowActivityExpiredTips()
+    return
+  end
   self:PlayAnimation(self.Click)
   if self.TrailType == _G.Enum.ActivityTrailTipType.ATTT_MAP then
     _G.NRCAudioManager:PlaySound2DAuto(41401006, "UMG_Activity_ElfCollection_Item_C:OnPetInfoBtnClick")

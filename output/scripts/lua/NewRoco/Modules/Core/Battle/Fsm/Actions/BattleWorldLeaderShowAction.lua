@@ -50,25 +50,25 @@ function BattleWorldLeaderShowAction:PlayHitSkill()
   local caster = BattleUtils.GetTraceNpc()
   if not caster or not UE.UObject.IsValid(caster.npc.viewObj) then
     Log.Error("zgx Target is nil!!!!")
-    self:HitSkillOver()
+    self:PlaySkill()
     return
   end
   local model = caster.npc.viewObj
   local skillComponent = model.RocoSkill
   if not skillComponent then
-    self:HitSkillOver()
+    self:PlaySkill()
     return
   end
   local skillPath = BattleConst.Define.LeaderHitShow
   local skillClass = BattleSkillManager:GetLoadedClass(skillPath)
   if not skillClass then
     Log.ErrorFormat("Failed to load skill class %s", skillPath)
-    self:HitSkillOver()
+    self:PlaySkill()
     return
   end
   local skillObj = skillComponent:FindOrAddSkillObj(skillClass)
   if not skillObj then
-    self:HitSkillOver()
+    self:PlaySkill()
     return
   end
   self.HitSkill = skillObj
@@ -78,6 +78,8 @@ function BattleWorldLeaderShowAction:PlayHitSkill()
   skillObj:RegisterEventCallback("PreStart", self, self.HitSkillStart)
   skillObj:RegisterEventCallback("End", self, self.HitSkillOver)
   skillObj:RegisterEventCallback("PreEnd", self, self.HitSkillOver)
+  skillObj:RegisterEventCallback("Interrupt", self, self.HitSkillOver)
+  skillObj:RegisterEventCallback("StartFailed", self, self.HitSkillOver)
   skillComponent:PlaySkill(skillObj)
 end
 
@@ -136,6 +138,8 @@ function BattleWorldLeaderShowAction:PlaySkill()
   skillObj:RegisterEventCallback("ActionStart", self, self.OnActionStart)
   skillObj:RegisterEventCallback("End", self, self.OnSkillComplete)
   skillObj:RegisterEventCallback("PreEnd", self, self.OnSkillComplete)
+  skillObj:RegisterEventCallback("Interrupt", self, self.OnSkillComplete)
+  skillObj:RegisterEventCallback("StartFailed", self, self.OnSkillComplete)
   local pets = BattleManager.battlePawnManager:GetTeamAllPets()
   if #pets <= 1 then
     skillObj.PlayerAmountType = UE4.EBattlePlayerAmount.Singleplayer
@@ -144,7 +148,10 @@ function BattleWorldLeaderShowAction:PlaySkill()
   end
   self:CustomCastG6BeforePlay(caster, skillObj)
   self.skillObj = skillObj
-  skillComponent:PlaySkill(skillObj)
+  local result = skillComponent:PlaySkill(skillObj)
+  if result ~= UE4.ESkillStartResult.Success then
+    self:OnSkillComplete()
+  end
 end
 
 function BattleWorldLeaderShowAction:CustomCastG6BeforePlay(caster, skill_obj)

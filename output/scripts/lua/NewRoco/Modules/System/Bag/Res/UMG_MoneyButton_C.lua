@@ -202,12 +202,12 @@ end
 
 function UMG_MoneyButton_C:OnClickAddBtn()
   if self.moneyId == Enum.VisualItem.VI_COUPON then
+    _G.NRCModuleManager:DoCmd(_G.ShopModuleCmd.OnCmdOpenTopUpShop)
+  elseif self.moneyId == Enum.VisualItem.VI_DIAMOND then
     local isBan = _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.CheckUIFunctionBan, _G.Enum.FunctionEntrance.FE_DIAMOND_EXCHANGE, true)
     if isBan then
       return
     end
-    _G.NRCModuleManager:DoCmd(_G.ShopModuleCmd.OnCmdOpenTopUpShop)
-  elseif self.moneyId == Enum.VisualItem.VI_DIAMOND then
     _G.NRCModuleManager:DoCmd(_G.ShopModuleCmd.OnCmdOpenExchangeDiamond)
     _G.NRCModuleManager:DoCmd(ShopModuleCmd.EnableOrDisableShopOnPopUpOpen, false)
   elseif self.moneyId == Enum.VisualItem.VI_PIKA_POINT then

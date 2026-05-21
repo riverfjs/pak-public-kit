@@ -88,6 +88,14 @@ function PetUIModuleData:Ctor()
     PartnerMarkerFilter = {},
     SpecialityFilter = {}
   }
+  self.chooseTypeListBattleRogue = {
+    DepartmentFilter = {},
+    TalentFilter = {},
+    NaturePositiveEffectFilter = {},
+    AttributeFilter = {},
+    PartnerMarkerFilter = {},
+    SpecialityFilter = {}
+  }
   self.OpenPanelPetData = nil
   self.CulCanEvo = false
   self.CulCanBreakThrough = false
@@ -112,7 +120,7 @@ function PetUIModuleData:Ctor()
   self.EvoTargetCfgId = 0
   self.PetVisualParam = nil
   self.IsPlayPetSkill = false
-  self.PetData = nil
+  self.PetGid = nil
   self.PetBagOpenState = nil
   self.PetSkillListState = 0
   self.PetShareAlchemyData = {}
@@ -133,6 +141,7 @@ function PetUIModuleData:Ctor()
   self.PetFriendInfo = nil
   self.ShiningWeekendTeamData = nil
   self.ShiningWeekendTeamOpenIndex = nil
+  self.AICoachRecommendTeamUIData = {}
   self.BalancedPetDataForPvpMap = {}
   self.PetGidListThatWaitingForQueryBalanceData = {}
   self.isQueryingBalancePetData = false
@@ -143,6 +152,7 @@ function PetUIModuleData:Ctor()
   self.SelectLeaderItem = nil
   self:SetLeaderItemInfo()
   _G.ZoneServer:AddProtocolListener(self, _G.ProtoCMD.ZoneSvrCmd.ZONE_PET_TEAM_FRIEND_GET_MIRROR_PET_DATA_RSP, self.SetMirrorPetDataList)
+  self.bOpenPetBoxPanel = false
 end
 
 function PetUIModuleData:SetLeaderItemInfo()
@@ -763,7 +773,28 @@ function PetUIModuleData:SetShiningWeekendTeamOpenIndex(index)
 end
 
 function PetUIModuleData:GetShiningWeekendTeamName()
-  return self.ShiningWeekendTeamData[self.ShiningWeekendTeamOpenIndex].team_name
+  return self.AICoachRecommendTeamUIData.teamData and self.AICoachRecommendTeamUIData.teamData.team_name or self.ShiningWeekendTeamData[self.ShiningWeekendTeamOpenIndex].team_name
+end
+
+function PetUIModuleData:SetAICoachRecommendTeamUIData(data)
+  self.AICoachRecommendTeamUIData = data
+end
+
+function PetUIModuleData:GetAICoachRecommendTeamUIData()
+  return self.AICoachRecommendTeamUIData
+end
+
+function PetUIModuleData:GetAICoachRecommendTeam()
+  local aiTeamData
+  local aiPlayerName = _G.DataConfigManager:GetGlobalConfigByKeyType("ai_coach_player_name", _G.DataConfigManager.ConfigTableId.GLOBAL_CONFIG).str
+  local aiTeamName = _G.DataConfigManager:GetGlobalConfigByKeyType("ai_coach_team_name", _G.DataConfigManager.ConfigTableId.GLOBAL_CONFIG).str
+  for i, v in pairs(self.ShiningWeekendTeamData) do
+    if v.player_name == aiPlayerName and v.team_name == aiTeamName then
+      aiTeamData = v
+      break
+    end
+  end
+  return aiTeamData
 end
 
 function PetUIModuleData:GetLeaderItemList()

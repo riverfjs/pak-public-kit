@@ -9,6 +9,7 @@ local FsmUtils = require("NewRoco.Modules.Core.Fsm.FsmUtils")
 local LineTraceUtils = require("NewRoco.Modules.Core.Battle.Common.LineTraceUtils")
 local GamePlayUtils = require("NewRoco/Modules/Core/NPC/NPCUtils/GamePlayUtils")
 local SceneUtils = require("NewRoco.Modules.Core.Scene.Common.SceneUtils")
+local BattleEnum = require("NewRoco.Modules.Core.Battle.Common.BattleEnum")
 local Base = BattleClientBranchActionBase
 local BattleWeeklyChallengeShowResultUI = Base:Extend("BattleWeeklyChallengeShowResultUI")
 
@@ -235,7 +236,7 @@ function BattleWeeklyChallengeShowResultUI:SetBigBoundScale(actor)
       mesh.BoundsScale = 20
       mesh.bNRCUseFixedSkelBounds = false
       mesh.bForceMipStreaming = true
-      mesh:SetForcedLOD(0)
+      mesh:SetForcedLOD(BattleEnum.BattleLodModel.Lod0)
     end
   end
 end

@@ -77,7 +77,7 @@ function PlayerOption:OnOptionAction()
     Log.Error("PlayerOption\231\154\132Owner\229\135\134\229\164\135\232\166\129\232\162\171\229\136\160\233\153\164\228\186\134\239\188\140\228\184\141\229\133\129\232\174\184\229\188\128\229\167\139\230\150\176\231\154\132\228\186\164\228\186\146")
     return
   end
-  if self.CurrentAction then
+  if self.CurrentAction and self.CurrentAction:OnNpcAction() then
     self.CurrentAction:Execute()
   end
 end

@@ -45,11 +45,13 @@ function HiddenActionGhost:Init(comp)
   self.sub_state = self.GhostState.Idle
   self.SkillRequests = {}
   self.performingSwitch = false
+  self.pendingState = nil
   self.moveDebounceCount = 0
 end
 
 function HiddenActionGhost:Release()
   self:SetTickEnabled(false)
+  self.pendingState = nil
   self:ReleaseSkillReq()
   self.fxPlug:Release()
   self.skillObj = nil
@@ -97,7 +99,19 @@ end
 
 function HiddenActionGhost:SwitchState(newState)
   if self.performingSwitch then
-    return
+    if newState == self.GhostState.Idle then
+      self.pendingState = nil
+      self.performingSwitch = false
+      self.sub_state = newState
+      self:ReleaseSkillReq()
+      if self.sub_state == newState then
+        self:SetTickEnabled(false)
+      end
+      return
+    else
+      self.pendingState = newState
+      return
+    end
   end
   if newState == self.GhostState.Idle then
     self:SetTickEnabled(false)
@@ -149,17 +163,30 @@ end
 
 function HiddenActionGhost:SwitchStateLoadFail(req, errMsg)
   self.performingSwitch = false
+  if self.pendingState ~= nil then
+    local pending = self.pendingState
+    self.pendingState = nil
+    self:SwitchState(pending)
+  end
 end
 
 function HiddenActionGhost:SkillEnd()
+  if not self.performingSwitch then
+    return
+  end
   self.skillObj = nil
   self.skillObjRef = nil
   self:ReleaseSkillReq(self.sub_state)
   self.performingSwitch = false
+  if nil ~= self.pendingState then
+    local pending = self.pendingState
+    self.pendingState = nil
+    self:SwitchState(pending)
+  end
 end
 
 function HiddenActionGhost:OnTick(deltaTime)
-  if self.sub_state == self.GhostState.Idle then
+  if self.sub_state == self.GhostState.Idle or self.owner == nil then
     self:SetTickEnabled(false)
   else
     local Model = self.owner.viewObj

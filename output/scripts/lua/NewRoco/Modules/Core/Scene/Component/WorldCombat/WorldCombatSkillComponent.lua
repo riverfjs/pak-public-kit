@@ -659,68 +659,6 @@ function WorldCombatSkillComponent:OnSkillSpawnNpcAction(skillId, actionIdx, con
   ZoneServer:SendWithHandler(ProtoCMD.ZoneSvrCmd.ZONE_SCENE_WORLD_COMBAT_SKILL_SPAWN_NPC_REQ, req, self, self.sendCallBack, false, true)
 end
 
-function WorldCombatSkillComponent:ReqSkillJump(npcId, skillId, actionIdx, casterId)
-  local DebugStr = string.format("WorldCombatSkillComponent:ReqSkillJump: npc_id=%u, skill_id=%d, action_idx=%d, caster_id=%u", npcId, skillId, actionIdx, casterId)
-  Log.Debug(DebugStr)
-  local req = ProtoMessage:newZoneSceneWorldCombatSkillJumpReq()
-  req.npc_id = npcId
-  req.skill_jump_info.skill_id = skillId
-  req.skill_jump_info.action_idx = actionIdx
-  req.skill_jump_info.caster_id = casterId
-  ZoneServer:SendWithHandler(ProtoCMD.ZoneSvrCmd.ZONE_SCENE_WORLD_COMBAT_SKILL_JUMP_REQ, req, self, self.OnRspSkillJump, false, true)
-end
-
-function WorldCombatSkillComponent:OnRspSkillJump(rsp)
-  Log.Debug("WorldCombatSkillComponent:OnRspSkillJump: ret_code: ", rsp.ret_info.ret_code)
-end
-
-function WorldCombatSkillComponent:ReqSkillJumpEnd(npcId, skillId, actionIdx, casterId, pos, dir)
-  local DebugStr = string.format("WorldCombatSkillComponent:ReqSkillJumpEnd: npc_id=%u, skill_id=%d, action_idx=%d, caster_id=%u, pos=%s, dir=%s", npcId, skillId, actionIdx, casterId, tostring(pos), tostring(dir))
-  Log.Debug(DebugStr)
-  local req = ProtoMessage:newZoneSceneWorldCombatSkillJumpEndReq()
-  req.npc_id = npcId
-  req.skill_jump_end_info.skill_id = skillId
-  req.skill_jump_end_info.action_idx = actionIdx
-  req.skill_jump_end_info.caster_id = casterId
-  req.skill_jump_end_info.pos.pos = SceneUtils.ClientPos2ServerPos(pos)
-  req.skill_jump_end_info.pos.dir = SceneUtils.ClientPos2ServerPos(dir)
-  ZoneServer:SendWithHandler(ProtoCMD.ZoneSvrCmd.ZONE_SCENE_WORLD_COMBAT_SKILL_JUMP_END_REQ, req, self, self.OnRspSkillJumpEnd, false, true)
-end
-
-function WorldCombatSkillComponent:OnRspSkillJumpEnd(rsp)
-  Log.Debug("WorldCombatSkillComponent:OnRspSkillJumpEnd: ret_code:", rsp.ret_info.ret_code)
-end
-
-function WorldCombatSkillComponent:ReqSkillRcd(npcId, skillId, actionIdx, casterId)
-  local DebugStr = string.format("WorldCombatSkillComponent:ReqSkillRcd: npc_id=%u, skill_id=%d, action_idx=%d, caster_id=%u", npcId, skillId, actionIdx, casterId)
-  Log.Debug(DebugStr)
-  local req = ProtoMessage:newZoneSceneWorldCombatSkillRcdReq()
-  req.npc_id = npcId
-  req.skill_rcd_info.skill_id = skillId
-  req.skill_rcd_info.action_idx = actionIdx
-  req.skill_rcd_info.caster_id = casterId
-  ZoneServer:SendWithHandler(ProtoCMD.ZoneSvrCmd.ZONE_SCENE_WORLD_COMBAT_SKILL_RCD_REQ, req, self, self.OnRspSkillRcd, false, true)
-end
-
-function WorldCombatSkillComponent:OnRspSkillRcd(rsp)
-  Log.Debug("WorldCombatSkillComponent:OnRspSkillRcd: ret_code: %d", rsp.ret_info.ret_code)
-end
-
-function WorldCombatSkillComponent:ReqSkillPetCollision(npcId, skillId, actionIdx, blockSkillId)
-  local DebugStr = string.format("WorldCombatSkillComponent:ReqSkillPetCollision: npc_id=%llu, skill_id=%d, action_idx=%d, blockSkillId=%d", npcId, skillId, actionIdx, blockSkillId)
-  Log.Debug(DebugStr)
-  local req = ProtoMessage:newZoneSceneWorldCombatSkillPetCollisionReq()
-  req.npc_id = npcId
-  req.skill_pet_collision.skill_id = skillId
-  req.skill_pet_collision.action_idx = actionIdx
-  req.skill_pet_collision.block_skill_id = blockSkillId
-  ZoneServer:SendWithHandler(ProtoCMD.ZoneSvrCmd.ZONE_SCENE_WORLD_COMBAT_SKILL_PET_COLLISION_REQ, req, self, self.OnRspSkillPetCollision, false, true)
-end
-
-function WorldCombatSkillComponent:OnRspSkillPetCollision(rsp)
-  Log.Debug("WorldCombatSkillComponent:OnRspSkillRcd: ret_code:", rsp.ret_info.ret_code)
-end
-
 function WorldCombatSkillComponent:GetCurrentSkillId()
   if not self.currentContext then
     return false

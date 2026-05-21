@@ -57,6 +57,10 @@ function UMG_Activity_PetCollectTemplate_C:InitPetList()
     collectPetGroup = returnActivityData.collection_pet
   end
   if petGroup then
+    local activityId
+    if self.activityInst then
+      activityId = self.activityInst:GetActivityId()
+    end
     for _, petData in ipairs(petGroup) do
       local data = {
         petbase_id = petData.petbase_id,
@@ -64,7 +68,8 @@ function UMG_Activity_PetCollectTemplate_C:InitPetList()
         trail_param = petData.trail_param,
         trail_param2 = petData.trail_param2,
         img = petData.img,
-        isCollected = false
+        isCollected = false,
+        activityId = activityId
       }
       if collectPetGroup then
         for _, petCollectId in ipairs(collectPetGroup) do

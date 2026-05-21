@@ -113,6 +113,21 @@ function UMG_Closet_Item_C:UpdateItemInfo()
         self.Bg_2:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
       else
       end
+    elseif chooseType == _G.Enum.FashionLabelType.FLT_WAND then
+      local confData = _G.DataConfigManager:GetFashionItemConf(chooseId)
+      if confData then
+        iconPath = confData.icon
+      end
+      self.QualityColor:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+      self.itemQuality = confData.item_quality
+      self.Selected:SetPath(AppearanceUtils.GetPIKAQualityPath(self.itemQuality))
+      UIUtils.SetIconQualityColor(self.QualityColor, self.itemQuality)
+      local fashionWandConf = _G.DataConfigManager:GetFashionWandConf(chooseId)
+      if fashionWandConf and not string.IsNilOrEmpty(fashionWandConf.magic_name) and fashionWandConf.wand_source == _G.Enum.FashionWandSource.FWSO_PACKAGE then
+        self:PlayAnimation(self.FaZhang_unselect_loop, 0.0, 0, UE4.EUMGSequencePlayMode.Forward, 1.0, false)
+        self.Bg_1:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+        self.Bg_2:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+      end
     else
       local confData = _G.DataConfigManager:GetFashionItemConf(chooseId)
       if confData then
@@ -138,6 +153,7 @@ function UMG_Closet_Item_C:UpdateItemInfo()
       end
     end
     self:HasItem(self.uiData.bHas)
+    self:RefreshConflictUIShow(chooseType)
   else
     self.QualityColor:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     local confData = _G.DataConfigManager:GetSalonItemConf(chooseId[1])
@@ -148,6 +164,7 @@ function UMG_Closet_Item_C:UpdateItemInfo()
     self.Selected:SetPath(AppearanceUtils.GetPIKAQualityPath(self.itemQuality))
     UIUtils.SetIconQualityColor(self.QualityColor, self.itemQuality)
     self:HasItem(true)
+    self:RefreshSalonConflictUIShow(confData)
   end
   self.Icon:SetPath(iconPath)
   self:SetSuitBtnVisible()
@@ -176,6 +193,9 @@ function UMG_Closet_Item_C:HasItem(bOwned)
 end
 
 function UMG_Closet_Item_C:OnItemSelected(_bSelected)
+  if _bSelected and self.bChose and not self.uiData.bFashion then
+    return
+  end
   self:StopAllAnimations()
   if _bSelected then
     local bIsRed = self.RedDot_1:IsRed()
@@ -206,10 +226,10 @@ function UMG_Closet_Item_C:OnItemSelected(_bSelected)
           _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, tips)
           return
         end
-      elseif self.uiData.typeEnum == _G.Enum.FashionLabelType.FLT_WAND or self.uiData.typeEnum == _G.Enum.FashionLabelType.FLT_DRESSES or self.uiData.typeEnum == _G.Enum.FashionLabelType.FLT_TOPS or self.uiData.typeEnum == _G.Enum.FashionLabelType.FLT_BOTTOMS or self.uiData.typeEnum == _G.Enum.FashionLabelType.FLT_SHOES or self.uiData.typeEnum == _G.Enum.FashionLabelType.FLT_BAGS then
+      elseif self.uiData.typeEnum == _G.Enum.FashionLabelType.FLT_WAND or self.uiData.typeEnum == _G.Enum.FashionLabelType.FLT_DRESSES or self.uiData.typeEnum == _G.Enum.FashionLabelType.FLT_TOPS or self.uiData.typeEnum == _G.Enum.FashionLabelType.FLT_BOTTOMS or self.uiData.typeEnum == _G.Enum.FashionLabelType.FLT_SHOES then
         self.parent:OnUncancelableItemSelected(self.index)
       end
-      self:HandleDressesRingsConflict()
+      self:HandleDressConflict()
       self:_UpdateItemTitleAndDetailOnCloset(suitConf)
       self:_UpdateCanPurchasableButton(suitConf)
       if self.uiData.typeEnum ~= _G.Enum.FashionLabelType.FLT_SUIT and self.uiData.bFashion and self.uiData.typeEnum ~= _G.Enum.FashionLabelType.FLT_SUIT then
@@ -227,16 +247,20 @@ function UMG_Closet_Item_C:OnItemSelected(_bSelected)
           self.parent.lastTryOnId = 0
         end
       end
-      self:PlayAnimation(self:_GetSelectAnimByQuality(self.itemQuality, self.hasGorgeous))
-      if self.uiData.bFashion == true then
-        self.bChose = true
+      local fashionWandConf = _G.DataConfigManager:GetFashionWandConf(self.uiData.id)
+      local bIsWand = false
+      if fashionWandConf and not string.IsNilOrEmpty(fashionWandConf.magic_name) and fashionWandConf.wand_source == _G.Enum.FashionWandSource.FWSO_PACKAGE then
+        bIsWand = true
       end
+      self:PlayAnimation(self:_GetSelectAnimByQuality(self.itemQuality, self.hasGorgeous, bIsWand))
+      self.bChose = true
       if not self.ignoreWear then
         _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.SetCurTryOnItemInfo, self.uiData.typeEnum, self.uiData.id, nil, nil, true, nil, true)
       else
         self.parent:SetConfirmBtnState(self.uiData.bHas)
       end
       self.ignoreWear = false
+      self:RefreshAllConflictUIShow()
     else
       _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.SetCurrentSelectItemInfo, nil)
       if self.uiData.typeEnum == _G.Enum.FashionLabelType.FLT_BAGS then
@@ -258,7 +282,7 @@ function UMG_Closet_Item_C:OnItemSelected(_bSelected)
         self.parent.lastTryOnId = 0
       end
       if self.uiData.bFashion and self.uiData.typeEnum ~= _G.Enum.FashionLabelType.FLT_SUIT then
-        local suitConf = _G.DataConfigManager:GetFashionSuitsConf(self.parent.lastTryOnId)
+        local suitConf = _G.DataConfigManager:GetFashionSuitsConf(self.parent.lastTryOnId, true)
         local bIsContainInSuit = false
         if suitConf and suitConf.item_id then
           for k, v in ipairs(suitConf.item_id) do
@@ -273,7 +297,12 @@ function UMG_Closet_Item_C:OnItemSelected(_bSelected)
         end
       end
       if self.uiData.bFashion == true then
-        self:PlayAnimation(self:_GetUnselectAnimByQuality(self.itemQuality, self.hasGorgeous))
+        local fashionWandConf = _G.DataConfigManager:GetFashionWandConf(self.uiData.id)
+        local bIsWand = false
+        if fashionWandConf and not string.IsNilOrEmpty(fashionWandConf.magic_name) and fashionWandConf.wand_source == _G.Enum.FashionWandSource.FWSO_PACKAGE then
+          bIsWand = true
+        end
+        self:PlayAnimation(self:_GetUnselectAnimByQuality(self.itemQuality, self.hasGorgeous, bIsWand))
         self.bChose = false
         _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.SetCurTryOnItemInfo, self.uiData.typeEnum, self.uiData.id, nil, nil, false, nil, true)
       end
@@ -281,8 +310,16 @@ function UMG_Closet_Item_C:OnItemSelected(_bSelected)
       self.parent:UpdateGorgeousMagicBtnVisible(false)
     end
   else
+    if not self.bChose then
+      return
+    end
     self.bChose = false
-    self:PlayAnimation(self:_GetUnselectAnimByQuality(self.itemQuality, self.hasGorgeous))
+    local fashionWandConf = _G.DataConfigManager:GetFashionWandConf(self.uiData.id)
+    local bIsWand = false
+    if fashionWandConf and not string.IsNilOrEmpty(fashionWandConf.magic_name) and fashionWandConf.wand_source == _G.Enum.FashionWandSource.FWSO_PACKAGE then
+      bIsWand = true
+    end
+    self:PlayAnimation(self:_GetUnselectAnimByQuality(self.itemQuality, self.hasGorgeous, bIsWand))
   end
 end
 
@@ -347,6 +384,13 @@ function UMG_Closet_Item_C:OnAnimationFinished(Anim)
   if Anim == self.tequan_unselect then
     self:PlayAnimation(self.tequan_unselect_loop, 0.0, 0, UE4.EUMGSequencePlayMode.Forward, 1.0, false)
   end
+  if Anim == self.FaZhang_selcet then
+    self:PlayAnimation(self.FaZhang_selcet_loop, 0.0, 0, UE4.EUMGSequencePlayMode.Forward, 1.0, false)
+  end
+  if Anim == self.FaZhang_unselect then
+    self:PlayAnimation(self.FaZhang_unselect_loop, 0.0, 0, UE4.EUMGSequencePlayMode.Forward, 1.0, false)
+    self.Bg_2:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  end
 end
 
 function UMG_Closet_Item_C:SetPetIconBackground(bShouldShow, bHas)
@@ -370,7 +414,11 @@ function UMG_Closet_Item_C:IgnoreNextWear()
   self.ignoreWear = true
 end
 
-function UMG_Closet_Item_C:_GetSelectAnimByQuality(quality, bHasGorgeous)
+function UMG_Closet_Item_C:_GetSelectAnimByQuality(quality, bHasGorgeous, bIsWand)
+  if bIsWand then
+    self.Bg_2:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    return self.FaZhang_selcet
+  end
   if self.bIsTeQuanPendanta then
     return self.tequan_selcet
   elseif bHasGorgeous then
@@ -383,7 +431,10 @@ function UMG_Closet_Item_C:_GetSelectAnimByQuality(quality, bHasGorgeous)
   return self.change1
 end
 
-function UMG_Closet_Item_C:_GetUnselectAnimByQuality(quality, bHasGorgeous)
+function UMG_Closet_Item_C:_GetUnselectAnimByQuality(quality, bHasGorgeous, bIsWand)
+  if bIsWand then
+    return self.FaZhang_unselect
+  end
   if self.bIsTeQuanPendanta then
     return self.tequan_unselect
   elseif bHasGorgeous then
@@ -469,8 +520,50 @@ function UMG_Closet_Item_C:_UpdateItemTitleAndDetailOnCloset(suitConf)
     else
       self.parent:UpdateGorgeousMagicBtnVisible(false)
     end
+  elseif self.uiData.typeEnum == _G.Enum.FashionLabelType.FLT_WAND then
+    local itemName = ""
+    local packageName
+    local fashionItemConf = _G.DataConfigManager:GetFashionItemConf(self.uiData.id, true)
+    local icon = ""
+    local btnText = ""
+    local bShouldShowBtn = false
+    if fashionItemConf then
+      itemName = fashionItemConf.name
+      local goodsConf = self.parent.module.data.FashionIdToGoodsIdMap[self.uiData.id]
+      if goodsConf and 103 == goodsConf.shop_id then
+        local packageId = _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.GetPackageIdFromGiftId, self.uiData.id)
+        if packageId then
+          local packageConf = _G.DataConfigManager:GetFashionPackageConf(packageId, true)
+          if packageConf then
+            packageName = packageConf.name
+          end
+        end
+      end
+      local fashionWandConf = _G.DataConfigManager:GetFashionWandConf(self.uiData.id)
+      if fashionWandConf and fashionWandConf.magic_name and not string.IsNilOrEmpty(fashionWandConf.magic_name) then
+        packageName = fashionWandConf.magic_dress_text
+        icon = fashionWandConf.magic_btn_icon
+        btnText = fashionWandConf.magic_name
+        bShouldShowBtn = true
+      end
+    end
+    self.parent:UpdateTitlesAndCurrentDetailId(itemName, packageName, nil, true, icon, btnText)
+    self.parent:UpdateGorgeousMagicBtnVisible(bShouldShowBtn, 3, nil, self.uiData.id)
   else
-    self.parent:UpdateTitlesAndCurrentDetailId(nil, nil, nil, false)
+    local itemName = ""
+    if self.uiData.bFashion then
+      local fashionItemConf = _G.DataConfigManager:GetFashionItemConf(self.uiData.id, true)
+      if fashionItemConf then
+        itemName = fashionItemConf.name
+      end
+    else
+      local salonConf = _G.DataConfigManager:GetSalonItemConf(self.uiData.id[1], true)
+      if salonConf then
+        itemName = salonConf.name
+      end
+    end
+    self.parent:UpdateTitlesAndCurrentDetailId(itemName, nil, nil, true)
+    self.parent:UpdateGorgeousMagicBtnVisible(false)
   end
 end
 
@@ -509,23 +602,71 @@ function UMG_Closet_Item_C:_UpdateCanPurchasableButton(suitConf)
   end
 end
 
-function UMG_Closet_Item_C:HandleDressesRingsConflict()
-  if self.uiData.typeEnum == _G.Enum.FashionLabelType.FLT_DRESSES or self.uiData.typeEnum == _G.Enum.FashionLabelType.FLT_TOPS or self.uiData.typeEnum == _G.Enum.FashionLabelType.FLT_RINGS then
-    local itemConf = _G.DataConfigManager:GetFashionItemConf(self.uiData.id)
-    if itemConf then
-      local tag
-      if self.uiData.typeEnum == _G.Enum.FashionLabelType.FLT_DRESSES or self.uiData.typeEnum == _G.Enum.FashionLabelType.FLT_TOPS then
-        tag = itemConf.fashion_tops_tag
+function UMG_Closet_Item_C:HandleDressConflict()
+  local itemConf = _G.DataConfigManager:GetFashionItemConf(self.uiData.id, true)
+  if itemConf then
+    local tag = AppearanceUtils.BuildTagArrayFromConf(itemConf)
+    local bConflict, conflictIds, conflictTypes = self.parent:HasFashionConflict(self.uiData.typeEnum, tag, self.uiData.id)
+    if bConflict then
+      for index, id in ipairs(conflictIds) do
+        _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.SetCurTryOnItemInfo, conflictTypes[index], id, nil, nil, false, nil, true)
       end
-      if self.uiData.typeEnum == _G.Enum.FashionLabelType.FLT_RINGS then
-        tag = itemConf.fashion_rings_tag
-      end
-      local bConflict, conflictId, conflictType = self.parent:HasFashionConflict(self.uiData.typeEnum, tag)
-      if bConflict then
-        _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.SetCurTryOnItemInfo, conflictType, conflictId, nil, nil, false, nil, true)
+      self.MutualExclusivity:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    end
+  end
+  self:HandleBodyTypeConflict()
+end
+
+function UMG_Closet_Item_C:HandleBodyTypeConflict()
+  if not self.uiData.bFashion then
+    return
+  end
+  local newAvatarEnum = AppearanceUtils.GetAvatarEnumFromFashionId(self.uiData.id)
+  if not newAvatarEnum then
+    return
+  end
+  local conflictBodyTypes = AppearanceUtils.GetConflictBodyTypes(newAvatarEnum)
+  if not conflictBodyTypes or 0 == #conflictBodyTypes then
+    return
+  end
+  local TempAppearData = _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.GetTempAppearOrBeautyData, _G.Enum.GoodsType.GT_FASHION)
+  if not TempAppearData then
+    return
+  end
+  for _, data in ipairs(TempAppearData) do
+    if data.FashionId ~= self.uiData.id then
+      local existAvatarEnum = AppearanceUtils.GetAvatarEnumFromFashionId(data.FashionId)
+      if existAvatarEnum then
+        for _, conflictType in ipairs(conflictBodyTypes) do
+          if existAvatarEnum == conflictType then
+            _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.SetCurTryOnItemInfo, data.FashionType, data.FashionId, nil, nil, false, nil, true)
+            break
+          end
+        end
       end
     end
   end
+end
+
+function UMG_Closet_Item_C:RefreshConflictUIShow(chooseType)
+  if chooseType == _G.Enum.FashionLabelType.FLT_SUIT then
+    self.MutualExclusivity:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    return
+  end
+  local itemConf = _G.DataConfigManager:GetFashionItemConf(self.uiData.id)
+  if itemConf and itemConf.type ~= _G.Enum.FashionLabelType.FLT_SUIT then
+    local tag = AppearanceUtils.BuildTagArrayFromConf(itemConf)
+    local bConflict, conflictIds, conflictTypes = self.parent:HasFashionConflict(self.uiData.typeEnum, tag, self.uiData.id, false)
+    self.MutualExclusivity:SetVisibility(bConflict and UE4.ESlateVisibility.SelfHitTestInvisible or UE4.ESlateVisibility.Collapsed)
+  end
+end
+
+function UMG_Closet_Item_C:RefreshSalonConflictUIShow(confData)
+  self.MutualExclusivity:SetVisibility(UE4.ESlateVisibility.Collapsed)
+end
+
+function UMG_Closet_Item_C:RefreshAllConflictUIShow()
+  self.parent:RefreshCurrentConflictUIShow()
 end
 
 function UMG_Closet_Item_C:UpdateRedDotMutex()
@@ -558,6 +699,13 @@ function UMG_Closet_Item_C:OpItem(opType, ...)
   if 1 == opType then
     local firstArg = select(1, ...)
     self:SetEnableSound(firstArg)
+  elseif 2 == opType then
+    if self.uiData.bFashion then
+      self:RefreshConflictUIShow(self.uiData.typeEnum)
+    else
+      local salonItemConf = _G.DataConfigManager:GetSalonItemConf(self.uiData.id, true)
+      self:RefreshSalonConflictUIShow(salonItemConf)
+    end
   end
 end
 
@@ -569,7 +717,6 @@ function UMG_Closet_Item_C:ResetItemState()
   self.Bg_Selected_Orange:SetRenderOpacity(0)
   self.Bg_Selected_Purple:SetRenderOpacity(0)
   self.QualityColor:SetRenderOpacity(1)
-  self.QualityColor:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.Bg:SetRenderOpacity(1)
   self.Bg_1:SetRenderOpacity(0)
   self.Bg_2:SetRenderOpacity(0)
@@ -588,6 +735,7 @@ function UMG_Closet_Item_C:ResetItemState()
   self.RedDot_1:SetupKey(0)
   self.RedDot:Refresh()
   self.RedDot_1:Refresh()
+  self.MutualExclusivity:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.bIsResetting = false
 end
 

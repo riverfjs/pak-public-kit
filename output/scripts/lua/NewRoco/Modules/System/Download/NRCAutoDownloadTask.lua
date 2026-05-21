@@ -23,6 +23,9 @@ end
 function NRCAutoDownloadTask:StartDownload()
   self.TaskID = _G.PufferUpdateResTask:DownloadBatchListByPakList(self.DownloadList)
   if self.TaskID and self.TaskID > 0 then
+    if self.TaskTag == PufferDownloadTag.Base then
+      _G.NRCBackgroundDownloadMgr:SetIsUpdating(true)
+    end
     local ReportType = self:GetReportBeginTypeByTag()
     if ReportType then
       _G.NRCEventCenter:DispatchEvent(UpdateUIModuleEvent.ReportDownloadBegin, ReportType, self.TaskID)
@@ -44,10 +47,12 @@ function NRCAutoDownloadTask:Pause()
     end
     bSuccess = _G.PufferUpdateResTask:PauseTask(self.TaskID)
     if bSuccess then
+      if self.TaskTag == PufferDownloadTag.Base then
+        _G.NRCBackgroundDownloadMgr:SetIsUpdating(false)
+      end
       self.DownloadStatus = NRCAutoDownloadTask.EDownloadStatus.Paused
       Log.Debug("[NRCAutoDownloadTask:Pause] Pause Download Task: ", self.TaskTag)
     else
-      self.DownloadStatus = NRCAutoDownloadTask.EDownloadStatus.None
       Log.Error("[NRCAutoDownloadTask:Pause] Pause Download Task Failed:", self.TaskTag)
     end
   end
@@ -59,6 +64,9 @@ function NRCAutoDownloadTask:Resume()
   if _G.PufferUpdateResTask:IsTaskDownloading(self.TaskID) then
     bSuccess = _G.PufferUpdateResTask:ResumeTask(self.TaskID)
     if bSuccess then
+      if self.TaskTag == PufferDownloadTag.Base then
+        _G.NRCBackgroundDownloadMgr:SetIsUpdating(true)
+      end
       local ReportType = self:GetReportBeginTypeByTag()
       if ReportType then
         _G.NRCEventCenter:DispatchEvent(UpdateUIModuleEvent.ReportDownloadBegin, ReportType, self.TaskID)
@@ -66,7 +74,6 @@ function NRCAutoDownloadTask:Resume()
       self.DownloadStatus = NRCAutoDownloadTask.EDownloadStatus.Downloading
       Log.Debug("[NRCAutoDownloadTask:Pause] Resume Download Task: ", self.TaskTag)
     else
-      self.DownloadStatus = NRCAutoDownloadTask.EDownloadStatus.None
       Log.Error("[NRCAutoDownloadTask:Pause] Resume Download Task Failed:", self.TaskTag)
     end
   end
@@ -109,6 +116,10 @@ end
 
 function NRCAutoDownloadTask:GetDownloadStatus()
   return self.DownloadStatus
+end
+
+function NRCAutoDownloadTask:IsDownloading()
+  return self.DownloadStatus == NRCAutoDownloadTask.EDownloadStatus.Downloading
 end
 
 function NRCAutoDownloadTask:GetTaskID()

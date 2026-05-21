@@ -7,6 +7,9 @@ local ActivityModuleEvent = require("NewRoco.Modules.System.Activity.ActivityMod
 local SceneEvent = require("NewRoco.Modules.Core.Scene.Common.SceneEvent")
 local FunctionBanModuleEvent = require("NewRoco.Modules.System.FunctionBan.FunctionBanModuleEvent")
 local NpcChallengeHandler = require("NewRoco.Modules.System.Activity.ActivityObject.NpcChallengeHandler")
+local TipObject = require("NewRoco.Modules.System.TipsModule.Utils.TipObject")
+local RocoSkillProxy = require("NewRoco.Utils.RocoSkillProxy")
+local NPCModuleEnum = require("NewRoco.Modules.Core.NPC.NPCModuleEnum")
 
 function ActivityModule:OnConstruct()
   _G.ActivityModuleCmd = reload("NewRoco.Modules.System.Activity.ActivityModuleCmd")
@@ -49,9 +52,18 @@ function ActivityModule:OnConstruct()
   self:BindActivityObject(Enum.ActivityType.ATP_SPRING_FESTIVAL, "NewRoco.Modules.System.Activity.ActivityObject.SpringFestivalActivityObject")
   self:BindActivityObject(Enum.ActivityType.ATP_PREHEAT, "NewRoco.Modules.System.Activity.ActivityObject.PreHeatActivityObject")
   self:BindActivityObject(Enum.ActivityType.ATP_BASE_MIX, "NewRoco.Modules.System.Activity.ActivityObject.BaseMixActivityObject")
+  self:BindActivityObject(Enum.ActivityType.ATP_SIGN_REWARD, "NewRoco.Modules.System.Activity.ActivityObject.PeriodicLoginActivityObject")
+  self:BindActivityObject(Enum.ActivityType.ATP_GLOBAL_CHALLENGE, "NewRoco.Modules.System.Activity.ActivityObject.GlobalChallengeActivityObject")
   self:BindActivityObject(Enum.ActivityType.ATP_TERRITORY_TRIAL, "NewRoco.Modules.System.Activity.ActivityObject.TerritoryTrialActivityObject")
   self:BindActivityObject(Enum.ActivityType.ATP_PET_CERTIFICATION, "NewRoco.Modules.System.Activity.ActivityObject.CertificationActivityObject")
+  self:BindActivityObject(Enum.ActivityType.ATP_ACTIVITY_RECALL_BP, "NewRoco.Modules.System.Activity.ActivityObject.RecallBPActivityObject")
+  self:BindActivityObject(Enum.ActivityType.ATP_ACTIVITY_RECALL_STARLIGHT, "NewRoco.Modules.System.Activity.ActivityObject.RecallStarLightActivityObject")
+  self:BindActivityObject(Enum.ActivityType.ATP_ACTIVITY_RECALL, "NewRoco.Modules.System.Activity.ActivityObject.RecallMainActivityObject")
   self:BindActivityObject(Enum.ActivityType.ATP_PET_PHOTO, "NewRoco.Modules.System.Activity.ActivityObject.TakePhotoPetIdentifyActivityObject")
+  self:BindActivityObject(Enum.ActivityType.ATP_LEGENDARY_CHALLENGE, "NewRoco.Modules.System.Activity.ActivityObject.LegendaryChallengeActivityObject")
+  self:BindActivityObject(Enum.ActivityType.ATP_TAKEPHOTO_COMPETITION, "NewRoco.Modules.System.Activity.ActivityObject.TakePhotoCompetitionActivityObject")
+  self:BindActivityObject(Enum.ActivityType.ATP_PET_TRIP, "NewRoco.Modules.System.Activity.ActivityObject.PetTripActivityObject")
+  self:BindActivityObject(Enum.ActivityType.ATP_PRE_DOWNLOAD, "NewRoco.Modules.System.Activity.ActivityObject.PreDownloadActivityObject")
   self:RegPanel("ActivityMainPanel", "/Game/NewRoco/Modules/System/Activity/Res/UMG_ActivityMainPanel", _G.Enum.UILayerType.UI_LAYER_FULLSCREEN, nil, "In", "Out", nil, true)
   self:RegPanel("ActivityQRCode", "/Game/NewRoco/Modules/System/Activity/Res/UMG_Activity_QRCode", _G.Enum.UILayerType.UI_LAYER_GUIDANCE)
   self:RegPanel("ActivityPhotographPanel", "/Game/NewRoco/Modules/System/Activity/Res/UMG_Activity_Photograph", _G.Enum.UILayerType.UI_LAYER_POPUP)
@@ -92,9 +104,32 @@ function ActivityModule:OnConstruct()
   self:RegPanel("TerritoryTrialRewardPreview", "/Game/NewRoco/Modules/System/Activity/Res/UMG_Activity_TerritoryTrial_RewardPreview", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, nil, true)
   self:RegPanel("CertificationBlessingMain", "/Game/NewRoco/Modules/System/Activity/Res/UMG_Activity_SeasonPetCertification_BlessingMain", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, "close", true)
   self:RegPanel("BlessingPetDetailPanel", "/Game/NewRoco/Modules/System/Activity/Res/UMG_Activity_SeasonPetCertification_BlessingPetDetailPanel", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, "In", "Out", true)
+  self:RegPanel("BackflowPetSelect", "/Game/NewRoco/Modules/System/Activity/Res/UMG_Activity_BackflowPetSelect", _G.Enum.UILayerType.UI_LAYER_FULLSCREEN, nil, "In", "Out", false)
+  self:RegPanel("ContractManualShopTips", "/Game/NewRoco/Modules/System/Activity/Res/UMG_Activity_BackflowContractManualShopTips", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, nil, true)
   self:RegPanel("PikaFashionSurvey_ToPhoto", "/Game/NewRoco/Modules/System/Activity/Res/UMG_Activity_PikaFashionSurvey_ToPhoto", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, "In", "Out", true)
   self:RegPanel("FreeHuggersPanel", "/Game/NewRoco/Modules/System/Activity/Res/UMG_FreeHuggers", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, nil, true)
   self:RegPanel("FreeHuggersCardPanel", "/Game/NewRoco/Modules/System/Activity/Res/UMG_FreeHuggers_Card", _G.Enum.UILayerType.UI_LAYER_POPUP)
+  self:RegPanel("ActivityCommonOpenTipsPanel", "", _G.Enum.UILayerType.UI_LAYER_POPUP)
+  self:RegPanel("ElfParadiseSelect", "/Game/NewRoco/Modules/System/Activity/Res/UMG_Activity_ElfParadiseSelect", _G.Enum.UILayerType.UI_LAYER_POPUP)
+  self:RegPanel("ElfParadiseRewards", "/Game/NewRoco/Modules/System/Activity/Res/UMG_Activity_ElfParadiseRewards", _G.Enum.UILayerType.UI_LAYER_POPUP)
+  self:RegPanel("ElfAdventure", "/Game/NewRoco/Modules/System/Activity/Res/UMG_Activity_ElfAdventure", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, nil, true)
+  self:RegPanel("ElfAdventureBg", "/Game/NewRoco/Modules/System/Activity/Res/UMG_Activity_ElfAdventure_BG2", _G.Enum.UILayerType.UI_LAYER_TOP)
+  self:RegPanel("ElfAdventureTravelLog", "/Game/NewRoco/Modules/System/Activity/Res/UMG_Activity_ElfAdventureTravelLog", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, nil, true)
+  self:RegPanel("ElfParadiseEventReview", "/Game/NewRoco/Modules/System/Activity/Res/UMG_Activity_ElfParadiseEventReview", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, nil, true)
+  self:RegPanel("ObservationNotesPanel", "/Game/NewRoco/Modules/System/Activity/Res/UMG_Activity_ObservationNotes", _G.Enum.UILayerType.UI_LAYER_POPUP)
+  self:RegPanel("AICoachUserProtocol", "/Game/NewRoco/Modules/System/Activity/Res/UMG_Activity_ShiningWeekendAICoach", _G.Enum.UILayerType.UI_LAYER_POPUP)
+  self:RegPanel("ObservationNotesPhotoPanel", "/Game/NewRoco/Modules/System/Activity/Res/UMG_Activity_ObservationNotes_Photo", _G.Enum.UILayerType.UI_LAYER_POPUP)
+  self:RegPanel("SurveyTasksPanel", "/Game/NewRoco/Modules/System/Activity/Res/UMG_Activity_SurveyTasks", _G.Enum.UILayerType.UI_LAYER_POPUP)
+  self:RegPanel("TakePhotoCompetition_ClaimReward", "/Game/NewRoco/Modules/System/Activity/Res/UMG_Activity_TakePhotoCompetition_ClaimReward", _G.Enum.UILayerType.UI_LAYER_POPUP)
+  self:RegPanel("TakePhotoCompetition_Vote", "/Game/NewRoco/Modules/System/Activity/Res/UMG_Activity_TakePhotoCompetition_Vote", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, nil, true)
+  self:RegPanel("TakePhotoCompetition_Rankings", "/Game/NewRoco/Modules/System/Activity/Res/UMG_Activity_TakePhotoCompetition_Rankings", _G.Enum.UILayerType.UI_LAYER_FULLSCREEN, nil, "In", "Out", true)
+  self:RegPanel("TakePhotoCompetition_PreviousReview", "/Game/NewRoco/Modules/System/Activity/Res/UMG_Activity_TakePhotoCompetition_PreviousReview", _G.Enum.UILayerType.UI_LAYER_FULLSCREEN, nil, "In", "Out", true)
+  self:RegPanel("TakePhotoCompetition_RewardPreview", "/Game/NewRoco/Modules/System/Activity/Res/UMG_Activity_TakePhotoCompetition_RewardPreview", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, nil, true)
+  self:RegPanel("TakePhotoCompetition_BigPhoto", "/Game/NewRoco/Modules/System/Activity/Res/UMG_Activity_TakePhotoCompetition_BigPhoto.UMG_Activity_TakePhotoCompetition_BigPhoto", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, nil, true)
+  self:RegPanel("TakePhotoCompetition_SubmissionReward", "/Game/NewRoco/Modules/System/Activity/Res/UMG_Activity_TakePhotoCompetition_RaffleTicket", _G.Enum.UILayerType.UI_LAYER_POPUP)
+  self:RegPanel("ChallengeProgressRewardPanel", "/Game/NewRoco/Modules/System/Activity/Res/UMG_Activity_PersonalChallenge.UMG_Activity_PersonalChallenge", _G.Enum.UILayerType.UI_LAYER_FULLSCREEN, nil, "In", "Out", true)
+  self:RegPanel("ObservationNotesDetailsPanel", "/Game/NewRoco/Modules/System/Activity/Res/UMG_Activity_ObservationNotes_Details.UMG_Activity_ObservationNotes_Details", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, nil, true)
+  self:RegPanel("PreDownloadPopupPanel", "/Game/NewRoco/Modules/System/Activity/Res/UMG_PreDownloadPopup.UMG_PreDownloadPopup", _G.Enum.UILayerType.UI_LAYER_DIALOGUE)
 end
 
 function ActivityModule:OnActive()
@@ -111,8 +146,10 @@ function ActivityModule:OnActive()
   _G.ZoneServer:AddProtocolListener(self, _G.ProtoCMD.ZoneSvrCmd.ZONE_PLAYER_ACTIVITY_DATA_CHANGE_NTY, self.OnZonePlayerActivityDataChangeNty)
   _G.ZoneServer:AddProtocolListener(self, _G.ProtoCMD.ZoneSvrCmd.ZONE_LOTTERY_REWARD_RESULT_NOTIFY, self.OnPlayerLotteryRewardConfirmItemNty)
   _G.ZoneServer:AddProtocolListener(self, _G.ProtoCMD.ZoneSvrCmd.ZONE_NPC_CHALLENGE_BATTLE_CHANGE_NTY, self.OnZoneNpcChallengeBattleChangeNty)
+  _G.ZoneServer:AddProtocolListener(self, _G.ProtoCMD.ZoneSvrCmd.ZONE_PLAYER_NPC_LOTTERY_GOODS_REWARD_NOTIFY, self.OnZonePlayerNpcLotteryGoodsRewardNotify)
   _G.NRCEventCenter:RegisterEvent("ActivityModule", self, SceneEvent.LoadMapStart, self.OnLoadMapStart)
   _G.NRCEventCenter:RegisterEvent("ActivityModule", self, _G.NRCGlobalEvent.ON_RECONNECT_FINISH, self.OnReconnectFinish)
+  _G.FunctionBanManager:AddFunctionStateListener(Enum.PlayerFunctionBanType.PFBT_SEASON_AE_SHOW, self, self.OnFunctionBanUpdated)
   self:RefreshPandoraActivity()
 end
 
@@ -127,6 +164,7 @@ function ActivityModule:OnDeactive()
   _G.ZoneServer:RemoveProtocolListener(self, _G.ProtoCMD.ZoneSvrCmd.ZONE_ADD_PLAYER_ACTIVITY_PART_REWARD_NTY, self.OnZoneAddPlayerActivityPartRewardNotify)
   _G.ZoneServer:RemoveProtocolListener(self, _G.ProtoCMD.ZoneSvrCmd.ZONE_PLAYER_ACTIVITY_DATA_CHANGE_NTY, self.OnZonePlayerActivityDataChangeNty)
   _G.ZoneServer:RemoveProtocolListener(self, _G.ProtoCMD.ZoneSvrCmd.ZONE_LOTTERY_REWARD_RESULT_NOTIFY, self.OnPlayerLotteryRewardConfirmItemNty)
+  _G.FunctionBanManager:RemoveFunctionStateListener(Enum.PlayerFunctionBanType.PFBT_SEASON_AE_SHOW, self, self.OnFunctionBanUpdated)
   _G.NRCEventCenter:UnRegisterEvent(self, SceneEvent.LoadMapFinish, self.OnLoadMapStart)
   _G.NRCEventCenter:UnRegisterEvent(self, _G.NRCGlobalEvent.ON_RECONNECT_FINISH, self.OnReconnectFinish)
 end
@@ -164,17 +202,28 @@ function ActivityModule:OnLoadMapStart()
 end
 
 function ActivityModule:OnReconnectFinish()
+  local req = _G.ProtoMessage:newZoneGetPlayerActivityInfoReq()
+  _G.ZoneServer:Send(_G.ProtoCMD.ZoneSvrCmd.ZONE_GET_PLAYER_ACTIVITY_INFO_REQ, req)
+  local needHandlerObjects = table.copy(self.data.availableInSvrActiveActivities)
   local displayActivities = self.data:GetDisplayActivities()
-  if not displayActivities then
-    return
+  if displayActivities then
+    for _, _activityInst in ipairs(displayActivities) do
+      local _activityId = _activityInst:GetActivityId()
+      if not needHandlerObjects[_activityId] then
+        needHandlerObjects[_activityId] = _activityInst
+      end
+    end
   end
-  for _, _activityInst in ipairs(displayActivities) do
+  for _, _activityInst in pairs(needHandlerObjects) do
     if not _activityInst:OnReconnectFinish() then
       local attachView = _activityInst:GetAttachView()
       if attachView and UE4.UObject.IsValid(attachView) then
         _activityInst:ReqGetPlayerActivityData()
       end
     end
+  end
+  if self:HasPanel("PreDownloadPopupPanel") then
+    self:ClosePanel("PreDownloadPopupPanel")
   end
 end
 
@@ -194,20 +243,24 @@ function ActivityModule:OnWebViewOptNotify(webViewRet)
   end
 end
 
-function ActivityModule:OpenMainPanel(_activityType, _activityId)
+function ActivityModule:OpenMainPanel(_activityType, _activityId, _openSource)
   if "nil" == _activityType then
     _activityType = nil
   end
   _activityType = tonumber(_activityType)
   _activityId = tonumber(_activityId)
-  if self:HasPanel("ActivityMainPanel") then
-    local panel = self:GetPanel("ActivityMainPanel")
-    panel:OnSelectedActivityByOpenCmd(_activityType, _activityId)
-    _G.NRCModuleManager:DoCmd(TipsModuleCmd.Tips_CloseItemTips)
-    self:DispatchEvent(ActivityModuleEvent.OnSelectedActivityByOpenCmd)
+  
+  local function OpenFailedProcess()
     local touchReasonType = _G.NRCModuleManager:DoCmd(MultiTouchModuleCmd.GetPanelSelectBtnReason, "LobbyMain").ACTIVITY
     _G.NRCModuleManager:DoCmd(MultiTouchModuleCmd.UnlockIsSelectBtn, "MainUIModule", "LobbyMain", touchReasonType)
-    return
+    if _openSource == ActivityEnum.MainPanelOpenSource.LobbyMainInner then
+      _G.NRCEventCenter:DispatchEvent(MainUIModuleEvent.OnMainUISubPanelClosed, false, false)
+    end
+  end
+  
+  if self:HasPanel("ActivityMainPanel") then
+    _G.NRCModuleManager:DoCmd(TipsModuleCmd.Tips_CloseItemTips)
+    self:DispatchEvent(ActivityModuleEvent.OnSelectedActivityByOpenCmd)
   end
   local isBan = _G.NRCModuleManager:DoCmd(FunctionBanModuleCmd.CheckUIFunctionBan, Enum.FunctionEntrance.FE_ACTIVITY)
   local isHide = _G.NRCModuleManager:DoCmd(FunctionBanModuleCmd.CheckUIFunctionHide, Enum.FunctionEntrance.FE_ACTIVITY)
@@ -217,33 +270,41 @@ function ActivityModule:OpenMainPanel(_activityType, _activityId)
     else
       _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.task_track_error1)
     end
-    _G.NRCEventCenter:DispatchEvent(MainUIModuleEvent.OnMainUISubPanelClosed, false, false)
+    OpenFailedProcess()
     return
   end
   local req = _G.ProtoMessage:newZoneGetPlayerActivityInfoReq()
   _G.ZoneServer:Send(_G.ProtoCMD.ZoneSvrCmd.ZONE_GET_PLAYER_ACTIVITY_INFO_REQ, req)
   self.data:RefreshActivities()
-  if _activityType then
-    local Inst = self:GetActivityInstByType(_activityType)
-    if Inst and #Inst > 0 then
-    else
+  if _activityType or _activityId then
+    local Inst = _activityId and self:GetActivityInstById(_activityId)
+    if not Inst and _activityType then
+      local InstList = self:GetActivityInstByType(_activityType)
+      if InstList then
+        Inst = InstList[1]
+      end
+    end
+    if not Inst then
       if _G.DataModelMgr.PlayerDataModel:GetIsTraceByBag() then
         _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.item_source_worng_tip7)
       else
         _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.task_track_error1)
       end
+      OpenFailedProcess()
       return
     end
   end
   if self.data:HasDisplayActivities() then
-    self:OpenPanel("ActivityMainPanel", _activityType, _activityId)
+    local openResult = self:OpenPanel("ActivityMainPanel", _activityType, _activityId, _openSource, _G.NRCPanelOpenOptions.New():SetOpenStrategy(_G.NRCPanelEnum.NRCPanelOpenStrategy.BringToFront))
+    if 0 ~= openResult then
+      OpenFailedProcess()
+    end
   else
+    OpenFailedProcess()
     if _G.DataModelMgr.PlayerDataModel:GetIsTraceByBag() then
       _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.item_source_worng_tip7)
     end
     Log.Error("\229\189\147\229\137\141\230\178\161\230\156\137\230\180\187\229\138\168\233\161\185\231\155\174\239\188\140\230\137\147\229\188\128\229\164\177\232\180\165!")
-    local touchReasonType = _G.NRCModuleManager:DoCmd(MultiTouchModuleCmd.GetPanelSelectBtnReason, "LobbyMain").ACTIVITY
-    _G.NRCModuleManager:DoCmd(MultiTouchModuleCmd.UnlockIsSelectBtn, "MainUIModule", "LobbyMain", touchReasonType)
   end
 end
 
@@ -262,6 +323,10 @@ end
 
 function ActivityModule:PreLoadMainPanel()
   self:PreLoadPanel("ActivityMainPanel", 10)
+end
+
+function ActivityModule:PreLoadDownloadActivityPanel()
+  self:PreLoadPanel("PreDownloadPopupPanel")
 end
 
 function ActivityModule:SetShieldingActivities(activities)
@@ -426,7 +491,7 @@ function ActivityModule:OpenThisWeekClassSchedulePanel()
     _G.NRCModeManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, _G.LuaText.Activity_CollegeGlory_disabled_tips)
     return
   end
-  self:OpenPanel("ThisWeekClassSchedulePanel", activities[1])
+  self:OpenPanel("ThisWeekClassSchedulePanel", activities[1], _G.NRCPanelOpenOptions.New():SetOpenStrategy(_G.NRCPanelEnum.NRCPanelOpenStrategy.BringToFront))
 end
 
 function ActivityModule:OpenCollegeRankingPanel()
@@ -622,9 +687,6 @@ end
 function ActivityModule:OnZoneNpcChallengeBattleChangeNty(_protoData)
   if _protoData then
     self.npcChallengeHandler:AddOrRefreshChallengeItem(_protoData.npc_challenge_item)
-    _G.DelayManager:DelaySeconds(1, function()
-      ActivityUtils.ShowRewardGetTips(nil, _protoData.ret_info)
-    end)
   end
 end
 
@@ -937,6 +999,14 @@ function ActivityModule:OnCmdOpenFreeHuggersCardPanel(data)
   self:OpenPanel("FreeHuggersCardPanel", data)
 end
 
+function ActivityModule:OpenBackflowPetSelect(pet_ids, activityId)
+  self:OpenPanel("BackflowPetSelect", pet_ids, activityId)
+end
+
+function ActivityModule:OpenContractManualShopTips(activity_id)
+  self:OpenPanel("ContractManualShopTips", activity_id)
+end
+
 function ActivityModule:OnCmdCheckPetCollectIsFinish(activityId)
   if not activityId then
     return false
@@ -964,10 +1034,462 @@ end
 
 function ActivityModule:OnCmdCheckActivityExpired(activityId)
   local activityObject = NRCModuleManager:DoCmd(ActivityModuleCmd.GetActivityInstById, activityId)
-  if activityObject and activityObject.status == ActivityEnum.ActivityStatus.Expired then
+  if activityObject then
+    if activityObject.status == ActivityEnum.ActivityStatus.Expired then
+      return true
+    end
+  else
     return true
   end
   return false
+end
+
+local CommonOpenTipState = {}
+CommonOpenTipState.WaitDependency = 1
+CommonOpenTipState.PendingActive = 2
+CommonOpenTipState.Active = 3
+CommonOpenTipState.PerformSuccess = 4
+CommonOpenTipState.ServerRspConfirm = 5
+local CommonOpenTipStateBitNum = {}
+CommonOpenTipStateBitNum.StateSpaceHolder = 7
+CommonOpenTipStateBitNum.Debug = 8
+local CommonOpenTipStateSpaceMask = (1 << CommonOpenTipStateBitNum.StateSpaceHolder + 1) - 1
+
+local function ResetState(OriginalValue, newState)
+  OriginalValue = OriginalValue or 0
+  newState = newState or 0
+  return (OriginalValue & ~CommonOpenTipStateSpaceMask) + newState
+end
+
+function ActivityModule:OnCmdTryShowActivityCommonOpenTips(activityId, specificTipObject, bDebugCommonOpenTips, ReCheckDependency)
+  Log.Debug("ActivityModule:OnCmdTryShowActivityCommonOpenTips", activityId, specificTipObject, bDebugCommonOpenTips)
+  if not activityId then
+    return
+  end
+  local activityConf = _G.DataConfigManager:GetActivityConf(activityId)
+  if not activityConf or not activityConf.popup_path then
+    return
+  end
+  if specificTipObject and specificTipObject.customData and not bDebugCommonOpenTips then
+    bDebugCommonOpenTips = specificTipObject.customData.bDebug
+  end
+  if not bDebugCommonOpenTips then
+    local bAnyConfirmPopPlayed = false
+    local activityInst = self:GetActivityInstById(activityId)
+    if activityInst then
+      local bPopupPlayed = activityInst:GetPopupPlayed()
+      if nil ~= bPopupPlayed and bPopupPlayed then
+        bAnyConfirmPopPlayed = true
+        if specificTipObject then
+          Log.Dump(specificTipObject, 4, "ActivityModule:OnCmdTryShowActivityCommonOpenTips_1")
+        end
+        return
+      end
+    end
+    if not bAnyConfirmPopPlayed then
+      local activityBriefInfo = self.data.svrActivityBriefInfo[activityId]
+      if activityBriefInfo and activityBriefInfo.popup_played then
+        bAnyConfirmPopPlayed = true
+        if specificTipObject then
+          Log.Dump(specificTipObject, 4, "ActivityModule:OnCmdTryShowActivityCommonOpenTips_2")
+        end
+        return
+      end
+    end
+  end
+  local currentState = self.data._CommonOpenTipState[activityId] or 0
+  local currentStatePure = currentState & CommonOpenTipStateSpaceMask
+  local currentStateBase = currentState & ~CommonOpenTipStateSpaceMask
+  local Ban = _G.FunctionBanManager:GetFunctionState(Enum.PlayerFunctionBanType.PFBT_SEASON_AE_SHOW, false, false, false)
+  if specificTipObject then
+    if Ban then
+      self.data._CommonOpenTipState[activityId] = currentStateBase + CommonOpenTipState.WaitDependency
+      specificTipObject:MarkFinished()
+    else
+      self:DoShowActivityCommonOpenTips(specificTipObject)
+    end
+  else
+    if 0 ~= currentStatePure and currentStatePure < CommonOpenTipState.ServerRspConfirm then
+      local bShouldReCheckDependency = ReCheckDependency and currentStatePure == CommonOpenTipState.WaitDependency
+      Log.Debug("ActivityModule:OnCmdTryShowActivityCommonOpenTips ", activityId, self.data._CommonOpenTipState[activityId], bShouldReCheckDependency)
+      if not bShouldReCheckDependency then
+        return
+      end
+    end
+    if bDebugCommonOpenTips then
+      currentStateBase = currentStateBase | 1 << CommonOpenTipStateBitNum.Debug
+    else
+      currentStateBase = currentStateBase & ~(1 << CommonOpenTipStateBitNum.Debug)
+    end
+    if Ban then
+      self.data._CommonOpenTipState[activityId] = currentStateBase + CommonOpenTipState.WaitDependency
+    else
+      local tipObject = TipObject.CreateActivityCommonOpenTips(activityId, bDebugCommonOpenTips)
+      self.data._CommonOpenTipState[activityId] = currentStateBase + CommonOpenTipState.PendingActive
+      _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.AddTip, tipObject)
+    end
+  end
+end
+
+function ActivityModule:DoShowActivityCommonOpenTips(tip)
+  if not tip then
+    return
+  end
+  local activityId = tip.customData and tip.customData.activityId
+  if activityId then
+    local activityConf = _G.DataConfigManager:GetActivityConf(activityId)
+    if activityConf and activityConf.popup_path then
+      local umgPath = string.format("/Game/NewRoco/Modules/System/Activity/Res/%s", activityConf.popup_path)
+      local panelData = self:GetPanelData("ActivityCommonOpenTipsPanel")
+      panelData.panelPath = NRCUtils.FormatBlueprintAssetPath(umgPath)
+      self.data._CommonOpenTipState[activityId] = ResetState(self.data._CommonOpenTipState[activityId], CommonOpenTipState.Active)
+      self:OpenPanel("ActivityCommonOpenTipsPanel", tip)
+      return
+    end
+  end
+  tip:MarkFinished()
+end
+
+function ActivityModule:OnActivityPopUpPlayedRsp(rsp)
+  if rsp and rsp.ret_info and 0 == rsp.ret_info.ret_code and rsp.activity_id then
+    Log.Debug("ActivityModule:OnActivityPopUpPlayedRsp", rsp.activity_id, self.data._CommonOpenTipState[rsp.activity_id])
+    self.data:SvrUpdateActivityData(_G.ProtoCMD.ZoneSvrCmd.ZONE_ACTIVITY_POPUP_PLAYED_RSP, rsp.activity_id)
+    self.data._CommonOpenTipState[rsp.activity_id] = ResetState(self.data._CommonOpenTipState[rsp.activity_id], CommonOpenTipState.ServerRspConfirm)
+  end
+end
+
+function ActivityModule:OnFunctionBanUpdated(newState, functionType, reason)
+  if not newState then
+    for activityId, state in pairs(self.data._CommonOpenTipState) do
+      local statePure = state & CommonOpenTipStateSpaceMask
+      if statePure == CommonOpenTipState.WaitDependency then
+        local bDebugCommonOpenTips = 0 ~= state & 1 << CommonOpenTipStateBitNum.Debug
+        self:OnCmdTryShowActivityCommonOpenTips(activityId, nil, bDebugCommonOpenTips, true)
+      end
+    end
+  end
+end
+
+function ActivityModule:MarkActivityCommonOpenTipsPerform(bPerformSuccess, activityId)
+  if not activityId then
+    return
+  end
+  local currentState = self.data._CommonOpenTipState[activityId]
+  if not currentState then
+    return
+  end
+  local currentStatePure = currentState & CommonOpenTipStateSpaceMask
+  Log.Debug("ActivityModule:MarkActivityCommonOpenTipsPerform", currentState, bPerformSuccess, activityId)
+  if bPerformSuccess then
+    if currentStatePure < CommonOpenTipState.PerformSuccess then
+      self.data._CommonOpenTipState[activityId] = ResetState(self.data._CommonOpenTipState[activityId], CommonOpenTipState.PerformSuccess)
+      local bDebugCommonOpenTips = 0 ~= currentState & 1 << CommonOpenTipStateBitNum.Debug
+      if not bDebugCommonOpenTips then
+        local req = _G.ProtoMessage:newZoneActivityPopupPlayedReq()
+        req.activity_id = activityId
+        _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_ACTIVITY_POPUP_PLAYED_REQ, req, self, self.OnActivityPopUpPlayedRsp, false, false)
+      else
+        self.data._CommonOpenTipState[activityId] = ResetState(self.data._CommonOpenTipState[activityId], CommonOpenTipState.ServerRspConfirm)
+      end
+    end
+  else
+    self.data._CommonOpenTipState[activityId] = nil
+  end
+end
+
+function ActivityModule:OnOpenAICoachProtocolPanel()
+  self:OpenPanel("AICoachUserProtocol")
+end
+
+function ActivityModule:OnCmdOpenObservationNotesPanel()
+  self:OpenPanel("ObservationNotesPanel")
+end
+
+function ActivityModule:OnCmdOpenObservationNotesPhotoPanel(info_id)
+  self:OpenPanel("ObservationNotesPhotoPanel", info_id)
+end
+
+function ActivityModule:OnCmdOpenObservationNotesInfoPanel(data)
+  if self:HasPanel("ObservationNotesPanel") then
+    local panel = self:GetPanel("ObservationNotesPanel")
+    panel:SwitchPanel(1, data)
+  end
+end
+
+function ActivityModule:OnCmdOpenSurveyTasksPanel(taskData)
+  self:OpenPanel("SurveyTasksPanel", taskData)
+end
+
+function ActivityModule:OnCmdOpenElfParadiseSelect(activity_id)
+  local req = _G.ProtoMessage:newZoneActivityPetTripGetWishChoiceCountReq()
+  req.activity_id = activity_id
+  _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_ACTIVITY_PET_TRIP_GET_WISH_CHOICE_COUNT_REQ, req, self, self.OpenElfParadiseSelect)
+end
+
+function ActivityModule:OpenElfParadiseSelect(rsp)
+  if rsp and rsp.ret_info and 0 == rsp.ret_info.ret_code then
+    self:OpenPanel("ElfParadiseSelect", rsp.wish_choice_counts)
+  end
+end
+
+function ActivityModule:OnCmdOpenElfParadiseRewards()
+  self:OpenPanel("ElfParadiseRewards")
+end
+
+function ActivityModule:OnCmdOpenElfAdventure(taskData)
+  self:OpenPanel("ElfAdventureBg")
+  self:OpenPanel("ElfAdventure", taskData)
+end
+
+function ActivityModule:OnElfAdventureBgAnimClose()
+  if self:HasPanel("ElfAdventure") then
+    local panel = self:GetPanel("ElfAdventure")
+    panel:PlayInAnimation()
+  end
+end
+
+function ActivityModule:OnCmdOpenElfAdventureTravelLog()
+  self:OpenPanel("ElfAdventureTravelLog")
+end
+
+function ActivityModule:OnCmdOpenElfParadiseEventReview(lottery_records)
+  self:OpenPanel("ElfParadiseEventReview", lottery_records)
+end
+
+function ActivityModule:OpenTakePhotoCompetitionVotePanel(activityInst)
+  if not activityInst then
+    return
+  end
+  self:OpenPanel("TakePhotoCompetition_Vote", activityInst)
+end
+
+function ActivityModule:OpenTakePhotoCompetitionVoteRewardPanel(activityInst)
+  if not activityInst then
+    return
+  end
+  self:OpenPanel("TakePhotoCompetition_ClaimReward", activityInst)
+end
+
+function ActivityModule:OpenTakePhotoCompetitionRankingsPanel(activityInst)
+  if not activityInst then
+    return
+  end
+  local cfg = activityInst:GetCurrentPhaseConf()
+  if cfg then
+    local rankDataObject = activityInst:GetRankDataObject(cfg.id, false)
+    rankDataObject:MarkAllRankDataDirty()
+    rankDataObject:PrefetchPlayerRankData(true)
+    local prefetching = rankDataObject:PrefetchAllRankData(true)
+    self:OpenPanel("TakePhotoCompetition_Rankings", activityInst, rankDataObject, prefetching)
+  else
+    Log.Error("ActivityModule:OpenTakePhotoCompetitionRankingsPanel", activityInst:GetActivityId(), "no cfg")
+  end
+end
+
+function ActivityModule:OpenTakePhotoCompetitionPreviousReviewPanel(activityInst)
+  if not activityInst then
+    return
+  end
+  local pastPhaseIds = activityInst:GetPastPhases()
+  if pastPhaseIds and #pastPhaseIds > 0 then
+    local defaultRankDataObject = activityInst:GetRankDataObject(pastPhaseIds[1], false)
+    defaultRankDataObject:PrefetchPlayerRankData(false)
+    local prefetching = defaultRankDataObject:PrefetchAllRankData(false)
+    self:OpenPanel("TakePhotoCompetition_PreviousReview", activityInst, pastPhaseIds, prefetching)
+  else
+    Log.Error("ActivityModule:OpenTakePhotoCompetitionPreviousReviewPanel", activityInst:GetActivityId(), "no past phase")
+  end
+end
+
+function ActivityModule:OpenTakePhotoCompetitionRewardPreview()
+  self:OpenPanel("TakePhotoCompetition_RewardPreview")
+end
+
+function ActivityModule:OpenTakePhotoCompetitionBigPhoto(DisplayData)
+  if not DisplayData then
+    local ActivityObjectList = self:GetActivityInstByType(Enum.ActivityType.ATP_TAKEPHOTO_COMPETITION)
+    local ActivityObject = ActivityObjectList and ActivityObjectList[1]
+    if ActivityObject then
+      DisplayData = {}
+      local ActivityData = ActivityObject:GetActivityData()
+      if ActivityData.phases then
+        for i = #ActivityData.phases, 1, -1 do
+          local Phase = ActivityData.phases[i]
+          if Phase.phase_id == ActivityData.current_phase_id then
+            local Url = Phase.photo_url
+            local Md5 = Phase.photo_md5
+            DisplayData.Url = Url
+            DisplayData.Md5 = Md5
+            break
+          end
+        end
+      end
+    end
+  end
+  if not DisplayData then
+    Log.Error("OpenTakePhotoCompetitionBigPhoto Invalid DisplayData")
+    return
+  end
+  self:OpenPanel("TakePhotoCompetition_BigPhoto", DisplayData)
+end
+
+function ActivityModule:OpenTakePhotoCompetitionSubmissionReward(rsp)
+  self:OpenPanel("TakePhotoCompetition_SubmissionReward", rsp)
+end
+
+function ActivityModule:GetActivityAnimFlag(activityId)
+  local targetActivityId
+  if type(activityId) == "number" then
+    targetActivityId = tostring(activityId)
+  else
+    targetActivityId = activityId
+  end
+  if not self.data.activityAnimFlag then
+    self.data:LoadActivityAnimFlag()
+    if not self.data.activityAnimFlag then
+      return
+    end
+  end
+  local playerUin = _G.DataModelMgr.PlayerDataModel:GetPlayerUin()
+  if not playerUin then
+    return
+  end
+  local strPlayerUin = tostring(playerUin)
+  local curPlayerActivityAnimFlag = self.data.activityAnimFlag[strPlayerUin]
+  return curPlayerActivityAnimFlag and not not curPlayerActivityAnimFlag[targetActivityId]
+end
+
+function ActivityModule:MarkActivityAnimFlag(activityId, bSetTrue)
+  local targetActivityId
+  if type(activityId) == "number" then
+    targetActivityId = tostring(activityId)
+  else
+    targetActivityId = activityId
+  end
+  if not self.data.activityAnimFlag then
+    self.data:LoadActivityAnimFlag()
+    if not self.data.activityAnimFlag then
+      return
+    end
+  end
+  local playerUin = _G.DataModelMgr.PlayerDataModel:GetPlayerUin()
+  if not playerUin then
+    return
+  end
+  local strPlayerUin = tostring(playerUin)
+  local curPlayerActivityAnimFlag = self.data.activityAnimFlag[strPlayerUin]
+  if not curPlayerActivityAnimFlag then
+    self.data.activityAnimFlag[strPlayerUin] = {}
+    curPlayerActivityAnimFlag = self.data.activityAnimFlag[strPlayerUin]
+  end
+  if bSetTrue then
+    curPlayerActivityAnimFlag[targetActivityId] = true
+  else
+    curPlayerActivityAnimFlag[targetActivityId] = nil
+  end
+  self.data:SaveActivityAnimFlag()
+end
+
+function ActivityModule:OnCmdOpenChallengeProgressRewardPanel(...)
+  self:OpenPanel("ChallengeProgressRewardPanel", ...)
+end
+
+function ActivityModule:OnCmdIsPetInCurTripInfo(pet_gid)
+  local PetTripActivityInst = _G.NRCModuleManager:DoCmd(_G.ActivityModuleCmd.GetActivityInstByType, _G.Enum.ActivityType.ATP_PET_TRIP)
+  if PetTripActivityInst and #PetTripActivityInst > 0 then
+    local activityData = PetTripActivityInst[1]:GetActivityData()
+    if activityData and activityData.cur_pet_trip_info and #activityData.cur_pet_trip_info > 0 then
+      for _, tripInfo in ipairs(activityData.cur_pet_trip_info) do
+        if tripInfo.pet_gid == pet_gid then
+          return true
+        end
+      end
+    end
+  end
+  return false
+end
+
+function ActivityModule:OnCmdOpenObservationNotesDetailsPanel(storyData)
+  self:OpenPanel("ObservationNotesDetailsPanel", storyData)
+end
+
+function ActivityModule:OnCmdOpenPreDownloadPopupPanel(_activityInst)
+  self:OpenPanel("PreDownloadPopupPanel", _activityInst)
+end
+
+function ActivityModule:OnZonePlayerNpcLotteryGoodsRewardNotify(notify)
+  local npc = _G.NRCModeManager:DoCmd(_G.NPCModuleCmd.GetNpcByServerID, notify.npc_id)
+  if not npc or not npc.viewObj then
+    return
+  end
+  if notify.ret_info.ret_code and 0 ~= notify.ret_info.ret_code then
+    return
+  end
+  
+  local function showRewardAction(bIsShowReward)
+    if bIsShowReward and notify.ret_info.goods_reward and notify.ret_info.goods_reward.rewards and #notify.ret_info.goods_reward.rewards > 0 then
+      _G.NRCModuleManager:DoCmd(_G.NPCShopUIModuleCmd.OpenNPCShopItemRewardsPanel, table.deepCopy(notify.ret_info.goods_reward.rewards))
+    end
+  end
+  
+  if 0 == notify.pool_reward_id then
+    showRewardAction(true)
+    return
+  end
+  local lotteryConf = _G.DataConfigManager:GetLotteryPoolRewardConf(notify.pool_reward_id)
+  if not lotteryConf then
+    return
+  end
+  if string.IsNilOrEmpty(lotteryConf.reward_skill_blueprint) then
+    showRewardAction(lotteryConf.is_reward_pop)
+    return
+  end
+  local skillComp = npc.viewObj.RocoSkill
+  local skill = RocoSkillProxy.Create(lotteryConf.reward_skill_blueprint, skillComp)
+  if not skill then
+    Log.Error("\230\137\190\228\184\141\229\136\176Skill\239\188\154lotteryConf.reward_skill_blueprint")
+    showRewardAction(lotteryConf.is_reward_pop)
+    return
+  end
+  skill:SetCaster(npc.viewObj)
+  skill:SetTargets({
+    npc.viewObj
+  })
+  skill:RegisterEventCallback("End", self, function()
+    npc.InteractionComponent:SetInteractionEnable(true, NPCModuleEnum.NpcInteractDisableFlag.ANY, true)
+    showRewardAction(lotteryConf.is_reward_pop)
+  end)
+  npc.InteractionComponent:SetInteractionEnable(false, NPCModuleEnum.NpcInteractDisableFlag.ANY, true)
+  skill:PlaySkill()
+end
+
+function ActivityModule:OnEnterOrLeaveDropActivityArea(notify)
+  local activityIns = _G.NRCModuleManager:DoCmd(_G.ActivityModuleCmd.GetActivityInstById, notify.activity_id, true)
+  if not activityIns or not activityIns:IsInProgress() then
+    Log.Debug("ActivityModule:OnEnterOrLeaveDropActivityArea activityIns is nil or not in progress", notify.activity_id, notify.action_type)
+    return
+  end
+  if 0 == notify.action_type then
+    local title = ""
+    local subTitle = ""
+    local PlayerZoneArray = _G.NRCModeManager:DoCmd(AreaAndZoneModuleCmd.GetPlayerZoneArray)
+    if PlayerZoneArray and PlayerZoneArray._items and #PlayerZoneArray._items > 0 then
+      for k, areaInfo in ipairs(PlayerZoneArray._items) do
+        local areaFuncId = areaInfo.id
+        local areaFuncConf = DataConfigManager:GetAreaFuncConf(areaFuncId)
+        if areaFuncConf and areaFuncConf.broadcast_type == Enum.AreaBroadcastType.ABT_ACTIVITY then
+          title = areaFuncConf.name
+          local worldMapActivityConf = NRCModuleManager:DoCmd(BigMapModuleCmd.GetWorldMapActivityConfByAreaFuncId, areaFuncId)
+          if worldMapActivityConf then
+            subTitle = worldMapActivityConf.activity_name
+          end
+          local text = string.format("%s_%s", title, subTitle)
+          _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.Tips_ShowActivityZoneTip, text)
+        end
+      end
+    end
+  end
+  Log.Debug("====================SpecificTimeActivityObject:OnEnterOrLeaveDropActivityArea", notify.action_type)
 end
 
 return ActivityModule

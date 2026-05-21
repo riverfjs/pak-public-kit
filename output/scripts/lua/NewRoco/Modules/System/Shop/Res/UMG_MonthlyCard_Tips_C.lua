@@ -15,7 +15,7 @@ function UMG_MonthlyCard_Tips_C:OnConstruct()
   local leftDays = _monthCardData.left_days or 0
   local severTime = _G.ZoneServer:GetServerTime()
   severTime = math.floor(severTime / 1000)
-  if leftDays >= 1 and severTime - _monthCardData.continue_time < 0 then
+  if leftDays >= 1 and severTime - (_monthCardData.continue_time + 86400) < 0 then
     self.Countdown:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     self.DayLeft:SetText(string.format(_G.LuaText.YueKa_Reward_Day, leftDays - 1))
     local signDaysOneRound = clientMonthCardConf.maxSignDay
@@ -65,7 +65,7 @@ function UMG_MonthlyCard_Tips_C:OnConstruct()
   local renewDayNum = _G.DataConfigManager:GetGlobalConfigNumByKey("yueka_tips_param1", 1)
   local RepeatDayNum = _G.DataConfigManager:GetGlobalConfigNumByKey("yueka_tips_param2", 1)
   local price = clientMonthCardConf.Price
-  if leftDays >= 1 and severTime - _monthCardData.continue_time < 0 then
+  if leftDays >= 1 and severTime - (_monthCardData.continue_time + 86400) < 0 then
     self.CanvasPanel_31:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.rewardTitle2:SetText(LuaText.YueKa_Login_SubTitle)
     if leftDays > renewDayNum then
@@ -101,7 +101,7 @@ function UMG_MonthlyCard_Tips_C:OnConstruct()
     else
       self.RewardList_1:InitGridView({})
     end
-    local outOfDay = (_G.ZoneServer:GetServerTime() / 1000 - (_monthCardData.continue_time or 0)) / 86400
+    local outOfDay = (_G.ZoneServer:GetServerTime() / 1000 - (_monthCardData.continue_time + 86400 or 0)) / 86400
     if RepeatDayNum < outOfDay then
       Log.Error("No Need Card Tips")
     else
@@ -190,6 +190,7 @@ function UMG_MonthlyCard_Tips_C:OnActive(_tip)
           _itemData.order = _num[2]
           _itemData.bShowNum = true
           _itemData.bShowTip = true
+          _itemData.bShowGetTag = true
           _itemData.bShowAdditional = false
           for _day, _confRewardId in pairs(clientMonthCardConf.signRewards) do
             local rewardConf = _G.DataConfigManager:GetRewardConf(_confRewardId)
@@ -222,6 +223,9 @@ function UMG_MonthlyCard_Tips_C:OnClickPurchaseOrRenewal()
     return
   end
   _G.NRCAudioManager:PlaySound2DAuto(1220002023, "UMG_Shop_MonthlyCard_C:OnClickPurchaseOrRenewal")
+  if _G.NRCModuleManager:DoCmd(_G.PayModuleCmd.IfLimitPay, self.goodsId) then
+    return
+  end
   if not _G.NRCModuleManager:DoCmd(_G.ShopModuleCmd.OnCmdCanBuyMonthCard) then
     return
   end

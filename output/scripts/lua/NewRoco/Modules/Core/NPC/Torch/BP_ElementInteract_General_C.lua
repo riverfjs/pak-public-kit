@@ -60,7 +60,12 @@ function BP_ElementInteract_General_C:PutDown(ForceUpdate)
     if ForceUpdate then
       self.PointLight:SetVisibility(false)
     else
-      _G.DelayManager:DelaySeconds(0.3, function(PointLight)
+      if self.DelayHandler then
+        _G.DelayManager:CancelDelayById(self.DelayHandler)
+        self.DelayHandler = nil
+      end
+      self.DelayHandler = _G.DelayManager:DelaySeconds(0.3, function(PointLight)
+        self.DelayHandler = nil
         if UE.UObject.IsValid(PointLight) then
           PointLight:SetVisibility(false)
         end

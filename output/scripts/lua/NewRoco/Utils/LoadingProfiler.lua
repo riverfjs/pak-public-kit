@@ -43,7 +43,7 @@ function LoadingProfiler:Stop()
 end
 
 function LoadingProfiler:GetFileName()
-  local Name = "LoadingProfiler" .. self.nameFix .. ".csv"
+  local Name = "LoadingProfiler" .. tostring(self.nameFix) .. ".csv"
   local File = string.format("%s%s", UE4.UBlueprintPathsLibrary.ProjectSavedDir(), Name)
   File = UE4.UBlueprintPathsLibrary.ConvertRelativePathToFull(File)
   Log.Debug("GetFileName:", File)

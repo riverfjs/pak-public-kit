@@ -33,6 +33,7 @@ function BigMapModuleData:InitData()
   self.checkDeadWoodList = {}
   self.clientNpcList = {}
   self.sceneResIdToBlockConf = {}
+  self.refreshIdToWorldMapConfId = {}
   self:BuildSceneResIdToBlockMap()
   self:SetMapConstData()
   local bigMapDatas = {}
@@ -40,6 +41,11 @@ function BigMapModuleData:InitData()
   local cfgDatas = cfgTable:GetAllDatas()
   for _, dataInfo in pairs(cfgDatas) do
     if 0 ~= dataInfo.id then
+      if dataInfo.npc_refresh_ids and #dataInfo.npc_refresh_ids > 0 then
+        for key, _refreshId in ipairs(dataInfo.npc_refresh_ids) do
+          self.refreshIdToWorldMapConfId[_refreshId] = dataInfo.id
+        end
+      end
       if dataInfo.unlock_zone and #dataInfo.unlock_zone > 0 and dataInfo.unlock_zone[1] > 0 then
         if dataInfo.npc_refresh_ids and #dataInfo.npc_refresh_ids > 0 then
           for k, v in ipairs(dataInfo.npc_refresh_ids) do
@@ -68,7 +74,7 @@ function BigMapModuleData:InitData()
         table.insert(self.clientNpcList[showLocationType], dataInfo)
       end
       if not dataInfo.is_invisible or 0 == dataInfo.is_invisible then
-        if dataInfo.map_show_type == Enum.MapIconShowType.MAP_NPC or dataInfo.map_show_type == Enum.MapIconShowType.MAP_NPC_DAZZLING or dataInfo.map_show_type == Enum.MapIconShowType.MAP_SEASON_DAZZLING or dataInfo.map_show_type == Enum.MapIconShowType.MAP_HOME_PET_TRACK then
+        if dataInfo.map_show_type == Enum.MapIconShowType.MAP_NPC or dataInfo.map_show_type == Enum.MapIconShowType.MAP_NPC_DAZZLING or dataInfo.map_show_type == Enum.MapIconShowType.MAP_SEASON_DAZZLING or dataInfo.map_show_type == Enum.MapIconShowType.MAP_NPC_SHINING or dataInfo.map_show_type == Enum.MapIconShowType.MAP_NPC_SHINING_DAZZLING or dataInfo.map_show_type == Enum.MapIconShowType.MAP_SHINING_SEASON_DAZZLING or dataInfo.map_show_type == Enum.MapIconShowType.MAP_SHINING_CHAOS or dataInfo.map_show_type == Enum.MapIconShowType.MAP_HOME_PET_TRACK then
           bigMapDatas[dataInfo.id] = dataInfo
           if dataInfo.npc_refresh_ids and #dataInfo.npc_refresh_ids > 0 then
             for _, v in ipairs(dataInfo.npc_refresh_ids) do
@@ -198,6 +204,8 @@ function BigMapModuleData:InitData()
   self:BuildNpcIdToExploreInfo()
   self:BuildMapIdToMapActivityConf()
   self.bNeedClearFakeData = false
+  self.entryIdToSceneResIdAndPieceId = {}
+  self.defaultTrackNpcMap = {}
 end
 
 function BigMapModuleData:LoadMaskTexture()
@@ -266,11 +274,32 @@ function BigMapModuleData:ClearNpcDatas()
   self.miniMapShowNpc = {}
   self.mapShowAreaNpc = {}
   self.miniMapShowAreaNpc = {}
+  self.defaultTrackNpcMap = {}
+  self:ClearEntryIdMap()
 end
 
 function BigMapModuleData:GetNpcDatas(sceneResId)
   sceneResId = sceneResId or self.curShowSceneResId
   return self.npcDatas[sceneResId]
+end
+
+function BigMapModuleData:GetNpcData(sceneResId, mapPieceId, entryId, logicId)
+  if self.npcDatas[sceneResId] and self.npcDatas[sceneResId][mapPieceId] and self.npcDatas[sceneResId][mapPieceId][entryId] then
+    return self.npcDatas[sceneResId][mapPieceId][entryId][logicId]
+  end
+end
+
+function BigMapModuleData:AddNpcData(sceneResId, mapPieceId, entryId, logicId, npcInfo)
+  if self.npcDatas[sceneResId] == nil then
+    self.npcDatas[sceneResId] = {}
+  end
+  if self.npcDatas[mapPieceId] == nil then
+    self.npcDatas[sceneResId][mapPieceId] = {}
+  end
+  if self.npcDatas[sceneResId][mapPieceId][entryId] == nil then
+    self.npcDatas[sceneResId][mapPieceId][entryId] = {}
+  end
+  self.npcDatas[sceneResId][mapPieceId][entryId][logicId] = npcInfo
 end
 
 function BigMapModuleData:GetNpcDatasByWorldMapCfgId(worldMapCfgId)
@@ -364,10 +393,17 @@ function BigMapModuleData:SetVisitPointInfo(list)
   self.VisitPlayerInfo = list
 end
 
-function BigMapModuleData:UpdateMapShowNpc(sceneResId, mapPieceId, bShow, npcInfo, entryId)
+function BigMapModuleData:UpdateMapShowNpc(sceneResId, mapPieceId, bShow, npcInfo, entryId, logicId)
   sceneResId = sceneResId or SceneUtils.GetSceneResId()
   local mapPiece = mapPieceId or 0
+  if npcInfo then
+    logicId = logicId or npcInfo.logic_id or entryId or logicId or npcInfo.entry_id
+  else
+    logicId = entryId
+  end
   if bShow then
+    local _entryId = npcInfo.entry_id
+    local _logicId = npcInfo.logic_id or _entryId
     if self:CheckShouldShowNpc(npcInfo) then
       if self.mapShowNpc[sceneResId] == nil then
         self.mapShowNpc[sceneResId] = {}
@@ -375,18 +411,27 @@ function BigMapModuleData:UpdateMapShowNpc(sceneResId, mapPieceId, bShow, npcInf
       if self.mapShowNpc[sceneResId][mapPiece] == nil then
         self.mapShowNpc[sceneResId][mapPiece] = {}
       end
-      self.mapShowNpc[sceneResId][mapPiece][npcInfo.entry_id] = npcInfo
+      if self.mapShowNpc[sceneResId][mapPiece][_entryId] == nil then
+        self.mapShowNpc[sceneResId][mapPiece][_entryId] = {}
+      end
+      self.mapShowNpc[sceneResId][mapPiece][_entryId][_logicId] = npcInfo
     end
   elseif self.mapShowNpc[sceneResId] and self.mapShowNpc[sceneResId][mapPiece] and 0 ~= entryId then
-    local tempNpcInfo = self.mapShowNpc[sceneResId][mapPiece][entryId]
-    if tempNpcInfo then
-      table.removeKey(self.mapShowNpc[sceneResId][mapPiece], entryId)
+    local tempNpcInfos = self.mapShowNpc[sceneResId][mapPiece][entryId]
+    if tempNpcInfos then
+      local tempNpcInfo = tempNpcInfos[logicId]
+      if tempNpcInfo then
+        table.removeKey(self.mapShowNpc[sceneResId][mapPiece][entryId], logicId)
+        if table.isEmpty(tempNpcInfo) then
+          table.removeKey(self.mapShowNpc[sceneResId][mapPiece], entryId)
+        end
+      end
     end
   end
 end
 
 function BigMapModuleData:SetAllMapShowNpcs()
-  table.clear(self.layerIdToIcons)
+  self:ClearLayerIdToIconsByType(bigMapModuleEnum.CreatorPriority.NpcIcons)
   for sceneResId, npcInfos in pairs(self.npcDatas) do
     self:SetAllShowNpcs(sceneResId)
   end
@@ -402,17 +447,19 @@ function BigMapModuleData:SetAllShowNpcs(sceneResId)
   if not _npcInfos then
     return nil
   end
-  for i, j in pairs(_npcInfos) do
-    for k, v in pairs(j) do
-      if nil == npcInfo[i] then
-        npcInfo[i] = {}
+  for mapPieceId, j in pairs(_npcInfos) do
+    for entryId, entryList in pairs(j) do
+      if nil == npcInfo[mapPieceId] then
+        npcInfo[mapPieceId] = {}
       end
-      local shouldShow = self:CheckShouldShowNpc(v)
-      if shouldShow then
-        if nil == npcInfo[i][k] then
-          npcInfo[i][k] = {}
+      for logicId, _npcInfo in pairs(entryList) do
+        local shouldShow = self:CheckShouldShowNpc(_npcInfo)
+        if shouldShow then
+          if nil == npcInfo[mapPieceId][entryId] then
+            npcInfo[mapPieceId][entryId] = {}
+          end
+          npcInfo[mapPieceId][entryId][logicId] = _npcInfo
         end
-        npcInfo[i][k] = v
       end
     end
   end
@@ -458,7 +505,14 @@ function BigMapModuleData:CheckShouldShowNpc(npcInfo)
     model = _G.DataConfigManager:GetModelConf(npcInfo.npcCfg.model_conf)
   end
   if worldMap then
-    if worldMap.map_show_type == _G.ProtoEnum.MapIconShowType.MAP_AREA_NPC then
+    local bTracing = self.module:CheckIsTracing(bigMapModuleEnum.TraceType.NPC, npcInfo.entry_id, npcInfo.logic_id)
+    if worldMap.is_hide_init then
+      if bTracing then
+        shouldShow = true
+      else
+        shouldShow = false
+      end
+    elseif worldMap.map_show_type == _G.ProtoEnum.MapIconShowType.MAP_AREA_NPC then
       if self.unlockMapAreaDatas[npcInfo.world_map_cfg_id] == true and npcInfo.status == _G.ProtoEnum.LockStatus.ENUM.UNLOCKED then
         shouldShow = 1 == worldMap.explored_in_map
       else
@@ -472,7 +526,14 @@ function BigMapModuleData:CheckShouldShowNpc(npcInfo)
   else
     local worldMap1 = WorldMapConfigs[npcInfo.world_map_cfg_id]
     if worldMap1 then
-      if npcInfo.status == _G.ProtoEnum.LockStatus.ENUM.UNLOCKED or npcInfo.status == _G.ProtoEnum.LockStatus.ENUM.DUNGEON_FINISH then
+      local bTracing = self.module:CheckIsTracing(bigMapModuleEnum.TraceType.NPC, npcInfo.entry_id, npcInfo.logic_id)
+      if worldMap.is_hide_init then
+        if bTracing then
+          shouldShow = true
+        else
+          shouldShow = false
+        end
+      elseif npcInfo.status == _G.ProtoEnum.LockStatus.ENUM.UNLOCKED or npcInfo.status == _G.ProtoEnum.LockStatus.ENUM.DUNGEON_FINISH then
         shouldShow = 1 == worldMap1.explored_in_map and model.ui_icon
       else
         shouldShow = 1 == worldMap1.unexplored_in_map and (worldMap1.npcicon_lock or model and model.ui_icon)
@@ -480,8 +541,8 @@ function BigMapModuleData:CheckShouldShowNpc(npcInfo)
     end
   end
   if shouldShow then
-    local layerId = self:GetLayerId(confLayerId, refreshId)
-    self:SetLayerIdToIcons(layerId, bigMapModuleEnum.CreatorPriority.NpcIcons, npcInfo.entry_id)
+    local layerId = self:GetLayerId(confLayerId, refreshId, npcInfo)
+    self:SetLayerIdToIcons(layerId, bigMapModuleEnum.CreatorPriority.NpcIcons, npcInfo.entry_id, npcInfo.logic_id)
   end
   return shouldShow
 end
@@ -604,20 +665,6 @@ function BigMapModuleData:UpdateAreaInfo(_areaInfo)
   areaData.collectionRate = collectionRate
 end
 
-function BigMapModuleData:GetSceneResIdByRefreshId(refreshId)
-  local refreshContentConf = _G.DataConfigManager:GetNpcRefreshContentConf(refreshId)
-  if refreshContentConf then
-    local areaId = refreshContentConf.refresh_param
-    if refreshContentConf.refresh_type == Enum.RefreshType.RFT_AREA then
-      local areaConf = _G.DataConfigManager:GetAreaConf(areaId)
-      if areaConf then
-        return areaConf.scene_res_id
-      end
-    end
-  end
-  return 10003
-end
-
 function BigMapModuleData:SeperatedBySceneResId(info)
   local tempSceneResId = 0
   if info.world_map_npc_infos and #info.world_map_npc_infos > 0 then
@@ -625,7 +672,7 @@ function BigMapModuleData:SeperatedBySceneResId(info)
     local npcPosY = info.world_map_npc_infos[1].npc_pos.y
     local npcRefreshId = info.world_map_npc_infos[1].npc_refresh_id
     if npcRefreshId and npcRefreshId > 0 then
-      tempSceneResId = self:GetSceneResIdByRefreshId(npcRefreshId)
+      tempSceneResId = BigMapUtils.GetSceneResIdByRefreshId(npcRefreshId)
     end
     local sceneResId = BigMapUtils.GetSceneResIdByPos(npcPosX, npcPosY, tempSceneResId)
     local mapPieceId = BigMapUtils.GetMapPieceIdByPos(npcPosX, npcPosY, sceneResId)
@@ -633,7 +680,11 @@ function BigMapModuleData:SeperatedBySceneResId(info)
   elseif info.npc_pos then
     local npcPosX = info.npc_pos.x
     local npcPosY = info.npc_pos.y
-    local sceneResId = BigMapUtils.GetSceneResIdByPos(npcPosX, npcPosY)
+    local npcRefreshId = info.npc_refresh_id
+    if npcRefreshId and npcRefreshId > 0 then
+      tempSceneResId = BigMapUtils.GetSceneResIdByRefreshId(npcRefreshId)
+    end
+    local sceneResId = BigMapUtils.GetSceneResIdByPos(npcPosX, npcPosY, tempSceneResId)
     local mapPieceId = BigMapUtils.GetMapPieceIdByPos(npcPosX, npcPosY, sceneResId)
     return sceneResId, mapPieceId
   elseif info.pos then
@@ -646,35 +697,54 @@ function BigMapModuleData:SeperatedBySceneResId(info)
   return 10003, 0
 end
 
-function BigMapModuleData:GetLayerId(confLayerId, refreshId)
+function BigMapModuleData:GetLayerId(confLayerId, refreshId, npcInfo)
+  local mapConfLayerId = 0
   if confLayerId and confLayerId > 0 then
-    return confLayerId
-  elseif refreshId and refreshId > 0 then
-    local refreshContentConf = DataConfigManager:GetNpcRefreshContentConf(refreshId)
-    if refreshContentConf then
-      local areaId = refreshContentConf.refresh_param
-      if areaId and areaId > 0 then
-        local areaFuncId = self.AreaIdToAreaFuncId[areaId]
-        if areaFuncId and areaFuncId > 0 then
-          local layerInfo = self.AreaFuncIdToLayerInfo[areaFuncId]
-          if layerInfo then
-            return layerInfo.id
+    mapConfLayerId = confLayerId
+  else
+    local worldMapConf = npcInfo.worldMapConf
+    if worldMapConf and worldMapConf.layered_id and #worldMapConf.layered_id > 0 then
+      mapConfLayerId = worldMapConf.layered_id[1]
+    end
+    if 0 == mapConfLayerId and refreshId and refreshId > 0 then
+      local refreshContentConf = DataConfigManager:GetNpcRefreshContentConf(refreshId)
+      if refreshContentConf then
+        local areaId = refreshContentConf.refresh_param
+        if areaId and areaId > 0 then
+          local areaFuncId = self.AreaIdToAreaFuncId[areaId]
+          if areaFuncId and areaFuncId > 0 then
+            local layerInfo = self.AreaFuncIdToLayerInfo[areaFuncId]
+            if layerInfo then
+              mapConfLayerId = layerInfo.id
+            end
           end
         end
       end
     end
   end
-  return 0
+  return mapConfLayerId
 end
 
-function BigMapModuleData:SetLayerIdToIcons(layerId, type, iconKey)
+function BigMapModuleData:ClearLayerIdToIconsByType(type)
+  if self.layerIdToIcons then
+    for layerId, layerIconInfo in pairs(self.layerIdToIcons) do
+      table.clear(layerIconInfo[type])
+    end
+  end
+end
+
+function BigMapModuleData:SetLayerIdToIcons(layerId, type, iconKey, extraKey)
   if self.layerIdToIcons[layerId] == nil then
     self.layerIdToIcons[layerId] = {}
   end
   if self.layerIdToIcons[layerId][type] == nil then
     self.layerIdToIcons[layerId][type] = {}
   end
-  table.insert(self.layerIdToIcons[layerId][type], iconKey)
+  if self.layerIdToIcons[layerId][type][iconKey] == nil then
+    self.layerIdToIcons[layerId][type][iconKey] = {}
+  end
+  extraKey = extraKey or iconKey
+  table.insert(self.layerIdToIcons[layerId][type][iconKey], extraKey)
 end
 
 function BigMapModuleData:SeparatedTaskBySceneResId(taskInfo)
@@ -752,12 +822,7 @@ function BigMapModuleData:UpdateMapAreaInfo(_areaInfo)
   end
 end
 
-function BigMapModuleData:UpdateNpcInfo(_npcId, npcInfos)
-  local npcSceneResId = 0
-  local mapPieceId = 0
-  if npcInfos then
-    npcSceneResId, mapPieceId = self:SeperatedBySceneResId(npcInfos)
-  end
+function BigMapModuleData:UpdateNpcInfo(_entryId, npcInfos, bAll)
   if npcInfos and npcInfos.world_map_npc_infos and #npcInfos.world_map_npc_infos > 0 then
     local worldMap = self.bigMapDatas[npcInfos.world_map_cfg_id]
     local mapArea = self.mapAreaDatas[npcInfos.world_map_cfg_id]
@@ -771,7 +836,7 @@ function BigMapModuleData:UpdateNpcInfo(_npcId, npcInfos)
         if self.owlRefreshIdToMapEntryId[refreshContentId] == nil then
           self.owlRefreshIdToMapEntryId[refreshContentId] = {}
         end
-        self.owlRefreshIdToMapEntryId[refreshContentId] = _npcId
+        self.owlRefreshIdToMapEntryId[refreshContentId] = _entryId
       end
       return
     end
@@ -797,34 +862,78 @@ function BigMapModuleData:UpdateNpcInfo(_npcId, npcInfos)
         mapArea.IsValid = true
       end
     else
-      local glass_info, mutation_type
-      if worldMap and worldMap.map_show_type == Enum.MapIconShowType.MAP_SEASON_DAZZLING then
-        glass_info = npcInfos.glass_info
-        mutation_type = npcInfos.mutation_type
+      local entryIdMap = self:GetEntryIdMap(_entryId)
+      if entryIdMap and #entryIdMap > 0 then
+        for k, v in ipairs(entryIdMap) do
+          local npcSceneResId = v.sceneResId
+          local mapPieceId = v.mapPieceId
+          if self.npcDatas[npcSceneResId] and self.npcDatas[npcSceneResId][mapPieceId] then
+            local _npcData = self.npcDatas[npcSceneResId][mapPieceId][_entryId]
+            local delList = {}
+            if _npcData then
+              for _logicId, _npcInfo in pairs(_npcData) do
+                local bExist = false
+                for key, val in ipairs(npcInfos.world_map_npc_infos) do
+                  if _logicId == val.npc_logic_id then
+                    bExist = true
+                  end
+                end
+                if false == bExist then
+                  table.insertUnique(delList, _logicId)
+                end
+              end
+              if delList and #delList > 0 then
+                for key, _logicId in ipairs(delList) do
+                  self.module:OnCmdRemoveNpcIconByNpcId(_entryId, _logicId)
+                  self:UpdateMapShowNpc(npcSceneResId, mapPieceId, false, nil, _entryId, _logicId)
+                  self:UpdateMiniMapShowNpc(npcSceneResId, mapPieceId, false, nil, _entryId, _logicId)
+                  local defaultTrackType = _npcData[_logicId] and _npcData[_logicId].worldMapConf and _npcData[_logicId].worldMapConf.default_track_type or Enum.defaultTrackType.DTT_NONE
+                  self:RemoveFromDefaultTrackNpcMap(defaultTrackType, _logicId)
+                  table.removeKey(_npcData, _logicId)
+                end
+              end
+            end
+          end
+        end
       end
-      self:UpdateSingleNpcInfo(_npcId, npcInfos.world_map_npc_infos[1], worldMap, npcSceneResId, mapPieceId, mutation_type, glass_info)
+      local npcSceneResId = 0
+      local mapPieceId = 0
+      for key, val in ipairs(npcInfos.world_map_npc_infos) do
+        local glass_info, mutation_type
+        glass_info = val.glass_info
+        mutation_type = val.mutation_type
+        if npcInfos then
+          npcSceneResId, mapPieceId = self:SeperatedBySceneResId(val)
+        end
+        self:UpdateSingleNpcInfo(_entryId, val, worldMap, npcSceneResId, mapPieceId, mutation_type, glass_info, bAll)
+        self:AddEntryIdMap(_entryId, npcSceneResId, mapPieceId)
+      end
     end
     if mapArea then
       mapArea.npcList = npcInfos.world_map_npc_infos
       if mapArea.npcList and #mapArea.npcList > 0 then
-        mapArea.npcList[1].entry_id = _npcId
+        mapArea.npcList[1].entry_id = _entryId
         mapArea.npcList[1].npcCfg = _G.DataConfigManager:GetNpcConf(mapArea.npcList[1].npc_cfg_id)
         mapArea.npcList[1].world_map_cfg_id = npcInfos.world_map_cfg_id
       end
-      mapArea.npcId = _npcId
+      mapArea.npcId = _entryId
       mapArea.world_map_cfg_id = npcInfos.world_map_cfg_id
       mapArea.unlocked = true
     end
   elseif npcInfos and npcInfos.world_map_npc_infos == nil and npcInfos.next_npc_refresh_time then
+    local npcSceneResId = 0
+    local mapPieceId = 0
+    npcSceneResId, mapPieceId = self:SeperatedBySceneResId(npcInfos)
     local worldMap = self.bigMapDatas[npcInfos.world_map_cfg_id]
-    self:UpdateSingleRefreshNpcInfo(_npcId, npcInfos, worldMap, npcSceneResId, mapPieceId)
+    self:UpdateSingleRefreshNpcInfo(_entryId, npcInfos, worldMap, npcSceneResId, mapPieceId)
     local CurTraceNpcId = self:GetCurTraceNpcId()
-    if _npcId and _npcId == CurTraceNpcId then
+    if _entryId and _entryId == CurTraceNpcId then
       self:SetCurTraceNpc(-1)
     end
   else
+    self:RemoveEntryIdMap(_entryId)
     local CurTraceNpcId = self:GetCurTraceNpcId()
-    if _npcId and _npcId == CurTraceNpcId then
+    if _entryId and _entryId == CurTraceNpcId then
       self:SetCurTraceNpc(-1)
     end
     if npcInfos and npcInfos.world_map_cfg_id then
@@ -833,43 +942,60 @@ function BigMapModuleData:UpdateNpcInfo(_npcId, npcInfos)
         table.removeKey(self.mapAreaDatas, npcInfos.world_map_cfg_id)
         self:SetAllMiniMapShowAreaNpcs()
       end
-    elseif self.npcDatas[npcSceneResId] and self.npcDatas[npcSceneResId][mapPieceId] and self.npcDatas[npcSceneResId][mapPieceId][_npcId] then
+    else
       do
-        local npcData = self.npcDatas[npcSceneResId][mapPieceId][_npcId]
-        local mapArea = self.mapAreaDatas[npcData.world_map_cfg_id]
-        if mapArea then
-          table.removeKey(self.mapAreaDatas, npcData.world_map_cfg_id)
+        local npcSceneResId = 0
+        local mapPieceId = 0
+        if npcInfos then
+          npcSceneResId, mapPieceId = self:SeperatedBySceneResId(npcInfos)
+        end
+        if self.npcDatas[npcSceneResId] and self.npcDatas[npcSceneResId][mapPieceId] and self.npcDatas[npcSceneResId][mapPieceId][_entryId] then
+          local npcData = self.npcDatas[npcSceneResId][mapPieceId][_entryId]
+          local mapArea = self.mapAreaDatas[npcData.world_map_cfg_id]
+          if mapArea then
+            table.removeKey(self.mapAreaDatas, npcData.world_map_cfg_id)
+          end
         end
       end
     end
     for sceneResId, pieceList in pairs(self.npcDatas) do
       for pieceId, npcList in pairs(pieceList) do
-        local npcInfo = npcList[_npcId]
-        if npcInfo then
-          local npcWorldMapCfgId = npcInfo.world_map_cfg_id
-          if npcInfo.worldMapConf.map_tips_show_type == Enum.MapTipsShowType.MAP_TIPS_ACTIVITY_DROP and npcInfo.worldMapActivityConf then
-            self.module:RemoveCircleByTypeAndKey(bigMapModuleEnum.CircleIconType.Activity, npcInfo.worldMapActivityConf.id)
-            _G.NRCEventCenter:DispatchEvent(ActivityModuleEvent.OnDropNPCChange, npcInfo.worldMapActivityConf.area_func_id, false)
-          end
-          self:RemoveNpcDataByWorldMapCfgId(npcList[_npcId])
-          table.removeKey(npcList, _npcId)
-          self.module:OnCmdRemoveNpcIconByNpcId(_npcId)
-          if npcWorldMapCfgId then
-            local worldMap = self.bigMapDatas[npcWorldMapCfgId]
-            if worldMap and worldMap.map_tips_show_type == Enum.MapTipsShowType.MAP_TIPS_TEAM_BATTLE then
-              _G.NRCModuleManager:DoCmd(_G.TeamBattleModuleCmd.ClosePreWarInfoPanel)
+        local entryIdMap = npcList[_entryId]
+        if entryIdMap then
+          for logicId, npcInfo in pairs(entryIdMap) do
+            local npcWorldMapCfgId = npcInfo.world_map_cfg_id
+            if npcInfo.worldMapConf.map_tips_show_type == Enum.MapTipsShowType.MAP_TIPS_ACTIVITY_DROP and npcInfo.worldMapActivityConf then
+              self.module:RemoveCircleByTypeAndKey(bigMapModuleEnum.CircleIconType.Activity, npcInfo.worldMapActivityConf.id)
+              _G.NRCEventCenter:DispatchEvent(ActivityModuleEvent.OnDropNPCChange, npcInfo.worldMapActivityConf.area_func_id, false)
             end
+            self:RemoveNpcDataByWorldMapCfgId(npcInfo)
+            self.module:OnCmdRemoveNpcIconByNpcId(_entryId, logicId)
+            if npcWorldMapCfgId then
+              local worldMap = self.bigMapDatas[npcWorldMapCfgId]
+              if worldMap and worldMap.map_tips_show_type == Enum.MapTipsShowType.MAP_TIPS_TEAM_BATTLE then
+                _G.NRCModuleManager:DoCmd(_G.TeamBattleModuleCmd.ClosePreWarInfoPanel)
+              end
+            end
+            self:UpdateMapShowNpc(sceneResId, pieceId, false, nil, _entryId, logicId)
+            self:UpdateMiniMapShowNpc(sceneResId, pieceId, false, nil, _entryId, logicId)
+            local defaultTrackType = npcInfo.worldMapConf and npcInfo.worldMapConf.default_track_type or Enum.defaultTrackType.DTT_NONE
+            self:RemoveFromDefaultTrackNpcMap(defaultTrackType, logicId)
           end
-          self:UpdateMapShowNpc(sceneResId, pieceId, false, nil, _npcId)
-          self:UpdateMiniMapShowNpc(sceneResId, pieceId, false, nil, _npcId)
+          table.removeKey(npcList, _entryId)
           break
         end
       end
     end
   end
+  if npcInfos and npcInfos.world_map_cfg_id then
+    local worldMap = self.bigMapDatas[npcInfos.world_map_cfg_id]
+    if worldMap and worldMap.map_tips_show_type == Enum.MapTipsShowType.MAP_TIPS_ACTIVITY_DROP then
+      NRCModuleManager:DoCmd(AreaAndZoneModuleCmd.OnActivityMapNpcDataChanged, npcInfos)
+    end
+  end
 end
 
-function BigMapModuleData:UpdateSingleNpcInfo(_npcId, _npcInfo, worldMap, npcSceneResId, mapPieceId, mutation_type, glass_info)
+function BigMapModuleData:UpdateSingleNpcInfo(_npcId, _npcInfo, worldMap, npcSceneResId, mapPieceId, mutation_type, glass_info, bAll)
   if nil == _npcId then
     Log.Error("BigMapModuleData:UpdateSingleNpcInfo npc is nil")
     return
@@ -882,7 +1008,14 @@ function BigMapModuleData:UpdateSingleNpcInfo(_npcId, _npcInfo, worldMap, npcSce
   if nil == self.npcDatas[npcSceneResId][mapPieceId] then
     self.npcDatas[npcSceneResId][mapPieceId] = {}
   end
-  local npcData = self.npcDatas[npcSceneResId][mapPieceId][_npcId]
+  if nil == self.npcDatas[npcSceneResId][mapPieceId][_npcId] then
+    self.npcDatas[npcSceneResId][mapPieceId][_npcId] = {}
+  end
+  local logicId = _npcInfo.npc_logic_id or _npcId
+  if worldMap and worldMap.map_tips_show_type == Enum.MapTipsShowType.MAP_TIPS_BOSS_BATTLE then
+    logicId = _npcId
+  end
+  local npcData = self.npcDatas[npcSceneResId][mapPieceId][_npcId][logicId]
   local npcCfg = _G.DataConfigManager:GetNpcConf(_npcInfo.npc_cfg_id)
   if npcCfg then
     if npcCfg.model_conf > 0 then
@@ -896,7 +1029,7 @@ function BigMapModuleData:UpdateSingleNpcInfo(_npcId, _npcInfo, worldMap, npcSce
     npcData = {
       npc_pos = {}
     }
-    self.npcDatas[npcSceneResId][mapPieceId][_npcId] = npcData
+    self.npcDatas[npcSceneResId][mapPieceId][_npcId][logicId] = npcData
     isNewNpcData = true
   elseif _npcInfo.status == _G.ProtoEnum.LockStatus.ENUM.UNLOCKED and not npcData.status == _G.ProtoEnum.LockStatus.ENUM.UNLOCKED then
     npcData.isNewUnLock = true
@@ -942,9 +1075,13 @@ function BigMapModuleData:UpdateSingleNpcInfo(_npcId, _npcInfo, worldMap, npcSce
   npcData.npc_remain_time = _npcInfo.npc_remain_time
   npcData.status = _npcInfo.status
   npcData.logic_id = _npcInfo.npc_logic_id
+  if worldMap and worldMap.map_tips_show_type == Enum.MapTipsShowType.MAP_TIPS_BOSS_BATTLE then
+    npcData.logic_id = _npcId
+  end
   npcData.glass_info = glass_info
   npcData.mutation_type = mutation_type
   npcData.layerId = _npcInfo.layer_id
+  npcData.bornTimeStamp = _npcInfo.npc_born_time
   if npcData.npc_remain_time and npcData.npc_remain_time > 0 then
     npcData.CreateTime = os.time()
   end
@@ -965,6 +1102,9 @@ function BigMapModuleData:UpdateSingleNpcInfo(_npcId, _npcInfo, worldMap, npcSce
   self:DispatchEvent(BigMapModuleEvent.NpcRefreshTimeChange, npcData)
   self:UpdateMiniMapShowNpc(npcSceneResId, mapPieceId, true, npcData)
   self:BuildLogicIdToNpcInfo(_npcInfo.npc_logic_id, npcData)
+  if worldMap and worldMap.default_track_type ~= Enum.DefaultTrackType.DTT_NONE then
+    self:AddToDefaultTrackNpcMap(npcData, bAll)
+  end
   return npcData
 end
 
@@ -976,13 +1116,20 @@ function BigMapModuleData:UpdateSingleRefreshNpcInfo(_npcId, _npcInfo, worldMap,
   if self.npcDatas[npcSceneResId][mapPieceId] == nil then
     self.npcDatas[npcSceneResId][mapPieceId] = {}
   end
-  local npcData = self.npcDatas[npcSceneResId][mapPieceId][_npcId]
+  if self.npcDatas[npcSceneResId][mapPieceId][_npcId] == nil then
+    self.npcDatas[npcSceneResId][mapPieceId][_npcId] = {}
+  end
+  local logicId = _npcInfo.npc_logic_id or _npcId
+  if worldMap and worldMap.map_tips_show_type == Enum.MapTipsShowType.MAP_TIPS_BOSS_BATTLE then
+    logicId = _npcId
+  end
+  local npcData = self.npcDatas[npcSceneResId][mapPieceId][_npcId][logicId]
   local isNewNpcData = false
   if not npcData then
     npcData = {
       npc_pos = {}
     }
-    self.npcDatas[npcSceneResId][mapPieceId][_npcId] = npcData
+    self.npcDatas[npcSceneResId][mapPieceId][_npcId][logicId] = npcData
     isNewNpcData = true
   elseif _npcInfo.status == _G.ProtoEnum.LockStatus.ENUM.UNLOCKED and not npcData.status == _G.ProtoEnum.LockStatus.ENUM.UNLOCKED then
     npcData.isNewUnLock = true
@@ -1038,7 +1185,11 @@ function BigMapModuleData:UpdateMagicCreateNpcInfo(npcInfo)
   if self.npcDatas[npcSceneResId][mapPieceId] == nil then
     self.npcDatas[npcSceneResId][mapPieceId] = {}
   end
-  local npcData = self.npcDatas[npcSceneResId][mapPieceId][npcInfo.npc_obj_id]
+  if nil == self.npcDatas[npcSceneResId][mapPieceId][npcInfo.npc_obj_id] then
+    self.npcDatas[npcSceneResId][mapPieceId][npcInfo.npc_obj_id] = {}
+  end
+  local logicId = npcInfo.npc_logic_id or npcInfo.npc_obj_id
+  local npcData = self.npcDatas[npcSceneResId][mapPieceId][npcInfo.npc_obj_id][logicId]
   local npcCfg = _G.DataConfigManager:GetNpcConf(npcInfo.npc_cfg_id)
   if npcCfg then
     npcModuleCfg = _G.DataConfigManager:GetModelConf(npcCfg.model_conf)
@@ -1048,7 +1199,7 @@ function BigMapModuleData:UpdateMagicCreateNpcInfo(npcInfo)
     npcData = {
       npc_pos = {}
     }
-    self.npcDatas[npcSceneResId][mapPieceId][npcInfo.npc_obj_id] = npcData
+    self.npcDatas[npcSceneResId][mapPieceId][npcInfo.npc_obj_id][logicId] = npcData
     isNewNpcData = true
   else
     npcData.isNewUnLock = true
@@ -1108,6 +1259,7 @@ function BigMapModuleData:UpdateOwlStarData(owlStarInfo)
     self.npcDatas[npcSceneResId][mapPieceId] = {}
   end
   local entryId = owlStarInfo.npc_obj_id
+  local logicId = owlStarInfo.logic_id or entryId
   local npcModelCfg
   local npcCfg = _G.DataConfigManager:GetNpcConf(owlStarInfo.npc_cfg_id)
   if nil == npcCfg then
@@ -1117,14 +1269,17 @@ function BigMapModuleData:UpdateOwlStarData(owlStarInfo)
   if npcCfg then
     npcModelCfg = _G.DataConfigManager:GetModelConf(npcCfg.model_conf)
   end
-  local npcData = self.npcDatas[npcSceneResId][mapPieceId][entryId]
+  if nil == self.npcDatas[npcSceneResId][mapPieceId][entryId] then
+    self.npcDatas[npcSceneResId][mapPieceId][entryId] = {}
+  end
+  local npcData = self.npcDatas[npcSceneResId][mapPieceId][entryId][logicId]
   local isNewNpcData = false
   npcData = nil
   if not npcData then
     npcData = {
       npc_pos = {}
     }
-    self.npcDatas[npcSceneResId][mapPieceId][entryId] = npcData
+    self.npcDatas[npcSceneResId][mapPieceId][entryId][logicId] = npcData
     isNewNpcData = true
   end
   local npc_cfg_id = owlStarInfo.npc_cfg_id
@@ -1158,19 +1313,23 @@ function BigMapModuleData:UpdateOwlStarData(owlStarInfo)
 end
 
 function BigMapModuleData:UpdateHomePetOutputIcon(petGid)
-  if not petGid then
-    return false
+  if _G.HomeIndoorSandbox and _G.HomeIndoorSandbox:InHomeIndoor() then
+    return true
+  else
+    if not petGid then
+      return false
+    end
+    local player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
+    if not player then
+      return false
+    end
+    local curStealNum = player.serverData.steal_home_info and player.serverData.steal_home_info.total_steal_num or 0
+    local stealTotalLimit = _G.DataConfigManager:GetHomeGlobalConfig("home_daily_steal_reward_max") and _G.DataConfigManager:GetHomeGlobalConfig("home_daily_steal_reward_max").num or 99999
+    if curStealNum >= stealTotalLimit then
+      return false
+    end
+    return not HomeUtils.IsPetHasBeenSteal(petGid)
   end
-  local player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
-  if not player then
-    return false
-  end
-  local curStealNum = player.serverData.steal_home_info and player.serverData.steal_home_info.total_steal_num or 0
-  local stealTotalLimit = _G.DataConfigManager:GetHomeGlobalConfig("home_daily_steal_reward_max") and _G.DataConfigManager:GetHomeGlobalConfig("home_daily_steal_reward_max").num or 99999
-  if curStealNum >= stealTotalLimit then
-    return false
-  end
-  return not HomeUtils.IsPetHasBeenSteal(petGid)
 end
 
 function BigMapModuleData:UpdateHomePetInfo(npcInfo, reason)
@@ -1209,8 +1368,9 @@ function BigMapModuleData:UpdateHomePetInfo(npcInfo, reason)
         return
       end
       local actorId = npcInfo.base.actor_id
-      if self.npcDatas[npcSceneResId][mapPieceId][actorId] and self.npcDatas[npcSceneResId][mapPieceId][actorId].petInfo then
-        self.npcDatas[npcSceneResId][mapPieceId][actorId].petInfo.productionInfo = nil
+      local logicId = npcInfo.base.logic_id or actorId
+      if self.npcDatas[npcSceneResId][mapPieceId][actorId] and self.npcDatas[npcSceneResId][mapPieceId][actorId][logicId] and self.npcDatas[npcSceneResId][mapPieceId][actorId][logicId].petInfo then
+        self.npcDatas[npcSceneResId][mapPieceId][actorId][logicId].petInfo.productionInfo = nil
       end
     end
     return
@@ -1226,7 +1386,11 @@ function BigMapModuleData:UpdateHomePetInfo(npcInfo, reason)
     self.npcDatas[npcSceneResId][mapPieceId] = {}
   end
   local entryId = npcInfo.base.actor_id
-  local npcData = self.npcDatas[npcSceneResId][mapPieceId][entryId]
+  if self.npcDatas[npcSceneResId][mapPieceId][entryId] == nil then
+    self.npcDatas[npcSceneResId][mapPieceId][entryId] = {}
+  end
+  local logicId = npcInfo.base.logic_id or entryId
+  local npcData = self.npcDatas[npcSceneResId][mapPieceId][entryId][logicId]
   local petModelCfg
   local npcCfg = _G.DataConfigManager:GetNpcConf(npcInfo.npc_base.npc_cfg_id)
   if petGid then
@@ -1243,15 +1407,15 @@ function BigMapModuleData:UpdateHomePetInfo(npcInfo, reason)
     npcData = {
       npc_pos = {}
     }
-    self.npcDatas[npcSceneResId][mapPieceId][npcInfo.base.actor_id] = npcData
+    self.npcDatas[npcSceneResId][mapPieceId][npcInfo.base.actor_id][logicId] = npcData
     isNewNpcData = true
   elseif reason == _G.Enum.MapModuleDataUpdateReason.HOME_PET_LEAVE then
     self:RemoveNpcDataByWorldMapCfgId(npcData)
-    self.npcDatas[npcSceneResId][mapPieceId][npcInfo.base.actor_id] = nil
+    self.npcDatas[npcSceneResId][mapPieceId][npcInfo.base.actor_id][logicId] = nil
   elseif reason == _G.Enum.MapModuleDataUpdateReason.HOME_PET_CLEAR_PRODUCTION then
-    self.npcDatas[npcSceneResId][mapPieceId][npcInfo.base.actor_id].petInfo.productionInfo = nil
+    self.npcDatas[npcSceneResId][mapPieceId][npcInfo.base.actor_id][logicId].petInfo.productionInfo = nil
   elseif reason == _G.Enum.MapModuleDataUpdateReason.HOME_PET_REFRESH_PRODUCTION and self:UpdateHomePetOutputIcon(petGid) then
-    self.npcDatas[npcSceneResId][mapPieceId][npcInfo.base.actor_id].petInfo.productionInfo = npcInfo.home_pet.home_pet_info.awards_info
+    self.npcDatas[npcSceneResId][mapPieceId][npcInfo.base.actor_id][logicId].petInfo.productionInfo = npcInfo.home_pet.home_pet_info.awards_info
   end
   local worldMap
   npcData.entry_id = npcInfo.base.actor_id
@@ -1292,17 +1456,40 @@ function BigMapModuleData:UpdateHomePetInfo(npcInfo, reason)
     if not self.homePetInfo then
       self.homePetInfo = {}
     end
+    for _, homePet in ipairs(self.homePetInfo) do
+      if homePet and homePet.entry_id == npcData.entry_id then
+        table.removeValue(self.homePetInfo, homePet)
+        break
+      end
+    end
     table.insert(self.homePetInfo, npcData)
   elseif reason == _G.Enum.MapModuleDataUpdateReason.HOME_PET_LEAVE then
     if self.homePetInfo then
-      table.removeValue(self.homePetInfo, npcData)
+      for _, homePet in ipairs(self.homePetInfo) do
+        if homePet and homePet.entry_id == npcData.entry_id then
+          table.removeValue(self.homePetInfo, homePet)
+          break
+        end
+      end
     end
     if self.fakeHomeNpcData then
-      table.removeValue(self.fakeHomeNpcData, npcInfo)
+      for _, fakeHomePet in ipairs(self.fakeHomeNpcData) do
+        if fakeHomePet and fakeHomePet.entry_id == npcData.entry_id then
+          table.removeValue(self.fakeHomeNpcData, fakeHomePet)
+          break
+        end
+      end
+    end
+  else
+    for _, homePet in ipairs(self.homePetInfo) do
+      if homePet and homePet.entry_id == npcData.entry_id then
+        homePet.petInfo = npcData.petInfo
+        break
+      end
     end
   end
-  self:UpdateMapShowNpc(npcSceneResId, mapPieceId, reason ~= _G.Enum.MapModuleDataUpdateReason.HOME_PET_LEAVE, npcData, npcData.entry_id)
-  self:UpdateMiniMapShowNpc(npcSceneResId, mapPieceId, reason ~= _G.Enum.MapModuleDataUpdateReason.HOME_PET_LEAVE, npcData, npcData.entry_id)
+  self:UpdateMapShowNpc(npcSceneResId, mapPieceId, reason ~= _G.Enum.MapModuleDataUpdateReason.HOME_PET_LEAVE, npcData, npcData.entry_id, logicId)
+  self:UpdateMiniMapShowNpc(npcSceneResId, mapPieceId, reason ~= _G.Enum.MapModuleDataUpdateReason.HOME_PET_LEAVE, npcData, npcData.entry_id, logicId)
   self:BuildLogicIdToNpcInfo(npcInfo.base.logic_id, npcData)
   if isNewNpcData then
     self:AddNpcDataByWorldMapCfgId(npcData)
@@ -1331,7 +1518,11 @@ function BigMapModuleData:UpdateOwlSanctuaryNpcData(npcInfo)
     Log.Error("BigMapModuleData:UpdateOwlSanctuaryNpcData invalid entryId!!", npcInfo.npc_content_id, #(self.owlRefreshIdToMapEntryId or {}), (npcInfo.npc_pos or {}).x, (npcInfo.npc_pos or {}).y, (npcInfo.npc_pos or {}).z)
     return
   end
-  local npcData = self.npcDatas[npcSceneResId][mapPieceId][entryId]
+  local logicId = npcInfo.npc_logic_id or entryId
+  if self.npcDatas[npcSceneResId][mapPieceId][entryId] == nil then
+    self.npcDatas[npcSceneResId][mapPieceId][entryId] = {}
+  end
+  local npcData = self.npcDatas[npcSceneResId][mapPieceId][entryId][logicId]
   local npcRefreshContentConf = DataConfigManager:GetNpcRefreshContentConf(npcInfo.npc_content_id)
   local npc_cfg_id
   if not npcRefreshContentConf then
@@ -1379,7 +1570,7 @@ function BigMapModuleData:UpdateOwlSanctuaryNpcData(npcInfo)
     npcData = {
       npc_pos = {}
     }
-    self.npcDatas[npcSceneResId][mapPieceId][entryId] = npcData
+    self.npcDatas[npcSceneResId][mapPieceId][entryId][logicId] = npcData
     isNewNpcData = true
   end
   local worldMap = self.bigMapDatas[npcInfo.npc_content_id]
@@ -1429,7 +1620,7 @@ function BigMapModuleData:UpdateOwlSanctuaryNpcData(npcInfo)
   else
     npcData.status = _G.ProtoEnum.LockStatus.ENUM.LOCKED
   end
-  npcData.logic_id = nil
+  npcData.logic_id = logicId
   self:UpdateMiniMapShowNpc(npcSceneResId, mapPieceId, true, npcData)
   self:BuildLogicIdToNpcInfo(npcInfo.npc_logic_id, npcData)
   if isNewNpcData then
@@ -1460,13 +1651,17 @@ function BigMapModuleData:UpdateHandBookTraceNpcData(npcInfo)
   if nil == npcInfo.npc_obj_id then
     npcInfo.npc_obj_id = npcInfo.content_id
   end
-  local npcData = self.npcDatas[npcSceneResId][mapPieceId][npcInfo.npc_obj_id]
+  if nil == self.npcDatas[npcSceneResId][mapPieceId][npcInfo.npc_obj_id] then
+    self.npcDatas[npcSceneResId][mapPieceId][npcInfo.npc_obj_id] = {}
+  end
+  local logicId = npcInfo.npc_logic_id or npcInfo.npc_obj_id
+  local npcData = self.npcDatas[npcSceneResId][mapPieceId][npcInfo.npc_obj_id][logicId]
   local isNewNpcData = false
   if not npcData then
     npcData = {
       npc_pos = {}
     }
-    self.npcDatas[npcSceneResId][mapPieceId][npcInfo.npc_obj_id] = npcData
+    self.npcDatas[npcSceneResId][mapPieceId][npcInfo.npc_obj_id][logicId] = npcData
     isNewNpcData = true
   end
   local npcCfgId = npcInfo.npc_cfg_id
@@ -1491,7 +1686,7 @@ function BigMapModuleData:UpdateHandBookTraceNpcData(npcInfo)
   npcData.npc_level = 1
   npcData.npc_remain_time = nil
   npcData.status = _G.ProtoEnum.LockStatus.ENUM.UNLOCKED
-  npcData.logic_id = npcInfo.npc_logic_id
+  npcData.logic_id = npcInfo.npc_logic_id or npcInfo.npc_obj_id
   npcData.petBase_id = npcInfo.pet_base_id
   npcData.worldMapConf = worldMap
   local recordData = _G.NRCModuleManager:DoCmd(_G.HandbookModuleCmd.GetPetHandbookRecordDataByPetBaseID, npcData.petBase_id)
@@ -1505,8 +1700,8 @@ function BigMapModuleData:UpdateHandBookTraceNpcData(npcInfo)
     npcData.state = _G.ProtoEnum.PetHandbookStatus.PHS_NOT_FOUND
     npcData.isFound = false
   end
-  self:UpdateMapShowNpc(npcSceneResId, mapPieceId, true, npcData)
-  self:UpdateMiniMapShowNpc(npcSceneResId, mapPieceId, true, npcData)
+  self:UpdateMapShowNpc(npcSceneResId, mapPieceId, true, npcData, npcData.entry_id, logicId)
+  self:UpdateMiniMapShowNpc(npcSceneResId, mapPieceId, true, npcData, npcData.entry_id, logicId)
   _G.NRCEventCenter:DispatchEvent(BigMapModuleEvent.OnTraceNpcDataChanged)
   self:BuildLogicIdToNpcInfo(npcInfo.npc_logic_id, npcData)
   if isNewNpcData then
@@ -1524,7 +1719,7 @@ function BigMapModuleData:UpdateHomeClientNpcInfo(npcInfo)
     posX = npcInfo.npc_pos.x or 0
     posY = npcInfo.npc_pos.y or 0
     posZ = npcInfo.npc_pos.z or 0
-    npcSceneResId = self:GetSceneResIdByRefreshId(npcInfo.npc_refresh_id)
+    npcSceneResId = BigMapUtils.GetSceneResIdByRefreshId(npcInfo.npc_refresh_id)
     mapPieceId = BigMapUtils.GetMapPieceIdByPos(posX, posY, npcSceneResId)
   end
   local npcModuleCfg
@@ -1534,13 +1729,17 @@ function BigMapModuleData:UpdateHomeClientNpcInfo(npcInfo)
   if self.npcDatas[npcSceneResId][mapPieceId] == nil then
     self.npcDatas[npcSceneResId][mapPieceId] = {}
   end
-  local npcData = self.npcDatas[npcSceneResId][mapPieceId][npcInfo.entry_id]
+  if nil == self.npcDatas[npcSceneResId][mapPieceId][npcInfo.entry_id] then
+    self.npcDatas[npcSceneResId][mapPieceId][npcInfo.entry_id] = {}
+  end
+  local logicId = npcInfo.logic_id or npcInfo.entry_id
+  local npcData = self.npcDatas[npcSceneResId][mapPieceId][npcInfo.entry_id][logicId]
   local isNewNpcData = false
   if not npcData then
     npcData = {
       npc_pos = {}
     }
-    self.npcDatas[npcSceneResId][mapPieceId][npcInfo.entry_id] = npcData
+    self.npcDatas[npcSceneResId][mapPieceId][npcInfo.entry_id][logicId] = npcData
     isNewNpcData = true
   end
   local npcCfgId = npcInfo.npc_cfg_id
@@ -1582,7 +1781,7 @@ function BigMapModuleData:UpdateDropMethodInfo(npcInfo, bRemove)
       posX = npcInfo.npc_pos.x or 0
       posY = npcInfo.npc_pos.y or 0
       posZ = npcInfo.npc_pos.z or 0
-      npcSceneResId = self:GetSceneResIdByRefreshId(npcInfo.npc_refresh_id)
+      npcSceneResId = BigMapUtils.GetSceneResIdByRefreshId(npcInfo.npc_refresh_id)
       mapPieceId = BigMapUtils.GetMapPieceIdByPos(posX, posY, npcSceneResId)
     end
     local npcModuleCfg
@@ -1592,13 +1791,17 @@ function BigMapModuleData:UpdateDropMethodInfo(npcInfo, bRemove)
     if self.npcDatas[npcSceneResId][mapPieceId] == nil then
       self.npcDatas[npcSceneResId][mapPieceId] = {}
     end
-    local npcData = self.npcDatas[npcSceneResId][mapPieceId][npcInfo.entry_id]
+    if nil == self.npcDatas[npcSceneResId][mapPieceId][npcInfo.entry_id] then
+      self.npcDatas[npcSceneResId][mapPieceId][npcInfo.entry_id] = {}
+    end
+    local logicId = npcInfo.logic_id or npcInfo.entry_id
+    local npcData = self.npcDatas[npcSceneResId][mapPieceId][npcInfo.entry_id][logicId]
     local isNewNpcData = false
     if not npcData then
       npcData = {
         npc_pos = {}
       }
-      self.npcDatas[npcSceneResId][mapPieceId][npcInfo.entry_id] = npcData
+      self.npcDatas[npcSceneResId][mapPieceId][npcInfo.entry_id][logicId] = npcData
       isNewNpcData = true
     end
     local npcCfgId = npcInfo.npc_cfg_id
@@ -1678,8 +1881,8 @@ function BigMapModuleData:RemoveHandBookNpcData(npcInfo)
       table.removeKey(self.npcDatas[npcSceneResId][mapPieceId], npcInfo.npc_obj_id)
     end
   end
-  self:UpdateMapShowNpc(npcSceneResId, mapPieceId, false, nil, npcInfo.npc_obj_id)
-  self:UpdateMiniMapShowNpc(npcSceneResId, mapPieceId, false, nil, npcInfo.npc_obj_id)
+  self:UpdateMapShowNpc(npcSceneResId, mapPieceId, false, nil, npcInfo.npc_obj_id, npcInfo.npc_logic_id)
+  self:UpdateMiniMapShowNpc(npcSceneResId, mapPieceId, false, nil, npcInfo.npc_obj_id, npcInfo.npc_logic_id)
   self.HandBookTraceInfo = nil
 end
 
@@ -1723,11 +1926,11 @@ function BigMapModuleData:DrawWorldMapTexture(clear, sceneResId)
   end
   if self.FullMaskRunTime then
     if clear then
-      UE4.UNRCTUIStatics.DrawWorldMapTexture(clear, self.FullMaskRunTime, sceneOffsetX, sceneOffsetY, sceneHeight, self.DrawList[sceneResId])
+      UE4.UNRCTUIStatics.DrawWorldMapTextureFromBytesFiles(clear, self.FullMaskRunTime, sceneOffsetX, sceneOffsetY, sceneHeight, self.DrawList[sceneResId])
     elseif #delList > 0 then
-      UE4.UNRCTUIStatics.DrawWorldMapTexture(true, self.FullMaskRunTime, sceneOffsetX, sceneOffsetY, sceneHeight, self.DrawList[sceneResId])
+      UE4.UNRCTUIStatics.DrawWorldMapTextureFromBytesFiles(true, self.FullMaskRunTime, sceneOffsetX, sceneOffsetY, sceneHeight, self.DrawList[sceneResId])
     elseif #addList > 0 then
-      UE4.UNRCTUIStatics.DrawWorldMapTexture(clear, self.FullMaskRunTime, sceneOffsetX, sceneOffsetY, sceneHeight, addList)
+      UE4.UNRCTUIStatics.DrawWorldMapTextureFromBytesFiles(clear, self.FullMaskRunTime, sceneOffsetX, sceneOffsetY, sceneHeight, addList)
     else
       Log.Debug("No need DrawWorldMapTexture")
     end
@@ -1820,12 +2023,16 @@ end
 
 function BigMapModuleData:GetCurTraceNpcData(sceneResId)
   sceneResId = sceneResId or self.curShowSceneResId
-  local curTraceNpcId = self:GetCurTraceNpcId()
+  local curTraceNpcId, curTraceLogicId = self:GetCurTraceNpcIdAndLogicId()
   if curTraceNpcId and -1 ~= curTraceNpcId and 0 ~= curTraceNpcId then
     if self.npcDatas[sceneResId] then
       for k, v in pairs(self.npcDatas[sceneResId]) do
         if v[curTraceNpcId] then
-          return v[curTraceNpcId], true
+          for logicId, npcInfo in pairs(v[curTraceNpcId]) do
+            if curTraceLogicId == logicId then
+              return npcInfo, true
+            end
+          end
         end
       end
     else
@@ -1837,6 +2044,12 @@ function BigMapModuleData:GetCurTraceNpcData(sceneResId)
     end
   end
   return nil
+end
+
+function BigMapModuleData:ClearTraceInfoByType(traceType)
+  if self.traceInfoList then
+    table.removeKey(self.traceInfoList, traceType)
+  end
 end
 
 function BigMapModuleData:GetTraceInfoByType(traceType)
@@ -1852,6 +2065,14 @@ function BigMapModuleData:GetCurTraceNpcId()
     return self.traceInfoList[traceType].npcInfo.entry_id or 0
   end
   return 0
+end
+
+function BigMapModuleData:GetCurTraceNpcIdAndLogicId()
+  local traceType = bigMapModuleEnum.TraceType.NPC
+  if self.traceInfoList[traceType] then
+    return self.traceInfoList[traceType].npcInfo.entry_id or 0, self.traceInfoList[traceType].npcInfo.logic_id or 0
+  end
+  return 0, 0
 end
 
 function BigMapModuleData:GetCurTraceNpcRefreshId()
@@ -1899,6 +2120,29 @@ function BigMapModuleData:SetTraceInfoList(traceInfo)
         self.traceInfoList[traceType][logicId] = traceInfo
       end
     end
+  elseif traceType == bigMapModuleEnum.TraceType.ForceTrace then
+    if traceInfo then
+      if self.traceInfoList[traceType] == nil then
+        self.traceInfoList[traceType] = {}
+      end
+      local trackType = traceInfo.npcInfo and traceInfo.npcInfo.worldMapConf and traceInfo.npcInfo.worldMapConf.default_track_type
+      if self.traceInfoList[traceType][trackType] == nil then
+        self.traceInfoList[traceType][trackType] = {}
+      end
+      if #self.traceInfoList[traceType][trackType] > 0 then
+        for k, val in ipairs(self.traceInfoList[traceType][trackType]) do
+          if val.npcInfo.logic_id == traceInfo.npcInfo.logic_id then
+            table.remove(self.traceInfoList[traceType][trackType], k)
+            goto lbl_135
+          end
+        end
+      end
+      ::lbl_135::
+      if self.traceInfoList[traceType][trackType] == nil then
+        self.traceInfoList[traceType][trackType] = {}
+      end
+      table.insert(self.traceInfoList[traceType][trackType], traceInfo)
+    end
   elseif traceInfo then
     self.traceInfoList[traceType] = traceInfo
   else
@@ -1906,12 +2150,12 @@ function BigMapModuleData:SetTraceInfoList(traceInfo)
   end
 end
 
-function BigMapModuleData:SetCurTraceNpc(npcId, sceneResId, needTraceOnFogArea)
+function BigMapModuleData:SetCurTraceNpc(entryId, logicId, sceneResId, needTraceOnFogArea)
   local traceInfo = {}
   traceInfo.traceType = bigMapModuleEnum.TraceType.NPC
   traceInfo.sceneResId = sceneResId
   self.module.TraceOnFogArea = needTraceOnFogArea
-  if -1 == npcId or nil == npcId then
+  if -1 == entryId or nil == entryId then
     if self.HandBookTraceInfo and self.HandBookTraceInfo.npc_trace_info then
       local traceNpcCfgId = self.HandBookTraceInfo.npc_trace_info.npc_cfg_id
       if traceNpcCfgId then
@@ -1923,8 +2167,8 @@ function BigMapModuleData:SetCurTraceNpc(npcId, sceneResId, needTraceOnFogArea)
   else
     for resId, v in pairs(self.npcDatas) do
       for pieceId, npcDatas in pairs(v) do
-        if npcDatas[npcId] then
-          traceInfo.npcInfo = npcDatas[npcId]
+        if npcDatas[entryId] and npcDatas[entryId][logicId] then
+          traceInfo.npcInfo = npcDatas[entryId][logicId]
           local posX = traceInfo.npcInfo.npc_pos.x
           local posY = traceInfo.npcInfo.npc_pos.y
           posX, posY = BigMapUtils.ScenePosToImagePos(resId, posX, posY)
@@ -1935,7 +2179,7 @@ function BigMapModuleData:SetCurTraceNpc(npcId, sceneResId, needTraceOnFogArea)
       end
     end
   end
-  self.traceNpcInfo.npcId = npcId
+  self.traceNpcInfo.npcId = entryId
   self.traceNpcInfo.sceneResId = sceneResId
   local npcData = self:GetCurTraceNpcData(sceneResId)
   if npcData then
@@ -1998,13 +2242,15 @@ function BigMapModuleData:SetCurTraceNpcByRefreshID(_npcRefreshId, sceneResId, n
     self.module.TraceOnFogArea = false
     return
   end
-  for _, v in pairs(self.npcDatas[sceneResId]) do
-    for i, j in pairs(v) do
-      if _npcRefreshId == j.npc_refresh_id then
-        local npcId = j.entry_id
-        self:SetCurTraceNpc(npcId, sceneResId, needTraceOnFogArea)
-        Log.Debug("BigMapModuleData:SetCurTraceNpcByRefreshID", npcId)
-        return j
+  for mapPieceId, v in pairs(self.npcDatas[sceneResId]) do
+    for entryId, j in pairs(v) do
+      for logicId, k in pairs(j) do
+        if _npcRefreshId == k.npc_refresh_id then
+          local npcId = k.entry_id
+          self:SetCurTraceNpc(npcId, logicId, sceneResId, needTraceOnFogArea)
+          Log.Debug("BigMapModuleData:SetCurTraceNpcByRefreshID", npcId)
+          return k
+        end
       end
     end
   end
@@ -2026,22 +2272,26 @@ function BigMapModuleData:GetNpcInfoByRefreshId(refreshId, sceneResId)
       if nil == refreshId then
         return
       end
-      if nil == sceneResId or nil == self.npcDatas[sceneResId] then
+      if nil == self.npcDatas[sceneResId] then
         for resId, val in pairs(self.npcDatas) do
           for mapPieceId, val1 in pairs(val) do
-            for npcId, val2 in pairs(val1) do
-              if refreshId == val2.npc_refresh_id then
-                return val2, resId
+            for entryId, val2 in pairs(val1) do
+              for logicId, val3 in pairs(val2) do
+                if refreshId == val3.npc_refresh_id then
+                  return val3, resId
+                end
               end
             end
           end
         end
         return
       end
-      for _, v in pairs(self.npcDatas[sceneResId]) do
-        for i, j in pairs(v) do
-          if refreshId == j.npc_refresh_id then
-            return j
+      for mapPieceId, v in pairs(self.npcDatas[sceneResId]) do
+        for entryId, j in pairs(v) do
+          for logicId, k in pairs(j) do
+            if refreshId == k.npc_refresh_id then
+              return k
+            end
           end
         end
       end
@@ -2049,21 +2299,39 @@ function BigMapModuleData:GetNpcInfoByRefreshId(refreshId, sceneResId)
       for resId, val in pairs(self.npcDatas) do
         for mapPieceId, val1 in pairs(val) do
           for npcId, val2 in pairs(val1) do
-            if refreshId == val2.npc_refresh_id then
-              return val2
+            for logicId, val3 in pairs(val2) do
+              if refreshId == val3.npc_refresh_id then
+                return val3
+              end
             end
           end
         end
       end
     end
   else
-    if nil == self.npcDatas[sceneResId] or nil == refreshId then
+    if nil == refreshId then
       return
     end
-    for _, v in pairs(self.npcDatas[sceneResId]) do
-      for i, j in pairs(v) do
-        if refreshId == j.npc_refresh_id then
-          return j
+    if nil == self.npcDatas[sceneResId] then
+    else
+      for mapPieceId, v in pairs(self.npcDatas[sceneResId]) do
+        for entryId, j in pairs(v) do
+          for logicId, k in pairs(j) do
+            if refreshId == k.npc_refresh_id then
+              return k, sceneResId
+            end
+          end
+        end
+      end
+    end
+    for resId, val in pairs(self.npcDatas) do
+      for mapPieceId, val1 in pairs(val) do
+        for entryId, val2 in pairs(val1) do
+          for logicId, val3 in pairs(val2) do
+            if refreshId == val3.npc_refresh_id then
+              return val3, resId
+            end
+          end
         end
       end
     end
@@ -2075,21 +2343,23 @@ function BigMapModuleData:GetNpcInfoByConfigId(configId, sceneResId)
   if self.npcDatas[sceneResId] == nil or nil == configId then
     return
   end
-  for _, v in pairs(self.npcDatas[sceneResId]) do
-    for i, j in pairs(v) do
-      if configId == j.npc_cfg_id then
-        return j
+  for mapPieceId, v in pairs(self.npcDatas[sceneResId]) do
+    for entryId, j in pairs(v) do
+      for logicId, k in pairs(j) do
+        if configId == k.npc_cfg_id then
+          return k
+        end
       end
     end
   end
 end
 
-function BigMapModuleData:GetNPCInfoByEntryId(entryId)
+function BigMapModuleData:GetNPCInfoByEntryId(entryId, logicId)
   if entryId > 0 then
     for sceneResId, pieceNpcInfos in pairs(self.npcDatas) do
       for mapPiece, npcInfos in pairs(pieceNpcInfos) do
         if npcInfos[entryId] then
-          return npcInfos[entryId]
+          return npcInfos[entryId][logicId]
         end
       end
     end
@@ -2353,13 +2623,13 @@ function BigMapModuleData:CreateShowTaskInfo()
         local TaskShowType = Tracker.TaskObject.isTrack and bigMapModuleEnum.TaskShowType.TRACING or bigMapModuleEnum.TaskShowType.ACCEPTED
         local Position = {}
         local TaskSceneList = {}
-        if 0 ~= Tracker.TargetMapID then
+        if Tracker.TargetMapID and 0 ~= Tracker.TargetMapID then
           TaskSceneList[Tracker.TargetMapID] = true
         end
-        if 0 ~= Tracker.DestMapID then
+        if Tracker.DestMapID and 0 ~= Tracker.DestMapID then
           TaskSceneList[Tracker.DestMapID] = true
         end
-        if 0 ~= Tracker.MapID then
+        if Tracker.MapID and 0 ~= Tracker.MapID then
           TaskSceneList[Tracker.MapID] = true
         end
         for TaskSceneResId, _ in pairs(TaskSceneList) do
@@ -2613,6 +2883,7 @@ function BigMapModuleData:SetNewCustomPointInfo(_NewCustomPointInfo)
     _NewCustomPointInfo.is_track = false
     table.insert(self.NewCustomPointInfo, _NewCustomPointInfo)
   end
+  self:SetLayerIdToIcons(_NewCustomPointInfo.layer_id or 0, bigMapModuleEnum.CreatorPriority.MarkerIcons, _NewCustomPointInfo.mark_id)
 end
 
 function BigMapModuleData:GetNewCustomPointInfo()
@@ -2792,7 +3063,6 @@ function BigMapModuleData:SetCampFruitNpcsInfo(fruitNpcsInfo)
         if nil == allPlayerFruitInfo[campLinkOwlInfo.owl_sanctuary_content_id] or nil == next(allPlayerFruitInfo[campLinkOwlInfo.owl_sanctuary_content_id]) then
         else
           for uin, owlSanctuaryInfo in pairs(allPlayerFruitInfo[campLinkOwlInfo.owl_sanctuary_content_id]) do
-            local visitIndex = _G.NRCModuleManager:DoCmd(_G.FriendModuleCmd.GetOnlineVisitorIndex, uin) or nil
             if owlSanctuaryInfo.owl_content_id ~= campLinkOwlInfo.owl_sanctuary_content_id or nil == owlSanctuaryInfo.fruit_infos then
             else
               local temp = 0
@@ -2805,26 +3075,20 @@ function BigMapModuleData:SetCampFruitNpcsInfo(fruitNpcsInfo)
                       local NpcInfo = {
                         npc_id = petBaseConf.npc_id,
                         uin = uin,
-                        FruitVisitIndex = visitIndex,
                         fruit_active_timestamp = fruitInfo.fruit_active_timestamp,
                         slot_active_timestamp = fruitInfo.slot_active_timestamp
                       }
                       table.insert(campLinkOwlInfo.NpcInfo, NpcInfo)
-                      campLinkOwlInfo.playerIndex = campLinkOwlInfo.playerIndex or {}
-                      table.insert(campLinkOwlInfo.playerIndex, visitIndex)
                     end
                   else
                     local NpcInfo = {
-                      npc_id = fruitInfo.npc_id[1],
+                      npc_id = fruitInfo.npc_id,
                       uin = uin,
-                      FruitVisitIndex = visitIndex,
                       fruit_active_timestamp = fruitInfo.fruit_active_timestamp,
                       slot_active_timestamp = fruitInfo.slot_active_timestamp
                     }
                     table.insert(campLinkOwlInfo.NpcInfo, 1 + temp, NpcInfo)
                     temp = temp + 1
-                    campLinkOwlInfo.playerIndex = campLinkOwlInfo.playerIndex or {}
-                    table.insert(campLinkOwlInfo.playerIndex, 1, visitIndex)
                   end
                 end
               end
@@ -3089,6 +3353,82 @@ function BigMapModuleData:BuildLogicIdToNpcInfo(logicId, npcInfo)
   end
 end
 
+function BigMapModuleData:AddToDefaultTrackNpcMap(npcData, bAll)
+  if not npcData or not npcData.logic_id then
+    return
+  end
+  local worldMapConf = npcData.worldMapConf
+  if worldMapConf then
+    local defaultTrackType = worldMapConf.default_track_type
+    if self.defaultTrackNpcMap[defaultTrackType] == nil then
+      self.defaultTrackNpcMap[defaultTrackType] = {}
+    end
+    local defaultTrackNpcList = self.defaultTrackNpcMap[defaultTrackType]
+    if defaultTrackNpcList then
+      if #defaultTrackNpcList > 0 then
+        for i = #defaultTrackNpcList, 1, -1 do
+          if defaultTrackNpcList[i].logic_id == npcData.logic_id then
+            return
+          end
+        end
+      end
+      table.insert(defaultTrackNpcList, npcData)
+      if not bAll then
+        _G.NRCEventCenter:DispatchEvent(BigMapModuleEvent.DefaultTrackNpcChange)
+        self.module:SetForceTrace(npcData)
+      end
+    end
+  end
+end
+
+function BigMapModuleData:RemoveFromDefaultTrackNpcMap(defaultTrackType, logicId)
+  if not logicId then
+    return
+  end
+  local defaultTrackList = self.defaultTrackNpcMap[defaultTrackType]
+  if defaultTrackList and #defaultTrackList > 0 then
+    for i = #defaultTrackList, 1, -1 do
+      if defaultTrackList[i].logic_id == logicId then
+        table.remove(self.defaultTrackNpcMap[defaultTrackType], i)
+        _G.NRCEventCenter:DispatchEvent(BigMapModuleEvent.DefaultTrackNpcChange)
+        break
+      end
+    end
+  end
+  if defaultTrackList and #defaultTrackList > 0 then
+    self.module:SetForceTrace(defaultTrackList[#defaultTrackList])
+  end
+end
+
+function BigMapModuleData:GetDefaultTrackNpcList(defaultTrackType)
+  if defaultTrackType then
+    return self.defaultTrackNpcMap[defaultTrackType]
+  else
+    return self.defaultTrackNpcMap
+  end
+end
+
+function BigMapModuleData:SortDefaultTrackNpcList()
+  if self.defaultTrackNpcMap then
+    for defaultTrackType, defaultTrackList in pairs(self.defaultTrackNpcMap) do
+      if defaultTrackList and #defaultTrackList > 1 then
+        table.sort(defaultTrackList, function(a, b)
+          return a.bornTimeStamp < b.bornTimeStamp
+        end)
+      end
+      local limitNum = self.module:GetForceTrackLimit(defaultTrackType)
+      local limitNo = #defaultTrackList - limitNum > 0 and #defaultTrackList - limitNum or 0
+      local startNo = limitNo + 1
+      if startNo > 0 and startNo <= #defaultTrackList then
+        for i = #defaultTrackList, startNo, -1 do
+          self.module:SetForceTrace(defaultTrackList[i])
+        end
+      end
+    end
+  end
+  _G.NRCEventCenter:DispatchEvent(BigMapModuleEvent.DefaultTrackNpcChange)
+end
+
 function BigMapModuleData:BuildMapIdToMapActivityConf()
   local worldMapActivityConf = _G.DataConfigManager:GetTable(DataConfigManager.ConfigTableId.WORLD_MAP_ACTIVITY_CONF):GetAllDatas()
   if worldMapActivityConf then
@@ -3294,10 +3634,12 @@ function BigMapModuleData:GetNpcDataByWorldMapConfId(WorldMapConfId)
   local npcList = self.npcDatas
   for npc, NpcDataS in pairs(npcList) do
     for mapPieceId, npcInfos in pairs(NpcDataS) do
-      for npcId, npcInfo in pairs(npcInfos) do
-        Log.Debug(npcInfo.world_map_cfg_id, WorldMapConfId, "BigMapModuleData:GetNpcDataByWorldMapConfId")
-        if npcInfo.world_map_cfg_id == WorldMapConfId then
-          return npcInfo
+      for npcId, _npcInfos in pairs(npcInfos) do
+        for logicId, npcInfo in pairs(_npcInfos) do
+          Log.Debug(npcInfo.world_map_cfg_id, WorldMapConfId, "BigMapModuleData:GetNpcDataByWorldMapConfId")
+          if npcInfo.world_map_cfg_id == WorldMapConfId then
+            return npcInfo
+          end
         end
       end
     end
@@ -3507,10 +3849,38 @@ function BigMapModuleData:GetAllOwlSanctuaryConfs()
   return self.owlSanctuaryDatas
 end
 
-function BigMapModuleData:UpdateMiniMapShowNpc(sceneResId, mapPieceId, bShow, npcInfo, entryId)
+function BigMapModuleData:CancelTraceOnNpcRemoved(entryId, logicId)
+  if self.module:CheckIsTracing(bigMapModuleEnum.TraceType.NPC, entryId, logicId) then
+    local traceInfo = {}
+    traceInfo.traceType = bigMapModuleEnum.TraceType.NPC
+    self.module:OnCmdStartOrCancelTrace(false, traceInfo)
+  end
+  if self.module:CheckIsTracing(bigMapModuleEnum.TraceType.TempTrace, logicId) then
+    local traceInfo = {}
+    traceInfo.traceType = bigMapModuleEnum.TraceType.TempTrace
+    traceInfo.npcInfo = {}
+    traceInfo.npcInfo.logic_id = logicId
+    self.module:OnCmdStartOrCancelTrace(false, traceInfo)
+  end
+  if self.module:CheckIsTracing(bigMapModuleEnum.TraceType.ForceTrace, nil, logicId) then
+    local traceInfo = {}
+    traceInfo.traceType = bigMapModuleEnum.TraceType.ForceTrace
+    traceInfo.npcInfo = {}
+    traceInfo.npcInfo.logic_id = logicId
+    self.module:OnCmdStartOrCancelTrace(false, traceInfo)
+  end
+end
+
+function BigMapModuleData:UpdateMiniMapShowNpc(sceneResId, mapPieceId, bShow, npcInfo, entryId, logicId)
   sceneResId = sceneResId or SceneUtils.GetSceneResId()
   local mapPiece = mapPieceId or 0
+  if npcInfo then
+    logicId = logicId or npcInfo.logic_id or entryId or logicId or npcInfo.entry_id
+  else
+    logicId = entryId
+  end
   if bShow then
+    local _entryId = npcInfo.entry_id
     if self:CheckMiniMapShouldShowNpc(npcInfo) then
       if self.miniMapShowNpc[sceneResId] == nil then
         self.miniMapShowNpc[sceneResId] = {}
@@ -3518,47 +3888,30 @@ function BigMapModuleData:UpdateMiniMapShowNpc(sceneResId, mapPieceId, bShow, np
       if self.miniMapShowNpc[sceneResId][mapPiece] == nil then
         self.miniMapShowNpc[sceneResId][mapPiece] = {}
       end
-      self.miniMapShowNpc[sceneResId][mapPiece][npcInfo.entry_id] = npcInfo
-      _G.NRCEventCenter:DispatchEvent(BigMapModuleEvent.OnMapInfoChange, false, npcInfo, entryId)
+      if self.miniMapShowNpc[sceneResId][mapPiece][_entryId] == nil then
+        self.miniMapShowNpc[sceneResId][mapPiece][_entryId] = {}
+      end
+      self.miniMapShowNpc[sceneResId][mapPiece][_entryId][logicId] = npcInfo
+      _G.NRCEventCenter:DispatchEvent(BigMapModuleEvent.OnMapInfoChange, false, npcInfo, entryId, logicId)
     else
-      local _entryId = npcInfo.entry_id
+      local _logicId = npcInfo.logic_id or _entryId
       if self.miniMapShowNpc[sceneResId] and self.miniMapShowNpc[sceneResId][mapPiece] and 0 ~= _entryId then
-        local tempNpcInfo = self.miniMapShowNpc[sceneResId][mapPiece][_entryId]
-        if tempNpcInfo then
-          table.removeKey(self.miniMapShowNpc[sceneResId][mapPiece], _entryId)
+        if self.miniMapShowNpc[sceneResId][mapPiece][_entryId] and self.miniMapShowNpc[sceneResId][mapPiece][_entryId][_logicId] then
+          table.removeKey(self.miniMapShowNpc[sceneResId][mapPiece][_entryId], _logicId)
         end
-        _G.NRCEventCenter:DispatchEvent(BigMapModuleEvent.OnMapInfoChange, true, npcInfo, _entryId)
-        if self.module:CheckIsTracing(bigMapModuleEnum.TraceType.NPC, _entryId) then
-          local traceInfo = {}
-          traceInfo.traceType = bigMapModuleEnum.TraceType.NPC
-          self.module:OnCmdStartOrCancelTrace(false, traceInfo)
-        end
-        if self.module:CheckIsTracing(bigMapModuleEnum.TraceType.TempTrace, logicId) then
-          local traceInfo = {}
-          traceInfo.traceType = bigMapModuleEnum.TraceType.TempTrace
-          traceInfo.npcInfo = {}
-          traceInfo.npcInfo.logic_id = logicId
-          self.module:OnCmdStartOrCancelTrace(false, traceInfo)
-        end
+        _G.NRCEventCenter:DispatchEvent(BigMapModuleEvent.OnMapInfoChange, true, npcInfo, _entryId, logicId)
+        self:CancelTraceOnNpcRemoved(_entryId, logicId)
       end
     end
   elseif self.miniMapShowNpc[sceneResId] and self.miniMapShowNpc[sceneResId][mapPiece] and 0 ~= entryId then
-    local tempNpcInfo = self.miniMapShowNpc[sceneResId][mapPiece][entryId]
-    if tempNpcInfo then
-      table.removeKey(self.miniMapShowNpc[sceneResId][mapPiece], entryId)
-    end
-    _G.NRCEventCenter:DispatchEvent(BigMapModuleEvent.OnMapInfoChange, true, tempNpcInfo, entryId)
-    if self.module:CheckIsTracing(bigMapModuleEnum.TraceType.NPC, entryId) then
-      local traceInfo = {}
-      traceInfo.traceType = bigMapModuleEnum.TraceType.NPC
-      self.module:OnCmdStartOrCancelTrace(false, traceInfo)
-    end
-    if self.module:CheckIsTracing(bigMapModuleEnum.TraceType.TempTrace, logicId) then
-      local traceInfo = {}
-      traceInfo.traceType = bigMapModuleEnum.TraceType.TempTrace
-      traceInfo.npcInfo = {}
-      traceInfo.npcInfo.logic_id = logicId
-      self.module:OnCmdStartOrCancelTrace(false, traceInfo)
+    local logicIdMap = self.miniMapShowNpc[sceneResId][mapPiece][entryId]
+    if logicIdMap then
+      local tempNpcInfo = logicIdMap[logicId]
+      if tempNpcInfo then
+        _G.NRCEventCenter:DispatchEvent(BigMapModuleEvent.OnMapInfoChange, true, tempNpcInfo, entryId, logicId)
+        self:CancelTraceOnNpcRemoved(entryId, logicId)
+      end
+      table.removeKey(self.miniMapShowNpc[sceneResId][mapPiece][entryId], logicId)
     end
   end
 end
@@ -3581,17 +3934,19 @@ function BigMapModuleData:SetMiniMapShowNpcs(sceneResId)
   if not _npcInfos then
     return nil
   end
-  for i, j in pairs(_npcInfos) do
-    for k, v in pairs(j) do
-      if nil == npcInfo[i] then
-        npcInfo[i] = {}
+  for mapPieceId, j in pairs(_npcInfos) do
+    for entryId, entryList in pairs(j) do
+      if nil == npcInfo[mapPieceId] then
+        npcInfo[mapPieceId] = {}
       end
-      local shouldShow = self:CheckMiniMapShouldShowNpc(v)
-      if shouldShow then
-        if nil == npcInfo[i][k] then
-          npcInfo[i][k] = {}
+      for logicId, _npcInfo in pairs(entryList) do
+        local shouldShow = self:CheckMiniMapShouldShowNpc(_npcInfo)
+        if shouldShow then
+          if nil == npcInfo[mapPieceId][entryId] then
+            npcInfo[mapPieceId][entryId] = {}
+          end
+          npcInfo[mapPieceId][entryId][logicId] = _npcInfo
         end
-        npcInfo[i][k] = v
       end
     end
   end
@@ -3637,7 +3992,14 @@ function BigMapModuleData:CheckMiniMapShouldShowNpc(npcInfo)
     model = _G.DataConfigManager:GetModelConf(npcInfo.npcCfg.model_conf, true)
   end
   if worldMap then
-    if worldMap.map_show_type == _G.ProtoEnum.MapIconShowType.MAP_AREA_NPC then
+    local bTracing = self.module:CheckIsTracing(bigMapModuleEnum.TraceType.NPC, npcInfo.entry_id, npcInfo.logic_id)
+    if worldMap.is_hide_init then
+      if bTracing then
+        shouldShow = true
+      else
+        shouldShow = false
+      end
+    elseif worldMap.map_show_type == _G.ProtoEnum.MapIconShowType.MAP_AREA_NPC then
       if npcInfo.status == _G.ProtoEnum.LockStatus.ENUM.UNLOCKED then
         shouldShow = 1 == worldMap.explored_in_minimap
       else
@@ -3847,6 +4209,33 @@ end
 
 function BigMapModuleData:SetCurShowLayerId(layerId)
   self.curShowLayerId = layerId
+end
+
+function BigMapModuleData:AddEntryIdMap(entryId, sceneResId, mapPieceId)
+  if self.entryIdToSceneResIdAndPieceId[entryId] == nil then
+    self.entryIdToSceneResIdAndPieceId[entryId] = {}
+  end
+  local entryIdMap = self.entryIdToSceneResIdAndPieceId[entryId]
+  if #entryIdMap > 0 then
+    for k, v in ipairs(entryIdMap) do
+      if v.sceneResId == sceneResId and mapPieceId == v.mapPieceId then
+        return
+      end
+    end
+  end
+  table.insert(self.entryIdToSceneResIdAndPieceId[entryId], {sceneResId = sceneResId, mapPieceId = mapPieceId})
+end
+
+function BigMapModuleData:RemoveEntryIdMap(entryId)
+  self.entryIdToSceneResIdAndPieceId[entryId] = nil
+end
+
+function BigMapModuleData:GetEntryIdMap(entryId)
+  return self.entryIdToSceneResIdAndPieceId[entryId]
+end
+
+function BigMapModuleData:ClearEntryIdMap()
+  table.clear(self.entryIdToSceneResIdAndPieceId)
 end
 
 return BigMapModuleData

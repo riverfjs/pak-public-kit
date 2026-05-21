@@ -1,3 +1,4 @@
+local ThrowSession = require("NewRoco.Modules.Core.NPC.ThrowSession")
 local ThrowSessionStatusEnum = require("NewRoco.Modules.Core.NPC.ThrowSessionStatusEnum")
 local MainUIModuleEvent = require("NewRoco.Modules.System.MainUI.MainUIModuleEvent")
 local PetUIModuleEvent = reload("NewRoco.Modules.System.PetUI.PetUIModuleEvent")
@@ -9,6 +10,8 @@ local SceneEvent = require("NewRoco.Modules.Core.Scene.Common.SceneEvent")
 local BattleBossChallengeUtils = require("NewRoco.Modules.Core.Battle.Common.BattleBossChallengeUtils")
 local PetUIModuleEnum = require("NewRoco.Modules.System.PetUI.PetUIModuleEnum")
 local PlayerDataEvent = require("Data.Global.PlayerDataEvent")
+local TipEnum = require("NewRoco.Modules.System.TipsModule.Utils.TipEnum")
+local FunctionBanModuleEvent = require("NewRoco.Modules.System.FunctionBan.FunctionBanModuleEvent")
 local UMG_MainPet_C = _G.NRCPanelBase:Extend("UMG_MainPet_C")
 local ENUM_PLAYER_DATA_EVENT = require("Data.Global.PlayerDataEvent")
 
@@ -23,14 +26,33 @@ function UMG_MainPet_C:OnConstruct()
   self.OldUpdateInfos = {}
   self.curPetSessionList = {}
   self:SetMainPetInfo()
+  self.MainPetList:SetItemCanClickChecker(self.CheckItemCanClick, self)
+  self.MainPetList:SetItemCanSelectChecker(self.CheckItemCanClick, self)
   self.refresh = true
   self.petUIOpen = false
   self.isManuiOpen = true
   self.isHaveOnePet = false
   self.CanPress = true
+  self.PetGidItemMap = nil
   self:OnAddEventListener()
   self.Item = self.MainPetList:GetItemByIndex(0)
   self.isOpenPetPanel = false
+  self.tipsDisplayController = _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.GetDisplayController, TipEnum.TipObjectType.MainPetTips)
+  if self.tipsDisplayController then
+    self.tipsDisplayController:BindView(self)
+    self.tipsDisplayController:GetExecutor():StartTipDispatchStateListener()
+  end
+end
+
+function UMG_MainPet_C:CheckItemCanClick(Item, tabIndex)
+  local isAmining = _G.NRCModuleManager:DoCmd(MainUIModuleCmd.GetAimState)
+  if isAmining and Item.uiData.RecycleState == true then
+    local tipText = _G.DataConfigManager:GetLocalizationConf("Cannot_Switch").msg
+    _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, tipText)
+    _G.NRCEventCenter:DispatchEvent(MainUIModuleEvent.OnMainPetRecycleSelect)
+    return false
+  end
+  return true
 end
 
 function UMG_MainPet_C:OnAddEventListener()
@@ -43,6 +65,7 @@ function UMG_MainPet_C:OnAddEventListener()
   _G.NRCEventCenter:RegisterEvent("UMG_MainPet_C", self, BagModuleEvent.GoodChangeTypeEnum.GT_PET_EN, self.ChangeEnergyPet)
   _G.NRCEventCenter:RegisterEvent("UMG_MainPet_C", self, MainUIModuleEvent.OnForceUpdateFriendRideState, self.OnForceUpdateFriendRideState)
   _G.NRCEventCenter:RegisterEvent("UMG_MainPet_C", self, MainUIModuleEvent.OnUpdateMainPetTipsShowState, self.OnUpdateMainPetTipsShowState)
+  _G.NRCEventCenter:RegisterEvent("UMG_MainPet_C", self, FunctionBanModuleEvent.OnUIFuncVisibilityChange, self.OnUIFuncVisibilityChange)
   _G.DataModelMgr.PlayerDataModel:AddEventListener(self, ENUM_PLAYER_DATA_EVENT.PET_EXP_CHANGED, self.OnPetExpChanged)
 end
 
@@ -59,8 +82,13 @@ function UMG_MainPet_C:OnDestruct()
   _G.NRCEventCenter:UnRegisterEvent(self, BagModuleEvent.GoodChangeTypeEnum.GT_PET_EN, self.ChangeEnergyPet)
   _G.NRCEventCenter:UnRegisterEvent(self, MainUIModuleEvent.OnUpdateMainPetTipsShowState, self.OnUpdateMainPetTipsShowState)
   _G.DataModelMgr.PlayerDataModel:RemoveEventListener(self, ENUM_PLAYER_DATA_EVENT.PET_EXP_CHANGED, self.OnPetExpChanged)
+  _G.NRCEventCenter:UnRegisterEvent(self, FunctionBanModuleEvent.OnUIFuncVisibilityChange, self.OnUIFuncVisibilityChange)
   if self.delayRemoveBlockTip then
     _G.DelayManager:CancelDelayById(self.delayRemoveBlockTip)
+  end
+  if self.tipsDisplayController then
+    self.tipsDisplayController:UnBindView()
+    self.tipsDisplayController = nil
   end
 end
 
@@ -90,6 +118,89 @@ function UMG_MainPet_C:OnActive()
 end
 
 function UMG_MainPet_C:OnDeactive()
+end
+
+function UMG_MainPet_C:OnPlayTips(tip)
+  local successPlay = false
+  local petTipsData = tip.customData
+  if petTipsData then
+    if not self.PetGidItemMap then
+      self.PetGidItemMap = {}
+      for i, data in pairs(self.uiData or {}) do
+        if data and data.PetData and data.PetData.gid then
+          local item = self.MainPetList:GetItemByIndex(i - 1)
+          if item then
+            self.PetGidItemMap[data.PetData.gid] = {index = i, item = item}
+          end
+        end
+      end
+    end
+    local invalidPetGid = {}
+    for petGid, petTipsItem in pairs(petTipsData or {}) do
+      local isFound = false
+      if petGid then
+        local MainPetTemplateItem = self.PetGidItemMap[petGid].item
+        if MainPetTemplateItem then
+          if self.CachePetListPlayTipsMap == nil then
+            self.CachePetListPlayTipsMap = {}
+          end
+          self.CachePetListPlayTipsMap[self.PetGidItemMap[petGid].index] = {petGid = petGid, petTipsItem = petTipsItem}
+          successPlay = true
+          isFound = true
+          MainPetTemplateItem:PlayTips(petGid, petTipsItem)
+        end
+      end
+      if not isFound then
+        table.insert(invalidPetGid, petGid)
+      end
+    end
+    for _, petGid in ipairs(invalidPetGid) do
+      petTipsData.petTips[petGid] = nil
+    end
+  end
+  if not successPlay and self.tipsDisplayController then
+    self.tipsDisplayController:GetExecutor():ConsumeNextTip()
+  end
+end
+
+function UMG_MainPet_C:OnMainPetTemplateTipsPlayEnd(index, petGid, petTipsItem)
+  Log.Debug("UMG_MainPet_C:OnMainPetTemplateTipsPlayEnd, index=[", index, "], petGid=[", petGid, "]")
+  for i, cacheItem in pairs(self.CachePetListPlayTipsMap or {}) do
+    if cacheItem and cacheItem.petGid and petGid and cacheItem.petGid == petGid then
+      self.CachePetListPlayTipsMap[i] = nil
+      break
+    end
+  end
+  self:SetMainPetTipsFinished(petGid, petTipsItem)
+end
+
+function UMG_MainPet_C:OnAllTipsFinished()
+end
+
+function UMG_MainPet_C:OnPlayTipStatusChange(pause)
+  local count = self.MainPetList:GetItemCount()
+  for i = 1, count do
+    local item = self.MainPetList:GetItemByIndex(i - 1)
+    if item then
+      item:OnPlayTipStatusChange(pause)
+    end
+  end
+end
+
+function UMG_MainPet_C:SetMainPetTipsFinished(petGid, petTipsItem)
+  if not petGid or not petTipsItem then
+    return
+  end
+  local tip = self.tipsDisplayController and self.tipsDisplayController:GetExecutor():GetDisplayingTip()
+  if tip then
+    local petTipsData = tip.customData
+    if petTipsData and petTipsData[petGid] == petTipsItem then
+      petTipsData[petGid] = nil
+    end
+    if table.isEmpty(petTipsData) and self.tipsDisplayController then
+      self.tipsDisplayController:GetExecutor():ConsumeNextTip()
+    end
+  end
 end
 
 function UMG_MainPet_C:TipShowOrHide(on)
@@ -141,6 +252,7 @@ function UMG_MainPet_C:ManuiClose()
   self.OldPetInfo = self.uiData
   self.refresh = false
   self.isManuiOpen = false
+  self.PetGidItemMap = nil
 end
 
 function UMG_MainPet_C:MainOpenOrClose(_IsOpenMain)
@@ -416,12 +528,6 @@ function UMG_MainPet_C:RefreshMainPetInfo(type, petInfo)
       end
     end
   elseif 5 == type then
-    for i = 1, #self.uiData do
-      if petInfo.pet_data and petInfo.pet_data.gid == self.uiData[i].PetData.gid then
-        self:RefreshSelectedState()
-        return
-      end
-    end
   end
   self:RefreshSelectedState()
 end
@@ -486,7 +592,15 @@ function UMG_MainPet_C:IsSameArray(arr1, arr2)
 end
 
 function UMG_MainPet_C:GetSelectPetIndex()
-  local selectPetIndex = _G.NRCModeManager:DoCmd(MainUIModuleCmd.GetSelectPetIndex)
+  local selectPetIndex, petData = _G.NRCModeManager:DoCmd(MainUIModuleCmd.GetSelectPetIndex)
+  if selectPetIndex and petData then
+    local index
+    index = selectPetIndex % 6 - 1
+    local item = self.MainPetList:GetItemByIndex(index)
+    if petData and item and item.uiData and item.uiData.PetData and item.uiData.PetData.gid ~= petData.gid then
+      return nil, nil
+    end
+  end
   if nil ~= selectPetIndex and nil ~= self.selectedPetGid and selectPetIndex > 0 and self.selectedPetGid > 0 then
     self.selectedIndex = _G.NRCModeManager:DoCmd(MainUIModuleCmd.GetSelectPetIndex)
   end
@@ -551,13 +665,28 @@ function UMG_MainPet_C:RefreshMainPetView()
   if self.MainPetList == nil then
     return
   end
-  self:TryRemoveBlockingTip()
   self:UpdateEnergyPet()
+  for i = 1, #self.uiData do
+    if self.CachePetListPlayTipsMap and self.CachePetListPlayTipsMap[i] and self.uiData[i].PetData.gid and self.CachePetListPlayTipsMap[i].petGid ~= self.uiData[i].PetData.gid then
+      self:OnMainPetTemplateTipsPlayEnd(i, self.CachePetListPlayTipsMap[i].petGid, self.CachePetListPlayTipsMap[i].petTipsItem)
+      self.MainPetList:OpItemByIndex(i, PetUIModuleEnum.MainPetTemplateOpType.ForceClearTips, self.uiData[i], PetUIModuleEnum.MainPetTemplateOpReasonType.LobbyMainUIShow)
+    end
+  end
   if self.MainPetList:GetItemCount() ~= #self.uiData then
     self.MainPetList:Clear()
     self.MainPetList:InitGridView(self.uiData)
   else
     for i = 1, #self.uiData do
+      if self.uiData[i] and self.uiData[i].PetData and self.uiData[i].PetData.gid then
+        local throwSession = ThrowSession.GetWithGID(self.uiData[i].PetData.gid)
+        local _Session = throwSession or {}
+        local _RecycleState = false
+        if throwSession and not throwSession:IsDestroyed() and not throwSession:IsInHand() then
+          _RecycleState = true
+        end
+        self.uiData[i].Session = _Session
+        self.uiData[i].RecycleState = _RecycleState
+      end
       self.MainPetList:OpItemByIndex(i, PetUIModuleEnum.MainPetTemplateOpType.All, self.uiData[i], PetUIModuleEnum.MainPetTemplateOpReasonType.LobbyMainUIShow)
     end
   end
@@ -608,7 +737,7 @@ end
 function UMG_MainPet_C:UpdateEnergyPet(Index)
   local uiData = self.uiData
   local isWaitEnergy = self:GetIsWaitEnergy()
-  self.playAimNum, self.isOnePlay = self:GetPlayAimNum()
+  self.playAimNum, self.isOnePlay, self.itemIndex = self:GetPlayAimNum()
   if Index then
     local Data = uiData[Index]
     if Data then
@@ -685,8 +814,8 @@ function UMG_MainPet_C:OnForceUpdateFriendRideState(CurMainTeamIndex)
   for i = 1, #self.uiData do
     if self.uiData[i] and self.uiData[i].PetData and self.uiData[i].PetData.gid then
       local PetGID = self.uiData[i].PetData.gid
-      if not _G.NRCModuleManager:DoCmd(PlayerModuleCmd.CheckPetIsFriendRiding, PetGID) then
-        self.uiData[i].FriendRideState = false
+      if PetGID then
+        self.uiData[i].FriendRideState = _G.NRCModuleManager:DoCmd(PlayerModuleCmd.CheckPetIsFriendRiding, PetGID) or false
         self:RefreshSinglePetView(i, PetUIModuleEnum.MainPetTemplateOpType.FriendRideState)
       end
     end
@@ -745,6 +874,7 @@ end
 function UMG_MainPet_C:GetPlayAimNum()
   local uiData = self.uiData
   local num = 0
+  local itemIndex
   for i, v in ipairs(uiData) do
     local curData = v.PetData
     local oldData = self:GetOldPetInfo(curData.gid)
@@ -753,9 +883,10 @@ function UMG_MainPet_C:GetPlayAimNum()
     end
     if oldData.exp ~= curData.exp or oldData.level ~= curData.level then
       num = num + 1
+      itemIndex = i
     end
   end
-  return num, 1 == num
+  return num, 1 == num, itemIndex
 end
 
 function UMG_MainPet_C:OnMainPetListAimNumberChange()
@@ -766,7 +897,7 @@ function UMG_MainPet_C:OnMainPetListAimNumberChange()
     local count = self.MainPetList:GetItemCount()
     for i = 1, count do
       local item = self.MainPetList:GetItemByIndex(i - 1)
-      item:OnAllWaitFinsh(self.isOnePlay)
+      item:OnAllWaitFinsh(self.isOnePlay, self.itemIndex)
     end
   end
 end
@@ -901,6 +1032,11 @@ function UMG_MainPet_C:UpdateFriendRideState(ridingPetGid, IsFriendRiding)
   end
 end
 
+function UMG_MainPet_C:OnUIFuncVisibilityChange(FuncId, bHide)
+  if FuncId == Enum.FunctionEntrance.FE_PET_LIST then
+  end
+end
+
 function UMG_MainPet_C:GetFirstAlivePetIndex()
   for i = 1, #self.uiData do
     if PetUtils.GetPetAdditionalByType(self.uiData[i].PetData, _G.ProtoEnum.AttributeType.AT_HPCUR) > 0 then
@@ -967,15 +1103,23 @@ end
 
 function UMG_MainPet_C:OnPetRecycleSelect()
   local selectIndex = _G.NRCModeManager:DoCmd(MainUIModuleCmd.GetSelectPetIndex)
+  if not selectIndex then
+    return
+  end
   if selectIndex <= 0 then
     return
   end
   local item = self.MainPetList:GetItemByIndex(selectIndex - 1)
-  item:StopAllAnimations()
-  item:ShowSelected(true)
+  if UE4.UObject.IsValid(item) then
+    item:StopAllAnimations()
+    item:ShowSelected(true)
+  end
 end
 
 function UMG_MainPet_C:OnPCSelectPet0(action_type, index)
+  if _G.BattleManager:IsInBattle() then
+    return
+  end
   if 0 == action_type then
     _G.NRCModuleManager:DoCmd(_G.FriendModuleCmd.PCKeyPressCloseFriendPanelTeam)
     if self.CanPress then
@@ -1012,73 +1156,6 @@ function UMG_MainPet_C:SelectPetByGid(gid)
   end
 end
 
-function UMG_MainPet_C:RecordPetDatForTip()
-  local recordData = {}
-  for i = 1, #self.uiData do
-    local petData = self.uiData[i].PetData
-    if petData and petData.gid then
-      local curData = {}
-      curData.level = petData.level or 0
-      curData.exp = petData.exp or 0
-      recordData[petData.gid] = curData
-    end
-  end
-  return recordData
-end
-
-function UMG_MainPet_C:AddBlockingTip()
-  _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.AddTip, TipObject.CreateMainPetExpOrLevelChangeMarkTip(self:RecordPetDatForTip()))
-end
-
-function UMG_MainPet_C:ActiveBlockingTip(tip)
-  if self.blockingTip then
-    tip:MarkFinished()
-    return
-  end
-  self.blockingTip = tip
-  self:DelayFinishWhenExpOrLevelChange()
-end
-
-function UMG_MainPet_C:DelayFinishWhenExpOrLevelChange()
-  if not self.blockingTip or not self.curRefreshingPetData then
-    return
-  end
-  local hasExpOrLevelChange = false
-  local preRefreshingPetData = self.blockingTip.customData
-  if preRefreshingPetData then
-    for _gid, _curPetData in pairs(self.curRefreshingPetData) do
-      local _prePetData = preRefreshingPetData[_gid]
-      if _prePetData and (_prePetData.level ~= _curPetData.level or _prePetData.exp ~= _curPetData.exp) then
-        hasExpOrLevelChange = true
-        break
-      end
-    end
-  end
-  self.curRefreshingPetData = nil
-  if hasExpOrLevelChange then
-    if self.delayRemoveBlockTip then
-      _G.DelayManager:CancelDelayById(self.delayRemoveBlockTip)
-    end
-    self.delayRemoveBlockTip = _G.DelayManager:DelaySeconds(3.5, self.DelayDoRemoveBlockingTip, self)
-  else
-    self.blockingTip:MarkFinished()
-    self.blockingTip = nil
-  end
-end
-
-function UMG_MainPet_C:TryRemoveBlockingTip()
-  self.curRefreshingPetData = self:RecordPetDatForTip()
-  self:DelayFinishWhenExpOrLevelChange()
-end
-
-function UMG_MainPet_C:DelayDoRemoveBlockingTip()
-  self.delayRemoveBlockTip = nil
-  if self.blockingTip then
-    self.blockingTip:MarkFinished()
-    self.blockingTip = nil
-  end
-end
-
 function UMG_MainPet_C:RecyclePetByGid(gid)
   local SessionList = self.curPetSessionList
   if SessionList then
@@ -1098,6 +1175,19 @@ function UMG_MainPet_C:UpdatePetLock(bIsLock, Gid)
         self.uiData[i].IsLock = bIsLock
         self:RefreshSinglePetView(i, PetUIModuleEnum.MainPetTemplateOpType.Lock)
         break
+      end
+    end
+  end
+end
+
+function UMG_MainPet_C:OnDisable()
+  if self.uiData then
+    for i = 1, #self.uiData do
+      if self.uiData[i] and self.uiData[i].PetData and self.uiData[i].PetData.gid then
+        local MainPetTemplateItem = self.MainPetList:GetItemByIndex(i - 1)
+        if MainPetTemplateItem then
+          MainPetTemplateItem:OnDisable()
+        end
       end
     end
   end

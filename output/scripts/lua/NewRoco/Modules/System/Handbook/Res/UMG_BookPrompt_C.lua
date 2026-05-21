@@ -32,10 +32,6 @@ function UMG_BookPrompt_C:OnActive(tip)
   if self:IsPCMode() then
     self:SetRenderScale(E4.FVector2D(1, 1))
   end
-  self:UpdateHandbook(tip)
-end
-
-function UMG_BookPrompt_C:OnDeactive()
 end
 
 function UMG_BookPrompt_C:IsPCMode()
@@ -151,23 +147,6 @@ function UMG_BookPrompt_C:CalGoalPos()
   self.EndPos = UE4.USlateBlueprintLibrary.AbsoluteToLocal(MyGeometry, pos) + self.InitPos + TopOffSet - DownOffSet
 end
 
-function UMG_BookPrompt_C:UpdateHandbook(tip)
-end
-
-function UMG_BookPrompt_C:OnDisable()
-  self:SetVisibility(UE4.ESlateVisibility.Collapsed)
-end
-
-function UMG_BookPrompt_C:OnEnable()
-  self:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-end
-
-function UMG_BookPrompt_C:ContinueDelayTimer()
-  if self.RestTime > 0 and self.DelayId == nil then
-    self.DelayId = _G.DelayManager:DelaySeconds(1, self.TickSecond, self)
-  end
-end
-
 function UMG_BookPrompt_C:SetIsShow(_IsShow)
   if _IsShow then
     self:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
@@ -234,8 +213,8 @@ function UMG_BookPrompt_C:ConsumeTip(tip, parent)
     self.Icon_New:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.RestTime = _G.DataConfigManager:GetPetGlobalConfig("catch_pet_show_time").num / 1000
   end
-  self.LastTimeText:SetText(string.format(LuaText.umg_bookprompt_4, self.RestTime))
-  self.DelayId = _G.DelayManager:DelaySeconds(1, self.TickSecond, self)
+  self.LastTimeText:SetText(string.format(LuaText.umg_bookprompt_4, math.floor(self.RestTime)))
+  self:DelaySeconds(1, self.TickSecond, self)
   local unit_type = PetBaseConf.unit_type
   for i = 1, 2 do
     local petType = unit_type[i]
@@ -266,13 +245,13 @@ function UMG_BookPrompt_C:SetIcon()
   local materialPath = ""
   if mutation_type and PetUtils.CheckIsCHAOS(mutation_type) then
     self.ElfIcon:SwitchToSetBrushFromMaterialInstanceMode(true)
-    materialPath = "MaterialInstanceConstant'/Game/ArtRes/UI/TUI/Materials/MI_UI_InnerLineCloseUp2.MI_UI_InnerLineCloseUp2'"
+    materialPath = _G.DataConfigManager:GetGlobalConfigByKeyType("mainworld_pet_tips_chaos_mat", _G.DataConfigManager.ConfigTableId.PET_GLOBAL_CONFIG).str
   elseif mutation_type and self.glass_info and PetUtils.CheckIsHiddenShiningGlass(mutation_type, self.glass_info) then
     self.ElfIcon:SwitchToSetBrushFromMaterialInstanceMode(true)
     materialPath = self:GetHiddenGlassMaterialPath()
   elseif mutation_type and PetUtils.CheckIsShiningGlass(mutation_type) then
     self.ElfIcon:SwitchToSetBrushFromMaterialInstanceMode(true)
-    materialPath = "MaterialInstanceConstant'/Game/ArtRes/UI/TUI/Materials/MI_UI_PetDazzleCloseUp2.MI_UI_PetDazzleCloseUp2'"
+    materialPath = _G.DataConfigManager:GetGlobalConfigByKeyType("mainworld_pet_tips_glass_mat", _G.DataConfigManager.ConfigTableId.PET_GLOBAL_CONFIG).str
   elseif mutation_type and PetMutationUtils.GetMutationValue(mutation_type, _G.Enum.MutationDiffType.MDT_SHINING) then
     self.ElfIcon:SwitchToSetBrushFromMaterialInstanceMode(false)
   elseif mutation_type and self.glass_info and PetUtils.CheckIsHiddenGlass(mutation_type, self.glass_info) then
@@ -280,7 +259,7 @@ function UMG_BookPrompt_C:SetIcon()
     materialPath = self:GetHiddenGlassMaterialPath()
   elseif mutation_type and PetMutationUtils.GetMutationValue(mutation_type, _G.Enum.MutationDiffType.MDT_GLASS) then
     self.ElfIcon:SwitchToSetBrushFromMaterialInstanceMode(true)
-    materialPath = "MaterialInstanceConstant'/Game/ArtRes/UI/TUI/Materials/MI_UI_PetDazzleCloseUp2.MI_UI_PetDazzleCloseUp2'"
+    materialPath = _G.DataConfigManager:GetGlobalConfigByKeyType("mainworld_pet_tips_glass_mat", _G.DataConfigManager.ConfigTableId.PET_GLOBAL_CONFIG).str
   else
     self.ElfIcon:SwitchToSetBrushFromMaterialInstanceMode(false)
   end
@@ -490,12 +469,10 @@ function UMG_BookPrompt_C:OnCloseHandBook()
 end
 
 function UMG_BookPrompt_C:TickSecond()
-  if UE4.UKismetSystemLibrary.IsValid(self) == false then
-    self:CancelDelay()
-    return
-  end
   if self.RestTime and self.RestTime > 0 then
-    self.RestTime = self.RestTime - 1
+    if not self.isTipsPaused then
+      self.RestTime = self.RestTime - 1
+    end
     if self.RestTime <= 0 then
       if self:GetVisibility() == UE4.ESlateVisibility.Visible or self:GetVisibility() == UE4.ESlateVisibility.SelfHitTestInvisible then
         self:PlayAnimation(self.Disappear)
@@ -503,28 +480,23 @@ function UMG_BookPrompt_C:TickSecond()
         self:PlayNext()
       end
     else
-      if self:GetVisibility() == UE4.ESlateVisibility.Collapsed then
-        self:CancelDelayTimer()
-        return
+      if self.LastTimeText then
+        self.LastTimeText:SetText(string.format(LuaText.umg_bookprompt_4, math.floor(self.RestTime)))
       end
-      if self.LastTimeText and self.LastTimeText:IsValid() then
-        self.LastTimeText:SetText(string.format(LuaText.umg_bookprompt_4, self.RestTime))
-      end
-      self.DelayId = _G.DelayManager:DelaySeconds(1, self.TickSecond, self)
+      self:DelaySeconds(1, self.TickSecond, self)
     end
+  else
+    self:PlayNext()
   end
+end
+
+function UMG_BookPrompt_C:SetPaused(bPaused)
+  self.isTipsPaused = bPaused
 end
 
 function UMG_BookPrompt_C:OnAnimationFinished(Animation)
   if Animation == self.Disappear then
     self:PlayNext()
-  end
-end
-
-function UMG_BookPrompt_C:CancelDelayTimer()
-  if self.DelayId then
-    _G.DelayManager:CancelDelayById(self.DelayId)
-    self.DelayId = nil
   end
 end
 

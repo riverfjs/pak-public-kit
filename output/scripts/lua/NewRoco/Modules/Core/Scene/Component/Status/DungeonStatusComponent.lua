@@ -1,6 +1,8 @@
 local Base = require("NewRoco.Modules.Core.Scene.Component.ActorComponent")
 local InstanceEnum = require("NewRoco.Modules.Core.Instance.InstanceEnum")
 local BattleEvent = require("NewRoco.Modules.Core.Battle.Common.BattleEvent")
+local a = require("Common.Coroutine.async")
+local au = require("Common.Coroutine.async_util")
 local DungeonStatusComponent = Base:Extend("DungeonStatusComponent")
 
 function DungeonStatusComponent:Ctor()
@@ -159,13 +161,14 @@ end
 function DungeonStatusComponent:OnBattleOver()
   self.CreatePetsTimer:Restart()
   self.RocoSkillComp:CancelSkill(self.ToxicitySkillObj, UE.ESkillActionResult.SkillActionResultInterrupted)
-  _G.DelayManager:DelaySeconds(0.5, function()
+  a.task(function()
+    a.wait(au.DelaySeconds(0.5))
     if UE.UObject.IsValid(self.ToxicitySkillObj) then
       self.RocoSkillComp:PlaySkill(self.ToxicitySkillObj)
     else
       self:AddToxicityEffect()
     end
-  end)
+  end)()
 end
 
 function DungeonStatusComponent:OnBornDie()
@@ -174,13 +177,14 @@ end
 
 function DungeonStatusComponent:OnReConnect()
   self.RocoSkillComp:CancelSkill(self.ToxicitySkillObj, UE.ESkillActionResult.SkillActionResultInterrupted)
-  _G.DelayManager:DelaySeconds(1, function()
+  a.task(function()
+    a.wait(au.DelaySeconds(1))
     if UE.UObject.IsValid(self.ToxicitySkillObj) then
       self.RocoSkillComp:PlaySkill(self.ToxicitySkillObj)
     else
       self:AddToxicityEffect()
     end
-  end)
+  end)()
 end
 
 function DungeonStatusComponent:OnAvatarChange()

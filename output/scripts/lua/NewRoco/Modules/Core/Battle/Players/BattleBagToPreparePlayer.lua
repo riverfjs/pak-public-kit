@@ -1,6 +1,8 @@
 local BattlePlayerBase = require("NewRoco.Modules.Core.Battle.BattleCore.BattlePlayerBase")
 local BattleEvent = require("NewRoco.Modules.Core.Battle.Common.BattleEvent")
 local BattleConst = require("NewRoco.Modules.Core.Battle.Common.BattleConst")
+local RocoSkillLuaEventTypeLabels = require("NewRoco.Utils.RocoSkillLuaEventTypeLabels")
+local RocoSkillLuaCustomEvent = require("NewRoco.Utils.RocoSkillLuaCustomEvent")
 local Base = BattlePlayerBase
 local BattleBagToPreparePlayer = Base:Extend("BagToPreparePlayer")
 
@@ -146,6 +148,12 @@ function BattleBagToPreparePlayer:PlayBagToPrepareSkill(skillClass)
     self:OnSkillComplete()
     return
   end
+  local RocoSkill = FirstTargetModel and FirstTargetModel.RocoSkill
+  if not UE.UObject.IsValid(RocoSkill) then
+    Log.Error("no RocoSkill found for BattleBagToPreparePlayer:PlayBagToPrepareSkill")
+    self:OnSkillComplete()
+    return
+  end
   local targetList = {}
   for i, pet in ipairs(petList) do
     local model = pet and pet.model
@@ -154,7 +162,7 @@ function BattleBagToPreparePlayer:PlayBagToPrepareSkill(skillClass)
       table.insert(targetList, model)
     end
   end
-  local skillObj = FirstTargetModel.RocoSkill:FindOrAddSkillObj(skillClass)
+  local skillObj = RocoSkill:FindOrAddSkillObj(skillClass)
   if not skillObj then
     Log.Error("skillObj is not found")
     return
@@ -164,7 +172,13 @@ function BattleBagToPreparePlayer:PlayBagToPrepareSkill(skillClass)
   skillObj:RegisterEventCallback("ActionStart", self, self.OnSkillStarted)
   skillObj:RegisterEventCallback("End", self, self.OnSkillComplete)
   skillObj:RegisterEventCallback("PreEnd", self, self.OnSkillComplete)
-  FirstTargetModel.RocoSkill:PlaySkill(skillObj)
+  skillObj:RegisterEventCallback(RocoSkillLuaCustomEvent.StartFailed, self, self.OnSkillComplete)
+  skillObj:RegisterEventCallback(RocoSkillLuaCustomEvent.Interrupt, self, self.OnSkillComplete)
+  local skillStartResult = RocoSkill:PlaySkill(skillObj)
+  if skillStartResult ~= UE.ESkillStartResult.Success then
+    Log.Error("[BattleBagToPreparePlayer:PlayBagToPrepareSkill] skill start not success")
+    self:OnSkillComplete()
+  end
 end
 
 function BattleBagToPreparePlayer:OnSkillStarted()

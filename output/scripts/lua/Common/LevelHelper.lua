@@ -13,9 +13,11 @@ LevelHelper.NavigationSourcePreset = {
 function LevelHelper:SwitchNavigationSourceByPreset(LevelName)
   if LevelHelper.NavigationSourcePreset[LevelName] == LevelHelper.NavigationSource.Cooked then
     UE4.UKismetSystemLibrary.ExecuteConsoleCommand(nil, "n.UseCookedNavigationData 1")
+    UE4.UKismetSystemLibrary.ExecuteConsoleCommand(nil, "ai.navmesh.GNavMeshSpanShrink 1")
     Log.Debug("[NRC]SwitchNavigationSourceByPreset Cooked")
   else
     UE4.UKismetSystemLibrary.ExecuteConsoleCommand(nil, "n.UseCookedNavigationData 0")
+    UE4.UKismetSystemLibrary.ExecuteConsoleCommand(nil, "ai.navmesh.GNavMeshSpanShrink 0")
     Log.Debug("[NRC]SwitchNavigationSourceByPreset Dynamic")
   end
 end

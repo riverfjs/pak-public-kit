@@ -342,6 +342,9 @@ function UMG_Email_C:ShowMailDes(content, index, DisAima, mailGid)
     rewards.bIsEmail = true
     rewards.showDefaultIconWhenConfigError = true
     rewards.IsShowPetbase = v.IsShowPetbase
+    if content.reward and content.reward.rewards and content.reward.rewards[k] and content.reward.rewards[k].egg_info then
+      rewards.eggInfo = content.reward.rewards[k].egg_info
+    end
     if v.is_head_icon then
       if v.is_read then
         rewards.bShowGetTag = true
@@ -356,7 +359,7 @@ function UMG_Email_C:ShowMailDes(content, index, DisAima, mailGid)
     table.insert(rewardsTable, rewards)
   end
   self.cachedItemDataList = rewardsTable
-  self.Award:InitGridView(rewardsTable)
+  self.Award:InitList(rewardsTable)
   self.Btn_Deleted:SetVisibility(UE4.ESlateVisibility.Visible)
   self.NRCSwitcher_84:SetVisibility(UE4.ESlateVisibility.Visible)
   if true == content.is_recv then
@@ -391,7 +394,9 @@ function UMG_Email_C:RefreshNoticeUI()
     return
   end
   self.ItemList:InitList(noticeList)
-  self.ItemList:SelectItemByIndex(noticeIndex)
+  if #noticeList > 0 then
+    self.ItemList:SelectItemByIndex(0)
+  end
   local iconPath = "PaperSprite'/Game/NewRoco/Modules/System/Email/Raw/Frames/img_huobi_xin_png.img_huobi_xin_png'"
 end
 
@@ -451,24 +456,32 @@ function UMG_Email_C:CheckEmailItemConfigValid(itemDataList)
         return false
       end
     elseif itemData.itemType == _G.Enum.GoodsType.GT_PET then
-      local petInfo = _G.DataConfigManager:GetPetConf(itemData.itemId, true)
-      if petInfo then
-        local petBaseConf = _G.DataConfigManager:GetPetbaseConf(petInfo.base_id)
+      if itemData.IsShowPetbase then
+        local petBaseConf = _G.DataConfigManager:GetPetbaseConf(itemData.itemId)
         if nil == petBaseConf then
-          Log.ErrorFormat("UMG_Email_C:CheckEmailItemConfigValid pet base config is nil, pet baseId: %s, itemId: %s, itemType: %s", tostring(petInfo.base_id), tostring(itemData.itemId), tostring(itemData.itemType))
+          Log.ErrorFormat("UMG_Email_C:CheckEmailItemConfigValid pet base config is nil, pet baseId: %s, itemId: %s, itemType: %s", tostring(itemData.itemId), tostring(itemData.itemId), tostring(itemData.itemType))
           return false
         end
       else
-        local monsterConf = _G.DataConfigManager:GetMonsterConf(itemData.itemId)
-        if nil == monsterConf then
-          Log.ErrorFormat("UMG_Email_C:CheckEmailItemConfigValid monster config is nil, itemId: %s, itemType: %s", tostring(itemData.itemId), tostring(itemData.itemType))
-          return false
-        end
-        if nil ~= monsterConf then
-          local petBaseConf = _G.DataConfigManager:GetPetbaseConf(monsterConf.base_id)
+        local petInfo = _G.DataConfigManager:GetPetConf(itemData.itemId, true)
+        if petInfo then
+          local petBaseConf = _G.DataConfigManager:GetPetbaseConf(petInfo.base_id)
           if nil == petBaseConf then
-            Log.ErrorFormat("UMG_Email_C:CheckEmailItemConfigValid pet base config is nil, pet baseId: %s, itemId: %s, itemType: %s", tostring(monsterConf.base_id), tostring(itemData.itemId), tostring(itemData.itemType))
+            Log.ErrorFormat("UMG_Email_C:CheckEmailItemConfigValid pet base config is nil, pet baseId: %s, itemId: %s, itemType: %s", tostring(petInfo.base_id), tostring(itemData.itemId), tostring(itemData.itemType))
             return false
+          end
+        else
+          local monsterConf = _G.DataConfigManager:GetMonsterConf(itemData.itemId)
+          if nil == monsterConf then
+            Log.ErrorFormat("UMG_Email_C:CheckEmailItemConfigValid monster config is nil, itemId: %s, itemType: %s", tostring(itemData.itemId), tostring(itemData.itemType))
+            return false
+          end
+          if nil ~= monsterConf then
+            local petBaseConf = _G.DataConfigManager:GetPetbaseConf(monsterConf.base_id)
+            if nil == petBaseConf then
+              Log.ErrorFormat("UMG_Email_C:CheckEmailItemConfigValid pet base config is nil, pet baseId: %s, itemId: %s, itemType: %s", tostring(monsterConf.base_id), tostring(itemData.itemId), tostring(itemData.itemType))
+              return false
+            end
           end
         end
       end
@@ -703,9 +716,31 @@ function UMG_Email_C:OnBlockBtnClicked()
   end
 end
 
+function UMG_Email_C:GetEncodeURL(url)
+  if _G.OnlineModuleCmd then
+    local accountInfo = _G.NRCModuleManager:DoCmd(_G.OnlineModuleCmd.GetUserAccountInfo)
+    if accountInfo and accountInfo.plat_info and accountInfo.plat_info.cli_login_channel == Enum.CliLoginChannel.CLC_NONE then
+      isEncodeUrl = false
+    end
+  end
+  if url:find("?") ~= nil then
+    url = UE4.UWebViewStatics.GetEncodeURL(url)
+  end
+  return url
+end
+
 function UMG_Email_C:OnDialogueTextClick(url_key)
-  self:Log("UMG_Email_C:OnDialogueTextClick", url_key)
-  UE4.UWebViewStatics.OpenURL(url_key, 1, false, true, "", false)
+  local url = ""
+  if self.curMailData and self.curMailData.mail_sub_type then
+    if self.curMailData.mail_sub_type == _G.Enum.MailSubType.MST_QUESTIONNAIRE then
+      url = self:GetEncodeURL(url_key)
+      self:Log("UMG_Email_C:OnDialogueTextClick \229\138\160\229\175\134\231\165\168\230\141\174", url)
+    else
+      url = url_key
+    end
+  end
+  self:Log("UMG_Email_C:OnDialogueTextClick", url)
+  UE4.UWebViewStatics.OpenURL(url, 1, false, true, "", false)
 end
 
 function UMG_Email_C:OnServerTimeUpdate()

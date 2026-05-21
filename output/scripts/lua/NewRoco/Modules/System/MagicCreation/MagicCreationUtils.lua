@@ -1,5 +1,5 @@
 local NPCModuleEvent = require("NewRoco.Modules.Core.NPC.NPCModuleEvent")
-local SceneUtils = require("NewRoco.Modules.Core.Scene.Common.SceneUtils")
+local NPCModuleEnum = require("NewRoco.Modules.Core.NPC.NPCModuleEnum")
 local MagicCreationUtils = Class()
 local LandTraceExtent = 200.0
 local SoundIdCreate = 202702
@@ -8,6 +8,10 @@ local NotIgnoreOverlapProfiles = {
   "NPCCharacterFree",
   "NPCCharacterFreeNoInteract",
   "CreateMagicForbid"
+}
+local NotIgnoreActorTags = {
+  "MagicMessage",
+  "MagicVideo"
 }
 MagicCreationUtils.NpcValidType = {
   UnInited = -2,
@@ -23,9 +27,8 @@ MagicCreationUtils.NpcValidType = {
   Cliff = 20,
   Pit = 21,
   AirWall = 30,
-  BossArea = 40,
-  WrongScene = 50,
-  SpaceNotSufficient = 60,
+  AreaBan = 40,
+  SpaceNotSufficient = 50,
   Normal = 100
 }
 
@@ -65,9 +68,7 @@ function MagicCreationUtils.GetInvalidReason(type)
     return MagicCreationUtils.TryGetLocalizationMessage("TryCastMagic_Create_TooHigh", "\229\156\176\233\157\162\228\184\142\231\142\169\229\174\182\233\171\152\229\186\166\229\183\174\232\183\157\232\190\131\229\164\167")
   elseif type == MagicCreationUtils.NpcValidType.AirWall then
     return MagicCreationUtils.TryGetLocalizationMessage("TryCastMagic_Create_AirWall", "\230\173\164\229\164\132\228\184\141\229\143\175\230\150\189\230\148\190")
-  elseif type == MagicCreationUtils.NpcValidType.BossArea then
-    return MagicCreationUtils.TryGetLocalizationMessage("TryCastMagic_Create_BossArea", "\229\177\158\228\186\142\229\141\177\233\153\169\229\140\186\229\159\159")
-  elseif type == MagicCreationUtils.NpcValidType.WrongScene then
+  elseif type == MagicCreationUtils.NpcValidType.AreaBan then
     return MagicCreationUtils.TryGetLocalizationMessage("TryCastMagic_WrongScene", "\230\173\164\229\164\132\228\184\141\229\143\175\230\150\189\230\148\190")
   elseif type == MagicCreationUtils.NpcValidType.SpaceNotSufficient then
     return MagicCreationUtils.TryGetLocalizationMessage("TryCastMagic_Create_Narrow", "\231\169\186\233\151\180\231\139\173\231\170\132")
@@ -95,16 +96,6 @@ function MagicCreationUtils.GetCreateTargetNpcRefreshId(magicInfo)
     return nil
   end
   return param[1]
-end
-
-function MagicCreationUtils.NpcSnapToGround(npc)
-  if not npc then
-    return
-  end
-  local landInfo = MagicCreationUtils.GetLandInfo(npc.viewObj:K2_GetActorLocation())
-  if nil ~= landInfo then
-    npc:SetActorLocation(SceneUtils.ConvertRelativeToAbsolute(landInfo.position))
-  end
 end
 
 function MagicCreationUtils.GetActorBounds(viewObj)
@@ -147,85 +138,85 @@ function MagicCreationUtils.GetActorBounds(viewObj)
   return allOrigin, allExtent
 end
 
-function MagicCreationUtils.GetLandInfo(targetLocation)
+function MagicCreationUtils.GetSurfaceInfo(targetLocation)
   local startLocation = UE.FVector(targetLocation.X, targetLocation.Y, targetLocation.Z + LandTraceExtent)
   local endLocation = UE.FVector(targetLocation.X, targetLocation.Y, targetLocation.Z - LandTraceExtent)
-  local channel = UE4.UNRCStatics.ConvertToTraceChannel(UE4.ECollisionChannel.ECC_GameTraceChannel5)
-  local hitResults, bSuccess = UE4.UKismetSystemLibrary.LineTraceMulti(_G.UE4Helper.GetCurrentWorld(), startLocation, endLocation, channel, true, nil)
+  local queryParams = UE4.FNRCollisionQueryParams()
+  queryParams.OwnerTag = "MagicCreationUtils"
+  queryParams.TraceTag = "Land"
+  queryParams.ActorsToIgnore = {
+    _G.UE4Helper.GetPlayerCharacter(0)
+  }
+  queryParams.bReturnPhysicalMaterial = true
+  local traceObjects = {
+    UE4.EObjectTypeQuery.WorldStatic,
+    UE4.EObjectTypeQuery.WaterSurface
+  }
+  local hitResults, bSuccess = UE4.UNRCTraceLibrary.LineTraceMultiForObjects(_G.UE4Helper.GetCurrentWorld(), startLocation, endLocation, traceObjects, queryParams, nil)
   if bSuccess then
     local landInfo = {}
     for _, hitResult in tpairs(hitResults) do
       if not hitResult.bBlockingHit then
-      elseif landInfo.position == nil or landInfo.position.Z < hitResult.ImpactPoint.Z then
-        landInfo.position = UE4.FVector(hitResult.ImpactPoint.X, hitResult.ImpactPoint.Y, hitResult.ImpactPoint.Z)
-        landInfo.normal = UE4.FVector(hitResult.Normal.X, hitResult.Normal.Y, hitResult.Normal.Z)
+      else
+        local actor = hitResult.Actor
+        if actor and actor.SignCharacterType then
+        elseif landInfo.position == nil or landInfo.position.Z < hitResult.ImpactPoint.Z then
+          landInfo.position = UE4.FVector(hitResult.ImpactPoint.X, hitResult.ImpactPoint.Y, hitResult.ImpactPoint.Z)
+          landInfo.normal = UE4.FVector(hitResult.Normal.X, hitResult.Normal.Y, hitResult.Normal.Z)
+          local surfaceType = UE4.UNRCStatics.GetSurfaceType(hitResult)
+          if surfaceType and surfaceType == UE.EPhysicalSurface.SurfaceType2 then
+            landInfo.bIsWater = true
+          end
+          landInfo.component = hitResult.Component
+          landInfo.actor = hitResult.Actor
+        end
       end
     end
-    return landInfo
+    if landInfo.position then
+      return landInfo
+    end
   end
   return nil
 end
 
-function MagicCreationUtils.GetWaterHeight(targetLocation)
-  if not targetLocation then
-    return nil
-  end
-  local startLocation = UE.FVector(targetLocation.X, targetLocation.Y, targetLocation.Z + LandTraceExtent)
-  local endLocation = UE.FVector(targetLocation.X, targetLocation.Y, targetLocation.Z - LandTraceExtent)
-  local waterTraceChannel = UE.ETraceTypeQuery.Water
-  local hitResult, bSuccess = UE4.UKismetSystemLibrary.LineTraceSingle(_G.UE4Helper.GetCurrentWorld(), startLocation, endLocation, waterTraceChannel, false, nil, 0)
-  if bSuccess then
-    return hitResult.ImpactPoint.Z
-  end
-  return nil
-end
-
-function MagicCreationUtils.CheckAirWallNearby(npc, additionalDistance)
-  if nil == npc then
-    return false
-  end
+function MagicCreationUtils.CheckAirWallNearby(center, extent, additionalDistance, duration)
   if nil == additionalDistance then
     additionalDistance = 0
   end
-  local localPlayer = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
-  local playerPos = localPlayer:GetActorLocation()
-  local npcPos = npc:GetActorLocation()
-  npcPos.Z = playerPos.Z
-  local _, extent = MagicCreationUtils.GetActorBounds(npc.viewObj)
-  local radius = math.max(extent.X, extent.Y)
-  local traceChannel = UE4.UNRCStatics.ConvertToTraceChannel(UE4.ECollisionChannel.ECC_GameTraceChannel14)
-  local actorsToIgnore = {}
-  if nil ~= localPlayer then
-    table.insert(actorsToIgnore, localPlayer.viewObj)
-  end
-  table.insert(actorsToIgnore, npc.viewObj)
   local world = _G.UE4Helper.GetCurrentWorld()
-  local delta = UE4.FVector(0.2, 0.2, 0.2)
-  local hitResults, _ = UE4.UKismetSystemLibrary.Abs_SphereTraceMulti(world, npcPos - delta, npcPos + delta, radius + additionalDistance, traceChannel, false, actorsToIgnore, nil, nil, false, nil, nil, nil)
+  local radius = math.max(extent.X, extent.Y) + additionalDistance
+  local traceObjects = {
+    UE4.EObjectTypeQuery.WorldStatic
+  }
+  local bpClass = _G.NRCBigWorldPreloader:Get("AirWall")
+  local queryParams = UE4.FNRCollisionQueryParams()
+  queryParams.OwnerTag = "MagicCreationUtils"
+  queryParams.TraceTag = "AirWall"
+  local bCanDrawDebug = _G.NRCModuleManager:DoCmd(_G.MagicCreationModuleCmd.GetCanDrawDebug)
+  local drawDebugType = UE4.EDrawDebugTrace.None
+  local traceColor, traceHitColor, drawTime
+  if bCanDrawDebug then
+    drawDebugType = UE4.EDrawDebugTrace.ForDuration
+    traceColor = UE4.FLinearColor(0.2, 0.4, 0.8, 1)
+    traceHitColor = UE4.FLinearColor(0.9, 0.2, 0.6, 1)
+    drawTime = duration or 0.1
+  end
+  local actors = UE4.UNRCTraceLibrary.SphereOverlapActors(world, center, radius, traceObjects, bpClass, queryParams, nil, drawDebugType, traceColor, traceHitColor, drawTime)
   
-  local function checkIsAirWall(hitResult)
-    local component = hitResult.Component
-    if not component:IsA(UE4.UProceduralMeshComponent) then
+  local function checkIsAirWall(actor)
+    if not UE4.UObject.IsValid(actor) then
       return false
     end
-    local collisionEnabled = component:GetCollisionEnabled()
-    if collisionEnabled == UE4.ECollisionEnabled.QueryOnly then
-      return false
-    end
-    local response = component:GetCollisionResponseToChannel(UE4.ECollisionChannel.ECC_GameTraceChannel14)
-    if response == UE.ECollisionResponse.ECR_Ignore then
+    if not actor:ActorHasTag("AirWall") then
       return false
     end
     return true
   end
   
-  local bCanDrawDebug = _G.NRCModuleManager:DoCmd(_G.MagicCreationModuleCmd.GetCanDrawDebug)
-  for _, hitResult in tpairs(hitResults) do
-    if checkIsAirWall(hitResult) then
-      if bCanDrawDebug and hitResult.Component then
-        local duration = 0.03333333333333333
-        UE4.UKismetSystemLibrary.Abs_DrawDebugPoint(world, hitResult.ImpactPoint, 10.0, UE4.FLinearColor(1, 0.9, 0, 1), duration)
-        UE4.UKismetSystemLibrary.Abs_DrawDebugString(world, hitResult.ImpactPoint, UE4.UKismetSystemLibrary.GetDisplayName(hitResult.Component), nil, UE4.FLinearColor(1, 0.8, 0, 1), duration)
+  for _, actor in tpairs(actors) do
+    if checkIsAirWall(actor) then
+      if bCanDrawDebug then
+        UE4.UKismetSystemLibrary.DrawDebugString(world, center + UE4.FVector(0, 0, extent.Z), UE4.UKismetSystemLibrary.GetDisplayName(actor), nil, UE4.FLinearColor(1, 0.8, 0, 1), duration)
       end
       return true
     end
@@ -284,23 +275,27 @@ function MagicCreationUtils.CheckOverlap(npc, center, extent, actorsToIgnore, du
   local bCanDrawDebug = _G.NRCModuleManager:DoCmd(_G.MagicCreationModuleCmd.GetCanDrawDebug)
   local world = _G.UE4Helper.GetCurrentWorld()
   
-  local function judgeHitResult(hitResult)
-    if not hitResult then
-      return false
-    end
-    local comp = hitResult.Component
+  local function judgeComponent(comp)
     if not UE4.UObject.IsValid(comp) then
       return false
     end
     if comp:IsA(UE4.ULandscapeHeightfieldCollisionComponent) then
       if bCanDrawDebug then
-        UE4.UKismetSystemLibrary.DrawDebugString(world, hitResult.ImpactPoint, UE4.UKismetSystemLibrary.GetDisplayName(comp), nil, UE4.FLinearColor(0.1, 0.2, 0.8, 0.8), duration)
+        UE4.UKismetSystemLibrary.DrawDebugString(world, center, UE4.UKismetSystemLibrary.GetDisplayName(comp), nil, UE4.FLinearColor(0.1, 0.2, 0.8, 0.8), duration)
       end
       return
     end
+    local actor = comp:GetOwner()
+    if not actor or not UE4.UObject.IsValid(actor) then
+      return false
+    end
+    for _, tag in pairs(NotIgnoreActorTags) do
+      if actor:ActorHasTag(tag) then
+        return true
+      end
+    end
     local collisionEnabled = comp:GetCollisionEnabled()
     if collisionEnabled == UE4.ECollisionEnabled.QueryOnly then
-      local actor = hitResult.Actor
       if actor and actor.BoundingRadius then
         return true
       end
@@ -322,73 +317,28 @@ function MagicCreationUtils.CheckOverlap(npc, center, extent, actorsToIgnore, du
     return true
   end
   
-  local function checkInOneDirection(delta)
-    local hitResults = MagicCreationUtils.CylinderTraceMultiForObjects(center, radius, extent.Z, traceObjectTypes, actorsToIgnore, delta, duration)
-    for _, hitResult in pairs(hitResults) do
-      if judgeHitResult(hitResult) then
-        if bCanDrawDebug and hitResult.Component then
-          UE4.UKismetSystemLibrary.DrawDebugString(world, hitResult.ImpactPoint, UE4.UKismetSystemLibrary.GetDisplayName(hitResult.Component), nil, UE4.FLinearColor(1, 0.2, 0, 1), duration)
-        end
-        return true
-      end
-    end
-    return false
-  end
-  
-  if checkInOneDirection(UE4.FVector(0.1, 0.1, 0.1)) then
-    return true
-  end
-  if checkInOneDirection(UE4.FVector(-0.1, -0.1, 0.1)) then
-    return true
-  end
-  return false
-end
-
-function MagicCreationUtils.CylinderTraceMultiForObjects(center, radius, height, traceObjectTypes, actorsToIgnore, delta, duration)
+  local queryParams = UE4.FNRCollisionQueryParams()
+  queryParams.OwnerTag = "MagicCreationUtils"
+  queryParams.TraceTag = "CylinderOverlap"
+  queryParams.ActorsToIgnore = actorsToIgnore
   local drawDebugType = UE4.EDrawDebugTrace.None
   local traceColor, traceHitColor, drawTime
-  if _G.NRCModuleManager:DoCmd(_G.MagicCreationModuleCmd.GetCanDrawDebug) then
+  if bCanDrawDebug then
     drawDebugType = UE4.EDrawDebugTrace.ForDuration
     traceColor = UE4.FLinearColor(0.6, 1, 0, 1)
     traceHitColor = UE4.FLinearColor(0.2, 0.7, 0.2, 1)
     drawTime = duration or 0.1
   end
-  if nil == delta then
-    delta = UE4.FVector(0.1, 0.1, 0.1)
-  end
-  local world = _G.UE4Helper.GetCurrentWorld()
-  local boxHitResults, _ = UE4.UKismetSystemLibrary.BoxTraceMultiForObjects(world, center - delta, center + delta, UE4.FVector(radius, radius, height), UE4.FRotator(0, 0, 0), traceObjectTypes, true, actorsToIgnore, drawDebugType, nil, false, traceColor, traceHitColor, drawTime)
-  local capsuleHitResults, _ = UE4.UKismetSystemLibrary.CapsuleTraceMultiForObjects(world, center - delta, center + delta, radius, height + radius, traceObjectTypes, true, actorsToIgnore, drawDebugType, nil, false, traceColor, traceHitColor, drawTime)
-  local hitResultNums = {}
-  
-  local function statHitResult(hitResult)
-    if not hitResult then
-      return
-    end
-    local component = hitResult.Component
-    if not UE4.UObject.IsValid(component) then
-      return
-    end
-    if hitResultNums[component] then
-      hitResultNums[component].num = hitResultNums[component].num + 1
-    else
-      hitResultNums[component] = {num = 1, result = hitResult}
+  local components = UE4.UNRCTraceLibrary.CylinderOverlapComponents(_G.UE4Helper.GetCurrentWorld(), center, radius, extent.Z, traceObjectTypes, nil, queryParams, nil, drawDebugType, traceColor, traceHitColor, drawTime)
+  for _, component in tpairs(components) do
+    if judgeComponent(component) then
+      if bCanDrawDebug and component then
+        UE4.UKismetSystemLibrary.DrawDebugString(world, center + UE4.FVector(0, 0, 50), UE4.UKismetSystemLibrary.GetDisplayName(component), nil, UE4.FLinearColor(1, 0.2, 0, 1), duration)
+      end
+      return true
     end
   end
-  
-  for _, hitResult in tpairs(boxHitResults) do
-    statHitResult(hitResult)
-  end
-  for _, hitResult in tpairs(capsuleHitResults) do
-    statHitResult(hitResult)
-  end
-  local finalHitResults = {}
-  for _, record in pairs(hitResultNums) do
-    if record and record.num > 1 then
-      table.insert(finalHitResults, record.result)
-    end
-  end
-  return finalHitResults
+  return false
 end
 
 function MagicCreationUtils.CheckOverlapNotLoadedCapsule(origin, extent, npc)
@@ -508,15 +458,15 @@ function MagicCreationUtils.PlayDeletingSkill(npc)
   
   local function onSkillEnd(name, skill)
     npc:SetNotDestroyFlag(false)
-    npc:SetVisible(false)
+    npc:SetHidden(true, NPCModuleEnum.NpcReasonFlags.MagicCreationPerform)
   end
   
   local function onLoadSuccess(caller, req, skillClass)
     if npc.InteractionComponent then
       npc.InteractionComponent:TryDisableInteraction()
     end
-    if npc.ClearPet then
-      npc:ClearPet()
+    if viewObj.OnRecycle then
+      viewObj:OnRecycle()
     end
     local player
     if _G.DataModelMgr.PlayerDataModel:IsVisitState() then
@@ -583,7 +533,7 @@ function MagicCreationUtils.PlayCreatingSkill(npc, onLoadedCaller, onLoadedCallb
   end
   
   local function onSkillPreEnd(name, skill)
-    npc:SetVisible(true)
+    npc:SetHidden(false, NPCModuleEnum.NpcReasonFlags.MagicCreationPerform)
     _G.NRCModuleManager:DoCmd(_G.MagicCreationModuleCmd.PreperformLocalReady, npc)
   end
   
@@ -643,7 +593,7 @@ function MagicCreationUtils.UndoDeleteEffect(npc)
     return
   end
   MagicCreationUtils.StopNpcSkill(npc)
-  npc:SetVisible(true)
+  npc:SetHidden(false, NPCModuleEnum.NpcReasonFlags.MagicCreationPerform)
   npc.InteractionComponent:TryEnableInteraction()
   if npc.cachedLocationOnDelete then
     npc:SetActorLocation(npc.cachedLocationOnDelete)
@@ -653,8 +603,8 @@ function MagicCreationUtils.UndoDeleteEffect(npc)
     npc:SetActorScale3D(npc.cachedScaleOnDelete)
     npc.cachedScaleOnDelete = nil
   end
-  if npc.TryAppearLulu then
-    npc:TryAppearLulu()
+  if npc.UndoRecycle then
+    npc:UndoRecycle()
   end
   local viewObj = npc.viewObj
   if viewObj then
@@ -688,7 +638,7 @@ function MagicCreationUtils.CheckHeightDifferenceTooMuchBetweenNpcAndInteractPoi
   if not npcLocation.Z or not interactLocation.Z then
     return false
   end
-  local landInfo = MagicCreationUtils.GetLandInfo(interactLocation)
+  local landInfo = MagicCreationUtils.GetSurfaceInfo(interactLocation)
   if not landInfo then
     return true
   end

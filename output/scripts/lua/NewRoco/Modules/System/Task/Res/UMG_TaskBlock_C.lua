@@ -46,7 +46,7 @@ function UMG_TaskBlock_C:Construct()
     self.Media1List[i]:SetVisibility(UE4.ESlateVisibility.Hidden)
   end
   UpdateManager:Register(self)
-  _G.DelayManager:DelayFrames(10, function()
+  self.DelayShowMediaId = _G.DelayManager:DelayFrames(10, function()
     self:ShowMedia()
   end)
 end
@@ -65,6 +65,10 @@ end
 function UMG_TaskBlock_C:Destruct()
   UpdateManager:UnRegister(self)
   self.Parent = nil
+  if self.DelayShowMediaId then
+    _G.DelayManager:CancelDelayById(self.DelayShowMediaId)
+    self.DelayShowMediaId = nil
+  end
 end
 
 function UMG_TaskBlock_C:SetData(Data, index)

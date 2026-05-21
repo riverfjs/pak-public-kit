@@ -275,8 +275,6 @@ function UMG_Common_Tips_C:SetBagItemNumVisibility(context)
         bVisible = false
       elseif BagItemType == _G.Enum.BagItemType.BI_GLASS_EGG_PIECE then
         bVisible = true
-      elseif 0 == BagItemConf.can_see then
-        bVisible = false
       else
         bVisible = not BagItemConf.tips_not_show_inventory
       end

@@ -193,6 +193,7 @@ function UMG_Friend_Chitchat_C:OnDeactive()
   self.MultipleLines.OnTextEndTransaction:Remove(self, self.OnTextEndTransaction)
   self.MultipleLines.OnTextCommitted:Remove(self, self.OnTextCommitted)
   self.MultipleLines.OnFocusChanged:Remove(self, self.OnInputFocusChanged)
+  _G.NRCModuleManager:DoCmd(_G.FriendModuleCmd.OpenEmoMainPanel, 1, false)
 end
 
 function UMG_Friend_Chitchat_C:OnAddEventListener()
@@ -396,10 +397,42 @@ function UMG_Friend_Chitchat_C:OnHideChatMenuDropdown()
 end
 
 function UMG_Friend_Chitchat_C:OnMessageinformBtn()
-  self.ItemList_Friend_1:ScrollToEnd()
-  self.bScrollToEnd = true
-  self.HintCanvasPanel:SetVisibility(UE4.ESlateVisibility.Collapsed)
-  self.NewMessageNum = 0
+  local showMessageNum = self.curShowMessageListInfo and #self.curShowMessageListInfo or 0
+  if showMessageNum > 0 then
+    local messageList = MergeSortedArray(self.data.ChatMessageList[self.data.CurChatUin], self.data.LocalChatMessageList[self.data.CurChatUin], ChatMessageSortImpl, function(a)
+      return self:ShouldIgnoreChatMessage(a)
+    end)
+    local totalNum = messageList and #messageList or 0
+    local bIsLastPage = self.curEndIndex >= totalNum - 1
+    if bIsLastPage then
+      if showMessageNum < self.maxShowNum then
+        self:ChatListScrollToEnd()
+      else
+        self.curStartIndex = self.curEndIndex + 1
+        self.curEndIndex = #messageList
+        Log.InfoFormat("[jessietest] OnMessageinformBtn \229\189\147\229\137\141\228\184\186\230\156\128\229\144\142\228\184\128\233\161\181\228\184\148\230\156\128\229\144\142\228\184\128\233\161\181\229\183\178\230\187\161\239\188\140\229\136\135\229\136\176\228\184\139\228\184\128\233\161\181 \229\143\150\230\149\176\230\141\174:%d~%d", self.curStartIndex, self.curEndIndex)
+        local tempList = {}
+        for i = self.curStartIndex, self.curEndIndex do
+          table.insert(tempList, messageList[i])
+        end
+        self.curShowMessageListInfo = tempList
+        self.ItemList_Friend_1:InitList(tempList)
+        self:ChatListScrollToEnd()
+      end
+    else
+      local lastPageIndex = math.floor(totalNum / self.maxShowNum)
+      self.curStartIndex = lastPageIndex * self.maxShowNum + 1
+      self.curEndIndex = #messageList
+      Log.InfoFormat("[jessietest] OnMessageinformBtn \229\189\147\229\137\141\228\184\186\228\184\173\233\151\180\233\161\181\239\188\140\229\136\135\229\136\176\230\156\128\229\144\142\228\184\128\233\161\181 \229\143\150\230\149\176\230\141\174:%d~%d", self.curStartIndex, self.curEndIndex)
+      local tempList = {}
+      for i = self.curStartIndex, self.curEndIndex do
+        table.insert(tempList, messageList[i])
+      end
+      self.curShowMessageListInfo = tempList
+      self.ItemList_Friend_1:InitList(tempList)
+      self:ChatListScrollToEnd()
+    end
+  end
 end
 
 function UMG_Friend_Chitchat_C:GetReportChatContent()
@@ -690,8 +723,8 @@ function UMG_Friend_Chitchat_C:SetChatMessageList(uin)
     return self:ShouldIgnoreChatMessage(a)
   end)
   local bChangePage = false
-  self.bShowChatList = messageList and #messageList > 0
-  if self.bShowChatList then
+  local tempList = {}
+  if messageList and #messageList > 0 then
     for i = 1, #messageList do
       local timeInterval = 0
       if 1 == i then
@@ -736,7 +769,6 @@ function UMG_Friend_Chitchat_C:SetChatMessageList(uin)
       end
     end
     Log.InfoFormat("[jessietest] InitList \229\143\150\230\149\176\230\141\174:%d~%d", self.curStartIndex, self.curEndIndex)
-    local tempList = {}
     for i = self.curStartIndex, self.curEndIndex do
       table.insert(tempList, messageList[i])
     end
@@ -748,12 +780,9 @@ function UMG_Friend_Chitchat_C:SetChatMessageList(uin)
   self:DelayFrames(1, function()
     self.ItemList_Friend_1:ForceLayoutPrepass()
     if not self.bInit then
-      self.ItemList_Friend_1:ScrollToEnd()
-      self.bScrollToEnd = true
-      self.HintCanvasPanel:SetVisibility(UE4.ESlateVisibility.Collapsed)
-      self.NewMessageNum = 0
-      if true == self.bShowChatList then
+      if #tempList > 0 then
         self.Switcher:SetActiveWidgetIndex(0)
+        self:ChatListScrollToEnd()
       end
       self.bInit = true
     else
@@ -815,13 +844,61 @@ function UMG_Friend_Chitchat_C:AppendChatMessageToList(uin, message, refreshType
     end
     local showMessageNum = self.curShowMessageListInfo and #self.curShowMessageListInfo or 0
     if showMessageNum > 0 then
+      local messageList = MergeSortedArray(self.data.ChatMessageList[uin], self.data.LocalChatMessageList[uin], ChatMessageSortImpl, function(a)
+        return self:ShouldIgnoreChatMessage(a)
+      end)
       local showMessageTail = self.ItemList_Friend_1:GetDataByIndex(showMessageNum)
       if showMessageTail ~= message then
         message.TimeInterval = message.time_stamp - showMessageTail.time_stamp
-        table.insert(self.curShowMessageListInfo, message)
-        self:ShowNewMessage(message)
-        self.ItemList_Friend_1:AddOrRemoveItem(true, showMessageNum + 1, message, true)
-        self.curEndIndex = self.curEndIndex + 1
+        message.bSelected = false
+        local playerUin = _G.DataModelMgr.PlayerDataModel:GetPlayerUin()
+        local totalNum = messageList and #messageList or 0
+        local bIsLastPage = self.curEndIndex >= totalNum - 1
+        if bIsLastPage then
+          if showMessageNum < self.maxShowNum then
+            table.insert(self.curShowMessageListInfo, message)
+            self.ItemList_Friend_1:AddOrRemoveItem(true, showMessageNum + 1, message, true)
+            self.curEndIndex = self.curEndIndex + 1
+            local Offset = self.ItemList_Friend_1:GetScrollOffset()
+            local MaxOffset = self.ItemList_Friend_1:GetScrollOffsetOfEndData()
+            if Offset < MaxOffset and message and message.uin ~= playerUin then
+              self:ShowNewMessage()
+            else
+              self:ChatListScrollToEnd()
+            end
+          else
+            local Offset = self.ItemList_Friend_1:GetScrollOffset()
+            local MaxOffset = self.ItemList_Friend_1:GetScrollOffsetOfEndData()
+            if Offset < MaxOffset and message and message.uin ~= playerUin then
+              self:ShowNewMessage()
+            else
+              self.curStartIndex = self.curEndIndex + 1
+              self.curEndIndex = #messageList
+              Log.InfoFormat("[jessietest] AppendChatMessageToList \229\189\147\229\137\141\228\184\186\230\156\128\229\144\142\228\184\128\233\161\181\228\184\148\230\156\128\229\144\142\228\184\128\233\161\181\229\183\178\230\187\161\239\188\140\229\136\135\229\136\176\228\184\139\228\184\128\233\161\181 \229\143\150\230\149\176\230\141\174:%d~%d", self.curStartIndex, self.curEndIndex)
+              local tempList = {}
+              for i = self.curStartIndex, self.curEndIndex do
+                table.insert(tempList, messageList[i])
+              end
+              self.curShowMessageListInfo = tempList
+              self.ItemList_Friend_1:InitList(tempList)
+              self:ChatListScrollToEnd()
+            end
+          end
+        elseif message and message.uin == playerUin then
+          local lastPageIndex = math.floor(totalNum / self.maxShowNum)
+          self.curStartIndex = lastPageIndex * self.maxShowNum + 1
+          self.curEndIndex = #messageList
+          Log.InfoFormat("[jessietest] AppendChatMessageToList \229\189\147\229\137\141\228\184\186\228\184\173\233\151\180\233\161\181\239\188\140\229\136\135\229\136\176\230\156\128\229\144\142\228\184\128\233\161\181 \229\143\150\230\149\176\230\141\174:%d~%d", self.curStartIndex, self.curEndIndex)
+          local tempList = {}
+          for i = self.curStartIndex, self.curEndIndex do
+            table.insert(tempList, messageList[i])
+          end
+          self.curShowMessageListInfo = tempList
+          self.ItemList_Friend_1:InitList(tempList)
+          self:ChatListScrollToEnd()
+        else
+          self:ShowNewMessage()
+        end
       end
     else
       self:RefreshPanelByType(refreshType)
@@ -848,28 +925,25 @@ function UMG_Friend_Chitchat_C:OnRemoveChatListSucc(uin)
   end)
 end
 
-function UMG_Friend_Chitchat_C:ShowNewMessage(message)
-  local Uin = _G.DataModelMgr.PlayerDataModel:GetPlayerUin()
-  local Offset = self.ItemList_Friend_1:GetScrollOffset()
-  local MaxOffset = self.ItemList_Friend_1:GetScrollOffsetOfEndData()
-  if Offset < MaxOffset and message and message.uin ~= Uin then
-    self.NewMessageNum = self.NewMessageNum + 1
-    self.HintCanvasPanel:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-    self.RedPointImage:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-    local Text
-    if self.NewMessageNum < 99 then
-      Text = _G.DataConfigManager:GetLocalizationConf("chat_message_less_99").msg
-    else
-      self.NewMessageNum = 99
-      Text = _G.DataConfigManager:GetLocalizationConf("chat_message_99").msg
-    end
-    self.NumText:SetText(string.format(Text, self.NewMessageNum))
+function UMG_Friend_Chitchat_C:ShowNewMessage()
+  self.NewMessageNum = self.NewMessageNum + 1
+  self.HintCanvasPanel:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  self.RedPointImage:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  local Text
+  if self.NewMessageNum < 99 then
+    Text = _G.DataConfigManager:GetLocalizationConf("chat_message_less_99").msg
   else
-    self.HintCanvasPanel:SetVisibility(UE4.ESlateVisibility.Collapsed)
-    self.NewMessageNum = 0
-    self.ItemList_Friend_1:ScrollToEnd()
-    self.bScrollToEnd = true
+    self.NewMessageNum = 99
+    Text = _G.DataConfigManager:GetLocalizationConf("chat_message_99").msg
   end
+  self.NumText:SetText(string.format(Text, self.NewMessageNum))
+end
+
+function UMG_Friend_Chitchat_C:ChatListScrollToEnd()
+  self.ItemList_Friend_1:ScrollToEnd()
+  self.bScrollToEnd = true
+  self.HintCanvasPanel:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self.NewMessageNum = 0
 end
 
 function UMG_Friend_Chitchat_C:OnTick()
@@ -901,24 +975,10 @@ function UMG_Friend_Chitchat_C:OnUpdataChatInfoNotify(notify)
   if 0 ~= curUin and not self:CheckGetMsgFriendIsShow(curUin) then
     self:RefreshPanelByType(UMG_Friend_Chitchat_C.RefreshType.All)
   elseif curUin == self.data.CurChatUin then
-    if #self.data.ChatMessageList[curUin] <= 200 then
-      local messageList = self.data.ChatMessageList[curUin]
-      local messageNum = #messageList
-      if messageNum > 0 then
-        self:AppendChatMessageToList(curUin, messageList[messageNum], UMG_Friend_Chitchat_C.RefreshType.Receive)
-      end
-    else
-      local tempTable = {}
-      local totalNum = #self.data.ChatMessageList[curUin]
-      for i = totalNum - 10, totalNum do
-        table.insert(tempTable, self.data.ChatMessageList[curUin][i])
-      end
-      self.data.ChatMessageList[curUin] = tempTable
-      self.bScrollToStart = true
-      self:RefreshPanelByType(UMG_Friend_Chitchat_C.RefreshType.All)
-      if self.data.CurChatUin == _G.ProtoEnum.SpecialChatSessionUin.SCSU_MULTI_TEAM then
-        self:ShowNewMessage(self.data.ChatMessageList[curUin])
-      end
+    local messageList = self.data.ChatMessageList[curUin]
+    local messageNum = #messageList
+    if messageNum > 0 then
+      self:AppendChatMessageToList(curUin, messageList[messageNum], UMG_Friend_Chitchat_C.RefreshType.Receive)
     end
   end
 end

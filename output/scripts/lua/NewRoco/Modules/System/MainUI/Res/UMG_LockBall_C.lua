@@ -145,19 +145,26 @@ function UMG_LockBall_C:Tick(MyGeometry, InDeltaTime)
   end
 end
 
+function UMG_LockBall_C.IsResistCapture(npc)
+  if npc and npc.AIComponent then
+    return npc.AIComponent:IsResistCapture()
+  end
+  return false
+end
+
 function UMG_LockBall_C:LockingNPC()
   if self.curActor ~= nil and self.curActor.sceneCharacter and self.curActor.sceneCharacter.GetThrowInteractType then
     local throwType = self.curActor.sceneCharacter:GetThrowInteractType()
     if throwType == _G.Enum.THROWING_INTERACT_TYPE.TIT_WILD_PET then
       local HiddenComp = self.curActor.sceneCharacter.HiddenComponent
       if not HiddenComp or not HiddenComp:IsHidden() then
-        self:SetCatchHardLv(self.curActor.sceneCharacter, self.curActor.sceneCharacter.AIComponent:IsResistCapture())
+        self:SetCatchHardLv(self.curActor.sceneCharacter, self.IsResistCapture(self.curActor.sceneCharacter))
       end
     end
   end
   self.curActor:ShowThrowInterInfo(true, true)
   local isZero = false
-  if self.curActor.sceneCharacter.AIComponent and self.curActor.sceneCharacter.AIComponent:IsResistCapture() then
+  if self.IsResistCapture(self.curActor.sceneCharacter) then
     isZero = true
   end
   self:SetCatchHardLv(self.curActor.sceneCharacter, isZero)

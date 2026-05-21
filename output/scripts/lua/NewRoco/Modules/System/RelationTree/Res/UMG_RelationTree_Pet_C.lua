@@ -179,6 +179,7 @@ function UMG_RelationTree_Pet_C:CloseClosenessDetailUI()
 end
 
 function UMG_RelationTree_Pet_C:UpdateClosenessUI()
+  local PetData = _G.NRCModuleManager:DoCmd(RelationTreeCmd.GetPetInfoData)
   local ParamData = _G.NRCModuleManager:DoCmd(RelationTreeCmd.GetPetRelationTreeUIData)
   local PetNpcCreateAvatarId = ParamData and ParamData.AvatarID or 0
   if PetNpcCreateAvatarId == _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_UIN) then
@@ -189,8 +190,7 @@ function UMG_RelationTree_Pet_C:UpdateClosenessUI()
       local PetGid = petInfo.serverData and petInfo.serverData.pet_info and petInfo.serverData.pet_info.gid or 0
       local PetStatusComponent = petInfo:EnsureComponent(PetStatusComponent)
       if PetStatusComponent then
-        local CurrentPetData = PetStatusComponent:GetPetData()
-        local closenessLv = CurrentPetData and CurrentPetData.closeness_info and CurrentPetData.closeness_info.closeness_lv or 0
+        local closenessLv = PetData and PetData.closeness_info and PetData.closeness_info.closeness_lv or 0
         if not self.PetClosenessLv then
           self.PetClosenessLv = closenessLv
           self.IntimacyText:SetText(self.PetClosenessLv)

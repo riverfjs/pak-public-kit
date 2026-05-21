@@ -52,11 +52,13 @@ function UMG_Login_AccountInfo_C:OnActive()
   self.Text_Y:SetText(" ")
   self.Text_Z:SetText(" ")
   self.Text_BattleId:SetText(" ")
-  self.Text:SetVisibility(UE4.ESlateVisibility.Collapsed)
 end
 
 function UMG_Login_AccountInfo_C:RefreshWaterMask()
   if _G.DataModelMgr.PlayerDataModel and _G.DataModelMgr.PlayerDataModel.playerInfo and _G.DataModelMgr.PlayerDataModel.playerInfo.client_water_mark_info then
+    Log.Error("UMG_Login_AccountInfo_C: RefreshWaterMask close_watermark", _G.DataModelMgr.PlayerDataModel.playerInfo.client_water_mark_info.close_watermark)
+    Log.Error("UMG_Login_AccountInfo_C: RefreshWaterMask end_time", _G.DataModelMgr.PlayerDataModel.playerInfo.client_water_mark_info.end_time)
+    Log.Error("UMG_Login_AccountInfo_C: RefreshWaterMask ServerTime", _G.ZoneServer:GetServerTime() / 1000)
     if _G.DataModelMgr.PlayerDataModel.playerInfo.client_water_mark_info.close_watermark and _G.DataModelMgr.PlayerDataModel.playerInfo.client_water_mark_info.end_time then
       if _G.DataModelMgr.PlayerDataModel.playerInfo.client_water_mark_info.end_time > _G.ZoneServer:GetServerTime() / 1000 then
         self.MarkCanvas:SetVisibility(UE4.ESlateVisibility.Collapsed)
@@ -129,6 +131,13 @@ function UMG_Login_AccountInfo_C:RefreshUID()
   if _G.DataModelMgr.PlayerDataModel.playerInfo then
     self.UIDtext:SetText("" .. tostring(_G.DataModelMgr.PlayerDataModel.playerInfo.brief_info.uin))
     if self:ShowLeftUpTips() then
+      local version = _G.DataConfigManager:GetWaterMarkLocalizationConf("permanent_watermark_lowerleft")
+      if version and version.msg then
+        self.Text:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+        self.Text:SetText(version.msg)
+      else
+        self.Text:SetVisibility(UE4.ESlateVisibility.Collapsed)
+      end
       self.Text_UIN:SetText(_G.DataModelMgr.PlayerDataModel.playerInfo.brief_info.uin)
       local LoginModule = _G.NRCModuleManager:GetModule("LoginModule")
       self.Text_SettingID:SetText(LoginModule.data:GetServer().id)

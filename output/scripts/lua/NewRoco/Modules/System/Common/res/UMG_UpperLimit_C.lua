@@ -18,7 +18,7 @@ function UMG_UpperLimit_C:InitNum(Num, LimitNum, TitleText, ShowIcon, IconPath, 
       self.SumNum:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
       self.SumNum:SetText(TitleText)
     else
-      self.SumNum:SetText("\229\173\152\229\130\168\230\149\176\233\135\143")
+      self.SumNum:SetText(LuaText.bag_UpperText)
       if self.SizeBox_0 then
         self.SizeBox_0:SetVisibility(UE4.ESlateVisibility.Collapsed)
       end

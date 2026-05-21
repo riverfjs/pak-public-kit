@@ -9,14 +9,32 @@ end
 
 function UMG_Leader_Item_C:OnItemUpdate(_data, datalist, index)
   self.ItemData = _data
+  self.ItemIndex = index
   self.ItemIcon:SetPath(self.ItemData.BagItemConf.icon)
+  self.bSelected = false
   self.Selected:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.ItemIcon:SwitchToSetBrushFromMaterialInstanceMode(true)
   self.ItemIconMask:SetVisibility(self.ItemData.IsHas and UE4.ESlateVisibility.Collapsed or UE4.ESlateVisibility.SelfHitTestInvisible)
   self:SetQuality()
+  self:StopAllAnimations()
+  if self.ItemData and self.ItemData.parentView then
+    local CurSelectItemIndex = self.ItemData.parentView:GetCurSelectItemIndex()
+    if CurSelectItemIndex == self.ItemIndex then
+      self.bSelected = true
+      self:PlayAnimation(self.Selected_loop)
+    else
+      self.bSelected = false
+      self:PlayAnimation(self.UnSelected_Loop)
+    end
+  end
 end
 
 function UMG_Leader_Item_C:OnItemSelected(_bSelected)
+  if self.bSelected and self.bSelected == _bSelected then
+    return
+  end
+  self.bSelected = _bSelected
+  self:StopAllAnimations()
   if _bSelected then
     self:PlayAnimation(self.Selected_In)
     _G.NRCAudioManager:PlaySound2DAuto(41401006, "UMG_Leader_Item_C:OnItemSelected")

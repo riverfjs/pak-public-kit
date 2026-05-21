@@ -63,7 +63,7 @@ function DialogueTimelineNPCActorAnimAction:OnEnter()
     self:Finish()
     return
   end
-  local Actor = self:GetActor(self.OwnerActorID)
+  local Actor = self:GetActor(self.OwnerActorID, self.NPCContentID)
   if not Actor then
     self:Finish()
     return
@@ -110,7 +110,7 @@ function DialogueTimelineNPCActorAnimAction:OnFinish()
   if not self.StopAnimAtEnd then
     return
   end
-  local actor = self:GetActor(self.OwnerActorID)
+  local actor = self:GetActor(self.OwnerActorID, self.NPCContentID)
   DialogueUtils.StopAnim(actor, self.BlendOutTime)
 end
 

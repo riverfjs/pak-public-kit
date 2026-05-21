@@ -25,7 +25,8 @@ MainUIModuleEnum.SubPanelOpenType = {
   MapUI = 3,
   HandbookUI = 4,
   PetUI = 5,
-  BagUI = 6
+  BagUI = 6,
+  PreDownload = 7
 }
 MainUIModuleEnum.MainUILuopanState = {
   Start = 1,
@@ -81,6 +82,19 @@ MainUIModuleEnum.AbilityBtnBlockReason = {
 MainUIModuleEnum.CompassOpenType = {
   COMPASS_3D = 1,
   COMPASS_2D_NO_PLAYER = 2,
-  COMPASS_2D_WITH_PLAYER = 3
+  COMPASS_2D_WITH_PLAYER = 3,
+  COMPASS_2D_IGNORE_PLAYER = 4
+}
+MainUIModuleEnum.MainUIPanelType = {
+  None = 0,
+  LobbyMain = 1,
+  LobbyMainLocal = 2,
+  RogueLobbyMain = 3
+}
+MainUIModuleEnum.MinimapOrCompassState = {
+  Normal = 1,
+  Hidden = 2,
+  Hidden_Exposed = 3,
+  Hidden_Attacked = 4
 }
 return MainUIModuleEnum

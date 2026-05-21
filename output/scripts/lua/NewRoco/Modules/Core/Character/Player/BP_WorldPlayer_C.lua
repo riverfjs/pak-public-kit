@@ -7,6 +7,7 @@ local AbilityHelperManager = require("NewRoco.Modules.Core.Scene.Component.Abili
 local ScenePlayerPet = require("NewRoco.Modules.Core.Scene.Actor.ScenePlayerPet")
 local ScenePlayer = require("NewRoco.Modules.Core.Scene.Actor.ScenePlayer")
 local SceneUtils = require("NewRoco.Modules.Core.Scene.Common.SceneUtils")
+local TakePhotosUtils = require("NewRoco/Modules/System/TakePhotos/TakePhotosUtils")
 local BP_WorldPlayer_C = NRCClass()
 
 function BP_WorldPlayer_C:RandomPlayPerformAnim()
@@ -106,12 +107,14 @@ function BP_WorldPlayer_C:OnPlaySyncPerform(ActionInfo)
   if ActionType == ProtoEnum.PlayerPerformType.PPT_HELLO_STOP then
     self:PerformHello(false)
   end
+  if ActionType == ProtoEnum.PlayerPerformType.PPT_PHOTO_ANIM then
+    self:PerformTakePhotoAnim(ActionInfo.photo_info)
+  end
 end
 
 function BP_WorldPlayer_C:SetFadeAlpha(alpha)
   if UE.UObject.IsValid(self.Mesh) then
-    local player = NRCModuleManager:DoCmd(PlayerModuleCmd.GET_LOCAL_PLAYER)
-    player:GetUEController().PlayerCameraManager.BP_FadeComponent:SetCharacterAlpha(alpha, self.Mesh)
+    UE.URocoPlayerBlueprintFunctionLibrary.SetCharacterAlpha(self.Mesh, alpha)
   end
 end
 
@@ -307,6 +310,36 @@ function BP_WorldPlayer_C:K2_OnMovementModeChanged(PrevMovementMode, NewMovement
   local player = self.sceneCharacter
   if player then
     player:SendEvent(PlayerModuleEvent.PLAYER_MOVEMENT_MODE_CHANGE, PrevMovementMode, NewMovementMode, PrevCustomMode, NewCustomMode)
+  end
+end
+
+function BP_WorldPlayer_C:PerformTakePhotoAnim(info)
+  if not info then
+    Log.Error("BP_WorldPlayer_C:PerformTakePhotoAnim nil info")
+    return
+  end
+  local player = self.sceneCharacter
+  if not player then
+    Log.Error("BP_WorldPlayer_C:PerformTakePhotoAnim nil ScenePlayer")
+  end
+  local conf
+  if UE.UObject.IsValid(player.viewObj) then
+    player.viewObj.SettingLeftHand = info.is_mirror
+  end
+  if info.photo_pose_id then
+    conf = _G.DataConfigManager:GetTakePhotoPoseConf(info.photo_pose_id, true)
+    if info.is_end then
+      player.PosePlayer:StopAnim()
+    else
+      player.PosePlayer:PlayAnim(conf, info.is_mirror)
+    end
+  else
+    conf = _G.DataConfigManager:GetTakePhotoEmojiConf(info.photo_emoji_id, true)
+    if info.is_end then
+      player.EmojiPlayer:StopAnim()
+    else
+      player.EmojiPlayer:PlayAnim(conf, info.is_mirror)
+    end
   end
 end
 

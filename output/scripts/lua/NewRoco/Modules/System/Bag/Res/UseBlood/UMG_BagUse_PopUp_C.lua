@@ -58,7 +58,7 @@ function UMG_BagUse_PopUp_C:OnActive(Success, Param)
         self.NRCText_78:SetText(tipsDesc)
         self.BossBlood:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
       else
-        local LevelSkillConf = _G.DataConfigManager:GetLevelSkillConf(self.PetItemData.base_conf_id)
+        local LevelSkillConf = _G.NRCModeManager:DoCmd(_G.PetUIModuleCmd.GetLevelSkillConfByPetBaseId, self.PetItemData.base_conf_id)
         local typeList = {}
         if PetBloodConf then
           table.insert(typeList, {
@@ -168,7 +168,7 @@ function UMG_BagUse_PopUp_C:OnActive(Success, Param)
         self.NRCText_78:SetText(tipsDesc)
         self.BossBlood:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
       else
-        local LevelSkillConf = _G.DataConfigManager:GetLevelSkillConf(self.PetItemData.base_conf_id)
+        local LevelSkillConf = _G.NRCModeManager:DoCmd(_G.PetUIModuleCmd.GetLevelSkillConfByPetBaseId, self.PetItemData.base_conf_id)
         local typeList = {}
         if PetBloodConf then
           table.insert(typeList, {
@@ -242,7 +242,7 @@ function UMG_BagUse_PopUp_C:SetPetIcon()
     end
   end
   local PetBloodConf = _G.DataConfigManager:GetPetBloodConf(self.PetItemData.blood_id)
-  local LevelSkillConf = _G.DataConfigManager:GetLevelSkillConf(self.PetItemData.base_conf_id)
+  local LevelSkillConf = _G.NRCModeManager:DoCmd(_G.PetUIModuleCmd.GetLevelSkillConfByPetBaseId, self.PetItemData.base_conf_id)
   if PetBloodConf.id == Enum.PetBloodType.PBT_BOSS then
     self.NormalBlood:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.BossBlood_1:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
@@ -515,7 +515,7 @@ function UMG_BagUse_PopUp_C:SetUseSuccess()
   self.PetItemData = self.data.PetBloodItem
   self.Success = true
   self.changeSkillId = 0
-  self.curPetLevelSkillConf = _G.DataConfigManager:GetLevelSkillConf(self.PetItemData.base_conf_id)
+  self.curPetLevelSkillConf = _G.NRCModeManager:DoCmd(_G.PetUIModuleCmd.GetLevelSkillConfByPetBaseId, self.PetItemData.base_conf_id)
   local ChangeBloodSkillConf
   if self.curPetLevelSkillConf then
     ChangeBloodSkillConf = PetUtils.GetSkillBloodData(self.data.ChangeBlood, self.curPetLevelSkillConf) or PetUtils.GetPetCurBloodSkillConf(self.PetItemData)
@@ -615,7 +615,6 @@ function UMG_BagUse_PopUp_C:SetUseSuccess()
     self:PlayAnimation(self.BossUse)
   elseif self.data.ChangeBlood == Enum.PetBloodType.PBT_FANTASTIC then
     self.IconCanvas:SetVisibility(UE4.ESlateVisibility.Collapsed)
-    self.NRCImage_new:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     self.Normal_1:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     self.fx:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     self.NRCImage_4:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
@@ -623,7 +622,6 @@ function UMG_BagUse_PopUp_C:SetUseSuccess()
     self:PlayAnimation(self.QiUse_0)
   else
     self.IconCanvas:SetVisibility(UE4.ESlateVisibility.Collapsed)
-    self.NRCImage_new:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     self:PlayAnimation(self.Use)
   end
   if self.PetItemData.level < self.curPetLevelSkillConf.blood_skill_level_point and self.data.ChangeBlood ~= Enum.PetBloodType.PBT_FANTASTIC then

@@ -105,7 +105,7 @@ function HomeTipsService:ShowUnloadAllFurnitureMessageBox(OnOkAfterUnload)
   local PropsList = RoomData:GetNoDependencyPropsDataList()
   for i = #PropsList, 1, -1 do
     local PropsData = PropsList[i]
-    if PropsData:ResolvePetNpc() then
+    if PropsData:AnyDynamicNpc() then
       ContentText = string.format([[
 %s
 %s]], ContentText, LuaText.furniture_storage_pet_tips2)

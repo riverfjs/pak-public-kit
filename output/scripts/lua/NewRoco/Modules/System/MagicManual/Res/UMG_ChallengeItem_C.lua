@@ -27,10 +27,14 @@ function UMG_ChallengeItem_C:OnConstruct()
     self:AddButtonListener(self.BossDepartmentBtn, self.OnOpenPetTips)
   end
   self:AddButtonListener(self.UMG_Details.btnLevelUp, self.OnOpenPetInfoPanel)
+  self:AddButtonListener(self.NRCButton_Pet, self.OnOpenPetTipsWithSeasonBattleRule)
+  self:AddButtonListener(self.NRCButton_Pet_1, self.OnOpenPetTipsWithSeasonBattleRule)
   self.DistanceText:SetVisibility(UE4.ESlateVisibility.Collapsed)
   if self.ItemRequired then
     self.ItemRequired:SetText(_G.LuaText.worldmap_tips_reward_text)
   end
+  self.delayTimer = nil
+  self.dealyTimerID = nil
 end
 
 function UMG_ChallengeItem_C:OnDestruct()
@@ -38,6 +42,16 @@ function UMG_ChallengeItem_C:OnDestruct()
   self:RemoveButtonListener(self.FlowerBloodBtn, self.OnOpenBloodTips)
   self:RemoveButtonListener(self.BossDepartmentBtn, self.OnOpenPetTips)
   self:RemoveButtonListener(self.UMG_Details.btnLevelUp, self.OnOpenPetInfoPanel)
+  self:RemoveButtonListener(self.NRCButton_Pet, self.OnOpenPetTipsWithSeasonBattleRule)
+  self:RemoveButtonListener(self.NRCButton_Pet_1, self.OnOpenPetTipsWithSeasonBattleRule)
+  if self.dealyTimerID then
+    _G.DelayManager:CancelDelayById(self.dealyTimerID)
+    self.dealyTimerID = nil
+  end
+  if self.delayTimer then
+    _G.DelayManager:CancelDelayById(self.dealyTimerID)
+    self.delayTimer = nil
+  end
 end
 
 function UMG_ChallengeItem_C:OnItemUpdate(_data, datalist, index)
@@ -239,6 +253,44 @@ function UMG_ChallengeItem_C:SetFlowerDataInfo(IsMapToMagicManual)
     AwardList = {}
   end
   local rewardsTable = {}
+  local activity_objects = _G.NRCModuleManager:DoCmd(_G.ActivityModuleCmd.GetActivityInstByType, _G.Enum.ActivityType.ATP_FLOWER_APPEAR_HARD)
+  for _, v in ipairs(activity_objects) do
+    if v:IsInProgress() then
+      local flower_group = _G.DataConfigManager:GetActivityFlowerAppearConf(v:GetSinglePartId()).flower_group
+      for _, seed in ipairs(flower_group) do
+        if seed.seed_id == self.FlowerData.spec_flower_seed_id then
+          local bGetReward = v:GetTaskState(seed.appear_task_id[1])
+          local bGetMedal = v:GetTaskState(seed.appear_task_id[2])
+          if not bGetMedal then
+            local flowerTaskConf = _G.DataConfigManager:GetActivityFlowerTaskConf(seed.appear_task_id[2])
+            local rewards = _G.NRCCommonItemIconData()
+            rewards.itemType = flowerTaskConf.reward_type
+            rewards.itemId = flowerTaskConf.reward_id
+            rewards.itemNum = 1
+            rewards.bShowTip = true
+            rewards.tag = _G.Enum.RewardTag.RTA_ACTIVITY_FLOWER_MEDAL
+            table.insert(rewardsTable, rewards)
+          end
+          if not bGetReward then
+            local reward_id = _G.DataConfigManager:GetActivityFlowerTaskConf(seed.appear_task_id[1]).reward_id
+            local rewardItem = _G.DataConfigManager:GetRewardConf(reward_id).RewardItem
+            for _, item in ipairs(rewardItem) do
+              local rewards = _G.NRCCommonItemIconData()
+              rewards.itemType = item.Type
+              rewards.itemId = item.Id
+              rewards.itemNum = item.Count
+              rewards.bShowNum = true
+              rewards.bShowTip = true
+              rewards.tag = _G.Enum.RewardTag.RTA_ACTIVITY_FLOWER_FIRST
+              table.insert(rewardsTable, rewards)
+            end
+          end
+          goto lbl_199
+        end
+      end
+    end
+  end
+  ::lbl_199::
   local dropReward = _G.NRCModuleManager:DoCmd(_G.ActivityModuleCmd.GetSpecificTimeActivityReward, ProtoEnum.ActivityDropShowArea.ADSA_FLOWER)
   if dropReward then
     for i, v in ipairs(dropReward) do
@@ -304,7 +356,12 @@ function UMG_ChallengeItem_C:SetFlowerDataInfo(IsMapToMagicManual)
     local petType = petBaseConf.unit_type[i]
     table.insert(petAttrData, {Type = petType})
   end
-  _G.DelayManager:DelayFrames(1, function()
+  if self.delayTimer then
+    _G.DelayManager:CancelDelayById(self.dealyTimerID)
+    self.delayTimer = nil
+  end
+  self.delayTimer = _G.DelayManager:DelayFrames(1, function()
+    self.delayTimer = nil
     self.Attr_Pet:InitGridView(petAttrData)
     self.FlowerSeed_ItemIist:InitGridView(rewardsTable)
   end)
@@ -427,6 +484,13 @@ function UMG_ChallengeItem_C:SetLegendDataInfo(IsMapToMagicManual)
   self.NotCollectedText:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.TimeSwitcher_0:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.is_camp_unlock = self.LegendData.is_camp_unlock
+  local seasonLegendaryID = _G.NRCModuleManager:DoCmd(_G.LegendaryBattleModuleCmd.GetSeasonLegendaryID, self.LegendData.content_cfg_id)
+  if seasonLegendaryID then
+    local seasonLegendaryDataConf = _G.DataConfigManager:GetSeasonLegendaryBattleEvent(seasonLegendaryID)
+    if seasonLegendaryDataConf and seasonLegendaryDataConf.is_indoor then
+      self.is_camp_unlock = true
+    end
+  end
   if self.is_camp_unlock then
     self.Btn:SetBtnText(LuaText.umg_npcinfo_2)
   else
@@ -665,7 +729,13 @@ function UMG_ChallengeItem_C:SetBossDataInfo(IsMapToMagicManual)
   self.isBigMapScene = self.BossData.isBigMapScene
   if self.BossData.is_world_boss_defeated then
     self.NotDefeatedText:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    if self.BossData.next_refresh_time and self.BossData.next_refresh_time - _G.ZoneServer:GetServerTime() / 1000 >= 0 then
+      self.NotDefeatedText:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+      self.NotDefeatedText:SetColorAndOpacity(UE4.UNRCStatics.HexToSlateColor("#C7494AFF"))
+      self.NotDefeatedText:SetText(string.format("\239\188\136%s\239\188\137", LuaText.Boss_Reborn_Botton_Tips))
+    end
   else
+    self.NotDefeatedText:SetColorAndOpacity(UE4.UNRCStatics.HexToSlateColor("#62605EFF"))
     self.NotDefeatedText:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     self.NotDefeatedText:SetText(LuaText.boss_not_defeated)
   end
@@ -739,7 +809,12 @@ function UMG_ChallengeItem_C:SetBossDataInfo(IsMapToMagicManual)
       table.insert(rewardsTable, rewards)
     end
   end
-  _G.DelayManager:DelayFrames(1, function()
+  if self.dealyTimerID then
+    _G.DelayManager:CancelDelayById(self.dealyTimerID)
+    self.dealyTimerID = nil
+  end
+  self.dealyTimerID = _G.DelayManager:DelayFrames(1, function()
+    self.dealyTimerID = nil
     self.Attr:InitGridView(commonAttrData)
     self.Boss_ItemIist:InitGridView(rewardsTable)
   end)
@@ -751,7 +826,7 @@ function UMG_ChallengeItem_C:HandleBossEvoReward(RewardItem)
     Log.Error("UMG_ChallengeItem_C:HandleBossEvoReward RewardItem is nil")
     return RetRewardItem
   end
-  if RewardItem.itemId ~= nil and RewardItem.itemType == Enum.GoodsType.GT_BAGITEM then
+  if RewardItem.itemId ~= nil and RewardItem.itemType and RewardItem.itemType == _G.Enum.GoodsType.GT_BAGITEM then
     local BagItemConf = _G.DataConfigManager:GetBagItemConf(RewardItem.itemId)
     local BagItemData = _G.NRCModeManager:DoCmd(BagModuleCmd.GetBagItemByID, RewardItem.itemId)
     if BagItemConf then
@@ -770,7 +845,7 @@ function UMG_ChallengeItem_C:CheckThisRewardShouldShow(RewardItem)
     Log.Error("UMG_NpcInfo_C:CheckThisRewardShouldShow RewardItem is nil")
     return bShow
   end
-  if RewardItem.itemId ~= nil and RewardItem.itemType == _G.Enum.GoodsType.GT_BAGITEM then
+  if RewardItem.itemId ~= nil and RewardItem.itemType and RewardItem.itemType == _G.Enum.GoodsType.GT_BAGITEM then
     local BagItemConf = _G.DataConfigManager:GetBagItemConf(RewardItem.itemId)
     local BagItemData = _G.NRCModeManager:DoCmd(BagModuleCmd.GetBagItemByID, RewardItem.itemId)
     if BagItemData and BagItemConf then
@@ -1121,6 +1196,14 @@ function UMG_ChallengeItem_C:TraceBtnClick()
       local NpcData = _G.NRCModuleManager:DoCmd(BigMapModuleCmd.GetNpcInfoByRefreshId, self.LegendData.content_cfg_id)
       local bBan = _G.NRCModuleManager:DoCmd(FunctionBanModuleCmd.GetFunctionState, Enum.PlayerFunctionBanType.PFBT_UI_TELEPORT, true, true)
       if NpcData and not bBan then
+        local seasonLegendaryID = _G.NRCModuleManager:DoCmd(_G.LegendaryBattleModuleCmd.GetSeasonLegendaryID, self.LegendData.content_cfg_id)
+        if seasonLegendaryID then
+          local seasonLegendaryDataConf = _G.DataConfigManager:GetSeasonLegendaryBattleEvent(seasonLegendaryID)
+          if seasonLegendaryDataConf and seasonLegendaryDataConf.is_indoor then
+            _G.NRCModuleManager:DoCmd(_G.BigMapModuleCmd.DoCommonTransfer, NpcData.entry_id, NpcData.worldMapConf)
+            return
+          end
+        end
         _G.NRCModuleManager:DoCmd(_G.BigMapModuleCmd.OpenWorldMap, {
           centerNPCRefreshId = NpcData.npc_refresh_id,
           bNotRightPanel = false,
@@ -1173,6 +1256,9 @@ function UMG_ChallengeItem_C:RefreshTimeTick()
     self.NRCImage_52:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.Icon_2:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.Text_Name_1:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    if self.BossData.is_world_boss_defeated then
+      self.NotDefeatedText:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    end
     if self.BossData.is_camp_unlock then
       self.Btn:SetBtnText(LuaText.umg_npcinfo_2)
     else
@@ -1279,27 +1365,41 @@ function UMG_ChallengeItem_C:OnDeactive()
 end
 
 function UMG_ChallengeItem_C:OnOpenPetTips()
+  self:OnOpenPetTipsHelper(false)
+end
+
+function UMG_ChallengeItem_C:OnOpenPetTipsHelper(showSeasonBattleRule)
   if self.DataType == self.ChallengeType.FlowerData then
     local TypeWrap = NRCModuleManager:GetModule("MagicManualModule"):GetFlowerType(self.FlowerData)
     local flag = false
     if TypeWrap and TypeWrap.IsShinyFlower then
       flag = true
     end
+    local originalBattleRuleList = self:GetFlowerOriginBattleRuleList(self.FlowerData)
+    local allBattleRuleList = self:MergeAndRankBattleRuleList(self.FlowerData.season_battle_rules, originalBattleRuleList)
     local infoData = {
       petBaseId = self.FlowerData.battle_petbase_id,
       bloodId = self.FlowerData.blood,
       flowerSeedId = self.FlowerData.spec_flower_seed_id,
       star = self.FlowerData.star,
       isShinyFlower = flag,
-      bForceShowType = true
+      bForceShowType = true,
+      showSeasonBattleRule = showSeasonBattleRule,
+      seasonBattleRuleList = allBattleRuleList,
+      hideCompatInfo = showSeasonBattleRule
     }
     _G.NRCModuleManager:DoCmd(BattleUIModuleCmd.ShowChangePetConfirm3, infoData, nil, false, false, {isShowPetTips = true})
   elseif self.DataType == self.ChallengeType.BossData then
     local petBaseID = self.WorldCombatConf.world_boss_refer
+    local originalBattleRuleList = self:GetBossOriginBattleRuleList(self.BossData)
+    local allBattleRuleList = self:MergeAndRankBattleRuleList(self.BossData.season_battle_rules, originalBattleRuleList)
     local infoData = {
       petBaseId = petBaseID,
       level = self.BossData.level,
-      bForceShowType = true
+      bForceShowType = true,
+      showSeasonBattleRule = showSeasonBattleRule,
+      seasonBattleRuleList = allBattleRuleList,
+      hideCompatInfo = showSeasonBattleRule
     }
     _G.NRCModuleManager:DoCmd(BattleUIModuleCmd.ShowChangePetConfirm3, infoData, nil, false, false, {isShowPetTips = true})
   elseif self.DataType == self.ChallengeType.LegendData then
@@ -1316,10 +1416,15 @@ function UMG_ChallengeItem_C:OnOpenPetTips()
             if monsterConf.new_level and #monsterConf.new_level > 0 then
               level = monsterConf.new_level[1]
             end
+            local originalBattleRuleList = self:GetLegendOriginBattleRuleList(self.LegendData)
+            local allBattleRuleList = self:MergeAndRankBattleRuleList(self.LegendData.season_battle_rules, originalBattleRuleList)
             local infoData = {
               petBaseId = monsterConf.base_id,
               level = level,
-              bForceShowType = true
+              bForceShowType = true,
+              showSeasonBattleRule = showSeasonBattleRule,
+              seasonBattleRuleList = allBattleRuleList,
+              hideCompatInfo = showSeasonBattleRule
             }
             _G.NRCModuleManager:DoCmd(BattleUIModuleCmd.ShowChangePetConfirm3, infoData, nil, false, false, {isShowPetTips = true})
           end
@@ -1327,6 +1432,152 @@ function UMG_ChallengeItem_C:OnOpenPetTips()
       end
     end
   end
+end
+
+function UMG_ChallengeItem_C:MergeAndRankBattleRuleList(seasonBattleRuleList, originalBattleRuleList)
+  local mergedList = {}
+  if seasonBattleRuleList then
+    for _, ruleId in ipairs(seasonBattleRuleList) do
+      mergedList[#mergedList + 1] = {id = ruleId, isSeason = true}
+    end
+  end
+  if originalBattleRuleList then
+    for _, ruleId in ipairs(originalBattleRuleList) do
+      mergedList[#mergedList + 1] = {id = ruleId, isSeason = false}
+    end
+  end
+  table.sort(mergedList, function(a, b)
+    local confA = _G.DataConfigManager:GetBattleRuleConf(a.id)
+    local confB = _G.DataConfigManager:GetBattleRuleConf(b.id)
+    local rankA = confA and confA.rank or 0
+    local rankB = confB and confB.rank or 0
+    if rankA ~= rankB then
+      return rankA > rankB
+    end
+    if a.isSeason ~= b.isSeason then
+      return a.isSeason
+    end
+    return false
+  end)
+  local resultList = {}
+  for i, item in ipairs(mergedList) do
+    resultList[i] = item.id
+  end
+  return resultList
+end
+
+function UMG_ChallengeItem_C:GetFlowerOriginBattleRuleList(flowerData)
+  if not flowerData or not flowerData.level then
+    Log.Error("[UMG_ChallengeItem_C] GetFlowerOriginBattleRuleList flowerData\230\136\150level\228\184\186\231\169\186")
+    return nil
+  end
+  local battleId = flowerData.star + 1000
+  local battleConf = _G.DataConfigManager:GetBattleConf(battleId)
+  if not battleConf then
+    Log.Error("[UMG_ChallengeItem_C] GetFlowerOriginBattleRuleList \230\156\170\230\137\190\229\136\176battle_id=%d\229\175\185\229\186\148\231\154\132BATTLE_CONF\233\133\141\231\189\174(flower level=%d)", battleId, flowerData.level)
+    return nil
+  end
+  local battleRuleList = battleConf.battle_rule
+  if not battleRuleList or #battleRuleList <= 0 then
+    Log.Error("[UMG_ChallengeItem_C] GetFlowerOriginBattleRuleList battle_id=%d\231\154\132BATTLE_CONF\233\133\141\231\189\174\228\184\173battle_rule\228\184\186\231\169\186", battleId)
+    return nil
+  end
+  return battleRuleList
+end
+
+function UMG_ChallengeItem_C:GetBossOriginBattleRuleList(bossData)
+  if not bossData or not bossData.npc_cfg_id then
+    Log.Error("[UMG_ChallengeItem_C] GetBossOriginBattleRuleList bossData\230\136\150npc_cfg_id\228\184\186\231\169\186")
+    return nil
+  end
+  local npcConf = _G.DataConfigManager:GetNpcConf(bossData.npc_cfg_id)
+  if not npcConf then
+    Log.Error("[UMG_ChallengeItem_C] GetBossOriginBattleRuleList \230\156\170\230\137\190\229\136\176npc_cfg_id=%d\229\175\185\229\186\148\231\154\132NPC_CONF\233\133\141\231\189\174", bossData.npc_cfg_id)
+    return nil
+  end
+  local optionIdList = npcConf.option_id
+  if not optionIdList or #optionIdList <= 0 then
+    Log.Error("[UMG_ChallengeItem_C] GetBossOriginBattleRuleList npc_cfg_id=%d\231\154\132NPC_CONF\233\133\141\231\189\174\228\184\173option_id\228\184\186\231\169\186", bossData.npc_cfg_id)
+    return nil
+  end
+  for _, optionId in ipairs(optionIdList) do
+    local optionConf = _G.DataConfigManager:GetNpcOptionConf(optionId)
+    if optionConf and optionConf.pet_action and optionConf.pet_action.action_type == _G.Enum.ActionType.ACT_BATTLE then
+      local battleId = tonumber(optionConf.pet_action.action_param2)
+      if not battleId then
+        Log.Error("[UMG_ChallengeItem_C] GetBossOriginBattleRuleList option_id=%d\231\154\132action_param2\230\151\160\230\179\149\232\189\172\230\141\162\228\184\186\230\149\176\229\173\151: %s", optionId, tostring(optionConf.pet_action.action_param2))
+        return nil
+      end
+      local battleConf = _G.DataConfigManager:GetBattleConf(battleId)
+      if not battleConf then
+        Log.Error("[UMG_ChallengeItem_C] GetBossOriginBattleRuleList \230\156\170\230\137\190\229\136\176battle_id=%d\229\175\185\229\186\148\231\154\132BATTLE_CONF\233\133\141\231\189\174(option_id=%d)", battleId, optionId)
+        return nil
+      end
+      local battleRuleList = battleConf.battle_rule
+      if not battleRuleList or #battleRuleList <= 0 then
+        Log.Error("[UMG_ChallengeItem_C] GetBossOriginBattleRuleList battle_id=%d\231\154\132BATTLE_CONF\233\133\141\231\189\174\228\184\173battle_rule\228\184\186\231\169\186", battleId)
+        return nil
+      end
+      return battleRuleList
+    end
+  end
+  Log.Error("[UMG_ChallengeItem_C] GetBossOriginBattleRuleList npc_cfg_id=%d\231\154\132option_id\229\136\151\232\161\168\228\184\173\230\156\170\230\137\190\229\136\176ACT_BATTLE\231\177\187\229\158\139\231\154\132\233\128\137\233\161\185", bossData.npc_cfg_id)
+  return nil
+end
+
+function UMG_ChallengeItem_C:GetLegendOriginBattleRuleList(bossNpcInfo)
+  if not bossNpcInfo or not bossNpcInfo.content_cfg_id then
+    Log.Error("[UMG_ChallengeItem_C] GetLegendOriginBattleRule bossNpcInfo\230\136\150content_cfg_id\228\184\186\231\169\186")
+    return nil
+  end
+  local refreshContentId = bossNpcInfo.content_cfg_id
+  local LegendaryBattleEventConf = _G.DataConfigManager:GetTable(_G.DataConfigManager.ConfigTableId.LEGENDARY_BATTLE_EVENT):GetAllDatas()
+  local targetConf
+  for _, v in pairs(LegendaryBattleEventConf or {}) do
+    local conf = v
+    if conf.refresh_content_id_2 == refreshContentId then
+      targetConf = conf
+      break
+    end
+  end
+  if not targetConf then
+    Log.Error("[UMG_ChallengeItem_C] GetLegendOriginBattleRule \230\156\170\230\137\190\229\136\176refresh_content_id_2=%d\231\154\132LEGENDARY_BATTLE_EVENT\233\133\141\231\189\174", refreshContentId)
+    return nil
+  end
+  local playerWorldLv = _G.DataModelMgr.PlayerDataModel:GetPlayerWorldLevel()
+  local battleIdList = targetConf.battle_id
+  if not battleIdList or 0 == #battleIdList then
+    Log.Error("[UMG_ChallengeItem_C] GetLegendOriginBattleRule LEGENDARY_BATTLE_EVENT(id=%d)\231\154\132battle_id\229\136\151\232\161\168\228\184\186\231\169\186", targetConf.id)
+    return nil
+  end
+  local index = targetConf.world_level + playerWorldLv - 1
+  if index <= 0 then
+    Log.ErrorFormat("[UMG_ChallengeItem_C] GetLegendOriginBattleRule \232\174\161\231\174\151\229\190\151\229\136\176\231\154\132battle_id\228\184\139\230\160\135%d\228\184\141\229\144\136\230\179\149, world_level=%d, playerWorldLv=%d", index, targetConf.world_level, playerWorldLv)
+    return nil
+  end
+  if index > #battleIdList then
+    index = #battleIdList
+  end
+  local battleId = battleIdList[index]
+  if not battleId then
+    Log.Error("[UMG_ChallengeItem_C] GetLegendOriginBattleRule battle_id\228\184\139\230\160\135%d\229\175\185\229\186\148\231\154\132\229\128\188\228\184\186\231\169\186, LEGENDARY_BATTLE_EVENT(id=%d)", index, targetConf.id)
+    return nil
+  end
+  local battleConf = _G.DataConfigManager:GetBattleConf(battleId)
+  if not battleConf then
+    Log.Error("[UMG_ChallengeItem_C] GetLegendOriginBattleRule \230\156\170\230\137\190\229\136\176battle_id=%d\229\175\185\229\186\148\231\154\132BATTLE_CONF\233\133\141\231\189\174", battleId)
+    return nil
+  end
+  local battleRuleList = battleConf.battle_rule
+  if not battleRuleList or #battleRuleList <= 0 then
+    Log.Error("[UMG_ChallengeItem_C] GetLegendOriginBattleRule battle_id=%d\231\154\132BATTLE_CONF\233\133\141\231\189\174\228\184\173battle_rule\228\184\186\231\169\186", battleId)
+    return nil
+  end
+  return battleRuleList
+end
+
+function UMG_ChallengeItem_C:OnOpenPetTipsWithSeasonBattleRule()
+  self:OnOpenPetTipsHelper(true)
 end
 
 function UMG_ChallengeItem_C:OnOpenBloodTips()

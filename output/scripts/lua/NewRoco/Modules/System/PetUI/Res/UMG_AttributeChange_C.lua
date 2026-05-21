@@ -17,7 +17,7 @@ function UMG_AttributeChange_C:OnActive(_data, showItemListFood, showItemListIte
   end
   self.petData = _G.DataModelMgr.PlayerDataModel:GetPetDataByGid(self.data.petGid)
   local needLevel = 0
-  local levelSkillConf = _G.DataConfigManager:GetLevelSkillConf(self.data.petBaseId)
+  local levelSkillConf = _G.NRCModeManager:DoCmd(_G.PetUIModuleCmd.GetLevelSkillConfByPetBaseId, self.data.petBaseId)
   if levelSkillConf then
     needLevel = levelSkillConf.blood_skill_level_point
   end

@@ -29,6 +29,7 @@ function UMG_MainMap_C:OnConstruct()
   self.traceCount = 0
   self.bOpen = true
   self.bMouseInMapScope = false
+  self.CurTrackTaskPosList = {}
   self.data = self.module:GetData("BigMapModuleData")
   self.data:CreateShowTaskInfo()
   self.uiData = {}
@@ -124,6 +125,7 @@ function UMG_MainMap_C:OnConstruct()
   self.curMapShowLevel = 0
   self.DeltaTimer = 0.0
   self.FinishTime = 0.3
+  self.MaxTileCount = 16
   local moveTimeData = _G.DataConfigManager:GetMapGlobalConfig("map_move_time")
   if moveTimeData then
     self.FinishTime = moveTimeData.num / 1000.0 or 0.3
@@ -176,6 +178,15 @@ function UMG_MainMap_C:OnConstruct()
   self.curCenterAreaId = 0
   self.mainSceneAreaIds = {}
   self.mouseScaleParam = 1.0
+  if _G.AppMain:HasDebug() then
+    local widgetClass = "WidgetBlueprint'/Game/NewRoco/Modules/System/BigMap/Res/UMG_DebugGrid.UMG_DebugGrid'"
+    local softClassPath = UE4.UKismetSystemLibrary.MakeSoftClassPath(widgetClass)
+    self.NRCWidgetLoader_83:SetWidgetClass(softClassPath)
+    self.NRCWidgetLoader_83:LoadPanelSync(self)
+  end
+  self._mapTileLoadStatus = {}
+  self._pendingMapTiles = {}
+  self._currentMapSceneResId = nil
   self.iconDataTemplate = {
     layerIndex = 1,
     iconTemplateIndex = 1,
@@ -188,7 +199,8 @@ function UMG_MainMap_C:OnConstruct()
     self.Customdot,
     self.traceLayer,
     self.areaNameLayer,
-    self.TaskLayer
+    self.TaskLayer,
+    self.OpenBattle
   }
   self.iconNPCTemplate = {
     self.iconNpcPet,
@@ -219,6 +231,7 @@ function UMG_MainMap_C:OnConstruct()
     self.traceIconVisitTemplate,
     self.traceIconNpcTemplate,
     self.traceIconNpcTemplate,
+    self.traceIconNpcTemplate,
     self.traceIconTravelTemplate
   }
   self.isTravel = _G.NRCModuleManager:DoCmd(_G.BigMapModuleCmd.GetIsTravelMap)
@@ -246,6 +259,7 @@ function UMG_MainMap_C:OnConstruct()
     self.layerMapCreator,
     self.iconCircleCreator
   }
+  self.tempIconInfoList = {}
   if _G.GlobalConfig.bShowMapScale then
     Log.Error("\228\184\138\228\184\139\229\183\166\229\143\179\239\188\154", self.topRangePercent, self.bottomRangePercent, self.leftRangePercent, self.rightRangePercent)
   end
@@ -345,10 +359,13 @@ function UMG_MainMap_C:OnDestruct()
     end
   end
   self.data:SetCurShowSceneResId(0)
-  self:OnRemovedTempTraceWidget()
   self:ClearCreators()
+  self._currentMapSceneResId = nil
+  table.clear(self._mapTileLoadStatus)
+  table.clear(self._pendingMapTiles)
   table.clear(self.uiData)
   table.clear(self.uiItem)
+  table.clear(self.tempIconInfoList)
   self.uiData = nil
   self.uiItem = nil
   self.maskDynamicMaterialList = nil
@@ -509,7 +526,7 @@ function UMG_MainMap_C:OnActive(_param, bIsOpenByManual, rsp, ...)
   if self.isTravel then
     self.CanvasPanel_1:SetVisibility(UE4.ESlateVisibility.Visible)
     self.MoneyBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
-    self.CanvasPanel_1:InitNum(#self.travelInfos, self.MaxTravelNum, "\230\173\163\229\156\168\230\151\133\232\161\140\239\188\154")
+    self.CanvasPanel_1:InitNum(#self.travelInfos, self.MaxTravelNum, LuaText.travel_text)
     self.CanvasPanel_Plot:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.ComboBox:SetVisibility(UE4.ESlateVisibility.Collapsed)
   else
@@ -548,7 +565,7 @@ end
 
 function UMG_MainMap_C:OnClickBtnHome()
   local HomeRefreshId = 5200191
-  _G.NRCModuleManager:DoCmd(BigMapModuleCmd.SetMapCenterByNPC, HomeRefreshId, 0.5)
+  self:SetMapCenterByNPC(HomeRefreshId, 0.5)
 end
 
 function UMG_MainMap_C:NotifyHomeServerRedDotRefresh()
@@ -624,26 +641,11 @@ function UMG_MainMap_C:InitPanelInfo(_param)
         self.bUsePlayerLayerId = false
         local npcInfo = self.data:GetNpcInfoByRefreshId(_param.centerNPCRefreshId)
         if npcInfo then
-          self:SetTargetPos(npcInfo.npc_pos.x, npcInfo.npc_pos.y)
-          local ResId = BigMapUtils.GetSceneResIdByRefreshId(_param.centerNPCRefreshId)
-          self:ChangeMapScene(ResId)
-          local posX, posY
-          if npcInfo.area_pos == nil then
-            if npcInfo.npc_pos == nil then
-              posX, posY = self:ScenePositionToImagePosition(npcInfo.NpcPosition[1].pos.x, npcInfo.NpcPosition[1].pos.y)
-            else
-              posX, posY = self:ScenePositionToImagePosition(npcInfo.npc_pos.x, npcInfo.npc_pos.y)
-            end
-          else
-            posX, posY = self:ScenePositionToImagePosition(npcInfo.npcList[1].npc_pos.x, npcInfo.npcList[1].npc_pos.y)
-          end
-          local mousePos = self:GetTempVector2D(posX, posY)
-          self.mouseIcon:showAni(mousePos)
-          self.mouseIcon:setShowPosition(mousePos)
+          self:SetMapCenterByNPC(_param.centerNPCRefreshId, nil, nil, true)
           if not _param.bNotRightPanel then
             self:DelaySeconds(0.4, self.OnSingleIconClicked, self, npcInfo)
           end
-          goto lbl_165
+          goto lbl_105
         else
           Log.Error(string.format("centerNPCRefreshId%d No Found NpcInfo", _param.centerNPCRefreshId))
         end
@@ -665,11 +667,10 @@ function UMG_MainMap_C:InitPanelInfo(_param)
     self:SetMapShowList()
     self.data:SetSceneResId(nil)
   end
-  ::lbl_165::
+  ::lbl_105::
   if (nil == _param or _param.scaleSliderValue == nil) and self.module.IsTraceOpen and self.uiData and self.uiData.mapSliderScale then
     self:ChangeMapScaleSliderValue(0 - self.uiData.mapSliderScale)
   end
-  self:ShowTempTraceIcons()
   self.npcListLayer:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.checkMapCenterPosition = true
   self:UpdateHealth()
@@ -873,43 +874,54 @@ function UMG_MainMap_C:ShowLayerMap(bShow, layerId, bShowLayerTip)
         end
       end
     end
-    if layerId > 0 and self.data.layerIdToIcons[layerId] then
-      local layerNpcInfo = self.data.layerIdToIcons[layerId][bigMapModuleEnum.CreatorPriority.NpcIcons]
-      if layerNpcInfo and #layerNpcInfo > 0 then
-        for k, v in ipairs(layerNpcInfo) do
-          if self.npcIconCreator and self.npcIconCreator:Get(v) then
-            self.npcIconCreator:Get(v):SetLayerMapIcon(true)
-          end
-        end
-      end
+    if layerId > 0 then
+      self:SetIconLayerColor(layerId, bigMapModuleEnum.CreatorPriority.NpcIcons, true)
+      self:SetIconLayerColor(layerId, bigMapModuleEnum.CreatorPriority.MarkerIcons, true)
     end
-    if self.lastShowLayerId > 0 and self.lastShowLayerId ~= layerId and self.data.layerIdToIcons[self.lastShowLayerId] then
-      local layerNpcInfo = self.data.layerIdToIcons[self.lastShowLayerId][bigMapModuleEnum.CreatorPriority.NpcIcons]
-      if layerNpcInfo and #layerNpcInfo > 0 then
-        for k, v in ipairs(layerNpcInfo) do
-          if self.npcIconCreator and self.npcIconCreator:Get(v) then
-            self.npcIconCreator:Get(v):SetLayerMapIcon(false)
-          end
-        end
-      end
+    if self.lastShowLayerId > 0 and self.lastShowLayerId ~= layerId then
+      self:SetIconLayerColor(self.lastShowLayerId, bigMapModuleEnum.CreatorPriority.NpcIcons, false)
+      self:SetIconLayerColor(self.lastShowLayerId, bigMapModuleEnum.CreatorPriority.MarkerIcons, false)
     end
     self.bUseCenterLayerId = false
   else
     self.Image_zhezhao:SetVisibility(UE4.ESlateVisibility.Collapsed)
-    if self.lastShowLayerId > 0 and self.data.layerIdToIcons[self.lastShowLayerId] then
-      local layerNpcInfo = self.data.layerIdToIcons[self.lastShowLayerId][bigMapModuleEnum.CreatorPriority.NpcIcons]
-      if layerNpcInfo and #layerNpcInfo > 0 then
-        for k, v in ipairs(layerNpcInfo) do
-          if self.npcIconCreator and self.npcIconCreator:Get(v) then
-            self.npcIconCreator:Get(v):SetLayerMapIcon(false)
-          end
-        end
-      end
+    if self.lastShowLayerId > 0 then
+      self:SetIconLayerColor(self.lastShowLayerId, bigMapModuleEnum.CreatorPriority.NpcIcons, false)
+      self:SetIconLayerColor(self.lastShowLayerId, bigMapModuleEnum.CreatorPriority.MarkerIcons, false)
     end
     self.bUseCenterLayerId = true
   end
   self.lastShowLayerId = layerId or 0
   self.data.curShowLayerId = self.lastShowLayerId
+end
+
+function UMG_MainMap_C:SetIconLayerColor(layerId, iconType, bColorful)
+  if self.data.layerIdToIcons[layerId] == nil then
+    return
+  end
+  if iconType == bigMapModuleEnum.CreatorPriority.NpcIcons then
+    local layerNpcInfo = self.data.layerIdToIcons[layerId][iconType]
+    if layerNpcInfo then
+      for entryId, npcList in pairs(layerNpcInfo) do
+        if npcList and #npcList > 0 then
+          for k, logicId in ipairs(npcList) do
+            if self.npcIconCreator and self.npcIconCreator:Get(entryId, logicId) then
+              self.npcIconCreator:Get(entryId, logicId):SetLayerMapIcon(bColorful)
+            end
+          end
+        end
+      end
+    end
+  elseif iconType == bigMapModuleEnum.CreatorPriority.MarkerIcons then
+    local layerMarkInfo = self.data.layerIdToIcons[layerId][iconType]
+    if layerMarkInfo then
+      for markId, markList in pairs(layerMarkInfo) do
+        if self.markerIconCreator and self.markerIconCreator:Get(markId) then
+          self.markerIconCreator:Get(markId):SetLayerMapIcon(bColorful)
+        end
+      end
+    end
+  end
 end
 
 function UMG_MainMap_C:SetCollectionInfo(areaId)
@@ -951,8 +963,9 @@ function UMG_MainMap_C:ChangeMapBySceneId(sceneResId, param)
       break
     end
   end
-  local showSceneResId = self:GetShowMapBySceneResId(sceneResId, bHasScene)
+  local showSceneResId = self.module:GetShowMapBySceneResId(sceneResId, bHasScene)
   self.data:SetCurShowSceneResId(showSceneResId)
+  self:UpdateBg(sceneResId)
   self:InitDataBySceneResId(showSceneResId, false)
   self:ShowTravelBtn()
   for i = 1, #self.data.MapShowList do
@@ -989,6 +1002,7 @@ function UMG_MainMap_C:ChangeMapBySceneId(sceneResId, param)
   self:UpdateVisitPoint(self.data:GetVisitPointInfo())
   self:SetMaskBySceneResId(showSceneResId)
   self:ShowExploredInfo()
+  self:ShowTempTraceIcons()
   self:SetTargetPos(0, 0)
 end
 
@@ -1008,43 +1022,6 @@ function UMG_MainMap_C:IsShowSceneResOrSubSceneRes(showSceneResId)
     end
   end
   return false
-end
-
-function UMG_MainMap_C:GetShowMapBySceneResId(sceneResId, bHasScene)
-  local worldMapInfo = _G.DataModelMgr.PlayerDataModel:GetWorldMapActorInfo()
-  local showSceneResId = sceneResId
-  local bInDungeon = _G.NRCModuleManager:DoCmd(InstanceModuleCmd.IsInDungeon)
-  if false == bHasScene then
-    if bInDungeon then
-      local DungeonInfo = _G.NRCModuleManager:DoCmd(InstanceModuleCmd.GetDungeonInfo)
-      if DungeonInfo then
-        local dungeonConf = _G.DataConfigManager:GetDungeonConf(DungeonInfo.dungeon_id)
-        if dungeonConf then
-          local worldSceneId = dungeonConf.world_scene_id
-          local SceneConf = _G.DataConfigManager:GetSceneConf(worldSceneId)
-          if SceneConf then
-            local sceneResId1 = SceneConf.scene_res_id
-            showSceneResId = sceneResId1
-          end
-        end
-      else
-        showSceneResId = 10003
-      end
-    elseif worldMapInfo.main_scene_pt then
-      local Point = worldMapInfo.main_scene_pt.pos
-      local ResId = BigMapUtils.GetSceneResIdByPos(Point.x, Point.y)
-      showSceneResId = ResId
-      for k, v in ipairs(self.data.MapShowList) do
-        if v.sceneResId == showSceneResId then
-          self.mapListIndex = k
-          break
-        end
-      end
-    else
-      showSceneResId = 10003
-    end
-  end
-  return showSceneResId
 end
 
 function UMG_MainMap_C:GetMapScaleBySceneResId(showSceneResId)
@@ -1105,7 +1082,7 @@ function UMG_MainMap_C:SetPlayerPosAndVisibility(showSceneResId, param, changeNe
     return
   end
   if self:IsSubSceneWithoutMap() then
-    local shouldShowSceneResId = self:GetShowMapBySceneResId(SceneUtils.GetSceneResId(), false)
+    local shouldShowSceneResId = self.module:GetShowMapBySceneResId(SceneUtils.GetSceneResId(), false)
     if shouldShowSceneResId == self.data.curShowSceneResId then
       if worldMapInfo and worldMapInfo.main_scene_pt then
         local point = worldMapInfo.main_scene_pt.pos
@@ -1155,41 +1132,153 @@ function UMG_MainMap_C:SetMapAndMaskBySceneResId(sceneResId)
   else
     newPieceList, oldPieceList = self:CheckMapPieceChange(mapPieceList)
   end
-  self:SetMapBySceneResId(sceneResId, newPieceList, oldPieceList)
+  self:SetMapBySceneResId(sceneResId, newPieceList, oldPieceList, mapPieceList)
   self.lastShowPieceIdList = self.curShowPieceIdList
 end
 
 function UMG_MainMap_C:SetCenterPosBySceneResId(sceneResId)
 end
 
-function UMG_MainMap_C:SetMapBySceneResId(sceneResId, newPieceList, oldPieceList)
-  Log.Dump(oldPieceList, 3, "UMG_MainMap_C:SetMapBySceneResId1")
-  for i = 1, #self.mapList do
-    if newPieceList and #newPieceList > 0 then
-      for k, v in ipairs(newPieceList) do
-        if i == v then
-          local assetPath = BigMapUtils.GetMapPicPath(sceneResId, i)
-          if assetPath then
-            self.mapList[i]:SetPath(assetPath)
-          end
+function UMG_MainMap_C:SetMapBySceneResId(sceneResId, newPieceList, oldPieceList, curPieceList)
+  if not newPieceList or 0 == #newPieceList then
+    return
+  end
+  if self._currentMapSceneResId ~= sceneResId then
+    if self._currentMapSceneResId then
+      self:ReleaseResLoadRequest()
+      table.clear(self._mapTileLoadStatus)
+      table.clear(self._pendingMapTiles)
+    end
+    for i = 1, self.MaxTileCount do
+      self.mapList[i]:SetVisibility(UE4.ESlateVisibility.Hidden)
+    end
+    newPieceList = curPieceList
+  end
+  self._currentMapSceneResId = sceneResId
+  self:PreloadMapTiles(sceneResId, newPieceList)
+  self:PreloadRemainingTiles(sceneResId, newPieceList)
+end
+
+function UMG_MainMap_C:PreloadMapTiles(sceneResId, pieceList)
+  if not sceneResId then
+    return
+  end
+  local LoadStatus = bigMapModuleEnum.MapTileLoadStatus
+  local loadPieceList = pieceList or {
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16
+  }
+  for _, pieceNo in ipairs(loadPieceList) do
+    local assetPath = BigMapUtils.GetMapPicPath(sceneResId, pieceNo)
+    if assetPath and self._pendingMapTiles[pieceNo] ~= assetPath then
+      local status = self._mapTileLoadStatus[assetPath]
+      self._pendingMapTiles[pieceNo] = assetPath
+      if status == LoadStatus.Loaded or status == LoadStatus.Failed then
+      elseif status == LoadStatus.Loading then
+      else
+        self._mapTileLoadStatus[assetPath] = LoadStatus.Loading
+        self:LoadPanelRes(assetPath, 255, function(caller, request, asset)
+          self:OnMapTileLoaded(request.assetPath, true)
+        end, function(caller, request, err)
+          self:OnMapTileLoaded(request.assetPath, false)
+        end, nil)
+      end
+    end
+  end
+  self:TryApplyPendingTiles()
+end
+
+function UMG_MainMap_C:OnMapTileLoaded(assetPath, success)
+  local LoadStatus = bigMapModuleEnum.MapTileLoadStatus
+  self._mapTileLoadStatus[assetPath] = success and LoadStatus.Loaded or LoadStatus.Failed
+  self:TryApplyPendingTiles()
+end
+
+function UMG_MainMap_C:IsAllPendingMapTilesLoaded()
+  local LoadStatus = bigMapModuleEnum.MapTileLoadStatus
+  for _, assetPath in pairs(self._pendingMapTiles) do
+    if self._mapTileLoadStatus[assetPath] ~= LoadStatus.Loaded and self._mapTileLoadStatus[assetPath] ~= LoadStatus.Failed then
+      return false
+    end
+  end
+  return true
+end
+
+function UMG_MainMap_C:SetMapTilePath(i, Path)
+  local mapTile = self.mapList[i]
+  if mapTile then
+    mapTile:SetPath(Path)
+    mapTile:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
+  end
+end
+
+function UMG_MainMap_C:TryApplyPendingTiles()
+  if not self:IsAllPendingMapTilesLoaded() then
+    return
+  end
+  local LoadStatus = bigMapModuleEnum.MapTileLoadStatus
+  for pieceNo, assetPath in pairs(self._pendingMapTiles) do
+    if self.mapList[pieceNo] then
+      local status = self._mapTileLoadStatus[assetPath]
+      if status == LoadStatus.Loaded then
+        self:SetMapTilePath(pieceNo, assetPath)
+      else
+        self:SetMapTilePath(pieceNo, "")
+        if status == LoadStatus.Failed then
         end
       end
     end
-    if oldPieceList and #oldPieceList > 0 then
-      for k, v in ipairs(oldPieceList) do
-        if i == v then
-          self.mapList[i]:SetPath("")
-        end
+  end
+  table.clear(self._pendingMapTiles)
+end
+
+function UMG_MainMap_C:ResetPendingTiles()
+  table.clear(self._pendingMapTiles)
+end
+
+function UMG_MainMap_C:PreloadRemainingTiles(sceneResId, excludePieceList)
+  local LoadStatus = bigMapModuleEnum.MapTileLoadStatus
+  local excludeSet = {}
+  if excludePieceList then
+    for _, pieceNo in ipairs(excludePieceList) do
+      excludeSet[pieceNo] = true
+    end
+  end
+  for i = 1, self.MaxTileCount do
+    if not excludeSet[i] then
+      local assetPath = BigMapUtils.GetMapPicPath(sceneResId, i)
+      local status = self._mapTileLoadStatus[assetPath]
+      if assetPath and not status then
+        self._mapTileLoadStatus[assetPath] = LoadStatus.Loading
+        self:LoadPanelRes(assetPath, 200, function(caller, request, asset)
+          self:OnMapTileLoaded(request.assetPath, true)
+        end, function(caller, request, err)
+          self:OnMapTileLoaded(request.assetPath, false)
+        end, nil)
       end
     end
   end
 end
 
 function UMG_MainMap_C:ShowAllMap(sceneResId)
-  for i = 1, 16 do
+  for i = 1, self.MaxTileCount do
     local assetPath = BigMapUtils.GetMapPicPath(sceneResId, i)
     if assetPath then
-      self.mapList[i]:SetPath(assetPath)
+      self:SetMapTilePath(i, assetPath)
     end
   end
 end
@@ -1275,12 +1364,6 @@ function UMG_MainMap_C:SetDefaultCenterPos(param, bLerp)
     self.uiData.heroPosY = heroPosY
     self.uiData.heroDir = heroDir
     self:UpdateHeroInfo()
-    local traceInfo = {}
-    traceInfo.traceType = bigMapModuleEnum.TraceType.Self
-    traceInfo.iconImagePos = {x = heroPosX, y = heroPosY}
-    traceInfo.dir = heroDir
-    self.data:SetTraceInfoList(traceInfo)
-    self.traceIconCreator:Create({traceInfo = traceInfo})
   end
   if CameraDir then
     self.uiData.CameraDir = CameraDir
@@ -1299,45 +1382,70 @@ function UMG_MainMap_C:SetDefaultCenterPos(param, bLerp)
   self:SetMapCenterPosition(posX, posY, bLerp)
 end
 
-function UMG_MainMap_C:RemoveNpcIconByNpcId(npcId)
-  if self.npcIconCreator and self.npcIconCreator:Get(npcId) then
-    self.npcIconCreator:Destroy(npcId)
+function UMG_MainMap_C:CreateHeroTrace(heroPosX, heroPosY, heroDir, sceneResId)
+  local traceInfo = {}
+  traceInfo.traceType = bigMapModuleEnum.TraceType.Self
+  traceInfo.iconImagePos = {x = heroPosX, y = heroPosY}
+  traceInfo.dir = heroDir
+  traceInfo.sceneResId = sceneResId or BigMapUtils.GetDefaultSceneResId()
+  self.data:SetTraceInfoList(traceInfo)
+  self.traceIconCreator:Create({traceInfo = traceInfo})
+end
+
+function UMG_MainMap_C:RemoveNpcIconByNpcId(npcId, logicId)
+  if self.npcIconCreator and self.npcIconCreator:Get(npcId, logicId) then
+    self.npcIconCreator:Destroy(npcId, logicId)
+    self:AddOrRemoveTempIconInfo(false, nil, npcId, logicId)
   end
 end
 
-function UMG_MainMap_C:RemoveCircleIcon(type, key)
-  if type == bigMapModuleEnum.CircleIconType.Activity and self.iconCircleCreator and self.iconCircleCreator:Get(type, key) then
-    self.iconCircleCreator:Destroy(type, key)
+function UMG_MainMap_C:RemoveCircleIcon(type, key, extraKey)
+  extraKey = extraKey or key
+  if self.iconCircleCreator and self.iconCircleCreator:Get(type, key, extraKey) then
+    self.iconCircleCreator:Destroy(type, key, extraKey)
   end
 end
 
-function UMG_MainMap_C:SetMapCenterByNPC(npcRefreshId, scaleValue, bSanctuary)
+function UMG_MainMap_C:SetMapCenterByNPC(npcRefreshId, scaleValue, bSanctuary, notOpenRightPanel, sceneResId)
   if scaleValue and scaleValue > 0 then
     self.mapScaleSlider:SetValue(scaleValue)
     self:OnMapScaleValueChanged(scaleValue)
   end
-  local npcInfo, sceneId = self.data:GetNpcInfoByRefreshId(npcRefreshId)
+  local npcInfo, sceneId = self.data:GetNpcInfoByRefreshId(npcRefreshId, sceneResId)
   if npcInfo then
-    local npcRefreshContent = _G.DataConfigManager:GetNpcRefreshContentConf(npcRefreshId)
-    if npcRefreshContent then
-      local areaConf = _G.DataConfigManager:GetAreaConf(npcRefreshContent.refresh_param)
-      if areaConf and areaConf.scene_res_id ~= self.lastOpenMapId then
-        self:ChangeMapScene(areaConf.scene_res_id)
-      elseif sceneId and sceneId ~= self.lastOpenMapId then
-        self:ChangeMapScene(sceneId)
+    local changeSceneId = sceneId
+    if changeSceneId and changeSceneId > 0 then
+    else
+      changeSceneId = BigMapUtils.GetSceneResIdByRefreshId(npcRefreshId)
+    end
+    if changeSceneId then
+      if changeSceneId ~= self.lastOpenMapId then
+        if changeSceneId > 0 then
+          self:ChangeMapScene(changeSceneId)
+        else
+          self:ChangeMapScene(BigMapUtils.GetDefaultSceneResId())
+        end
       end
-      if areaConf and areaConf.scene_res_id == self.lastOpenMapId or sceneId and sceneId == self.lastOpenMapId then
-        local posX, posY = self:ScenePositionToImagePosition(npcInfo.npc_pos.x, npcInfo.npc_pos.y)
-        self:SetMapCenterPosition(posX, posY)
-        local mousePos = self:GetTempVector2D(posX, posY)
-        self.mouseIcon:showAni(mousePos)
-        self.mouseIcon:setShowPosition(mousePos)
-      end
-      local curTraceData = self.data:GetCurTraceNpcData()
-      if curTraceData and npcInfo.entry_id == curTraceData.entry_id then
-      else
-        self:CreateTempTraceIcon(npcInfo, false)
-      end
+    else
+      self:ChangeMapScene(BigMapUtils.GetDefaultSceneResId())
+      changeSceneId = BigMapUtils.GetDefaultSceneResId()
+    end
+    if changeSceneId == self.lastOpenMapId then
+      local posX, posY = self:ScenePositionToImagePosition(npcInfo.npc_pos.x, npcInfo.npc_pos.y)
+      self:SetMapCenterPosition(posX, posY)
+      local mousePos = self:GetTempVector2D(posX, posY)
+      self.mouseIcon:showAni(mousePos)
+      self.mouseIcon:setShowPosition(mousePos)
+    end
+    local curTraceData = self.data:GetCurTraceNpcData()
+    if curTraceData and npcInfo.entry_id == curTraceData.entry_id then
+    else
+      self:CreateTempIcon(npcInfo, false)
+    end
+    if npcInfo and not self.module:CheckNpcInFogArea(npcInfo.npc_pos) then
+      self.mouseIcon.Slot:SetZOrder(12)
+    end
+    if not notOpenRightPanel then
       self:OnSingleIconClicked(npcInfo, false, bSanctuary)
     end
   end
@@ -1346,6 +1454,11 @@ end
 function UMG_MainMap_C:ChangeMapScene(sceneResId)
   self.data:SetCurShowSceneResId(sceneResId)
   self:SetMapShowList()
+  self:UpdateBg(sceneResId)
+end
+
+function UMG_MainMap_C:UpdateBg(sceneResId)
+  self.BGSwitcher:SetActiveWidgetIndex(self.module:IsShowMaskMap(sceneResId) and 0 or 1)
 end
 
 function UMG_MainMap_C:OnAddEventListener()
@@ -1594,9 +1707,9 @@ function UMG_MainMap_C:OnUpdateTravelInfos(travelInfos)
   end
   self.travelInfos = travelInfos
   if self.travelInfos then
-    self.CanvasPanel_1:InitNum(#travelInfos, self.MaxTravelNum, "\230\173\163\229\156\168\230\151\133\232\161\140\239\188\154")
+    self.CanvasPanel_1:InitNum(#travelInfos, self.MaxTravelNum, LuaText.travel_text)
   else
-    self.CanvasPanel_1:InitNum(0, self.MaxTravelNum, "\230\173\163\229\156\168\230\151\133\232\161\140\239\188\154")
+    self.CanvasPanel_1:InitNum(0, self.MaxTravelNum, LuaText.travel_text)
   end
   if self.module == nil then
     self.module = _G.NRCModeManager:GetModule("BigMapModule")
@@ -1662,7 +1775,7 @@ end
 function UMG_MainMap_C:GetLayerIdByIconTypeAndKey(type, _Info)
   local showLayerId = 0
   if type == bigMapModuleEnum.CreatorPriority.NpcIcons then
-    local iconWidget = self.npcIconCreator:Get(_Info.entry_id)
+    local iconWidget = self.npcIconCreator:Get(_Info.entry_id, _Info.logic_id)
     if iconWidget and UE4.UObject.IsValid(iconWidget) then
       showLayerId = iconWidget.mapLayerId
     elseif _Info.world_map_cfg_id then
@@ -1845,23 +1958,6 @@ function UMG_MainMap_C:OnWorldMapInfoUpdateEvent_DelayFunc()
     self.curWndSize = UE4.USlateBlueprintLibrary.GetLocalSize(self.traceLayer:GetCachedGeometry())
   end
   self:UpdateMapByPosition()
-  local moduleData = self.data
-  local traceNpcData = moduleData:GetCurTraceNpcData(self.data.curShowSceneResId)
-  if traceNpcData then
-    local CurTraceNpcId = traceNpcData.entry_id
-    local bCancel = true
-    if self.showNpcDatas then
-      for i, _NpcDatas in pairs(self.showNpcDatas) do
-        if _NpcDatas[CurTraceNpcId] then
-          bCancel = false
-          break
-        end
-      end
-    end
-    if bCancel and not self.module.TraceOnFogArea then
-      moduleData:SetCurTraceNpc(-1)
-    end
-  end
   self:UpdateTraceIconPositionAndVisible()
   if self.showNpcDatas then
     for _, datas in pairs(self.showNpcDatas) do
@@ -1911,6 +2007,7 @@ function UMG_MainMap_C:SwitchSelectIconEvent(id, bSanctuary)
   if sceneResId == self.data.curShowSceneResId then
     self.EndPos = {X = posX, Y = posY}
     self.LerpToNewMapCenterPos = true
+    self.endPosLayerId = self:GetLayerIdByIconTypeAndKey(bigMapModuleEnum.CreatorPriority.NpcIcons, npcInfo) or 0
   else
     self:SetTargetPos(npcInfo.npc_pos.x, npcInfo.npc_pos.y)
     local MapShowList = self.ComboBox.ComboBox_Popup.List_title:GetItemCount()
@@ -1933,7 +2030,7 @@ function UMG_MainMap_C:SwitchSelectIconEvent(id, bSanctuary)
   local mousePos = self:GetTempVector2D(posX, posY)
   self.mouseIcon:showAni(mousePos)
   self.mouseIcon:setShowPosition(mousePos)
-  self:DelayFrames(15, function()
+  self:DelayFrames(10, function()
     self:OnSingleIconClicked(npcInfo, nil, bSanctuary)
   end)
 end
@@ -1945,9 +2042,9 @@ function UMG_MainMap_C:OnStartOrCancelTraceEvent(bStart, traceInfo)
       if traceType == bigMapModuleEnum.TraceType.Marker then
         v:SetTraceEffect(bStart, traceInfo.markInfo.mark_id)
       elseif traceType == bigMapModuleEnum.TraceType.NPC then
-        v:SetTraceEffect(bStart, traceInfo.npcInfo.entry_id)
+        v:SetTraceEffect(bStart, traceInfo.npcInfo.entry_id, traceInfo.npcInfo.logic_id)
       elseif traceType == bigMapModuleEnum.TraceType.AutoTrace then
-        v:SetTraceEffect(bStart, traceInfo.npcInfo.entry_id)
+        v:SetTraceEffect(bStart, traceInfo.npcInfo.entry_id, traceInfo.npcInfo.logic_id)
       end
     end
   end
@@ -1961,9 +2058,9 @@ function UMG_MainMap_C:OnStartOrCancelTraceEvent(bStart, traceInfo)
   end
   if traceType == bigMapModuleEnum.TraceType.NPC then
     if bStart then
-      self:OnTraceNpcEvent(traceInfo.npcInfo.entry_id)
+      self:OnTraceNpcEvent(traceInfo.npcInfo.entry_id, traceInfo.npcInfo.logic_id)
     else
-      self:OnCancelTraceNpcEvent(traceInfo.npcInfo.entry_id)
+      self:OnCancelTraceNpcEvent(traceInfo.npcInfo.entry_id, nil, traceInfo.npcInfo.logic_id)
     end
     if self.module:CheckMapRightPanelOpened() then
       self.module:OnCmdCloseMapRightPanel()
@@ -1971,10 +2068,10 @@ function UMG_MainMap_C:OnStartOrCancelTraceEvent(bStart, traceInfo)
   end
 end
 
-function UMG_MainMap_C:OnTraceNpcEvent(_npcId)
+function UMG_MainMap_C:OnTraceNpcEvent(_npcId, logic_id)
   self:UpdateTraceIconPositionAndVisible()
   if 0 ~= _npcId then
-    local npcIcon = self.npcIconCreator:Get(_npcId)
+    local npcIcon = self.npcIconCreator:Get(_npcId, logic_id)
     if npcIcon then
       npcIcon:UpdateMapShowLevel(self.uiData.mapSliderScale, true)
     end
@@ -1982,49 +2079,47 @@ function UMG_MainMap_C:OnTraceNpcEvent(_npcId)
   self:ShowTempTraceIcons()
 end
 
-function UMG_MainMap_C:OnCancelTraceNpcEvent(_npcId, _isNpc)
-  self.traceIconNpc:SetData(nil)
+function UMG_MainMap_C:OnCancelTraceNpcEvent(_npcId, _isNpc, _logic_id)
   self:PlayNpcTraceEffect(_npcId, false, true)
   self:PlayNpcTraceEffect(_npcId, false, false)
-  if #self.uiItem.TempTraceIcons > 0 then
-    for i = 1, #self.uiItem.TempTraceIcons do
-      self.uiItem.TempTraceIcons[i]:RemoveFromViewport()
-      self.uiItem.TempTraceIcons[i]:Destruct()
-    end
-    table.clear(self.uiItem.TempTraceIcons)
-    self.uiItem.TempTraceIcons = {}
-    if self.module:CheckMapRightPanelOpened() then
-      self.module:OnCmdCloseMapRightPanel()
-    end
-  end
   if 0 ~= _npcId then
-    local npcIcon = self.npcIconCreator:Get(_npcId)
+    local npcIcon = self.npcIconCreator:Get(_npcId, _logic_id)
     if npcIcon and npcIcon.WorldMapConfig then
       local npcInfo = npcIcon.uiData
       local sceneResId, CanShowMap
       if npcInfo and npcInfo.npc_pos then
         sceneResId = BigMapUtils.GetSceneResIdByPos(npcInfo.npc_pos.x, npcInfo.npc_pos.y)
-        CanShowMap = self.module:GetCanShowMapByNpcContentId(npcInfo.npc_refresh_id, nil, sceneResId)
+        CanShowMap = self.data:CheckShouldShowNpc(npcInfo)
       end
       npcIcon:UpdateMapShowLevel(self.uiData.mapSliderScale, true)
       if npcIcon.WorldMapConfig.map_show_type == _G.Enum.MapIconShowType.MAP_HANDBOOK_TRACK then
-        self:RemoveNpcIconByNpcId(_npcId)
-        if self.module:CheckMapRightPanelOpened() then
-          self.module:OnCmdCloseMapRightPanel()
-        end
-      elseif npcInfo and (not self.module:CheckNpcInFogArea(npcInfo.npc_pos, sceneResId) or not CanShowMap) and BigMapUtils.IsBigWorldMap(self.data.curShowSceneResId) and (npcInfo.npcCfg.genre == Enum.ClientNpcType.CNT_PETBOSS or npcInfo.npcCfg.genre == Enum.ClientNpcType.CNT_FLOWER_SEED or npcInfo.npcCfg.genre == Enum.ClientNpcType.CNT_LEGENDARY_SPIRIT or npcInfo.npcCfg.genre == Enum.ClientNpcType.CNT_TELEPORT or npcIcon.WorldMapConfig.map_tips_show_type == Enum.MapTipsShowType.MAP_TIPS_OWL_SANCTUARY or npcIcon.WorldMapConfig.map_func_icon_group and npcIcon.WorldMapConfig.map_func_icon_group == _G.Enum.MapFuncIconGroup.MFIG_NPCFUNCTION or not CanShowMap) then
-        self:RemoveNpcIconByNpcId(_npcId)
-        if self.module:CheckMapRightPanelOpened() then
-          self.module:OnCmdCloseMapRightPanel()
-        end
+        self:RemoveTempIconWithRightPanel(_npcId, _logic_id)
+      elseif self:CheckIsTempIcon(_npcId, _logic_id) then
+        self:RemoveTempIconWithRightPanel(_npcId, _logic_id)
       end
     end
   end
   self.showNpcDatas = self.data:GetAllShowNpcs(self.data.curShowSceneResId)
 end
 
+function UMG_MainMap_C:RemoveTempIconWithRightPanel(entryId, logicId)
+  self:RemoveNpcIconByNpcId(entryId, logicId)
+  if self.module:CheckMapRightPanelOpened() then
+    self.module:OnCmdCloseMapRightPanel()
+  end
+end
+
+function UMG_MainMap_C:CheckIsTempIcon(entryId, logicId)
+  local itemData = self.npcIconCreator:GetItemData(entryId, logicId)
+  if itemData and itemData.iconData then
+    return itemData.iconData.bTemp
+  end
+  return false
+end
+
 function UMG_MainMap_C:OnMainMapRightPanelHideEvent(map_show_tip_type, npc_refresh_id)
   self:ShowOrHideMoneyBtn(true)
+  self:UndoSelectIconScale()
   if self.mouseIcon.isShow then
     self.mouseIcon:showEndAni()
     self.Customdot_2:SetIsVisible(false)
@@ -2033,22 +2128,20 @@ function UMG_MainMap_C:OnMainMapRightPanelHideEvent(map_show_tip_type, npc_refre
   if curTraceData and npc_refresh_id == curTraceData.npc_refresh_id then
     return
   end
-  if map_show_tip_type and map_show_tip_type == _G.Enum.MapTipsShowType.MAP_TIPS_RANDOM_SHOP and npc_refresh_id then
-    local npcInfo = self.data:GetNpcInfoByRefreshId(npc_refresh_id)
-    if npcInfo and npcInfo.npc_pos then
-      local sceneResId = BigMapUtils.GetSceneResIdByPos(npcInfo.npc_pos.x, npcInfo.npc_pos.y)
-      if not self.module:CheckNpcInFogArea(npcInfo.npc_pos) or not self.module:GetCanShowMapByNpcContentId(npcInfo.npc_refresh_id, nil, sceneResId) then
-        local posX, posY = self:ScenePositionToImagePosition(npcInfo.npc_pos.x, npcInfo.npc_pos.y)
-        local iconData = {}
-        iconData.layerIndex = 1
-        iconData.iconImagePos = {x = posX, y = posY}
-        iconData.curMapSliderScale = self.uiData.mapSliderScale
-        iconData.curMapImageScale = self.uiData.mapImageScale
-        iconData.bTracing = false
-        if self.npcIconCreator then
-          self.npcIconCreator:Create({iconData = iconData, npcInfo = npcInfo})
-        end
-      end
+  local npcInfo = self.data:GetNpcInfoByRefreshId(npc_refresh_id)
+  if npcInfo and self:CheckIsTempIcon(npcInfo.entry_id, npcInfo.logic_id) then
+    self:RemoveNpcIconByNpcId(npcInfo.entry_id, npcInfo.logic_id)
+  end
+  if map_show_tip_type and map_show_tip_type == _G.Enum.MapTipsShowType.MAP_TIPS_RANDOM_SHOP and npc_refresh_id and npcInfo and npcInfo.npc_pos and (not self.module:CheckNpcInFogArea(npcInfo.npc_pos) or not self.data:CheckShouldShowNpc(npcInfo)) then
+    local posX, posY = self:ScenePositionToImagePosition(npcInfo.npc_pos.x, npcInfo.npc_pos.y)
+    local iconData = {}
+    iconData.layerIndex = 1
+    iconData.iconImagePos = {x = posX, y = posY}
+    iconData.curMapSliderScale = self.uiData.mapSliderScale
+    iconData.curMapImageScale = self.uiData.mapImageScale
+    iconData.bTracing = false
+    if self.npcIconCreator then
+      self.npcIconCreator:Create({iconData = iconData, npcInfo = npcInfo})
     end
   end
 end
@@ -2148,6 +2241,11 @@ end
 
 function UMG_MainMap_C:OnTouchMoved(_MyGeometry, _InTouchEvent)
   local deltaX, deltaY = FPointerEvent_GetCursorDelta(_InTouchEvent)
+  local viewportScale = UE4.UWidgetLayoutLibrary.GetViewportScaleConsiderBorder(_G.UE4Helper.GetCurrentWorld())
+  if viewportScale and viewportScale > 0 then
+    deltaX = deltaX / viewportScale
+    deltaY = deltaY / viewportScale
+  end
   local currentFrameCount = GetFrameCount()
   if self.consumedTouchMoveFrameCount ~= currentFrameCount then
     local bConsumed = self:TryConsumeTouchMoved(self.deltaXSinceLastFrame, self.deltaYSinceLastFrame)
@@ -2239,9 +2337,11 @@ function UMG_MainMap_C:CreateVisibleNpc()
     if self.curShowPieceIdList and #self.curShowPieceIdList > 0 then
       for key, mapPieceId in ipairs(self.curShowPieceIdList) do
         if self.showNpcDatas[mapPieceId] then
-          for entryId, npcInfo in pairs(self.showNpcDatas[mapPieceId]) do
-            if self:CheckNpcShowInMap(npcInfo) then
-              self:ShowNpcInfoSingle(npcInfo)
+          for entryId, npcInfos in pairs(self.showNpcDatas[mapPieceId]) do
+            for logicId, npcInfo in pairs(npcInfos) do
+              if self:CheckNpcShowInMap(npcInfo) then
+                self:ShowNpcInfoSingle(npcInfo)
+              end
             end
           end
         end
@@ -2351,7 +2451,7 @@ function UMG_MainMap_C:Tick(MyGeometry, InDeltaTime)
       self.LerpToNewMapCenterPos = false
       self.DeltaTimer = 0
     end
-    self:SetMapCenterPosition(pos.X, pos.Y)
+    self:SetMapCenterPosition(pos.X, pos.Y, nil, self.endPosLayerId)
   end
 end
 
@@ -2459,7 +2559,7 @@ function UMG_MainMap_C:NewMarkerEvent(_imageCenterPos, _imageRadius, mark_id)
       if mapShowLevel <= scaleConf.max_scale / 100.0 and mapShowLevel >= scaleConf.min_scale / 100.0 then
         isShow = true
       else
-        isShow = false
+        isShow = true
       end
     end
     if mark_id then
@@ -2705,13 +2805,9 @@ function UMG_MainMap_C:OnUpdateTraceEffect(taskId)
 end
 
 function UMG_MainMap_C:OnUpdateShowTaskInfo()
-  if self.data then
-    self.data:CreateShowTaskInfo()
-    local ShowTaskInfo = self.data:GetShowTaskInfo()
-    if self.taskIconCreator and ShowTaskInfo then
-      self.taskIconCreator:UpdateShowTaskInfo(ShowTaskInfo)
-    end
-  end
+  self.data:CreateShowTaskInfo()
+  local ShowTaskInfo = self.data:GetShowTaskInfo()
+  self.taskIconCreator:UpdateShowTaskInfo(ShowTaskInfo)
 end
 
 function UMG_MainMap_C:OnChangeSelectedScene(sceneId)
@@ -2739,30 +2835,37 @@ function UMG_MainMap_C:OnFruitNpcsInfoListSetFinish(fruitNpcsInfo)
 end
 
 function UMG_MainMap_C:CreateNpcIcon(_npcId, _posX, _posY, _npcInfo)
-  if self.npcIconCreator:Get(_npcInfo.entry_id) then
+  if self.npcIconCreator:Get(_npcInfo.entry_id, _npcInfo.logic_id) then
   else
     local iconData = {}
+    local iconCircleData = {}
+    iconCircleData.iconImagePos = {x = _posX, y = _posY}
+    iconCircleData.curMapImageScale = self.uiData.mapImageScale
+    iconCircleData.curMapSliderScale = self.uiData.mapSliderScale
+    iconCircleData.curShowLayerId = self.lastShowLayerId
     iconData.iconImagePos = {x = _posX, y = _posY}
     iconData.curMapImageScale = self.uiData.mapImageScale
     iconData.curMapSliderScale = self.uiData.mapSliderScale
     iconData.curShowLayerId = self.lastShowLayerId
-    if self:CheckIsTracing(bigMapModuleEnum.TraceType.NPC, _npcInfo) or self:CheckIsTracing(bigMapModuleEnum.TraceType.TempTrace, _npcInfo) then
+    if self:CheckIsTracing(bigMapModuleEnum.TraceType.NPC, _npcInfo) or self:CheckIsTracing(bigMapModuleEnum.TraceType.TempTrace, _npcInfo) or self:CheckIsTracing(bigMapModuleEnum.TraceType.ForceTrace, _npcInfo) then
       iconData.bTracing = true
+      iconCircleData.bTracing = true
     end
     self.mapItemCreator:Create(self.npcIconCreator, bigMapModuleEnum.CreatorPriority.NpcIcons, nil, {iconData = iconData, npcInfo = _npcInfo})
     if _npcInfo.worldMapActivityConf then
-      iconData.iconTemplateIndex = 1
-      if iconData.layerIndex and iconData.layerIndex > 0 then
+      iconCircleData.iconTemplateIndex = 1
+      if iconCircleData.layerIndex and iconCircleData.layerIndex > 0 then
       else
-        iconData.layerIndex = BigMapUtils.GetNpcIconLayer(_npcInfo)
+        iconCircleData.layerIndex = BigMapUtils.GetNpcIconLayer(_npcInfo)
       end
-      iconData.curMapImageScale = self.uiData.imageToSceneScale * 100
+      iconCircleData.curMapImageScale = self.uiData.imageToSceneScale * 100
+      iconCircleData.layerIndex = 1
       local circleInfo = {}
       circleInfo.showType = bigMapModuleEnum.CircleIconType.Activity
       circleInfo.typeId = _npcInfo.worldMapActivityConf.id
       circleInfo.circleRadius = _npcInfo.worldMapActivityConf.radius
       circleInfo.showScale = _npcInfo.worldMapConf.element_show_scale
-      self.iconCircleCreator:Create(iconData, circleInfo)
+      self.iconCircleCreator:Create(iconCircleData, circleInfo)
     end
   end
 end
@@ -2782,14 +2885,25 @@ function UMG_MainMap_C:CreateTraceIcon()
   if self.data.traceInfoList and #self.data.traceInfoList > 0 then
     for traceType, traceInfo in pairs(self.data.traceInfoList) do
       if traceType ~= bigMapModuleEnum.TraceType.Task then
-        if traceType ~= bigMapModuleEnum.TraceType.Visitor and traceType ~= bigMapModuleEnum.TraceType.TempTrace then
+        if traceType ~= bigMapModuleEnum.TraceType.Visitor and traceType ~= bigMapModuleEnum.TraceType.TempTrace and traceType ~= bigMapModuleEnum.TraceType.ForceTrace then
           self.traceIconCreator:Create({traceInfo = traceInfo})
         elseif traceInfo then
           if traceType == bigMapModuleEnum.TraceType.TempTrace then
-            local npcInfo = traceInfo.npcInfo
-            if npcInfo and npcInfo.worldMapConf and 1 == npcInfo.worldMapConf.explored_in_map then
-              for k, v in pairs(traceInfo) do
+            for k, v in pairs(traceInfo) do
+              local npcInfo = v.npcInfo
+              if npcInfo and npcInfo.worldMapConf and 1 == npcInfo.worldMapConf.explored_in_map then
                 self.mapItemCreator:Create(self.traceIconCreator, bigMapModuleEnum.CreatorPriority.TraceIcons, nil, {traceInfo = v})
+              end
+            end
+          elseif traceType == bigMapModuleEnum.TraceType.ForceTrace then
+            for trackType, traceList in pairs(traceInfo) do
+              if traceList and #traceList > 0 then
+                for key, v in ipairs(traceList) do
+                  local npcInfo = v.npcInfo
+                  if npcInfo and npcInfo.worldMapConf and 1 == npcInfo.worldMapConf.explored_in_map then
+                    self.mapItemCreator:Create(self.traceIconCreator, bigMapModuleEnum.CreatorPriority.TraceIcons, nil, {traceInfo = v})
+                  end
+                end
               end
             end
           else
@@ -2812,15 +2926,38 @@ function UMG_MainMap_C:OnShowTaskIcon(sceneResId)
   if self.isTravel then
     return
   end
+  local CurSceneResId = self:GetCurSceneResId()
   sceneResId = sceneResId or self:GetCurSceneResId()
   local showTaskList = self.data:GetShowTaskInfo()
+  local TrackList = {}
+  local CurTrackTask = _G.NRCModuleManager:DoCmd(TaskModuleCmd.GetDataTrackTask)
+  local TaskMap = _G.NRCModuleManager:DoCmd(TaskModuleCmd.GetTaskMap)
+  if CurTrackTask and CurTrackTask.Trackers then
+    for _, TrackItem in pairs(CurTrackTask.Trackers) do
+      TrackList[TrackItem.TaskInfo.id] = TrackItem
+    end
+  end
   for k, v in ipairs(showTaskList) do
     local IsShow = self.data:SeparatedTaskByGuideList(v.TaskSceneResId, sceneResId, v.TaskShowType)
     if IsShow then
       if v.TaskShowType == bigMapModuleEnum.TaskShowType.TRACING then
         local taskPosX, taskPosY = self:ScenePositionToImagePosition(v.NpcPosition[1].pos.x, v.NpcPosition[1].pos.y)
+        if TrackList[v.TaskConf.id] and sceneResId == CurSceneResId then
+          local TaskObject = TaskMap[v.TaskConf.id]
+          local AllTrackers = TaskObject.Trackers
+          if AllTrackers and #AllTrackers > 0 then
+            for _, TrackItem in pairs(AllTrackers) do
+              if TrackItem.go_index == v.go_index and not TrackItem:IsCheckConditionDone(TrackItem.go_index) then
+                local Pos = TrackItem:GetPosition()
+                if Pos then
+                  taskPosX, taskPosY = self:ScenePositionToImagePosition(Pos.X, Pos.Y)
+                  break
+                end
+              end
+            end
+          end
+        end
         self:CreateTaskIcon(taskPosX, taskPosY, v.TaskConf, v.TaskShowType, v.SubTaskId, v.go_index, v, true)
-        local CurTrackTask = _G.NRCModuleManager:DoCmd(TaskModuleCmd.GetDataTrackTask)
         if CurTrackTask and CurTrackTask.Trackers then
           for _, TrackItem in pairs(CurTrackTask.Trackers) do
             for Index, Value in ipairs(TrackItem.TaskConfig.go_guide) do
@@ -2911,18 +3048,6 @@ function UMG_MainMap_C:OnChangeMarkerIcon(_SelectMarker)
   end
 end
 
-function UMG_MainMap_C:OnRemovedTempTraceWidget()
-  if not self.uiItem then
-    return
-  end
-  if self.uiItem.TempTraceIcons and #self.uiItem.TempTraceIcons > 0 then
-    for i = 1, #self.uiItem.TempTraceIcons do
-      self.uiItem.TempTraceIcons[i]:RemoveFromViewport()
-      self.uiItem.TempTraceIcons[i]:Destruct()
-    end
-  end
-end
-
 function UMG_MainMap_C:OnShowMarker(markerInfo, opType, showSceneResId)
   if self.isTravel then
     return
@@ -2983,69 +3108,60 @@ function UMG_MainMap_C:OnShowMarker(markerInfo, opType, showSceneResId)
   end
 end
 
-function UMG_MainMap_C:CreateTempTraceIcon(npcInfo, bTracing)
-  if npcInfo and npcInfo.npc_pos then
-    local sceneResId = BigMapUtils.GetSceneResIdByPos(npcInfo.npc_pos.x, npcInfo.npc_pos.y)
-    if not self.module:CheckNpcInFogArea(npcInfo.npc_pos) or not self.module:GetCanShowMapByNpcContentId(npcInfo.npc_refresh_id, nil, sceneResId) then
-      local posX, posY = self:ScenePositionToImagePosition(npcInfo.npc_pos.x, npcInfo.npc_pos.y)
-      local iconData = {}
-      iconData.layerIndex = 3
-      iconData.iconImagePos = {x = posX, y = posY}
-      iconData.curMapSliderScale = self.uiData.mapSliderScale
-      iconData.curMapImageScale = self.uiData.mapImageScale
-      iconData.bTracing = bTracing
-      if self.npcIconCreator then
+function UMG_MainMap_C:AddOrRemoveTempIconInfo(isAdd, npcInfo, entryId, logicId)
+  if isAdd then
+    entryId = entryId or npcInfo.entry_id
+    logicId = logicId or npcInfo.logic_id or entryId
+    self.tempIconInfoList[entryId] = self.tempIconInfoList[entryId] or {}
+    self.tempIconInfoList[entryId][logicId] = npcInfo
+    return
+  end
+  local entryList = self.tempIconInfoList[entryId]
+  if not entryList or not entryList[logicId] then
+    return
+  end
+  entryList[logicId] = nil
+  if not table.isEmpty(entryList) then
+    self.tempIconInfoList[entryId] = nil
+  end
+end
+
+function UMG_MainMap_C:CreateTempIcon(npcInfo, bTracing)
+  if npcInfo and npcInfo.npc_pos and self.module:CheckShowTempIcon(npcInfo) then
+    self:AddOrRemoveTempIconInfo(true, npcInfo)
+    if self.npcIconCreator then
+      local _entryId = npcInfo.entry_id
+      local _logicId = npcInfo.logic_id
+      local npcIcon = self.npcIconCreator:Get(_entryId, _logicId)
+      if npcInfo and UE4.UObject.IsValid(npcIcon) then
+        self.npcIconCreator:SetIconTempFlag(_entryId, _logicId, true)
+        self.npcIconCreator:SetIconLayer(_entryId, _logicId, 3)
+        self.npcIconCreator:SetTraceEffect(bTracing, _entryId, _logicId)
+      else
+        local posX, posY = self:ScenePositionToImagePosition(npcInfo.npc_pos.x, npcInfo.npc_pos.y)
+        local iconData = {}
+        iconData.layerIndex = 3
+        iconData.iconImagePos = {x = posX, y = posY}
+        iconData.curMapSliderScale = self.uiData.mapSliderScale
+        iconData.curMapImageScale = self.uiData.mapImageScale
+        iconData.bTracing = bTracing
+        iconData.bTemp = true
         self.npcIconCreator:Create({iconData = iconData, npcInfo = npcInfo})
       end
-      self.mouseIcon.Slot:SetZOrder(12)
     end
+    self.mouseIcon.Slot:SetZOrder(12)
   end
 end
 
 function UMG_MainMap_C:ShowTempTraceIcons()
   local npcInfo = self.data:GetCurTraceNpcData()
   if npcInfo and npcInfo.npc_pos then
-    local posX, posY = self:ScenePositionToImagePosition(npcInfo.npc_pos.x, npcInfo.npc_pos.y)
-    local sceneResId = BigMapUtils.GetSceneResIdByPos(npcInfo.npc_pos.x, npcInfo.npc_pos.y)
     local worldMapCfg = self.WorldMapConfigs[npcInfo.world_map_cfg_id]
     if (npcInfo.npcCfg.genre == Enum.ClientNpcType.CNT_PETBOSS or npcInfo.npcCfg.genre == Enum.ClientNpcType.CNT_FLOWER_SEED or npcInfo.npcCfg.genre == Enum.ClientNpcType.CNT_LEGENDARY_SPIRIT or worldMapCfg and worldMapCfg.map_tips_show_type == Enum.MapTipsShowType.MAP_TIPS_RANDOM_SHOP) and not self.module:CheckNpcInFogArea(npcInfo.npc_pos) then
-      if npcInfo.npcCfg.genre == Enum.ClientNpcType.CNT_PETBOSS then
-        self:CreateTempTraceIcon(npcInfo, true)
-      elseif npcInfo.npcCfg.genre == Enum.ClientNpcType.CNT_FLOWER_SEED then
-        self:CreateTempTraceIcon(npcInfo, true)
-      elseif npcInfo.npcCfg.genre == Enum.ClientNpcType.CNT_LEGENDARY_SPIRIT then
-        self:CreateTempTraceIcon(npcInfo, true)
-      elseif worldMapCfg and worldMapCfg.map_tips_show_type == Enum.MapTipsShowType.MAP_TIPS_RANDOM_SHOP then
-        self:CreateTempTraceIcon(npcInfo, true)
-      end
-      local npcPosX, npcPosY = self:ScenePositionToImagePosition(npcInfo.npc_pos.x, npcInfo.npc_pos.y)
-      self.traceIconNpc:SetData({
-        imagePosX = npcPosX,
-        imagePosY = npcPosY,
-        npcId = npcInfo.entry_id,
-        npcCfg = npcInfo
-      })
+      self:CreateTempIcon(npcInfo, true)
       self:UpdateTraceIconPositionAndVisible()
-    elseif self.module.TraceOnFogArea and (not self.module:CheckNpcInFogArea(npcInfo.npc_pos) or not self.module:GetCanShowMapByNpcContentId(npcInfo.npc_refresh_id, nil, sceneResId)) then
-      if npcInfo.npcCfg.genre == Enum.ClientNpcType.CNT_PETBOSS or npcInfo.npcCfg.genre == Enum.ClientNpcType.CNT_LEGENDARY_SPIRIT then
-        self:CreateTempTraceIcon(npcInfo, true)
-      elseif npcInfo.npcCfg.genre == Enum.ClientNpcType.CNT_CAMP or npcInfo.npcCfg.genre == Enum.ClientNpcType.CNT_TELEPORT or npcInfo.npcCfg.genre == Enum.ClientNpcType.CNT_FLOWER_SEED or worldMapCfg and worldMapCfg.map_tips_show_type == Enum.MapTipsShowType.MAP_TIPS_OWL_SANCTUARY then
-        self:CreateTempTraceIcon(npcInfo, true)
-      else
-        local isShowCathPet = self.module:IsShowCatchPet(npcInfo.npc_refresh_id)
-        if worldMapCfg and worldMapCfg.map_func_icon_group and worldMapCfg.map_func_icon_group == _G.Enum.MapFuncIconGroup.MFIG_NPCFUNCTION or isShowCathPet then
-          self:CreateTempTraceIcon(npcInfo, true)
-        else
-          self:CreateTempTraceIcon(npcInfo, true)
-        end
-      end
-      local npcPosX, npcPosY = self:ScenePositionToImagePosition(npcInfo.npc_pos.x, npcInfo.npc_pos.y)
-      self.traceIconNpc:SetData({
-        imagePosX = npcPosX,
-        imagePosY = npcPosY,
-        npcId = npcInfo.entry_id,
-        npcCfg = npcInfo
-      })
+    elseif self.module:CheckShowTempIcon(npcInfo) then
+      self:CreateTempIcon(npcInfo, true)
       self:UpdateTraceIconPositionAndVisible()
     end
   end
@@ -3150,7 +3266,6 @@ function UMG_MainMap_C:UpdateIconScale(_scale, _force, _scaleRatio)
   self.iconCircleCreator:UpdateIconScale(scaleParam)
   self.mouseIcon:SetRenderScale(scaleParam * self.mouseScaleParam)
   self.Customdot_2:SetRenderScale(scaleParam)
-  self:UpdateSelectIconScale(scaleParam)
   if self.UpdateAreaNameDelay then
     self:CancelDelayByID(self.UpdateAreaNameDelay)
     self.UpdateAreaNameDelay = nil
@@ -3178,6 +3293,7 @@ function UMG_MainMap_C:UpdateHeroInfo()
     local heroPos, heroDir = self:GetPlayerLocation()
     self.heroIcon.HeroIcon1:SetRenderTransformAngle(heroDir or 0)
     Log.Debug(scaleParam, uiData.heroPosX, uiData.heroPosY, uiData.heroDir, "UMG_MainMap_C:UpdateCameraInfo")
+    self:CreateHeroTrace(uiData.heroPosX, uiData.heroPosY, heroDir, self.data.curShowSceneResId)
   end
 end
 
@@ -3186,15 +3302,6 @@ function UMG_MainMap_C:UpdateCameraInfo()
   if uiData.CameraDir then
     self.heroIcon.CameraIcon:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
     self.heroIcon.CameraIcon:SetRenderTransformAngle(uiData.CameraDir or 0)
-  end
-end
-
-function UMG_MainMap_C:UpdateMapShowLevelForTempTraceIcon(_level)
-  local uiItem = self.uiItem
-  if uiItem.TempTraceIcons then
-    for _, areaWidget in pairs(uiItem.TempTraceIcons) do
-      areaWidget:UpdateMapShowLevel(_level)
-    end
   end
 end
 
@@ -3385,7 +3492,7 @@ function UMG_MainMap_C:SetMaskBySceneResId(sceneResId, newPieceList, oldPieceLis
     self.maskDynamicMaterialList[index]:SetTextureParameterValue("MaskMap", asset)
   end
   
-  for i = 1, 16 do
+  for i = 1, self.MaxTileCount do
     local id = ""
     if i < 10 then
       id = string.format("%s%d", "0", i)
@@ -3451,7 +3558,14 @@ function UMG_MainMap_C:ShowNpcInfoSingle(npcInfo)
     return
   end
   if self.data:GetCurTraceNpcData() and npcInfo.entry_id ~= self.data:GetCurTraceNpcData().entry_id then
-    local scaleConf = _G.DataConfigManager:GetWorldMapScaleConf(self.WorldMapConfigs[npcInfo.world_map_cfg_id].element_show_scale)
+    local worldMapCfg = self.WorldMapConfigs[npcInfo.world_map_cfg_id]
+    if not worldMapCfg then
+      return
+    end
+    local scaleConf = _G.DataConfigManager:GetWorldMapScaleConf(worldMapCfg.element_show_scale)
+    if not scaleConf then
+      return
+    end
     if self.uiData.mapSliderScale <= scaleConf.max_scale / 100.0 and self.uiData.mapSliderScale >= scaleConf.min_scale / 100.0 then
     else
       return
@@ -3476,7 +3590,7 @@ function UMG_MainMap_C:ShowNpcInfoSingle(npcInfo)
       npcInfo.npc_pos.y = pos.Y
     end
   end
-  if npcInfo.worldMapConf and (npcInfo.worldMapConf.map_show_type == Enum.MapIconShowType.MAP_SEASON_DAZZLING or npcInfo.worldMapConf.map_show_type == Enum.MapIconShowType.MAP_NPC_DAZZLING) then
+  if npcInfo.worldMapConf and (npcInfo.worldMapConf.map_show_type == Enum.MapIconShowType.MAP_SEASON_DAZZLING or npcInfo.worldMapConf.map_show_type == Enum.MapIconShowType.MAP_NPC_DAZZLING or npcInfo.worldMapConf.map_show_type == Enum.MapIconShowType.MAP_HANDBOOK_TRACK) then
     local npc = _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.GetNpcByLogicID, npcInfo.logic_id or -1)
     if npc and npc.viewObj then
       local pos = npc:GetActorLocation()
@@ -3565,7 +3679,7 @@ function UMG_MainMap_C:GetPlayerCameraDir()
   end
 end
 
-function UMG_MainMap_C:SetMapCenterPosition(_posX, _posY, _bLerp)
+function UMG_MainMap_C:SetMapCenterPosition(_posX, _posY, _bLerp, endPosLayerId)
   if true == _bLerp then
     self.EndPos = {X = _posX, Y = _posY}
     self.LerpToNewMapCenterPos = true
@@ -3622,10 +3736,10 @@ function UMG_MainMap_C:SetMapCenterPosition(_posX, _posY, _bLerp)
   self:UpdateTraceIconPositionAndVisible()
   self.curShowPieceIdList = BigMapUtils.GetLoadPiecesByImagePosition(1024, self.curWndSize, self:GetTempVector2D(uiData.mapCenterX, uiData.mapCenterY), self.uiData.mapImageScale)
   self:UpdateMapByPosition()
-  self:SetCenterAreaId()
+  self:SetCenterAreaId(endPosLayerId)
 end
 
-function UMG_MainMap_C:SetCenterAreaId()
+function UMG_MainMap_C:SetCenterAreaId(endPosLayerId)
   local curShowDeadWoodList = self.data.checkDeadWoodList[self.data.curShowSceneResId]
   if curShowDeadWoodList and #curShowDeadWoodList > 0 then
     local posU = self.uiData.mapCenterX / self.uiData.originalMapWidth * 1024
@@ -3636,7 +3750,7 @@ function UMG_MainMap_C:SetCenterAreaId()
       if self.bUseCenterLayerId == true then
         local layerId = self:GetLayerId(areaIds)
         if layerId > 0 then
-          self:SetLayerMapList(layerId, true)
+          self:SetLayerMapList(layerId, not endPosLayerId)
         else
           self:SetLayerMapList(0)
         end
@@ -3740,129 +3854,157 @@ end
 
 function UMG_MainMap_C:SetIconScaleBySelected(_info)
   local scaleParam = self:GetScaleParam()
+  self:UndoSelectIconScale()
   if _info.npcCfg then
     self.data:SetCurSelectedIconInfo(bigMapModuleEnum.CreatorPriority.NpcIcons, _info)
-    self.npcIconCreator:UpdateIconScaleByEntryId(_info.entry_id, scaleParam * 1.2)
+    self:UpdateSelectIconScale(bigMapModuleEnum.CreatorPriority.NpcIcons, _info, scaleParam, true)
   elseif _info.MarksType and _info.MarksType == bigMapModuleEnum.MarksType.CustomMark then
     self.data:SetCurSelectedIconInfo(bigMapModuleEnum.CreatorPriority.MarkerIcons, _info)
+    self:UpdateSelectIconScale(bigMapModuleEnum.CreatorPriority.MarkerIcons, _info, scaleParam, true)
   elseif _info.visitorIndex and _info.visitorIndex > 0 then
     self.data:SetCurSelectedIconInfo(bigMapModuleEnum.CreatorPriority.VisitorIcons, _info)
+    self:UpdateSelectIconScale(bigMapModuleEnum.CreatorPriority.VisitorIcons, _info, scaleParam, true)
   elseif _info.TaskConf then
-    self.data:SetCurSelectedIconInfo(bigMapModuleEnum.CreatorPriority.TaskIcons)
+    self.data:SetCurSelectedIconInfo(bigMapModuleEnum.CreatorPriority.TaskIcons, _info)
+    self:UpdateSelectIconScale(bigMapModuleEnum.CreatorPriority.TaskIcons, _info, scaleParam, true)
   else
     Log.Dump(_info, 5, "UMG_MainMap_C:SetIconScaleBySelected")
   end
 end
 
-function UMG_MainMap_C:UpdateSelectIconScale(_scaleParam)
-  local curSelectIconInfo = self.data:GetCurSelectedIconInfo()
-  if curSelectIconInfo then
-    local type = curSelectIconInfo.type
-    local iconInfo = curSelectIconInfo.iconInfo
-    if type > 0 then
-      if curSelectIconInfo.type == bigMapModuleEnum.CreatorPriority.NpcIcons then
-        self.npcIconCreator:UpdateIconScaleByEntryId(iconInfo.entry_id, _scaleParam * 1.2)
-      elseif curSelectIconInfo.type == bigMapModuleEnum.CreatorPriority.MarkerIcons then
-        self.markerIconCreator:UpdateIconScaleByMarkId(iconInfo.mark_id, _scaleParam * 1.2)
-      elseif curSelectIconInfo.type == bigMapModuleEnum.CreatorPriority.VisitorIcons then
-        self.visitorIconCreator:UpdateIconScaleByUin(iconInfo.visitorInfo.uin, _scaleParam * 1.2)
-      elseif curSelectIconInfo.type == bigMapModuleEnum.CreatorPriority.TaskIcons then
-        self.taskIconCreator:UpdateIconScaleByParam(iconInfo.TaskConf.id, iconInfo.SubTaskId, iconInfo.go_index, _scaleParam * 1.2)
-      end
+function UMG_MainMap_C:UpdateSelectIconScale(type, iconInfo, _scaleParam, bZoomIn)
+  local kValue = bZoomIn and 1.2 or 1
+  if type > 0 and iconInfo then
+    if type == bigMapModuleEnum.CreatorPriority.NpcIcons then
+      self.npcIconCreator:UpdateIconScaleById(iconInfo.entry_id, iconInfo.logic_id, _scaleParam * kValue)
+    elseif type == bigMapModuleEnum.CreatorPriority.MarkerIcons then
+      self.markerIconCreator:UpdateIconScaleByMarkId(iconInfo.mark_id, _scaleParam * kValue)
+    elseif type == bigMapModuleEnum.CreatorPriority.VisitorIcons then
+      self.visitorIconCreator:UpdateIconScaleByUin(iconInfo.visitorInfo.uin, _scaleParam * kValue)
+    elseif type == bigMapModuleEnum.CreatorPriority.TaskIcons then
+      self.taskIconCreator:UpdateIconScaleByParam(iconInfo.TaskConf.id, iconInfo.SubTaskId, iconInfo.go_index, _scaleParam * kValue)
     end
   end
 end
 
-function UMG_MainMap_C:ShowNpcListForRange(_imageCenterPos, _imageRadius)
-  self.showNpcDatas = self.data:GetAllShowNpcs(self.data.curShowSceneResId)
-  local sceneCenterX, sceneCenterY = self:ImagePositionToScenePosition(_imageCenterPos.X, _imageCenterPos.Y)
-  local sceneRadius = math.ceil(_imageRadius / self.uiData.imageToSceneScale / self.uiData.mapImageScale)
-  local npcList = {}
-  local radius2 = sceneRadius * sceneRadius
-  local npcDatas
-  if self.module.TraceOnFogArea then
-    npcDatas = self.data:GetNpcDatas()
-  else
-    npcDatas = self.showNpcDatas
+function UMG_MainMap_C:UndoSelectIconScale()
+  local curSelectIconInfo = self.data:GetCurSelectedIconInfo()
+  if curSelectIconInfo then
+    local scaleParam = self:GetScaleParam()
+    local type = curSelectIconInfo.type
+    local iconInfo = curSelectIconInfo.iconInfo
+    self:UpdateSelectIconScale(type, iconInfo, scaleParam, false)
   end
-  local areaDatas = self.showAreaNpcDatas
-  local taskDatas = self.data:GetShowTaskInfo()
-  local mapShowLevel = self.uiData.mapSliderScale
-  if npcDatas then
-    for mapPieceId, npcInfos in pairs(npcDatas) do
-      for npcId, npcInfo in pairs(npcInfos) do
-        local isShow = false
-        local checkFog = false
+end
+
+local FOG_THRESHOLD = 125
+local MOUSE_ICON_ZORDER = 12
+
+function UMG_MainMap_C:IsInScaleRange(mapShowLevel, scaleConf)
+  if not scaleConf then
+    return true
+  end
+  return mapShowLevel <= scaleConf.max_scale / 100.0 and mapShowLevel >= scaleConf.min_scale / 100.0
+end
+
+function UMG_MainMap_C:IsNotInFog(sceneX, sceneY, threshold)
+  threshold = threshold or FOG_THRESHOLD
+  if not BigMapUtils.IsBigWorldMap(self.data.curShowSceneResId) then
+    return true
+  end
+  local posX, posY = self:ScenePositionToImagePosition(sceneX, sceneY)
+  local posU = posX / self.uiData.originalMapWidth
+  local posV = posY / self.uiData.originalMapHeight
+  local RValue = UE4.UNRCTUIStatics.GetTexture2DPixelColorFromUV(self.data.FullMaskRunTime, self:GetTempVector2D(posU, posV))
+  return threshold < RValue.R
+end
+
+function UMG_MainMap_C:IsInRange(x, y, radius2)
+  return radius2 >= x * x + y * y
+end
+
+function UMG_MainMap_C:GetNpcShowTopAndFogCheck(npcInfo, worldMapCfg, traceNpcInfo)
+  local showTop = 0
+  if npcInfo.status == _G.ProtoEnum.LockStatus.ENUM.LOCKED then
+    if worldMapCfg and 1 == worldMapCfg.lock_element_show_top then
+      showTop = 1
+    end
+  elseif worldMapCfg and 1 == worldMapCfg.unlock_element_show_top then
+    showTop = 1
+  end
+  if traceNpcInfo and traceNpcInfo.npc_refresh_id == npcInfo.npc_refresh_id then
+    local npcCfg = npcInfo.npcCfg
+    local isSpecialNpc = npcCfg and (npcCfg.genre == Enum.ClientNpcType.CNT_PETBOSS or npcCfg.genre == Enum.ClientNpcType.CNT_LEGENDARY_SPIRIT or npcCfg.genre == Enum.ClientNpcType.CNT_FLOWER_SEED)
+    local isRandomShop = worldMapCfg and worldMapCfg.map_tips_show_type == Enum.MapTipsShowType.MAP_TIPS_RANDOM_SHOP
+    if isSpecialNpc or isRandomShop or self.module.TraceOnFogArea then
+      showTop = 1
+    end
+  end
+  return 1 == showTop, 1 ~= showTop
+end
+
+function UMG_MainMap_C:ShouldShowNpc(npcInfo, worldMapCfg, mapShowLevel, traceNpcInfo)
+  local isShow = true
+  local npcShowScale = worldMapCfg and worldMapCfg.element_show_scale
+  if npcShowScale then
+    local scaleConf = _G.DataConfigManager:GetWorldMapScaleConf(npcShowScale)
+    isShow = self:IsInScaleRange(mapShowLevel, scaleConf)
+  end
+  if traceNpcInfo and npcInfo.entry_id == traceNpcInfo.entry_id then
+    isShow = true
+  end
+  if npcInfo.npc_remain_time and npcInfo.npc_remain_time > 0 then
+    isShow = false
+  end
+  if self.isTravel then
+    if worldMapCfg and worldMapCfg.map_tips_show_type ~= Enum.MapTipsShowType.MAP_TIPS_CAMP then
+      isShow = false
+    end
+  elseif self.module.TraceOnFogArea then
+    if traceNpcInfo and traceNpcInfo.npc_refresh_id == npcInfo.npc_refresh_id then
+      isShow = true
+    elseif not self.data:CheckShouldShowNpc(npcInfo) then
+      isShow = false
+    end
+  end
+  local isCatchPet = _G.NRCModuleManager:DoCmd(_G.BigMapModuleCmd.IsShowCatchPet, npcInfo.npc_refresh_id)
+  if isCatchPet then
+    isShow = true
+  end
+  if isShow and worldMapCfg and worldMapCfg.map_tips_show_type == Enum.MapTipsShowType.MAP_TIPS_NONE then
+    isShow = false
+  end
+  return isShow
+end
+
+function UMG_MainMap_C:FilterNpcsInRange(npcList, radius2, sceneCenterX, sceneCenterY, mapShowLevel)
+  local npcDatas = self.module.TraceOnFogArea and self.data:GetNpcDatas() or self.showNpcDatas
+  if not npcDatas then
+    return
+  end
+  local traceNpcInfo = self.data:GetCurTraceNpcData()
+  for _, npcInfos in pairs(npcDatas) do
+    for _, _npcInfos in pairs(npcInfos) do
+      for _, npcInfo in pairs(_npcInfos) do
         local worldMapCfg = self.WorldMapConfigs[npcInfo.world_map_cfg_id] or self.WorldMapConfigs[npcInfo.npc_refresh_id]
-        local npcShowScale = worldMapCfg and worldMapCfg.element_show_scale
-        if npcShowScale then
-          local scaleConf = _G.DataConfigManager:GetWorldMapScaleConf(npcShowScale)
-          if nil == scaleConf or mapShowLevel <= scaleConf.max_scale / 100.0 and mapShowLevel >= scaleConf.min_scale / 100.0 then
-            isShow = true
-          else
-            isShow = false
-          end
+        if not self:ShouldShowNpc(npcInfo, worldMapCfg, mapShowLevel, traceNpcInfo) then
         else
-          isShow = true
-        end
-        if self.data:GetCurTraceNpcData() and npcInfo.entry_id == self.data:GetCurTraceNpcData().entry_id then
-          isShow = true
-        end
-        local showTop = 0
-        if npcInfo.status == _G.ProtoEnum.LockStatus.ENUM.LOCKED then
-          if 1 == worldMapCfg.lock_element_show_top then
-            showTop = 1
-          end
-        elseif worldMapCfg and 1 == worldMapCfg.unlock_element_show_top then
-          showTop = 1
-        end
-        local TraceNpcInfo = self.data:GetCurTraceNpcData()
-        if TraceNpcInfo and (npcInfo.npcCfg and (npcInfo.npcCfg.genre == Enum.ClientNpcType.CNT_PETBOSS or npcInfo.npcCfg.genre == Enum.ClientNpcType.CNT_LEGENDARY_SPIRIT or npcInfo.npcCfg.genre == Enum.ClientNpcType.CNT_FLOWER_SEED or worldMapCfg and worldMapCfg.map_tips_show_type == Enum.MapTipsShowType.MAP_TIPS_RANDOM_SHOP) or self.module.TraceOnFogArea) and TraceNpcInfo.npc_refresh_id == npcInfo.npc_refresh_id then
-          showTop = 1
-        end
-        if 1 ~= showTop then
-          checkFog = true
-        end
-        if npcInfo.npc_remain_time and npcInfo.npc_remain_time > 0 then
-          isShow = false
-        end
-        if self.isTravel and worldMapCfg.map_tips_show_type ~= Enum.MapTipsShowType.MAP_TIPS_CAMP then
-          isShow = false
-        elseif self.module.TraceOnFogArea then
-          if TraceNpcInfo and TraceNpcInfo.npc_refresh_id == npcInfo.npc_refresh_id then
-            isShow = true
-          elseif not self.module:GetCanShowMapByNpcContentId(npcInfo.npc_refresh_id, npcInfo) then
-            isShow = false
-          end
-        end
-        local isCatchPet = _G.NRCModuleManager:DoCmd(_G.BigMapModuleCmd.IsShowCatchPet, npcInfo.npc_refresh_id)
-        if isCatchPet then
-          isShow = true
-        end
-        if isShow and worldMapCfg.map_tips_show_type ~= Enum.MapTipsShowType.MAP_TIPS_NONE then
           local x = npcInfo.npc_pos.x - sceneCenterX
           local y = npcInfo.npc_pos.y - sceneCenterY
-          local worldMap = self.WorldMapConfigs[npcInfo.world_map_cfg_id] or self.WorldMapConfigs[npcInfo.npc_refresh_id]
-          if radius2 >= x * x + y * y then
+          if not self:IsInRange(x, y, radius2) then
+          else
+            local _, checkFog = self:GetNpcShowTopAndFogCheck(npcInfo, worldMapCfg)
             if checkFog then
-              local posX, posY = self:ScenePositionToImagePosition(npcInfo.npc_pos.x, npcInfo.npc_pos.y)
-              local posU = posX / self.uiData.originalMapWidth
-              local posV = posY / self.uiData.originalMapHeight
-              local RedValue = 255
-              if BigMapUtils.IsBigWorldMap(self.data.curShowSceneResId) then
-                local RValue = UE4.UNRCTUIStatics.GetTexture2DPixelColorFromUV(self.data.FullMaskRunTime, self:GetTempVector2D(posU, posV))
-                RedValue = RValue.R
-              end
-              if RedValue > 125 then
+              if self:IsNotInFog(npcInfo.npc_pos.x, npcInfo.npc_pos.y) then
                 npcInfo.orderPos = {
                   x = npcInfo.npc_pos.x,
                   y = npcInfo.npc_pos.y
                 }
                 table.insert(npcList, npcInfo)
               else
-                Log.Debug("[UMG_MainMap_C:ShowNpcListForRange]npc in fog area:", npcId, npcInfo.npc_cfg_id)
+                Log.Debug("[UMG_MainMap_C:ShowNpcListForRange]npc in fog area:", npcInfo.npc_cfg_id)
               end
-            elseif nil ~= worldMap then
+            elseif worldMapCfg then
               npcInfo.orderPos = {
                 x = npcInfo.npc_pos.x,
                 y = npcInfo.npc_pos.y
@@ -3874,66 +4016,52 @@ function UMG_MainMap_C:ShowNpcListForRange(_imageCenterPos, _imageRadius)
       end
     end
   end
-  if areaDatas then
-    for areaId, areaInfo in pairs(areaDatas) do
-      local isShow = false
-      local checkFog = false
-      local worldMapCfg = self.WorldMapConfigs[areaInfo.world_map_cfg_id]
-      if nil == worldMapCfg then
-        return
-      end
+end
+
+function UMG_MainMap_C:FilterAreaNpcsInRange(npcList, radius2, sceneCenterX, sceneCenterY, mapShowLevel)
+  local areaDatas = self.showAreaNpcDatas
+  if not areaDatas then
+    return
+  end
+  for _, areaInfo in pairs(areaDatas) do
+    local worldMapCfg = self.WorldMapConfigs[areaInfo.world_map_cfg_id]
+    if not worldMapCfg then
+    else
+      local isShow = true
       local npcShowScale = worldMapCfg.element_show_scale
       if npcShowScale then
         local scaleConf = _G.DataConfigManager:GetWorldMapScaleConf(npcShowScale)
-        if mapShowLevel <= scaleConf.max_scale / 100.0 and mapShowLevel >= scaleConf.min_scale / 100.0 then
-          isShow = true
-        else
-          isShow = false
-        end
-      else
-        isShow = true
+        isShow = self:IsInScaleRange(mapShowLevel, scaleConf)
       end
-      if worldMapCfg and worldMapCfg.map_tips_show_type == _G.Enum.MapTipsShowType.MAP_TIPS_NONE then
+      if worldMapCfg.map_tips_show_type == _G.Enum.MapTipsShowType.MAP_TIPS_NONE then
         isShow = false
       end
-      local showTop = 0
-      if areaInfo.unlocked == false then
-        if 1 == worldMapCfg.lock_element_show_top then
-          showTop = 1
-        end
-      elseif 1 == worldMapCfg.unlock_element_show_top then
-        showTop = 1
-      end
-      if 1 ~= showTop then
-        checkFog = true
-      end
-      if isShow and areaInfo.npcList then
+      if not isShow or not areaInfo.npcList then
+      else
         local x = areaInfo.npcList[1].npc_pos.x - sceneCenterX
         local y = areaInfo.npcList[1].npc_pos.y - sceneCenterY
-        if radius2 >= x * x + y * y then
+        if not self:IsInRange(x, y, radius2) then
+        else
+          local showTop = areaInfo.unlocked and worldMapCfg.unlock_element_show_top or worldMapCfg.lock_element_show_top
+          local checkFog = 1 ~= showTop
           if checkFog then
-            local posX, posY = self:ScenePositionToImagePosition(areaInfo.npcList[1].npc_pos.x, areaInfo.npcList[1].npc_pos.y)
-            local posU = posX / self.uiData.originalMapWidth
-            local posV = posY / self.uiData.originalMapHeight
-            if nil ~= worldMapCfg then
-              do
-                local hasSame = false
-                for i = 1, #npcList do
-                  if npcList[i].world_map_cfg_id == areaInfo.world_map_cfg_id then
-                    hasSame = true
-                  end
-                end
-                if not hasSame then
-                  areaInfo.orderPos = {
-                    x = areaInfo.npcList[1].npc_pos.x,
-                    y = areaInfo.npcList[1].npc_pos.y
-                  }
-                  table.insert(npcList, areaInfo)
-                else
+            if worldMapCfg then
+              local hasSame = false
+              for i = 1, #npcList do
+                if npcList[i].world_map_cfg_id == areaInfo.world_map_cfg_id then
+                  hasSame = true
+                  break
                 end
               end
+              if not hasSame then
+                areaInfo.orderPos = {
+                  x = areaInfo.npcList[1].npc_pos.x,
+                  y = areaInfo.npcList[1].npc_pos.y
+                }
+                table.insert(npcList, areaInfo)
+              end
             end
-          elseif nil ~= worldMapCfg then
+          elseif worldMapCfg then
             areaInfo.orderPos = {
               x = areaInfo.npcList[1].npc_pos.x,
               y = areaInfo.npcList[1].npc_pos.y
@@ -3944,184 +4072,230 @@ function UMG_MainMap_C:ShowNpcListForRange(_imageCenterPos, _imageRadius)
       end
     end
   end
-  if taskDatas and #taskDatas > 0 and not self.isTravel then
-    local preAddTaskInfoDic = {}
-    for k, taskInfo in ipairs(taskDatas) do
-      local IsShow = self.data:SeparatedTaskByGuideList(taskInfo.TaskSceneResId, self.data.curShowSceneResId, taskInfo.TaskShowType)
-      if IsShow and taskInfo.NpcPosition and #taskInfo.NpcPosition > 0 then
-        local x = taskInfo.NpcPosition[1].pos.x - sceneCenterX
-        local y = taskInfo.NpcPosition[1].pos.y - sceneCenterY
-        if radius2 >= x * x + y * y then
-          local posX, posY = self:ScenePositionToImagePosition(taskInfo.NpcPosition[1].pos.x, taskInfo.NpcPosition[1].pos.y)
-          local posU = posX / self.uiData.originalMapWidth
-          local posV = posY / self.uiData.originalMapHeight
-          local RValue = UE4.UNRCTUIStatics.GetTexture2DPixelColorFromUV(self.data.FullMaskRunTime, self:GetTempVector2D(posU, posV))
-          if RValue.R > 125 then
-            self.mouseIcon.Slot:SetZOrder(12)
-          else
-            self.mouseIcon.Slot:SetZOrder(12)
+end
+
+function UMG_MainMap_C:FilterTasksInRange(npcList, radius2, sceneCenterX, sceneCenterY)
+  if self.isTravel then
+    return
+  end
+  local taskDatas = self.data:GetShowTaskInfo()
+  if not taskDatas or 0 == #taskDatas then
+    return
+  end
+  local TrackList = {}
+  local CurTrackTask = _G.NRCModuleManager:DoCmd(TaskModuleCmd.GetDataTrackTask)
+  if CurTrackTask and CurTrackTask.Trackers then
+    for _, TrackItem in pairs(CurTrackTask.Trackers) do
+      TrackList[TrackItem.TaskInfo.id] = TrackItem
+    end
+  end
+  local CurSceneResId = self:GetCurSceneResId()
+  local preAddTaskInfoDic = {}
+  for _, taskInfo in ipairs(taskDatas) do
+    local isShow = self.data:SeparatedTaskByGuideList(taskInfo.TaskSceneResId, self.data.curShowSceneResId, taskInfo.TaskShowType)
+    if isShow and taskInfo.NpcPosition and #taskInfo.NpcPosition > 0 then
+      local x = taskInfo.NpcPosition[1].pos.x - sceneCenterX
+      local y = taskInfo.NpcPosition[1].pos.y - sceneCenterY
+      if taskInfo.TaskShowType == bigMapModuleEnum.TaskShowType.TRACING and TrackList[taskInfo.TaskConf.id] and self.data.curShowSceneResId == CurSceneResId then
+        if not self.CurTrackTaskPosList[taskInfo.TaskConf.id] then
+          local TrackItem = TrackList[taskInfo.TaskConf.id]
+          local Pos = TrackItem:GetPosition()
+          if Pos then
+            self.CurTrackTaskPosList[taskInfo.TaskConf.id] = Pos
           end
-          if nil == preAddTaskInfoDic[taskInfo.TaskConf.paragraph_id] then
-            preAddTaskInfoDic[taskInfo.TaskConf.paragraph_id] = {}
-          end
-          table.insert(preAddTaskInfoDic[taskInfo.TaskConf.paragraph_id], taskInfo)
+        end
+        local TrackPos = self.CurTrackTaskPosList[taskInfo.TaskConf.id]
+        if TrackPos then
+          x = TrackPos.X - sceneCenterX
+          y = TrackPos.Y - sceneCenterY
         end
       end
-    end
-    for paragraphId, preAddTaskInfos in pairs(preAddTaskInfoDic) do
-      if #preAddTaskInfos > 1 then
-        local winItem
-        for index, taskInfo in ipairs(preAddTaskInfos) do
-          if 1 == #taskInfo.NpcPosition then
-            winItem = taskInfo
-            break
-          end
-        end
-        if nil == winItem then
-          winItem = preAddTaskInfos[1]
-        end
-        winItem.orderPos = {
-          x = winItem.NpcPosition[1].pos.x,
-          y = winItem.NpcPosition[1].pos.y
-        }
-        table.insert(npcList, winItem)
-      else
-        preAddTaskInfos[1].orderPos = {
-          x = preAddTaskInfos[1].NpcPosition[1].pos.x,
-          y = preAddTaskInfos[1].NpcPosition[1].pos.y
-        }
-        table.insert(npcList, preAddTaskInfos[1])
+      if self:IsInRange(x, y, radius2) then
+        self.mouseIcon.Slot:SetZOrder(MOUSE_ICON_ZORDER)
+        local paragraphId = taskInfo.TaskConf.paragraph_id
+        preAddTaskInfoDic[paragraphId] = preAddTaskInfoDic[paragraphId] or {}
+        table.insert(preAddTaskInfoDic[paragraphId], taskInfo)
       end
     end
   end
-  local CustomPointInfo = self.data:GetNewCustomPointInfo()
-  if not self.isTravel then
-    for j, Point in ipairs(CustomPointInfo) do
-      local isShow = false
-      if Point.is_track then
-        isShow = true
-      else
-        local element_show_scale = _G.DataConfigManager:GetMapGlobalConfig("oneself_mark_scale").num
-        local scaleConf = _G.DataConfigManager:GetWorldMapScaleConf(element_show_scale)
-        if mapShowLevel <= scaleConf.max_scale / 100.0 and mapShowLevel >= scaleConf.min_scale / 100.0 then
-          isShow = true
-        else
-          isShow = false
+  for _, preAddTaskInfos in pairs(preAddTaskInfoDic) do
+    local winItem = preAddTaskInfos[1]
+    if #preAddTaskInfos > 1 then
+      for _, taskInfo in ipairs(preAddTaskInfos) do
+        if 1 == #taskInfo.NpcPosition then
+          winItem = taskInfo
+          break
         end
       end
-      local x = Point.pos.x - sceneCenterX
-      local y = Point.pos.y - sceneCenterY
-      if radius2 >= x * x + y * y and true == isShow then
-        local posX, posY = self:ScenePositionToImagePosition(Point.pos.x, Point.pos.y)
-        local pos = {X = posX, Y = posY}
-        local pointName = Point.name
-        local pointMapCfgId = Point.world_map_cfg_id
+    end
+    winItem.orderPos = {
+      x = winItem.NpcPosition[1].pos.x,
+      y = winItem.NpcPosition[1].pos.y
+    }
+    if self.CurTrackTaskPosList and self.CurTrackTaskPosList[winItem.TaskConf.id] then
+      local TrackPos = self.CurTrackTaskPosList[winItem.TaskConf.id]
+      winItem.orderPos = {
+        x = TrackPos.X,
+        y = TrackPos.Y
+      }
+    end
+    table.insert(npcList, winItem)
+  end
+end
+
+function UMG_MainMap_C:FilterCustomMarksInRange(npcList, radius2, sceneCenterX, sceneCenterY, mapShowLevel)
+  if self.isTravel then
+    return
+  end
+  local customPointInfo = self.data:GetNewCustomPointInfo()
+  for _, point in ipairs(customPointInfo) do
+    local isShow = point.is_track
+    if not isShow then
+      local elementShowScale = _G.DataConfigManager:GetMapGlobalConfig("oneself_mark_scale").num
+      local scaleConf = _G.DataConfigManager:GetWorldMapScaleConf(elementShowScale)
+      isShow = self:IsInScaleRange(mapShowLevel, scaleConf)
+    end
+    if isShow then
+      local x = point.pos.x - sceneCenterX
+      local y = point.pos.y - sceneCenterY
+      if self:IsInRange(x, y, radius2) then
+        local posX, posY = self:ScenePositionToImagePosition(point.pos.x, point.pos.y)
         table.insert(npcList, {
           MarksType = bigMapModuleEnum.MarksType.CustomMark,
-          imageCenterPos = pos,
-          name = pointName,
-          mapCfgId = pointMapCfgId,
-          mark_id = Point.mark_id,
+          imageCenterPos = {X = posX, Y = posY},
+          name = point.name,
+          mapCfgId = point.world_map_cfg_id,
+          mark_id = point.mark_id,
           orderPos = {
-            x = Point.pos.x,
-            y = Point.pos.y
+            x = point.pos.x,
+            y = point.pos.y
           }
         })
       end
     end
   end
-  local VisitPointList = self.data:GetVisitPointInfo()
+end
+
+function UMG_MainMap_C:FilterVisitorPointsInRange(npcList, radius2, sceneCenterX, sceneCenterY)
+  local visitPointList = self.data:GetVisitPointInfo()
   local playerUin = _G.DataModelMgr.PlayerDataModel:GetPlayerUin()
-  local visitList = _G.NRCModuleManager:DoCmd(_G.FriendModuleCmd.GetOnlineVisitorList)
-  for key, visitInfo in pairs(VisitPointList) do
-    if visitInfo and visitInfo.uin ~= playerUin then
-      local _sceneResId, iconSceneResId, posX, posY = BigMapUtils.GetVisitorIconSceneResIdAndPos(visitInfo)
-      if visitInfo.pos and visitInfo.pos.pos then
-        local x = posX - sceneCenterX
-        local y = posY - sceneCenterY
-        if radius2 >= x * x + y * y then
-          local mapVisitorInfo = {}
-          mapVisitorInfo.visitorIndex = key
-          mapVisitorInfo.visitorInfo = visitInfo
-          mapVisitorInfo.orderPos = {
+  for key, visitInfo in pairs(visitPointList) do
+    if visitInfo and visitInfo.uin ~= playerUin and visitInfo.pos and visitInfo.pos.pos then
+      local _, _, posX, posY = BigMapUtils.GetVisitorIconSceneResIdAndPos(visitInfo)
+      local x = posX - sceneCenterX
+      local y = posY - sceneCenterY
+      if self:IsInRange(x, y, radius2) then
+        table.insert(npcList, {
+          visitorIndex = key,
+          visitorInfo = visitInfo,
+          orderPos = {
             x = visitInfo.pos.pos.x,
             y = visitInfo.pos.pos.y
           }
-          table.insert(npcList, mapVisitorInfo)
+        })
+      end
+    end
+  end
+end
+
+function UMG_MainMap_C:FilterTempNpcInRange(npcList, radius2, sceneCenterX, sceneCenterY)
+  for entryId, val in pairs(self.tempIconInfoList) do
+    for logicId, v in pairs(val) do
+      if v and v.worldMapConf then
+        local x = v.npc_pos.x - sceneCenterX
+        local y = v.npc_pos.y - sceneCenterY
+        if self:IsInRange(x, y, radius2) then
+          v.orderPos = {
+            x = v.npc_pos.x,
+            y = v.npc_pos.y
+          }
+          table.insert(npcList, v)
         end
       end
     end
   end
+end
+
+function UMG_MainMap_C:HandleEmptyNpcList(_imageCenterPos)
+  if self.module:CheckMapRightPanelOpened() then
+    self.module:OnCmdCloseMapRightPanel()
+    return
+  end
+  self:SetMouseScale(1)
+  if self.npcListLayer:GetVisibility() == UE4.ESlateVisibility.SelfHitTestInvisible then
+    self:HideNPCList()
+    self.mouseIcon:showEndAni()
+  elseif self:IsCanMarker() and not self.isTravel then
+    self:ShowMouseIcon()
+    self:NewMarkerEvent(_imageCenterPos, 35)
+  end
+end
+
+function UMG_MainMap_C:HandleSingleNpc(npcInfo, _imageCenterPos)
+  self:SetMouseScale(1)
+  self:HideNPCList()
+  self:ShowMouseIcon()
+  if npcInfo.npc_pos then
+    self.mouseIcon.Slot:SetZOrder(MOUSE_ICON_ZORDER)
+    local worldMapCfg = self.WorldMapConfigs[npcInfo.world_map_cfg_id]
+    if worldMapCfg and worldMapCfg.map_tips_show_type == Enum.MapTipsShowType.MAP_TIPS_OWL_SANCTUARY then
+      _G.NRCModuleManager:DoCmd(BigMapModuleCmd.SwitchSelectIcon, npcInfo.npc_refresh_id, true)
+    end
+    self:OnSingleIconClicked(npcInfo)
+  elseif npcInfo.MarksType == bigMapModuleEnum.MarksType.CustomMark then
+    self:NewMarkerEvent(_imageCenterPos, 35)
+  else
+    self:OnSingleIconClicked(npcInfo)
+  end
+end
+
+function UMG_MainMap_C:HandleMultipleNpcs(npcList, _imageCenterPos)
+  self:SetMouseScale(1.5)
+  self:ShowMouseIcon()
+  if not self.isTravel then
+    for _, showInfo in ipairs(npcList) do
+      if showInfo.orderPos then
+        local posX, posY = BigMapUtils.ScenePosToImagePosF(self.data.curShowSceneResId, showInfo.orderPos.x, showInfo.orderPos.y)
+        showInfo.orderDis = (posX - _imageCenterPos.X) ^ 2 + (posY - _imageCenterPos.Y) ^ 2
+      end
+    end
+    table.sort(npcList, function(a, b)
+      return a.orderDis < b.orderDis
+    end)
+    self:ShowNPCList(npcList)
+    self:ShowNpcRightPanel(npcList[1], true)
+  else
+    self:HideNPCList()
+    for _, npcInfo in ipairs(npcList) do
+      if npcInfo.npcCfg and self:IsCampRefreshId(npcInfo.npc_refresh_id) then
+        self:OnSingleIconClicked(npcInfo)
+        break
+      end
+    end
+  end
+end
+
+function UMG_MainMap_C:ShowNpcListForRange(_imageCenterPos, _imageRadius)
+  self:UndoSelectIconScale()
+  self.showNpcDatas = self.data:GetAllShowNpcs(self.data.curShowSceneResId)
+  local sceneCenterX, sceneCenterY = self:ImagePositionToScenePosition(_imageCenterPos.X, _imageCenterPos.Y)
+  local sceneRadius = math.ceil(_imageRadius / self.uiData.imageToSceneScale / self.uiData.mapImageScale)
+  local npcList = {}
+  local radius2 = sceneRadius * sceneRadius
+  local mapShowLevel = self.uiData.mapSliderScale
+  self:FilterNpcsInRange(npcList, radius2, sceneCenterX, sceneCenterY, mapShowLevel)
+  self:FilterAreaNpcsInRange(npcList, radius2, sceneCenterX, sceneCenterY, mapShowLevel)
+  self:FilterTasksInRange(npcList, radius2, sceneCenterX, sceneCenterY)
+  self:FilterCustomMarksInRange(npcList, radius2, sceneCenterX, sceneCenterY, mapShowLevel)
+  self:FilterVisitorPointsInRange(npcList, radius2, sceneCenterX, sceneCenterY)
+  self:FilterTempNpcInRange(npcList, radius2, sceneCenterX, sceneCenterY)
   local npcCount = #npcList
   if npcCount <= 0 then
-    if self.module:CheckMapRightPanelOpened() then
-      self.module:OnCmdCloseMapRightPanel()
-    else
-      self:SetMouseScale(1)
-      if self.npcListLayer:GetVisibility() == UE4.ESlateVisibility.SelfHitTestInvisible then
-        self:HideNPCList()
-        self.mouseIcon:showEndAni()
-      elseif self:IsCanMarker() and not self.isTravel then
-        self:ShowMouseIcon()
-        self:NewMarkerEvent(_imageCenterPos, 35)
-      end
-    end
+    self:HandleEmptyNpcList(_imageCenterPos)
   elseif 1 == npcCount then
-    self:SetMouseScale(1)
-    self:HideNPCList()
-    local npcInfo = npcList[1]
-    self:ShowMouseIcon()
-    if npcInfo.npc_pos then
-      local posX, posY = self:ScenePositionToImagePosition(npcInfo.npc_pos.x, npcInfo.npc_pos.y)
-      local posU = posX / self.uiData.originalMapWidth
-      local posV = posY / self.uiData.originalMapHeight
-      local RValue = UE4.UNRCTUIStatics.GetTexture2DPixelColorFromUV(self.data.FullMaskRunTime, self:GetTempVector2D(posU, posV))
-      if RValue.R > 125 then
-        self.mouseIcon.Slot:SetZOrder(12)
-      else
-        self.mouseIcon.Slot:SetZOrder(12)
-      end
-      local worldMapCfg = self.WorldMapConfigs[npcInfo.world_map_cfg_id]
-      if worldMapCfg and worldMapCfg.map_tips_show_type == Enum.MapTipsShowType.MAP_TIPS_OWL_SANCTUARY then
-        _G.NRCModuleManager:DoCmd(BigMapModuleCmd.SwitchSelectIcon, npcInfo.npc_refresh_id, true)
-      end
-      self:OnSingleIconClicked(npcInfo)
-    elseif npcInfo.MarksType and npcInfo.MarksType == bigMapModuleEnum.MarksType.CustomMark then
-      self:NewMarkerEvent(_imageCenterPos, 35)
-    elseif npcInfo.SpecialTaskType and npcInfo.SpecialTaskType == "TreasureDig" then
-      self:OnSingleIconClicked(npcInfo)
-    else
-      self:OnSingleIconClicked(npcInfo)
-    end
+    self:HandleSingleNpc(npcList[1], _imageCenterPos)
   else
-    self:SetMouseScale(1.5)
-    self:ShowMouseIcon()
-    if not self.isTravel then
-      for key, showInfo in ipairs(npcList) do
-        if showInfo.orderPos then
-          local posX, posY = BigMapUtils.ScenePosToImagePosF(self.data.curShowSceneResId, showInfo.orderPos.x, showInfo.orderPos.y)
-          local dis = (posX - _imageCenterPos.X) ^ 2 + (posY - _imageCenterPos.Y) ^ 2
-          showInfo.orderDis = dis
-        end
-      end
-      table.sort(npcList, function(a, b)
-        return a.orderDis < b.orderDis
-      end)
-      self:ShowNPCList(npcList)
-      self:ShowNpcRightPanel(npcList[1], true)
-    else
-      self:HideNPCList()
-      for i = 1, #npcList do
-        local npcInfo = npcList[i]
-        if npcInfo.npcCfg then
-          local npc_refresh_id = npcInfo.npc_refresh_id
-          if self:IsCampRefreshId(npc_refresh_id) then
-            self:OnSingleIconClicked(npcInfo)
-            break
-          end
-        end
-      end
-    end
+    self:HandleMultipleNpcs(npcList, _imageCenterPos)
   end
 end
 
@@ -4177,8 +4351,13 @@ function UMG_MainMap_C:ShowNpcRightPanel(npcInfo, bOnlySelect, bSanctuary)
         end
       elseif nil == npcInfo.npc_pos then
         if npcInfo.NpcPosition and #npcInfo.NpcPosition > 0 then
-          posX, posY = self:ScenePositionToImagePosition(npcInfo.NpcPosition[1].pos.x, npcInfo.NpcPosition[1].pos.y)
-          posX_1, posY_1 = self:GetViewPos(npcInfo.NpcPosition[1].pos.x, npcInfo.NpcPosition[1].pos.y)
+          if npcInfo.orderPos then
+            posX, posY = self:ScenePositionToImagePosition(npcInfo.orderPos.x, npcInfo.orderPos.y)
+            posX_1, posY_1 = self:GetViewPos(npcInfo.orderPos.x, npcInfo.orderPos.y)
+          else
+            posX, posY = self:ScenePositionToImagePosition(npcInfo.NpcPosition[1].pos.x, npcInfo.NpcPosition[1].pos.y)
+            posX_1, posY_1 = self:GetViewPos(npcInfo.NpcPosition[1].pos.x, npcInfo.NpcPosition[1].pos.y)
+          end
         elseif npcInfo.imageCenterPos then
           posX = npcInfo.imageCenterPos.X
           posY = npcInfo.imageCenterPos.Y
@@ -4203,6 +4382,7 @@ function UMG_MainMap_C:ShowNpcRightPanel(npcInfo, bOnlySelect, bSanctuary)
     else
       self.mouseIcon:showAni(mousePos)
     end
+    self:SetIconScaleBySelected(npcInfo)
   end
   if not bOnlySelect then
     self:OnShowNormalNpcEvent(npcInfo, bSanctuary)
@@ -4357,10 +4537,8 @@ function UMG_MainMap_C:OnChangeIsTravel(isTravel)
     self.btnClose:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     self:ShowTravelRewardBtn()
     if self.travelInfos then
-      self.CanvasPanel_1:InitNum(#self.travelInfos, self.MaxTravelNum, "\230\173\163\229\156\168\230\151\133\232\161\140\239\188\154")
+      self.CanvasPanel_1:InitNum(#self.travelInfos, self.MaxTravelNum, LuaText.travel_text)
     end
-    self.traceIconNpcVisibility = self.traceIconNpc:GetVisibility()
-    self.traceIconNpc:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.Hint:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.CanvasPanel_Plot:SetVisibility(UE4.ESlateVisibility.Collapsed)
   else
@@ -4371,7 +4549,6 @@ function UMG_MainMap_C:OnChangeIsTravel(isTravel)
     self.ComboBox:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     self.BtnClaimfull:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.CanvasPanel_1:SetVisibility(UE4.ESlateVisibility.Collapsed)
-    self.traceIconNpc:SetVisibility(self.traceIconNpcVisibility)
     local isVisit = _G.DataModelMgr.PlayerDataModel:IsVisitState()
     if isVisit then
       self.Sanctuary:SetPath("PaperSprite'/Game/NewRoco/Modules/System/SleepingOwl/Raw/Frames/img_SharedWithFriendsBtn_png.img_SharedWithFriendsBtn_png'")
@@ -4421,15 +4598,27 @@ end
 function UMG_MainMap_C:CheckIsTracing(traceType, info)
   if self.data.traceInfoList and self.data.traceInfoList[traceType] then
     if traceType == bigMapModuleEnum.TraceType.NPC then
-      if self.data.traceInfoList[traceType].npcInfo.entry_id == info.entry_id then
+      if self.data.traceInfoList[traceType].npcInfo.entry_id == info.entry_id and self.data.traceInfoList[traceType].npcInfo.logic_id == info.logic_id then
         return true
       end
     elseif traceType == bigMapModuleEnum.TraceType.Marker then
       if self.data.traceInfoList[traceType].markInfo.mark_id == info.mark_id then
         return true
       end
-    elseif traceType == bigMapModuleEnum.TraceType.TempTrace and self.data.traceInfoList[traceType] and self.data.traceInfoList[traceType][info.logic_id] then
-      return true
+    elseif traceType == bigMapModuleEnum.TraceType.TempTrace then
+      if self.data.traceInfoList[traceType] and self.data.traceInfoList[traceType][info.logic_id] then
+        return true
+      end
+    elseif traceType == bigMapModuleEnum.TraceType.ForceTrace then
+      local extraType = info.worldMapConf and info.worldMapConf.default_track_type or 0
+      local traceList = self.data.traceInfoList[traceType] and self.data.traceInfoList[traceType][extraType]
+      if traceList and #traceList > 0 then
+        for k, traceInfo in ipairs(traceList) do
+          if traceInfo.npcInfo and traceInfo.npcInfo.logic_id == info.logic_id then
+            return true
+          end
+        end
+      end
     end
   end
   return false

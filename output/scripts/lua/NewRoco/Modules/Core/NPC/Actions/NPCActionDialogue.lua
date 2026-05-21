@@ -156,11 +156,14 @@ function NPCActionDialogue:OnSubmit(rsp)
   _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.CloseInputBlocker, "NPCActionDialogue.Submit")
   _G.NRCEventCenter:UnRegisterEvent(self, _G.NRCGlobalEvent.ON_RECONNECT_FINISH, self.OnReConnect)
   if 0 == rsp.ret_info.ret_code then
-    local FirstDialogue = self.Owner.optionInfo.first_dialog_id
-    if FirstDialogue and FirstDialogue > 0 then
-      _G.NRCModeManager:DoCmd(_G.DialogueModuleCmd.StartDialogue, self.Owner, self, self.Owner.optionInfo.first_dialog_id)
+    local first_dialog_id = self.Owner.optionInfo.first_dialog_id
+    if not first_dialog_id or not (first_dialog_id > 0) then
+      first_dialog_id = tonumber(self.Config.action_param1)
+    end
+    if rsp.simulate then
+      _G.NRCModeManager:DoCmd(_G.DialogueModuleCmd.StartDialogueLocal, self.Owner, self, first_dialog_id)
     else
-      _G.NRCModeManager:DoCmd(_G.DialogueModuleCmd.StartDialogue, self.Owner, self, tonumber(self.Config.action_param1))
+      _G.NRCModeManager:DoCmd(_G.DialogueModuleCmd.StartDialogue, self.Owner, self, first_dialog_id)
     end
     _G.NRCSDKManager:SetEnterDialogue()
   else

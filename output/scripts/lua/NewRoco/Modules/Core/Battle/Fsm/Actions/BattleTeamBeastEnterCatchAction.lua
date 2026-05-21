@@ -25,7 +25,9 @@ function BattleTeamBeastEnterCatchAction:OnEnter()
         BattleConst.TeamBeastDegrade
       }
       self.Boss.card:RefreshByBaseConf(data.degenerated_boss_base_id)
-      self.Boss.card:ReplaceByServerPetData(data.boss_data)
+      self.Boss.card:InternalOverwriteByServer({
+        battle_common_pet_info = data.boss_data
+      })
       self.Boss.card:RefreshByServerPetData()
       self.Boss.card:ClearBuffs()
       self.Boss.card.petInfo.battle_inside_pet_info.kill_info = nil
@@ -134,8 +136,7 @@ function BattleTeamBeastEnterCatchAction:ChangeState()
 end
 
 function BattleTeamBeastEnterCatchAction:SkillFinish(name, skill)
-  if not self.IsFinish then
-    self.IsFinish = true
+  if not self.finished then
     skill:SetPlayRate(0)
     self.Boss.buffComponent:PlayStateEffect(Enum.BuffGroupSign.BGS_CATCHSTUN)
     self.Boss.card.petState:SetCatchStun(true)

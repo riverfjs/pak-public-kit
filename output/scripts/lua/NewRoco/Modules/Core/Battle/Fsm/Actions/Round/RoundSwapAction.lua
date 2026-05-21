@@ -119,6 +119,12 @@ end
 
 function RoundSwapAction:OnClickBagPet(Card, pet)
   Log.Debug("BattleRoundSelectAction:OnClickBagPet")
+  local infieldPetCard = pet and pet.card
+  local isValidIfInfieldPetHasBuff145 = self:IsUpPetValidIfInfieldPetHasBuff145(Card, infieldPetCard)
+  if not isValidIfInfieldPetHasBuff145 then
+    self:ShowBuff145NotMatchTips()
+    return
+  end
   self.pet = pet
   self.Card = Card
   if not self.CurrentPet then
@@ -253,6 +259,42 @@ function RoundSwapAction:SendFsmEventInfo(curEvent)
     self.fsm:SendEvent(curEvent)
     self.fsm:SetProperty("StateEvent", curEvent)
   end
+end
+
+function RoundSwapAction:IsUpPetValidIfInfieldPetHasBuff145(upPetCard, infieldPetCard)
+  local inFieldPetInfo = infieldPetCard and infieldPetCard.petInfo
+  local inFieldInsideInfo = inFieldPetInfo and inFieldPetInfo.battle_inside_pet_info
+  local buff145SourcePetId = inFieldInsideInfo and inFieldInsideInfo.buff145_source_pet
+  local isGenerateByBuff145 = buff145SourcePetId and buff145SourcePetId > 0
+  local upPetInfoId = upPetCard and upPetCard.guid
+  local isNotValid = isGenerateByBuff145 and buff145SourcePetId ~= upPetInfoId
+  local isValid = not isNotValid
+  if isValid then
+    local currMyPets = self.CurrentMyPets or {}
+    local currMyPetsCount = #currMyPets
+    if currMyPetsCount > 1 then
+      local upPetInfo = upPetCard and upPetCard.petInfo
+      local upInsideInfo = upPetInfo and upPetInfo.battle_inside_pet_info
+      local upBuff145SourcePetId = upInsideInfo and upInsideInfo.buff145_source_pet
+      local upIsGenerateByBuff145 = upBuff145SourcePetId and upBuff145SourcePetId > 0
+      local infieldPetInfoId = infieldPetCard and infieldPetCard.guid
+      isNotValid = upIsGenerateByBuff145 and upBuff145SourcePetId ~= infieldPetInfoId
+      isValid = not isNotValid
+    end
+  end
+  return isValid
+end
+
+function RoundSwapAction:ShowBuff145NotMatchTips()
+  local currMyPets = self.CurrentMyPets or {}
+  local currMyPetsCount = #currMyPets
+  Log.Info("RoundSwapAction:OnClickBagPet: The in field pet has buff145 and the up pet is not the source pet if it.")
+  local buff145SwapErrorTextConf = _G.DataConfigManager:GetLocalizationConf("buff _145_1", true)
+  if currMyPetsCount > 1 then
+    buff145SwapErrorTextConf = _G.DataConfigManager:GetLocalizationConf("buff _145_2", true)
+  end
+  local buff145SwapErrorText = buff145SwapErrorTextConf and buff145SwapErrorTextConf.msg
+  _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, buff145SwapErrorText)
 end
 
 function RoundSwapAction:OnBattleEvent(eventName, ...)

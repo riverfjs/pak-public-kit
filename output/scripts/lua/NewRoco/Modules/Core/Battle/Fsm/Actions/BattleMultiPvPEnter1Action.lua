@@ -447,6 +447,7 @@ function BattleMultiPvPEnter1Action:OnCloseBattleEntryHud()
     NRCModuleManager:DoCmd(BattleUIModuleCmd.ClosePvpEntryHud)
   end
   NRCModuleManager:DoCmd(BattleUIModuleCmd.ClosePVP_PreparePanel)
+  NRCModuleManager:DoCmd(BattleUIModuleCmd.ForceCloseLoading)
 end
 
 function BattleMultiPvPEnter1Action:GetWidget()

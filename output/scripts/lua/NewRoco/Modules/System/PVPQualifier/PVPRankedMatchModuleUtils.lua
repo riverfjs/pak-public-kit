@@ -183,4 +183,46 @@ function PVPRankedMatchModuleUtils.GetTimestampFromTimeStr(time_str)
   end
 end
 
+function PVPRankedMatchModuleUtils.GetRankListBySeasonIdInRankConf(pvpRankConf, seasonId)
+  local rankList = pvpRankConf and pvpRankConf.rank_list or {}
+  for i, rankListItem in ipairs(rankList) do
+    local itemSeasonId = rankListItem and rankListItem.season
+    if itemSeasonId == seasonId then
+      return rankListItem
+    end
+  end
+end
+
+function PVPRankedMatchModuleUtils.GetSpineAssetPathsSeasonIdInRankConf(pvpRankConf, seasonId)
+  local rankListItem = PVPRankedMatchModuleUtils.GetRankListBySeasonIdInRankConf(pvpRankConf, seasonId)
+  local spine = rankListItem and rankListItem.spine
+  local atlasPath
+  if spine then
+    atlasPath = string.format("SpineAtlasAsset'%s.qizi-atlas'", tostring(spine))
+  end
+  local skeletonDataPath
+  if spine then
+    skeletonDataPath = string.format("SpineSkeletonDataAsset'%s.qizi-data'", tostring(spine))
+  end
+  return atlasPath, skeletonDataPath
+end
+
+function PVPRankedMatchModuleUtils.GetPreloadList()
+  local list = {}
+  local fantasticUi1Conf = _G.DataConfigManager:GetBattleGlobalConfig("fantastic_ui1", true)
+  local fantasticUi1ConfStr = fantasticUi1Conf and fantasticUi1Conf.str
+  if fantasticUi1ConfStr then
+    list[fantasticUi1ConfStr] = fantasticUi1ConfStr
+  end
+  local seasonTable = _G.DataConfigManager:GetTable(DataConfigManager.ConfigTableId.SEASON_CONF)
+  local seasonConfList = seasonTable and seasonTable:GetAllDatas() or {}
+  for key, seasonSkillConf in pairs(seasonConfList) do
+    local season_skill_ui = seasonSkillConf and seasonSkillConf.season_skill_ui
+    if not string.IsNilOrEmpty(season_skill_ui) then
+      list[season_skill_ui] = season_skill_ui
+    end
+  end
+  return list
+end
+
 return PVPRankedMatchModuleUtils

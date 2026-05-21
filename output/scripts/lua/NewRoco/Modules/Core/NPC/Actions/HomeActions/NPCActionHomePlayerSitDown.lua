@@ -78,7 +78,7 @@ function NPCActionHomePlayerSitDown:OnSubmit(Rsp)
       SeatOne.seat_idx = self.NearestSeatIdx - 1
       SeatOne.interact_avatar_id = Player.serverData.base.actor_id
       table.insert(SeatInfo, SeatOne)
-      NPCLuaUtils.SaveSeatNPCServerData(Player, self.OwnerNpc, SitInfo, SeatInfo)
+      Player.playerToyComponent:SaveSeatNPCServerData(Player, self.OwnerNpc, SitInfo, SeatInfo)
       local OwnerView = self:GetOwnerNPCView()
       if OwnerView then
         HomeUtils.PlayerSitToHomeSeat(Player, OwnerView, self.NearestSeatIdx, self.bIsBed)
@@ -88,8 +88,11 @@ function NPCActionHomePlayerSitDown:OnSubmit(Rsp)
         if PlayerModule then
           PlayerModule:RegisterEvent(self, PlayerModuleEvent.ON_INPUT_MOVE_NOTIFY, self.OnPlayerInputMove)
         end
-        _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.SendSenseEvent, OwnerView:Abs_K2_GetActorLocation(), Enum.DotsAIWorldEventType.DAWET_HOME_PLAYER_SIT, nil, Player.isLocal and 1 or 2)
-        _G.NRCEventCenter:RegisterEvent("NPCActionSit", self, SceneEvent.OnEnterSceneFinishNtyAck, self.OnDisConnect)
+        if Player.IsMagicReplayActor and Player:IsMagicReplayActor() then
+        else
+          _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.SendSenseEvent, OwnerView:Abs_K2_GetActorLocation(), Enum.DotsAIWorldEventType.DAWET_HOME_PLAYER_SIT, nil, Player.isLocal and 1 or 2)
+        end
+        _G.NRCEventCenter:RegisterEvent("NPCActionSit", self, SceneEvent.OnEnterSceneFinishNtyAckEnd, self.OnDisConnect)
       end
     end
   end
@@ -127,7 +130,7 @@ function NPCActionHomePlayerSitDown:OnZoneSceneOpSeatRsp(Response)
         SeatTwo.interact_avatar_id = Player.serverData.base.actor_id
         table.insert(SeatInfo, SeatOne)
         table.insert(SeatInfo, SeatTwo)
-        NPCLuaUtils.SaveSeatNPCServerData(Player, self.OwnerNpc, SitInfo, SeatInfo)
+        Player.playerToyComponent:SaveSeatNPCServerData(Player, self.OwnerNpc, SitInfo, SeatInfo)
         self.NearestSeatIdx = Response.seat_idx + 1
         local OwnerView = self:GetOwnerNPCView()
         if OwnerView then
@@ -149,7 +152,7 @@ function NPCActionHomePlayerSitDown:OnZoneSceneOpSeatRsp(Response)
         SeatOne.seat_idx = self.NearestSeatIdx - 1
         SeatOne.interact_avatar_id = 0
         table.insert(SeatInfo, SeatOne)
-        NPCLuaUtils.SaveSeatNPCServerData(Player, self.OwnerNpc, SitInfo, SeatInfo)
+        Player.playerToyComponent:SaveSeatNPCServerData(Player, self.OwnerNpc, SitInfo, SeatInfo)
         local PlayerModule = NRCModuleManager:GetModule("PlayerModule")
         if PlayerModule then
           PlayerModule:UnRegisterEvent(self, PlayerModuleEvent.ON_INPUT_MOVE_NOTIFY)
@@ -336,14 +339,14 @@ function NPCActionHomePlayerSitDown:OnDisConnect()
     SeatInfo.interact_avatar_id = 0
   end
   table.insert(SeatArray, SeatInfo)
-  NPCLuaUtils.SaveSeatNPCServerData(Player, self:GetOwnerNPC(), SitInfo, SeatArray)
+  Player.playerToyComponent:SaveSeatNPCServerData(Player, self:GetOwnerNPC(), SitInfo, SeatArray)
   HomeUtils.PlayerInterruptSceneSeat(Player, self.bIsBed)
   self:Finish(false)
 end
 
 function NPCActionHomePlayerSitDown:Finish(success, data, param)
   self.OwnerNpc.InteractionComponent:TryEnableInteraction()
-  _G.NRCEventCenter:UnRegisterEvent(self, SceneEvent.OnEnterSceneFinishNtyAck, self.OnDisConnect)
+  _G.NRCEventCenter:UnRegisterEvent(self, SceneEvent.OnEnterSceneFinishNtyAckEnd, self.OnDisConnect)
   Base.Finish(self, success, data, param)
 end
 

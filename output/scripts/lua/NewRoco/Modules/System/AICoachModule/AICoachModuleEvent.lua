@@ -1,0 +1,12 @@
+local AICoachModuleEvent = {}
+AICoachModuleEvent.OnPlayRecordedFileFinished = "AICoachModuleEvent.OnPlayRecordedFileFinished"
+AICoachModuleEvent.OnNotifyAICoachNarrationTextUpdate = "AICoachModuleEvent.OnNotifyAICoachNarrationTextUpdate"
+AICoachModuleEvent.OnNotifyAICoachTextUpdate = "AICoachModuleEvent.OnNotifyAICoachTextUpdate"
+AICoachModuleEvent.OnNotifyAICoachRichTextUpdate = "AICoachModuleEvent.OnNotifyAICoachRichTextUpdate"
+AICoachModuleEvent.OnNotifyAICoachTeamRecommend = "AICoachModuleEvent.OnNotifyAICoachTeamRecommend"
+AICoachModuleEvent.OnNotifyAICoachStateChange = "AICoachModuleEvent.OnNotifyAICoachStateChange"
+AICoachModuleEvent.OnNotifyAICoachEmotionChange = "AICoachModuleEvent.OnNotifyAICoachEmotionChange"
+AICoachModuleEvent.OnNotifyAICoachRequestFinish = "AICoachModuleEvent.OnNotifyAICoachRequestFinish"
+AICoachModuleEvent.OnNotifyReOpenAIRequest = "AICoachModuleEvent.OnNotifyReOpenAIRequest"
+AICoachModuleEvent.OnRecoverSceneAICoachState = "AICoachModuleEvent.OnRecoverSceneAICoachState"
+return AICoachModuleEvent

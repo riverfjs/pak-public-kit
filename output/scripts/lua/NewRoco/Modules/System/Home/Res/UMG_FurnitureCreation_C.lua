@@ -2,6 +2,8 @@ local CommonBtnEnum = require("NewRoco.Modules.System.CommonBtn.CommonBtnEnum")
 local AlchemyUtils = require("NewRoco.Modules.System.Alchemy.AlchemyUtils")
 local CreationFurnitureManager = require("NewRoco.Modules.System.Home.Res.FurnitureCreation.FurnitureManager")
 local TouchEmptyHide = require("NewRoco.Modules.System.Home.Res.Helpers.TouchEmptyHide")
+local HomeEnum = require("NewRoco.Modules.System.Home.HomeEnum")
+local HomeModuleEvent = require("NewRoco.Modules.System.Home.HomeModuleEvent")
 local UMG_FurnitureCreation_C = _G.NRCPanelBase:Extend("UMG_FurnitureCreation_C")
 
 function UMG_FurnitureCreation_C:OnConstruct()
@@ -26,12 +28,16 @@ function UMG_FurnitureCreation_C:OnConstruct()
   if self.EmptyState then
     self.EmptyState:SetVisibility(UE.ESlateVisibility.SelfHitTestInvisible)
   end
-  if self.NRCText_65 then
-    self.NRCText_65:SetText(LuaText.furniture_build_unlock_tag)
-  end
   self.SelfRoomLevel = HomeIndoorSandbox.Server:GetLocalHomeBriefInfo().room_level or 0
   if self.PromptText then
     self.PromptText:SetVisibility(UE.ESlateVisibility.Collapsed)
+  end
+  self.DisplayNumInTab = {}
+end
+
+function UMG_FurnitureCreation_C:OnDestruct()
+  if _G.HomeModuleCmd then
+    _G.NRCModuleManager:DoCmd(_G.HomeModuleCmd.CloseFurnitureFilterPanel)
   end
 end
 
@@ -85,6 +91,7 @@ function UMG_FurnitureCreation_C:OnAddEventListener()
   self:RegisterEvent(self, HomeIndoorSandbox.Event.OnRspPlayWorkAnimEnd, self.OnRspPlayWorkAnimEnd)
   self:RegisterEvent(self, HomeIndoorSandbox.Event.OnPreEnterWorkAnimEnd, self.OnPreEnterWorkAnimEnd)
   self:RegisterEvent(self, HomeIndoorSandbox.Event.OnUserConfirmBuildFinish, self.OnUserConfirmBuildFinish)
+  self:RegisterEvent(self, HomeModuleEvent.UpdateFurnitureFilter, self.OnFilterUpdate)
   self.TouchEmptyHideComboBox:Bind()
   self.TouchEmptyHideComboBox.OnTouchEmpty:Add(self, self.OnReqCloseSortPopup)
 end
@@ -193,6 +200,7 @@ function UMG_FurnitureCreation_C:InitTabList()
     end
   end
   self.SeedList.OnFurnitureItemClicked = FPartial(self.OnFurnitureItemClicked, self)
+  self.AllSecondTabFilterCache = {}
   self.Tab:InitGridView(DataList)
   self.Tab:SelectItemByIndex(0)
 end
@@ -255,6 +263,7 @@ function UMG_FurnitureCreation_C:RefreshByTabId()
   local ding_map = self.BuildListRsp and self.BuildListRsp.ding_map or {}
   local home_map = self.BuildListRsp and self.BuildListRsp.home_map or {}
   local self_map = self.BuildListRsp and self.BuildListRsp.self_map or {}
+  local HomeModuleData = HomeIndoorSandbox.Module:GetData()
   
   local function RefreshSelfCreateCondStatus(Data)
     if Data then
@@ -285,6 +294,8 @@ function UMG_FurnitureCreation_C:RefreshByTabId()
     end
   end
   
+  local bDoFilter, SecondTabFilterToShow = self:GetFilterTable(self.CurTabId)
+  self.DisplayNumInTab = {}
   for i, v in ipairs(FurnitureDataList) do
     v.ScrollingCreateLocked = nil
     v.ScrollingCreateCondLocked = nil
@@ -294,8 +305,31 @@ function UMG_FurnitureCreation_C:RefreshByTabId()
     if bEnableBuild and HomeIndoorSandbox:InOtherHomeIndoor() and not v.ExchangeConf.Ban_Other_Home_Build then
       bEnableBuild = false
     end
+    local tabId = v.FurnitureItemConf and v.FurnitureItemConf.classification
+    local firstTabId = HomeModuleData:GetFirstTabId(tabId)
+    local bFilterToShow = not bDoFilter
+    if bDoFilter and bEnableBuild then
+      bFilterToShow = SecondTabFilterToShow[tabId]
+      if not bFilterToShow and firstTabId then
+        bFilterToShow = SecondTabFilterToShow[firstTabId]
+      end
+    end
     if bEnableBuild and (-1 == self.CurTabId or home_map[v.FurnitureItemConf.id]) then
-      table.insert(DataList, v)
+      if tabId and firstTabId then
+        if self.DisplayNumInTab[tabId] == nil then
+          self.DisplayNumInTab[tabId] = 0
+        end
+        if self.DisplayNumInTab[firstTabId] == nil then
+          self.DisplayNumInTab[firstTabId] = 0
+        end
+        self.DisplayNumInTab[tabId] = self.DisplayNumInTab[tabId] + 1
+        if firstTabId ~= tabId then
+          self.DisplayNumInTab[firstTabId] = self.DisplayNumInTab[firstTabId] + 1
+        end
+      end
+      if bFilterToShow then
+        table.insert(DataList, v)
+      end
     end
   end
   
@@ -378,6 +412,17 @@ function UMG_FurnitureCreation_C:RefreshByTabId()
     self.FurniturePreview:SetVisibility(UE.ESlateVisibility.SelfHitTestInvisible)
     self:DispatchEvent(HomeIndoorSandbox.Event.OnReqToggleFurnitureBoxShadow, true)
   end
+  if -1 == self.CurTabId then
+    self.ComboBox_White:ShowOrHideBtnLeft(false, true)
+  else
+    self.ComboBox_White:ShowOrHideBtnLeft(true, false)
+  end
+  local bDoFilter = self:GetFilterTable(self.CurTabId)
+  if bDoFilter then
+    self.ComboBox_White.ScreeningBtn:ChangeIconSelectState(2)
+  else
+    self.ComboBox_White.ScreeningBtn:ChangeIconSelectState(1)
+  end
 end
 
 function UMG_FurnitureCreation_C:SetCommonTitle()
@@ -428,13 +473,15 @@ function UMG_FurnitureCreation_C:OnRefreshContent()
   local ding_map = self.BuildListRsp and self.BuildListRsp.ding_map or {}
   local home_map = self.BuildListRsp and self.BuildListRsp.home_map or {}
   local bLocked = not home_map[ItemConf.id] and (-1 ~= self.CurTabId or not ding_map[ItemConf.id])
-  if bLocked then
+  if false then
     self.NRCSwitcher_0:SetActiveWidgetIndex(0)
     self.NRCSwitcher_0:SetVisibility(UE.ESlateVisibility.SelfHitTestInvisible)
   else
     self.NRCSwitcher_0:SetActiveWidgetIndex(1)
-    self.NRCSwitcher_0:SetVisibility(UE.ESlateVisibility.Collapsed)
-    self.Text_TimeRemaining_1:SetText(tostring(self.SelectedFurnitureData.BagItem and self.SelectedFurnitureData.BagItem.num or 0))
+    self.NRCSwitcher_0:SetVisibility(UE.ESlateVisibility.SelfHitTestInvisible)
+    local BagItemNum = self.SelectedFurnitureData.BagItem and self.SelectedFurnitureData.BagItem.num or 0
+    local ItemNum = ItemConf and HomeIndoorSandbox.Server.WorldData:GetFurnitureNumByConfigId(ItemConf.id) or 0
+    self.Text_TimeRemaining_1:SetText(tostring(BagItemNum + ItemNum))
   end
   if not self.BuildListRsp.self_map[ItemConf.id] then
     self.Text_Conditions:SetText(LuaText.Furniture_build_text_1)
@@ -475,6 +522,12 @@ function UMG_FurnitureCreation_C:OnRefreshContent()
     local RoomName = RoomConf.name or ""
     local Display = string.format(LuaText.furniture_home_level_low, RoomName)
     self.Text_Conditions:SetText(Display)
+  end
+  if self.SelectedFurnitureData then
+    local Config = self.SelectedFurnitureData.FurnitureItemConf or self.SelectedFurnitureData.InteriorFinishConf
+    self.SumNum:SetText(string.format("%d", Config.comfort))
+  else
+    self.SumNum:SetText("0")
   end
 end
 
@@ -608,6 +661,7 @@ function UMG_FurnitureCreation_C:SetCommonComboBoxInfo(ComboBox, DropDownListInf
     CommonDropDownListData.DropDownListIcon = ComboBoxIcon
   end
   CommonDropDownListData.Call = self
+  CommonDropDownListData.Btn_LeftHandler = self.OpenFilterPanel
   CommonDropDownListData.Btn_RightHandler = self.OnToggleSequence
   ComboBox:SetPanelInfo(CommonDropDownListData)
 end
@@ -722,6 +776,42 @@ function UMG_FurnitureCreation_C:Init(BuildListRsp)
   self:InitTabList()
   self:InitMoney()
   self:InitRefreshTime()
+end
+
+function UMG_FurnitureCreation_C:OpenFilterPanel()
+  if not self.CurTabId then
+    return
+  end
+  if _G.HomeModuleCmd then
+    local cacheKey = tostring(self.CurTabId)
+    if self.AllSecondTabFilterCache[cacheKey] == nil then
+      self.AllSecondTabFilterCache[cacheKey] = {}
+    end
+    _G.NRCModuleManager:DoCmd(_G.HomeModuleCmd.OpenFurnitureFilterPanel, self.AllSecondTabFilterCache[cacheKey], HomeEnum.FurnitureFilterMode.Craft, self.CurTabId, self.DisplayNumInTab)
+  end
+end
+
+function UMG_FurnitureCreation_C:OnFilterUpdate()
+  if not self.enableView then
+    return
+  end
+  self:RefreshByTabId()
+end
+
+function UMG_FurnitureCreation_C:GetFilterTable(TabId)
+  if not TabId then
+    return false, {}
+  end
+  local SecondTabFilterToShow
+  if TabId then
+    local cacheKey = tostring(TabId)
+    if self.AllSecondTabFilterCache[cacheKey] == nil then
+      self.AllSecondTabFilterCache[cacheKey] = {}
+    end
+    SecondTabFilterToShow = self.AllSecondTabFilterCache[cacheKey]
+  end
+  local bDoFilter = SecondTabFilterToShow and next(SecondTabFilterToShow)
+  return bDoFilter, SecondTabFilterToShow
 end
 
 return UMG_FurnitureCreation_C

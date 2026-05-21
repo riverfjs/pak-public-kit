@@ -37,10 +37,18 @@ function RedPointUtils.GetSplitFuncByReason(reason)
   return func
 end
 
-local function _AdvCheckInReasonDic(reasonDic, extraKey, isRoot)
+local function _AdvCheckInReasonDic(reasonDic, extraKey, isRoot, ignoreRedPointDataList)
+  local function CheckIgnoreRedPointDataMatch(pointinfoTable, reasonIgnoreRedPointDataList)
+    local bMatch = false
+    
+    if reasonIgnoreRedPointDataList then
+      bMatch = RedPointUtils.LooseTableContainsAny(pointinfoTable, reasonIgnoreRedPointDataList)
+    end
+    return bMatch
+  end
+  
   local function CheckDataHasNumInfo(splitPointData)
     local num
-    
     for _, str in pairs(splitPointData) do
       local starIndex = str:find("%*[^%.]*$")
       if starIndex then
@@ -51,7 +59,7 @@ local function _AdvCheckInReasonDic(reasonDic, extraKey, isRoot)
     return num
   end
   
-  local function CheckPointInfoMatchToExtraKey(pointInfoTable, extraKey, isRoot)
+  local function CheckPointInfoMatchToExtraKey(pointInfoTable, extraKey, isRoot, reasonIgnoreRedPointDataList)
     local bMatch = true
     for i, value in ipairs(extraKey) do
       if value ~= pointInfoTable[i] then
@@ -60,23 +68,41 @@ local function _AdvCheckInReasonDic(reasonDic, extraKey, isRoot)
       end
     end
     if bMatch then
-      if isRoot then
-        local num = CheckDataHasNumInfo(pointInfoTable)
-        return true, num
-      else
-        return true
+      local bIgnoreMatch = CheckIgnoreRedPointDataMatch(pointInfoTable, reasonIgnoreRedPointDataList)
+      if not bIgnoreMatch then
+        if isRoot then
+          local num = CheckDataHasNumInfo(pointInfoTable)
+          return true, num
+        else
+          return true
+        end
       end
     end
     return false
   end
   
   local extraKeyIsNotTable = type(extraKey) ~= "table"
-  for _, data in pairs(reasonDic) do
+  for reason, data in pairs(reasonDic) do
     if extraKeyIsNotTable then
       local oriPointData = data.oriPointData
       for _, p in ipairs(oriPointData) do
         if p == extraKey then
-          return true
+          if ignoreRedPointDataList then
+            if ignoreRedPointDataList[reason] then
+              local bFind = false
+              for _, ignorePointData in pairs(ignoreRedPointDataList[reason]) do
+                if tonumber(p) and tonumber(p) == ignoreRedPointDataList then
+                  bFind = true
+                  break
+                end
+              end
+              if not bFind then
+                return true
+              end
+            end
+          else
+            return true
+          end
         end
       end
     else
@@ -92,7 +118,11 @@ local function _AdvCheckInReasonDic(reasonDic, extraKey, isRoot)
           data.splitPointData[i] = splitFunc(v)
           local pointInfoTable = data.splitPointData[i]
           if true ~= flag then
-            flag, num = CheckPointInfoMatchToExtraKey(pointInfoTable, extraKey, isRoot)
+            local reasonIgnoreRedPointDataList
+            if ignoreRedPointDataList then
+              reasonIgnoreRedPointDataList = ignoreRedPointDataList[reason]
+            end
+            flag, num = CheckPointInfoMatchToExtraKey(pointInfoTable, extraKey, isRoot, reasonIgnoreRedPointDataList)
           end
         end
         if true == flag then
@@ -102,7 +132,11 @@ local function _AdvCheckInReasonDic(reasonDic, extraKey, isRoot)
       if false == hasCheckData then
         local splitPointData = data.splitPointData
         for _, pointInfoTable in pairs(splitPointData) do
-          local flag, num = CheckPointInfoMatchToExtraKey(pointInfoTable, extraKey, isRoot)
+          local reasonIgnoreRedPointDataList
+          if ignoreRedPointDataList then
+            reasonIgnoreRedPointDataList = ignoreRedPointDataList[reason]
+          end
+          local flag, num = CheckPointInfoMatchToExtraKey(pointInfoTable, extraKey, isRoot, reasonIgnoreRedPointDataList)
           if true == flag then
             return flag, num
           end
@@ -150,21 +184,60 @@ function RedPointUtils.GetAdvRedCountInReasonData(data, extraKey)
   return count
 end
 
-function RedPointUtils.AdvCheckIsRed(rpNode, extraKey)
+function RedPointUtils.AdvCheckIsRed(rpNode, extraKey, ignoreRedPointDataList)
   local isRed, num = _AdvCheckInReasonDic(rpNode.litUpReasonDic, extraKey, true)
-  isRed = isRed or _AdvCheckInReasonDic(rpNode.popReasonDic, extraKey, false)
+  isRed = isRed or _AdvCheckInReasonDic(rpNode.popReasonDic, extraKey, false, ignoreRedPointDataList)
   return isRed, num
 end
 
-function RedPointUtils.AdvCheckIsRedByExtraKeyTable(rpNode, extraKeyTable)
+function RedPointUtils.AdvCheckIsRedByExtraKeyTable(rpNode, extraKeyTable, ignoreRedPointDataList)
   local isRed = false
   for i, extraKey in ipairs(extraKeyTable) do
-    if RedPointUtils.AdvCheckIsRed(rpNode, extraKey) then
+    if RedPointUtils.AdvCheckIsRed(rpNode, extraKey, ignoreRedPointDataList) then
       isRed = true
       break
     end
   end
   return isRed
+end
+
+function RedPointUtils.LooseTableContainsAny(tableA, tableB)
+  if type(tableA) ~= "table" or type(tableB) ~= "table" then
+    return false
+  end
+  for _, valueA in pairs(tableA) do
+    for _, valueB in pairs(tableB) do
+      if type(valueA) == "string" and type(valueB) == "number" then
+        if tonumber(valueA) == valueB then
+          return true
+        end
+      elseif type(valueA) == "number" and type(valueB) == "string" then
+        if valueA == tonumber(valueB) then
+          return true
+        end
+      elseif valueA == valueB then
+        return true
+      end
+    end
+  end
+  return false
+end
+
+function RedPointUtils.NumberInDotString(dotString, number)
+  if type(dotString) ~= "string" or type(number) ~= "number" then
+    return false
+  end
+  local numberStr = tostring(number)
+  local parts = {}
+  for part in string.gmatch(dotString, "([^%.]+)") do
+    table.insert(parts, part)
+  end
+  for _, part in ipairs(parts) do
+    if part == numberStr then
+      return true
+    end
+  end
+  return false
 end
 
 return RedPointUtils

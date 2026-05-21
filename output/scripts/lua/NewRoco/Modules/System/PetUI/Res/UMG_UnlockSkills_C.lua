@@ -16,7 +16,7 @@ function UMG_UnlockSkills_C:OnActive(_data)
   end
   self.data = _data
   local needLevel = 0
-  local levelSkillConf = _G.DataConfigManager:GetLevelSkillConf(self.data.petBaseId)
+  local levelSkillConf = _G.NRCModeManager:DoCmd(_G.PetUIModuleCmd.GetLevelSkillConfByPetBaseId, self.data.petBaseId)
   if levelSkillConf then
     needLevel = levelSkillConf.blood_skill_level_point
   end

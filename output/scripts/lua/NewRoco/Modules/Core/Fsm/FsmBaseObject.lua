@@ -1,7 +1,7 @@
 local Class = _G.MakeSimpleClass
 local FsmVar = require("NewRoco.Modules.Core.Fsm.FsmVar")
 local FsmUtils = require("NewRoco.Modules.Core.Fsm.FsmUtils")
-local FsmBaseObject = Class("FsmBaseObject")
+local FsmBaseObject = Class("FsmBaseObject", nil, 128)
 FsmBaseObject:SetMemberCount(2)
 
 function FsmBaseObject:Ctor(name, properties)

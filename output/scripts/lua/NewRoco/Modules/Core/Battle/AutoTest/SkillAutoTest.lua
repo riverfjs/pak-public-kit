@@ -350,8 +350,12 @@ function SkillAutoTest:OnRoundStart()
     self:HideModel()
   end
   local roundParam = self:PrepareRoundParam()
-  _G.DelayManager:DelaySeconds(1, function()
+  self.delayId = _G.DelayManager:DelaySeconds(1, function()
     self.debugCtrl:RoundStart(roundParam)
+    if self.delayId then
+      _G.DelayManager:CancelDelayById(self.delayId)
+      self.delayId = nil
+    end
   end)
 end
 

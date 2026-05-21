@@ -1,16 +1,116 @@
 local UMG_RelationTree_Interaction_C = _G.NRCPanelBase:Extend("UMG_RelationTree_Interaction_C")
+local State = {Dark = 1, Bright = 2}
+
+function UMG_RelationTree_Interaction_C:OnConstruct()
+  Log.Debug("UMG_RelationTree_Interaction_C:OnConstruct")
+end
 
 function UMG_RelationTree_Interaction_C:OnActive()
+  self.BubbleState = State.Dark
+  self.PendingCollapse = false
 end
 
 function UMG_RelationTree_Interaction_C:OnAddEventListener()
 end
 
+function UMG_RelationTree_Interaction_C:StopAllAnims()
+  self.stopingAnim = true
+  self:StopAllAnimations()
+  self.stopingAnim = false
+end
+
+function UMG_RelationTree_Interaction_C:PlayLoopByState()
+  if self.IsNotLoopAnim then
+    return
+  end
+  if self.BubbleState == State.Bright then
+    if self.BrightLoop then
+      self:StopAllAnims()
+      self:PlayAnimation(self.BrightLoop, 0, 0)
+    end
+  elseif self.DarkLoop then
+    self:StopAllAnims()
+    self:PlayAnimation(self.DarkLoop, 0, 0)
+  end
+end
+
 function UMG_RelationTree_Interaction_C:PlayerAnimIn()
   self:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-  self:StopAnimation(self.Loop_2)
-  self:PlayAnimation(self.In_2)
-  UE4.UNRCAudioManager.Get():PlaySound2DAuto(40004007, "UMG_RelationTree_Interaction_C:PlayerAnim.In_2")
+  self:StopAllAnims()
+  if self.BubbleState == State.Bright then
+    if self.BrightIn then
+      self:PlayAnimation(self.BrightIn)
+      if not self.forbiddenAudio then
+        UE4.UNRCAudioManager.Get():PlaySound2DAuto(40004007, "UMG_RelationTree_Interaction_C:Anim.BrightIn")
+      end
+    else
+      self:PlayLoopByState()
+    end
+  elseif self.DarkIn then
+    self:PlayAnimation(self.DarkIn)
+    if not self.forbiddenAudio then
+      UE4.UNRCAudioManager.Get():PlaySound2DAuto(40004007, "UMG_RelationTree_Interaction_C:Anim.DarkIn")
+    end
+  else
+    self:PlayLoopByState()
+  end
+  self.forbiddenAudio = nil
+end
+
+function UMG_RelationTree_Interaction_C:PlayerAnimOut()
+  self.PendingCollapse = true
+  self:StopAllAnims()
+  local outAnim
+  if self.BubbleState == State.Bright then
+    outAnim = self.BrightOut
+  else
+    outAnim = self.DarkOut
+  end
+  if outAnim then
+    self:PlayAnimation(outAnim)
+  else
+    self.PendingCollapse = false
+    self:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  end
+end
+
+function UMG_RelationTree_Interaction_C:SetHeadHUD_BGYellow(IsYellow)
+  if IsYellow then
+    if self.Bright2Dark then
+      self:StopAnimation(self.Bright2Dark)
+    end
+    local vis = self:GetVisibility()
+    local isVisible = vis ~= UE4.ESlateVisibility.Collapsed and vis ~= UE4.ESlateVisibility.Hidden
+    if isVisible and self.BubbleState == State.Dark then
+      self.BubbleState = State.Bright
+      self:StopAllAnims()
+      if self.Dark2Bright then
+        self:PlayAnimation(self.Dark2Bright)
+        UE4.UNRCAudioManager.Get():PlaySound2DAuto(40004007, "UMG_RelationTree_Interaction_C:Anim.Dark2Bright")
+      else
+        self:PlayLoopByState()
+      end
+    else
+      self.BubbleState = State.Bright
+    end
+  else
+    if self.Dark2Bright then
+      self:StopAnimation(self.Dark2Bright)
+    end
+    local isBubbleStateOriNil = self.BubbleState == nil
+    local wasBright = self.BubbleState == State.Bright
+    self.BubbleState = State.Dark
+    local vis = self:GetVisibility()
+    local isVisible = vis ~= UE4.ESlateVisibility.Collapsed and vis ~= UE4.ESlateVisibility.Hidden
+    if isVisible and (wasBright or isBubbleStateOriNil) then
+      self:StopAllAnims()
+      if self.Bright2Dark then
+        self:PlayAnimation(self.Bright2Dark)
+      else
+        self:PlayLoopByState()
+      end
+    end
+  end
 end
 
 function UMG_RelationTree_Interaction_C:PlayerAnimChangeOut(IsRequests, RelationTreeType, ActionID, IsNotLoopAnim)
@@ -20,26 +120,27 @@ function UMG_RelationTree_Interaction_C:PlayerAnimChangeOut(IsRequests, Relation
     ActionID = ActionID,
     IsNotLoopAnim = IsNotLoopAnim
   }
-  self:StopAnimation(self.Loop_2)
-  self:PlayAnimation(self.Change_out)
-end
-
-function UMG_RelationTree_Interaction_C:PlayerAnimOut()
-  self:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self.IsNotLoopAnim = IsNotLoopAnim
+  self:StopAllAnims()
+  self:UpdateHeadHUD(IsRequests, RelationTreeType, ActionID, IsNotLoopAnim, false, false)
+  self:PlayerAnimChangeIn()
 end
 
 function UMG_RelationTree_Interaction_C:PlayerAnimChangeIn()
-  UE4.UNRCAudioManager.Get():PlaySound2DAuto(40004007, "UMG_RelationTree_Interaction_C:PlayerAnimChangeIn.Change_in")
-  self:PlayAnimation(self.Change_in)
+  self.BubbleState = State.Bright
+  self:StopAllAnims()
+  if self.Dark2Bright then
+    self:PlayAnimation(self.Dark2Bright)
+    if not self.forbiddenAudio then
+      UE4.UNRCAudioManager.Get():PlaySound2DAuto(40004007, "UMG_RelationTree_Interaction_C:Anim.Dark2Bright")
+    end
+  else
+    self:PlayLoopByState()
+  end
+  self.forbiddenAudio = nil
 end
 
-function UMG_RelationTree_Interaction_C:PlayerPerceptionAnimIn()
-  self:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-  self:StopAnimation(self.Loop_3)
-  self:PlayAnimation(self.In_4)
-end
-
-function UMG_RelationTree_Interaction_C:UpdateHeadHUD(IsRequests, RelationTreeType, ActionID, IsNotLoopAnim, IsPlayAnimIn, IsChangeAnimIn)
+function UMG_RelationTree_Interaction_C:UpdateHeadHUD(IsRequests, RelationTreeType, ActionID, IsNotLoopAnim, IsPlayAnimIn, IsChangeAnimIn, forbiddenAudio)
   if RelationTreeType then
     local RelationNode = _G.NRCModuleManager:DoCmd(_G.RelationTreeCmd.GetRelationTreeNodeByEnum, RelationTreeType)
     if RelationNode then
@@ -54,21 +155,23 @@ function UMG_RelationTree_Interaction_C:UpdateHeadHUD(IsRequests, RelationTreeTy
   self.IsNotLoopAnim = IsNotLoopAnim
   if IsRequests then
     self.NRCSwitcher:SetActiveWidgetIndex(0)
-    self:UpdateUI(IsPlayAnimIn, IsChangeAnimIn)
+    self:UpdateUI(IsPlayAnimIn, IsChangeAnimIn, forbiddenAudio)
   else
     self.NRCSwitcher:SetActiveWidgetIndex(1)
   end
   self.ChangeData = nil
 end
 
-function UMG_RelationTree_Interaction_C:UpdateUI(IsPlayAnimIn, IsChangeAnimIn)
+function UMG_RelationTree_Interaction_C:UpdateUI(IsPlayAnimIn, IsChangeAnimIn, forbiddenAudio)
   if self.IconPath and self.IconPath ~= "" then
     if IsPlayAnimIn then
+      self.forbiddenAudio = forbiddenAudio
       self.Icon:SetPathWithCallBack(self.IconPath, {
         self,
         self.PlayerAnimIn
       })
     elseif IsChangeAnimIn then
+      self.forbiddenAudio = forbiddenAudio
       self.Icon:SetPathWithCallBack(self.IconPath, {
         self,
         self.PlayerAnimChangeIn
@@ -79,32 +182,42 @@ function UMG_RelationTree_Interaction_C:UpdateUI(IsPlayAnimIn, IsChangeAnimIn)
   end
 end
 
-function UMG_RelationTree_Interaction_C:SetHeadHUD_BGYellow(IsYellow)
-  if IsYellow then
-    self.Bg:SetColorAndOpacity(UE4.UNRCStatics.HexToLinearColor("#FFC75FFF"))
-  else
-    self.Bg:SetColorAndOpacity(UE4.UNRCStatics.HexToLinearColor("#FFFFFFFF"))
-  end
-end
-
 function UMG_RelationTree_Interaction_C:OnAnimationFinished(anim)
-  if anim == self.In_2 then
-    if not self.IsNotLoopAnim then
-      self:PlayAnimation(self.Loop_2, 0, 0)
+  if self.stopingAnim then
+    Log.DebugFormat("UMG_RelationTree_Interaction_C:OnAnimationFinished stopingAnim, ignore anim finish event for anim %s", anim and anim:GetName() or "nil")
+    return
+  end
+  if anim == self.DarkIn then
+    self:PlayLoopByState()
+    return
+  end
+  if anim == self.BrightIn then
+    self:PlayLoopByState()
+    return
+  end
+  if anim == self.Dark2Bright then
+    self.BubbleState = State.Bright
+    self:PlayLoopByState()
+    return
+  end
+  if anim == self.Bright2Dark then
+    self.BubbleState = State.Dark
+    self:PlayLoopByState()
+    return
+  end
+  if anim == self.DarkOut then
+    if self.PendingCollapse then
+      self.PendingCollapse = false
+      self:SetVisibility(UE4.ESlateVisibility.Collapsed)
     end
-  elseif anim == self.Change_out then
-    if self.ChangeData then
-      self.IsNotLoopAnim = self.ChangeData.IsNotLoopAnim
-      self:UpdateHeadHUD(self.ChangeData.IsRequests, self.ChangeData.RelationTreeType, self.ChangeData.ActionID, self.ChangeData.IsNotLoopAnim, false, true)
+    return
+  end
+  if anim == self.BrightOut then
+    if self.PendingCollapse then
+      self.PendingCollapse = false
+      self:SetVisibility(UE4.ESlateVisibility.Collapsed)
     end
-    self:PlayAnimation(self.Change_in)
-  elseif anim == self.Change_in then
-    if not self.IsNotLoopAnim then
-      self:PlayAnimation(self.Loop_2, 0, 0)
-    end
-  elseif anim == self.OUt then
-  elseif anim == self.In_4 then
-    self:PlayAnimation(self.Loop_3, 0, 0)
+    return
   end
 end
 

@@ -28,7 +28,7 @@ function MagicReplayPreviewPrepareAction:OnEnter()
   if recordInitInfo then
     local npc = _G.NRCModeManager:DoCmd(_G.MagicMessageModuleCmd.GetVideoByFakeId, recordInitInfo.npc_id)
     if npc and npc.viewObj then
-      npc.viewObj:CloseAirWall()
+      npc.viewObj.NRCChildActor:GetChildActor():CloseAirWall()
     end
   end
   self.fsm:SetProperty("CurrentOp", MagicReplayModuleEnum.ModuleOpType.Preview)

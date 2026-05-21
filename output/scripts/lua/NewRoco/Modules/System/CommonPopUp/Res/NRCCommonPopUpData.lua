@@ -25,6 +25,7 @@ function NRCCommonPopUpData:Ctor()
   self.bUseContentText1 = nil
   self.SkipCloseAnim = false
   self.ContentTextOnRichTextClickHandle = nil
+  self.CountdownTime = nil
 end
 
 return NRCCommonPopUpData

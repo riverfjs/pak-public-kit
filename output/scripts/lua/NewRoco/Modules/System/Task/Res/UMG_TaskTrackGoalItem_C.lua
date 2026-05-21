@@ -318,6 +318,22 @@ end
 function UMG_TaskTrackGoalItem_C:OnDespawn()
   self:UnregisterTracker()
   self.OldTracker = nil
+  self.Style = GoalStyle.Main
+  self.currentTxtDesc = nil
+  self.MainStyle:SetVisibility(UE.ESlateVisibility.Visible)
+  self.SubStyle:SetVisibility(UE.ESlateVisibility.Collapsed)
+  self.Envelope:SetVisibility(UE.ESlateVisibility.Collapsed)
+  self.TxtTargetDesc_Normal:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self.TxtTargetDesc_Finish:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self.VisitText:SetVisibility(UE.ESlateVisibility.Collapsed)
+  self.MapTips:SetVisibility(UE.ESlateVisibility.Collapsed)
+  self.Arrow:SetVisibility(UE.ESlateVisibility.Collapsed)
+  self.StateIcon:SetVisibility(UE.ESlateVisibility.Collapsed)
+  if _G.RocoEnv.IS_EDITOR then
+    self.TaskID:SetText("")
+  else
+    self.TaskID:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  end
 end
 
 return UMG_TaskTrackGoalItem_C

@@ -103,12 +103,10 @@ function BattleSpectatorOutsideRecord:SetOtherEnemyPets(petsInfo)
     else
       table.insert(self.otherEnemyPetsId, npcId)
       local npc = _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.GetNpcByServerID, npcId)
-      if not npc or not npc:IsPet() then
+      if not npc or not self:IsNpcPet(npc) then
       else
         self.otherEnemyPets[npcId] = npc
-        if not npc:IsHidden(NPCModuleEnum.NpcReasonFlags.BattleOutside) then
-          npc:SetHidden(true, NPCModuleEnum.NpcReasonFlags.BattleOutside)
-        end
+        npc:SetVisibleForBattleOutsideReason(false)
         Log.Debug("BattleSpectatorOutsideRecord:SetOtherEnemyPets", self:GetDebugInfo(), npc:DebugNPCNameAndID())
       end
     end
@@ -123,7 +121,7 @@ function BattleSpectatorOutsideRecord:TryRecoverOtherEnemyPets()
     if npc then
       local stillInBattle = npc:IsLogicStatus(ProtoEnum.SpaceActorLogicStatus.SALS_FIGHTING)
       if not stillInBattle then
-        npc:SetHidden(false, NPCModuleEnum.NpcReasonFlags.BattleOutside)
+        npc:SetVisibleForBattleOutsideReason(true)
         Log.Debug("BattleSpectatorOutsideRecord:TryRecoverOtherEnemyPets", self:GetDebugInfo(), npc:DebugNPCNameAndID())
       else
         Log.Debug("BattleSpectatorOutsideRecord:TryRecoverOtherEnemyPets wait other player", self:GetDebugInfo(), npc:DebugNPCNameAndID())
@@ -461,7 +459,7 @@ function BattleSpectatorOutsideRecord:LoadResource()
   self.loadFinished = false
   if self.bSelfInBattle then
     self.bHasDisapperSkill = false
-  elseif self.npc and self.npc:IsPet() then
+  elseif self:IsNpcPet(self.npc) then
     self.bHasDisapperSkill = true
   else
     self.bHasDisapperSkill = false
@@ -632,9 +630,18 @@ function BattleSpectatorOutsideRecord:PlayerPlaySkill(skillClass, caller, callba
     characters[UE4.EBattleStaticActorType.Player_1] = playerViewObj
   end
   local bNoPets = true
-  if self.petInfoA and self.petInfoA.pet then
-    characters[UE4.EBattleStaticActorType.Pet_1_1] = self.petInfoA.pet.viewObj
-    bNoPets = false
+  if self.petInfoA then
+    if self.petInfoA.pet then
+      characters[UE4.EBattleStaticActorType.Pet_1_1] = self.petInfoA.pet.viewObj
+      bNoPets = false
+    end
+    if self.petInfoA.petData then
+      local ballId = self.petInfoA.petData.ball_id
+      if ballId then
+        local ballPath = _G.BattleUtils.GetPetBallPath({ball_id = ballId})
+        skill:SetDynamicData({BallPath = ballPath})
+      end
+    end
   end
   if self.petInfoB and self.petInfoB.pet then
     characters[UE4.EBattleStaticActorType.Pet_2_1] = self.petInfoB.pet.viewObj
@@ -702,8 +709,8 @@ end
 
 function BattleSpectatorOutsideRecord:BeginPerform()
   Log.Debug("BattleSpectatorOutsideRecord:BeginPerform", self:GetDebugInfo())
-  if self.npc and self.npc:IsPet() and not self.bSelfInBattle then
-    self.npc:SetHidden(true, NPCModuleEnum.NpcReasonFlags.BattleOutside)
+  if self:IsNpcPet(self.npc) and not self.bSelfInBattle then
+    self.npc:SetVisibleForBattleOutsideReason(false)
   end
   if self.petInfoA then
     if not self.bSelfInBattle then
@@ -840,9 +847,13 @@ end
 function BattleSpectatorOutsideRecord:OnEndSkillComplete(name, skill)
   Log.Debug("BattleSpectatorOutsideRecord:OnEndSkillComplete", self:GetDebugInfo())
   _G.UpdateManager:UnRegister(self)
-  if self.npc and self.npc:IsPet() and not self.npc:IsLogicStatus(ProtoEnum.SpaceActorLogicStatus.SALS_FIGHTING) then
-    self.npc:SetHidden(false, NPCModuleEnum.NpcReasonFlags.BattleOutside)
-    Log.Debug("BattleSpectatorOutsideRecord:OnEndSkillComplete npc leave battle", self:GetDebugInfo())
+  if self:IsNpcPet(self.npc) then
+    if not self.npc:IsLogicStatus(ProtoEnum.SpaceActorLogicStatus.SALS_FIGHTING) then
+      self.npc:SetVisibleForBattleOutsideReason(true)
+      Log.Debug("BattleSpectatorOutsideRecord:OnEndSkillComplete npc leave battle", self:GetDebugInfo())
+    else
+      _G.NRCModuleManager:DoCmd(_G.BattleSpectatorModuleCmd.TryKeepWatchNpcIfPlayerLogOut, self)
+    end
   end
   self:ClearPetInfo()
   self:TryRecoverOtherEnemyPets()
@@ -1039,8 +1050,8 @@ end
 function BattleSpectatorOutsideRecord:OnLeaveBattle()
   Log.Debug("BattleSpectatorOutsideRecord:OnLeaveBattle", self:GetDebugInfo(), self.bSelfInBattle)
   if self.bSelfInBattle then
-    if self.npc and self.npc:IsPet() and self.npc:IsLogicStatus(ProtoEnum.SpaceActorLogicStatus.SALS_FIGHTING) then
-      self.npc:SetHidden(true, NPCModuleEnum.NpcReasonFlags.BattleOutside)
+    if self:IsNpcPet(self.npc) and self.npc:IsLogicStatus(ProtoEnum.SpaceActorLogicStatus.SALS_FIGHTING) then
+      self.npc:SetVisibleForBattleOutsideReason(false)
     end
     local playerViewObj = self.player.viewObj
     if self.petInfoA then
@@ -1062,7 +1073,7 @@ function BattleSpectatorOutsideRecord:CheckOnNpcCreate(createdNpc)
   if not createdNpc then
     return
   end
-  if not createdNpc:IsPet() then
+  if not self:IsNpcPet(createdNpc) then
     return
   end
   local id = createdNpc:GetServerId()
@@ -1094,7 +1105,7 @@ function BattleSpectatorOutsideRecord:UpdateNpcVisibleOnCreate(npc)
   if self.bSelfInBattle then
     Log.Debug("BattleSpectatorOutsideRecord:UpdateNpcVisibleOnCreate self in battle", self:GetDebugInfo(), npc:DebugNPCNameAndID())
   else
-    npc:SetHidden(true, NPCModuleEnum.NpcReasonFlags.BattleOutside)
+    npc:SetVisibleForBattleOutsideReason(false)
   end
 end
 
@@ -1278,7 +1289,7 @@ function BattleSpectatorOutsideRecord:OnNightmareShieldBreak(newPetDisplay)
     onPlayShieldSkillFailed()
     return
   end
-  local pet = self.petInfoB.pet
+  local pet = self.petInfoB and self.petInfoB.pet
   if not pet then
     Log.Debug("BattleSpectatorOutsideRecord:OnNightmareShieldBreak pet b is nil", self:GetDebugInfo())
     onPlayShieldSkillFailed()
@@ -1332,12 +1343,9 @@ function BattleSpectatorOutsideRecord:UpdatePetMutation(petInfo, petData)
   if PetMutationUtils.GetMutationValue(oldMutationType, _G.Enum.MutationDiffType.MDT_CHAOS_THREE) then
     PetMutationUtils.RemoveNightmareByIDMask(petViewObj)
   end
-  local newMutationType = petData.mutation_type
-  if PetMutationUtils.GetMutationValue(newMutationType, _G.Enum.MutationDiffType.MDT_CHAOS_THREE) then
-    PetMutationUtils.SetNightmareByIDMask(petViewObj)
-  end
+  PetMutationUtils.DoMutation(petViewObj, petData)
   petInfo.petData = petData
-  Log.Debug("BattleSpectatorOutsideRecord:UpdatePetMutation", self:GetDebugInfo(), oldMutationType, newMutationType)
+  Log.Debug("BattleSpectatorOutsideRecord:UpdatePetMutation", self:GetDebugInfo(), oldMutationType, petData.mutation_type)
 end
 
 function BattleSpectatorOutsideRecord:OnPlayerVisibleChange(Visible)
@@ -1348,6 +1356,23 @@ function BattleSpectatorOutsideRecord:OnPlayerVisibleChange(Visible)
   if self.petInfoB then
     self.petInfoB:OnPlayerVisibleChange(Visible)
   end
+end
+
+function BattleSpectatorOutsideRecord:IsNpcPet(npc)
+  if not npc then
+    return false
+  end
+  if npc:IsPet() then
+    return true
+  end
+  if npc:IsLogicStatus(ProtoEnum.SpaceActorLogicStatus.SALS_LOWBOX_ELITE) then
+    return true
+  elseif npc:IsLogicStatus(ProtoEnum.SpaceActorLogicStatus.SALS_MIDBOX_ELITE) then
+    return true
+  elseif npc:IsLogicStatus(ProtoEnum.SpaceActorLogicStatus.SALS_HIGHBOX_ELITE) then
+    return true
+  end
+  return false
 end
 
 return BattleSpectatorOutsideRecord

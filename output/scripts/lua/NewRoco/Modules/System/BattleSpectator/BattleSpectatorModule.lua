@@ -114,9 +114,11 @@ function BattleSpectatorModule:OnLoadSuccess(request, res)
 end
 
 function BattleSpectatorModule:OnLoadFailed(request, message)
-  Log.Warning("BattleSpectatorModule:OnLoadFailed", message)
+  local path = request.assetPath
+  local name = table.getKeyName(self.PreLoadList, path)
+  Log.Debug("BattleSpectatorModule:OnLoadFailed", name, path, message)
   _G.NRCResourceManager:UnLoadRes(request)
-  self.Requests[request.assetPath] = nil
+  self.Requests[name] = nil
   self:CheckFinish()
 end
 
@@ -481,6 +483,52 @@ function BattleSpectatorModule:OnInnerBattleChangePet(action)
   if record.battle_id == action.bfd_id then
     record:SwitchPet(action.pet_info, not action.is_side_b)
   end
+end
+
+function BattleSpectatorModule:OnTryKeepWatchNpcIfPlayerLogOut(record)
+  if not record then
+    return
+  end
+  local npc = record.npc
+  if not npc then
+    return
+  end
+  npc:SetVisibleForBattleOutsideReason(false)
+  npc:AddEventListener(self, NPCModuleEvent.OnLogicStatusUpdated, self.OnBattledNpcLogicStatusChanged)
+  Log.Debug("BattleSpectatorModule:OnTryKeepWatchNpcIfPlayerLogOut", npc:DebugNPCNameAndID())
+  if not record.otherEnemyPets then
+    return
+  end
+  for _, otherNpc in pairs(record.otherEnemyPets) do
+    if otherNpc then
+      Log.Debug("BattleSpectatorModule:OnTryKeepWatchNpcIfPlayerLogOut otherEnemyPets", otherNpc:DebugNPCNameAndID())
+      otherNpc:AddEventListener(self, NPCModuleEvent.OnLogicStatusUpdated, self.OnBattledNpcLogicStatusChanged)
+    end
+  end
+end
+
+function BattleSpectatorModule:OnBattledNpcLogicStatusChanged(npc, changeInfo)
+  if not npc then
+    return
+  end
+  if not changeInfo then
+    return
+  end
+  local changedStatus = changeInfo.changed_status
+  if not changedStatus then
+    return
+  end
+  local status = changedStatus.status
+  local opType = changeInfo.op_type
+  if status ~= ProtoEnum.SpaceActorLogicStatus.SALS_FIGHTING then
+    return
+  end
+  if opType ~= ProtoEnum.LogicStatusOpType.LSOT_REMOVE then
+    return
+  end
+  npc:RemoveEventListener(self, NPCModuleEvent.OnLogicStatusUpdated, self.OnBattledNpcLogicStatusChanged)
+  npc:SetVisibleForBattleOutsideReason(true)
+  Log.Debug("BattleSpectatorModule:OnBattledNpcLogicStatusChanged", npc:DebugNPCNameAndID())
 end
 
 function BattleSpectatorModule:GetCanDrawDebug()

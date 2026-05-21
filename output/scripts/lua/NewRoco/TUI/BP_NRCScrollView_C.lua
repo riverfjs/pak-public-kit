@@ -166,7 +166,7 @@ function BP_NRCScrollView_C:HandleItemSelected(item, index, bScrolled)
     end
     return
   end
-  if self._selectedItem and self._selectedItem ~= item then
+  if self._selectedItem and self._selectedItem ~= item and UE4.UObject.IsValid(self._selectedItem) then
     if self._selectedItem._index == self._selectedItemIndex then
       self._selectedItem:OnItemSelected(false, bScrolled)
     elseif self._selectedItem._index ~= self._selectedItemIndex and not self._bMultipleChoice then
@@ -177,9 +177,6 @@ function BP_NRCScrollView_C:HandleItemSelected(item, index, bScrolled)
   self.CurSelectedIndex = index
   self._selectedItem = item
   if self._selectedItem and UE4.UObject.IsValid(self._selectedItem) then
-    if self._selectedItem.BroadcastOnClicked then
-      self._selectedItem:BroadcastOnClicked()
-    end
     self._selectedItem:OnItemSelected(true, bScrolled)
     if self._itemSelectedCallback then
       self._itemSelectedCallback(item, index)
@@ -285,6 +282,9 @@ function BP_NRCScrollView_C:OnChildItemClick(item, index, userClick)
     self._selectedItem = item
     self._selectedItemIndex = index + 1
     self.CurSelectedIndex = index
+    if self._selectedItem.BroadcastOnClicked then
+      self._selectedItem:BroadcastOnClicked()
+    end
     self._selectedItem:OnItemSelected(true)
     if self._itemSelectedCallback then
       self._itemSelectedCallback(item, index, userClick)
@@ -437,6 +437,20 @@ function BP_NRCScrollView_C:OpItemByIndex(index, opType, ...)
   self.tempOpItem = self:GetItemByIndex(index - 1)
   if self.tempOpItem then
     return self.tempOpItem:OpItem(opType, ...)
+  end
+end
+
+function BP_NRCScrollView_C:SetMsgHandler(handler)
+  self.msgHandler = handler
+end
+
+function BP_NRCScrollView_C:OnMsg(msg, ...)
+  local msgHandler = self.msgHandler
+  if msgHandler then
+    local handler = msgHandler[msg]
+    if handler then
+      handler(...)
+    end
   end
 end
 

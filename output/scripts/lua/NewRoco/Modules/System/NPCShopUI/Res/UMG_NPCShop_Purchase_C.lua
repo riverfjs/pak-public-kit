@@ -190,14 +190,18 @@ function UMG_NPCShop_Purchase_C:SetUpInfos(shopType)
     elseif goodsConf.Type == Enum.GoodsType.GT_FASHION_SUITS then
       local fashionConf = _G.DataConfigManager:GetFashionSuitsConf(goodsConf.item_id)
       if fashionConf then
-        typeName = ""
+        typeName = fashionConf.grade_name
         name = goodsConf.goods_name
-        desc = ""
+        desc = fashionConf.flavor_text
         iconPath = fashionConf.suits_icon
         color = AppearanceUtils:GetSuitGradeColor(fashionConf.suit_grade)
       end
       self.BackpackQuantity:SetVisibility(UE4.ESlateVisibility.Collapsed)
-      self.NRCImage:SetVisibility(UE4.ESlateVisibility.Collapsed)
+      if desc and "" ~= desc then
+        self.NRCImage:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+      else
+        self.NRCImage:SetVisibility(UE4.ESlateVisibility.Collapsed)
+      end
     elseif goodsConf.Type == Enum.GoodsType.GT_FASHION then
       local fashionConf = _G.DataConfigManager:GetFashionItemConf(goodsConf.item_id)
       if fashionConf then
@@ -346,7 +350,7 @@ function UMG_NPCShop_Purchase_C:SetCostNum()
       if num2 > canBuyCount then
         num2 = canBuyCount
       end
-      if 1 == canBuyCount then
+      if 1 == canBuyCount or 1 == num2 then
         self.AddSubtract_White:SetSliderVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
       end
       self.AddSubtract_White:SetSelectNumText(num2)
@@ -563,7 +567,7 @@ end
 function UMG_NPCShop_Purchase_C:OnSliderValueChanged(value)
   local progressValue = value
   value = math.floor(value)
-  if self.lastBuildValue ~= value and self.lastBuildValue >= 0 then
+  if self.lastBuildValue ~= value then
     UE4.UNRCAudioManager.Get():PlaySound2DAuto(40007002, "UMG_NPCShop_Purchase_C:OnSliderValueChanged")
   end
   self.buyCount = value
@@ -611,6 +615,7 @@ function UMG_NPCShop_Purchase_C:OnBtnCloseClick()
   if self.isButtonProcessing or self.WaitMallBuyItemRsp then
     return
   end
+  UE4.UNRCAudioManager.Get():PlaySound2DAuto(41401002, "UMG_NPCShop_Purchase_C:OnBtnCloseClick")
   self.isButtonProcessing = true
   if self.uiData then
     local shopConf = DataConfigManager:GetShopConf(self.uiData.npcShopId)
@@ -641,6 +646,7 @@ function UMG_NPCShop_Purchase_C:BuySuccess()
 end
 
 function UMG_NPCShop_Purchase_C:OnBtnBuyClick()
+  UE4.UNRCAudioManager.Get():PlaySound2DAuto(41401001, "UMG_NPCShop_Purchase_C:OnBtnBuyClick")
   if self.isButtonProcessing or self.WaitMallBuyItemRsp then
     return
   end
@@ -661,12 +667,17 @@ function UMG_NPCShop_Purchase_C:OnBtnBuyClick()
         self.isButtonProcessing = false
         return
       end
+      local goodsData = _G.NRCModuleManager:DoCmd(NPCShopUIModuleCmd.OnCmdGetGoodsSeverData, self.uiData.npcShopId, itemID)
+      if not goodsData then
+        _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.Error_Code_2046)
+        self.isButtonProcessing = false
+        return
+      end
     end
   end
   local hasMoney = NPCShopUtils:GetGoodsCurrencyNum(self.uiData.npcShopId, itemID)
   local costMoney = self.uiData.priceNum * self.buyCount
   if hasMoney >= costMoney then
-    UE4.UNRCAudioManager.Get():PlaySound2DAuto(1002, "UMG_NPCShopConfirm_C:OnBtnBuyClick")
     local itemList = {}
     self.uiData.selectedNum = self.buyCount
     self.shopUiData.itemList1[self.curSelectedIndex].selectedNum = self.buyCount

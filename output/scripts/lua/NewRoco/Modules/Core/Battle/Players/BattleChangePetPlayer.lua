@@ -321,9 +321,15 @@ function BattleChangePetPlayer:ReplacePet()
       Skill:RegisterEventCallback("End", self, self.OnSKillComplete)
       Skill:RegisterEventCallback("HideBuffBar", self, self.HideBuffBar)
       Skill:RegisterEventCallback("ShowBuffBar", self, self.ShowBuffBar)
+      Skill.BattleGenderType = self.Player.roleInfo.base.sex
       local BattleUMG = BattleUtils.GetMainWindow()
       if BattleUMG then
         BattleUMG.counter = 0
+      end
+      if BattleUtils.IsDeepWater() then
+        Skill.BattleFieldLimitType = UE.EBattleFieldLimitType.Water
+      else
+        Skill.BattleFieldLimitType = UE.EBattleFieldLimitType.Ground
       end
       self.Player:PlaySkillObject(Skill)
     else
@@ -410,6 +416,7 @@ function BattleChangePetPlayer:OnCallPetPostStart(eventName, skill)
   self:HideBuffBar()
   for _, battlePet in ipairs(self.NewPet) do
     battlePet.card.IgnoreAnimCheck = true
+    battlePet:ActiveSwimComponent(false)
     battlePet.buffComponent:OnPetBeCatch()
     battlePet:ShowPet(false)
     battlePet:PrepareForG6()
@@ -456,6 +463,7 @@ function BattleChangePetPlayer:CheckFinish()
     end
     for _, battlePet in ipairs(self.NewPet) do
       battlePet.card.IgnoreAnimCheck = false
+      battlePet:ActiveSwimComponent(true)
       battlePet.buffComponent:RestartBattleState()
       battlePet:RecoverFromG6()
     end

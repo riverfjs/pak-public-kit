@@ -39,7 +39,7 @@ function UMG_TeachingUnlockTips_C:OnPlayTips(tip)
   end
   self:PlayAnimation(self.Appear)
   self.ShowTime = tip.timeLeft
-  self.text_1:SetText(string.format("\231\130\185\229\135\187\230\159\165\231\156\139(%d\231\167\146)", self.ShowTime))
+  self.text_1:SetText(string.format(LuaText.TeachingUnlockTips, self.ShowTime))
   if self.tipsDisplayController and self.tipsDisplayController:GetExecutor():IsPaused() then
     Log.Debug("TeachingUnlockTipsDisplayExecutorIsPause")
     self:SetVisibility(UE4.ESlateVisibility.Collapsed)
@@ -73,7 +73,7 @@ end
 function UMG_TeachingUnlockTips_C:OnUpdateTips(tip, interval)
   if tip and tip.timeLeft then
     self.ShowTime = tip.timeLeft
-    self.text_1:SetText(string.format("\231\130\185\229\135\187\230\159\165\231\156\139(%d\231\167\146)", self.ShowTime))
+    self.text_1:SetText(string.format(LuaText.TeachingUnlockTips, self.ShowTime))
   end
 end
 

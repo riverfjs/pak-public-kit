@@ -29,7 +29,8 @@ function UMG_StudentCard_DragableItem_C:OnDragDetected(MyGeometry, PointerEvent,
   local curMs = UE4.UNRCStatics.GetTimestampMicroseconds()
   local delayMicroSeconds = self:ThresholdMilliTimeForDragStart() * 1000
   if not self.detectDragStartMs or 0 == self.detectDragStartMs or delayMicroSeconds > curMs - self.detectDragStartMs then
-    return nil
+    local defaultDragDrop = UE.UWidgetBlueprintLibrary.CreateDragDropOperation(UE.UDragDropOperation)
+    return defaultDragDrop
   end
   Log.Debug("UMG_StudentCard_DragableItem_C:OnDragDetected")
   local cardDragDropOpClass = UE.UClass.Load("/Game/NewRoco/Modules/System/Friend/Res/BusinessCard/BP_CardDragDropOperation.BP_CardDragDropOperation_C")

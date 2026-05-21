@@ -17,6 +17,7 @@ function UMG_UpgradeList_Item3_C:OnItemUpdate(data, datalist, index)
   self.originalWoreId = nil
   self.bIsWoreComponent = false
   self.selectedHeteroChromeSuitIndex = -1
+  self.suitHelmetId = nil
   local vItemsConf = _G.DataConfigManager:GetVisualItemConf(self.itemData.componentData.lv_cost_type)
   self.NRCImage_228:SetPath(vItemsConf.bigIcon)
   local player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
@@ -184,9 +185,21 @@ function UMG_UpgradeList_Item3_C:OnItemSelected(bIsSelected, bScrolled)
     if self.parent then
       self.parent:OnItemSelectedCallback(self.itemIndex)
       if Type ~= _G.Enum.GoodsType.GT_FASHION_BOND then
+        if Type == _G.Enum.GoodsType.GT_SALON then
+          local salonConf = _G.DataConfigManager:GetSalonItemConf(ItemId, true)
+          if salonConf and salonConf.type == _G.Enum.SalonLabelType.SLT_HAIR then
+            self:_DetectSuitHelmet()
+          end
+        end
+        if not self or not self.itemData then
+          return
+        end
         if Type == _G.Enum.GoodsType.GT_FASHION then
           _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.SetTryOnAppearance, true, {ItemId}, true)
         elseif Type == _G.Enum.GoodsType.GT_SALON then
+          if self.suitHelmetId then
+            _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.SetCurTryOnItemInfo, _G.Enum.FashionLabelType.FLT_HATS, self.suitHelmetId, nil, nil, false)
+          end
           _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.SetTryOnAppearance, false, {ItemId}, true)
         elseif Type == _G.Enum.GoodsType.GT_FASHION_SUITS then
           self:_ChangeSuit(ItemId, true)
@@ -198,7 +211,9 @@ function UMG_UpgradeList_Item3_C:OnItemSelected(bIsSelected, bScrolled)
     end
   else
     self.bIsSelected = false
-    if not self.bIsWoreComponent then
+    if self.itemData.componentData.lv_item_type == _G.Enum.GoodsType.GT_FASHION_SUITS then
+      self:DemountComponent()
+    elseif not self.bIsWoreComponent then
       self:DemountComponent()
     end
     if self.parent and self.parent.OnUpgradeItemCanceled then
@@ -221,14 +236,8 @@ function UMG_UpgradeList_Item3_C:MountComponent(bIgnoreRotate)
     _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.SetTryOnAppearance, false, {ItemId}, true, bIgnoreRotate)
     self.parent.data:SetSuitWearComponent(suitId, false, ItemId)
   elseif Type == _G.Enum.GoodsType.GT_FASHION_SUITS then
-    self.bIsWoreComponent = true
     self.parent:OnSuitChanged(self.itemIndex, ItemId)
-    local suitsConf = _G.DataConfigManager:GetFashionSuitsConf(ItemId, true)
-    if suitsConf and suitsConf.item_id then
-      for k, v in ipairs(suitsConf.item_id) do
-        self.parent.data:SetSuitWearComponent(suitId, true, v)
-      end
-    end
+    self:_ChangeSuit(ItemId, true)
   end
 end
 
@@ -244,16 +253,28 @@ function UMG_UpgradeList_Item3_C:DemountComponent()
     _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.SetCurTryOnItemInfo, fashionItemConf.type, ItemId, nil, nil, false)
     self.parent.data:RemoveWearComponentFromSuit(suitId, true, ItemId)
   elseif Type == _G.Enum.GoodsType.GT_SALON then
-    if self.originalWoreId == ItemId then
-      local itemConf = _G.DataConfigManager:GetSalonItemConf(ItemId)
-      if itemConf then
-        local id = self.defaultSalonIds[itemConf.type + 1]
-        _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.SetTryOnAppearance, false, {id}, true)
-      end
-    else
+    local itemConf = _G.DataConfigManager:GetSalonItemConf(ItemId)
+    local bHasHelmet = false
+    if itemConf and itemConf.type == _G.Enum.SalonLabelType.SLT_HAIR and self.suitHelmetId then
       _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.SetTryOnAppearance, false, {
         self.originalWoreId
       }, true)
+      bHasHelmet = true
+      _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.SetTryOnAppearance, true, {
+        self.suitHelmetId
+      }, true)
+    end
+    if not bHasHelmet then
+      if self.originalWoreId == ItemId then
+        if itemConf then
+          local id = self.defaultSalonIds[itemConf.type + 1]
+          _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.SetTryOnAppearance, false, {id}, true)
+        end
+      else
+        _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.SetTryOnAppearance, false, {
+          self.originalWoreId
+        }, true)
+      end
     end
     self.parent.data:RemoveWearComponentFromSuit(suitId, false, ItemId)
   elseif Type == _G.Enum.GoodsType.GT_FASHION_SUITS then
@@ -268,7 +289,7 @@ function UMG_UpgradeList_Item3_C:RestoreComponent()
   local Type = self.itemData.componentData.lv_item_type
   if Type == _G.Enum.GoodsType.GT_FASHION or Type == _G.Enum.GoodsType.GT_SALON then
     self:DemountComponent()
-  elseif Type == _G.Enum.GoodsType.GT_FASHION_SUITS and self.selectedHeteroChromeSuitIndex ~= self.itemIndex and self.bIsSelected then
+  elseif Type == _G.Enum.GoodsType.GT_FASHION_SUITS and self.bIsSelected then
     self:_ChangeSuit(self.originalWoreId, true)
   end
 end
@@ -411,6 +432,27 @@ function UMG_UpgradeList_Item3_C:OnTick(DeltaTime)
       nextProgress = nextProgress - self.totalScrollEnd / 2
     end
     self.ScrollBox_51:SetScrollOffset(nextProgress)
+  end
+end
+
+function UMG_UpgradeList_Item3_C:_DetectSuitHelmet()
+  self.suitHelmetId = nil
+  if not self.parent or not self.parent.suitInfo then
+    return
+  end
+  local suitConf = _G.DataConfigManager:GetFashionSuitsConf(self.parent.suitInfo.suitId, true)
+  if not suitConf then
+    return
+  end
+  for _, v in ipairs(suitConf.item_id) do
+    local fashionConf = _G.DataConfigManager:GetFashionItemConf(v)
+    if fashionConf and fashionConf.type == _G.Enum.FashionLabelType.FLT_HATS then
+      local _, _, avatarEnum = self.parent.module:GetConfigEnumFromFashionId(v)
+      if avatarEnum == UE4.EAvatarBodyType.Hg or avatarEnum == UE4.EAvatarBodyType.Hp then
+        self.suitHelmetId = v
+        return
+      end
+    end
   end
 end
 

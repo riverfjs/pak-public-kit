@@ -88,7 +88,7 @@ function UMG_BX_Template_C:SetQuality(quality)
 end
 
 function UMG_BX_Template_C:SetIcon(icon_path)
-  if self.eggData and self.eggData.conf_id and 0 == self.eggData.conf_id and self.eggData.random_egg_conf then
+  if self.eggData then
     self.IconSwitcher:SetActiveWidgetIndex(1)
     self.PetEggIcon:SetEggIcon(self.eggData, icon_path)
     return

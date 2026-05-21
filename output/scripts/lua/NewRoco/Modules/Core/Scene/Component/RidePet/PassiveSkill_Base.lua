@@ -8,6 +8,9 @@ end
 function PassiveSkill_Base:OnSetViewObj()
 end
 
+function PassiveSkill_Base:OnSetDoubleRide2P(isOnPet, player2P)
+end
+
 function PassiveSkill_Base:Start()
 end
 

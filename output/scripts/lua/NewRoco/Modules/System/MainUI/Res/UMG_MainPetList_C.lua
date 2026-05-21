@@ -12,7 +12,17 @@ function UMG_MainPetList_C:OnConstruct()
   self.ItemHeight = 110
   self.PageHeight = self.ScrollBox_65.Slot:GetSize().Y + 19.5
   self:InitPanelInfo(false)
+  self.MainPetList:SetItemCanClickChecker(self.CheckItemCanClick, self)
+  self.MainPetList:SetItemCanSelectChecker(self.CheckItemCanClick, self)
   self:OnAddEventListener()
+end
+
+function UMG_MainPetList_C:CheckItemCanClick(Item, tabIndex)
+  local isAmining = _G.NRCModuleManager:DoCmd(MainUIModuleCmd.GetAimState)
+  if isAmining and Item.uiData and Item.uiData.RecycleState == true then
+    return false
+  end
+  return true
 end
 
 function UMG_MainPetList_C:GetCurTeamIndex()
@@ -35,8 +45,27 @@ function UMG_MainPetList_C:UpdateThrowPetCanClick(bThrow)
   end
 end
 
+function UMG_MainPetList_C:ForceUpdatePetRiderState()
+  local count = self.MainPetList:GetItemCount()
+  local RidePetGid
+  local player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
+  if player then
+    local RidePet = player.viewObj.BP_RideComponent.ScenePet
+    if RidePet then
+      RidePetGid = RidePet.gid
+    end
+  end
+  for i = 1, count do
+    local item = self.MainPetList:GetItemByIndex(i - 1)
+    if item and item.uiData and item.uiData.PetData and item.uiData.PetData ~= "nil" then
+      item:ForceUpdatePetRiderState(RidePetGid)
+    end
+  end
+end
+
 function UMG_MainPetList_C:OnAddEventListener()
   _G.NRCEventCenter:RegisterEvent("UMG_MainPet_C", self, MainUIModuleEvent.OnMainPetRecycleSelect, self.OnPetRecycleSelect)
+  _G.NRCEventCenter:RegisterEvent("UMG_MainPet_C", self, MainUIModuleEvent.OnForceUpdateFriendRideState, self.OnForceUpdateFriendRideState)
 end
 
 function UMG_MainPetList_C:UpdataRecycleState(Session, Status)
@@ -58,8 +87,32 @@ function UMG_MainPetList_C:UpdataRecycleState(Session, Status)
   end
 end
 
+function UMG_MainPetList_C:UpdateFriendRideState(ridingPetGid, IsFriendRiding)
+  if nil == ridingPetGid then
+    return
+  end
+  local count = self.MainPetList:GetItemCount()
+  for i = 1, count do
+    local item = self.MainPetList:GetItemByIndex(i - 1)
+    if item and item.uiData and item.uiData.PetData and item.uiData.PetData ~= "nil" and ridingPetGid == item.uiData.PetData.gid then
+      item:UpdateFriendRideStateShow(IsFriendRiding)
+    end
+  end
+end
+
+function UMG_MainPetList_C:OnForceUpdateFriendRideState()
+  local count = self.MainPetList:GetItemCount()
+  for i = 1, count do
+    local item = self.MainPetList:GetItemByIndex(i - 1)
+    if item then
+      item:UpdateFriendRideStateShow()
+    end
+  end
+end
+
 function UMG_MainPetList_C:OnDestruct()
   _G.NRCEventCenter:UnRegisterEvent(self, MainUIModuleEvent.OnMainPetRecycleSelect, self.OnPetRecycleSelect)
+  _G.NRCEventCenter:UnRegisterEvent(self, MainUIModuleEvent.OnForceUpdateFriendRideState, self.OnForceUpdateFriendRideState)
 end
 
 function UMG_MainPetList_C:InitPanelInfo(NeedThrowSession, bForceInit, cancelThrow)
@@ -156,10 +209,11 @@ function UMG_MainPetList_C:InitPanelInfo(NeedThrowSession, bForceInit, cancelThr
 end
 
 function UMG_MainPetList_C:SelectPetByIndex()
-  local selectPetIndex = _G.NRCModeManager:DoCmd(MainUIModuleCmd.GetSelectPetIndex)
+  local selectPetIndex, petData = _G.NRCModeManager:DoCmd(MainUIModuleCmd.GetSelectPetIndex)
   if selectPetIndex and selectPetIndex > 0 and self:IsCurMainTeamIndex() then
     local selectIndex = (self.curPage - 1) * 6 + selectPetIndex
-    if not self.MainPetList:IsItemIndexSelected(selectIndex) then
+    local item = self.MainPetList:GetItemByIndex(selectIndex - 1)
+    if item and petData and item.uiData and item.uiData.PetData and item.uiData.PetData.gid == petData.gid and not self.MainPetList:IsItemIndexSelected(selectIndex) then
       self.MainPetList:SelectItemByIndex(selectIndex - 1)
     end
   end
@@ -174,6 +228,10 @@ function UMG_MainPetList_C:OnPetRecycleSelect()
   local item = self.MainPetList:GetItemByIndex(index - 1)
   item:StopAllAnimations()
   item:ShowSelected(true)
+end
+
+function UMG_MainPetList_C:IsScrollIng()
+  return self.scrollingTimeLeft and self.scrollingTimeLeft > 0
 end
 
 function UMG_MainPetList_C:OnPCSelectPet0(action_type, index)
@@ -215,6 +273,7 @@ end
 
 function UMG_MainPetList_C:ScrollToPage(_page, _animateTime)
   if _page >= 0 and _page <= self.PageNum then
+    _G.NRCModeManager:DoCmd(MainUIModuleCmd.SetMainUICanCache, false)
     self.curPage = _page
     self.scrollingTimeLeft = _animateTime or self.pageScrollTime
     self.desiredScrollOffset = (self.curPage - 1) * self.PageHeight
@@ -236,7 +295,7 @@ function UMG_MainPetList_C:OnTick(deltaTime)
   else
     self.scrollingTimeLeft = 0
     self.ScrollBox_65:SetScrollOffset(self.desiredScrollOffset)
-    self.ScrollBox_65:InvalidateLayoutAndVolatility()
+    _G.NRCModeManager:DoCmd(MainUIModuleCmd.RefreshMainUICache)
   end
 end
 
@@ -307,7 +366,8 @@ function UMG_MainPetList_C:HandlePressEnd(_MyGeometry, _PointerEvent)
         clickRow = 5
       end
       local index = (self.curPage - 1) * 6 + clickRow
-      if self:IsCurMainTeamIndex() then
+      local item = self.MainPetList:GetItemByIndex(index)
+      if self:IsCurMainTeamIndex() and item and item.clickable then
         _G.NRCModeManager:DoCmd(MainUIModuleCmd.SetSelectPetIndex, clickRow + 1)
         _G.NRCModuleManager:DoCmd(PetUIModuleCmd.SetPetSelectIndex, clickRow + 1)
       end
@@ -320,9 +380,6 @@ function UMG_MainPetList_C:HandlePressEnd(_MyGeometry, _PointerEvent)
 end
 
 function UMG_MainPetList_C:OnDeactive()
-end
-
-function UMG_MainPetList_C:OnAddEventListener()
 end
 
 return UMG_MainPetList_C

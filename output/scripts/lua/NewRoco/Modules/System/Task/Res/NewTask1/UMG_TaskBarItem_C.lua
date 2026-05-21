@@ -17,28 +17,18 @@ function UMG_TaskBarItem_C:OnItemUpdate(_data, datalist, index)
   self.index = index
   self.datalist = datalist
   self.IsExpand = false
-  self.TaskRedList = nil
+  self.TaskRedList = _data.TaskRedList
   self:initializePanelInfo()
   self:SetRedPoint()
   self:SetInfo()
 end
 
 function UMG_TaskBarItem_C:SetRedPoint()
-  local TaskRedPointList = _G.NRCModeManager:DoCmd(TaskModuleCmd.GetTaskRedPointList)
-  if TaskRedPointList and #TaskRedPointList > 0 then
-    local TaskRedList = {}
-    for i, TaskRedPoint in ipairs(TaskRedPointList) do
-      local TaskConf = _G.DataConfigManager:GetTaskConf(tonumber(TaskRedPoint))
-      if TaskConf then
-        if TaskConf.paragraph_id == self.data.paragraph then
-          table.insert(TaskRedList, TaskConf.id)
-          self.RedPoint:SetupKey(221, TaskConf.id)
-        end
-      else
-        Log.Error("TaskConf\228\184\173\230\178\161\230\156\137\230\137\190\229\136\176\229\175\185\229\186\148id--", tonumber(TaskRedPoint))
-      end
-    end
-    self.TaskRedList = TaskRedList
+  if not self.TaskRedList then
+    return
+  end
+  for i, TaskRed in ipairs(self.TaskRedList) do
+    self.RedPoint:SetupKey(221, TaskRed)
   end
 end
 

@@ -1,5 +1,6 @@
 local BattleEnum = require("NewRoco.Modules.Core.Battle.Common.BattleEnum")
 local BattleEvent = require("NewRoco.Modules.Core.Battle.Common.BattleEvent")
+local BattleConst = require("NewRoco.Modules.Core.Battle.Common.BattleConst")
 local UMG_Battle_Victory_C = _G.NRCPanelBase:Extend("UMG_Battle_Victory_C")
 local BattleUtils = require("NewRoco.Modules.Core.Battle.Common.BattleUtils")
 UMG_Battle_Victory_C.PKState = {
@@ -35,6 +36,7 @@ function UMG_Battle_Victory_C:OnActive(param)
     self.Tips_5,
     self.Tips_6
   }
+  self.CanvasPanelTitleRetainerBox:SetRetainRendering(true)
   if BattleUtils.IsPvp() or _G.EnableFakePVPRecord then
     self:InitInfo()
   elseif BattleUtils.IsNpcChallenge() or BattleUtils.IsLeaderChallenge() then
@@ -44,7 +46,13 @@ function UMG_Battle_Victory_C:OnActive(param)
       self:InitNpcChallengeInfo()
     end
   end
-  self:OnResultUiStateUpdate()
+  if self:IsEnableDebugFillMaskUiImage() then
+    self:AddDebugFillMaskUiImage()
+  end
+end
+
+function UMG_Battle_Victory_C:OnTick(DeltaTime)
+  self:UpdateSceneViewportSizeAndScale()
 end
 
 function UMG_Battle_Victory_C:ShowFastWinInfo()
@@ -323,7 +331,7 @@ end
 function UMG_Battle_Victory_C:RefreshWatchBattleInfo()
   local needShowWatchBattleInfo = BattleUtils.IsPvp()
   local battleType = _G.BattleManager.battleRuntimeData.battleType
-  if battleType == Enum.BattleType.BT_PVP then
+  if battleType == Enum.BattleType.BT_PVP or battleType == Enum.BattleType.BT_PVP_SCARE then
     needShowWatchBattleInfo = false
   end
   if not needShowWatchBattleInfo then
@@ -375,7 +383,9 @@ function UMG_Battle_Victory_C:RefreshWatchBattleInfo()
       dataItem.isWin = isWin
       table.insert(SpectatorsItemDataList, dataItem)
     end
-    TextNumberSpectators = string.format("\232\167\130\230\136\152\228\186\186\230\149\176\239\188\154%s", tostring(watchCount))
+    local TextNumberSpectatorsConf = _G.DataConfigManager:GetBattleGlobalConfig("pvp_rank_character30", true)
+    local TextNumberSpectatorsConfStr = TextNumberSpectatorsConf and TextNumberSpectatorsConf.str or ""
+    TextNumberSpectators = string.format(TextNumberSpectatorsConfStr, tostring(watchCount))
     TextReward = string.format("x%s", tostring(rewardTotalCount))
     local showMax = 999999999
     if rewardTotalCount > showMax then
@@ -443,6 +453,8 @@ function UMG_Battle_Victory_C:ShowRecordOver()
     self:AddButtonListener(self.BtnClose, self.OnLeaveWatchingBattle)
   elseif BattleUtils.IsPvpRank() then
     self:AddButtonListener(self.BtnClose, self.ShowRankSettlement)
+  elseif BattleUtils.IsPvpScare() then
+    self:AddButtonListener(self.BtnClose, self.OnClickClose)
   else
     self:AddButtonListener(self.BtnClose, self.ShowPKAgainState)
   end
@@ -627,7 +639,6 @@ function UMG_Battle_Victory_C:OnBattleEvent(eventName, ...)
     return true
   elseif eventName == BattleEvent.RESULT_UI_STATE_UPDATE then
     local option = (...)
-    self:OnResultUiStateUpdate()
     return true
   end
 end
@@ -675,12 +686,71 @@ function UMG_Battle_Victory_C:RefreshRandomBonusPoints(bShow)
   self.RandomBonus:SetVisibility(bShow and UE4.ESlateVisibility.SelfHitTestInvisible or UE4.ESlateVisibility.Collapsed)
 end
 
-function UMG_Battle_Victory_C:OnResultUiStateUpdate()
-  local runtimeData = _G.BattleManager.battleRuntimeData
-  local resultUiState = runtimeData and runtimeData.resultUiState
-  local isCharacterMaskCapturing = resultUiState and resultUiState.isCharacterMaskCapturing
-  local isInRetainRendering = isCharacterMaskCapturing
-  self.CanvasPanelTitleRetainerBox:SetRetainRendering(isInRetainRendering)
+function UMG_Battle_Victory_C:UpdateSceneViewportSizeAndScale()
+  local scale = UE.FVector2D()
+  local offset = UE.FVector2D()
+  UE.UNRCTUIStatics.GetSceneViewportSizeAndScale(scale, offset)
+  local CanvasPanelTitleRetainerBox = self.CanvasPanelTitleRetainerBox
+  local effectMaterial
+  if UE.UObject.IsValid(CanvasPanelTitleRetainerBox) then
+    effectMaterial = CanvasPanelTitleRetainerBox and CanvasPanelTitleRetainerBox:GetEffectMaterial()
+  end
+  if UE.UObject.IsValid(effectMaterial) then
+    local scaleX = scale and scale.X or 0
+    local scaleY = scale and scale.Y or 0
+    local offsetX = offset and offset.X or 0
+    local offsetY = offset and offset.Y or 0
+    local stencilValue = BattleConst and BattleConst.BattleVictoryUiMaskStencilValue or 5
+    if self:IsNeedFlipY() then
+      effectMaterial:SetScalarParameterValue("ViewportScaleX", scaleX)
+      effectMaterial:SetScalarParameterValue("ViewportScaleY", -scaleY)
+      effectMaterial:SetScalarParameterValue("ViewportOffsetX", offsetX)
+      effectMaterial:SetScalarParameterValue("ViewportOffsetY", offsetY + scaleY)
+      effectMaterial:SetScalarParameterValue("CustomDepthStencilValue", stencilValue)
+    else
+      effectMaterial:SetScalarParameterValue("ViewportScaleX", scaleX)
+      effectMaterial:SetScalarParameterValue("ViewportScaleY", scaleY)
+      effectMaterial:SetScalarParameterValue("ViewportOffsetX", offsetX)
+      effectMaterial:SetScalarParameterValue("ViewportOffsetY", offsetY)
+      effectMaterial:SetScalarParameterValue("CustomDepthStencilValue", stencilValue)
+    end
+  end
+end
+
+function UMG_Battle_Victory_C:IsNeedFlipY()
+  local needFlipY = false
+  if RocoEnv.PLATFORM_ANDROID then
+    needFlipY = true
+  end
+  if RocoEnv.PLATFORM_OPENHARMONY then
+    needFlipY = true
+  end
+  return needFlipY
+end
+
+function UMG_Battle_Victory_C:IsEnableDebugFillMaskUiImage()
+  local NRCModuleManager = _G.NRCModuleManager
+  local battleUiModule = NRCModuleManager and NRCModuleManager:GetModule("BattleUIModule")
+  local battleUiModuleData = battleUiModule and battleUiModule.data
+  local enableBattleVictoryTitleFillImage = battleUiModuleData and battleUiModuleData.__enableBattleVictoryTitleFillImage
+  return enableBattleVictoryTitleFillImage
+end
+
+function UMG_Battle_Victory_C:AddDebugFillMaskUiImage()
+  local parentWidget = self.CanvasPanelTitle:GetParent()
+  if UE.UObject.IsValid(parentWidget) then
+    local imageWidget = NewObject(UE.UNRCImage)
+    if UE.UObject.IsValid(imageWidget) then
+      parentWidget:AddChild(imageWidget)
+      local panelSlot = imageWidget and imageWidget.Slot
+      local anchors = UE4.FAnchors()
+      anchors.Minimum = UE4.FVector2D(0, 0)
+      anchors.Maximum = UE4.FVector2D(1, 1)
+      panelSlot:SetAnchors(anchors)
+      panelSlot:SetOffsets(UE4.FMargin())
+      imageWidget:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
+    end
+  end
 end
 
 return UMG_Battle_Victory_C

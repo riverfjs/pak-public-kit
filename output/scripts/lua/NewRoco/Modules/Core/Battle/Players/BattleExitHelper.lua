@@ -33,7 +33,7 @@ function BattleExitHelper.ResetPlayerCamera()
   BattleUtils.RequestPlayerCam()
 end
 
-function BattleExitHelper.PlayExitSkill(killer, victim, caller, callback, exit, postStart)
+function BattleExitHelper.PlayExitSkill(killer, victim, caller, callback, exit, postStart, banBall)
   if not killer then
     Log.Error("BattleExitHelper PlayExitSkill is not exist")
     if postStart then
@@ -84,6 +84,10 @@ function BattleExitHelper.PlayExitSkill(killer, victim, caller, callback, exit, 
     local headLookAtComponent = localplayer:GetHeadLookAtComponent()
     if headLookAtComponent then
       headLookAtComponent:DisableManualOverride(true)
+    end
+    local blackboard = SkillObject:GetBlackboard()
+    if not banBall and blackboard and UE.UObject.IsValid(blackboard) then
+      blackboard:SetValueAsString("HasBall", "HasBall")
     end
     local characters = PawnManager:GetAllPawnActorForSkill()
     characters[0] = localplayer.viewObj

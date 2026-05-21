@@ -100,4 +100,13 @@ function MagicSeqForRecord:EndPlay()
   self.bPreview = false
 end
 
+function MagicSeqForRecord:GetCurRecordDuration()
+  local curDuration = 0
+  if self.sequence and #self.sequence > 0 then
+    local deltaFrameTime = self.sequence[#self.sequence].frameTime - self.sequence[1].frameTime
+    curDuration = deltaFrameTime / 1000
+  end
+  return curDuration
+end
+
 return MagicSeqForRecord

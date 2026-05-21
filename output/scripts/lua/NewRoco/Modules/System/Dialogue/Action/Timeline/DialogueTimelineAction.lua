@@ -17,6 +17,12 @@ FsmUtils.MergeMembers(Base, DialogueTimelineAction, {
     display_name = "\230\137\128\229\177\158\232\167\146\232\137\178ID"
   },
   {
+    name = "NPCContentID",
+    type = "SheetRef.NPC_REFRESH_CONTENT_CONF",
+    default = 0,
+    display_name = "\230\137\128\229\177\158\232\167\146\232\137\178ContentID"
+  },
+  {
     name = "StartTime",
     type = "float",
     default = 0.0,

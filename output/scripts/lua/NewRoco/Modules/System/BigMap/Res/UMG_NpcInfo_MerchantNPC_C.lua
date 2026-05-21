@@ -58,6 +58,34 @@ function UMG_NpcInfo_MerchantNPC_C:UpdateAsyncResource(totalConsume, nextRewardR
     self.SizeBox_1:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
   end
   self.DungeonAwardList_1:InitGridView(itemList)
+  self.itemList = itemList
+end
+
+function UMG_NpcInfo_MerchantNPC_C:ShowDefault()
+  self.SizeBox:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self.SizeBox_1:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self.SizeBox_2:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self.CanvasPanel:SetVisibility(UE4.ESlateVisibility.Collapsed)
+end
+
+function UMG_NpcInfo_MerchantNPC_C:UpdateCardItem(share_form_item)
+  for _, item in ipairs(self.itemList) do
+    if item.cardId then
+      for _, v in ipairs(share_form_item) do
+        if item.cardId == v.id then
+          if item.limit_buy_num > item.buy_num then
+            local canBuyCount = item.limit_buy_num - item.buy_num
+            item.topLabelText = "\233\153\144\233\135\143"
+            item.bShowNum = true
+            item.itemNum = canBuyCount
+          else
+            item.topLabelText = "\229\148\174\231\189\132"
+          end
+        end
+      end
+    end
+  end
+  self.DungeonAwardList_1:InitGridView(self.itemList)
 end
 
 return UMG_NpcInfo_MerchantNPC_C

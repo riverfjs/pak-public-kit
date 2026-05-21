@@ -58,6 +58,9 @@ function UMG_TakePhotosRiderEditor_C:Refresh()
       self.VerticalBox_Functions:SetVisibility(UE.ESlateVisibility.Collapsed)
     end
     self.NRCText_1:SetText(Name)
+    if not M.ModeMgr:Is1PMode() and not M.ModeMgr:IsSelfieMode() then
+      self.VerticalBox_Functions:SetVisibility(UE.ESlateVisibility.Collapsed)
+    end
     if self.VerticalBox_Functions:IsVisible() then
       if M.ModeMgr:Is1PMode() then
         Name = Name .. "|\230\137\139\230\140\129\231\155\184\230\156\186\230\168\161\229\188\143"

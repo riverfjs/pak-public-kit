@@ -3,22 +3,24 @@ local ShopModuleSortData = {}
 function ShopModuleSortData:ProcessShopGoodsDataOptimized(goodsDataList, shopId)
   local itemListInfo = {}
   local playerLevel = _G.DataModelMgr.PlayerDataModel:GetPlayerLevel()
-  for _, goodsData in ipairs(goodsDataList) do
-    if goodsData.goods_id ~= nil then
-      local goodsConf = _G.DataConfigManager:GetNormalShopConf(goodsData.goods_id)
-      if goodsConf then
-        local goodsInfo = self:CalculateGoodsAttributes(goodsData, goodsConf, playerLevel, shopId, goodsDataList)
-        if goodsInfo then
-          table.insert(itemListInfo, goodsInfo)
+  if goodsDataList and #goodsDataList > 0 then
+    for _, goodsData in ipairs(goodsDataList) do
+      if goodsData.goods_id ~= nil then
+        local goodsConf = _G.DataConfigManager:GetNormalShopConf(goodsData.goods_id)
+        if goodsConf then
+          local goodsInfo = self:CalculateGoodsAttributes(goodsData, goodsConf, playerLevel, shopId, goodsDataList)
+          if goodsInfo then
+            table.insert(itemListInfo, goodsInfo)
+          end
+        else
+          Log.Warning("ShopModuleSortData:ProcessShopGoodsDataOptimized", "goodsConf is nil, goodsData.goods_id: ", goodsData.goods_id)
         end
       else
-        Log.Warning("ShopModuleSortData:ProcessShopGoodsDataOptimized", "goodsConf is nil, goodsData.goods_id: ", goodsData.goods_id)
+        Log.Warning("ShopModuleSortData:ProcessShopGoodsDataOptimized", "goodsData.goods_id is nil")
       end
-    else
-      Log.Warning("ShopModuleSortData:ProcessShopGoodsDataOptimized", "goodsData.goods_id is nil")
     end
+    self:SortGoodsByOriginalLogic(itemListInfo)
   end
-  self:SortGoodsByOriginalLogic(itemListInfo)
   return itemListInfo
 end
 
@@ -69,6 +71,7 @@ end
 function ShopModuleSortData:CheckBuyCondition(goodsData, goodsConf, playerLevel, goodsDataList)
   local canBuy = false
   local limitBuyType = 0
+  local limitBuyParam
   local hasStock = goodsData.limit_buy_num > goodsData.buy_num or 0 == goodsData.limit_buy_num
   if goodsData.limit_buy_num > 0 and goodsData.buy_num >= goodsData.limit_buy_num then
     if goodsConf.hidden_after_purchase and 1 == goodsConf.hidden_after_purchase then
@@ -88,13 +91,14 @@ function ShopModuleSortData:CheckBuyCondition(goodsData, goodsConf, playerLevel,
     else
       Log.Info("ShopModuleSortData:CheckBuyCondition playerLevel < limitLevel,goodsData.goods_id:", playerLevel, limitLevel, goodsData.goods_id)
     end
+    limitBuyParam = limitLevel
     limitBuyType = 1
   elseif goodsConf.buy_cond_type == Enum.BuyLimited.BL_PLAYER_BP_LEVEL and hasStock then
     local limitLevel = tonumber(goodsConf.buy_cond_param)
     local battlePassInfo = _G.NRCModuleManager:DoCmd(_G.BattlePassModuleCmd.GetCurrentBattlePassInfo)
     if battlePassInfo then
       local bpLevel = battlePassInfo.exp_info.level or 0
-      if limitLevel > bpLevel then
+      if limitLevel <= bpLevel then
         canBuy = true
       else
         Log.Info("ShopModuleSortData:CheckBuyCondition bpLevel < limitLevel,goodsData.goods_id:", bpLevel, limitLevel, goodsData.goods_id)
@@ -102,6 +106,7 @@ function ShopModuleSortData:CheckBuyCondition(goodsData, goodsConf, playerLevel,
     else
       Log.Info("ShopModuleSortData:CheckBuyCondition battlePassInfo is nil,goodsData.goods_id:", goodsData.goods_id)
     end
+    limitBuyParam = limitLevel
     limitBuyType = 1
   elseif goodsConf.buy_cond_type == Enum.BuyLimited.BL_YK_MAX_DAYS and hasStock then
     canBuy = true
@@ -114,6 +119,7 @@ function ShopModuleSortData:CheckBuyCondition(goodsData, goodsConf, playerLevel,
     else
       Log.Info("ShopModuleSortData:CheckBuyCondition playerWorldLevel < limitWorldLevel,goodsData.goods_id:", playerWorldLevel, limitWorldLevel, goodsData.goods_id)
     end
+    limitBuyParam = limitWorldLevel
     limitBuyType = 1
   elseif goodsConf.buy_cond_type == Enum.BuyLimited.BL_SOLDOUT and hasStock then
     local param1 = tonumber(goodsConf.buy_cond_param) or 0
@@ -159,7 +165,7 @@ function ShopModuleSortData:CheckBuyCondition(goodsData, goodsConf, playerLevel,
     end
     limitBuyType = 3
   end
-  return canBuy, limitBuyType
+  return canBuy, limitBuyType, limitBuyParam
 end
 
 function ShopModuleSortData:CalculateGoodsQuality(goodsConf)

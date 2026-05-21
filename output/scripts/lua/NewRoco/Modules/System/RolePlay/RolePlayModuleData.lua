@@ -207,7 +207,7 @@ function RolePlayModuleData:GetRolePlayData(_rolePlayType, _customData)
   if _rolePlayType == RolePlayModuleDef.RolePlayType.Suit then
     local fashionInfo = _G.DataModelMgr.PlayerDataModel:GetPlayerFashionInfo()
     if fashionInfo and fashionInfo.wardrobe_data then
-      local curWardrobeIndex = fashionInfo.current_wardrobe_index + 1
+      local curWardrobeIndex = (fashionInfo.current_wardrobe_index or 0) + 1
       for i, _v in ipairs(fashionInfo.wardrobe_data) do
         local bHasData = _v.wearing_item ~= nil and next(_v.wearing_item) or nil ~= _v.salon_item_wear_id and next(_v.salon_item_wear_id)
         if bHasData then

@@ -808,7 +808,8 @@
       "belong_to_state": [
         8,
         7,
-        6
+        6,
+        5
       ],
       "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_EndSleep"
     },
@@ -1387,7 +1388,8 @@
       "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_FindAndApproachNoCare",
       "input_key": [
         "Global_Lightdrop",
-        "Global_Heavydrop"
+        "Global_Heavydrop",
+        "Global_BornPos"
       ],
       "output_key": [
         "Global_Lightdrop",
@@ -1584,7 +1586,11 @@
       "editor_name": "低飞吸附玩家-示例",
       "belong_to_state": [
         8,
-        6
+        6,
+        7,
+        5,
+        4,
+        3
       ],
       "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_SticktoPlayer_Hover",
       "input_key": [
@@ -1789,81 +1795,6 @@
       "output_key": [
         "Global_Catch"
       ]
-    },
-    "80": {
-      "id": 80,
-      "editor_name": "玩具发起群组",
-      "belong_to_state": [
-        3,
-        2,
-        1,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        12,
-        13,
-        11,
-        16,
-        17,
-        18,
-        15,
-        14
-      ],
-      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Toygroup"
-    },
-    "81": {
-      "id": 81,
-      "editor_name": "精灵被玩具吸引",
-      "belong_to_state": [
-        3,
-        2,
-        1,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        12,
-        13,
-        11,
-        16,
-        17,
-        18,
-        14,
-        15
-      ],
-      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Toygroup_Npccome"
-    },
-    "82": {
-      "id": 82,
-      "editor_name": "篝火玩具发起群组",
-      "belong_to_state": [
-        3,
-        2,
-        1,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        12,
-        13,
-        11,
-        16,
-        17,
-        18,
-        14,
-        15
-      ],
-      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Toygroup_Bonfire"
     },
     "83": {
       "id": 83,
@@ -2131,7 +2062,149 @@
       "belong_to_state": [
         7
       ],
-      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Suit_Common_Follow",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Suit_TrailPlayer",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "90": {
+      "id": 90,
+      "editor_name": "边逃跑边回头",
+      "belong_to_state": [
+        6,
+        8,
+        4,
+        7,
+        9,
+        3,
+        2
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_FleeandTurn"
+    },
+    "91": {
+      "id": 91,
+      "editor_name": "【大型鸟类】空中多点巡逻与盘旋",
+      "belong_to_state": [
+        6,
+        7,
+        8
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/BirdLarge/BT_Bird_L_Circle_SP",
+      "input_key": [
+        "Global_BornPos"
+      ],
+      "output_key": [
+        "Global_FlyAwayPos"
+      ],
+      "bb_info": [
+        {
+          "bb_name": "[BB_Bird_L_Circle]_Spd",
+          "tooltip": "飞行的基准速度#变速由程序控制，上升时会轻微减速，下降时会轻微加速。",
+          "data_type": 2,
+          "default_data": 75000,
+          "additional_para": [
+            100
+          ]
+        },
+        {
+          "bb_name": "[BB_Bird_L_Circle]_CircleR",
+          "tooltip": "盘旋半径。单位为cm",
+          "data_type": 2,
+          "default_data": 225000,
+          "additional_para": [
+            100
+          ]
+        },
+        {
+          "bb_name": "[BB_Bird_L_Circle]_CircleVary",
+          "tooltip": "选点半径#盘旋轨道偏离正圆的程度。单位为cm",
+          "data_type": 2,
+          "default_data": 75000,
+          "additional_para": [
+            100
+          ]
+        }
+      ]
+    },
+    "92": {
+      "id": 92,
+      "editor_name": "【小型鸟类】起飞一次",
+      "belong_to_state": [
+        8,
+        4,
+        3,
+        7,
+        9,
+        6
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/BirdSmall/BT_Bird_S_FlyOnce",
+      "bb_info": [
+        {
+          "bb_name": "[BB_Bird_S_FlyAway]_Spd",
+          "tooltip": "飞行的基准速度#变速由程序控制，上升时会轻微减速，下降时会轻微加速。",
+          "data_type": 2,
+          "default_data": 37500,
+          "additional_para": [
+            100
+          ]
+        }
+      ]
+    },
+    "93": {
+      "id": 93,
+      "editor_name": "【小型鸟类】远离玩家平飞",
+      "belong_to_state": [
+        8,
+        4,
+        3,
+        7,
+        9,
+        6
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/BirdSmall/BT_Bird_S_FlyFlee",
+      "bb_info": [
+        {
+          "bb_name": "[BB_Bird_S_FlyAway]_Spd",
+          "tooltip": "飞行的基准速度#变速由程序控制，上升时会轻微减速，下降时会轻微加速。",
+          "data_type": 2,
+          "default_data": 37500,
+          "additional_para": [
+            100
+          ]
+        }
+      ]
+    },
+    "94": {
+      "id": 94,
+      "editor_name": "【小型鸟类】在玩家头顶绕飞",
+      "belong_to_state": [
+        8,
+        4,
+        3,
+        7,
+        9,
+        6
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/BirdSmall/BT_Bird_S_FlyAround"
+    },
+    "95": {
+      "id": 95,
+      "editor_name": "【拍照】通用拍照响应",
+      "belong_to_state": [
+        7
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Photo_FindPlayer",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "96": {
+      "id": 96,
+      "editor_name": "【时装】通用时装响应-飞行",
+      "belong_to_state": [
+        7
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Suit_TrailPlayer_Fly",
       "input_key": [
         "Global_BornPos"
       ]
@@ -3150,6 +3223,64 @@
         }
       ]
     },
+    "1032": {
+      "id": 1032,
+      "editor_name": "【叙事模板】单次巡逻可配置",
+      "belong_to_state": [
+        15
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Env_Patrol_Model_S3_Solo",
+      "input_key": [
+        "Global_IDX"
+      ],
+      "output_key": [
+        "Global_IDX"
+      ],
+      "bb_info": [
+        {
+          "bb_name": "[BB_Env_Patrol_Model]_Num1",
+          "tooltip": "动作1#ANIM_ID_CONF",
+          "data_type": 1,
+          "default_data": 55
+        },
+        {
+          "bb_name": "[BB_Env_Patrol_Model]_Num2",
+          "tooltip": "动作2#ANIM_ID_CONF",
+          "data_type": 1,
+          "default_data": 97
+        },
+        {
+          "bb_name": "[BB_Env_Patrol_Model]_Num3",
+          "tooltip": "动作3#ANIM_ID_CONF",
+          "data_type": 1,
+          "default_data": 177
+        },
+        {
+          "bb_name": "[BB_Env_Patrol_Model]_IsAni",
+          "tooltip": "是否在终点做动作#1-不做 0-做",
+          "data_type": 3
+        },
+        {
+          "bb_name": "[BB_Env_Patrol_Model]_Pointset",
+          "tooltip": "巡逻轨迹pointset id",
+          "data_type": 1
+        },
+        {
+          "bb_name": "[BB_Env_Patrol_Model]_Random",
+          "tooltip": "在终点做动作概率",
+          "data_type": 2,
+          "additional_para": [
+            100
+          ]
+        },
+        {
+          "bb_name": "[BB_Env_Patrol_Model]_MoveType",
+          "tooltip": "移动方式 1-走路，2-奔跑",
+          "data_type": 1,
+          "default_data": 1
+        }
+      ]
+    },
     "2001": {
       "id": 2001,
       "editor_name": "【定制】打闹学生-被追",
@@ -3772,6 +3903,17 @@
       ],
       "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_SalsCleanUp1405"
     },
+    "3012": {
+      "id": 3012,
+      "editor_name": "【清理】个体退群",
+      "belong_to_state": [
+        6,
+        5,
+        7,
+        8
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_GroupCleanUp_Self"
+    },
     "4001": {
       "id": 4001,
       "editor_name": "【捕捉生态】围到老大周围抱团",
@@ -3863,6 +4005,302 @@
       ],
       "output_key": [
         "Global_Catch"
+      ]
+    },
+    "4011": {
+      "id": 4011,
+      "editor_name": "【捕捉生态】向邻居抱团",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Catch_RoundAll"
+    },
+    "4012": {
+      "id": 4012,
+      "editor_name": "【捕捉生态】克制-起手",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Catch_KZ_Start",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "4013": {
+      "id": 4013,
+      "editor_name": "【捕捉生态】克制-互殴",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Catch_KZ_Fight",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "4014": {
+      "id": 4014,
+      "editor_name": "【捕捉生态】被克制-起手",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Catch_BKZ_Start",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "4015": {
+      "id": 4015,
+      "editor_name": "【捕捉生态】被克制-互殴",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Catch_BKZ_Fight",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "4016": {
+      "id": 4016,
+      "editor_name": "【捕捉生态】互相克制A-起手",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Catch_HXKZA_Start",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "4017": {
+      "id": 4017,
+      "editor_name": "【捕捉生态】互相克制A-互殴",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Catch_HXKZA_Fight",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "4018": {
+      "id": 4018,
+      "editor_name": "【捕捉生态】互相克制B-起手",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Catch_HXKZB_Start",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "4019": {
+      "id": 4019,
+      "editor_name": "【捕捉生态】互相克制B-互殴",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Catch_HXKZB_Fight",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "4020": {
+      "id": 4020,
+      "editor_name": "【捕捉生态】玩具发起群组",
+      "belong_to_state": [
+        3,
+        2,
+        1,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        12,
+        13,
+        11,
+        16,
+        17,
+        18,
+        15,
+        14
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Toygroup"
+    },
+    "4021": {
+      "id": 4021,
+      "editor_name": "【捕捉生态】精灵被玩具吸引",
+      "belong_to_state": [
+        3,
+        2,
+        1,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        12,
+        13,
+        11,
+        16,
+        17,
+        18,
+        14,
+        15
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Toygroup_Npccome"
+    },
+    "4022": {
+      "id": 4022,
+      "editor_name": "【捕捉生态】篝火玩具发起群组",
+      "belong_to_state": [
+        3,
+        2,
+        1,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        12,
+        13,
+        11,
+        16,
+        17,
+        18,
+        14,
+        15
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Toygroup_Bonfire"
+    },
+    "4023": {
+      "id": 4023,
+      "editor_name": "【捕捉生态】噩梦出现-好斗型追随噩梦",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Catch_RoundMare",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "4024": {
+      "id": 4024,
+      "editor_name": "【捕捉生态】噩梦出现-友好型追随玩家",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Catch_RoundPlayerMare",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "4025": {
+      "id": 4025,
+      "editor_name": "【捕捉生态】噩梦出现-胆小型害怕抱团",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Catch_AvoidMare",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "4026": {
+      "id": 4026,
+      "editor_name": "【捕捉生态】噩梦出现-无视型聚集警惕",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Catch_DefendMare",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "4027": {
+      "id": 4027,
+      "editor_name": "【捕捉生态】好斗发起-全程",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Catch_HDFQ_Start",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "4028": {
+      "id": 4028,
+      "editor_name": "【捕捉生态】好斗接收-起手",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Catch_HDJS_Start",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "4029": {
+      "id": 4029,
+      "editor_name": "【捕捉生态】好斗接收-互殴",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Catch_HDJS_Fight",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "4030": {
+      "id": 4030,
+      "editor_name": "【捕捉生态】好斗发起友好",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Catch_HDFQYH_Start",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "4031": {
+      "id": 4031,
+      "editor_name": "【捕捉生态】友好接收好斗",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Catch_YHJSHD_Start",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "4032": {
+      "id": 4032,
+      "editor_name": "【捕捉生态】好斗追击友好",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Catch_HDYH_Fight",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "4033": {
+      "id": 4033,
+      "editor_name": "【捕捉生态】友好接收好斗-追随玩家",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Catch_YHJSHD_RoundPlayer",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "4034": {
+      "id": 4034,
+      "editor_name": "【捕捉生态】好斗发起胆小",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Catch_HDFQDX_Start",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "4035": {
+      "id": 4035,
+      "editor_name": "【捕捉生态】胆小接收好斗",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Catch_DXJSHD_Start",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "4036": {
+      "id": 4036,
+      "editor_name": "【捕捉生态】好斗殴打胆小",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Catch_HDDX_Fight",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "4037": {
+      "id": 4037,
+      "editor_name": "【捕捉生态】胆小接收好斗-挨打",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Catch_DXJSHD_Hitted",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "4038": {
+      "id": 4038,
+      "editor_name": "【捕捉生态】好斗发起无视",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Catch_HDFQWS_Start",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "4039": {
+      "id": 4039,
+      "editor_name": "【捕捉生态】无视接收好斗",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Catch_WSJSHD_Start",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "4040": {
+      "id": 4040,
+      "editor_name": "【捕捉生态】好斗殴打无视",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Catch_HDWS_Fight",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "4041": {
+      "id": 4041,
+      "editor_name": "【捕捉生态】无视接收好斗-防御",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Catch_WSHD_Fight",
+      "input_key": [
+        "Global_BornPos"
       ]
     },
     "5001": {
@@ -7385,7 +7823,7 @@
     },
     "7207": {
       "id": 7207,
-      "editor_name": "首领命中弱点眩晕8秒",
+      "editor_name": "首领命中弱点眩晕8秒CD",
       "belong_to_state": [
         9,
         17
@@ -7394,12 +7832,126 @@
     },
     "7208": {
       "id": 7208,
-      "editor_name": "首领命中弱点眩晕8秒(飞行类Boss专用)",
+      "editor_name": "首领命中弱点眩晕8秒CD-飞行类Boss专用",
       "belong_to_state": [
         9,
         17
       ],
       "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_BossAttack_WeakhitedStun_FlyType"
+    },
+    "7209": {
+      "id": 7209,
+      "editor_name": "【BOSS】风滚暮虫阶段1",
+      "belong_to_state": [
+        16
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_BossAttack_Fenggunmuchong",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "7210": {
+      "id": 7210,
+      "editor_name": "【BOSS】风滚暮虫威胁",
+      "belong_to_state": [
+        7,
+        3
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Approach_BossFenggunmuchong",
+      "input_key": [
+        "Global_Reset"
+      ],
+      "output_key": [
+        "Global_Reset"
+      ]
+    },
+    "7211": {
+      "id": 7211,
+      "editor_name": "【BOSS】风滚暮虫休闲",
+      "belong_to_state": [
+        6,
+        14
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Rest_BossFenggunmuchong",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "7212": {
+      "id": 7212,
+      "editor_name": "【BOSS】淤泥污泽阶段1",
+      "belong_to_state": [
+        16
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_BossAttack_Yuniwuze",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "7213": {
+      "id": 7213,
+      "editor_name": "【BOSS】淤泥污泽威胁",
+      "belong_to_state": [
+        7,
+        3
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Approach_BossYuniwuze",
+      "input_key": [
+        "Global_Reset"
+      ],
+      "output_key": [
+        "Global_Reset"
+      ]
+    },
+    "7214": {
+      "id": 7214,
+      "editor_name": "【BOSS】淤泥污泽休闲",
+      "belong_to_state": [
+        6,
+        14
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Rest_BossYuniwuze",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "7215": {
+      "id": 7215,
+      "editor_name": "【BOSS】暗夜颅主阶段1",
+      "belong_to_state": [
+        16
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_BossAttack_Anyeluzhu",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "7216": {
+      "id": 7216,
+      "editor_name": "【BOSS】暗夜颅主威胁",
+      "belong_to_state": [
+        7,
+        3
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Approach_BossAnyeluzhu",
+      "input_key": [
+        "Global_Reset"
+      ],
+      "output_key": [
+        "Global_Reset"
+      ]
+    },
+    "7218": {
+      "id": 7218,
+      "editor_name": "【BOSS】暗夜颅主休闲",
+      "belong_to_state": [
+        6,
+        14
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Rest_BossAnyeluzhu",
+      "input_key": [
+        "Global_BornPos"
+      ]
     },
     "8001": {
       "id": 8001,
@@ -7645,7 +8197,9 @@
         "Global_ForwardDegree",
         "Global_BackwardDegree",
         "Global_AllowPartial",
-        "Global_FlyingState"
+        "Global_FlyingState",
+        "Global_BornDir",
+        "Global_BornPos"
       ]
     },
     "9001": {
@@ -7723,7 +8277,8 @@
       "editor_name": "【跟随】触发亲昵寻找宝箱",
       "belong_to_state": [
         8,
-        3
+        3,
+        7
       ],
       "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/Intimate/BT_Intimate_Find_New",
       "input_key": [
@@ -7927,7 +8482,7 @@
     },
     "9017": {
       "id": 9017,
-      "editor_name": "【跟随】支架拍照-大世界",
+      "editor_name": "【跟随】支架拍照-相机在大世界",
       "belong_to_state": [
         10
       ],
@@ -7962,6 +8517,91 @@
         "Global_FlyingState",
         "Global_CanEverFly",
         "Global_PartnerIdx"
+      ],
+      "output_key": [
+        "Global_FlyingState"
+      ]
+    },
+    "9019": {
+      "id": 9019,
+      "editor_name": "【跟随】宝藏小狐看破",
+      "belong_to_state": [
+        6,
+        7,
+        5,
+        8,
+        3
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Partner_Fangfanghu",
+      "input_key": [
+        "Global_BornPos"
+      ],
+      "bb_info": [
+        {
+          "bb_name": "[BB_Patrol]_SoftRange",
+          "tooltip": "软边界#离开出生点距离超过此数值时倾向于折返。单位为cm",
+          "data_type": 2,
+          "default_data": 400000,
+          "additional_para": [
+            100
+          ]
+        },
+        {
+          "bb_name": "[BB_Patrol]_MovType",
+          "tooltip": "移动方式#0-根据配置速度自适应，1-走路，2-奔跑",
+          "data_type": 1,
+          "default_data": 1
+        },
+        {
+          "bb_name": "[BB_Patrol]_StepMax",
+          "tooltip": "步长上限#控制单次移动时随机距离的范围。单位为cm",
+          "data_type": 2,
+          "default_data": 75000,
+          "additional_para": [
+            100
+          ]
+        },
+        {
+          "bb_name": "[BB_Patrol]_StepMin",
+          "tooltip": "步长下限#单位为cm",
+          "data_type": 2,
+          "default_data": 30000,
+          "additional_para": [
+            100
+          ]
+        }
+      ]
+    },
+    "9020": {
+      "id": 9020,
+      "editor_name": "【跟随】通用跟随移动水飞",
+      "belong_to_state": [
+        6
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/Partner/BT_Partner_Move_Fly_Water",
+      "input_key": [
+        "Global_RangeMin",
+        "Global_RangeMax",
+        "Global_ForwardDegree",
+        "Global_BackwardDegree",
+        "Global_AllowPartial",
+        "Global_FlyingState",
+        "Global_CanEverFly"
+      ],
+      "output_key": [
+        "Global_FlyingState"
+      ]
+    },
+    "9021": {
+      "id": 9021,
+      "editor_name": "【跟随】静态表演-不循环",
+      "belong_to_state": [
+        7
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/Partner/BT_Partner_RestOver",
+      "input_key": [
+        "Global_FlyingState",
+        "Global_CanEverFly"
       ],
       "output_key": [
         "Global_FlyingState"
@@ -9166,6 +9806,168 @@
           ]
         }
       ]
+    },
+    "10108": {
+      "id": 10108,
+      "editor_name": "【跟随】小灵面跟随移动",
+      "belong_to_state": [
+        6
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/Partner/BT_Partner_Move_Ghost"
+    },
+    "10109": {
+      "id": 10109,
+      "editor_name": "【跟随】小灵面跟随移动-幽灵化",
+      "belong_to_state": [
+        6,
+        3
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/Partner/BT_Partner_Move_GhostEnergy"
+    },
+    "10110": {
+      "id": 10110,
+      "editor_name": "【生态】幽灵掉宝",
+      "belong_to_state": [
+        6,
+        3
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Photosynthesis_Ghost"
+    },
+    "10111": {
+      "id": 10111,
+      "editor_name": "幽灵晕眩",
+      "belong_to_state": [
+        9
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_CommonStun"
+    },
+    "10112": {
+      "id": 10112,
+      "editor_name": "【蹦蹦种子】原地跳跃",
+      "belong_to_state": [
+        9,
+        8,
+        7,
+        6,
+        5,
+        4,
+        3,
+        2,
+        1
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Jump_Bengbengzhongzi"
+    },
+    "10113": {
+      "id": 10113,
+      "editor_name": "【蹦蹦草】原地跳跃",
+      "belong_to_state": [
+        9,
+        8,
+        7,
+        6,
+        5,
+        4,
+        3,
+        2,
+        1
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Jump_Bengbengcao"
+    },
+    "10114": {
+      "id": 10114,
+      "editor_name": "【蹦蹦花】原地跳跃",
+      "belong_to_state": [
+        9,
+        8,
+        7,
+        6,
+        5,
+        4,
+        3,
+        2,
+        1
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Jump_Bengbenghua"
+    },
+    "10115": {
+      "id": 10115,
+      "editor_name": "【蹦蹦】产海神花",
+      "belong_to_state": [
+        9,
+        8,
+        7,
+        6,
+        5,
+        4,
+        3,
+        2,
+        1
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Bengbenghaishen"
+    },
+    "10116": {
+      "id": 10116,
+      "editor_name": "【蹦蹦】产象牙花",
+      "belong_to_state": [
+        9,
+        8,
+        7,
+        6,
+        5,
+        4,
+        3,
+        2,
+        1
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Bengbengxiangya"
+    },
+    "10117": {
+      "id": 10117,
+      "editor_name": "【蹦蹦】产彩玉花",
+      "belong_to_state": [
+        9,
+        8,
+        7,
+        6,
+        5,
+        4,
+        3,
+        2,
+        1
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Bengbengcaiyu"
+    },
+    "10118": {
+      "id": 10118,
+      "editor_name": "【蹦蹦】产短毛花",
+      "belong_to_state": [
+        9,
+        8,
+        7,
+        6,
+        5,
+        4,
+        3,
+        2,
+        1
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Bengbengduanmao"
+    },
+    "10119": {
+      "id": 10119,
+      "editor_name": "【蹦蹦】进入原地跳跃",
+      "belong_to_state": [
+        9,
+        8,
+        7,
+        6,
+        5,
+        4,
+        3,
+        2,
+        1
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Jump_BengbengBegin"
     },
     "20001": {
       "id": 20001,
@@ -12859,6 +13661,11 @@
         "Global_BornPos"
       ]
     },
+    "50056": {
+      "id": 50056,
+      "editor_name": "【时装】跟随玩家",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Suit_TrailPlayer"
+    },
     "100001": {
       "id": 100001,
       "editor_name": "【出战斗表演】逃跑后SHOCK",
@@ -14768,6 +15575,1563 @@
         }
       ]
     },
+    "2300032": {
+      "id": 2300032,
+      "editor_name": "【宝藏小狐群组】被迫解除幻化",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Group_RemoveMimic"
+    },
+    "2300033": {
+      "id": 2300033,
+      "editor_name": "宝藏小狐巡逻",
+      "belong_to_state": [
+        6,
+        7,
+        5,
+        8,
+        3
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Patrol_Fangfanghu",
+      "input_key": [
+        "Global_BornPos"
+      ],
+      "bb_info": [
+        {
+          "bb_name": "[BB_Patrol]_SoftRange",
+          "tooltip": "软边界#离开出生点距离超过此数值时倾向于折返。单位为cm",
+          "data_type": 2,
+          "default_data": 400000,
+          "additional_para": [
+            100
+          ]
+        },
+        {
+          "bb_name": "[BB_Patrol]_MovType",
+          "tooltip": "移动方式#0-根据配置速度自适应，1-走路，2-奔跑",
+          "data_type": 1,
+          "default_data": 1
+        },
+        {
+          "bb_name": "[BB_Patrol]_StepMax",
+          "tooltip": "步长上限#控制单次移动时随机距离的范围。单位为cm",
+          "data_type": 2,
+          "default_data": 75000,
+          "additional_para": [
+            100
+          ]
+        },
+        {
+          "bb_name": "[BB_Patrol]_StepMin",
+          "tooltip": "步长下限#单位为cm",
+          "data_type": 2,
+          "default_data": 30000,
+          "additional_para": [
+            100
+          ]
+        }
+      ]
+    },
+    "2300034": {
+      "id": 2300034,
+      "editor_name": "宝藏小狐盯着玩家",
+      "belong_to_state": [
+        6,
+        5,
+        8,
+        4,
+        7,
+        3
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Fangfanghu_Turnto",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300035": {
+      "id": 2300035,
+      "editor_name": "【猴麦仔进化链】日常打击乐演奏",
+      "belong_to_state": [
+        6,
+        5,
+        8,
+        4,
+        7,
+        3
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_DailyMusic",
+      "bb_info": [
+        {
+          "bb_name": "[BB_JustTurnTo]_SkillID",
+          "tooltip": "G6 ID",
+          "data_type": 1
+        }
+      ]
+    },
+    "2300036": {
+      "id": 2300036,
+      "editor_name": "拍照打击乐演奏",
+      "belong_to_state": [
+        6,
+        5,
+        8,
+        4,
+        7,
+        3,
+        10
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_ShotMusic",
+      "bb_info": [
+        {
+          "bb_name": "[BB_JustTurnTo]_SkillID",
+          "tooltip": "G6 ID",
+          "data_type": 1
+        }
+      ]
+    },
+    "2300037": {
+      "id": 2300037,
+      "editor_name": "【猴麦仔】捕捉后音爆",
+      "belong_to_state": [
+        6,
+        5,
+        8,
+        4,
+        7,
+        3
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Catch_Boom_HMZ",
+      "input_key": [
+        "Global_Catch"
+      ],
+      "output_key": [
+        "Global_Catch"
+      ]
+    },
+    "2300038": {
+      "id": 2300038,
+      "editor_name": "【猴麦仔】捕捉后概率音爆",
+      "belong_to_state": [
+        6,
+        5,
+        8,
+        4,
+        7,
+        3
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Catch_Boom_HMZ_Random",
+      "input_key": [
+        "Global_Catch"
+      ],
+      "output_key": [
+        "Global_Catch"
+      ]
+    },
+    "2300039": {
+      "id": 2300039,
+      "editor_name": "【乐团精灵】被演奏吸引",
+      "belong_to_state": [
+        6,
+        5,
+        8,
+        4,
+        7,
+        3
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_MusicAround",
+      "input_key": [
+        "Global_GroupPos"
+      ]
+    },
+    "2300040": {
+      "id": 2300040,
+      "editor_name": "【小鼓象进化链】行军打击乐演奏开始",
+      "belong_to_state": [
+        6,
+        5,
+        8,
+        4,
+        7,
+        3,
+        10
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_MarchMusicStart",
+      "bb_info": [
+        {
+          "bb_name": "[BB_JustTurnTo]_SkillID",
+          "tooltip": "G6 ID",
+          "data_type": 1
+        }
+      ]
+    },
+    "2300041": {
+      "id": 2300041,
+      "editor_name": "【小鼓象进化链】绕圈玩家演奏",
+      "belong_to_state": [
+        6,
+        5,
+        8,
+        4,
+        7,
+        3,
+        10
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_RoundMusic",
+      "bb_info": [
+        {
+          "bb_name": "[BB_JustTurnTo]_SkillID",
+          "tooltip": "G6 ID",
+          "data_type": 1
+        }
+      ]
+    },
+    "2300042": {
+      "id": 2300042,
+      "editor_name": "【乐团精灵】被演奏吸引跟随",
+      "belong_to_state": [
+        6,
+        5,
+        8,
+        4,
+        7,
+        3
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_MusicAroundFollow",
+      "input_key": [
+        "Global_GroupPos"
+      ]
+    },
+    "2300043": {
+      "id": 2300043,
+      "editor_name": "【小鼓象进化链】行军打击乐演奏行军",
+      "belong_to_state": [
+        6,
+        5,
+        8,
+        4,
+        7,
+        3
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_MarchMusic",
+      "bb_info": [
+        {
+          "bb_name": "[BB_JustTurnTo]_SkillID",
+          "tooltip": "G6 ID",
+          "data_type": 1
+        }
+      ]
+    },
+    "2300044": {
+      "id": 2300044,
+      "editor_name": "加油蟹跑路1",
+      "belong_to_state": [
+        9,
+        6,
+        4,
+        8,
+        7
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_CommonStun_JYX1"
+    },
+    "2300045": {
+      "id": 2300045,
+      "editor_name": "加油蟹跑路2",
+      "belong_to_state": [
+        9,
+        6,
+        4,
+        8,
+        7
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_CommonStun_JYX2"
+    },
+    "2300046": {
+      "id": 2300046,
+      "editor_name": "【雪怪】小雪人木头人静止",
+      "belong_to_state": [
+        8,
+        7,
+        6,
+        5
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Blockhead_XXR",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300047": {
+      "id": 2300047,
+      "editor_name": "【雪怪】雪怪木头人静止",
+      "belong_to_state": [
+        8,
+        7,
+        6,
+        5
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Blockhead_XG",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300048": {
+      "id": 2300048,
+      "editor_name": "【凡鹰】吸引追随",
+      "belong_to_state": [
+        6,
+        7,
+        8
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/BirdLarge/BT_Bird_L_Circle_FY",
+      "input_key": [
+        "Global_BornPos"
+      ],
+      "output_key": [
+        "Global_FlyAwayPos"
+      ],
+      "bb_info": [
+        {
+          "bb_name": "[BB_Bird_L_Circle]_Spd",
+          "tooltip": "飞行的基准速度#变速由程序控制，上升时会轻微减速，下降时会轻微加速。",
+          "data_type": 2,
+          "default_data": 40000,
+          "additional_para": [
+            100
+          ]
+        },
+        {
+          "bb_name": "[BB_Bird_L_Circle]_CircleR",
+          "tooltip": "盘旋半径。单位为cm",
+          "data_type": 2,
+          "default_data": 225000,
+          "additional_para": [
+            100
+          ]
+        },
+        {
+          "bb_name": "[BB_Bird_L_Circle]_CircleVary",
+          "tooltip": "选点半径#盘旋轨道偏离正圆的程度。单位为cm",
+          "data_type": 2,
+          "default_data": 75000,
+          "additional_para": [
+            100
+          ]
+        }
+      ]
+    },
+    "2300049": {
+      "id": 2300049,
+      "editor_name": "【凡鹰】追随凡鹰飞行",
+      "belong_to_state": [
+        6,
+        7,
+        8
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/BirdLarge/BT_Bird_L_Circle_FollowFY",
+      "input_key": [
+        "Global_BornPos"
+      ],
+      "output_key": [
+        "Global_FlyAwayPos"
+      ]
+    },
+    "2300050": {
+      "id": 2300050,
+      "editor_name": "【爆焰仔】发起打斗",
+      "belong_to_state": [
+        6
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_FightGroup_BYZ",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300051": {
+      "id": 2300051,
+      "editor_name": "【爆焰喷喷】发起打斗",
+      "belong_to_state": [
+        6
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_FightGroup_BYPP",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300052": {
+      "id": 2300052,
+      "editor_name": "【钨丝】钨丝贝贝第一种表演",
+      "belong_to_state": [
+        7,
+        8,
+        5,
+        6,
+        3
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_WSBB1",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300053": {
+      "id": 2300053,
+      "editor_name": "【钨丝】钨丝贝贝第二种表演",
+      "belong_to_state": [
+        7,
+        8,
+        5,
+        6,
+        3
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_WSBB2",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300054": {
+      "id": 2300054,
+      "editor_name": "【钨丝】辉光幕机第一种表演",
+      "belong_to_state": [
+        7,
+        8,
+        5,
+        6,
+        3
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_HGMJ1",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300055": {
+      "id": 2300055,
+      "editor_name": "【钨丝】辉光幕机第二种表演",
+      "belong_to_state": [
+        7,
+        8,
+        5,
+        6,
+        3
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_HGMJ2",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300056": {
+      "id": 2300056,
+      "editor_name": "【钨丝】机幕方舟第一种表演",
+      "belong_to_state": [
+        7,
+        8,
+        5,
+        6,
+        3
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_JMFZ1",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300057": {
+      "id": 2300057,
+      "editor_name": "【钨丝】机幕方舟第二种表演",
+      "belong_to_state": [
+        7,
+        8,
+        5,
+        6,
+        3
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_JMFZ2Start",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300058": {
+      "id": 2300058,
+      "editor_name": "【钨丝】钨丝聚集",
+      "belong_to_state": [
+        7,
+        8,
+        5,
+        6,
+        3
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Approach_JMFZ2GroupStart",
+      "input_key": [
+        "Global_BornPos",
+        "Global_GroupPos"
+      ]
+    },
+    "2300059": {
+      "id": 2300059,
+      "editor_name": "【迪迪】炫光迪迪预备动作",
+      "belong_to_state": [
+        7,
+        8,
+        5,
+        6,
+        3
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_XGDD1",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300060": {
+      "id": 2300060,
+      "editor_name": "【迪迪】炫光迪迪召唤群组",
+      "belong_to_state": [
+        7,
+        8,
+        5,
+        6,
+        3
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_XGDD2",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300061": {
+      "id": 2300061,
+      "editor_name": "【迪迪】霹雳迪迪预备动作",
+      "belong_to_state": [
+        7,
+        8,
+        5,
+        6,
+        3
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_PLDD1",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300062": {
+      "id": 2300062,
+      "editor_name": "【迪迪】霹雳迪迪召唤群组",
+      "belong_to_state": [
+        7,
+        8,
+        5,
+        6,
+        3
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_PLDD2",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300063": {
+      "id": 2300063,
+      "editor_name": "【烟花】烟花团放烟花",
+      "belong_to_state": [
+        6,
+        5,
+        8,
+        4,
+        7,
+        3,
+        10
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_DailyFireworks_YHT"
+    },
+    "2300064": {
+      "id": 2300064,
+      "editor_name": "【烟花】烟花伯爵放烟花",
+      "belong_to_state": [
+        6,
+        5,
+        8,
+        4,
+        7,
+        3,
+        10
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_DailyFireworks_YHBJ"
+    },
+    "2300065": {
+      "id": 2300065,
+      "editor_name": "【咕咕】咕咕帽的魔术",
+      "belong_to_state": [
+        7,
+        8,
+        5,
+        6,
+        3,
+        10
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_GGM",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300066": {
+      "id": 2300066,
+      "editor_name": "【咕咕】咕咕帽的魔术对象",
+      "belong_to_state": [
+        7,
+        8,
+        5,
+        6,
+        3
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Approach_GGMObj",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300067": {
+      "id": 2300067,
+      "editor_name": "【咕咕】咕德冒冒的魔术",
+      "belong_to_state": [
+        7,
+        8,
+        5,
+        6,
+        3,
+        10
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_GDMM",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300068": {
+      "id": 2300068,
+      "editor_name": "【咕咕】咕德冒冒的魔术对象",
+      "belong_to_state": [
+        7,
+        8,
+        5,
+        6,
+        3
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Approach_GDMMObj",
+      "input_key": [
+        "Global_BornPos",
+        "Global_GroupPos"
+      ]
+    },
+    "2300069": {
+      "id": 2300069,
+      "editor_name": "【咕咕】咕传走",
+      "belong_to_state": [
+        7,
+        8,
+        5,
+        6,
+        3
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_TeleFlee",
+      "input_key": [
+        "Global_BornPos"
+      ],
+      "bb_info": [
+        {
+          "bb_name": "[BB_ApproachNew]_True",
+          "tooltip": "是否结束状态",
+          "data_type": 3
+        }
+      ]
+    },
+    "2300070": {
+      "id": 2300070,
+      "editor_name": "【咕咕】飞向玩家",
+      "belong_to_state": [
+        7,
+        8,
+        5,
+        6,
+        3
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_JMFZ1",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300071": {
+      "id": 2300071,
+      "editor_name": "【小丑】小丑进化链尾随攻击",
+      "belong_to_state": [
+        8,
+        7,
+        6,
+        5
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Blockhead_XCDD",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300072": {
+      "id": 2300072,
+      "editor_name": "【马戏团合集】检索-小丑",
+      "belong_to_state": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_CircusCall",
+      "input_key": [
+        "Global_GroupPos",
+        "Global_Dir"
+      ],
+      "tick_input_key": [
+        "Global_GroupPos",
+        "Global_Dir"
+      ]
+    },
+    "2300073": {
+      "id": 2300073,
+      "editor_name": "【马戏团合集】小丑进化链",
+      "belong_to_state": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Circus_XC",
+      "input_key": [
+        "Global_GroupPos",
+        "Global_Dir"
+      ]
+    },
+    "2300074": {
+      "id": 2300074,
+      "editor_name": "【马戏团合集】烟花进化链",
+      "belong_to_state": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Circus_YH",
+      "input_key": [
+        "Global_GroupPos",
+        "Global_Dir"
+      ]
+    },
+    "2300075": {
+      "id": 2300075,
+      "editor_name": "【马戏团合集】咕咕进化链",
+      "belong_to_state": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Circus_GG",
+      "input_key": [
+        "Global_GroupPos",
+        "Global_Dir"
+      ]
+    },
+    "2300076": {
+      "id": 2300076,
+      "editor_name": "【马戏团合集】鼓象进化链",
+      "belong_to_state": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Circus_GX",
+      "input_key": [
+        "Global_GroupPos",
+        "Global_Dir"
+      ]
+    },
+    "2300077": {
+      "id": 2300077,
+      "editor_name": "【变身】追随玩家",
+      "belong_to_state": [
+        7,
+        8,
+        6,
+        5,
+        4,
+        3
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Transform_TrailPlayer",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300078": {
+      "id": 2300078,
+      "editor_name": "结束变身后眩晕或逃离",
+      "belong_to_state": [
+        9,
+        6,
+        4,
+        5,
+        7,
+        8
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_StunAfterTransform",
+      "input_key": [
+        "Global_Catch"
+      ],
+      "output_key": [
+        "Global_Catch"
+      ]
+    },
+    "2300079": {
+      "id": 2300079,
+      "editor_name": "【凡鹰】跟随凡鹰吸引追随",
+      "belong_to_state": [
+        6,
+        7,
+        8
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/BirdLarge/BT_Bird_L_Circle_FYGS",
+      "input_key": [
+        "Global_BornPos"
+      ],
+      "output_key": [
+        "Global_FlyAwayPos"
+      ],
+      "bb_info": [
+        {
+          "bb_name": "[BB_Bird_L_Circle]_Spd",
+          "tooltip": "飞行的基准速度#变速由程序控制，上升时会轻微减速，下降时会轻微加速。",
+          "data_type": 2,
+          "default_data": 40000,
+          "additional_para": [
+            100
+          ]
+        },
+        {
+          "bb_name": "[BB_Bird_L_Circle]_CircleR",
+          "tooltip": "盘旋半径。单位为cm",
+          "data_type": 2,
+          "default_data": 225000,
+          "additional_para": [
+            100
+          ]
+        },
+        {
+          "bb_name": "[BB_Bird_L_Circle]_CircleVary",
+          "tooltip": "选点半径#盘旋轨道偏离正圆的程度。单位为cm",
+          "data_type": 2,
+          "default_data": 75000,
+          "additional_para": [
+            100
+          ]
+        }
+      ]
+    },
+    "2300080": {
+      "id": 2300080,
+      "editor_name": "【迪迪】炫光迪迪预备动作-跟随",
+      "belong_to_state": [
+        7,
+        8,
+        5,
+        6,
+        3
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_XGDD1_GS",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300081": {
+      "id": 2300081,
+      "editor_name": "【迪迪】霹雳迪迪预备动作-跟随",
+      "belong_to_state": [
+        7,
+        8,
+        5,
+        6,
+        3,
+        10
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_PLDD1_GS",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300082": {
+      "id": 2300082,
+      "editor_name": "【钨丝】钨丝贝贝第一种表演-跟随",
+      "belong_to_state": [
+        7,
+        8,
+        5,
+        6,
+        3
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_WSBB1_GS",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300083": {
+      "id": 2300083,
+      "editor_name": "【钨丝】辉光幕机第一种表演-跟随",
+      "belong_to_state": [
+        7,
+        8,
+        5,
+        6,
+        3
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_HGMJ1_GS",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300084": {
+      "id": 2300084,
+      "editor_name": "【钨丝】机幕方舟第一种表演-跟随",
+      "belong_to_state": [
+        7,
+        8,
+        5,
+        6,
+        3
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_JMFZ1_GS",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300085": {
+      "id": 2300085,
+      "editor_name": "【灵狐】左右闪避后攻击",
+      "belong_to_state": [
+        3,
+        2,
+        6,
+        7,
+        8
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Defense_RandomAttack"
+    },
+    "2300086": {
+      "id": 2300086,
+      "editor_name": "【烟花】烟花团放烟花-跟随",
+      "belong_to_state": [
+        6,
+        5,
+        8,
+        4,
+        7,
+        3,
+        10
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_DailyFireworks_Follow"
+    },
+    "2300087": {
+      "id": 2300087,
+      "editor_name": "【烟花】烟花伯爵放烟花-跟随",
+      "belong_to_state": [
+        6,
+        5,
+        8,
+        4,
+        7,
+        3,
+        10
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_DailyFireworks_Follow1"
+    },
+    "2300088": {
+      "id": 2300088,
+      "editor_name": "【小丑】小丑进化链跟随",
+      "belong_to_state": [
+        8,
+        7,
+        6,
+        5,
+        4,
+        3,
+        2,
+        1,
+        9
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Blockhead_XCDD_Follow",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300089": {
+      "id": 2300089,
+      "editor_name": "【赛季大厅】机幕方舟表演",
+      "belong_to_state": [
+        5
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_JMFZ1_SJ",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300090": {
+      "id": 2300090,
+      "editor_name": "【赛季大厅】小丑公爵表演",
+      "belong_to_state": [
+        5
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_XCGJ_SJ",
+      "input_key": [
+        "Global_BornPos",
+        "Global_BornDir"
+      ]
+    },
+    "2300091": {
+      "id": 2300091,
+      "editor_name": "【赛季大厅】小丑兔表演",
+      "belong_to_state": [
+        5
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_XCT_SJ",
+      "input_key": [
+        "Global_BornPos",
+        "Global_BornDir"
+      ]
+    },
+    "2300092": {
+      "id": 2300092,
+      "editor_name": "【赛季大厅】猴唛仔进化链表演",
+      "belong_to_state": [
+        5
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_HMZ_SJ",
+      "input_key": [
+        "Global_BornPos",
+        "Global_BornDir"
+      ]
+    },
+    "2300093": {
+      "id": 2300093,
+      "editor_name": "【赛季大厅】立方人表演",
+      "belong_to_state": [
+        5
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_LFR_SJ",
+      "input_key": [
+        "Global_BornPos",
+        "Global_BornDir"
+      ]
+    },
+    "2300094": {
+      "id": 2300094,
+      "editor_name": "【赛季大厅】多彩方方表演",
+      "belong_to_state": [
+        5
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_DCFF_SJ",
+      "input_key": [
+        "Global_BornPos",
+        "Global_BornDir"
+      ]
+    },
+    "2300095": {
+      "id": 2300095,
+      "editor_name": "【赛季大厅】机械方方表演",
+      "belong_to_state": [
+        5
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_JXFF_SJ",
+      "input_key": [
+        "Global_BornPos",
+        "Global_BornDir"
+      ]
+    },
+    "2300096": {
+      "id": 2300096,
+      "editor_name": "【赛季大厅】霹雳迪迪表演1",
+      "belong_to_state": [
+        5
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_PLDD_SJ1",
+      "input_key": [
+        "Global_BornPos",
+        "Global_BornDir"
+      ]
+    },
+    "2300097": {
+      "id": 2300097,
+      "editor_name": "【赛季大厅】霹雳迪迪表演2",
+      "belong_to_state": [
+        6
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_PLDD_SJ2",
+      "input_key": [
+        "Global_BornPos",
+        "Global_BornDir"
+      ]
+    },
+    "2300098": {
+      "id": 2300098,
+      "editor_name": "【赛季大厅】咕德帽帽表演",
+      "belong_to_state": [
+        5
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_GDMM_SJ",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300099": {
+      "id": 2300099,
+      "editor_name": "【赛季大厅】烟花伯爵表演",
+      "belong_to_state": [
+        5
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_YHBJ_SJ_GT",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300100": {
+      "id": 2300100,
+      "editor_name": "【赛季大厅】烟花伯爵表演-发起",
+      "belong_to_state": [
+        5
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_YHBJ_SJ_GT",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300101": {
+      "id": 2300101,
+      "editor_name": "【赛季大厅】烟花伯爵表演-群组",
+      "belong_to_state": [
+        5
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_YHBJ_SJ_QZ",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300102": {
+      "id": 2300102,
+      "editor_name": "【赛季大厅】烟花团表演-群组",
+      "belong_to_state": [
+        5
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_YHT_SJ_QZ",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300103": {
+      "id": 2300103,
+      "editor_name": "【交汇镇】烟花伯爵表演-发起",
+      "belong_to_state": [
+        5
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_YHBJ_JHZ_QZFQ",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300104": {
+      "id": 2300104,
+      "editor_name": "【交汇镇】烟花伯爵表演1",
+      "belong_to_state": [
+        5
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_YHBJ_JHZ_QZ1",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300105": {
+      "id": 2300105,
+      "editor_name": "【交汇镇】烟花伯爵表演2",
+      "belong_to_state": [
+        5
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_YHBJ_JHZ_QZ2",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300106": {
+      "id": 2300106,
+      "editor_name": "【交汇镇】烟花伯爵表演3",
+      "belong_to_state": [
+        5
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_YHBJ_JHZ_QZ3",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300107": {
+      "id": 2300107,
+      "editor_name": "【交汇镇】烟花伯爵表演4",
+      "belong_to_state": [
+        5
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_YHBJ_JHZ_QZ4",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300108": {
+      "id": 2300108,
+      "editor_name": "【交汇镇】烟花伯爵表演5",
+      "belong_to_state": [
+        5
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_YHBJ_JHZ_QZ5",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300109": {
+      "id": 2300109,
+      "editor_name": "【赛季大厅】巡游表演-发起",
+      "belong_to_state": [
+        5
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_SJ_XYFQ",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300110": {
+      "id": 2300110,
+      "editor_name": "【赛季大厅】巡游表演-主巡游",
+      "belong_to_state": [
+        6
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_SJ_ZXY",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300111": {
+      "id": 2300111,
+      "editor_name": "【赛季大厅】巡游表演-前往群组点",
+      "belong_to_state": [
+        5
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_SJ_XYQW",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300112": {
+      "id": 2300112,
+      "editor_name": "【赛季大厅】巡游表演-小鼓象/巨鼓象巡游",
+      "belong_to_state": [
+        5
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_SJ_XGXXY",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300113": {
+      "id": 2300113,
+      "editor_name": "【赛季大厅】巡游表演-钨丝贝贝/辉光幕机巡游",
+      "belong_to_state": [
+        5
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_SJ_WSXY",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300114": {
+      "id": 2300114,
+      "editor_name": "【赛季大厅】巡游表演-小雪人巡游",
+      "belong_to_state": [
+        5
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_SJ_XXRXY",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300115": {
+      "id": 2300115,
+      "editor_name": "【赛季大厅】巡游表演-爆焰仔-爆焰喷喷巡游",
+      "belong_to_state": [
+        5
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_SJ_BYZXY",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300116": {
+      "id": 2300116,
+      "editor_name": "【赛季大厅】只播聚光灯",
+      "belong_to_state": [
+        5
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/BT_Approach_JGD",
+      "input_key": [
+        "Global_BornPos"
+      ]
+    },
+    "2300117": {
+      "id": 2300117,
+      "editor_name": "赛季睡觉",
+      "belong_to_state": [
+        6,
+        7,
+        8,
+        5,
+        2,
+        1,
+        3,
+        4,
+        9
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Sleep_SJ",
+      "bb_info": [
+        {
+          "bb_name": "[BB_Sleep]_Duration",
+          "tooltip": "睡眠持续时间#单位为秒",
+          "data_type": 2,
+          "default_data": 1500,
+          "additional_para": [
+            100
+          ]
+        }
+      ]
+    },
+    "2300118": {
+      "id": 2300118,
+      "editor_name": "【骑乘】护卫拎骑、公主抱",
+      "belong_to_state": [
+        7
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Riding_G2G3",
+      "input_key": [
+        "Global_BornPos"
+      ],
+      "tick_input_key": [
+        "Global_ReactionIndex"
+      ]
+    },
+    "2300119": {
+      "id": 2300119,
+      "editor_name": "【骑乘】好奇精灵挂、瞎摸",
+      "belong_to_state": [
+        7
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Riding_D0D1",
+      "input_key": [
+        "Global_BornPos"
+      ],
+      "tick_input_key": [
+        "Global_ReactionIndex"
+      ]
+    },
+    "2300120": {
+      "id": 2300120,
+      "editor_name": "【骑乘】独轮车伴行",
+      "belong_to_state": [
+        7
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Riding_G5",
+      "input_key": [
+        "Global_BornPos"
+      ],
+      "tick_input_key": [
+        "Global_ReactionIndex"
+      ]
+    },
+    "2300121": {
+      "id": 2300121,
+      "editor_name": "【骑乘】独轮车伴行结束嘲笑/伤心",
+      "belong_to_state": [
+        7,
+        6,
+        8,
+        2,
+        3
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Riding_G5over",
+      "input_key": [
+        "Global_BornPos"
+      ],
+      "tick_input_key": [
+        "Global_ReactionIndex"
+      ]
+    },
+    "2300122": {
+      "id": 2300122,
+      "editor_name": "【骑乘】野外护卫抵抗",
+      "belong_to_state": [
+        7,
+        6,
+        8,
+        2,
+        3
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/PreAttack/BT_PreAttack_Called_WildProtect",
+      "input_key": [
+        "Global_BornPos"
+      ],
+      "tick_input_key": [
+        "Global_ReactionIndex"
+      ]
+    },
+    "2300123": {
+      "id": 2300123,
+      "editor_name": "【骑乘】攻击攻击",
+      "belong_to_state": [
+        5,
+        6,
+        7
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_ParternerAttack_AttackRide"
+    },
+    "2300124": {
+      "id": 2300124,
+      "editor_name": "友好-友好/胆小-发起事件",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_GroupChase_YHDX"
+    },
+    "2300125": {
+      "id": 2300125,
+      "editor_name": "友好-友好/胆小-成员过来",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_GroupChase_YHDXGL"
+    },
+    "2300126": {
+      "id": 2300126,
+      "editor_name": "友好-友好/胆小-成员追逐事件发起者",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_GroupChase_YHDXZZ",
+      "input_key": [
+        "Global_MovePos"
+      ],
+      "tick_input_key": [
+        "Global_MovePos"
+      ]
+    },
+    "2300127": {
+      "id": 2300127,
+      "editor_name": "友好-友好/胆小-事件发起者追逐",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_GroupChase_YHDXFQ",
+      "output_key": [
+        "Global_MovePos"
+      ],
+      "tick_input_key": [
+        "Global_MovePos"
+      ]
+    },
+    "2300128": {
+      "id": 2300128,
+      "editor_name": "友好-友好/胆小-结束告别",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_GroupChase_YHDXJSJS"
+    },
+    "2300129": {
+      "id": 2300129,
+      "editor_name": "友好-友好/胆小-事件发起者告别",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_GroupChase_YHDXJS",
+      "output_key": [
+        "Global_MovePos"
+      ],
+      "tick_input_key": [
+        "Global_MovePos"
+      ]
+    },
+    "2300130": {
+      "id": 2300130,
+      "editor_name": "【马戏团合集】检索-烟花",
+      "belong_to_state": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_CircusCall1",
+      "input_key": [
+        "Global_GroupPos",
+        "Global_Dir"
+      ],
+      "tick_input_key": [
+        "Global_GroupPos",
+        "Global_Dir"
+      ]
+    },
+    "2300131": {
+      "id": 2300131,
+      "editor_name": "【马戏团合集】检索-咕咕",
+      "belong_to_state": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_CircusCall2",
+      "input_key": [
+        "Global_GroupPos",
+        "Global_Dir"
+      ],
+      "tick_input_key": [
+        "Global_GroupPos",
+        "Global_Dir"
+      ]
+    },
+    "2300132": {
+      "id": 2300132,
+      "editor_name": "【马戏团合集】检索-鼓象",
+      "belong_to_state": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_CircusCall3",
+      "input_key": [
+        "Global_GroupPos",
+        "Global_Dir"
+      ],
+      "tick_input_key": [
+        "Global_GroupPos",
+        "Global_Dir"
+      ]
+    },
     "2600000": {
       "id": 2600000,
       "editor_name": "鸭吉吉-急急急鸭",
@@ -14821,6 +17185,16 @@
           "data_type": 5
         }
       ]
+    },
+    "2600001": {
+      "id": 2600001,
+      "editor_name": "播放动作并发奖-六一吱吱鼠",
+      "belong_to_state": [
+        7,
+        6,
+        8
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_PlayAnimationAndReward"
     },
     "2600003": {
       "id": 2600003,
@@ -20783,7 +23157,16 @@
         5,
         6
       ],
-      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/Farm/BT_FarmTest_TryInteract"
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/Farm/BT_FarmTest_TryInteract",
+      "input_key": [
+        "Global_iCanInteractFarmNum"
+      ],
+      "output_key": [
+        "Global_iCanInteractFarmNum"
+      ],
+      "tick_input_key": [
+        "Global_iCanInteractFarmNum"
+      ]
     },
     "2800271": {
       "id": 2800271,
@@ -20802,10 +23185,15 @@
         "Global_fHomePlantStealAttackLow",
         "Global_fHomePlantStealAttackMiddle",
         "Global_fHomePlantStealAttackHigh",
-        "Global_BornPos"
+        "Global_BornPos",
+        "Global_iCanInteractFarmNum"
+      ],
+      "output_key": [
+        "Global_iCanInteractFarmNum"
       ],
       "tick_input_key": [
-        "Global_BornPos"
+        "Global_BornPos",
+        "Global_iCanInteractFarmNum"
       ]
     },
     "2800272": {
@@ -21671,7 +24059,14 @@
         "Global_RangeMax",
         "Global_ForwardDegree",
         "Global_BackwardDegree",
-        "Global_AllowPartial"
+        "Global_AllowPartial",
+        "Global_iCanInteractFarmNum"
+      ],
+      "output_key": [
+        "Global_iCanInteractFarmNum"
+      ],
+      "tick_input_key": [
+        "Global_iCanInteractFarmNum"
       ]
     },
     "2800379": {
@@ -21691,7 +24086,14 @@
         "Global_RangeMax",
         "Global_ForwardDegree",
         "Global_BackwardDegree",
-        "Global_AllowPartial"
+        "Global_AllowPartial",
+        "Global_iCanInteractFarmNum"
+      ],
+      "output_key": [
+        "Global_iCanInteractFarmNum"
+      ],
+      "tick_input_key": [
+        "Global_iCanInteractFarmNum"
       ]
     },
     "2800380": {
@@ -21993,7 +24395,14 @@
       ],
       "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_HomePlantPatrol",
       "input_key": [
-        "Global_BornPos"
+        "Global_BornPos",
+        "Global_iCanInteractFarmNum"
+      ],
+      "output_key": [
+        "Global_iCanInteractFarmNum"
+      ],
+      "tick_input_key": [
+        "Global_iCanInteractFarmNum"
       ],
       "bb_info": [
         {
@@ -22438,6 +24847,330 @@
         }
       ]
     },
+    "2800437": {
+      "id": 2800437,
+      "editor_name": "【LLM】左顾右盼",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_Alert"
+    },
+    "2800438": {
+      "id": 2800438,
+      "editor_name": "【LLM】疑惑",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_Alert1"
+    },
+    "2800439": {
+      "id": 2800439,
+      "editor_name": "【LLM】交流",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_Alert2"
+    },
+    "2800440": {
+      "id": 2800440,
+      "editor_name": "【LLM】生气",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_Anger"
+    },
+    "2800441": {
+      "id": 2800441,
+      "editor_name": "【LLM】很生气",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_Anger1"
+    },
+    "2800442": {
+      "id": 2800442,
+      "editor_name": "【LLM】特别生气",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_Anger2"
+    },
+    "2800443": {
+      "id": 2800443,
+      "editor_name": "【LLM】惊恐",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_Fear"
+    },
+    "2800444": {
+      "id": 2800444,
+      "editor_name": "【LLM】特别惊恐",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_Fear1"
+    },
+    "2800445": {
+      "id": 2800445,
+      "editor_name": "【LLM】开心",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_Happy"
+    },
+    "2800446": {
+      "id": 2800446,
+      "editor_name": "【LLM】很开心",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_Happy1"
+    },
+    "2800447": {
+      "id": 2800447,
+      "editor_name": "【LLM】超级开心",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_Happy2"
+    },
+    "2800448": {
+      "id": 2800448,
+      "editor_name": "【LLM】向左移动",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_MoveL"
+    },
+    "2800449": {
+      "id": 2800449,
+      "editor_name": "【LLM】向右移动",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_MoveR"
+    },
+    "2800450": {
+      "id": 2800450,
+      "editor_name": "【LLM】放松",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_Relax"
+    },
+    "2800451": {
+      "id": 2800451,
+      "editor_name": "【LLM】很放松",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_Relax1"
+    },
+    "2800452": {
+      "id": 2800452,
+      "editor_name": "【LLM】伤心",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_Sad"
+    },
+    "2800453": {
+      "id": 2800453,
+      "editor_name": "【LLM】懊恼",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_Sad1"
+    },
+    "2800454": {
+      "id": 2800454,
+      "editor_name": "【LLM】失落",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_Sad2"
+    },
+    "2800455": {
+      "id": 2800455,
+      "editor_name": "【LLM】震惊",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_Shock"
+    },
+    "2800456": {
+      "id": 2800456,
+      "editor_name": "【LLM】很震惊",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_Shock1"
+    },
+    "2800457": {
+      "id": 2800457,
+      "editor_name": "【LLM】秀秀",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_Show"
+    },
+    "2800458": {
+      "id": 2800458,
+      "editor_name": "【LLM】炫耀",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_Show1"
+    },
+    "2800459": {
+      "id": 2800459,
+      "editor_name": "【LLM】晕眩",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_Stun"
+    },
+    "2800460": {
+      "id": 2800460,
+      "editor_name": "【LLM】跳跃",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_Callout"
+    },
+    "2800461": {
+      "id": 2800461,
+      "editor_name": "【LLM】精灵被击中",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_Hit"
+    },
+    "2800462": {
+      "id": 2800462,
+      "editor_name": "【LLM】精灵被击退",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_Hit1"
+    },
+    "2800463": {
+      "id": 2800463,
+      "editor_name": "【LLM】精灵被击倒",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_Hit2"
+    },
+    "2800464": {
+      "id": 2800464,
+      "editor_name": "【LLM】小睡",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_Sleep"
+    },
+    "2800465": {
+      "id": 2800465,
+      "editor_name": "【LLM】沉睡",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_Sleep1"
+    },
+    "2800466": {
+      "id": 2800466,
+      "editor_name": "【LLM】轻轻攻击主人",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_Attack"
+    },
+    "2800467": {
+      "id": 2800467,
+      "editor_name": "【LLM】大力攻击主人",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_Attack1"
+    },
+    "2800468": {
+      "id": 2800468,
+      "editor_name": "【LLM】猛烈攻击主人",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_Attack2"
+    },
+    "2800469": {
+      "id": 2800469,
+      "editor_name": "【LLM】引燃",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_YinRan"
+    },
+    "2800470": {
+      "id": 2800470,
+      "editor_name": "【LLM】贪婪",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_TanLan"
+    },
+    "2800471": {
+      "id": 2800471,
+      "editor_name": "【LLM】放晴",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_FangQing"
+    },
+    "2800472": {
+      "id": 2800472,
+      "editor_name": "【LLM】刺盾",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_CiDun"
+    },
+    "2800473": {
+      "id": 2800473,
+      "editor_name": "【LLM】唤雪",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_HuanXue"
+    },
+    "2800474": {
+      "id": 2800474,
+      "editor_name": "【LLM】静电",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_JingDian"
+    },
+    "2800475": {
+      "id": 2800475,
+      "editor_name": "【LLM】芳香气息",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_FangXiangQiXi"
+    },
+    "2800476": {
+      "id": 2800476,
+      "editor_name": "【LLM】打湿",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_DaShi"
+    },
+    "2800477": {
+      "id": 2800477,
+      "editor_name": "【LLM】自身附近移动",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_WalkAround"
+    },
+    "2800478": {
+      "id": 2800478,
+      "editor_name": "【LLM】自身附近跑动",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_RunAround"
+    },
+    "2800479": {
+      "id": 2800479,
+      "editor_name": "【LLM】走动到玩家面前",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_WalkToPlayer"
+    },
+    "2800480": {
+      "id": 2800480,
+      "editor_name": "【LLM】跑到玩家面前",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_RunToPlayer"
+    },
+    "2800481": {
+      "id": 2800481,
+      "editor_name": "【LLM】远离玩家跑开",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_RunAway"
+    },
+    "2800482": {
+      "id": 2800482,
+      "editor_name": "【LLM】持续的跟随玩家",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_FollowPlayer"
+    },
+    "2800483": {
+      "id": 2800483,
+      "editor_name": "【LLM】跳向玩家面前",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_LaunchTo"
+    },
+    "2800484": {
+      "id": 2800484,
+      "editor_name": "【LLM】跳向玩家附近",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_LaunchAround"
+    },
+    "2800485": {
+      "id": 2800485,
+      "editor_name": "【LLM】发射玩家",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_LaunchPlayer"
+    },
+    "2800486": {
+      "id": 2800486,
+      "editor_name": "【LLM】围着玩家绕圈",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_PlayerAround"
+    },
+    "2800487": {
+      "id": 2800487,
+      "editor_name": "【LLM】转向玩家",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_TurnToPlayer"
+    },
+    "2800488": {
+      "id": 2800488,
+      "editor_name": "【LLM】持续转向玩家",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_TurnToPlayer1"
+    },
+    "2800489": {
+      "id": 2800489,
+      "editor_name": "【LLM】背对玩家",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_BackToPlayer"
+    },
+    "2800490": {
+      "id": 2800490,
+      "editor_name": "【LLM】持续背对玩家",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_BackToPlayer1"
+    },
+    "2800491": {
+      "id": 2800491,
+      "editor_name": "【LLM】看向玩家",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_LookAtPlayer"
+    },
+    "2800492": {
+      "id": 2800492,
+      "editor_name": "【LLM】精灵表情",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_Emoji",
+      "input_key": [
+        "Global_LlmPetMessage",
+        "Global_LlmPetEmoji"
+      ],
+      "output_key": [
+        "Global_LlmPetMessage",
+        "Global_LlmPetEmoji"
+      ],
+      "tick_input_key": [
+        "Global_LlmPetMessage",
+        "Global_LlmPetEmoji"
+      ]
+    },
+    "2800493": {
+      "id": 2800493,
+      "editor_name": "【LLM】精灵说话",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_Talking",
+      "input_key": [
+        "Global_LlmPetEmoji",
+        "Global_LlmPetMessage"
+      ],
+      "output_key": [
+        "Global_LlmPetEmoji",
+        "Global_LlmPetMessage"
+      ],
+      "tick_input_key": [
+        "Global_LlmPetEmoji",
+        "Global_LlmPetMessage"
+      ]
+    },
+    "2800494": {
+      "id": 2800494,
+      "editor_name": "【LLM】治愈",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_ZhiYu"
+    },
+    "2800495": {
+      "id": 2800495,
+      "editor_name": "【LLM】精灵收到",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_ShouDao"
+    },
+    "2800496": {
+      "id": 2800496,
+      "editor_name": "【LLM】精灵思考",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_SiKao"
+    },
     "2800497": {
       "id": 2800497,
       "editor_name": "【寒音蛇】保底现身",
@@ -22451,7 +25184,7 @@
         7,
         8
       ],
-      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_hanyinshe",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_hanyinshe6",
       "input_key": [
         "Global_BornPos",
         "Global_GroupPos",
@@ -22463,6 +25196,321 @@
       "tick_input_key": [
         "Global_StateChange"
       ]
+    },
+    "2800498": {
+      "id": 2800498,
+      "editor_name": "【LLM】前置思考",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_FindOnly"
+    },
+    "2800499": {
+      "id": 2800499,
+      "editor_name": "【家园】小丑公爵跳上桌子",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_HomeFNXCGJ"
+    },
+    "2800500": {
+      "id": 2800500,
+      "editor_name": "【家园】其他精灵跑向小丑公爵",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_HomeFNXCGJ1"
+    },
+    "2800501": {
+      "id": 2800501,
+      "editor_name": "【家园】小丑公爵开始表演",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_HomeFNXCGJ2"
+    },
+    "2800502": {
+      "id": 2800502,
+      "editor_name": "【家园】其他精灵看小丑公爵表演",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_HomeFNXCGJ3"
+    },
+    "2800503": {
+      "id": 2800503,
+      "editor_name": "【家园】炫光迪迪踢足球",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_HomeFNPLDD"
+    },
+    "2800504": {
+      "id": 2800504,
+      "editor_name": "【家园】烟花伯爵放烟花",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_HomeFNYHBJ"
+    },
+    "2800505": {
+      "id": 2800505,
+      "editor_name": "【家园】其他精灵看烟花伯爵放烟花",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_HomeFNYHBJ1"
+    },
+    "2800506": {
+      "id": 2800506,
+      "editor_name": "【家园】玩家看烟花伯爵放烟花",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_HomeFNYHBJ2"
+    },
+    "2800507": {
+      "id": 2800507,
+      "editor_name": "【家园】玩家在场时其他精灵烟花伯爵放烟花",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_HomeFNYHBJ3"
+    },
+    "2800508": {
+      "id": 2800508,
+      "editor_name": "【家园】烟花伯爵放烟花-烟花团",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_HomeFNYHBJ4"
+    },
+    "2800509": {
+      "id": 2800509,
+      "editor_name": "【家园】玩家在场烟花伯爵放烟花-烟花团",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_HomeFNYHBJ5"
+    },
+    "2800510": {
+      "id": 2800510,
+      "editor_name": "【家园】小丑兔扔球失误",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_HomeFNXCT"
+    },
+    "2800511": {
+      "id": 2800511,
+      "editor_name": "【家园】小丑兔扔球失误-小丑公爵",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_HomeFNXCT1"
+    },
+    "2800512": {
+      "id": 2800512,
+      "editor_name": "【家园】小丑兔请教小丑公爵",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_HomeFNXCT2"
+    },
+    "2800513": {
+      "id": 2800513,
+      "editor_name": "【家园】小丑公爵指导小丑兔",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_HomeFNXCT3"
+    },
+    "2800514": {
+      "id": 2800514,
+      "editor_name": "【家园】咕咕帽帽的魔术",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_HomeFNGGM",
+      "output_key": [
+        "Global_GroupPos"
+      ]
+    },
+    "2800515": {
+      "id": 2800515,
+      "editor_name": "【家园】咕咕帽帽魔术的受害者",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_HomeFNGGM1",
+      "input_key": [
+        "Global_GroupPos"
+      ],
+      "output_key": [
+        "Global_StateChange"
+      ],
+      "tick_input_key": [
+        "Global_GroupPos"
+      ]
+    },
+    "2800516": {
+      "id": 2800516,
+      "editor_name": "【家园】吼唛仔唱歌",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_HomeFNS2Sing_HMZ"
+    },
+    "2800517": {
+      "id": 2800517,
+      "editor_name": "【家园】音碟吼唱歌",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_HomeFNS2Sing_YDH"
+    },
+    "2800518": {
+      "id": 2800518,
+      "editor_name": "【家园】小鼓象唱歌",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_HomeFNS2Sing_XGX",
+      "output_key": [
+        "Global_GroupPos"
+      ],
+      "tick_input_key": [
+        "Global_GroupPos"
+      ]
+    },
+    "2800519": {
+      "id": 2800519,
+      "editor_name": "【家园】巨鼓象唱歌",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_HomeFNS2Sing_JGX"
+    },
+    "2800520": {
+      "id": 2800520,
+      "editor_name": "【家园】s2精灵来听歌",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_HomeFNS2Sing_JGX1",
+      "input_key": [
+        "Global_GroupPos"
+      ],
+      "tick_input_key": [
+        "Global_GroupPos"
+      ]
+    },
+    "2800521": {
+      "id": 2800521,
+      "editor_name": "【家园】s2精灵跟随小鼓象",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_HomeFNS2Sing_XGX1",
+      "input_key": [
+        "Global_GroupPos"
+      ],
+      "tick_input_key": [
+        "Global_GroupPos"
+      ]
+    },
+    "2800522": {
+      "id": 2800522,
+      "editor_name": "【家园】测试速度节点",
+      "belong_to_state": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_HomeTestSpeed"
+    },
+    "2800523": {
+      "id": 2800523,
+      "editor_name": "【家园】烟花伯爵放烟花-无椅子版",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_HomeFNYHBJ6"
+    },
+    "2800524": {
+      "id": 2800524,
+      "editor_name": "【赛季】【S2】跟随精灵-吼唛仔唱歌",
+      "belong_to_state": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_S2HMZSing"
+    },
+    "2800525": {
+      "id": 2800525,
+      "editor_name": "【赛季】【S2】跟随精灵-音碟吼唱歌",
+      "belong_to_state": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_S2YDHSing"
+    },
+    "2800526": {
+      "id": 2800526,
+      "editor_name": "【赛季】【S2】跟随精灵-小鼓象唱歌",
+      "belong_to_state": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_S2XGXSing"
+    },
+    "2800527": {
+      "id": 2800527,
+      "editor_name": "【赛季】【S2】跟随精灵-巨鼓象唱歌",
+      "belong_to_state": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_S2JGXSing"
+    },
+    "2800528": {
+      "id": 2800528,
+      "editor_name": "【赛季】【S2】跟随精灵-钨丝贝贝唱歌",
+      "belong_to_state": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_S2WSBBSing"
+    },
+    "2800529": {
+      "id": 2800529,
+      "editor_name": "【赛季】【S2】跟随精灵-辉光幕机唱歌",
+      "belong_to_state": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_S2HGMJSing"
+    },
+    "2800530": {
+      "id": 2800530,
+      "editor_name": "【赛季】【S2】跟随精灵-机幕方舟唱歌",
+      "belong_to_state": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_S2JMFZSing"
+    },
+    "2800531": {
+      "id": 2800531,
+      "editor_name": "【赛季】【S2】跟随精灵-炫光迪迪唱歌",
+      "belong_to_state": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_S2XGDDSing"
+    },
+    "2800532": {
+      "id": 2800532,
+      "editor_name": "【赛季】【S2】跟随精灵-霹雳迪迪唱歌",
+      "belong_to_state": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_S2PLDDSing"
     },
     "3000000": {
       "id": 3000000,
@@ -25922,6 +28970,9 @@
         7
       ],
       "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Riding_Flee",
+      "input_key": [
+        "Global_BornPos"
+      ],
       "tick_input_key": [
         "Global_ReactionIndex"
       ]
@@ -25958,6 +29009,9 @@
         7
       ],
       "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/BirdSmall/BT_Riding_Bird_S_FlyAway",
+      "input_key": [
+        "Global_BornPos"
+      ],
       "tick_input_key": [
         "Global_ReactionIndex"
       ],
@@ -26038,7 +29092,10 @@
         6,
         8
       ],
-      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Riding_Stun"
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Riding_Stun",
+      "input_key": [
+        "Global_BornPos"
+      ]
     },
     "3000280": {
       "id": 3000280,
@@ -26060,7 +29117,10 @@
         6,
         7
       ],
-      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/Hidden/BT_Riding_HiddenEnter"
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/Hidden/BT_Riding_HiddenEnter",
+      "input_key": [
+        "Global_BornPos"
+      ]
     },
     "3000282": {
       "id": 3000282,
@@ -26083,6 +29143,9 @@
         7
       ],
       "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Riding_Holdhands_Happy",
+      "input_key": [
+        "Global_BornPos"
+      ],
       "tick_input_key": [
         "Global_ReactionIndex"
       ]
@@ -31676,7 +34739,10 @@
       "belong_to_state": [
         7,
         6,
-        8
+        8,
+        3,
+        4,
+        5
       ],
       "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/individual/BT_Xiaozhu_BrainUpgrade",
       "input_key": [
@@ -31759,7 +34825,12 @@
       "id": 3800250,
       "editor_name": "【粉粉星】星隐重置",
       "belong_to_state": [
-        5
+        5,
+        3,
+        6,
+        4,
+        7,
+        8
       ],
       "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/individual/BT_FFX_FlashReset",
       "input_key": [
@@ -33432,6 +36503,61 @@
       "editor_name": "【捕尘长绒】结束清扫头顶",
       "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/individual/BT_Xiaozhu_Bounce"
     },
+    "4000300": {
+      "id": 4000300,
+      "editor_name": "声波缇塔带路",
+      "belong_to_state": [
+        5
+      ],
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/DotsVersion2/SubTree/NewVer/Common/BT_Traveller_Dimo4",
+      "bb_info": [
+        {
+          "bb_name": "[BB_HumanNPC]_WaitTime1",
+          "tooltip": "动作间隔时间",
+          "data_type": 2,
+          "default_data": 500,
+          "additional_para": [
+            100
+          ]
+        },
+        {
+          "bb_name": "[BB_HumanNPC]_WaitTime2",
+          "tooltip": "转向速度",
+          "data_type": 2,
+          "default_data": 30000,
+          "additional_para": [
+            100
+          ]
+        },
+        {
+          "bb_name": "[BB_HumanNPC]_RandomWait",
+          "tooltip": "动作间隔浮动",
+          "data_type": 2,
+          "default_data": 100,
+          "additional_para": [
+            100
+          ]
+        },
+        {
+          "bb_name": "[BB_HumanNPC]_Speed",
+          "tooltip": "移动速度",
+          "data_type": 2,
+          "default_data": 80000,
+          "additional_para": [
+            100
+          ]
+        },
+        {
+          "bb_name": "[BB_HumanNPC]_DistanceToPartner",
+          "tooltip": "距离多近（cm）开启下一段",
+          "data_type": 2,
+          "default_data": 60000,
+          "additional_para": [
+            100
+          ]
+        }
+      ]
+    },
     "4300000": {
       "id": 4300000,
       "editor_name": "【副本】噩梦小精灵C专属巡逻",
@@ -34270,6 +37396,11 @@
       "input_key": [
         "Global_RunAwayLoc"
       ]
+    },
+    "5009001": {
+      "id": 5009001,
+      "editor_name": "【LLMPet】通知LLM行为序列结束",
+      "tree_name": "/Game/NewRoco/Modules/AI/BehaviorTree/MFBT/LLMPet/BT_LLM_Pet_Complete"
     },
     "5300000": {
       "id": 5300000,

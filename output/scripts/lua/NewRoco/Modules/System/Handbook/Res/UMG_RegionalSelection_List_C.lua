@@ -1,3 +1,4 @@
+local HandbookModuleEnum = reload("NewRoco.Modules.System.Handbook.HandbookModuleEnum")
 local Base = require("NewRoco.TUI.BP_NRCItemBase_C")
 local UMG_RegionalSelection_List_C = Base:Extend("UMG_RegionalSelection_List_C")
 
@@ -10,13 +11,51 @@ end
 function UMG_RegionalSelection_List_C:OnItemUpdate(_data, datalist, index)
   self.data = _data
   self.areaInfo = nil
+  self.HorizontalBox_0:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  local curSelectData = _G.NRCModuleManager:DoCmd(_G.HandbookModuleCmd.GetCurSelectedSeasonHandbookData)
+  self:StopAllAnimations()
+  self:PlayAnimation(self.Normal)
+  self.index = index
+  if self.data.type == HandbookModuleEnum.SeasonHandbookTable.Photo then
+    self.HorizontalBox_0:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    if self.data.conf then
+      local seasonId = self.data.conf.id
+      self.SeasonId = seasonId
+      local totalNormalPetNum, collectNormalPetNum = _G.NRCModuleManager:DoCmd(_G.HandbookModuleCmd.GetSeasonPetCount, seasonId, ProtoEnum.PetHandbookSeasonPetType.PHSPT_NEW)
+      local totalSeasonShinyPetNum, collectSeasonShinyPetNum = _G.NRCModuleManager:DoCmd(_G.HandbookModuleCmd.GetSeasonPetCount, seasonId, ProtoEnum.PetHandbookSeasonPetType.PHSPT_SHINING)
+      local totalNormalShinyPetNum, collectNormalShinyPetNum = _G.NRCModuleManager:DoCmd(_G.HandbookModuleCmd.GetSeasonPetCount, seasonId, ProtoEnum.PetHandbookSeasonPetType.PHSPT_NORMAL_SHINING)
+      local isBanId = self.data.conf.enter_ban_id
+      local totalNum = totalNormalPetNum
+      local collectNum = collectNormalPetNum
+      local shinyTotalNum = totalSeasonShinyPetNum + totalNormalShinyPetNum
+      local collectShinyNum = collectSeasonShinyPetNum + collectNormalShinyPetNum
+      local seasonConf = _G.DataConfigManager:GetSeasonConf(seasonId)
+      local seasonName = string.format("S%d%s", seasonId, seasonConf.s_title_subtitle)
+      self.Text:SetText(seasonName)
+      self.ProgressText1:SetText(string.format("%s/", collectNum))
+      self.ProgressText2:SetText(totalNum)
+      self.ProgressText3:SetText((string.format("%s/%s", collectShinyNum, shinyTotalNum)))
+      self.Bg:SetPath(self.data.conf.handbook_icon)
+      self.Bg_Mask:SetPath(self.data.conf.handbook_icon)
+      self.Dot:SetupKey(126, {
+        HandbookModuleEnum.SeasonHandbookTable.Photo,
+        seasonId
+      })
+      if curSelectData.type == self.data.type and curSelectData.id == seasonId then
+        self:PlayDefaultSelectAnimation()
+      end
+      self:IsShowLock(isBanId)
+    end
+    return
+  end
   if _data then
     local conf = _data.conf
     self.Text:SetText(conf.name)
-    self.Text:SetColorAndOpacity(UE4.UNRCStatics.HexToSlateColor("#47463CFF"))
     self.Bg:SetPath(conf.book_res)
+    self.Bg_Mask:SetPath(conf.book_res)
     self.Dot:SetupKey(126, {
-      conf.area_handbook_type
+      HandbookModuleEnum.SeasonHandbookTable.Handbook,
+      conf.id
     })
     self.areaInfo = _G.NRCModuleManager:DoCmd(_G.HandbookModuleCmd.GetAreaHandbookInfo, conf.area_handbook_type)
     local collStr = ""
@@ -25,54 +64,43 @@ function UMG_RegionalSelection_List_C:OnItemUpdate(_data, datalist, index)
     end
     local maxCount = self:GetMaxCount(conf.area_handbook_type)
     self.ProgressText1:SetText(collStr)
-    self.ProgressText1:SetColorAndOpacity(UE4.UNRCStatics.HexToSlateColor("#47463CFF"))
     self.ProgressText2:SetText(maxCount)
-    self.ProgressText2:SetColorAndOpacity(UE4.UNRCStatics.HexToSlateColor("#47463CFF"))
-    local curSelectAreaId = _G.NRCModuleManager:DoCmd(_G.HandbookModuleCmd.GetCurAreaHandbookId)
+    local curSelectAreaId = curSelectData.type == self.data.type and curSelectData.id or nil
     if curSelectAreaId == conf.id then
       self:PlayDefaultSelectAnimation()
     end
-    if 2 == index then
-      self.Bg:SetRenderTransformAngle(2.14)
-      self.Bg_1:SetRenderTransformAngle(2.14)
-      self.Bg_Mask:SetRenderTransformAngle(2.14)
-    elseif 4 == index then
-      self.Bg:SetRenderTransformAngle(5.31)
-      self.Bg_1:SetRenderTransformAngle(5.31)
-      self.Bg_Mask:SetRenderTransformAngle(5.31)
-    elseif 1 == index then
-      self.Bg:SetRenderTransformAngle(-2.2)
-      self.Bg_1:SetRenderTransformAngle(-2.2)
-      self.Bg_Mask:SetRenderTransformAngle(-2.2)
-    elseif 3 == index then
-      self.Bg:SetRenderTransformAngle(-1.48)
-      self.Bg_1:SetRenderTransformAngle(-1.48)
-      self.Bg_Mask:SetRenderTransformAngle(-1.48)
-    end
-    local isBan = true
-    if 0 == conf.enter_ban_id then
-      isBan = false
-    else
-      local banConf = _G.DataConfigManager:GetUiEnterBanConf(conf.enter_ban_id)
-      local banType = banConf.function_entrance
-      isBan = _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.CheckUIFunctionBan, banType, false)
-    end
-    if isBan then
-      self.Lock:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-      self.CanvasPanel_1:SetVisibility(UE4.ESlateVisibility.Collapsed)
-      self.Text:SetText(LuaText.lock_area_handbook_2)
-    else
-      self.Lock:SetVisibility(UE4.ESlateVisibility.Collapsed)
-      self.CanvasPanel_1:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-    end
+    self:IsShowLock(conf.enter_ban_id)
   end
 end
 
+function UMG_RegionalSelection_List_C:IsShowLock(banId)
+  local isBan = true
+  if nil == banId or 0 == banId then
+    isBan = false
+  else
+    local banConf = _G.DataConfigManager:GetUiEnterBanConf(banId)
+    local banType = banConf.function_entrance
+    isBan = _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.CheckUIFunctionBan, banType, false)
+  end
+  if isBan then
+    self.Lock:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    self.CanvasPanel_1:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.Text:SetText(LuaText.lock_area_handbook_2)
+  else
+    self.Lock:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.CanvasPanel_1:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  end
+  self.banId = banId
+end
+
 function UMG_RegionalSelection_List_C:PlayDefaultSelectAnimation()
-  self.Text:SetText(self.data.conf.name)
-  self.Text:SetColorAndOpacity(UE4.UNRCStatics.HexToSlateColor("#E7DAC0FF"))
-  self.ProgressText1:SetColorAndOpacity(UE4.UNRCStatics.HexToSlateColor("#E7DAC0FF"))
-  self.ProgressText2:SetColorAndOpacity(UE4.UNRCStatics.HexToSlateColor("#E7DAC0FF"))
+  if self.data.type == HandbookModuleEnum.SeasonHandbookTable.Photo then
+    local seasonConf = _G.DataConfigManager:GetSeasonConf(self.SeasonId)
+    local seasonName = string.format("S%d%s", self.SeasonId, seasonConf.s_title_subtitle)
+    self.Text:SetText(seasonName)
+  else
+    self.Text:SetText(self.data.conf.name)
+  end
   self:PlayAnimation(self.Click_loop, 0, 0)
 end
 
@@ -94,37 +122,60 @@ end
 
 function UMG_RegionalSelection_List_C:OnItemSelected(_bSelected)
   if _bSelected then
-    local isBan = true
-    local banId = self.data.conf.enter_ban_id
-    if self.data.conf.enter_ban_id == nil or 0 == self.data.conf.enter_ban_id then
-      isBan = false
-    else
-      local banConf = _G.DataConfigManager:GetUiEnterBanConf(banId)
-      isBan = _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.CheckUIFunctionBan, banConf.function_entrance, true)
+    if _G.NRCModuleManager:DoCmd(HandbookModuleCmd.GetDisableRewardAnimationState) then
+      return
     end
-    if not isBan then
-      _G.NRCAudioManager:PlaySound2DAuto(1237, "UMG_RegionalSelection_List_C:OnItemSelected")
+    _G.NRCModuleManager:DoCmd(HandbookModuleCmd.SetDisableRewardAnimationState, true, 1)
+    self:OnClickItem()
+  end
+end
+
+function UMG_RegionalSelection_List_C:OnClickItem()
+  local isBan = true
+  local banId = self.banId
+  if nil == banId or 0 == banId then
+    isBan = false
+  else
+    local banConf = _G.DataConfigManager:GetUiEnterBanConf(banId)
+    isBan = _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.CheckUIFunctionBan, banConf.function_entrance, true)
+  end
+  if not isBan then
+    _G.NRCAudioManager:PlaySound2DAuto(1237, "UMG_RegionalSelection_List_C:OnItemSelected")
+    if self.data.type ~= HandbookModuleEnum.SeasonHandbookTable.Photo then
       _G.NRCModuleManager:DoCmd(_G.HandbookModuleCmd.SelectAreaItem, self.data)
-      self:PlayAnimation(self.Click)
+      _G.NRCModuleManager:DoCmd(_G.HandbookModuleCmd.CloseSeasonHandBook)
       self.Text:SetText(self.data.conf.name)
-      self.Text:SetColorAndOpacity(UE4.UNRCStatics.HexToSlateColor("#E7DAC0FF"))
-      self.ProgressText1:SetColorAndOpacity(UE4.UNRCStatics.HexToSlateColor("#E7DAC0FF"))
-      self.ProgressText2:SetColorAndOpacity(UE4.UNRCStatics.HexToSlateColor("#E7DAC0FF"))
-    else
-      _G.NRCAudioManager:PlaySound2DAuto(41401015, "UMG_RegionalSelection_List_C:OnItemSelected")
     end
+  else
+    _G.NRCAudioManager:PlaySound2DAuto(41401015, "UMG_RegionalSelection_List_C:OnItemSelected")
+    return
+  end
+  self:PlayAnimation(self.Click)
+  if self.data.type == HandbookModuleEnum.SeasonHandbookTable.Photo then
+    _G.NRCModuleManager:DoCmd(_G.HandbookModuleCmd.SelectAreaItem, self.data)
+    _G.NRCModuleManager:DoCmd(_G.HandbookModuleCmd.OpenSeasonHandBook, self.SeasonId)
+    _G.NRCModuleManager:DoCmd(_G.HandbookModuleCmd.CloseHandbookCoverByPlayer)
+    _G.NRCModuleManager:DoCmd(_G.HandbookModuleCmd.OnCloseAreaHandbookChangPanel)
+    _G.NRCAudioManager:PlaySound2DAuto(1237, "UMG_RegionalSelection_List_C:OnItemSelected")
+    local seasonConf = _G.DataConfigManager:GetSeasonConf(self.SeasonId)
+    local seasonName = string.format("S%d%s", self.SeasonId, seasonConf.s_title_subtitle)
+    self.Text:SetText(seasonName)
   end
 end
 
 function UMG_RegionalSelection_List_C:UnSelectItem(data)
-  if data.conf.area_handbook_type ~= self.data.conf.area_handbook_type then
+  local name = ""
+  if data.type == HandbookModuleEnum.SeasonHandbookTable.Photo and self.SeasonId ~= data.conf.id then
     self:StopAllAnimations()
     self:PlayAnimation(self.Normal)
-    self.Text:SetText(self.data.conf.name)
-    self.Text:SetColorAndOpacity(UE4.UNRCStatics.HexToSlateColor("#47463CFF"))
-    self.ProgressText1:SetColorAndOpacity(UE4.UNRCStatics.HexToSlateColor("#47463CFF"))
-    self.ProgressText2:SetColorAndOpacity(UE4.UNRCStatics.HexToSlateColor("#47463CFF"))
+    local seasonConf = _G.DataConfigManager:GetSeasonConf(self.SeasonId)
+    name = string.format("S%d%s", self.SeasonId, seasonConf.s_title_subtitle)
+  elseif data.type == HandbookModuleEnum.SeasonHandbookTable.Handbook and data.conf.area_handbook_type ~= self.data.conf.area_handbook_type then
+    self:StopAllAnimations()
+    self:PlayAnimation(self.Normal)
+    name = self.data.conf.name
   end
+  self.Text:SetText(name)
 end
 
 function UMG_RegionalSelection_List_C:OnAnimationFinished(anim)

@@ -1,5 +1,6 @@
 local UMG_PeerTask_C = _G.NRCPanelBase:Extend("UMG_PeerTask_C")
 local ActivityModuleEvent = require("NewRoco.Modules.System.Activity.ActivityModuleEvent")
+local ActivityUtils = require("NewRoco.Modules.System.Activity.ActivityUtils")
 
 function UMG_PeerTask_C:OnConstruct()
   self:SetChildViews(self.PopUp)
@@ -60,6 +61,11 @@ end
 
 function UMG_PeerTask_C:OnRefreshLimitTimeAppearActivityData(_activityId, _partData)
   if self.activityInst and _activityId == self.activityInst:GetActivityId() then
+    if self.activityInst:IsActivityInactive() then
+      ActivityUtils.ShowActivityExpiredTips()
+      self:OnClose()
+      return
+    end
     self:RefreshView()
   end
 end

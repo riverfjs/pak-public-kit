@@ -15,4 +15,6 @@ AreaAndZoneModuleCmd.OnAreaChange = "AreaAndZoneModuleCmd.OnAreaChange"
 AreaAndZoneModuleCmd.OnTimeGoBack = "AreaAndZoneModuleCmd.OnTimeGoBack"
 AreaAndZoneModuleCmd.GetTemperature = "AreaAndZoneModuleCmd.GetTemperature"
 AreaAndZoneModuleCmd.DumpBGMArea = "AreaAndZoneModuleCmd.DumpBGMArea"
+AreaAndZoneModuleCmd.CheckRolePlayPropsIsBan = "AreaAndZoneModuleCmd.CheckRolePlayPropsIsBan"
+AreaAndZoneModuleCmd.OnActivityMapNpcDataChanged = "AreaAndZoneModuleCmd.OnActivityMapNpcDataChanged"
 return AreaAndZoneModuleCmd

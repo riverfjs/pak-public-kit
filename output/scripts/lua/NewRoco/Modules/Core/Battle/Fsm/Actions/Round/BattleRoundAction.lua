@@ -83,6 +83,15 @@ function BattleRoundAction:OnPushbackSent(rsp)
   self:ClearPushbackReq()
 end
 
+function BattleRoundAction:SendPopbackReq(req)
+  _G.BattleNetManager:SendBattleCmdPopbackReq(req, self, self.OnPopbackSent)
+end
+
+function BattleRoundAction:OnPopbackSent(rsp)
+  BattleDebugger:HookGetter_ZoneBattleMessage__battle_attr(rsp)
+  _G.BattleEventCenter:Dispatch(BattleEvent.POPBACK_CMD_SENT, rsp)
+end
+
 function BattleRoundAction:ClearPushbackReq()
   if self:IsValid() then
     self.fsm:SetProperty("CurrentPushbackReq", nil)

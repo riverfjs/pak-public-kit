@@ -3,6 +3,10 @@ TakePhotosModuleEvent.OnEnterTakePhotos = "TakePhotosModuleEvent.OnEnterTakePhot
 TakePhotosModuleEvent.OnPostEnterTakePhotos = "TakePhotosModuleEvent.OnPostEnterTakePhotos"
 TakePhotosModuleEvent.OnExitTakePhotos = "TakePhotosModuleEvent.OnExitTakePhotos"
 TakePhotosModuleEvent.OnToggleMode = "TakePhotosModuleEvent.OnToggleMode"
+TakePhotosModuleEvent.OnToggleSelfieCameraMode = "TakePhotosModuleEvent.OnToggleSelfieCameraMode"
+TakePhotosModuleEvent.OnToggleFirstPersonCameraMode = "TakePhotosModuleEvent.OnToggleFirstPersonCameraMode"
+TakePhotosModuleEvent.OnToggleTripodCameraMode = "TakePhotosModuleEvent.OnToggleTripodCameraMode"
+TakePhotosModuleEvent.OnToggleTripodWorldMode = "TakePhotosModuleEvent.OnToggleTripodWorldMode"
 TakePhotosModuleEvent.OnExitMode = "TakePhotosModuleEvent.OnExitMode"
 TakePhotosModuleEvent.OnPhotosTaken = "TakePhotosModuleEvent.OnPhotosTaken"
 TakePhotosModuleEvent.OnSyncPhotoToken = "TakePhotosModuleEvent.OnSyncPhotoToken"
@@ -32,4 +36,6 @@ TakePhotosModuleEvent.OnSpawnPetLookLensTarget = "TakePhotosModuleEvent.OnSpawnP
 TakePhotosModuleEvent.OnDestroyPetLookLensTarget = "TakePhotosModuleEvent.OnDestroyPetLookLensTarget"
 TakePhotosModuleEvent.OnRideEditConfigValueChanged = "TakePhotosModuleEvent.OnRideEditConfigValueChanged"
 TakePhotosModuleEvent.OnPhotoFileShared = "TakePhotosModuleEvent.OnPhotoFileShared"
+TakePhotosModuleEvent.OnPhotoActivitySubmit = "TakePhotosModuleEvent.OnPhotoActivitySubmit"
+TakePhotosModuleEvent.OnSyncCameraTextureChanged = "TakePhotosModuleEvent.OnSyncCameraTextureChanged"
 return TakePhotosModuleEvent

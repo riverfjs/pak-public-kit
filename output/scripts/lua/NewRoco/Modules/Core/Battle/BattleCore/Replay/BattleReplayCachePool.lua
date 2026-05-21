@@ -197,7 +197,7 @@ function BattleReplayCachePool:CollectPerformInfo(cmdid, notify)
         local caster = player.deck:GetCardByGuid(v.change_pet.battle_pet_id)
         local target = player.deck:GetCardByGuid(v.change_pet.rest_pet_id)
         if caster and target then
-          local desc = StrFormat("%s(%d)\230\155\191\230\141\162\230\136\144\228\186\134%s(%d);", caster.name, caster.config.id, target.name, target.config.id)
+          local desc = StrFormat("%s(%d)\230\155\191\230\141\162\230\136\144\228\186\134%s(%d);", caster.name, caster.petInfo.battle_common_pet_info.conf_id, target.name, target.petInfo.battle_common_pet_info.conf_id)
           tInsert(info, desc)
         end
       end
@@ -515,6 +515,9 @@ function BattleReplayCachePool:UploadBattleDataTOCrashSight(errorReason)
   if self.reportRecord[errorReason] and OsTime() - self.reportRecord[errorReason] < 2 then
     return
   end
+  if BattleLog then
+    BattleLog.OnAntiStuck()
+  end
   self.reportRecord[errorReason] = OsTime()
   local isLegal, errorCode = self:CheckBattleDataIsLegal(self.curCacheBattleID)
   local errorMsg = ""
@@ -532,10 +535,10 @@ function BattleReplayCachePool:UploadBattleDataTOCrashSight(errorReason)
   for i = math.max(#self.battleInfo - 9, 1), #self.battleInfo do
     table.insert(uploadBattleInfo, self.battleInfo[i])
   end
-  local stackIdx = string.find(errorReason, "stack", 1) or 100
+  local stackIdx = string.find(errorReason, "stack", 1) or 200
   local errorInfo = string.sub(errorReason, 1, stackIdx - 1)
-  local errName = StrFormat("\230\136\152\230\150\151\233\152\178\229\141\161\230\173\1871.02 %s;  \230\156\141\229\138\161\229\153\168\228\191\161\230\129\175:%s port:%s;  \230\136\152\230\150\151ID:%s %s;  \232\167\146\232\137\178\228\191\161\230\129\175:%s openId:%s;  \230\160\161\233\170\140\230\136\152\230\150\151\230\149\176\230\141\174:%s;  Version:%s", errorInfo, Data.serverName, Data.port, self.curCacheBattleID, battleInfo, Data.userName, Data.openid, errorMsg, self.uploadVersion)
-  local errReason = table.concat(uploadBattleInfo) .. errorReason
+  local errName = StrFormat("\230\136\152\230\150\151\233\152\178\229\141\161\230\173\187 %s;  \230\156\141\229\138\161\229\153\168\228\191\161\230\129\175:%s port:%s; ", errorInfo, Data.serverName, Data.port)
+  local errReason = StrFormat("\230\136\152\230\150\151\228\191\161\230\129\175 %s;  \230\136\152\230\150\151ID:%s;  \232\167\146\232\137\178\228\191\161\230\129\175:%s openId:%s;\230\160\161\233\170\140\230\136\152\230\150\151\230\149\176\230\141\174:%s; Version:%s; \233\148\153\232\175\175\229\142\159\229\155\160:%s; \233\128\137\230\139\155\228\191\161\230\129\175:%s;", battleInfo, self.curCacheBattleID, Data.userName, Data.openid, errorMsg, self.uploadVersion, errorReason, table.concat(uploadBattleInfo))
   _G.BattleEventCenter:Dispatch(BattleEvent.OnCallCrashSight, errReason)
   if BattleAutoTest.IsAutoPlayBattleRecords then
     BattleAutoTest:AddAutoPlayErrorLog(self.curCacheBattleID, Data.serverName, errorReason)

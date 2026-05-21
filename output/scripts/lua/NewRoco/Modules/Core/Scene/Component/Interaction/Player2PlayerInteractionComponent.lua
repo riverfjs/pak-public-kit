@@ -119,37 +119,41 @@ function Player2PlayerInteractionComponent:Update(deltaTime)
     local RelationOpenPlayer
     local IsHaveRelationOpenPlayer = false
     for _, Player in pairs(PlayerList) do
-      if Player and not Player:IsMagicReplayActor() and Player ~= self.owner and Player.viewObj and UE.UObject.IsValid then
-        local PlayerMeshComp = Player.viewObj:GetComponentByClass(UE4.USkeletalMeshComponent)
-        if PlayerMeshComp then
-          local Loc = PlayerMeshComp:Abs_K2_GetComponentLocation()
-          local Rot = UE4.UKismetMathLibrary.Conv_VectorToRotator(UE4.UKismetMathLibrary.Subtract_VectorVector(Loc, OwnerLocation))
-          local a, b, YawOffset = _G.LuaMathUtils.DiffAngle(Rot.Yaw, OwnerYaw)
-          YawOffset = math.abs(YawOffset)
-          local Dist = UE4.FVector.Dist(OwnerLocation, Loc)
-          if Dist < MAX_INTERACT_DISTANCE and YawOffset <= 60 then
-            table.insert(InteractPlayerList, Player)
-            Player.Dist = Dist
-            InteractPlayerDistance[Player] = Dist
-            InteractPlayerYawOffset[Player] = YawOffset
-          else
-            table.insert(NoInteractPlayerList, Player)
-          end
-          if RelationRequestPlayerUin and Player.serverData.base.logic_id == RelationRequestPlayerUin then
-            RelationRequestPlayer = Player
-            if RelationRequestPlayer then
-              IsHaveRelationPlayer = true
-              if Dist > MAX_RELATION_INTERACT_DISTANCE then
-                self:MyOwnerInviteCancel(RelationRequestPlayerUin)
+      if Player and not Player:IsMagicReplayActor() and Player ~= self.owner then
+        if Player:IsServerStatus(_G.Enum.SpaceActorLogicStatus.SALS_PLAYER_IN_BLINDBOX) then
+          table.insert(NoInteractPlayerList, Player)
+        elseif Player.viewObj and UE.UObject.IsValid then
+          local PlayerMeshComp = Player.viewObj:GetComponentByClass(UE4.USkeletalMeshComponent)
+          if PlayerMeshComp then
+            local Loc = PlayerMeshComp:Abs_K2_GetComponentLocation()
+            local Rot = UE4.UKismetMathLibrary.Conv_VectorToRotator(UE4.UKismetMathLibrary.Subtract_VectorVector(Loc, OwnerLocation))
+            local a, b, YawOffset = _G.LuaMathUtils.DiffAngle(Rot.Yaw, OwnerYaw)
+            YawOffset = math.abs(YawOffset)
+            local Dist = UE4.FVector.Dist(OwnerLocation, Loc)
+            if Dist < MAX_INTERACT_DISTANCE and YawOffset <= 60 then
+              table.insert(InteractPlayerList, Player)
+              Player.Dist = Dist
+              InteractPlayerDistance[Player] = Dist
+              InteractPlayerYawOffset[Player] = YawOffset
+            else
+              table.insert(NoInteractPlayerList, Player)
+            end
+            if RelationRequestPlayerUin and Player.serverData.base.logic_id == RelationRequestPlayerUin then
+              RelationRequestPlayer = Player
+              if RelationRequestPlayer then
+                IsHaveRelationPlayer = true
+                if Dist > MAX_RELATION_INTERACT_DISTANCE then
+                  self:MyOwnerInviteCancel(RelationRequestPlayerUin)
+                end
               end
             end
-          end
-          if IsOpenRelationTargetUin and Player.serverData.base.logic_id == IsOpenRelationTargetUin then
-            RelationOpenPlayer = Player
-            if RelationOpenPlayer then
-              IsHaveRelationOpenPlayer = true
-              if Dist > MAX_RELATION_OPEN_INTERACT_DISTANCE then
-                _G.NRCModeManager:DoCmd(_G.RelationTreeCmd.GetRelationTreeIsOpenAndClose)
+            if IsOpenRelationTargetUin and Player.serverData.base.logic_id == IsOpenRelationTargetUin then
+              RelationOpenPlayer = Player
+              if RelationOpenPlayer then
+                IsHaveRelationOpenPlayer = true
+                if Dist > MAX_RELATION_OPEN_INTERACT_DISTANCE then
+                  _G.NRCModeManager:DoCmd(_G.RelationTreeCmd.GetRelationTreeIsOpenAndClose)
+                end
               end
             end
           end
@@ -190,8 +194,11 @@ function Player2PlayerInteractionComponent:Update(deltaTime)
                 if self.owner:IsLogicStatus(_G.Enum.SpaceActorLogicStatus.SALS_SIT_DOWN) then
                   bOptionsVisible = false
                 end
+                if self.owner:IsLogicStatus(_G.Enum.SpaceActorLogicStatus.SALS_PLAYER_IN_BLINDBOX) then
+                  bOptionsVisible = false
+                end
                 HeadHud:SetInteractionOptionsVisible(bOptionsVisible, Player)
-                if not _G.NRCModuleManager:DoCmd(_G.WorldCombatModuleCmd.IsSelfInWorldCombat) and _G.NRCModuleManager:DoCmd(MainUIModuleCmd.GetHasNPCInteractMainPanel) then
+                if not _G.NRCModuleManager:DoCmd(_G.WorldCombatModuleCmd.IsSelfInWorldCombat) and not self.owner:IsLogicStatus(_G.Enum.SpaceActorLogicStatus.SALS_PLAYER_IN_BLINDBOX) and _G.NRCModuleManager:DoCmd(MainUIModuleCmd.GetHasNPCInteractMainPanel) then
                   local Option = self.OptionMap[Player]
                   if not Option and not self.InPVPMatchState then
                     local PlayerName = LuaText.relationtree_player_stranger_option

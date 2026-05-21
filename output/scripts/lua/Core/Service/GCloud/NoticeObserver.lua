@@ -203,4 +203,61 @@ function NoticeObserver:ConvertRichText(Text)
   return Text, bSetCenter
 end
 
+function NoticeObserver:ParseAndCalculateImageSHA1(Content)
+  if not Content or "" == Content then
+    return
+  end
+  for ImageUrl in Content:gmatch("<img src=\"([^\"]+)\"></?>") do
+    Log.Info("NoticeObserver: Found image URL:", ImageUrl)
+    local FileName = ImageUrl:match("([^/]+)$")
+    if FileName then
+      local SavedDir = UE4.UBlueprintPathsLibrary.ProjectSavedDir()
+      local LocalPath = SavedDir .. "ImageCache/" .. FileName
+      local FullPath = UE4.UBlueprintPathsLibrary.ConvertRelativePathToFull(LocalPath)
+      local bFileExists = UE4.UNRCStatics.FileExists(FullPath)
+      if not bFileExists then
+        Log.Info("NoticeObserver: \230\150\135\228\187\182\228\184\141\229\173\152\229\156\168,\232\183\179\232\191\135SHA1\233\170\140\232\175\129 - File:", FileName)
+      else
+        local ExpectedSHA1 = FileName:match("^([^%.]+)")
+        local ActualSHA1, bGetSuccess = UE.UHotUpdateUtils.TryGetResFileHash(FullPath)
+        Log.Info("NoticeObserver: Image SHA1 , FileName:", FileName, "ActualSHA1:", ActualSHA1)
+        if not bGetSuccess then
+          Log.Warning("NoticeObserver: \232\174\161\231\174\151SHA1\229\164\177\232\180\165,\229\136\160\233\153\164\230\150\135\228\187\182 - File:", FileName)
+          self:ClearFile(FullPath)
+        elseif ExpectedSHA1 and ActualSHA1 then
+          if ActualSHA1:lower() ~= ExpectedSHA1:lower() then
+            Log.Error("NoticeObserver: SHA1\228\184\141\229\140\185\233\133\141,\229\136\160\233\153\164\230\141\159\229\157\143\230\150\135\228\187\182 - File:", FileName, "actual:", ActualSHA1, "expected:", ExpectedSHA1)
+            self:ClearFile(FullPath)
+          else
+            Log.Info("NoticeObserver: \226\156\147 SHA1\233\170\140\232\175\129\233\128\154\232\191\135 - File:", FileName)
+          end
+        end
+      end
+    end
+  end
+end
+
+function NoticeObserver:ClearFile(FilePath)
+  if not FilePath or "" == FilePath then
+    return
+  end
+  local Success, Err = pcall(function()
+    local FullPath = UE4.UBlueprintPathsLibrary.ConvertRelativePathToFull(FilePath)
+    local bDeleted = UE4.UNRCStatics.DeleteToFile(FullPath)
+    if bDeleted then
+      Log.Info("ClearFile: Successfully deleted file:", FullPath)
+    else
+      local bRemoved = os.remove(FullPath)
+      if bRemoved then
+        Log.Info("ClearFile: Successfully removed file using os.remove:", FullPath)
+      else
+        Log.Error("ClearFile: Failed to delete file:", FullPath)
+      end
+    end
+  end)
+  if not Success then
+    Log.Error("ClearFile: Error occurred while deleting file:", FilePath, "Error:", Err)
+  end
+end
+
 return NoticeObserver

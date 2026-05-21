@@ -1,5 +1,6 @@
-local PetActionBase = require("NewRoco.Modules.Core.NPC.Actions.PetActionBase")
-local Base = PetActionBase
+local Base = require("NewRoco.Modules.Core.NPC.Actions.PetActionBase")
+local a = require("Common.Coroutine.async")
+local au = require("Common.Coroutine.async_util")
 local PetActionRainMoai = Base:Extend("PetActionRainMoai")
 
 function PetActionRainMoai:Ctor(Owner, Config, Info)
@@ -40,9 +41,10 @@ function PetActionRainMoai:PreSubmit()
   viewObj.interactFinishDelegate:Add(self, self.OnPerformEnd)
   self:Submit()
   Base.SetSessionRecycle(self, false)
-  _G.DelayManager:DelaySeconds(5, function()
-    Base.SetSessionRecycle(self, true)
-  end)
+  a.task(function()
+    a.wait(au.DelaySeconds(5))
+    self:SetSessionRecycle(true)
+  end)()
 end
 
 function PetActionRainMoai:OnSubmit(rsp)

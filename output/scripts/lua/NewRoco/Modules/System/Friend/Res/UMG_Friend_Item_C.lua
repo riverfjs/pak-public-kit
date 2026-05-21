@@ -71,6 +71,7 @@ function UMG_Friend_Item_C:OnItemUpdate(_data, datalist, index)
   if self.isShowSelectAnim then
     self:ResetUnselectedState()
   end
+  self:CheckAndPlayRecoverAnimation()
   self.isShowSelectAnim = false
   self.isLogicSelected = false
   self:UpdateInfo()
@@ -236,9 +237,19 @@ function UMG_Friend_Item_C:OnAddFriends()
   if self:CheckIsSelectBtn() then
     return
   end
+  _G.NRCAudioManager:PlaySound2DAuto(41401003, "UMG_Friend_Report_C:OnConfirm")
+  if self.data.isSearch and self.data.can_be_add_friend == false then
+    if _G.DataModelMgr.PlayerDataModel:IsFriend(self.data.uin) then
+      _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.add_friend_repeate_tips)
+      Log.DebugFormat("UMG_Friend_Item_C:OnAddFriends uin = %s, is already friend", tostring(self.data.uin))
+      return
+    end
+    _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.RLTT_Error_Code_13025)
+    Log.WarningFormat("UMG_Friend_Item_C:OnAddFriends uin = %s, can_be_add_friend = false", tostring(self.data.uin))
+    return
+  end
   local touchReasonType = _G.NRCModuleManager:DoCmd(MultiTouchModuleCmd.GetPanelSelectBtnReason, "Friend").ADDFRIEND
   _G.NRCModuleManager:DoCmd(MultiTouchModuleCmd.LockIsSelectBtn, "FriendModule", "Friend", touchReasonType)
-  _G.NRCAudioManager:PlaySound2DAuto(41401003, "UMG_Friend_Report_C:OnConfirm")
   _G.NRCModuleManager:DoCmd(FriendModuleCmd.AddFriendApplicationOrRemoveFriend, self.data.uin, _G.ProtoEnum.ZoneFriendAddOrRemoveFriendReq.TYPE.ADD_FRIEND, self.index)
 end
 
@@ -412,6 +423,14 @@ function UMG_Friend_Item_C:UpdateInfo()
   if self.data.isWeGameFriend then
     self.Switcher:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
+  self.Starlight:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  if Data.tags then
+    for _, tag in ipairs(Data.tags) do
+      if tag == _G.ProtoEnum.PlayerTag.PT_RECALL then
+        self.Starlight:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+      end
+    end
+  end
   self:UpdateVisitInfo()
   self:UpdateBehaviorInfo()
   self:SetSignature()
@@ -454,6 +473,12 @@ function UMG_Friend_Item_C:UpdatePlayerNameInfo()
   self.RemarkName:SetColorAndOpacity(gameColorShow)
   if platformName and "" ~= platformName then
     self.Name_1:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    local totalNum = _G.DataConfigManager:GetGlobalConfigNumByKey("share_nickname_limit_num", 7)
+    local nickNameLength = utf8.len(platformName)
+    if totalNum < nickNameLength then
+      platformName = UIUtils.SubUTF8String(platformName, totalNum)
+      platformName = platformName .. "..."
+    end
     local platformShowName = string.format("(%s)", platformName)
     local platformColorShow
     if self.isLogicSelected then
@@ -579,15 +604,14 @@ function UMG_Friend_Item_C:SetBtnByTab()
     self.Watch:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
   self.CanvasPanel_197:SetVisibility(UE4.ESlateVisibility.Collapsed)
-  if self.data.source and self.data.source == ProtoEnum.FriendSource.FS_VISIT then
-    self.hufang:SetText(LuaText.friend_recommend_tips1)
-    self.CanvasPanel_197:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-  elseif self.data.source and self.data.source == ProtoEnum.FriendSource.FS_PVP then
-    self.hufang:SetText(LuaText.friend_recommend_tips2)
-    self.CanvasPanel_197:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-  elseif self.data.source and self.data.source == ProtoEnum.FriendSource.FS_PET_EGG_EXCHANGE then
-    self.hufang:SetText(LuaText.friend_recommend_tips3)
-    self.CanvasPanel_197:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  if self.data.source then
+    local conf = self.moduleData:GetFriendRecommendConfBySource(self.data.source)
+    if conf then
+      self.hufang:SetText(conf.table_name)
+      self.CanvasPanel_197:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    else
+      Log.ErrorFormat("UMG_Friend_Item_C:SetBtnByTab conf is nil, source: %s", tostring(self.data.source))
+    end
   end
   self:SelectSwitcher1()
 end
@@ -654,7 +678,6 @@ end
 function UMG_Friend_Item_C:OnClickWeGameBtn()
   _G.NRCAudioManager:PlaySound2DAuto(41401003, "UMG_Friend_Item_C:OnClickWeGameBtn")
   if not self.data.platformOpenID then
-    Log.Error("UMG_Friend_Item_C:OnClickWeGameBtn, platformOpenID is nil")
     return
   end
   if not self.inviteCdTimer then
@@ -772,6 +795,19 @@ function UMG_Friend_Item_C:ResetUnselectedState()
     self.HeadItem:PlayAni(false)
   end
   self:PlayAnimation(self.Select_out, 0, 1, UE4.EUMGSequencePlayMode.Forward, 10)
+end
+
+function UMG_Friend_Item_C:CheckAndPlayRecoverAnimation()
+  local CurSelectTabIndex = self:GetFriendTabType()
+  if CurSelectTabIndex == FriendEnum.FriendTab.GameFriend and not self.isBatchMode then
+    self:StopAnimation(self.Recover)
+    self:StopAnimation(self.Delete)
+    self:StopAnimation(self.Back)
+    self:StopAnimation(self.Normal)
+    self:StopAnimation(self.Choose)
+    self:StopAnimation(self.Choose_Loop)
+    self:PlayAnimation(self.Recover_Loop)
+  end
 end
 
 function UMG_Friend_Item_C:OnItemSelected(_bSelected, bScrolled)

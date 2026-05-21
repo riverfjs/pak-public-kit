@@ -9,6 +9,10 @@ function UMG_Common_Remind_C:OnConstruct()
 end
 
 function UMG_Common_Remind_C:OnDestruct()
+  if self.TimerID then
+    _G.TimerManager:RemoveTimer(self.TimerID)
+    self.TimerID = nil
+  end
 end
 
 function UMG_Common_Remind_C:OnActive(_param)
@@ -52,6 +56,13 @@ function UMG_Common_Remind_C:OnContentTextRichTextClick(key)
 end
 
 function UMG_Common_Remind_C:SetPanelInfo()
+  if self.FullScreen_Close then
+    if self.CommonPopUpData and self.CommonPopUpData.FullScreen_Close then
+      self.FullScreen_Close:SetVisibility(UE4.ESlateVisibility.Visible)
+    else
+      self.FullScreen_Close:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    end
+  end
   if self.CommonPopUpData and self.CommonPopUpData.TitleText then
     self.TitleText:SetText(self.CommonPopUpData.TitleText)
     self.TitleText:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
@@ -99,6 +110,9 @@ function UMG_Common_Remind_C:SetPanelInfo()
   if self.CommonPopUpData.MoneyInfo and #self.CommonPopUpData.MoneyInfo > 0 then
     self.MoneyBtn:InitGridView(self.CommonPopUpData.MoneyInfo)
     self.MoneyBtn:SetVisibility(UE4.ESlateVisibility.Visible)
+  end
+  if self.CommonPopUpData.CountdownTime then
+    self:SetRightBtnCountdown(self.CommonPopUpData.CountdownTime)
   end
 end
 
@@ -250,6 +264,28 @@ end
 function UMG_Common_Remind_C:RefreshMoneyList()
   for i = 1, self.MoneyBtn:GetItemCount() do
     self.MoneyBtn:GetItemByIndex(i - 1):RefreshMoneyNum()
+  end
+end
+
+function UMG_Common_Remind_C:SetRightBtnCountdown(CountdownTimer)
+  if self.TimerID then
+    _G.TimerManager:RemoveTimer(self.TimerID)
+    self.TimerID = nil
+  end
+  if CountdownTimer > 0 and self.Btn_Right and self.Btn_GrayState then
+    local confirmText = self.CommonPopUpData.Btn_GrayStateText or LuaText.general_confirm
+    self.Btn_GrayState:SetBtnText(confirmText .. "(" .. CountdownTimer .. ")")
+    self.Btn_GrayState:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    self.Btn_Right:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.TimerID = _G.TimerManager:CreateTimer(self, "UMG_Common_Remind_C:SetRightBtnCountdown", CountdownTimer + 1, function()
+      CountdownTimer = CountdownTimer - 1
+      if CountdownTimer > 0 then
+        self.Btn_GrayState:SetBtnText(confirmText .. "(" .. CountdownTimer .. ")")
+      else
+        self.Btn_Right:SetVisibility(UE4.ESlateVisibility.Visible)
+        self.Btn_GrayState:SetVisibility(UE4.ESlateVisibility.Collapsed)
+      end
+    end, nil, 1)
   end
 end
 

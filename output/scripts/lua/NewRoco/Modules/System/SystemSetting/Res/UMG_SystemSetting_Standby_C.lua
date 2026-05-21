@@ -6,7 +6,9 @@ end
 
 function UMG_SystemSetting_Standby_C:OnActive(targetFrameQuality, targetBrightness, originalFrameQuality, originalBrightness)
   Log.Warning(string.format("UMG_SystemSetting_Standby_C:OnActive \232\191\155\229\133\165\229\190\133\230\156\186\231\149\140\233\157\162 \231\155\174\230\160\135\229\184\167\231\142\135%s\239\188\140\229\142\159\229\167\139\229\184\167\231\142\135%s", targetFrameQuality, originalFrameQuality))
+  UE4Helper.SetEnableWorldRendering(false, nil, "UMG_SystemSetting_Standby_C")
   UE4.UNRCQualityLibrary.SetFrameQuality(targetFrameQuality)
+  _G.NRCSDKManager:SetQualityToApm()
   self.originalFrameQuality = originalFrameQuality
   self.originalBrightness = originalBrightness
   self:InitSleepPanel()
@@ -36,6 +38,8 @@ end
 
 function UMG_SystemSetting_Standby_C:OnDeactive()
   UE4.UNRCQualityLibrary.SetFrameQuality(self.originalFrameQuality)
+  UE4Helper.SetEnableWorldRendering(nil, nil, "UMG_SystemSetting_Standby_C")
+  _G.NRCSDKManager:SetQualityToApm()
   if self._sleepUpdateTimer and _G.TimerManager and _G.TimerManager.RemoveTimer then
     _G.TimerManager:RemoveTimer(self._sleepUpdateTimer)
     self._sleepUpdateTimer = nil

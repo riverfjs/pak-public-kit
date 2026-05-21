@@ -14,7 +14,7 @@ function ResolveObstacleTask:Ctor()
   self.ObstacleRadius = CapsuleComponent:GetScaledCapsuleRadius()
   self.ObstacleHeight = CapsuleComponent:GetScaledCapsuleHalfHeight()
   self.ObstacleOffsetStart = UE4.FVector(0, 0, 10 + self.ObstacleHeight)
-  self.ObstacleOffsetEnd = UE4.FVector(0, 0, 5 + self.ObstacleHeight)
+  self.ObstacleOffsetEnd = UE4.FVector(0, 0, self.ObstacleHeight * 1.5)
   self.ObstacleHeight = self.ObstacleHeight * 2
   self.EnableDebugDraw = HomeIndoorSandbox.Utils.EnableDebugDraw
   self:Resolve()

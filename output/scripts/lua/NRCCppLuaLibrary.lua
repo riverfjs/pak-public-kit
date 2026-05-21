@@ -11,7 +11,8 @@ function CppLuaLibrary.SetQualities(ImageQuality, FrameQuality, MemoryQuality)
   local bSimulator, simuName = _G.NRCSDKManager:IsSimulator()
   if bSimulator then
     Log.Debug("CppLuaLibrary.SetQualities is simulator ", simuName)
-    UE4.UKismetSystemLibrary.ExecuteConsoleCommand(nil, "r.CheckFramebufferFetchSupport 1")
+    UE4.UNRCSimulatorStatics.RunConfigQualityAll()
+    UE4.UNRCSimulatorStatics.RunConfigForCurrentQuality()
   else
     Log.Debug("CppLuaLibrary.SetQualities not simulator")
   end
@@ -29,14 +30,14 @@ function CppLuaLibrary.OpenWebView()
   _G.NRCSDKManager:SendEvent(NRCSDKManagerEvent.OnOpenWebView)
 end
 
-function CppLuaLibrary.CheckIsSimulator()
+function CppLuaLibrary.SetSimulatorMobileLiteHDR()
   local bSimulator, simuName = _G.NRCSDKManager:IsSimulator()
   if bSimulator then
-    Log.Debug("CppLuaLibrary.CheckIsSimulator\239\188\154 is simulator ", simuName)
+    Log.Debug("CppLuaLibrary.SetSimulatorMobileLiteHDR is simulator ", simuName)
     UE4.UKismetSystemLibrary.ExecuteConsoleCommand(nil, "r.ForceUseMobileLiteHDR 0")
     UE4.UKismetSystemLibrary.ExecuteConsoleCommand(nil, "r.CheckFramebufferFetchSupport 1")
   else
-    Log.Debug("CppLuaLibrary.CheckIsSimulator\239\188\154 not simulator")
+    Log.Debug("CppLuaLibrary.SetSimulatorMobileLiteHDR not simulator")
   end
 end
 

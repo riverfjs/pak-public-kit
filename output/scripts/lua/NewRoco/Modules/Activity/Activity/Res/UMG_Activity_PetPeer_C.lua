@@ -67,8 +67,12 @@ function UMG_Activity_PetPeer_C:OnBtnReceiveClicked()
     end
   end
   
+  local extraDesc = LuaText.PET_Partner_13
+  if self.activityInst:GetPartnerPetData() and not self.activityInst:IsChooseInheritPet() then
+    extraDesc = LuaText.PET_Partner_20
+  end
   local popUpData = _G.NRCCommonPopUpData()
-  popUpData.Desc = LuaText.PET_Partner_13
+  popUpData.Desc = extraDesc
   popUpData.Call = self
   popUpData.Btn_RightHandler = OnPopUpOk
   popUpData.ItemList = {

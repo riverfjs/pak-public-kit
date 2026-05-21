@@ -25,10 +25,7 @@ function DialogueTimelineNPCFacialEmotionAction:OnPreload()
   if string.IsNilOrEmpty(SpeakContent) then
     return
   end
-  if nil == self.OwnerActorID or 0 == self.OwnerActorID then
-    return
-  end
-  local Speaker = self:GetActor(self.OwnerActorID)
+  local Speaker = self:GetActor(self.OwnerActorID, self.NPCContentID)
   if not Speaker then
     return
   end
@@ -73,7 +70,7 @@ function DialogueTimelineNPCFacialEmotionAction:OnEnter()
   if not self.AudioData then
     return
   end
-  local Speaker = self:GetActor(self.OwnerActorID)
+  local Speaker = self:GetActor(self.OwnerActorID, self.NPCContentID)
   if not Speaker then
     return
   end

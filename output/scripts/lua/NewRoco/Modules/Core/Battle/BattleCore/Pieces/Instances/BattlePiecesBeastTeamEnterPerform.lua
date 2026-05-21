@@ -14,7 +14,11 @@ function BattlePiecesBeastTeamEnterPerform:Play(action, finishCallBack)
   if not (BeastBoss and BeastBoss.npc) or not BeastBoss.npc.viewObj then
     self.skillPath = BattleConst.TeamPerEnterFarBattle
   else
-    self.skillPath = BattleConst.TeamBeastPerEnterBattle
+    local conf = BattleUtils.GetBattleConfig()
+    self.skillPath = conf and conf.transiton
+    if string.IsNilOrEmpty(self.skillPath) then
+      self.skillPath = BattleConst.TeamBeastPerEnterBattle
+    end
   end
   BattleEventCenter:Bind(self, BattleEvent.OnSkillResLoaded, BattleEvent.TransformLoadingOpened)
   self.resList = {
@@ -52,6 +56,7 @@ function BattlePiecesBeastTeamEnterPerform:OnResLoadFinish()
   end
   local MyCastObject = CastSkillObject.FromSkillResID(self.skillPath)
   if MyCastObject then
+    local battleConf = BattleUtils.GetBattleConfig()
     MyCastObject:SetCallbackOwner(self)
     MyCastObject:SetCaster(BeastBoss.viewObj)
     MyCastObject:SetIsPassive(true)
@@ -60,6 +65,9 @@ function BattlePiecesBeastTeamEnterPerform:OnResLoadFinish()
     MyCastObject:SetExtraEvents({
       SaveCamera = self.SaveCamera
     })
+    if battleConf and not string.IsNilOrEmpty(battleConf.transiton_blackboard) then
+      MyCastObject:AddBlackStringValue(battleConf.transiton_blackboard, battleConf.transiton_blackboard)
+    end
     self.skillComponent = skillComponent
     self:PlaySkill(localPlayer, skillComponent, MyCastObject)
   else

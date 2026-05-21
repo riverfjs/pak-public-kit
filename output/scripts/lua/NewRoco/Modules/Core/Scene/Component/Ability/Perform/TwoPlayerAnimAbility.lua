@@ -36,10 +36,12 @@ function TwoPlayerAnimAbility:Start(OnFinished, custom_params, InteractType)
     else
       player.viewObj.Mesh.bEabledAuxiliaryAnimGraphThread = false
     end
-    if self:IsGivePetEgg() then
-      self:StarGivePetEgg(custom_params)
-    else
-      self:StarG6(custom_params)
+    if TargetPlayer.statusComponent:HasStatus(ProtoEnum.WorldPlayerStatusType.WPST_TWO_PLAYER_ANIM) then
+      if self:IsGivePetEgg() then
+        self:StarGivePetEgg(custom_params)
+      else
+        self:StarG6(custom_params)
+      end
     end
     self.state = ABEnum.AbilityState.Casting
     self.InteractType = InteractType
@@ -98,7 +100,7 @@ function TwoPlayerAnimAbility:StarG6(custom_params)
   self.TargetUin = bInviter and Param.player_uin2 or Param.player_uin1
   local TargetPlayer = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GetPlayerByUin, self.TargetUin)
   local AnimPath
-  if TargetPlayer and TargetPlayer.statusComponent:HasStatus(status) then
+  if TargetPlayer then
     local Conf = _G.DataConfigManager:GetRelationtreeAnimConf(Param.interact_id)
     AnimPath = Conf and Conf.accept_key
   end
@@ -122,6 +124,9 @@ function TwoPlayerAnimAbility:StarG6(custom_params)
     Characters[UE4.EBattleStaticActorType.Player_1] = Player_1.viewObj
     Characters[UE4.EBattleStaticActorType.Player_2] = Player_2.viewObj
     self:CastG6AbilityAsync(Characters, {}, AnimPath)
+    if self.PetEggModel and self.ReceivePlayer and self.skillProxy then
+      self.skillProxy.BattleGenderType = self.ReceivePlayer.serverData.base.gender
+    end
   end
 end
 
@@ -147,9 +152,6 @@ end
 
 function TwoPlayerAnimAbility:OnG6AbilityAsync(skillProxy, result)
   Base.OnG6AbilityAsync(self, skillProxy, result)
-  if self.PetEggModel and skillProxy and skillProxy.SkillObject and self.ReceivePlayer then
-    skillProxy.SkillObject.BattleGenderType = self.ReceivePlayer.serverData.base.gender
-  end
   if self.custom_params then
     local Player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GetPlayerByUin, self.custom_params.player_interact_param.player_uin2)
     if Player then

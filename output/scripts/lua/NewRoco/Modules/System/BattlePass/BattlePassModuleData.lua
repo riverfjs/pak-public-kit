@@ -20,6 +20,10 @@ function BattlePassModuleData:Ctor()
   self.LastTaskListInfo = {}
   self:InitThemeColorMap()
   self.CacheLevelUpData = nil
+  self._anotherThemeFriendList = {}
+  self._anotherThemeFriendCount = 0
+  self._lastReqFriendThemeTime = 0
+  self._anotherThemeFriendTempList = {}
 end
 
 function BattlePassModuleData:GetPetDatas()
@@ -543,18 +547,19 @@ function BattlePassModuleData:InitThemeColorMap()
     for _, color_conf in ipairs(conf.color_group) do
       table.insert(self.passThemeColorMap[umg_name][widget_name], {
         theme_id = color_conf.theme_id,
-        color = color_conf.color
+        color = color_conf.color,
+        img_path = color_conf.img
       })
     end
   end
 end
 
-function BattlePassModuleData:ChangeThemeColor(PanelName, PanelInstane)
+function BattlePassModuleData:ChangeThemeColor(PanelName, PanelInstane, theme_id)
   local passInfo = self:GetPlayerBattlePassInfo()
   if nil == passInfo then
     return
   end
-  local theme_id = passInfo.theme_id
+  theme_id = theme_id or passInfo.theme_id
   if nil == theme_id then
     return
   end
@@ -569,19 +574,27 @@ function BattlePassModuleData:ChangeThemeColor(PanelName, PanelInstane)
         for _, color_conf in ipairs(color_group) do
           if color_conf.theme_id == theme_id then
             local color = color_conf.color
-            if Widget.SetColorAndOpacity then
-              do
+            if color and "" ~= color then
+              if Widget.SetColorAndOpacity then
                 local ColorText = string.format("#%s", color)
                 Widget:SetColorAndOpacity(UE4.UNRCStatics.HexToLinearColor(ColorText))
+              else
+                Log.Warning("ChangeThemeColor: \230\142\167\228\187\182\230\178\161\230\156\137SetColorAndOpacity\230\150\185\230\179\149", PanelName, widget_name)
               end
-              break
             end
-            Log.Warning("ChangeThemeColor: \230\142\167\228\187\182\230\178\161\230\156\137SetColorAndOpacity\230\150\185\230\179\149", umg_name, widget_name)
+            local img_path = color_conf.img_path
+            if img_path and "" ~= img_path then
+              if Widget.SetPath then
+                Widget:SetPath(img_path)
+                break
+              end
+              Log.Warning("ChangeThemeColor: \230\142\167\228\187\182\230\178\161\230\156\137SetPath\230\150\185\230\179\149", PanelName, widget_name)
+            end
             break
           end
         end
       else
-        Log.Warning("ChangeThemeColor: \230\151\160\230\179\149\230\137\190\229\136\176\230\142\167\228\187\182,\232\175\183\229\156\168\232\147\157\229\155\190\228\184\173\230\154\180\233\156\178\229\143\152\233\135\143", umg_name, widget_name)
+        Log.Warning("ChangeThemeColor: \230\151\160\230\179\149\230\137\190\229\136\176\230\142\167\228\187\182,\232\175\183\229\156\168\232\147\157\229\155\190\228\184\173\230\154\180\233\156\178\229\143\152\233\135\143", PanelName, widget_name)
       end
     end
   else
@@ -599,6 +612,114 @@ end
 
 function BattlePassModuleData:ClearCacheLevelUpData()
   self.CacheLevelUpData = nil
+end
+
+function BattlePassModuleData:GetAnotherThemeFriendList()
+  return self._anotherThemeFriendList
+end
+
+function BattlePassModuleData:SetAnotherThemeFriendList(list)
+  self._anotherThemeFriendList = list or {}
+end
+
+function BattlePassModuleData:GetAnotherThemeFriendCount()
+  return self._anotherThemeFriendCount or 0
+end
+
+function BattlePassModuleData:SetAnotherThemeFriendCount(count)
+  self._anotherThemeFriendCount = count or 0
+end
+
+function BattlePassModuleData:GetAnotherThemeFriendTempList()
+  return self._anotherThemeFriendTempList
+end
+
+function BattlePassModuleData:ClearAnotherThemeFriendTempList()
+  self._anotherThemeFriendTempList = {}
+end
+
+function BattlePassModuleData:AppendAnotherThemeFriendTempList(list)
+  if list then
+    for _, v in ipairs(list) do
+      self._anotherThemeFriendTempList[#self._anotherThemeFriendTempList + 1] = v
+    end
+  end
+end
+
+function BattlePassModuleData:CanReqFriendTheme()
+  local curTime = math.floor(_G.ZoneServer:GetServerTime() / 1000)
+  local config = _G.DataConfigManager:GetBpGlobalConfig(7)
+  local cdConfig = config and config.num or 0
+  if cdConfig <= 0 then
+    cdConfig = 10
+    Log.Warning("CanReqFriendTheme: \230\151\160\230\179\149\232\142\183\229\143\150CD\233\133\141\231\189\174\239\188\140\228\189\191\231\148\168\233\187\152\232\174\164\229\128\18810\231\167\146")
+  end
+  if cdConfig <= curTime - self._lastReqFriendThemeTime then
+    self._lastReqFriendThemeTime = curTime
+    return true
+  end
+  return false
+end
+
+function BattlePassModuleData:GetAnotherThemePetId()
+  local battlePassInfo = self:GetPlayerBattlePassInfo()
+  if battlePassInfo and battlePassInfo.theme_id then
+    local themeConf = _G.DataConfigManager:GetBattlePassThemeConf(battlePassInfo.theme_id)
+    if themeConf and themeConf.another_pet_id then
+      return themeConf.another_pet_id
+    end
+  end
+  return 0
+end
+
+function BattlePassModuleData:GetAnotherThemePetName()
+  local petId = self:GetAnotherThemePetId()
+  if petId > 0 then
+    local petConf = _G.DataConfigManager:GetPetbaseConf(petId)
+    if petConf then
+      return petConf.name or ""
+    end
+  end
+  return ""
+end
+
+function BattlePassModuleData:GetAnotherThemePetIcon()
+  local petId = self:GetAnotherThemePetId()
+  if petId > 0 then
+    local petConf = _G.DataConfigManager:GetPetbaseConf(petId)
+    if petConf and petConf.model_conf then
+      local modelConf = _G.DataConfigManager:GetModelConf(petConf.model_conf)
+      if modelConf then
+        return modelConf.icon or ""
+      end
+    end
+  end
+  return ""
+end
+
+function BattlePassModuleData:ResetReqFriendThemeCD()
+  self._lastReqFriendThemeTime = 0
+end
+
+local function CompareBPFriendData(a, b)
+  if a.online ~= b.online then
+    return a.online
+  end
+  if a.unlocked_rel_node_num and b.unlocked_rel_node_num and a.unlocked_rel_node_num ~= b.unlocked_rel_node_num then
+    return a.unlocked_rel_node_num > b.unlocked_rel_node_num
+  end
+  if a.level ~= b.level then
+    return a.level > b.level
+  end
+  return a.uin < b.uin
+end
+
+function BattlePassModuleData:SortFriendList(friendList)
+  if not friendList or 0 == #friendList then
+    return friendList
+  end
+  table.sort(friendList, CompareBPFriendData)
+  return friendList
 end
 
 return BattlePassModuleData

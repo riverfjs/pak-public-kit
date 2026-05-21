@@ -12,4 +12,5 @@ SceneModuleCmd.GetCurrentZoneSceneTeleportNotify = "SceneModuleCmd.GetCurrentZon
 SceneModuleCmd.GetCurrentMapResId = "SceneModuleCmd.GetCurrentMapResId"
 SceneModuleCmd.CheckSceneFullyEntered = "SceneModuleCmd.CheckSceneFullyEntered"
 SceneModuleCmd.IsMagicBanned = "SceneModuleCmd.IsMagicBanned"
+SceneModuleCmd.IsRolePlayPropBanned = "SceneModuleCmd.IsRolePlayPropBanned"
 return SceneModuleCmd

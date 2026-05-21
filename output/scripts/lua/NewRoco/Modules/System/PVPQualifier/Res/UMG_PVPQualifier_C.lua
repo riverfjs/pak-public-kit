@@ -47,6 +47,11 @@ function UMG_PVPQualifier_C:TrySendZonePvpInfoQueryReq()
 end
 
 function UMG_PVPQualifier_C:OnSetPvpInfoQueryData(IsResetTrialPetData)
+  self.IsResetTrialPetData = IsResetTrialPetData
+  self:StartLoadSpineAsset()
+end
+
+function UMG_PVPQualifier_C:StartRefreshUi(IsResetTrialPetData)
   self:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
   self:InitData()
   self:RefreshUI(IsResetTrialPetData)
@@ -138,7 +143,7 @@ function UMG_PVPQualifier_C:SyncFlagAnimation(IsResetTrialPetData)
   end
 end
 
-function UMG_PVPQualifier_C:ShowOutSpineWidgetDirectly()
+function UMG_PVPQualifier_C:ShowOutSpineWidgetDirectly(IsResetTrialPetData)
   self:ShowOutSpineWidget()
   self.curFlagAnimationState = false
   self.latenSyncParam = nil
@@ -443,9 +448,22 @@ function UMG_PVPQualifier_C:RefreshTrialInfo()
   if self.trialInfo then
     self:CancelDelayFunc()
     self:StartDelay()
+    local pvp_rank_character31Conf = _G.DataConfigManager:GetBattleGlobalConfig("pvp_rank_character31")
+    local pvp_rank_character31ConfStr = pvp_rank_character31Conf and pvp_rank_character31Conf.str or ""
+    local pvp_rank_character32Conf = _G.DataConfigManager:GetBattleGlobalConfig("pvp_rank_character32")
+    local pvp_rank_character32ConfStr = pvp_rank_character32Conf and pvp_rank_character32Conf.str or ""
+    local trialInfo = self.trialInfo
+    local unitTypeList = trialInfo and trialInfo.unit_type or {}
+    local trailDescriptionText = ""
+    if next(unitTypeList) then
+      trailDescriptionText = pvp_rank_character31ConfStr
+    else
+      trailDescriptionText = pvp_rank_character32ConfStr
+    end
     self.TrialPanel:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-    self:RefreshTrialAttrList(self.trialInfo.unit_type or {})
+    self:RefreshTrialAttrList(unitTypeList)
     self:RefreshTrialTime(self.trialInfo.refresh_time or 0)
+    self.TrialDescription:SetText(trailDescriptionText)
   else
     self:CancelDelayFunc()
     self.TrialPanel:SetVisibility(UE4.ESlateVisibility.Collapsed)
@@ -486,7 +504,7 @@ function UMG_PVPQualifier_C:RefreshTrialTime(OverTime)
 end
 
 function UMG_PVPQualifier_C:RefreshMoney()
-  self.MoneyBtn:InitGridView(BattleUtils.GetPvpScoreItemInfo())
+  self.MoneyBtn:InitGridView(BattleUtils.GetPvpScoreItemInfo(self.curSeasonId))
 end
 
 function UMG_PVPQualifier_C:RefreshUI_FirstVictory()
@@ -496,12 +514,16 @@ function UMG_PVPQualifier_C:RefreshUI_FirstVictory()
     local bIsChecked = self.RankingEntrance.CheckedState == UE4.ECheckBoxState.Checked
     local currentMatchBattleType = BattleConst.PvpQualifierOpenRankCheckValueToBattleType[bIsChecked]
     local battlePvpConf = _G.NRCModuleManager:DoCmd(BattleModuleCmd.GetPvpConfByBattleType, currentMatchBattleType)
-    if battlePvpConf and battlePvpConf.daily_first_win_award then
-      for i = 1, #battlePvpConf.daily_first_win_award do
-        local itemId = battlePvpConf.daily_first_win_award[i]
-        if itemId and itemId > 0 then
-          bHasValidAwardItemId = true
-          break
+    if battlePvpConf then
+      local daily_first_win_award_list = battlePvpConf and battlePvpConf.daily_first_win_award_list or {}
+      if daily_first_win_award_list then
+        for i = 1, #daily_first_win_award_list do
+          local awardConf = daily_first_win_award_list[i]
+          local itemId = awardConf and awardConf.daily_first_win_award
+          if itemId and itemId > 0 then
+            bHasValidAwardItemId = true
+            break
+          end
         end
       end
     end
@@ -527,10 +549,13 @@ function UMG_PVPQualifier_C:ShowInSpineWidget(IsResetTrialPetData)
     local bNeedPlayShow = not IsResetTrialPetData
     self:DoShowInSpineWidget(bNeedPlayShow)
     if PVPRankedMatchModuleUtils.IsSelfMaxRankStar() then
-      self.PVPQualifier_Star:SwitcherStarIndex(6)
+      local option = self.PVPQualifier_Star.GetDefaultStartIndexOption(6)
+      self.PVPQualifier_Star:SwitcherStarIndex(option)
     else
       local curRankConf = PVPRankedMatchModuleUtils.GetSelfPVPRankConf()
-      self.PVPQualifier_Star:SwitcherStarIndex(curRankConf.star_num)
+      local starNum = curRankConf and curRankConf.star_num
+      local option = self.PVPQualifier_Star.GetDefaultStartIndexOption(starNum)
+      self.PVPQualifier_Star:SwitcherStarIndex(option)
     end
   else
     local parentCanvas = self.SpineFlag:GetParent()
@@ -752,9 +777,12 @@ function UMG_PVPQualifier_C:OnBtnWeeklyReward()
 end
 
 function UMG_PVPQualifier_C:OpenShopBtn()
+  local curSeasonId = self.curSeasonId
+  local seasonConf = _G.DataConfigManager:GetPvpRankSeasonConf(curSeasonId, true)
+  local shopId = seasonConf and seasonConf.shop or BattleConst.PvpDefaultShopId
   self:Hide()
   _G.NRCModuleManager:DoCmd(NPCShopUIModuleCmd.SetNpcShopOpenType, NPCShopUIModuleEnum.OpenNPCShopFormType.PvpQualifier)
-  _G.NRCModuleManager:DoCmd(NPCShopUIModuleCmd.FinishNPCActionOpenShop, nil, 2006)
+  _G.NRCModuleManager:DoCmd(NPCShopUIModuleCmd.FinishNPCActionOpenShop, nil, shopId)
 end
 
 function UMG_PVPQualifier_C:OnShopBtn()
@@ -840,6 +868,67 @@ function UMG_PVPQualifier_C:HandleRankingEntranceCheckStateChanged(nextState)
 end
 
 function UMG_PVPQualifier_C:OnRankingEnhanceCheckBoxIsClickable(GroupId, CheckBoxName, IsClickable)
+end
+
+function UMG_PVPQualifier_C:StartLoadSpineAsset()
+  local seasonId = self.data:GetCurSeasonId()
+  local curRankConf = PVPRankedMatchModuleUtils.GetSelfPVPRankConf()
+  local atlasPath, skeletonDataPath = PVPRankedMatchModuleUtils.GetSpineAssetPathsSeasonIdInRankConf(curRankConf, seasonId)
+  if atlasPath == self.atlasPath and skeletonDataPath == self.skeletonDataPath then
+    self:OnLoadSpineAssetComplete(false, "same path")
+    return
+  end
+  if atlasPath and skeletonDataPath then
+    local atlasAsset, skeletonAsset
+    local isReady = false
+    
+    local function checkAssetReady()
+      if isReady then
+        return
+      end
+      if UE.UObject.IsValid(atlasAsset) and UE.UObject.IsValid(skeletonAsset) then
+        isReady = true
+        self.atlasPath = atlasPath
+        self.skeletonDataPath = skeletonDataPath
+        self:OnLoadSpineAssetComplete(true, atlasAsset, skeletonAsset)
+      end
+    end
+    
+    self:LoadPanelRes(atlasPath, 255, function(caller, resRequest, asset)
+      atlasAsset = asset
+      checkAssetReady()
+    end, function()
+      self:OnLoadSpineAssetComplete(false, "failed to load atlas data")
+    end, nil)
+    self:LoadPanelRes(skeletonDataPath, 255, function(caller, resRequest, asset)
+      skeletonAsset = asset
+      checkAssetReady()
+    end, function()
+      self:OnLoadSpineAssetComplete(false, "failed to load skeleton data")
+    end, nil)
+  else
+    self:OnLoadSpineAssetComplete(false, "failed to fetch asset path")
+  end
+end
+
+function UMG_PVPQualifier_C:OnLoadSpineAssetComplete(ok, res1, res2)
+  if ok then
+    local atlasAsset = res1
+    local skeletonAsset = res2
+    self:SetupSpineWidget(atlasAsset, skeletonAsset)
+  else
+    local errorMessage = res1
+    Log.Error("[UMG_PVPQualifier_C]", errorMessage)
+  end
+  self:StartRefreshUi(self.IsResetTrialPetData)
+end
+
+function UMG_PVPQualifier_C:SetupSpineWidget(atlasAsset, skeletonAsset)
+  local spineWidget = self.SpineFlag
+  spineWidget:ClearTrack(0)
+  spineWidget.skeletondata = skeletonAsset
+  spineWidget.atlas = atlasAsset
+  spineWidget:LuaSynchronizeProperties()
 end
 
 return UMG_PVPQualifier_C

@@ -57,6 +57,7 @@ AIDefines.LockReason = {
   CATCH = 19,
   BattleSpectator = 20,
   RANK_MATCH = 21,
+  TOY_FREE_PLACE = 22,
   INTERNAL_LEGACY_BATTLE = 50
 }
 
@@ -125,4 +126,5 @@ AIDefines.DotsBatchFilterType = {
   EVOCHAIN = 4,
   COLLECTION = 5
 }
+AIDefines.DummyInstData = UE.FInstanceStructPtr()
 return AIDefines

@@ -4,7 +4,7 @@ local DummyOneIndices = {1}
 
 function LuaActionGetUsableSocket:OnStart(owner)
   local object = self.Target:GetValue(owner)
-  if object.config and object.config.model_conf then
+  if object and object.config and object.config.model_conf then
     local socketConf = _G.DataConfigManager:GetModelSocketConf(object.config.model_conf, false)
     if socketConf and #socketConf.socket_info > 0 then
       local socket_count = #socketConf.socket_info

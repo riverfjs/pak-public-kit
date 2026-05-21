@@ -163,6 +163,12 @@ function PandoraVideoPlayerWidget_C:SetLooping(bLoop)
   self._bLoop = bLoop
 end
 
+function PandoraVideoPlayerWidget_C:SetDecryptionKey(decryptionKey)
+  if self.PVideoImage_Instance then
+    self.PVideoImage_Instance:SetDecryptionKey(decryptionKey)
+  end
+end
+
 function PandoraVideoPlayerWidget_C:SetMediaTextureSize(imageSizeX, imageSizeY)
   self.PVideoImage_Instance.Brush.ImageSize = UE4.FVector2D(imageSizeX, imageSizeY)
 end

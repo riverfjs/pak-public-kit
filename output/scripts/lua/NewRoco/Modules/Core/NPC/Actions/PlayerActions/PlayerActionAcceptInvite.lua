@@ -1,9 +1,5 @@
-local PlayerActionAcceptInvite = Class("PlayerActionAcceptInvite")
-
-function PlayerActionAcceptInvite:Ctor(Owner, Config)
-  self.Owner = Owner
-  self.Config = Config
-end
+local Base = require("NewRoco.Modules.Core.NPC.Actions.PlayerActions.PlayerActionBase")
+local PlayerActionAcceptInvite = Base:Extend("PlayerActionAcceptInvite")
 
 function PlayerActionAcceptInvite:Execute()
   if not self.Owner then

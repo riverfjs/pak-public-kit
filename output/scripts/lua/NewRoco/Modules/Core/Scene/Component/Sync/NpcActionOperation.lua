@@ -36,7 +36,12 @@ function NpcActionOperation:Execute()
           action = NPCActionFactory:Get(nil, DialogueConf.action, nil, false, npc)
         end
       else
-        action = NPCActionFactory:Get(nil, option_conf.action, nil, false, npc)
+        local Option
+        local InterComp = npc and npc.InteractionComponent
+        if InterComp then
+          Option = InterComp:GetOptionByID(self.operation.npc_action_info.option_id)
+        end
+        action = NPCActionFactory:Get(Option, option_conf.action, nil, false, npc)
       end
       if action then
         action:CacheSyncInfo(self.operation.npc_action_info)

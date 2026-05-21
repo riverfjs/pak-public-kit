@@ -359,7 +359,7 @@ function UMG_Battle_SpEnergy_List_C:AddSpEnergy(spEnergyElement, source, changeN
       if delay < 0.05 then
         self:PlayParticleEffect(spEnergyElement, source, 1, petId)
       else
-        _G.DelayManager:DelaySeconds(delay, self.PlayParticleEffect, self, spEnergyElement, source, 1, petId)
+        self:DelaySeconds(delay, self.PlayParticleEffect, self, spEnergyElement, source, 1, petId)
       end
     end
   else

@@ -69,6 +69,7 @@ function UMG_StudentCard_Comp_Item_C:InitBadgeInfo()
 end
 
 function UMG_StudentCard_Comp_Item_C:OnItemSelected(_bSelected)
+  self.detectDragStartMs = 0
   if not _bSelected then
     return
   end

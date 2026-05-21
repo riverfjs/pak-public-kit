@@ -175,7 +175,7 @@ function ProtocolChecker:CanSendCMD(CmdId, CurOnlineState)
     return false
   end
   local CmdName = ProtoCMD:GetMessageName(CmdId)
-  if CmdName and (string.find(CmdName, "ZoneGM") or string.find(CmdName, "ZoneSceneGM")) then
+  if CmdName and (string.find(CmdName, "ZoneGm") or string.find(CmdName, "ZoneSceneGm")) then
     return true
   end
   local BlackListMatchItem = self.upStreamPktBlacklist[CurOnlineState]

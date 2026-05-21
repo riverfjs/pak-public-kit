@@ -31,6 +31,15 @@ function UMG_LoadUpload_C:SetPublishUploading()
   self:PlayAnimation(self.Loading)
 end
 
+function UMG_LoadUpload_C:SetLoading(msg, isLoop, disableBlur)
+  self.Text:SetText(msg)
+  self.PlayFlag = isLoop and EnumPlayFlag.Loop or EnumPlayFlag.None
+  self:PlayAnimation(self.Loading)
+  if self.BackgroundBlur then
+    self.BackgroundBlur:SetVisibility(disableBlur and UE4.ESlateVisibility.Collapsed or UE4.ESlateVisibility.SelfHitTestInvisible)
+  end
+end
+
 function UMG_LoadUpload_C:OnAnimationFinished(Animation)
   if Animation == self.Loading and self.PlayFlag == EnumPlayFlag.Loop then
     self:PlayAnimation(self.Loading)

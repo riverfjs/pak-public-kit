@@ -219,6 +219,8 @@ function UMG_MagicOptions_C:OnItemClicked(bClicked)
   if not self.selectable then
     if self.MyAbilityErrorCode == AbilityErrorCode.DUNGEON_BAN then
       _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.TryCastMagic_WrongScene)
+    elseif self.MyAbilityErrorCode == AbilityErrorCode.AREA_BAN then
+      _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.TryCastMagic_WrongScene)
     elseif self.MyAbilityErrorCode == AbilityErrorCode.BAG_ITEM_NOT_ENOUGH then
       if self:IsVideoMagic() then
         _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.mark_video_lack_of_item)
@@ -229,13 +231,17 @@ function UMG_MagicOptions_C:OnItemClicked(bClicked)
       if self:IsMessageMagic() then
         _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.magic_message_status_fobbiden)
       end
-    elseif self.MyAbilityErrorCode == AbilityErrorCode.FUNC_BAN or self.MyAbilityErrorCode == AbilityErrorCode.GAME_BAN then
+    elseif self.MyAbilityErrorCode == AbilityErrorCode.FUNC_BAN then
+      _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.TryCastMagic_Create_LitteGame)
+    elseif self.MyAbilityErrorCode == AbilityErrorCode.GAME_BAN then
       if self:IsMessageMagic() or self:IsVideoMagic() then
         local retCode = ProtoEnum.MOBA_RET.FeedSvrErr.ERR_FEEDSVR_AREA_NOT_ALLOW_CREATE_FEED
         local Key = string.format("Error_Code_%d", retCode)
         local ErrorText = _G.DataConfigManager:GetLocalizationConf(Key, true)
         ErrorText = ErrorText and ErrorText.msg
         _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, ErrorText)
+      else
+        _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.TryCastMagic_Create_LitteGame)
       end
     elseif self.MyAbilityErrorCode == AbilityErrorCode.VISIT_BAN then
       if self:IsMessageMagic() then

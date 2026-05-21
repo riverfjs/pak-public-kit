@@ -14,6 +14,7 @@ local function CreateFsm()
   local IsSelfPerform = fsm:CreateVar("IsSelfPerform")
   local npcDelayVar = fsm:CreateVar("NpcDelay")
   local IsFromRoundStartVar = fsm:CreateVar("IsFromRoundStart")
+  fsm:SetProperty("IsFromInstantBattleFsm", true)
   local InstantPlay = fsm:CreateSequentialState(BattleEnum.InstantBattleState.InstantPlay)
   InstantPlay:AddAction(BattlePreloadTurnPlayResAction("BattlePreloadTurnPlayResAction", {Flows = FlowsVar, SettleInfo = SettleInfoVar}))
   InstantPlay:AddAction(InstantBattleTurnPlayerAction("InstantBattleTurnPlayerAction", {

@@ -12,7 +12,7 @@ function UMG_CultureListItem_C:SetData(data)
   self.Display:SetText(displayName)
   self.data = data
   self.parent = self.data.parent
-  local curCulture = UE4.UKismetInternationalizationLibrary.GetCurrentCulture()
+  local curCulture = UE4.UNRCStatics.GetCurrentCulture()
   self.Selected:SetVisibility(curCulture == self.data.culture and UE4.ESlateVisibility.Visible or UE4.ESlateVisibility.Hidden)
   self.Display:SetColorAndOpacity(curCulture == self.data.culture and UE4.UNRCStatics.HexToSlateColor("#272727FF") or UE4.UNRCStatics.HexToSlateColor("#C3C1B4FF"))
 end

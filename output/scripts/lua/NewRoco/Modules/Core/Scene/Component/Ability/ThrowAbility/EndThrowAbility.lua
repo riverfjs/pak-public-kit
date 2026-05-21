@@ -257,7 +257,6 @@ function EndThrowAbility:OnThrow()
       ProjectileMovement.Velocity = self.buff:CalculateVelocity()
     end
     ProjectileMovement:SetActive(true)
-    self.buff:GetController().PlayerCameraManager.BP_FadeComponent.BallMesh = nil
     self.buff.SkillInfo.BallLua:OnThrowStart()
     self.buff.SkillInfo.BallLua = nil
     local currThrowSession = self.ballNPC.ThrowSession
@@ -321,9 +320,6 @@ end
 function EndThrowAbility:CancelThrow()
   if self.buff.SkillInfo and self.buff.SkillInfo.BallLua then
     _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.DeleteThrowPetBall, self.buff.SkillInfo.BallLua.viewObj)
-    if self.caster and self.caster.isLocal and self.buff.GetController and self.buff:GetController().PlayerCameraManager and self.buff:GetController().PlayerCameraManager.BP_FadeComponent then
-      self.buff:GetController().PlayerCameraManager.BP_FadeComponent.BallMesh = nil
-    end
     self.buff.SkillInfo.BallLua = nil
   end
   if not self:IsLocmotionThrow() then

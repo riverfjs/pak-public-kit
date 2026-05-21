@@ -52,7 +52,12 @@ function UMG_Common_NounInterpretationTips_C:SetMainInfo()
       end
     end
   else
-    local linkIds = self:GetHyperLinkIds(self.uiData.text)
+    local linkIds = {}
+    if self.uiData.link_ids then
+      linkIds = self.uiData.link_ids
+    else
+      linkIds = self:GetHyperLinkIds(self.uiData.text)
+    end
     local descList = {}
     for i = 1, #linkIds do
       table.insert(descList, {

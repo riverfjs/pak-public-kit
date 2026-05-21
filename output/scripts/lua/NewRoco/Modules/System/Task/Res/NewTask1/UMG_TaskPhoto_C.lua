@@ -181,6 +181,12 @@ end
 
 function UMG_TaskPhoto_C:SetShowOnlyActors()
   self.captureComponent.showOnlyActors:Add(self.PlayerActor)
+  if self.PlayerActor and self.PlayerActor.AvatarComponent then
+    local Decorators = self.PlayerActor.AvatarComponent:GetDecorators()
+    for k, v in tpairs(Decorators) do
+      self.captureComponent.showOnlyActors:Add(v)
+    end
+  end
 end
 
 function UMG_TaskPhoto_C:BindingSequenceCamera()

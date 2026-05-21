@@ -1,3 +1,7 @@
+local rapidjson = require("rapidjson")
+local AICoachModuleUtils = require("NewRoco.Modules.System.AICoachModule.AICoachModuleUtils")
+local AICoachModuleEvent = require("NewRoco.Modules.System.AICoachModule.AICoachModuleEvent")
+local FriendEnum = require("NewRoco.Modules.System.Friend.FriendEnum")
 local PetUtils = require("NewRoco.Utils.PetUtils")
 local PetUIModuleEnum = require("NewRoco.Modules.System.PetUI.PetUIModuleEnum")
 local PetUIModuleEvent = require("NewRoco.Modules.System.PetUI.PetUIModuleEvent")
@@ -14,6 +18,35 @@ local DialogContext = require("NewRoco.Modules.System.TipsModule.DialogContext")
 function UMG_LineupAdjustment_C:OnActive(rsp, OpenAdjustTeamType, OpenAdjustTeamIndex)
   self:OnAddEventListener()
   _G.NRCAudioManager:PlaySound2DAuto(40002009, "UMG_LineupAdjustment_C:OnActive")
+  self:RefreshPanel(rsp, OpenAdjustTeamType, OpenAdjustTeamIndex)
+  self:OnInitAICoachShowUI()
+end
+
+function UMG_LineupAdjustment_C:OnInitAICoachShowUI()
+  local AICoachTeamData = self.module:GetData():GetAICoachRecommendTeamUIData()
+  local isAICoachOpen = _G.NRCModuleManager:DoCmd(_G.AICoachModuleCmd.GetIsCurrAICoachOpen)
+  local isAIInWhiteList = _G.NRCModuleManager:DoCmd(_G.AICoachModuleCmd.GetIsPlayerInWhiteList)
+  local isSystemOpen = _G.NRCModuleManager:DoCmd(_G.AICoachModuleCmd.GetSysAICoachSceneIsOpen, Enum.FunctionEntrance.FE_AI_COACH_TEAM)
+  local isAllOpen = isAICoachOpen and isAIInWhiteList and isSystemOpen
+  self.isOpenFromAICoach = false
+  self.isNeedEnterAnim = false
+  self.AIEmotionType = nil
+  self.NRCText_166:SetText(LuaText.ai_coach_18)
+  if isAllOpen and AICoachTeamData and AICoachTeamData.teamData and AICoachTeamData.activityID then
+    _G.NRCModeManager:DoCmd(AICoachModuleCmd.OnOpenAICoachBySceneTypeWithoutSession, Enum.AIcoachSceneType.AST_Group_Detail)
+    self.isOpenFromAICoach = true
+    _G.NRCModuleManager:DoCmd(_G.AICoachModuleCmd.OnReportEvent, "team_recomm_detail_expo")
+    self.AICoachGvoice:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    self.TextPanel:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.Progress:SetPercent(0)
+    self.isNeedEnterAnim = true
+    _G.NRCEventCenter:DispatchEvent(AICoachModuleEvent.OnRecoverSceneAICoachState, Enum.AIcoachSceneType.AST_Group_Recommend)
+  else
+    self.AICoachGvoice:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  end
+end
+
+function UMG_LineupAdjustment_C:RefreshPanel(rsp, OpenAdjustTeamType, OpenAdjustTeamIndex)
   if rsp then
     self.petData = rsp.adjusted_team.pets
     self.shared_team = rsp.shared_team
@@ -98,6 +131,14 @@ function UMG_LineupAdjustment_C:OnDeactive()
   NRCEventCenter:UnRegisterEvent(self, PetUIModuleEvent.ChangeTeamMagic, self.ChangeTeamMagic)
   NRCEventCenter:UnRegisterEvent(self, PetUIModuleEvent.ChangePetSkill, self.ChangePetSkill)
   NRCEventCenter:UnRegisterEvent(self, PetUIModuleEvent.RefreshAdjustPetPanel, self.RefreshAdjustPetPanel)
+  if self.isOpenFromAICoach then
+    _G.NRCModeManager:DoCmd(AICoachModuleCmd.OnCloseAICoachByScene, Enum.AIcoachSceneType.AST_Group_Detail)
+  end
+  self.module:GetData():SetAICoachRecommendTeamUIData({})
+  _G.NRCEventCenter:UnRegisterEvent(self, AICoachModuleEvent.OnNotifyAICoachNarrationTextUpdate, self.OnNotifyAICoachTextUpdate)
+  _G.NRCEventCenter:UnRegisterEvent(self, AICoachModuleEvent.OnNotifyAICoachTextUpdate, self.OnNotifyAICoachTextUpdate)
+  _G.NRCEventCenter:UnRegisterEvent(self, AICoachModuleEvent.OnNotifyAICoachEmotionChange, self.OnNotifyAICoachEmotionChange)
+  _G.NRCEventCenter:UnRegisterEvent(self, AICoachModuleEvent.OnNotifyAICoachRequestFinish, self.OnNotifyAICoachRequestFinish)
 end
 
 function UMG_LineupAdjustment_C:SolveDeficiencyBtnClick()
@@ -116,6 +157,7 @@ function UMG_LineupAdjustment_C:OnAddEventListener()
   self:AddButtonListener(self.SaveBtn.btnLevelUp, self.OnSaveBtnClick)
   self:AddButtonListener(self.RenameBtn.btnLevelUp, self.Rename)
   self:AddButtonListener(self.MagicBtn, self.OpenAlternativeMagic)
+  self:AddButtonListener(self.BtnTimePet, self.OnOpenAICoachRequest)
   self:RegisterEvent(self, PetUIModuleEvent.SetShareTeamName, self.SetShareTeamName)
   self:RegisterEvent(self, PetUIModuleEvent.AdjustLostPet, self.AdjustLostPet)
   self:RegisterEvent(self, PetUIModuleEvent.SetIgnoreType, self.SetIgnoreTypeAndUpdate)
@@ -133,6 +175,10 @@ function UMG_LineupAdjustment_C:OnAddEventListener()
   NRCEventCenter:RegisterEvent("UMG_LineupAdjustment_C", self, PetUIModuleEvent.ChangeTeamMagic, self.ChangeTeamMagic)
   NRCEventCenter:RegisterEvent("UMG_LineupAdjustment_C", self, PetUIModuleEvent.ChangePetSkill, self.ChangePetSkill)
   _G.NRCEventCenter:RegisterEvent("UMG_LineupAdjustment_C", self, _G.NRCGlobalEvent.ON_RECONNECT_FINISH, self._OnReconnect)
+  _G.NRCEventCenter:RegisterEvent("UMG_LineupAdjustment_C", self, AICoachModuleEvent.OnNotifyAICoachNarrationTextUpdate, self.OnNotifyAICoachTextUpdate)
+  _G.NRCEventCenter:RegisterEvent("UMG_LineupAdjustment_C", self, AICoachModuleEvent.OnNotifyAICoachTextUpdate, self.OnNotifyAICoachTextUpdate)
+  _G.NRCEventCenter:RegisterEvent("UMG_LineupAdjustment_C", self, AICoachModuleEvent.OnNotifyAICoachEmotionChange, self.OnNotifyAICoachEmotionChange)
+  _G.NRCEventCenter:RegisterEvent("UMG_LineupAdjustment_C", self, AICoachModuleEvent.OnNotifyAICoachRequestFinish, self.OnNotifyAICoachRequestFinish)
 end
 
 function UMG_LineupAdjustment_C:_OnReconnect()
@@ -253,7 +299,7 @@ function UMG_LineupAdjustment_C:CheckHasPetTalentData()
             IsIgnore = IsIgnore
           })
         end
-      elseif petData.attribute_info.attack.talent and petData.attribute_info.attack.talent > 0 then
+      elseif petData and petData.attribute_info.attack.talent and petData.attribute_info.attack.talent > 0 then
         table.insert(CurPetAttributeList, Enum.AttributeType.AT_PHYATK_PERCENT)
         curPetAttrNum = curPetAttrNum + 1
       end
@@ -279,7 +325,7 @@ function UMG_LineupAdjustment_C:CheckHasPetTalentData()
             IsIgnore = IsIgnore
           })
         end
-      elseif petData.attribute_info.defense.talent and petData.attribute_info.defense.talent > 0 then
+      elseif petData and petData.attribute_info.defense.talent and petData.attribute_info.defense.talent > 0 then
         table.insert(CurPetAttributeList, Enum.AttributeType.AT_PHYDEF_PERCENT)
         curPetAttrNum = curPetAttrNum + 1
       end
@@ -305,7 +351,7 @@ function UMG_LineupAdjustment_C:CheckHasPetTalentData()
             IsIgnore = IsIgnore
           })
         end
-      elseif petData.attribute_info.hp.talent and petData.attribute_info.hp.talent > 0 then
+      elseif petData and petData.attribute_info.hp.talent and petData.attribute_info.hp.talent > 0 then
         table.insert(CurPetAttributeList, Enum.AttributeType.AT_HPMAX_PERCENT)
         curPetAttrNum = curPetAttrNum + 1
       end
@@ -331,7 +377,7 @@ function UMG_LineupAdjustment_C:CheckHasPetTalentData()
             IsIgnore = IsIgnore
           })
         end
-      elseif petData.attribute_info.special_attack.talent and petData.attribute_info.special_attack.talent > 0 then
+      elseif petData and petData.attribute_info.special_attack.talent and petData.attribute_info.special_attack.talent > 0 then
         table.insert(CurPetAttributeList, Enum.AttributeType.AT_SPEATK_PERCENT)
         curPetAttrNum = curPetAttrNum + 1
       end
@@ -357,7 +403,7 @@ function UMG_LineupAdjustment_C:CheckHasPetTalentData()
             IsIgnore = IsIgnore
           })
         end
-      elseif petData.attribute_info.special_defense.talent and petData.attribute_info.special_defense.talent > 0 then
+      elseif petData and petData.attribute_info.special_defense.talent and petData.attribute_info.special_defense.talent > 0 then
         table.insert(CurPetAttributeList, Enum.AttributeType.AT_SPEDEF_PERCENT)
         curPetAttrNum = curPetAttrNum + 1
       end
@@ -383,7 +429,7 @@ function UMG_LineupAdjustment_C:CheckHasPetTalentData()
             IsIgnore = IsIgnore
           })
         end
-      elseif petData.attribute_info.speed.talent and petData.attribute_info.speed.talent > 0 then
+      elseif petData and petData.attribute_info.speed.talent and petData.attribute_info.speed.talent > 0 then
         table.insert(CurPetAttributeList, Enum.AttributeType.AT_SPEED_PERCENT)
         curPetAttrNum = curPetAttrNum + 1
       end
@@ -457,31 +503,35 @@ function UMG_LineupAdjustment_C:CheckHasPetNatureData()
           share_neg_effect = self:GetChangeAttrForReqEnum(self.sharedPetData[i].changed_nature_neg_attr_type)
         end
         local petData = _G.DataModelMgr.PlayerDataModel:GetPetDataByGid(v.gid)
-        local PetNatureConf = _G.DataConfigManager:GetNatureConf(petData.nature)
-        local pos_effect = PetNatureConf.positive_effect
-        local neg_effect = PetNatureConf.negative_effect
-        if petData.changed_nature_pos_attr_type and petData.changed_nature_pos_attr_type > 0 then
-          pos_effect = self:GetChangeAttrForReqEnum(petData.changed_nature_pos_attr_type)
+        if petData then
+          local PetNatureConf = _G.DataConfigManager:GetNatureConf(petData.nature)
+          local pos_effect = PetNatureConf.positive_effect
+          local neg_effect = PetNatureConf.negative_effect
+          if petData.changed_nature_pos_attr_type and petData.changed_nature_pos_attr_type > 0 then
+            pos_effect = self:GetChangeAttrForReqEnum(petData.changed_nature_pos_attr_type)
+          end
+          if petData.changed_nature_neg_attr_type and petData.changed_nature_neg_attr_type > 0 then
+            neg_effect = self:GetChangeAttrForReqEnum(petData.changed_nature_neg_attr_type)
+          end
+          local HasNature = share_pos_effect == pos_effect and share_neg_effect == neg_effect
+          local IsIgnore = self.IgnoreList[v.gid] and self.IgnoreList[v.gid][PetUIModuleEnum.PetTeamShareReviseType.Nature]
+          if not IsIgnore and not HasNature then
+            DiffNum = DiffNum + 1
+          end
+          table.insert(checkList, {
+            gid = v.gid,
+            HasNature = HasNature,
+            share_pos_effect = share_pos_effect,
+            share_neg_effect = share_neg_effect,
+            pos_effect = pos_effect,
+            neg_effect = neg_effect,
+            natureName = SharePetNatureConf.name,
+            type = 0,
+            IsIgnore = IsIgnore
+          })
+        else
+          Log.Error("UMG_LineupAdjustment_C gid petData is nil", v.gid)
         end
-        if petData.changed_nature_neg_attr_type and petData.changed_nature_neg_attr_type > 0 then
-          neg_effect = self:GetChangeAttrForReqEnum(petData.changed_nature_neg_attr_type)
-        end
-        local HasNature = share_pos_effect == pos_effect and share_neg_effect == neg_effect
-        local IsIgnore = self.IgnoreList[v.gid] and self.IgnoreList[v.gid][PetUIModuleEnum.PetTeamShareReviseType.Nature]
-        if not IsIgnore and not HasNature then
-          DiffNum = DiffNum + 1
-        end
-        table.insert(checkList, {
-          gid = v.gid,
-          HasNature = HasNature,
-          share_pos_effect = share_pos_effect,
-          share_neg_effect = share_neg_effect,
-          pos_effect = pos_effect,
-          neg_effect = neg_effect,
-          natureName = SharePetNatureConf.name,
-          type = 0,
-          IsIgnore = IsIgnore
-        })
       else
         Log.Error("UMG_LineupAdjustment_C SharePetNatureConf is nil, notice jobhuang")
       end
@@ -500,7 +550,7 @@ function UMG_LineupAdjustment_C:UpdateUI()
   self.Text_1:SetText(self.teamName)
   self:UpdateDiffAndLackNum()
   local PetList = {}
-  if self.teamType ~= PTT_PVP_BATTLE_5 then
+  if self.teamType ~= Enum.PlayerTeamType.PTT_PVP_BATTLE_5 then
     if #self.fullPetData < 6 then
       for i = 1, 6 do
         if self.fullPetData[i] then
@@ -742,8 +792,349 @@ function UMG_LineupAdjustment_C:OnSaveBtnClick()
   end
 end
 
+function UMG_LineupAdjustment_C:IsCurrAICoachSceneTypeMatch()
+  local sceneType = _G.NRCModuleManager:DoCmd(_G.AICoachModuleCmd.GetCurrAICoachScene)
+  return sceneType == Enum.AIcoachSceneType.AST_Group_Detail
+end
+
+function UMG_LineupAdjustment_C:OnNotifyAICoachTextUpdate(text)
+  if not self:IsCurrAICoachSceneTypeMatch() then
+    return
+  end
+  if self.isNeedEnterAnim then
+    self:PlayAnimation(self.AICoach_Open)
+    self.TextPanel:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    self.isNeedEnterAnim = false
+  end
+  self.ChatContent:SetText(text)
+end
+
+function UMG_LineupAdjustment_C:OnAnimFinished(Animation)
+  if Animation == self.In and self.isOpenFromAICoach then
+    local text = _G.NRCModuleManager:DoCmd(_G.AICoachModuleCmd.GetAICoachReplyText)
+    if text and "" ~= text then
+      self.isNeedEnterAnim = true
+      self:OnNotifyAICoachTextUpdate(text)
+    end
+  end
+end
+
+function UMG_LineupAdjustment_C:OnNotifyAICoachEmotionChange(emotionType)
+  if not self:IsCurrAICoachSceneTypeMatch() then
+    return
+  end
+  if self.AIEmotionType and self.AIEmotionType == emotionType then
+    return
+  end
+  self.AIEmotionType = emotionType
+  if emotionType == AICoachModuleUtils.EnumAICoachEmotion.Idle then
+    self.AICoach:SetPath(UEPath.AICoachEmotionPath.Idle)
+  elseif emotionType == AICoachModuleUtils.EnumAICoachEmotion.Think then
+    self.AICoach:SetPath(UEPath.AICoachEmotionPath.Think)
+  elseif emotionType == AICoachModuleUtils.EnumAICoachEmotion.Answer then
+    self.AICoach:SetPath(UEPath.AICoachEmotionPath.Answer)
+  end
+end
+
+function UMG_LineupAdjustment_C:OnNotifyAICoachRequestFinish()
+  if not self:IsCurrAICoachSceneTypeMatch() then
+    return
+  end
+  if self.timerID then
+    _G.DelayManager:CancelDelayById(self.timerID)
+    self.timerID = nil
+  end
+  self.timerID = _G.DelayManager:DelaySeconds(5, function()
+    if self and self:IsValid() then
+      self.isNeedEnterAnim = true
+      self.timerID = nil
+      self:PlayAnimation(self.AICoach_Close)
+    else
+      Log.Warning("UMG_FriendTeamPanel_C:OnNotifyAICoachRequestFinish - Panel is no longer valid")
+    end
+  end)
+end
+
+function UMG_LineupAdjustment_C:OnOpenAICoachRequest()
+  local bGranted = UE.UNRCPermissionMgr.IfPermissionGranted(UE.ENRCPermissionType.RecordAudio)
+  if RocoEnv.PLATFORM == "PLATFORM_WINDOWS" then
+    bGranted = true
+  end
+  if bGranted then
+    self.AIGvoice:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    self.AIGvoice:OnInitialize(nil, FriendEnum.VoiceInputScene.AICoach)
+    self.AIGvoice:PlayerAnimIn()
+    self.AIGvoice:StartActive()
+    _G.NRCModuleManager:DoCmd(_G.AICoachModuleCmd.OnReportEvent, "team_recomm_detail_coach_icon_click")
+    _G.NRCModuleManager:DoCmd(_G.AICoachModuleCmd.SetAICoachTeamDiffJson, self:GetCurrTeamDiffData())
+  else
+    local IsFirstTime = UE.UNRCPermissionMgr.IsFirstTimeRequest(UE.ENRCPermissionType.RecordAudio)
+    if IsFirstTime then
+      self.RequestPermission = UE.UNRCPermissionMgr.RequestPermission(UE.ENRCPermissionType.RecordAudio, {
+        self,
+        function(_, bGranted)
+          self.RequestPermission = nil
+          if bGranted then
+          else
+            _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.chat_gvoice_microphone_premission_not_open)
+          end
+        end
+      })
+    else
+      _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.chat_gvoice_microphone_premission_not_open)
+    end
+  end
+end
+
+function UMG_LineupAdjustment_C:OnTick()
+  if self.isOpenFromAICoach then
+    local isVoicePlaying = _G.NRCModuleManager:DoCmd(_G.AICoachModuleCmd.GetIsVoicePlaying)
+    if isVoicePlaying then
+      local voiceLevel = _G.GVoiceManager:GetSpeakerLevel()
+      self.Progress:SetPercent(voiceLevel * 2)
+    end
+  end
+end
+
 function UMG_LineupAdjustment_C:OnOpenImportLineup()
   _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.OpenFriendMirrorPetTeamCoverPanel, self.teamType)
+  self:OnSaveAICoachRecommendTeam()
+end
+
+function UMG_LineupAdjustment_C:OnSaveAICoachRecommendTeam()
+  local AICoachTeamData = self.module:GetData():GetAICoachRecommendTeamUIData()
+  if AICoachTeamData and AICoachTeamData.teamData and AICoachTeamData.activityID then
+    local teamData = self:GetAICoachTeamResult()
+    if teamData then
+      _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.OnZoneSaveRecommendPetTeamReq, AICoachTeamData.activityID, teamData)
+      _G.NRCModuleManager:DoCmd(_G.AICoachModuleCmd.OnReportEvent, "team_recomm_detail_apply_click", teamData.team_id, teamData.team_name, self:GetCurrMissingInfo())
+    end
+  end
+end
+
+function UMG_LineupAdjustment_C:GetCurrMissingInfo()
+  local missingInfo = ""
+  if self.LostDataList[PetUIModuleEnum.PetTeamShareReviseType.Pet] and self.LostDataList[PetUIModuleEnum.PetTeamShareReviseType.Pet] > 0 then
+    missingInfo = missingInfo .. string.format(LuaText.lineup_code_pet_lack, self.LostDataList[PetUIModuleEnum.PetTeamShareReviseType.Pet])
+  end
+  if self.LostDataList[PetUIModuleEnum.PetTeamShareReviseType.Skill] and self.LostDataList[PetUIModuleEnum.PetTeamShareReviseType.Skill] > 0 then
+    missingInfo = missingInfo .. string.format(LuaText.lineup_code_skill_lack, self.LostDataList[PetUIModuleEnum.PetTeamShareReviseType.Skill])
+  end
+  if self.LostDataList[PetUIModuleEnum.PetTeamShareReviseType.Magic] and self.LostDataList[PetUIModuleEnum.PetTeamShareReviseType.Magic] > 0 then
+    missingInfo = missingInfo .. string.format(LuaText.lineup_code_magic_lack, self.LostDataList[PetUIModuleEnum.PetTeamShareReviseType.Magic])
+  end
+  return missingInfo
+end
+
+function UMG_LineupAdjustment_C:GetAICoachTeamResult()
+  local AICoachTeamData = self.module:GetData():GetAICoachRecommendTeamUIData()
+  if AICoachTeamData and AICoachTeamData.teamData then
+    local teamData = AICoachTeamData.teamData
+    teamData.pet_team_info.role_magic_id = self.magicID
+    teamData.pet_team_info.pets = {}
+    local fullPetData = self.fullPetData
+    for _, value in ipairs(fullPetData) do
+      local petInfo = ProtoMessage:newSharedPetInfo()
+      petInfo.base_conf_id = value.sharedPetData.base_conf_id
+      petInfo.nature = value.sharedPetData.nature
+      petInfo.blood_id = value.sharedPetData.blood_id
+      petInfo.hp_talent = value.sharedPetData.hp_talent
+      petInfo.attack_talent = value.sharedPetData.attack_talent
+      petInfo.special_attack_talent = value.sharedPetData.special_attack_talent
+      petInfo.defense_talent = value.sharedPetData.defense_talent
+      petInfo.special_defense_talent = value.sharedPetData.special_defense_talent
+      petInfo.speed_talent = value.sharedPetData.speed_talent
+      petInfo.changed_nature_pos_attr_type = value.sharedPetData.changed_nature_pos_attr_type
+      petInfo.changed_nature_neg_attr_type = value.sharedPetData.changed_nature_neg_attr_type
+      petInfo.skills = value.sharedPetData.skills
+      if value.petData.AdjustCompleted then
+        local petData = _G.DataModelMgr.PlayerDataModel:GetPetDataByGid(value.petData.gid)
+        if petData then
+          petInfo.base_conf_id = petData.base_conf_id
+          petInfo.nature = petData.nature
+          petInfo.blood_id = petData.blood_id
+          local attribute_info = petData.attribute_info
+          if attribute_info then
+            petInfo.hp_talent = attribute_info.hp.talent and attribute_info.hp.talent or 0
+            petInfo.attack_talent = attribute_info.attack and attribute_info.attack.talent or 0
+            petInfo.special_attack_talent = attribute_info.special_attack.talent and attribute_info.special_attack.talent or 0
+            petInfo.defense_talent = attribute_info.defense.talent and attribute_info.defense.talent or 0
+            petInfo.special_defense_talent = attribute_info.special_defense.talent and attribute_info.special_defense.talent or 0
+            petInfo.speed_talent = attribute_info.speed.talent and attribute_info.speed.talent or 0
+          end
+          petInfo.changed_nature_pos_attr_type = petData.changed_nature_pos_attr_type
+          petInfo.changed_nature_neg_attr_type = petData.changed_nature_neg_attr_type
+        end
+      end
+      if value.petData.skills and #value.petData.skills > 0 then
+        for i, skill in ipairs(petInfo.skills) do
+          for k, _skill in ipairs(value.petData.skills) do
+            if skill.pos and _skill.pos and skill.pos == _skill.pos and _skill.id and _skill.id > 0 then
+              skill.id = _skill.id
+              break
+            end
+          end
+        end
+      end
+      table.insert(teamData.pet_team_info.pets, petInfo)
+    end
+    return teamData
+  end
+end
+
+function UMG_LineupAdjustment_C:GetCurrTeamDiffData()
+  local AICoachTeamData = self.module:GetData():GetAICoachRecommendTeamUIData()
+  if not AICoachTeamData or not AICoachTeamData.teamData then
+    return nil
+  end
+  local teamData = {}
+  teamData.magicid = tostring(self.magicID)
+  teamData.team_id = tostring(AICoachTeamData.teamData.team_id)
+  teamData.team_name = AICoachTeamData.teamData.team_name
+  teamData.team_type = ""
+  teamData.team_source = "ai"
+  teamData.pets = {}
+  for i, v in ipairs(self.fullPetData) do
+    local petData = {}
+    if v.petData.AdjustCompleted and v.petData.gid then
+      local petInfo = _G.DataModelMgr.PlayerDataModel:GetPetDataByGid(v.petData.gid)
+      if petInfo then
+        petData.petbase_id = tostring(petInfo.base_conf_id)
+        petData.pet_gid = tostring(v.petData.gid)
+        petData.bloodline = tostring(petInfo.blood_id)
+        petData.bloodline_diff = false
+        petData.bloodline_bag = ""
+        petData.nature_id = tostring(petInfo.nature)
+        petData.nature_diff = false
+        petData.nature_bag = ""
+        local attribute_info = petInfo.attribute_info
+        if attribute_info then
+          local talentList = AICoachModuleUtils.GetTalentValue(attribute_info.hp.talent, attribute_info.attack.talent, attribute_info.special_attack.talent, attribute_info.defense.talent, attribute_info.special_defense.talent, attribute_info.speed.talent)
+          petData.talent_a_name = tostring(talentList[1] or 0)
+          petData.talent_a_diff = false
+          petData.talent_a_bag = ""
+          petData.talent_b_name = tostring(talentList[2] or 0)
+          petData.talent_b_diff = false
+          petData.talent_b_bag = ""
+          petData.talent_c_name = tostring(talentList[3] or 0)
+          petData.talent_c_diff = false
+          petData.talent_c_bag = ""
+        end
+        petData.skill_a_id = tostring(v.petData.skills[1].id or 0)
+        petData.skill_a_id_missing = false
+        petData.skill_b_id = tostring(v.petData.skills[2].id or 0)
+        petData.skill_b_id_missing = false
+        petData.skill_c_id = tostring(v.petData.skills[3].id or 0)
+        petData.skill_c_id_missing = false
+        petData.skill_d_id = tostring(v.petData.skills[4].id or 0)
+        petData.skill_d_id_missing = false
+        petData.is_pet_missing = false
+      end
+    elseif 0 ~= v.petData.gid then
+      local petInfo = _G.DataModelMgr.PlayerDataModel:GetPetDataByGid(v.petData.gid)
+      if petInfo then
+        petData.petbase_id = tostring(petInfo.base_conf_id)
+        petData.pet_gid = tostring(v.petData.gid)
+        petData.bloodline = tostring(v.sharedPetData.blood_id or 0)
+        petData.bloodline_bag = tostring(petInfo.blood_id or 0)
+        petData.bloodline_diff = v.sharedPetData.blood_id ~= petInfo.blood_id
+        petData.nature_id = tostring(v.sharedPetData.nature or 0)
+        petData.nature_bag = tostring(petInfo.nature or 0)
+        petData.nature_diff = v.sharedPetData.nature ~= petInfo.nature
+        local attribute_info = petInfo.attribute_info
+        if attribute_info then
+          local talentList = AICoachModuleUtils.GetTalentValue(attribute_info.hp.talent, attribute_info.attack.talent, attribute_info.special_attack.talent, attribute_info.defense.talent, attribute_info.special_defense.talent, attribute_info.speed.talent)
+          local startIndex = #talentList + 1
+          for i = startIndex, 3 do
+            table.insert(talentList, 0)
+          end
+          local talentListOld = AICoachModuleUtils.GetTalentValue(v.sharedPetData.hp_talent, v.sharedPetData.attack_talent, v.sharedPetData.special_attack_talent, v.sharedPetData.defense_talent, v.sharedPetData.special_defense_talent, v.sharedPetData.speed_talent)
+          startIndex = #talentListOld + 1
+          for i = startIndex, 3 do
+            table.insert(talentListOld, 0)
+          end
+          table.sort(talentList, function(a, b)
+            return a < b
+          end)
+          table.sort(talentListOld, function(a, b)
+            return a < b
+          end)
+          petData.talent_a_name = tostring(talentListOld[1])
+          petData.talent_a_diff = talentList[1] ~= talentListOld[1]
+          petData.talent_a_bag = tostring(talentList[1])
+          petData.talent_b_name = tostring(talentListOld[2])
+          petData.talent_b_diff = talentList[2] ~= talentListOld[2]
+          petData.talent_b_bag = tostring(talentList[2])
+          petData.talent_c_name = tostring(talentListOld[3])
+          petData.talent_c_diff = talentList[3] ~= talentListOld[3]
+          petData.talent_c_bag = tostring(talentList[3])
+        end
+        local result, skillid = self:GetSkillValue(v.petData.skills[1], v.sharedPetData.skills[1], petInfo)
+        petData.skill_a_id = skillid
+        petData.skill_a_id_missing = result
+        result, skillid = self:GetSkillValue(v.petData.skills[2], v.sharedPetData.skills[2], petInfo)
+        petData.skill_b_id = skillid
+        petData.skill_b_id_missing = result
+        result, skillid = self:GetSkillValue(v.petData.skills[3], v.sharedPetData.skills[3], petInfo)
+        petData.skill_c_id = skillid
+        petData.skill_c_id_missing = result
+        result, skillid = self:GetSkillValue(v.petData.skills[4], v.sharedPetData.skills[4], petInfo)
+        petData.skill_d_id = skillid
+        petData.skill_d_id_missing = result
+        petData.is_pet_missing = false
+      end
+    else
+      petData.petbase_id = tostring(v.sharedPetData.base_conf_id or 0)
+      petData.bloodline = tostring(v.sharedPetData.blood_id or 0)
+      petData.bloodline_diff = false
+      petData.bloodline_bag = ""
+      petData.nature_id = tostring(v.sharedPetData.nature or 0)
+      petData.nature_diff = false
+      petData.nature_bag = ""
+      local talentList = AICoachModuleUtils.GetTalentValue(v.sharedPetData.hp_talent, v.sharedPetData.attack_talent, v.sharedPetData.special_attack_talent, v.sharedPetData.defense_talent, v.sharedPetData.special_defense_talent, v.sharedPetData.speed_talent)
+      petData.talent_a_name = tostring(talentList[1] or 0)
+      petData.talent_a_diff = false
+      petData.talent_a_bag = ""
+      petData.talent_b_name = tostring(talentList[2] or 0)
+      petData.talent_b_diff = false
+      petData.talent_b_bag = ""
+      petData.talent_c_name = tostring(talentList[3] or 0)
+      petData.talent_c_diff = false
+      petData.talent_c_bag = ""
+      petData.skill_a_id = tostring(v.sharedPetData.skills[1].id or 0)
+      petData.skill_a_id_missing = false
+      petData.skill_b_id = tostring(v.sharedPetData.skills[2].id or 0)
+      petData.skill_b_id_missing = false
+      petData.skill_c_id = tostring(v.sharedPetData.skills[3].id or 0)
+      petData.skill_c_id_missing = false
+      petData.skill_d_id = tostring(v.sharedPetData.skills[4].id or 0)
+      petData.skill_d_id_missing = false
+      petData.is_pet_missing = true
+    end
+    table.insert(teamData.pets, petData)
+  end
+  local teamList = {}
+  table.insert(teamList, teamData)
+  local success, result = pcall(rapidjson.encode, teamList)
+  if not success then
+    Log.Error("UMG_LineupAdjustment_C.GetCurrTeamDiffData failed~")
+    return nil
+  end
+  return result
+end
+
+function UMG_LineupAdjustment_C:GetSkillValue(petDataSkill, sharedPetDataSkill, petInfo)
+  if petDataSkill and petDataSkill.id and petDataSkill.id > 0 then
+    return false, tostring(petDataSkill.id)
+  else
+    local skillData = petInfo.skill.skill_data
+    for k, v in ipairs(skillData) do
+      if v.id == sharedPetDataSkill.id then
+        return false, tostring(v.id)
+      end
+    end
+    return true, tostring(sharedPetDataSkill.id)
+  end
 end
 
 function UMG_LineupAdjustment_C:SetIgnoreType(ShareReviseType, gid, data)
@@ -891,6 +1282,7 @@ function UMG_LineupAdjustment_C:SolveAllDiffType()
                 UseItemInfo.item_conf_id = bagItem.id
                 UseItemInfo.num = 1
                 UseItemInfo.para = item.petGid
+                UseItemInfo.para2 = item.tarBloodID
                 table.insert(useItemList, UseItemInfo)
               end
             end
@@ -1399,7 +1791,13 @@ function UMG_LineupAdjustment_C:AdjustLostPet(index, petData)
   self.petData[index] = petData
   self.fullPetData[index].petData = petData
   self.fullPetData[index].petData.AdjustCompleted = true
+  local petDataInfo = _G.DataModelMgr.PlayerDataModel:GetPetDataByGid(petData.gid)
+  self.fullPetData[index].petDataInfo = petDataInfo
   self:RefreshAdjustPetPanel()
+  local teamData = self:GetAICoachTeamResult()
+  if self.isOpenFromAICoach and teamData then
+    _G.NRCModuleManager:DoCmd(_G.AICoachModuleCmd.OnReportEvent, "team_recomm_detail_resolve_click", teamData.team_id, self.teamName, self:GetCurrMissingInfo())
+  end
 end
 
 function UMG_LineupAdjustment_C:SetMagicUI(index, petData)
@@ -1514,6 +1912,10 @@ function UMG_LineupAdjustment_C:ChangeTeamMagic(magicID)
   end
   self:CalcuLostData()
   self:UpdateUI()
+  local teamData = self:GetAICoachTeamResult()
+  if self.isOpenFromAICoach and teamData then
+    _G.NRCModuleManager:DoCmd(_G.AICoachModuleCmd.OnReportEvent, "team_recomm_detail_resolve_click", teamData.team_id, self.teamName, self:GetCurrMissingInfo())
+  end
 end
 
 function UMG_LineupAdjustment_C:Rename()
@@ -1693,6 +2095,10 @@ function UMG_LineupAdjustment_C:ChangePetSkill(petIndex, skillIndex, skillID)
   self.fullPetData[petIndex].petData.skills[skillIndex].pos = skillIndex
   self:CalcuLostData()
   self:UpdateUI()
+  local teamData = self:GetAICoachTeamResult()
+  if self.isOpenFromAICoach and teamData then
+    _G.NRCModuleManager:DoCmd(_G.AICoachModuleCmd.OnReportEvent, "team_recomm_detail_resolve_click", teamData.team_id, self.teamName, self:GetCurrMissingInfo())
+  end
 end
 
 function UMG_LineupAdjustment_C:CalcuLostData()
@@ -1704,7 +2110,8 @@ function UMG_LineupAdjustment_C:CalcuLostData()
   end
   self.LostDataList[PetUIModuleEnum.PetTeamShareReviseType.Skill] = 0
   for i, fullpetdata in ipairs(self.fullPetData) do
-    if fullpetdata.petData.skills then
+    if fullpetdata.petData.AdjustCompleted then
+    elseif fullpetdata.petData.skills then
       for j, petHasSkill in ipairs(fullpetdata.petData.skills) do
         if 0 == petHasSkill.id and 0 ~= fullpetdata.sharedPetData.skills[j].id then
           local petDataInfo = _G.DataModelMgr.PlayerDataModel:GetPetDataByGid(fullpetdata.petData.gid)
@@ -1772,7 +2179,7 @@ function UMG_LineupAdjustment_C:CalcuBloodDiff()
   for i, fullpetdata in ipairs(self.fullPetData) do
     if 0 ~= fullpetdata.petData.gid and not fullpetdata.petData.AdjustCompleted then
       local petDataInfo = _G.DataModelMgr.PlayerDataModel:GetPetDataByGid(fullpetdata.petData.gid)
-      if petDataInfo.blood_id ~= fullpetdata.sharedPetData.blood_id then
+      if petDataInfo and petDataInfo.blood_id ~= fullpetdata.sharedPetData.blood_id then
         local IsIgnore = self.IgnoreList[fullpetdata.petData.gid] and self.IgnoreList[fullpetdata.petData.gid][PetUIModuleEnum.PetTeamShareReviseType.Blood]
         if not IsIgnore then
           diffNum = diffNum + 1
@@ -2043,6 +2450,9 @@ function UMG_LineupAdjustment_C:SendTLog2(team, teamType, teamName)
   local RankName = curRankConf.id
   local index = self.module:GetData().ShiningWeekendTeamOpenIndex
   local teamData = self.module:GetData():GetRecommendPetTeamList()[index]
+  if not teamData then
+    return
+  end
   local TeamID = teamData.team_id
   local PlayerName = teamData.player_name
   local TeamCode
@@ -2057,40 +2467,42 @@ function UMG_LineupAdjustment_C:SendTLog2(team, teamType, teamName)
     local pet = team[i]
     if pet then
       local petData = _G.DataModelMgr.PlayerDataModel:GetPetDataByGid(pet.pet_gid)
-      local sharePet = _G.ProtoMessage:newSharedPetInfo()
-      sharePet.base_conf_id = petData.conf_id
-      sharePet.nature = petData.nature
-      sharePet.blood_id = petData.blood_id
-      local skillEquip = {}
-      for _, v in ipairs(pet.equip_infos) do
-        table.insert(skillEquip, {
-          id = v.id,
-          pos = v.pos
-        })
+      if petData then
+        local sharePet = _G.ProtoMessage:newSharedPetInfo()
+        sharePet.base_conf_id = petData.conf_id
+        sharePet.nature = petData.nature
+        sharePet.blood_id = petData.blood_id
+        local skillEquip = {}
+        for _, v in ipairs(pet.equip_infos) do
+          table.insert(skillEquip, {
+            id = v.id,
+            pos = v.pos
+          })
+        end
+        sharePet.skills = skillEquip
+        sharePet.changed_nature_pos_attr_type = petData.changed_nature_pos_attr_type
+        sharePet.changed_nature_neg_attr_type = petData.changed_nature_neg_attr_type
+        if petData.attribute_info.attack.talent > 0 then
+          sharePet.attack_talent = 1
+        end
+        if petData.attribute_info.defense.talent > 0 then
+          sharePet.defense_talent = 1
+        end
+        if petData.attribute_info.hp.talent > 0 then
+          sharePet.hp_talent = 1
+        end
+        if petData.attribute_info.special_attack.talent > 0 then
+          sharePet.special_attack_talent = 1
+        end
+        if petData.attribute_info.special_defense.talent > 0 then
+          sharePet.special_defense_talent = 1
+        end
+        if petData.attribute_info.speed.talent > 0 then
+          sharePet.speed_talent = 1
+        end
+        table.insert(pets, sharePet)
+        baseIdArray[i] = tostring(petData.base_conf_id)
       end
-      sharePet.skills = skillEquip
-      sharePet.changed_nature_pos_attr_type = petData.changed_nature_pos_attr_type
-      sharePet.changed_nature_neg_attr_type = petData.changed_nature_neg_attr_type
-      if petData.attribute_info.attack.talent > 0 then
-        sharePet.attack_talent = 1
-      end
-      if petData.attribute_info.defense.talent > 0 then
-        sharePet.defense_talent = 1
-      end
-      if petData.attribute_info.hp.talent > 0 then
-        sharePet.hp_talent = 1
-      end
-      if petData.attribute_info.special_attack.talent > 0 then
-        sharePet.special_attack_talent = 1
-      end
-      if petData.attribute_info.special_defense.talent > 0 then
-        sharePet.special_defense_talent = 1
-      end
-      if petData.attribute_info.speed.talent > 0 then
-        sharePet.speed_talent = 1
-      end
-      table.insert(pets, sharePet)
-      baseIdArray[i] = tostring(petData.conf_id)
     else
       baseIdArray[i] = "nil"
     end
@@ -2112,6 +2524,9 @@ function UMG_LineupAdjustment_C:SendTLog3(petList)
   local RankName = curRankConf and curRankConf.id
   local index = self.module:GetData().ShiningWeekendTeamOpenIndex
   local teamData = self.module:GetData():GetRecommendPetTeamList()[index]
+  if not teamData then
+    return
+  end
   local TeamID = teamData.team_id
   local PlayerName = teamData.player_name
   local TeamCode

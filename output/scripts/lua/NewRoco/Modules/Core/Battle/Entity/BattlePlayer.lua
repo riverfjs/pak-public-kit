@@ -160,7 +160,7 @@ function BattlePlayer:SetFashionSuit(caller, callback)
   if self.model and self.roleInfo.role_addi_info and self.roleInfo.role_addi_info.appearance_info then
     local wearing_items = self.roleInfo.role_addi_info.appearance_info.wearing_item or self.roleInfo.role_addi_info.appearance_info.fashion_id
     local salonIds = self.roleInfo.role_addi_info.appearance_info.salon_item_data
-    if self.roleInfo.base.state_bit & 1 << ProtoEnum.BATTLER_BIT_TYPE.BT_BATTLER_HUMAN > 0 or self.roleInfo.base.state_bit & 1 << ProtoEnum.BATTLER_BIT_TYPE.BT_NPC_IS_USE_HUMAN > 0 then
+    if BattleUtils.IsPlayerUseHumanResByBit(self.roleInfo.base.state_bit) then
       self.model:SetDefaultSuit(self.model.Mesh, self.roleInfo.base.sex, wearing_items, salonIds, callback, caller)
       return true
     end
@@ -271,6 +271,7 @@ function BattlePlayer:ShowPlayer()
     if self.model:IsA(UE.ARocoCharacter) then
       local model = self.model
       model:SetForceHidden(false)
+      UE.UNRCCharacterUtils.SetTickFaceParam(model, true)
     end
     if self.model.AvatarDecorator then
       local AActorS = self.model.AvatarDecorator:GetDecorators()
@@ -550,6 +551,27 @@ function BattlePlayer:OnPetDead(deadPetCard)
   end
 end
 
+function BattlePlayer:RefreshDeadPetNum()
+  local deadPetNum = 0
+  local deadRandomPetNum = 0
+  for _, card in ipairs(self.deck.cards) do
+    local isDead = card.petState and card.petState:GetDead()
+    local petInfo = card.petInfo
+    local petData = petInfo and petInfo.battle_common_pet_info
+    local typeInfo = petData and petData.type
+    local typeInfoType = typeInfo and typeInfo.type
+    local isRandomPet = typeInfoType == ProtoEnum.PetTypeInfo.ENUM.PET_TYPE_RANDOM
+    if isDead then
+      deadPetNum = deadPetNum + 1
+      if isRandomPet then
+        deadRandomPetNum = deadRandomPetNum + 1
+      end
+    end
+  end
+  self:SetDeadPetNum(deadPetNum)
+  self:SetDeadRandomPetCount(deadRandomPetNum)
+end
+
 function BattlePlayer:UpdateMagicInfo(magicInfo)
   local roleInfoOverrides = {}
   roleInfoOverrides.magic_op_info = magicInfo and magicInfo.magic_op_info
@@ -775,15 +797,17 @@ function BattlePlayer:TakeBall(ballPath, operateType)
     swapSkillName = BattleConst.CatchPetNames.SwapBall
     self:ClearTakeBall()
   elseif operateType == BattleEnum.Operation.ENUM_CHANGE then
-    local animComponent = self.model:GetAnimComponent()
-    if animComponent then
-      local currentAnimName = animComponent:GetCurAnimName()
-      if "HuanChongLoop" == currentAnimName then
-        skillObj = self.TakeBallNoBlendSkill
-        swapSkillName = BattleConst.TakeBallNoBlendNames.SwapBall
-      else
-        skillObj = self.TakeBallSkill
-        swapSkillName = BattleConst.TakeBallNames.SwapBall
+    if self.model and UE4.UObject.IsValid(self.model) then
+      local animComponent = self.model:GetAnimComponent()
+      if animComponent then
+        local currentAnimName = animComponent:GetCurAnimName()
+        if "HuanChongLoop" == currentAnimName then
+          skillObj = self.TakeBallNoBlendSkill
+          swapSkillName = BattleConst.TakeBallNoBlendNames.SwapBall
+        else
+          skillObj = self.TakeBallSkill
+          swapSkillName = BattleConst.TakeBallNames.SwapBall
+        end
       end
     end
     self:ClearTakeBall()
@@ -1108,7 +1132,9 @@ function BattlePlayer:ShowSkillPrediction()
               self:ShowDialogBox()
             end
             if wordInfo.action then
-              self.model:PlayAnimByName(wordInfo.action, 1, 0, 0, 0, 1, 0)
+              if self.model and UE4.UObject.IsValid(self.model) then
+                self.model:PlayAnimByName(wordInfo.action, 1, 0, 0, 0, 1, 0)
+              end
             elseif wordInfo.emotion then
               self.BubbleComponent:Play(nil, wordInfo.emotion)
             end
@@ -1170,7 +1196,7 @@ function BattlePlayer:GetDialogBoxType()
 end
 
 function BattlePlayer:TryShowThinking()
-  if self.model and _G.BattleManager:CheckActiveState(BattleEnum.StateNames.WaitingOther) then
+  if self.model and UE4.UObject.IsValid(self.model) and _G.BattleManager:CheckActiveState(BattleEnum.StateNames.WaitingOther) then
     self.model:ShowThinking()
   end
 end
@@ -1183,7 +1209,7 @@ function BattlePlayer:TryShowSkillPrediction()
 end
 
 function BattlePlayer:HideEmoji()
-  if self.model then
+  if self.model and UE4.UObject.IsValid(self.model) then
     self.model:HideEmoji()
   end
 end
@@ -1392,11 +1418,14 @@ function BattlePlayer:HasNpcId()
   return 0 ~= self.roleInfo.base.npc_id
 end
 
+function BattlePlayer:IsSpecialNoPcSelfDead()
+  return BattleUtils.IsSpecialNoPc() and self.teamEnm == BattleEnum.Team.ENUM_TEAM and not self:HasNpcId()
+end
+
 function BattlePlayer:PlayAnim(animName, rate, position, BlendInTime, BlendOutTime, LoopCount, endPosition)
-  if not self.model then
-    return
+  if self.model and UE4.UObject.IsValid(self.model) then
+    return self.model:PlayAnimByName(animName, rate, position, BlendInTime, BlendOutTime, LoopCount, endPosition)
   end
-  return self.model:PlayAnimByName(animName, rate, position, BlendInTime, BlendOutTime, LoopCount, endPosition)
 end
 
 function BattlePlayer:GetAnimComponent()

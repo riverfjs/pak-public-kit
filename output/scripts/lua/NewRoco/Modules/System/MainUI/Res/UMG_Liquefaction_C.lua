@@ -14,7 +14,10 @@ function UMG_LiqueFaction_C:OnAppear()
   self:PlayAnimation(self.In)
 end
 
-function UMG_LiqueFaction_C:OnCancel(cancelType)
+function UMG_LiqueFaction_C:OnCancel(bFromInit)
+  if bFromInit then
+    self:HideAll()
+  end
   self:StopAllAnim()
   self:PlayAnimation(self.Out)
 end

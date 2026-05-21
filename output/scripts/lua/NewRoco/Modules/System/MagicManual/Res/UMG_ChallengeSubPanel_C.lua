@@ -1,4 +1,7 @@
 local UMG_ChallengeSubPanel_C = _G.NRCPanelBase:Extend("UMG_ChallengeSubPanel_C")
+local PVEModuleEvent = require("NewRoco.Modules.System.PVE.PVEModuleEvent")
+local SeasonIntegrationModuleEvent = require("NewRoco.Modules.System.SeasonIntegration.SeasonIntegrationModuleEvent")
+local MagicManualModuleEvent = require("NewRoco.Modules.System.MagicManual.MagicManualModuleEvent")
 
 function UMG_ChallengeSubPanel_C:OnEnable(module)
   self.module = module
@@ -41,6 +44,8 @@ function UMG_ChallengeSubPanel_C:OnEnable(module)
   self:UpdateHealth()
   self:PlayAnimation(self.Change)
   self:OnAddEventListener()
+  self:InitSeasonTalentWidgets()
+  self.SeasonalSystemBtn.RedDot:SetupKey(486)
 end
 
 function UMG_ChallengeSubPanel_C:SelectTabBySubTabIndex(TabIndex)
@@ -79,6 +84,7 @@ function UMG_ChallengeSubPanel_C:UpdateBossView()
     return
   end
   self.FlowerSeedChallengeScrollView:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self.SeasonalSystemBtn_1:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self:CancelDelay()
   
   local function delayFunction()
@@ -183,6 +189,7 @@ end
 
 function UMG_ChallengeSubPanel_C:UpdateLegendPetView()
   self.FlowerSeedChallengeScrollView:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self.SeasonalSystemBtn_1:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self:CancelDelay()
   
   local function delayFunction()
@@ -218,6 +225,10 @@ function UMG_ChallengeSubPanel_C:UpdateLegendPetView()
       self.ChallengeScrollView:CreatePanelFromCache()
     else
       self.ChallengeScrollView:InitList(list)
+    end
+    self.ExclusiveMarkBtn:InitGridView(list)
+    if #list > 0 then
+      self.SeasonalSystemBtn_1:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     end
     self:ShowHeTerOnuClearStarChain()
     self.ChallengeScrollView:ScrollToStart()
@@ -264,7 +275,7 @@ function UMG_ChallengeSubPanel_C:GetLegendaryTicketList(list)
   local costItemId1 = _G.DataConfigManager:GetLegendaryGlobalConfig("beast_challenge_ticket_id").num
   for _, v in pairs(list or {}) do
     if v and v.content_cfg_id then
-      local costItemId, _ = _G.NRCModuleManager:DoCmd(_G.LegendaryBattleModuleCmd.GetLegendaryTicketIDAndNum, v.content_cfg_id)
+      local costItemId, _ = _G.NRCModuleManager:DoCmd(_G.LegendaryBattleModuleCmd.GetLegendaryTicketIDAndNum, v.content_cfg_id, true)
       if costItemId1 ~= costItemId then
         table.insertUnique(ticketList, costItemId)
       end
@@ -323,6 +334,7 @@ function UMG_ChallengeSubPanel_C:UpdateFlowerView(UpdateTime)
     self.FlowerSeedChallengeScrollView:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.ChallengeScrollView:SetVisibility(UE4.ESlateVisibility.Visible)
   end
+  self.SeasonalSystemBtn_1:SetVisibility(UE4.ESlateVisibility.Collapsed)
   if self.data.XiShouRemainTime and self.data.XiShouRemainTime > 0 then
     local refreshTime = self.data.XiShouRemainTime - _G.ZoneServer:GetServerTime() / 1000
     local day = math.floor(refreshTime / 86400)
@@ -457,28 +469,8 @@ function UMG_ChallengeSubPanel_C:ShowHeTerOnuClearStarChain()
       moneyType = _G.Enum.VisualItem.VI_STAR,
       sum = StaminaProportionB,
       IsShowBuyIcon = true
-    },
-    {
-      moneyType = costItemId1,
-      sum = starNum1,
-      IsShowBuyIcon = true
     }
   }
-  for _, v in pairs(ticketList or {}) do
-    local itemNum = NRCModuleManager:DoCmd(BagModuleCmd.GetBagItemByID, v)
-    if itemNum and itemNum.num then
-      itemNum = itemNum.num
-    else
-      itemNum = 0
-    end
-    local temp = {
-      moneyType = v,
-      sum = itemNum,
-      IsShowBuyIcon = true,
-      bLegendary = true
-    }
-    table.insert(MoneyList, temp)
-  end
   self.MoneyBtn:InitGridView(MoneyList)
 end
 
@@ -526,6 +518,10 @@ end
 function UMG_ChallengeSubPanel_C:OnRemoveEventListener()
   self.IsAddButtonListener = false
   self:RemoveButtonListener(self.Button_Detail.btnLevelUp)
+  self:RemoveButtonListener(self.SeasonalSystemBtn.btnLevelUp)
+  _G.NRCEventCenter:UnRegisterEvent(self, PVEModuleEvent.TalentNodeUnlockCntChange, self.OnTalentNodeUnlockCntChange)
+  _G.NRCEventCenter:UnRegisterEvent(self, SeasonIntegrationModuleEvent.OnSeasonInfoChange, self.OnSeasonInfoChange)
+  _G.NRCEventCenter:UnRegisterEvent(self, SeasonIntegrationModuleEvent.OnMagicManualMainPanelTouchEnded, self.OnMagicManualMainPanelTouchEnded)
 end
 
 function UMG_ChallengeSubPanel_C:OnClickRefreshFlowerTips()
@@ -547,6 +543,80 @@ function UMG_ChallengeSubPanel_C:OnAddEventListener()
   end
   self.IsAddButtonListener = true
   self:AddButtonListener(self.Button_Detail.btnLevelUp, self.OnClickRefreshFlowerTips)
+  self:AddButtonListener(self.SeasonalSystemBtn.btnLevelUp, self.OnClickSeasonalSystemBtn)
+  self:AddButtonListener(self.SeasonalSystemBtn_1.btnLevelUp, self.OnClickSeasonalSystemBtn_1)
+  _G.NRCEventCenter:RegisterEvent("UMG_ChallengeSubPanel_C", self, PVEModuleEvent.TalentNodeUnlockCntChange, self.OnTalentNodeUnlockCntChange)
+  _G.NRCEventCenter:RegisterEvent("UMG_ChallengeSubPanel_C", self, SeasonIntegrationModuleEvent.OnSeasonInfoChange, self.OnSeasonInfoChange)
+  _G.NRCEventCenter:RegisterEvent("UMG_ChallengeSubPanel_C", self, MagicManualModuleEvent.OnMagicManualMainPanelTouchEnded, self.OnMagicManualMainPanelTouchEnded)
+end
+
+function UMG_ChallengeSubPanel_C:InitSeasonTalentWidgets()
+  local seasonInfo = _G.NRCModuleManager:DoCmd(_G.SeasonIntegrationModuleCmd.GetSeasonInfo)
+  if not seasonInfo then
+    self.SeasonTalentRoot:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    return
+  end
+  local isCurSeasonOpenTalent = _G.NRCModuleManager:DoCmd(_G.PVEModuleCmd.IsCurSeasonOpenTalent)
+  if not isCurSeasonOpenTalent then
+    self.SeasonTalentRoot:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    return
+  end
+  _G.ZoneServer:Send(ProtoCMD.ZoneSvrCmd.ZONE_GET_SEASON_TALENT_POINT_REQ, {})
+  self.SeasonTalentRoot:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  self:UpdateSeasonalSystemText()
+end
+
+function UMG_ChallengeSubPanel_C:OnClickSeasonalSystemBtn()
+  _G.NRCAudioManager:PlaySound2DAuto(41401003, "UMG_ChallengeSubPanel_C:OnClickSeasonalSystemBtn")
+  _G.NRCModuleManager:DoCmd(_G.PVEModuleCmd.OpenPveTalentPanel)
+end
+
+function UMG_ChallengeSubPanel_C:OnTalentNodeUnlockCntChange(unlockCnt, totalCnt)
+  self:UpdateSeasonalSystemText(unlockCnt, totalCnt)
+end
+
+function UMG_ChallengeSubPanel_C:OnSeasonInfoChange()
+  self:InitSeasonTalentWidgets()
+end
+
+function UMG_ChallengeSubPanel_C:UpdateSeasonalSystemText(unlockCnt, totalCnt)
+  if not unlockCnt or not totalCnt then
+    unlockCnt, totalCnt = _G.NRCModuleManager:DoCmd(_G.PVEModuleCmd.GetTalentUnlockNodeNum)
+  end
+  local text = string.format("%d/%d", unlockCnt or 0, totalCnt or 0)
+  self.SeasonalSystemText:SetText(text)
+end
+
+function UMG_ChallengeSubPanel_C:OnClickSeasonalSystemBtn_1()
+  local bShow = self.ExclusiveMarkList:GetVisibility() == UE4.ESlateVisibility.Collapsed and true or false
+  self:SetExclusiveMarkingListShow(bShow)
+end
+
+function UMG_ChallengeSubPanel_C:OnTouchEnded(_MyGeometry, _InTouchEvent)
+  self:SetExclusiveMarkingListShow(false)
+  return UE4.UWidgetBlueprintLibrary.Unhandled()
+end
+
+function UMG_ChallengeSubPanel_C:OnMagicManualMainPanelTouchEnded()
+  self:SetExclusiveMarkingListShow(false)
+end
+
+function UMG_ChallengeSubPanel_C:SetExclusiveMarkingListShow(bShow)
+  if not self or not UE4.UObject.IsValid(self) then
+    return
+  end
+  local bCurShow = self.ExclusiveMarkList:GetVisibility() == UE4.ESlateVisibility.SelfHitTestInvisible and true or false
+  if bCurShow == bShow then
+    return
+  end
+  self:StopAllAnimations()
+  if bShow then
+    self:PlayAnimation(self.Pop_In)
+    self.ExclusiveMarkList:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  else
+    self:PlayAnimation(self.Pop_Out)
+    self.ExclusiveMarkList:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  end
 end
 
 return UMG_ChallengeSubPanel_C

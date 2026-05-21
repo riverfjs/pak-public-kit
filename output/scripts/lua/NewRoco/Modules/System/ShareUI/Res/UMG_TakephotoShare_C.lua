@@ -40,6 +40,12 @@ function UMG_TakephotoShare_C:UpdateTransform()
 end
 
 function UMG_TakephotoShare_C:OnDeactive()
+  if self.data and self.data.photoData then
+    local PhotoTexture = self.data.photoData.PhotoTexture
+    if PhotoTexture and UE.UObject.IsValid(PhotoTexture) then
+      UnLua.Unref(PhotoTexture)
+    end
+  end
   self.data = nil
   _G.UpdateManager:UnRegister(self)
 end
@@ -96,7 +102,25 @@ function UMG_TakephotoShare_C:RefreshAvatar()
     end
     self.PhotoSub.Text_Name:SetText(PlayerInfo.name)
     self.PhotoSub.Text_WaterMark:SetText(string.format("UID:%s", PlayerInfo.uin))
+    local CustomData = self.data.photoData.CustomData
+    if CustomData then
+      self.PhotoSub.Text_Name:SetText(CustomData.PlayerName)
+      self.PhotoSub.VerticalBox_0:SetVisibility(UE.ESlateVisibility.SelfHitTestInvisible)
+      self.PhotoSub.ActivityName:SetText(CustomData.ActivityName or "")
+      local Number = string.format("%02d", (CustomData.PhaseNumber or 0) % 10)
+      self.PhotoSub.IssueNumber:SetText(string.format(LuaText.pic_game_count, Number))
+      self.PhotoSub.Topic:SetText(CustomData.PhaseName or "")
+      local bEnableSelfInfo = CustomData.PhotoUin == PlayerInfo.uin
+      if not bEnableSelfInfo then
+        self.PhotoSub.Text_WaterMark:SetVisibility(UE.ESlateVisibility.Collapsed)
+      else
+        self.PhotoSub.Text_WaterMark:SetVisibility(UE.ESlateVisibility.SelfHitTestInvisible)
+      end
+    else
+      self.PhotoSub.VerticalBox_0:SetVisibility(UE.ESlateVisibility.Collapsed)
+    end
   else
+    self.PhotoSub.VerticalBox_0:SetVisibility(UE.ESlateVisibility.Collapsed)
     self.PhotoSub.Text_WaterMark:SetVisibility(UE.ESlateVisibility.Collapsed)
     self.PhotoSub.HeadPortrait:SetVisibility(UE.ESlateVisibility.Collapsed)
     self.PhotoSub.Text_Name:SetVisibility(UE.ESlateVisibility.Collapsed)
@@ -106,7 +130,46 @@ function UMG_TakephotoShare_C:RefreshAvatar()
 end
 
 function UMG_TakephotoShare_C:GetPhotoTexture()
-  return self.data.photoData:GetPhotoTexture2D()
+  local PhotoTexture = self.data.photoData.PhotoTexture
+  if PhotoTexture and UE.UObject.IsValid(PhotoTexture) then
+    return PhotoTexture
+  end
+  local PhotoPath = self.data.photoData.PhotoPath
+  if PhotoPath then
+    local Md5 = UE.UNRCStatics.HashFileMD5(PhotoPath)
+    local DesiredMd5 = self.data.photoData.Md5
+    if DesiredMd5 and Md5 ~= DesiredMd5 then
+      Log.Error("Invalid Md5")
+      return nil
+    end
+    PhotoTexture = UE.UKismetRenderingLibrary.ImportFileAsTexture2D(UE4Helper.GetCurrentWorld(), PhotoPath)
+    if PhotoTexture then
+      self.data.photoData.PhotoTextureRef = UnLua.Ref(PhotoTexture)
+    end
+  end
+  return PhotoTexture
+end
+
+function UMG_TakephotoShare_C:ShowPlayerInfoPanel(isShow)
+  if isShow then
+    local bEnableWaterMask = self.data.photoData.bWaterMaskEnabled
+    if bEnableWaterMask then
+      self.PhotoSub.Text_Name:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+      self.PhotoSub.HeadPortrait:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+      self.PhotoSub.Text_WaterMark:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+      self.PhotoSub.BG:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    else
+      self.PhotoSub.Text_Name:SetVisibility(UE4.ESlateVisibility.Collapsed)
+      self.PhotoSub.HeadPortrait:SetVisibility(UE4.ESlateVisibility.Collapsed)
+      self.PhotoSub.Text_WaterMark:SetVisibility(UE4.ESlateVisibility.Collapsed)
+      self.PhotoSub.BG:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    end
+  else
+    self.PhotoSub.Text_Name:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.PhotoSub.HeadPortrait:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.PhotoSub.Text_WaterMark:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.PhotoSub.BG:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  end
 end
 
 return UMG_TakephotoShare_C

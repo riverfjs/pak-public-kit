@@ -13,6 +13,7 @@ local BattleConst = require("NewRoco.Modules.Core.Battle.Common.BattleConst")
 local NPCLuaUtils = require("NewRoco.Modules.Core.NPC.NPCLuaUtils")
 local PetMutationUtils = require("NewRoco.Utils.PetMutationUtils")
 local PetUIModule = NRCModuleBase:Extend("PetUIModule")
+local DUPLICATE_PAK_SENDING_LIMIT_TIME = 5
 
 function PetUIModule:OnConstruct()
   _G.PetUIModuleCmd = require("NewRoco.Modules.System.PetUI.PetUIModuleCmd")
@@ -176,6 +177,8 @@ function PetUIModule:OnActive()
   self:RegisterCmd(PetUIModuleCmd.OpenEggIncubatePanel, self.OnCmdOpenEggIncubatePanel)
   self:RegisterCmd(PetUIModuleCmd.UpdateEggIncubatePanel, self.OnCmdUpdateEggIncubatePanel)
   self:RegisterCmd(PetUIModuleCmd.CloseEggIncubatePanel, self.OnCmdCloseEggIncubatePanel)
+  self:RegisterCmd(PetUIModuleCmd.OpenPetHatchOnlyPanel, self.OnCmdOpenPetHatchOnlyPanel)
+  self:RegisterCmd(PetUIModuleCmd.ClosePetHatchOnlyPanel, self.OnCmdClosePetHatchOnlyPanel)
   self:RegisterCmd(PetUIModuleCmd.GetEggFinshOpenAttribute, self.OnCmdGetEggFinshOpenAttribute)
   self:RegisterCmd(PetUIModuleCmd.SetEggFinshOpenAttribute, self.OnCmdSetEggFinshOpenAttribute)
   self:RegisterCmd(PetUIModuleCmd.GetEggSpeedActiveOpenState, self.OnCmdGetEggSpeedActiveOpenState)
@@ -201,6 +204,7 @@ function PetUIModule:OnActive()
   self:RegisterCmd(PetUIModuleCmd.UpdateHatchingRightPanel, self.OnCmdUpdateHatchingRightPanel)
   self:RegisterCmd(PetUIModuleCmd.GetHatchingRightPanelDisplayMode, self.OnCmdGetHatchingRightPanelDisplayMode)
   self:RegisterCmd(PetUIModuleCmd.OpenColorfulMatchingTips, self.OnCmdOpenColorfulMatchingTips)
+  self:RegisterCmd(PetUIModuleCmd.UpdateHatchingRightPanelCommonAddSubtractPanel, self.OnCmdUpdateHatchingRightPanelCommonAddSubtractPanel)
   self:RegisterCmd(PetUIModuleCmd.SetPetVisualParam, self.OnCmdSetPetVisualParam)
   self:RegisterCmd(PetUIModuleCmd.GetPetVisualParam, self.OnCmdGetPetVisualParam)
   self:RegisterCmd(PetUIModuleCmd.SetPetModelScaleAndOffset, self.OnSetPetModelScaleAndOffset)
@@ -265,7 +269,6 @@ function PetUIModule:OnActive()
   self:RegisterCmd(PetUIModuleCmd.SelectMedalItem, self.OnCmdSelectMedalItem)
   self:RegisterCmd(PetUIModuleCmd.MedalOperation, self.OnCmdMedalOperation)
   self:RegisterCmd(PetUIModuleCmd.OpenTipsIndividualValu, self.OnCmdOpenTipsIndividualValu)
-  self:RegisterCmd(PetUIModuleCmd.OpenSharePanel, self.OnCmdOpenSharePanel)
   self:RegisterCmd(PetUIModuleCmd.ResetPetRightPanelShareComboBox, self.OnCmdResetPetRightPanelShareComboBox)
   self:RegisterCmd(PetUIModuleCmd.ResetCanListenShareType, self.OnCmdResetCanListenShareType)
   self:RegisterCmd(PetUIModuleCmd.OpenShareCameraPanel, self.OnCmdOpenShareCameraPanel)
@@ -274,7 +277,6 @@ function PetUIModule:OnActive()
   self:RegisterCmd(PetUIModuleCmd.PlayShareVideoG6, self.OnCmdPlayShareVideoG6)
   self:RegisterCmd(PetUIModuleCmd.PlayShareCameraPanelCloseAnim, self.OnCmdPlayShareCameraPanelCloseAnim)
   self:RegisterCmd(PetUIModuleCmd.PlayShareVideoEnablePetMain, self.OnCmdPlayShareVideoEnablePetMain)
-  self:RegisterCmd(PetUIModuleCmd.DownloadSharePet, self.OnCmdDownloadSharePet)
   self:RegisterCmd(PetUIModuleCmd.ShowRightPanelShareBtn, self.OnCmdShowRightPanelShareBtn)
   self:RegisterCmd(PetUIModuleCmd.SetPetMainPanelVisibility, self.OnCmdSetPetMainPanelVisibility)
   self:RegisterCmd(PetUIModuleCmd.SetPetMainShareBtnVisibility, self.OnCmdSetPetMainShareBtnVisibility)
@@ -283,7 +285,6 @@ function PetUIModule:OnActive()
   self:RegisterCmd(PetUIModuleCmd.CloseShareOverlayPanel, self.OnCmdCloseShareOverlayPanel)
   self:RegisterCmd(PetUIModuleCmd.GetCanSharePet, self.OnCmdGetCanSharePet)
   self:RegisterCmd(PetUIModuleCmd.CloseShareSelectBox, self.OnCmdCloseShareSelectBox)
-  self:RegisterCmd(PetUIModuleCmd.CloseSharePanel, self.OnCmdCloseSharePanel)
   self:RegisterCmd(PetUIModuleCmd.IsShareRecordVideo, self.OnCmdIsShareRecordVideo)
   self:RegisterCmd(PetUIModuleCmd.SetIsShareRecordVideo, self.OnCmdSetIsShareRecordVideo)
   self:RegisterCmd(PetUIModuleCmd.OpenDazzlingTipsPanel, self.OnCmdOpenDazzlingTipsPanel)
@@ -339,6 +340,8 @@ function PetUIModule:OnActive()
   self:RegisterCmd(PetUIModuleCmd.GetItemDosageBySynthesis, self.OnCmdGetItemDosageBySynthesis)
   self:RegisterCmd(PetUIModuleCmd.OpenAllDetailedMask, self.OnCmdOpenAllDetailedMask)
   self:RegisterCmd(PetUIModuleCmd.CloseAllDetailedTips, self.OnCmdCloseAllDetailedTips)
+  self:RegisterCmd(PetUIModuleCmd.OpenAICoachRecommendTeamPanel, self.CmdOpenAICoachRecommendPanel)
+  self:RegisterCmd(PetUIModuleCmd.OnZoneSaveRecommendPetTeamReq, self.OnZoneSaveRecommendPetTeamReq)
   self:RegisterCmd(PetUIModuleCmd.OnSubmitPet, self.OnCmdOnSubmitPet)
   self:RegisterCmd(PetUIModuleCmd.StartShowPetReportTips, self.OnCmdStartShowPetReportTips)
   self:RegisterCmd(PetUIModuleCmd.OnFinishPetReportReq, self.OnCmdOnFinishPetReportReq)
@@ -346,7 +349,6 @@ function PetUIModule:OnActive()
   self:RegisterCmd(PetUIModuleCmd.OpenPetReportParticulars, self.OnCmdOpenPetReportParticulars)
   self:RegisterCmd(PetUIModuleCmd.ClosePetReportReminder, self.OnCmdClosePetReportReminder)
   self:RegisterCmd(PetUIModuleCmd.OpenPetReportShare, self.OnCmdOpenPetReportShare)
-  self:RegisterCmd(PetUIModuleCmd.OnPetReportShare, self.OnCmdPetReportShare)
   self:RegisterCmd(PetUIModuleCmd.SetPetReportPanelVisibility, self.OnCmdSetPetReportPanelVisibility)
   self:RegisterCmd(PetUIModuleCmd.IsInteger, self.OnCmdIsInteger)
   self:RegisterCmd(PetUIModuleCmd.GMSetPetUIScaleAndOffsetAndImageRevert, self.OnCmdGMSetPetUIScaleAndOffsetAndImageRevert)
@@ -370,6 +372,7 @@ function PetUIModule:OnActive()
   self:RegisterCmd(PetUIModuleCmd.GetPetCurEquipSkillType, self.OnCmdGetPetCurEquipSkillType)
   self:RegisterCmd(PetUIModuleCmd.AutoCheckEnvironmentEquipPetSkill, self.OnCmdAutoCheckEnvironmentEquipPetSkill)
   self:RegisterCmd(PetUIModuleCmd.PetRightPanelIsOpen, self.OnCmdPetRightPanelIsOpen)
+  self:RegisterCmd(PetUIModuleCmd.GetLevelSkillConfByPetBaseId, self.OnCmdGetLevelSkillConfByPetBaseId)
   self:RegisterCmd(PetUIModuleCmd.GetPetHatchingEnableState, self.GetPetHatchingEnableState)
   self:RegisterCmd(PetUIModuleCmd.GetPetInfoMainEnableState, self.GetPetInfoMainEnableState)
   self:RegisterCmd(PetUIModuleCmd.SetFriendInfoToPetMain, self.SetFriendInfoToPetMain)
@@ -382,6 +385,7 @@ function PetUIModule:OnActive()
   self:RegisterCmd(PetUIModuleCmd.SendPetToFriend, self.OnCmdSendPetToFriend)
   self:RegisterCmd(PetUIModuleCmd.SetCanShowSendBtn, self.OnCmdSetCanShowSendBtn)
   self:RegisterCmd(PetUIModuleCmd.GetCanShowSendBtn, self.OnCmdGetCanShowSendBtn)
+  self:RegisterCmd(PetUIModuleCmd.SetPanelFullScreenMaskShow, self.OnCmdSetPanelFullScreenMaskShow)
   self:RegisterCmd(PetUIModuleCmd.IsPetInCurrentWeek, self.OnCmdIsPetInCurrentWeek)
   self:RegisterCmd(PetUIModuleCmd.IsPetCaughtToday, self.OnCmdIsPetCaughtToday)
   self:RegisterCmd(PetUIModuleCmd.OpenPetEvoOnlyPanel, self.OpenPetEvoOnlyPanel)
@@ -391,6 +395,9 @@ function PetUIModule:OnActive()
   self:RegisterCmd(PetUIModuleCmd.CmdGetBalancedPetDataForPvp, self.OnCmdGetBalancedPetDataForPvp)
   self:RegisterCmd(PetUIModuleCmd.CmdInvalidateBalancedPetDataForPvp, self.OnCmdInvalidateBalancedPetDataForPvp)
   self:RegisterCmd(PetUIModuleCmd.CmdQueryBalancedPetDataForPvp, self.OnCmdQueryBalancedPetDataForPvp)
+  self:RegisterCmd(PetUIModuleCmd.OpenPetTraceBackPopup, self.OpenPetTraceBackPopup)
+  self:RegisterCmd(PetUIModuleCmd.ClosePetTraceBackPopup, self.ClosePetTraceBackPopup)
+  self:RegisterCmd(PetUIModuleCmd.SendPetTraceBackReq, self.OnCmdSendPetTraceBackReq)
   self:RegisterCmd(PetUIModuleCmd.OpenNewPetBagPanel, self.OpenNewPetBagPanel)
   self:RegisterCmd(PetUIModuleCmd.OpenLeaderItemPanel, self.OnCmdOpenLeaderItemPanel)
   self:RegisterCmd(PetUIModuleCmd.SelectLeaderItem, self.OnCmdSelectLeaderItem)
@@ -415,7 +422,17 @@ function PetUIModule:OnActive()
   self:RegisterCmd(PetUIModuleCmd.CheckPetIsInFilterList, self.OnCmdCheckPetIsInFilterList)
   self:RegisterCmd(PetUIModuleCmd.ReturnToPetMainPanel, self.ReturnToPetMainPanel)
   self:RegisterCmd(PetUIModuleCmd.RealOpenNewPetBagBoxPanel, self.OnCmdRealOpenNewPetBagBoxPanel)
+  self:RegisterCmd(PetUIModuleCmd.OpenPurchaseBoxPanel, self.OnCmdOpenPurchaseBoxPanel)
+  self:RegisterCmd(PetUIModuleCmd.GetUnlockBoxRuleGroupList, self.OnCmdGetUnlockBoxRuleGroupList)
+  self:RegisterCmd(PetUIModuleCmd.SelectUnlockBoxItem, self.OnCmdSelectUnlockBoxItem)
+  self:RegisterCmd(PetUIModuleCmd.OpenPetBoxPanelFromBag, self.OnCmdOpenPetBoxPanelFromBag)
+  self:RegisterCmd(PetUIModuleCmd.SetPetBoxPanelOpenState, self.OnCmdSetPetBoxPanelOpenState)
+  self:RegisterCmd(PetUIModuleCmd.GetPetBoxPanelOpenState, self.OnCmdGetPetBoxPanelOpenState)
   self:RegisterCmd(PetUIModuleCmd.ShowSubmitFinishTips, self.OnCmdShowSubmitFinishTips)
+  self:RegisterCmd(PetUIModuleCmd.CheckHasPetByPetBaseId, self.OnCmdCheckHasPetByPetBaseId)
+  self:RegisterCmd(PetUIModuleCmd.SetPetMainPanelPetImage3DActive, self.OnCmdSetPetMainPanelPetImage3DActive)
+  self:RegisterCmd(PetUIModuleCmd.CheckIsOpenEvoPanel, self.OnCmdCheckIsOpenEvoPanel)
+  self:RegisterCmd(PetUIModuleCmd.OpenBoxOrganizationFethod, self.OnCmdOpenBoxOrganizationFethod)
   _G.ZoneServer:AddProtocolListener(self, ProtoCMD.ZoneSvrCmd.ZONE_PLAYER_IN_CHANGE_PET_ZONE_NOTIFY, self.OnZonePlayerInChangePetZoneNotify)
   _G.ZoneServer:AddProtocolListener(self, ProtoCMD.ZoneSvrCmd.ZONE_PLAYER_LEAVE_CHANGE_PET_ZONE_NOTIFY, self.OnZonePlayerLeaveChangePetZoneNotify)
   self:RegPanel("PetInfoMain", "UMG_PetInfoMain", _G.Enum.UILayerType.UI_LAYER_FULLSCREEN, nil, nil, nil, nil, true)
@@ -453,6 +470,8 @@ function PetUIModule:OnActive()
   self:RegPanel("ExChangeGrowUp", "Backpack/UMG_ExChangeGrowUpItemPanel", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, "New_in", "New_out", true)
   self:RegPanel("PetLevelUp", "UMG_PetLevelUp", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, "New_in", "New_out")
   self:RegPanel("LineupShareAlchemy", "UMG_Lineup_ShareAlchemy", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, "open", "close", true)
+  self:RegCommonPanel("AICoachRecommendTeam", "/Game/NewRoco/Modules/System/PetUI/Res/PetTeam/UMG_FriendTeam_AICoach1", _G.Enum.UILayerType.UI_LAYER_POPUP)
+  self:RegCommonPanel("AICoachRecommendTeam2", "/Game/NewRoco/Modules/System/PetUI/Res/PetTeam/UMG_FriendTeam_AICoach2", _G.Enum.UILayerType.UI_LAYER_POPUP)
   self:RegCommonPanel("PetHatchingReview", "/Game/NewRoco/Modules/System/Activity/Res/UMG_HatchingReview.UMG_HatchingReview", _G.Enum.UILayerType.UI_LAYER_POPUP, true)
   self:RegCommonPanel("Battle_ChangePetConfirm", "/Game/NewRoco/Modules/System/Common/Res/UMG_Battle_ChangePetConfirm_2", _G.Enum.UILayerType.UI_LAYER_POPUP, true)
   self:RegPanel("BagSkillTipsTop", "UMG_BagSkillMain_Tips", _G.Enum.UILayerType.UI_LAYER_TOP, nil, nil, nil, nil, true)
@@ -472,7 +491,6 @@ function PetUIModule:OnActive()
   self:RegPanel("MedalWonPanel", "UMG_MedalWonPanel", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, nil, nil, true)
   self:RegPanel("TalentRestore_Popup", "UMG_TalentRestore_Popup", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, nil, nil, true)
   self:RegPanel("TipsIndividualValu", "Backpack/UMG_Tips_IndividualValue", _G.Enum.UILayerType.UI_LAYER_TOP, nil, nil, nil, nil, true)
-  self:RegPanel("SharePanel", "UMG_SharePanel", _G.Enum.UILayerType.UI_LAYER_POPUP)
   self:RegPanel("PetDazzlingTips", "UMG_Pet_DazzlingTips", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, nil, nil, true)
   self:RegPanel("PetDifferentColorsTips", "UMG_Pet_DifferentColorsTips", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, nil, nil, true)
   self:RegPanel("ShareCameraPanel", "UMG_Share_CameraLens", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, "Open", nil, true)
@@ -480,7 +498,7 @@ function PetUIModule:OnActive()
   self:RegPanel("ShareOverlay", "UMG_ShareOverlay", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil)
   self:RegPanel("ShareTeam", "PetTeam/UMG_Lineup_Share", _G.Enum.UILayerType.UI_LAYER_FULLSCREEN, nil, nil, "In", "Out", true)
   self:RegPanel("ChooseAlternative", "PetTeam/UMG_ChooseAlternative", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil)
-  self:RegPanel("PetReleaseTips", "Backpack/UMG_ReleaseTips", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil)
+  self:RegPanel("PetReleaseTips", "Backpack/UMG_ReleaseTips", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, nil, nil, true)
   self:RegPanel("AdjustTeam", "PetTeam/UMG_LineupAdjustment", _G.Enum.UILayerType.UI_LAYER_FULLSCREEN, nil, nil, "In", "Out", true)
   self:RegPanel("FriendPetTeamPanel", "PetTeam/UMG_FriendTeamPanel", _G.Enum.UILayerType.UI_LAYER_FULLSCREEN, nil, nil, "In", "Out", true)
   self:RegPanel("FriendPetTeamDetailPanel", "PetTeam/UMG_FriendTeam_LineupDetails", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, nil, nil, true)
@@ -505,6 +523,7 @@ function PetUIModule:OnActive()
   self:RegPanel("GiftFromColleagues", "UMG_GiftFromColleagues", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, nil, nil, true)
   self:RegPanel("PetEvoResult", "UMG_PetEvolution_Result", _G.Enum.UILayerType.UI_LAYER_POPUP)
   self:RegPanel("PetEvoOnly", "UMG_PetImage3D_EvoOnly", _G.Enum.UILayerType.UI_LAYER_FULLSCREEN, nil, nil, nil, nil, true)
+  self:RegPanel("PetHatchOnly", "UMG_PetImage3D_HatchOnly", _G.Enum.UILayerType.UI_LAYER_FULLSCREEN, nil, nil, nil, nil, true)
   self:RegPanel("TrialPVPPet", "PetTeam/UMG_Pet_TeamReplace_PVP", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, "In", "Out", true)
   self:RegPanel("LeaderItemPanel", "LeaderItem/UMG_LeaderItemPanel", _G.Enum.UILayerType.UI_LAYER_FULLSCREEN, nil, nil, "In", "Out", true)
   self:RegPanel("PetLeader_Attribute", "LeaderItem/UMG_PetLeader_Attribute", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, "In", "Out", true)
@@ -513,6 +532,9 @@ function PetUIModule:OnActive()
   self:RegPanel("NewPetBagWarehouseScreening", "PetBag/UMG_PetWarehouseScreening", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, "In", "Out", true)
   self:RegPanel("NewPetBagScreenSearch", "PetBag/UMG_Search", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, nil, nil, true)
   self:RegPanel("NetPetBagMarkWarehouse", "PetBag/UMG_MarkingBox", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, nil, nil, true)
+  self:RegPanel("PetTraceBackPopup", "UMG_TimeRewindPopup", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, nil, nil, true)
+  self:RegPanel("PurchaseBox", "PetBag/UMG_PurchaseBox", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, nil, nil, true)
+  self:RegPanel("BoxOrganizationFethod", "PetBag/UMG_BoxOrganizationFethod", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, nil, nil, true)
   self:PetSkillInit()
   _G.DataModelMgr.PlayerDataModel:AddEventListener(self, ENUM_PLAYER_DATA_EVENT.UPDATE_DATA, self.OnPlayerDataUpdate)
   self.hideEquipProssession = false
@@ -559,6 +581,14 @@ function PetUIModule:InitEggTypeConfigMap()
   end
 end
 
+function PetUIModule:CmdOpenAICoachRecommendPanel(acivityid, data1, data2)
+  if data2 then
+    self:OpenPanel("AICoachRecommendTeam2", acivityid, data1, data2)
+  else
+    self:OpenPanel("AICoachRecommendTeam", acivityid, data1)
+  end
+end
+
 function PetUIModule:OnCmdGetEggIsCanGiveAwayByEggType(PreciousEggType)
   if self.EggTypeConfigMap == nil then
     self:InitEggTypeConfigMap()
@@ -584,8 +614,8 @@ function PetUIModule:OnBagChange()
   self:DispatchEvent(PetUIModuleEvent.BagItemChange)
 end
 
-function PetUIModule:CmdOpenPetReleaseTips(PetData, teamInfo, ParamCall, IsOpenInFreePanel, FreeReasonType)
-  self:OpenPanel("PetReleaseTips", PetData, teamInfo, ParamCall, IsOpenInFreePanel, FreeReasonType)
+function PetUIModule:CmdOpenPetReleaseTips(PetData, teamInfo, ParamCall, IsOpenInFreePanel, FreeReasonType, ReleaseTipsOpenType)
+  self:OpenPanel("PetReleaseTips", PetData, teamInfo, ParamCall, IsOpenInFreePanel, FreeReasonType, ReleaseTipsOpenType)
 end
 
 function PetUIModule:CmdOpenLineupShareAlchemy(data)
@@ -644,6 +674,15 @@ end
 
 function PetUIModule:OnReLoginUpdatePet()
   self:UpdateCachePetBelongBoxMap()
+  if self:HasPanel("PetInfoMain") then
+    local petInfoMain = self:GetPanel("PetInfoMain")
+    if petInfoMain then
+      local petLeftPanel = petInfoMain.petLeftPanel
+      if petLeftPanel then
+        petLeftPanel:UpdatePetBagBtnState()
+      end
+    end
+  end
 end
 
 function PetUIModule:ChangeScene()
@@ -741,6 +780,7 @@ function PetUIModule:OnCmdOpenPetMainPanel(_param, IsPvPToPetTeam, petData, bSho
   table.insert(resListData.PreparingResList, "SkillBlueprint'/Game/NewRoco/Modules/System/PetUI/Raw/G6/G6_ClosePetBag_UI.G6_ClosePetBag_UI_C'")
   table.insert(resListData.PreparingResList, "SkillBlueprint'/Game/NewRoco/Modules/System/PetUI/Raw/G6/G6_OpenDetailsPetBag_UI.G6_OpenDetailsPetBag_UI_C'")
   table.insert(resListData.PreparingResList, "SkillBlueprint'/Game/NewRoco/Modules/System/PetUI/Raw/G6/G6_CloseDetailsPetBag_UI.G6_CloseDetailsPetBag_UI_C'")
+  _G.DataModelMgr.PlayerDataModel:TryGetPetInfo()
   local base_conf_id, baseConf
   if self.data.OpenPanelPetData then
     base_conf_id = self.data.OpenPanelPetData.base_conf_id
@@ -821,6 +861,7 @@ function PetUIModule:OnCmdOpenPetMainPanel(_param, IsPvPToPetTeam, petData, bSho
     resListData.path = Path
     resListData.path_1 = Path_1
   end
+  self.PanelStateMap = nil
   self.IsFirstLoadBg = true
   if _param and _param.Callback and _param.Caller then
     self:OpenPanel("PetInfoMain", {
@@ -830,7 +871,7 @@ function PetUIModule:OnCmdOpenPetMainPanel(_param, IsPvPToPetTeam, petData, bSho
       caller = _param.Caller,
       ModuleName = "PetInfoMain"
     }, IsPvPToPetTeam, resListData, bShowSendMark, panelDynamicData)
-  elseif _param and (_param.bHideSkill ~= nil or nil ~= _param.bUseOpenPetData) then
+  elseif _param and (nil ~= _param.bHideSkill or nil ~= _param.bUseOpenPetData) then
     self:OpenPanel("PetInfoMain", {
       subPanelIndex = 4,
       baseConf = baseConf,
@@ -889,12 +930,12 @@ function PetUIModule:OnMirrorFriendPetTeamsInfoRsp(_rsp)
   self:OnChangePetTeamsInfo(_rsp)
 end
 
-function PetUIModule:CmdOpenFriendMirrorPetTeamCoverPanel(TeamType, MirrorTeamIndex, MirrorFromUin, pet_infos)
+function PetUIModule:CmdOpenFriendMirrorPetTeamCoverPanel(TeamType, MirrorTeamIndex, MirrorFromUin, PetTeam)
   if TeamType == _G.Enum.PlayerTeamType.PTT_PVP_BATTLE_RAND then
     return
   end
   self:DisablePanel("FriendPetTeamDetailPanel")
-  self:OpenPanel("FriendPetTeamMirrorImportPanel", TeamType, MirrorTeamIndex, MirrorFromUin, pet_infos)
+  self:OpenPanel("FriendPetTeamMirrorImportPanel", TeamType, MirrorTeamIndex, MirrorFromUin, PetTeam)
 end
 
 function PetUIModule:EnablePanelPetMain()
@@ -1019,7 +1060,9 @@ end
 
 function PetUIModule:OnCmdShowPetWarehouseTips(petData, index)
   local panel = self:GetPanel("PetWarehousePanelMain")
-  panel:OnScrollPetItemSelected(petData, index, true)
+  if panel then
+    panel:OnScrollPetItemSelected(petData, index, true)
+  end
 end
 
 function PetUIModule:CmdCanSelectWareHouseItem()
@@ -1489,6 +1532,7 @@ end
 function PetUIModule:ZoneRenameRsp(rsp)
   if 0 == rsp.ret_info.ret_code then
     self:DispatchEvent(PetUIModuleEvent.PetRename, rsp)
+    self:CheckRenameEasterEgg(rsp)
   elseif rsp.ret_info.ret_code == ProtoEnum.MOBA_RET.TssJudgeErr.ERR_JUDGE_MSG_ERROR then
     _G.NRCModeManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.umg_rename_2)
   elseif rsp.ret_info.ret_code == _G.ProtoEnum.MOBA_RET.ZoneErr.ERR_ZONE_COMMON_BANNED and rsp.ban_info then
@@ -1503,6 +1547,18 @@ function PetUIModule:ZoneRenameRsp(rsp)
   end
 end
 
+function PetUIModule:CheckRenameEasterEgg(rsp)
+  if rsp and rsp.ret_info and rsp.ret_info.goods_change_info and rsp.ret_info.goods_change_info.changes and rsp.ret_info.goods_change_info.changes[1] and rsp.ret_info.goods_change_info.changes[1].pet_data then
+    local PetData = rsp.ret_info.goods_change_info.changes[1].pet_data
+    local PetConfId = PetData.conf_id
+    local PetConf = _G.DataConfigManager:GetPetConf(PetConfId)
+    if PetConf and PetConf.need_name and PetConf.need_name ~= "" and PetData.name == PetConf.need_name then
+      local PetUISkillPath = PetConf.pet_interface_anim
+      _G.NRCEventCenter:DispatchEvent(PetUIModuleEvent.OnPlayPetSkill, PetUISkillPath)
+    end
+  end
+end
+
 function PetUIModule:OnCmdOpenRechristen_1Panel()
   self:OpenPanel("Tips")
 end
@@ -1512,11 +1568,33 @@ function PetUIModule:OnCmdPetUpgradePopout(before_Param, _Param, _petInfoMainCtr
 end
 
 function PetUIModule:OnCmdOpenPetFreePanel(_Param)
-  self:OpenPanel("PetFreeCaptiveAnimals", _Param)
+  local bIncludeCanTraceBackPet = false
+  for _, petData in pairs(_Param or {}) do
+    if PetUtils.CheckPetIsCanTraceBack(petData, true, false, true) then
+      bIncludeCanTraceBackPet = true
+      break
+    end
+  end
+  if bIncludeCanTraceBackPet then
+    self:OnCmdSendQueryBacktrackPetRewardReq(_Param)
+  else
+    self:OpenPanel("PetFreeCaptiveAnimals", _Param)
+  end
 end
 
 function PetUIModule:OnCmdOpenBackpackPetFreePanel(_Param)
-  self:OpenPanel("PetFreeCaptive", _Param)
+  local bIncludeCanTraceBackPet = false
+  for _, petData in pairs(_Param or {}) do
+    if PetUtils.CheckPetIsCanTraceBack(petData, true, false, true) then
+      bIncludeCanTraceBackPet = true
+      break
+    end
+  end
+  if bIncludeCanTraceBackPet then
+    self:OnCmdSendQueryBacktrackPetRewardReq(_Param)
+  else
+    self:OpenPanel("PetFreeCaptive", _Param)
+  end
 end
 
 function PetUIModule:OnCmdOpenPetHavingFitTogether(_Param)
@@ -1957,6 +2035,11 @@ function PetUIModule:OnChangePetTeamsInfo(_rsp, CallEvent)
 end
 
 function PetUIModule:OnCmdChangePetMainTeam(_main_team_idx, team_type)
+  local teamInfo = _G.DataModelMgr.PlayerDataModel:GetPlayerPetTeamInfo()
+  if team_type and team_type == _G.ProtoEnum.PlayerTeamType.PTT_BIG_WORLD and (_main_team_idx < 0 or teamInfo.teams and _main_team_idx > #teamInfo.teams - 1) then
+    Log.Error("PetUIModule:OnCmdChangePetMainTeam _main_team_idx error , Please Check teamIndex", _main_team_idx)
+    return
+  end
   local req = _G.ProtoMessage:newZonePetChangeMainTeamReq()
   req.main_team_idx = _main_team_idx
   req.team_type = _G.ProtoEnum.PlayerTeamType.PTT_BIG_WORLD
@@ -2063,6 +2146,80 @@ function PetUIModule:OnCmdPetBreakeThrough(_Param)
   self:OpenPanel("PetGrowUpPanel", _Param, PetUIModuleEnum.PetGrowUpType.WaitToBreakThrough, nil, self.PetBeForePropertyInfo, self.oldPetData, self.Property)
 end
 
+function PetUIModule:OnCmdSendPetTraceBackReq(pet_gid, bOnlyCheck)
+  Log.Debug("PetUIModule:OnCmdSendPetTraceBackRsq, pet_gid=[", pet_gid, "], bOnlyCheck=[", bOnlyCheck, "]")
+  local PetData = _G.DataModelMgr.PlayerDataModel:GetPetDataByGid(pet_gid)
+  if PetData and PetUtils.CheckPetIsCanTraceBack(PetData, false, false, true) then
+    local req = _G.ProtoMessage:newZoneBacktrackPetReq()
+    req.pet_gid = pet_gid
+    req.is_for_check = bOnlyCheck
+    _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_BACKTRACK_PET_REQ, req, self, self.OnPetTraceBackRsp)
+  end
+end
+
+function PetUIModule:OnPetTraceBackRsp(rsp)
+  Log.DebugFormat("PetUIModule:OnPetTraceBackRsp")
+  Log.Dump(rsp, 6, "ZONE_BACKTRACK_PET_RSQ")
+  if 0 ~= rsp.ret_info_ret_code then
+    if rsp.is_for_check then
+      self:UpdatePetTraceBackPopup(rsp.pet_gid, rsp.show_info, rsp.reward_list)
+    else
+      self:ClosePetTraceBackPopup()
+      if #rsp.ret_info.goods_reward.rewards > 0 then
+        local CommonPopupData = {
+          Call = self,
+          ClosePanelHandler = function()
+            local retVal
+            if rsp.ret_info.goods_change_info and rsp.ret_info.goods_change_info.changes then
+              retVal = rsp.ret_info.goods_change_info.changes
+            end
+            self:DispatchEvent(PetUIModuleEvent.PET_TRACEBACK_SUCCESS_REWARD_POPUP_CLOSE, retVal, rsp.pet_gid)
+          end
+        }
+        _G.NRCModuleManager:DoCmd(NPCShopUIModuleCmd.OpenNPCShopItemRewardsPanel, rsp.ret_info.goods_reward.rewards, LuaText.get_reward_tips_title, nil, nil, nil, nil, nil, CommonPopupData)
+      end
+    end
+  else
+    self:ClosePetTraceBackPopup()
+    Log.Error("PetUIModule:OnPetTraceBackRsp failed")
+  end
+end
+
+function PetUIModule:OnCmdSendQueryBacktrackPetRewardReq(petDataList)
+  Log.Debug("PetUIModule:OnCmdSendQueryBacktrackPetRewardReq")
+  local GIDs = {}
+  for k, v in pairs(petDataList or {}) do
+    if v then
+      table.insert(GIDs, v.gid)
+    end
+  end
+  if 0 ~= #GIDs then
+    local req = _G.ProtoMessage:newZoneQueryBacktrackPetRewardReq()
+    req.pet_gid = GIDs
+    _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_QUERY_BACKTRACK_PET_REWARD_REQ, req, self, self.OnQueryBacktrackPetRewardRsp)
+  end
+end
+
+function PetUIModule:OnQueryBacktrackPetRewardRsp(rsp)
+  Log.Debug("PetUIModule:OnQueryBacktrackPetRewardRsp")
+  if 0 == rsp.ret_info.ret_code and rsp.pet_gid and #rsp.pet_gid > 0 then
+    local PetDataList = {}
+    for k, gid in pairs(rsp.pet_gid) do
+      if gid then
+        local PetData = _G.DataModelMgr.PlayerDataModel:GetPetDataByGid(gid)
+        if PetData then
+          table.insert(PetDataList, PetData)
+        end
+      end
+    end
+    if 1 == #rsp.pet_gid then
+      self:OpenPanel("PetFreeCaptive", PetDataList, PetUIModuleEnum.PetFreeCaptivePanelStateType.IncludeCanTraceBackPet, rsp.reward_list)
+    else
+      self:OpenPanel("PetFreeCaptiveAnimals", PetDataList, PetUIModuleEnum.PetFreeCaptivePanelStateType.IncludeCanTraceBackPet, rsp.reward_list)
+    end
+  end
+end
+
 function PetUIModule:OnPetSort(index, OpenType)
   if OpenType == PetUIModuleEnum.OpenSortType.WareHouse then
     self:DispatchEvent(PetUIModuleEvent.PET_UI_SORT, index)
@@ -2071,6 +2228,8 @@ function PetUIModule:OnPetSort(index, OpenType)
   elseif OpenType == PetUIModuleEnum.OpenSortType.WareHouseFree then
     self:DispatchEvent(PetUIModuleEvent.PET_UI_FREE_SORT, index)
   elseif OpenType == PetUIModuleEnum.OpenSortType.WeeklyChallengeBattle then
+    _G.NRCEventCenter:DispatchEvent(PetUIModuleEvent.PET_UI_SORT, index)
+  elseif OpenType == PetUIModuleEnum.OpenSortType.BattleRogue then
     _G.NRCEventCenter:DispatchEvent(PetUIModuleEvent.PET_UI_SORT, index)
   end
 end
@@ -2219,6 +2378,7 @@ function PetUIModule:OnCmdCloseCommonTips()
 end
 
 function PetUIModule:OnCmdSendFangShengPet(_petgid)
+  Log.Debug("PetUIModule:OnCmdSendFangShengPet")
   local req = _G.ProtoMessage:newZonePetFreeReq()
   for i, petinfo in ipairs(_petgid) do
     table.insert(req.pet_gid, petinfo)
@@ -2227,6 +2387,7 @@ function PetUIModule:OnCmdSendFangShengPet(_petgid)
 end
 
 function PetUIModule:OnFangShengPetCallback(rsp)
+  Log.Debug("PetUIModule:OnFangShengPetCallback")
   if 0 ~= rsp.ret_info.ret_code then
     self:ShowProtocolErrorTips(rsp)
     Log.Debug("\232\174\190\231\189\174\229\174\160\231\137\169\228\184\138\233\152\181\229\164\177\232\180\165 \233\148\153\232\175\175\231\160\129\239\188\154" .. tostring(rsp.ret_info.ret_code))
@@ -2306,6 +2467,15 @@ function PetUIModule:OnCmdGetCanShowSendBtn()
     end
   end
   return true
+end
+
+function PetUIModule:OnCmdSetPanelFullScreenMaskShow(panelName, bShow)
+  if self:HasPanel(panelName) then
+    local panel = self:GetPanel(panelName)
+    if panel and panel.SetFullScreenMaskShow then
+      panel:SetFullScreenMaskShow(bShow)
+    end
+  end
 end
 
 function PetUIModule:ZoneTogetherCatchPetForGiftingRsp(rsp)
@@ -2561,12 +2731,12 @@ function PetUIModule:PetSkillInit()
   self.data:ClearPetBaseConf()
 end
 
-function PetUIModule:OnPlayerDataUpdate()
+function PetUIModule:OnPlayerDataUpdate(UpdateGoodType, PetDataChangeItemList)
   self.data:CachePetBaseConf()
   self.data:ClearPetBaseConf()
   self.data:ClearBalancedPetDataForPvp()
-  self:DispatchEvent(PetUIModuleEvent.PlayerDataUpdate)
-  _G.NRCEventCenter:DispatchEvent(PetUIModuleEvent.PlayerDataUpdate)
+  self:DispatchEvent(PetUIModuleEvent.PlayerDataUpdate, UpdateGoodType, PetDataChangeItemList)
+  _G.NRCEventCenter:DispatchEvent(PetUIModuleEvent.PlayerDataUpdate, UpdateGoodType, PetDataChangeItemList)
 end
 
 function PetUIModule:GetSkillNew(gid, skillid)
@@ -2752,6 +2922,15 @@ function PetUIModule:OnCmdZoneCrackEggReq(gid, ballGid, ballItemId, selectGlassC
     _G.NRCModeManager:DoCmd(PetUIModuleCmd.SetPetItemClickAble, "PetHatchingPanel", true)
     return
   end
+  if nil == gid then
+    Log.Error("PetUIModule:OnCmdZoneCrackEggReq gid is nil")
+    return
+  end
+  local EggBagItem = _G.NRCModeManager:DoCmd(_G.BagModuleCmd.GetBagItemByGid, gid)
+  if nil == EggBagItem then
+    Log.Debug("PetUIModule:OnCmdZoneCrackEggReq EggBagItem is nil")
+    return
+  end
   local req = _G.ProtoMessage:newZoneCrackEggReq()
   req.egg_gid = gid
   req.select_ball_gid = ballGid
@@ -2759,7 +2938,7 @@ function PetUIModule:OnCmdZoneCrackEggReq(gid, ballGid, ballItemId, selectGlassC
   req.select_glass_particle = selectGlassParticleConfId
   self.crackEggGid = gid
   self.eggBallItemId = ballItemId
-  self.lastClickCrackTime = os.time()
+  self.lastClickCrackTime = _G.UpdateManager.Timestamp
   _G.NRCModeManager:DoCmd(PetUIModuleCmd.SetPetItemClickAble, "PetHatchingPanel", false)
   self.isCrackEggIng = _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_CRACK_EGG_REQ, req, self, self.OnZoneCrackEggRsp)
 end
@@ -2834,6 +3013,14 @@ function PetUIModule:OnCmdCloseEggIncubatePanel()
   self:OnCmdOpenPetHatchingPanel()
 end
 
+function PetUIModule:OnCmdOpenPetHatchOnlyPanel(hatchEggData)
+  self:OpenPanel("PetHatchOnly", hatchEggData)
+end
+
+function PetUIModule:OnCmdClosePetHatchOnlyPanel()
+  self:ClosePanel("PetHatchOnly")
+end
+
 function PetUIModule:OnCmdCanNotContinueGrow()
   self:DispatchEvent(PetUIModuleEvent.PET_UI_SECONDPANEL_CLOSE)
 end
@@ -2877,11 +3064,11 @@ function PetUIModule:OnCmdOpenHatchingRightPanel(rightPanelDisplayMode, data, eg
   self:OpenPanel("HatchingRightPanel", rightPanelDisplayMode, data, egg_id)
 end
 
-function PetUIModule:OnCmdCloseHatchingRightPanel()
+function PetUIModule:OnCmdCloseHatchingRightPanel(CloseReasonType)
   if self:HasPanel("HatchingRightPanel") then
     local panel = self:GetPanel("HatchingRightPanel")
     if panel then
-      panel:ClosePanel()
+      panel:ClosePanel(CloseReasonType)
     end
   end
 end
@@ -2907,6 +3094,15 @@ function PetUIModule:OnCmdGetHatchingRightPanelDisplayMode()
     end
   end
   return PetUIModuleEnum.PetHatchingRightPanelDisplayMode.None
+end
+
+function PetUIModule:OnCmdUpdateHatchingRightPanelCommonAddSubtractPanel(UpdateReasonType)
+  if self:HasPanel("HatchingRightPanel") then
+    local panel = self:GetPanel("HatchingRightPanel")
+    if panel then
+      panel:UpdateCommonAddSubtractPanel(UpdateReasonType)
+    end
+  end
 end
 
 function PetUIModule:OnCmdOpenPetHatchingPanel(arg, isUpdateData)
@@ -3277,7 +3473,11 @@ function PetUIModule:FoldOrOpenRightPanel()
 end
 
 function PetUIModule:SetCurrPetData(petData)
-  self.data.PetData = petData
+  if petData then
+    self.data.PetGid = petData.gid
+  else
+    self.data.PetGid = nil
+  end
 end
 
 function PetUIModule:SetRightPanelMarkBtnVisible(Visible)
@@ -3301,7 +3501,11 @@ function PetUIModule:GetPetBagPanelIsChangeState()
 end
 
 function PetUIModule:GetCurrPetData()
-  return self.data.PetData
+  if self.data.PetGid then
+    return _G.DataModelMgr.PlayerDataModel:GetPetDataByGid(self.data.PetGid)
+  else
+    return nil
+  end
 end
 
 function PetUIModule:OpenPetBagPanel(...)
@@ -3516,7 +3720,7 @@ function PetUIModule:IsPetHatchingPanel()
 end
 
 function PetUIModule:OpenPetTips(_PetData)
-  local petData = self.data.PetData
+  local petData = self:GetCurrPetData()
   if _PetData then
     petData = _PetData
   end
@@ -3524,7 +3728,7 @@ function PetUIModule:OpenPetTips(_PetData)
 end
 
 function PetUIModule:OpenDBlockerTips(openType, _PetData)
-  local PetData = self.data.PetData
+  local PetData = self:GetCurrPetData()
   if _PetData then
     PetData = _PetData
   end
@@ -3536,7 +3740,7 @@ function PetUIModule:CloseDBlockerTips()
 end
 
 function PetUIModule:OnCmdOpenPetRateTip(_PetData, opentype, ...)
-  local PetData = self.data.PetData
+  local PetData = self:GetCurrPetData()
   if _PetData then
     PetData = _PetData
   end
@@ -3544,7 +3748,8 @@ function PetUIModule:OnCmdOpenPetRateTip(_PetData, opentype, ...)
 end
 
 function PetUIModule:OpenPetBloodPulse(PetData, OpenType)
-  _G.NRCModeManager:DoCmd(PetUIModuleCmd.OpenPetBloodPulse, PetData or self.data.PetData, OpenType)
+  local curPetData = self:GetCurrPetData()
+  _G.NRCModeManager:DoCmd(PetUIModuleCmd.OpenPetBloodPulse, PetData or curPetData, OpenType)
 end
 
 function PetUIModule:CmdOpenPetFreeMainPanel(Action)
@@ -3782,6 +3987,7 @@ function PetUIModule:OnUpdatePetCollectTagRsp(Rsp)
     _G.NRCModuleManager:DoCmd(PetUIModuleCmd.AttributePanelRefresh)
     self:DispatchEvent(PetUIModuleEvent.UpdatePetCollect, self.partner_mark)
     _G.NRCModuleManager:DoCmd(_G.WeeklyChallengeBattleModuleCmd.UpdatePetCollect, self.partner_mark)
+    _G.NRCModuleManager:DoCmd(_G.BattleRogueModuleCmd.UpdatePetCollect, self.partner_mark)
     _G.NRCModuleManager:DoCmd(LegendaryBattleModuleCmd.OnUpdatePetCollectTagRsp, self.partner_mark)
     _G.NRCModuleManager:DoCmd(BattleUIModuleCmd.OnUpdatePetCollectTagRsp, self.partner_mark)
     _G.NRCModuleManager:DoCmd(_G.HomeModuleCmd.OnCmdUpdatePetCollect, self.partner_mark)
@@ -3841,10 +4047,6 @@ function PetUIModule:OnPetMedalCommonRsp(_rsp)
   end
 end
 
-function PetUIModule:OnCmdOpenSharePanel(index, petData)
-  self:OpenPanel("SharePanel", index, petData)
-end
-
 function PetUIModule:OnCmdResetPetRightPanelShareComboBox()
   if self:HasPanel("PetRightPanel") then
     local panel = self:GetPanel("PetRightPanel")
@@ -3867,7 +4069,10 @@ function PetUIModule:OnCmdOpenShareCameraPanel(petData, openCb, closeCb)
     panel:DealVideoShareData()
     mainCamera = panel.petMiddlePanel.petImage3D.PetWorldView:getActorByName("MainCamera")
   end
-  local petGid = petData.gid
+  local petGid = 0
+  if petData and petData.gid then
+    petGid = petData.gid
+  end
   local shareData = {
     camera = mainCamera,
     gid = petGid,
@@ -3920,7 +4125,7 @@ function PetUIModule:OnCmdPlayShareVideoEnablePetMain(enable)
         local panel = self:GetPanel("PetInfoMain")
         if self.PetInfoMainVisibleTable then
           for _, v in ipairs(self.PetInfoMainVisibleTable) do
-            panel[v]:SetVisibility(UE4.ESlateVisibility.Visible)
+            panel[v.panelName]:SetVisibility(v.visible)
           end
         end
         self.PetInfoMainVisibleTable = {}
@@ -3946,20 +4151,25 @@ function PetUIModule:OnCmdPlayShareVideoEnablePetMain(enable)
       local panel = self:GetPanel("PetInfoMain")
       self.PetInfoMainVisibleTable = {}
       if self:CheckVideoShareMainPetPanelUIIsVisible(panel.UMG_btnClose) then
-        panel.UMG_btnClose:SetVisibility(UE4.ESlateVisibility.Hidden)
-        table.insert(self.PetInfoMainVisibleTable, "UMG_btnClose")
+        panel:ShowOrHideCloseBtn(false)
+        table.insert(self.PetInfoMainVisibleTable, {
+          panelName = "UMG_btnClose",
+          visible = UE4.ESlateVisibility.Visible
+        })
       end
       if self:CheckVideoShareMainPetPanelUIIsVisible(panel.ShareBtn) then
         panel.ShareBtn:SetVisibility(UE4.ESlateVisibility.Hidden)
-        table.insert(self.PetInfoMainVisibleTable, "ShareBtn")
-      end
-      if self:CheckVideoShareMainPetPanelUIIsVisible(panel.ViewingBtn) then
-        panel.ViewingBtn:SetVisibility(UE4.ESlateVisibility.Hidden)
-        table.insert(self.PetInfoMainVisibleTable, "ViewingBtn")
+        table.insert(self.PetInfoMainVisibleTable, {
+          panelName = "ShareBtn",
+          visible = UE4.ESlateVisibility.Visible
+        })
       end
       if self:CheckVideoShareMainPetPanelUIIsVisible(panel.petLeftPanel) then
         panel.petLeftPanel:SetVisibility(UE4.ESlateVisibility.Hidden)
-        table.insert(self.PetInfoMainVisibleTable, "petLeftPanel")
+        table.insert(self.PetInfoMainVisibleTable, {
+          panelName = "petLeftPanel",
+          visible = UE4.ESlateVisibility.SelfHitTestInvisible
+        })
       end
       self:DispatchEvent(PetUIModuleEvent.ShowHideGiftColleaguesBtn, false)
     end
@@ -3972,21 +4182,6 @@ function PetUIModule:OnCmdPlayShareVideoEnablePetMain(enable)
       panel:SetVisibility(UE4.ESlateVisibility.Hidden)
     end
     self:DispatchEvent(PetUIModuleEvent.ShowHideRecommendedBtn, false)
-  end
-end
-
-function PetUIModule:OnCmdDownloadSharePet(way)
-  if self:HasPanel("SharePanel") then
-    local panel = self:GetPanel("SharePanel")
-    local petGid = self.data.PetData.gid
-    panel:DownloadSharePet(way, petGid)
-  end
-end
-
-function PetUIModule:OnCmdPetReportShare(way, pet_gid)
-  if self:HasPanel("PetReportShare") then
-    local panel = self:GetPanel("PetReportShare")
-    panel:SharePetPhoto(way, pet_gid)
   end
 end
 
@@ -4031,6 +4226,7 @@ function PetUIModule:OnCmdVideoShareResetPetMainPet3D()
 end
 
 function PetUIModule:OnCmdOpenShareOverlayPanel(data)
+  self:ResetPetMainCameraPos()
   self:OpenPanel("ShareOverlay", data)
 end
 
@@ -4077,13 +4273,6 @@ function PetUIModule:OnCmdCloseShareSelectBox()
   if self:HasPanel("PetInfoMain") then
     local panel = self:GetPanel("PetInfoMain")
     panel:ResetShareComboBox()
-  end
-end
-
-function PetUIModule:OnCmdCloseSharePanel()
-  if self:HasPanel("SharePanel") then
-    local panel = self:GetPanel("SharePanel")
-    panel:OnClickCloseBtn()
   end
 end
 
@@ -4164,8 +4353,17 @@ function PetUIModule:OpenShareTeamPanel(teamType, teamIndex)
   end
   local sharePetTeam = ProtoMessage:newSharedPetTeamInfo()
   sharePetTeam.team_type = teamType
-  local DebugData = {"\233\152\159\228\188\141"}
-  sharePetTeam.team_name = teamInfo.teams[teamIndex + 1].team_name or DebugData[1] .. teamIndex + 1
+  local DebugData = {
+    "\233\152\159\228\188\141",
+    "\229\164\167\228\184\150\231\149\140\229\176\143\233\152\159"
+  }
+  if teamInfo.teams[teamIndex + 1].team_name then
+    sharePetTeam.team_name = teamInfo.teams[teamIndex + 1].team_name
+  elseif teamType == ProtoEnum.PlayerTeamType.PTT_BIG_WORLD then
+    sharePetTeam.team_name = DebugData[2] .. teamIndex + 1
+  else
+    sharePetTeam.team_name = DebugData[1] .. teamIndex + 1
+  end
   local role_magic_gid = teamInfo.teams[teamIndex + 1].role_magic_gid
   local role_magic_id
   if role_magic_gid then
@@ -4423,7 +4621,14 @@ function PetUIModule:OnSendFinish(rsp)
 end
 
 function PetUIModule:OpenAdjustTeamPanel(...)
-  self:OpenPanel("AdjustTeam", ...)
+  if self:HasPanel("AdjustTeam") then
+    local panel = self:GetPanel("AdjustTeam")
+    if panel then
+      panel:RefreshPanel(...)
+    end
+  else
+    self:OpenPanel("AdjustTeam", ...)
+  end
   local req_unlock = _G.ProtoMessage:newZoneGetUnlockedExchangeReq()
   _G.ZoneServer:SendWithHandler(_G.ProtoEnum.ZoneSvrCmd.ZONE_GET_UNLOCKED_EXCHANGE_REQ, req_unlock, self, self.OnGetUnlockedExchangeRsp, true, true)
 end
@@ -4448,7 +4653,7 @@ function PetUIModule:OpenFriendPetTeamPanel(teamType, activity_id)
     if not self.data:GetRecommendPetTeamList() then
       self:OnZoneRecommendPetTeamGetListReq(activity_id)
     end
-    self:OpenPanel("FriendPetTeamPanel", teamType, true)
+    self:OpenPanel("FriendPetTeamPanel", teamType, true, activity_id)
   else
     self:OnZonePetTeamFriendGetListReq(teamType, 0, "")
     self:OpenPanel("FriendPetTeamPanel", teamType)
@@ -4568,6 +4773,40 @@ function PetUIModule:OnZoneRecommendPetTeamGetListRsp(rsp)
     self:DispatchEvent(PetUIModuleEvent.UpdateFriendPetTeamList)
   else
     Log.Error("OnZoneRecommendPetTeamGetListRsp error: " .. rsp.ret_info.ret_code)
+  end
+end
+
+function PetUIModule:DebugSaveRecommendPetTeamReq()
+  local team = self.data:GetRecommendPetTeamList()
+  local saveTeam = ProtoMessage:newRecommendPetTeamInfo()
+  if team and #team > 0 then
+    saveTeam.pet_team_share_id = nil
+    saveTeam.player_name = team[1].player_name
+    saveTeam.player_headpic = team[1].player_headpic
+    saveTeam.pet_level = team[1].pet_level
+    saveTeam.team_name = team[1].team_name
+    saveTeam.team_id = team[1].team_id
+    local code = self:RemoveCodeAnnotation(team[1].pet_team_share_id)
+    local pet_team_info = self:DecodeShareData(code)
+    pet_team_info.team_type = _G.Enum.PlayerTeamType.PTT_PVP_BATTLE_4
+    saveTeam.pet_team_info = pet_team_info
+  end
+  self:OnZoneSaveRecommendPetTeamReq(3300001, saveTeam)
+end
+
+function PetUIModule:OnZoneSaveRecommendPetTeamReq(activityid, recommend_pet_team)
+  Log.Dump(recommend_pet_team, 6, "OnZoneSaveRecommendPetTeamReq")
+  local req = _G.ProtoMessage:newZoneActivitySaveRecommendPetTeamReq()
+  req.activity_id = activityid
+  req.recommend_pet_team = recommend_pet_team
+  _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_ACTIVITY_SAVE_RECOMMEND_PET_TEAM_REQ, req, self, self.OnZoneSaveRecommendPetTeamRsp, false, true)
+end
+
+function PetUIModule:OnZoneSaveRecommendPetTeamRsp(rsp, reqData)
+  if 0 == rsp.ret_info.ret_code then
+    self:OnZoneRecommendPetTeamGetListReq(reqData.activity_id)
+  else
+    Log.Error("OnZoneSaveRecommendPetTeamRsp error: " .. rsp.ret_info.ret_code)
   end
 end
 
@@ -5054,9 +5293,17 @@ function PetUIModule:CheckSharedTeamValid(Team, TeamType)
   end
 end
 
+function PetUIModule:OnCmdGetLevelSkillConfByPetBaseId(petBaseId)
+  local petBaseConf = _G.DataConfigManager:GetPetbaseConf(petBaseId)
+  if petBaseConf then
+    return _G.DataConfigManager:GetLevelSkillConf(petBaseConf.level_skill_conf_id)
+  end
+  return nil
+end
+
 function PetUIModule:GetSkillSource(skillId, petBaseId)
   local sourceTypes = {}
-  local levelSkillConf = _G.DataConfigManager:GetLevelSkillConf(petBaseId)
+  local levelSkillConf = _G.NRCModeManager:DoCmd(_G.PetUIModuleCmd.GetLevelSkillConfByPetBaseId, petBaseId)
   if levelSkillConf then
     for i, v in ipairs(levelSkillConf.level) do
       if v.param == skillId then
@@ -5085,7 +5332,7 @@ end
 
 function PetUIModule:GetSkillSourceAndUnlockInfo(skillId, petBaseId, petGid)
   local SkillSourceInfoList = {}
-  local levelSkillConf = _G.DataConfigManager:GetLevelSkillConf(petBaseId)
+  local levelSkillConf = _G.NRCModeManager:DoCmd(_G.PetUIModuleCmd.GetLevelSkillConfByPetBaseId, petBaseId)
   if levelSkillConf then
     for i, v in ipairs(levelSkillConf.level) do
       if v.param == skillId then
@@ -5702,6 +5949,9 @@ function PetUIModule:OnGetPetReportInfosByPageRsp(rsp)
       self:CheckShowPetReportReminder()
     end
   else
+    if rsp.ret_info and 0 ~= rsp.ret_info.ret_code then
+      _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, _G.LuaText:GetErrorDesc(rsp.ret_info.ret_code))
+    end
     self:OnCmdEndPetSubmitAction()
   end
 end
@@ -5782,7 +6032,7 @@ function PetUIModule:OnCmdShowSubmitFinishTips()
   if self.data.PetReportData and self.data.PetReportData[1] then
     local reportPetNum = #self.data.PetReportData
     local firstPet = self.data.PetReportData[1].pet_brief
-    if firstPet and firstPet.name then
+    if firstPet and firstPet.name and reportPetNum then
       local Tips = _G.DataConfigManager:GetLocalizationConf("pet_sent_to_warehouse").msg
       _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, string.format(Tips, firstPet.name, reportPetNum), 0, nil, 3)
     end
@@ -6197,6 +6447,9 @@ function PetUIModule:OnCmdGetPetCurEquipSkillType(petGid, ignoreType)
   if self:GetEnterPetPanelType() == PetUIModuleEnum.EnterType.WeeklyChallengeBattle and (not ignoreType or ignoreType ~= PetUIModuleEnum.PetEquipSkillType.StarlightDuel) then
     return PetUIModuleEnum.PetEquipSkillType.StarlightDuel
   end
+  if self:GetEnterPetPanelType() == PetUIModuleEnum.EnterType.HerbologyBadge and (not ignoreType or ignoreType ~= PetUIModuleEnum.PetEquipSkillType.HerbologyBadge) then
+    return PetUIModuleEnum.PetEquipSkillType.HerbologyBadge
+  end
   if self:GetEnterPetPanelType() == PetUIModuleEnum.EnterType.PvpPetTeamUmg and (not ignoreType or ignoreType ~= PetUIModuleEnum.PetEquipSkillType.PvpTeam) then
     return PetUIModuleEnum.PetEquipSkillType.PvpTeam
   end
@@ -6217,6 +6470,8 @@ function PetUIModule:OnCmdGetPetEquipSkillMap(petGid, dataType, customizationPet
     skillMap = self:GetAssumptionEquipSkill(petGid)
   elseif _dataType == PetUIModuleEnum.PetEquipSkillType.StarlightDuel then
     skillMap = _G.NRCModuleManager:DoCmd(_G.WeeklyChallengeBattleModuleCmd.GetResetSkillByGid, petGid)
+  elseif _dataType == PetUIModuleEnum.PetEquipSkillType.HerbologyBadge then
+    skillMap = _G.NRCModuleManager:DoCmd(_G.BattleRogueModuleCmd.GetHerbologyPetSkillMapByGid, petGid)
   end
   return skillMap or {}, _dataType
 end
@@ -6232,6 +6487,8 @@ function PetUIModule:OnCmdAutoCheckEnvironmentEquipPetSkill(petGid, posToIdDic, 
     _G.NRCEventCenter:DispatchEvent(PetUIModuleEvent.OnEquipAssumptionSkill)
   elseif _customizationEquipType == PetUIModuleEnum.PetEquipSkillType.StarlightDuel then
     _G.NRCModuleManager:DoCmd(_G.WeeklyChallengeBattleModuleCmd.EquipPetSkills, petGid, posToIdDic)
+  elseif _customizationEquipType == PetUIModuleEnum.PetEquipSkillType.HerbologyBadge then
+    _G.NRCModuleManager:DoCmd(_G.BattleRogueModuleCmd.SetHerbologyPetSkill, petGid, posToIdDic)
   end
   return _customizationEquipType
 end
@@ -6514,6 +6771,38 @@ function PetUIModule:OnCmdClosePetLeaderAttribute()
   self:ClosePanel("PetLeader_Attribute")
 end
 
+function PetUIModule:OpenPetTraceBackPopup(petGid)
+  Log.Debug("PetUIModule:OpenPetTraceBackPopup")
+  local petData = _G.DataModelMgr.PlayerDataModel:GetPetDataByGid(petGid)
+  if not petData then
+    return
+  end
+  if PetUtils.CheckPetIsCanTraceBack(petData, false, false, true) then
+    if self:HasPanel("PetTraceBackPopup") then
+      local Panel = self:GetPanel("PetTraceBackPopup")
+      if Panel then
+        Panel:OnActive(petGid)
+        return
+      end
+    end
+    self:OpenPanel("PetTraceBackPopup", petGid)
+  end
+end
+
+function PetUIModule:UpdatePetTraceBackPopup(petGid, traceBackShowInfo, reward_list)
+  if self:HasPanel("PetTraceBackPopup") then
+    local Panel = self:GetPanel("PetTraceBackPopup")
+    if Panel then
+      Panel:ReceiveRspData(petGid, traceBackShowInfo, reward_list)
+      return
+    end
+  end
+end
+
+function PetUIModule:ClosePetTraceBackPopup()
+  self:ClosePanel("PetTraceBackPopup")
+end
+
 function PetUIModule:OpenNewPetBagPanel()
   self:OpenPanel("NewPetBag")
 end
@@ -6592,6 +6881,71 @@ function PetUIModule:OpenNetPetBagMarkWarehousePanel(box_data)
   self:OpenPanel("NetPetBagMarkWarehouse", box_data)
 end
 
+function PetUIModule:OnCmdOpenPurchaseBoxPanel(data)
+  self:OpenPanel("PurchaseBox", data)
+end
+
+function PetUIModule:OnCmdGetUnlockBoxRuleGroupList(box_id)
+  local ruleGroupList = {}
+  local warehouseConf = _G.DataConfigManager:GetPetWarehouseConf(box_id)
+  if warehouseConf then
+    local rules = warehouseConf.unlock_rule
+    for _, rule in pairs(rules or {}) do
+      local checkPass = false
+      if rule.unlockcondition == _G.Enum.WarehouseUnlockCondition.WUC_EXPEND_MONEY then
+        local coinNum = _G.DataModelMgr.PlayerDataModel:GetVItemCount(rule.unlock_id) or 0
+        if coinNum >= rule.value then
+          checkPass = true
+        end
+      elseif rule.unlockcondition == _G.Enum.WarehouseUnlockCondition.WUC_RECORD_PET then
+        local collectedPetsNum = _G.NRCModuleManager:DoCmd(_G.HandbookModuleCmd.GetHandbookCollectedPetsNum)
+        if collectedPetsNum >= rule.value then
+          checkPass = true
+        end
+      elseif rule.unlockcondition == _G.Enum.WarehouseUnlockCondition.WUC_USE_BAGITEM then
+        do
+          local item = _G.NRCModuleManager:DoCmd(_G.BagModuleCmd.GetBagItemByID, rule.unlock_id)
+          if item then
+            local itemNum = item.num or 0
+            if itemNum >= rule.value then
+              checkPass = true
+            end
+          end
+        end
+      end
+      for _, groupId in pairs(rule.group_id) do
+        if not ruleGroupList[groupId] then
+          ruleGroupList[groupId] = {}
+        end
+        local ruleInfo = {rule = rule, checkPass = checkPass}
+        table.insert(ruleGroupList[groupId], ruleInfo)
+      end
+    end
+  end
+  return ruleGroupList
+end
+
+function PetUIModule:OnCmdSelectUnlockBoxItem(_index, uiData)
+  if self:HasPanel("PurchaseBox") then
+    local panel = self:GetPanel("PurchaseBox")
+    panel:SelectUnlockBoxItem(_index, uiData)
+  end
+end
+
+function PetUIModule:OnCmdOpenPetBoxPanelFromBag()
+  _G.NRCModuleManager:DoCmd(PetUIModuleCmd.OpenPanelPetMain, nil, nil, nil, true)
+  _G.NRCModuleManager:DoCmd(PetUIModuleCmd.SetOpenPetBag, true)
+  _G.NRCModuleManager:DoCmd(PetUIModuleCmd.SetPetBoxPanelOpenState, true)
+end
+
+function PetUIModule:OnCmdSetPetBoxPanelOpenState(bOpenState)
+  self.data.bOpenPetBoxPanel = bOpenState
+end
+
+function PetUIModule:OnCmdGetPetBoxPanelOpenState()
+  return self.data.bOpenPetBoxPanel
+end
+
 function PetUIModule:OnCmdZonePetBoxLastOpenBoxReq(box_id)
   local req = _G.ProtoMessage:newZonePetBoxLastOpenBoxReq()
   req.box_id = box_id
@@ -6608,9 +6962,10 @@ function PetUIModule:OnZonePetBoxLastOpenBoxRsp(rsp)
   Log.Debug("\232\174\176\229\189\149\230\136\144\229\138\159")
 end
 
-function PetUIModule:OnCmdZonePetBoxUnlockReq(box_id)
+function PetUIModule:OnCmdZonePetBoxUnlockReq(box_id, unlock_group)
   local req = _G.ProtoMessage:newZonePetBoxUnlockReq()
   req.box_id = box_id
+  req.unlock_group = unlock_group
   _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_PET_BOX_UNLOCK_REQ, req, self, self.OnZonePetBoxUnlockRsp)
 end
 
@@ -6695,11 +7050,12 @@ function PetUIModule:OnZonePetBoxSettingUpRsp(rsp)
   end
 end
 
-function PetUIModule:OnCmdZonePetBoxSetMarkTypeReq(box_id, mark_type, box_name)
+function PetUIModule:OnCmdZonePetBoxSetMarkTypeReq(box_id, mark_type, box_name, lock)
   local req = _G.ProtoMessage:newZonePetBoxSetMarkTypeReq()
   req.box_id = box_id
   req.mark_type = mark_type
   req.box_name = box_name
+  req.lock = lock
   _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_PET_BOX_SET_MARK_TYPE_REQ, req, self, self.OnZonePetBoxSetMarkTypeRsp)
 end
 
@@ -6709,8 +7065,8 @@ function PetUIModule:OnZonePetBoxSetMarkTypeRsp(rsp)
   if 0 ~= retCode then
     Log.Error("PetUIModule:OnZonePetBoxSetMarkTypeRsp", retCode)
   elseif 0 == retCode and rsp.box_id and rsp.mark_type and rsp.box_name then
-    self:UpdateBoxMark(rsp.box_id, rsp.mark_type, rsp.box_name)
-    self:DispatchEvent(PetUIModuleEvent.OnPetBoxMarkChange, rsp.box_id, rsp.mark_type, rsp.box_name)
+    self:UpdateBoxMark(rsp.box_id, rsp.mark_type, rsp.box_name, rsp.lock)
+    self:DispatchEvent(PetUIModuleEvent.OnPetBoxMarkChange, rsp.box_id, rsp.mark_type, rsp.box_name, rsp.lock)
   end
 end
 
@@ -6766,10 +7122,11 @@ function PetUIModule:OnPetBoxMarkTypeUnlockNotify(nty)
   end
 end
 
-function PetUIModule:OnCmdZonePetBoxTidyReq(curBoxIndex)
+function PetUIModule:OnCmdZonePetBoxTidyReq(curBoxIndex, tidyType)
   local req = _G.ProtoMessage:newZonePetBoxTidyReq()
   if req then
     req.last_open_box_id = curBoxIndex
+    req.tidy_rules = {tidyType}
     _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_PET_BOX_TIDY_REQ, req, self, self.OnZonePetBoxTidyRsp)
   end
 end
@@ -6780,6 +7137,10 @@ function PetUIModule:OnZonePetBoxTidyRsp(rsp)
   if 0 ~= retCode then
     Log.Error("PetUIModule:OnZonePetBoxTidyRsp", retCode)
   elseif 0 == retCode then
+    local petInfo = _G.DataModelMgr.PlayerDataModel:GetPlayerPetInfo()
+    if petInfo and petInfo.backpack_info then
+      petInfo.backpack_info.tidy_rules = rsp.tidy_rules
+    end
     _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.warehouse_have_arranged)
     if rsp then
       if rsp.last_open_box_id then
@@ -6896,12 +7257,13 @@ function PetUIModule:SetBoxPets(petChange)
   _G.DataModelMgr.PlayerDataModel:OnUpdateBoxPet(petChange)
 end
 
-function PetUIModule:UpdateBoxMark(box_id, new_mark_type, new_box_name)
+function PetUIModule:UpdateBoxMark(box_id, new_mark_type, new_box_name, new_lock)
   local boxInfos = _G.DataModelMgr.PlayerDataModel:GetPetWarehouseBoxInfos()
   for _, boxInfo in pairs(boxInfos or {}) do
     if boxInfo and boxInfo.box_id == box_id then
       boxInfo.mark_type = new_mark_type
       boxInfo.box_name = new_box_name
+      boxInfo.lock = new_lock
       break
     end
   end
@@ -6917,7 +7279,8 @@ function PetUIModule:InitCachePetBoxFilterData()
       FilterAttributeCondition = {},
       FilterPetMarkCondition = {},
       FilterStrongCondition = {},
-      FilterTimeCondition = {}
+      FilterTimeCondition = {},
+      FilterTraceBackCondition = {}
     },
     RawFilterList = {},
     FinalFilterList = {},
@@ -6960,6 +7323,8 @@ function PetUIModule:IsFilteringCondition(AllCondition)
   elseif Check(AllCondition.FilterStrongCondition) then
     return true
   elseif Check(AllCondition.FilterTimeCondition) then
+    return true
+  elseif Check(AllCondition.FilterTraceBackCondition) then
     return true
   end
   return false
@@ -7015,6 +7380,10 @@ function PetUIModule:UpdateCachePetBoxFilterData(isSendEvent, isProactiveUpdate)
     end
     if PetUtils.isTimestampInToday(allPetDataList[i].add_time) then
       table.insert(filterData.time, _G.Enum.PetCatchTime.PCT_TODAY)
+    end
+    filterData.traceBack = {}
+    if PetUtils.CheckPetIsCanTraceBack(allPetDataList[i], true, true, true) then
+      table.insert(filterData.traceBack, _G.Enum.RollBack.RB_CANROLL)
     end
     allPetDataList[i].filterData = filterData
   end
@@ -7134,6 +7503,7 @@ function PetUIModule:OnCmdFilterPetBoxData(petDatas, filterCondition, isSendEven
   dic.strong = filterCondition.FilterStrongCondition
   dic.depart = filterCondition.FilterDepartCondition
   dic.time = filterCondition.FilterTimeCondition
+  dic.traceBack = filterCondition.FilterTraceBackCondition
   local RawFilterList, FreeButNotFilterList, FreeAndFilterList, NotFreeButFilterList = PetUtils.GeneralMultipleConditionFilter(dic, petDatas)
   PetUtils.SortFilterPetList(FreeButNotFilterList)
   PetUtils.SortFilterPetList(FreeAndFilterList)
@@ -7171,6 +7541,17 @@ function PetUIModule:OnCmdCheckPetIsInFilterList(PetGid)
     return false
   end
   return self.FastLookUpFilterListMap[PetGid] ~= nil
+end
+
+function PetUIModule:ClearChildrenPanelState()
+  if self.PanelStateMap and self.PanelStateMap.Attribute then
+    self.PanelStateMap = {}
+    self.PanelStateMap.Screening = false
+    self.PanelStateMap.Box = false
+    self.PanelStateMap.Attribute = true
+  else
+    self.PanelStateMap = nil
+  end
 end
 
 function PetUIModule:OnSavePetBagChildrenPanelState(panelName, isVisible)
@@ -7216,6 +7597,73 @@ function PetUIModule:CheckVideoShareMainPetPanelUIIsVisible(ui)
     return true
   end
   return false
+end
+
+function PetUIModule:OnCmdCheckHasPetByPetBaseId(petBaseId)
+  if not petBaseId then
+    return false
+  end
+  local battlePetList = _G.DataModelMgr.PlayerDataModel:GetPlayerBattlePetInfo()
+  if battlePetList then
+    for i, data in ipairs(battlePetList) do
+      if petBaseId == data.base_conf_id then
+        return true
+      end
+    end
+  end
+  local backpackPetList = _G.DataModelMgr.PlayerDataModel:GetPlayerBackpackPetInfo()
+  if backpackPetList then
+    for i, data in ipairs(backpackPetList) do
+      if petBaseId == data.base_conf_id then
+        return true
+      end
+    end
+  end
+  local housePetList = _G.DataModelMgr.PlayerDataModel:GetPlayerHousePetInfo()
+  if housePetList then
+    for i, data in ipairs(housePetList) do
+      if petBaseId == data.base_conf_id then
+        return true
+      end
+    end
+  end
+  return false
+end
+
+function PetUIModule:OnCmdSetPetMainPanelPetImage3DActive(enable)
+  if self:HasPanel("PetInfoMain") then
+    local panel = self:GetPanel("PetInfoMain")
+    if panel and panel.petMiddlePanel and panel.petMiddlePanel.petImage3D then
+      if enable then
+        panel.petMiddlePanel.petImage3D:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+      else
+        panel.petMiddlePanel.petImage3D:SetVisibility(UE4.ESlateVisibility.Collapsed)
+      end
+    end
+  end
+end
+
+function PetUIModule:OnCmdCheckIsOpenEvoPanel()
+  if self:HasPanel("PetInfoMain") then
+    local panel = self:GetPanel("PetInfoMain")
+    if panel and panel.petMiddlePanel and panel.petMiddlePanel.petImage3D then
+      return panel.petMiddlePanel.petImage3D.IsOpenEvoPanel
+    end
+  end
+  return false
+end
+
+function PetUIModule:ResetPetMainCameraPos()
+  if self:HasPanel("PetInfoMain") then
+    local panel = self:GetPanel("PetInfoMain")
+    if panel and panel.petMiddlePanel and panel.petMiddlePanel.petImage3D then
+      panel.petMiddlePanel.petImage3D:PlayCloseTwoPanelLevelSequenceForced()
+    end
+  end
+end
+
+function PetUIModule:OnCmdOpenBoxOrganizationFethod(curBoxIndex)
+  self:OpenPanel("BoxOrganizationFethod", curBoxIndex)
 end
 
 return PetUIModule

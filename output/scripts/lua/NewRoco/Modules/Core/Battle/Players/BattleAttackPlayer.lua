@@ -1,256 +1,4711 @@
-local Enum = require("Data.Config.Enum")
-local ProtoEnum = require("Data.PB.ProtoEnum")
-local EventDispatcher = require("Common.EventDispatcher")
-local BattleEnum = require("NewRoco.Modules.Core.Battle.Common.BattleEnum")
-local BattleUtils = require("NewRoco.Modules.Core.Battle.Common.BattleUtils")
-local BattleEvent = require("NewRoco.Modules.Core.Battle.Common.BattleEvent")
-local BattleConst = require("NewRoco.Modules.Core.Battle.Common.BattleConst")
-local CastSkillObject = require("NewRoco.Modules.Core.Battle.BattleCore.Skill.CastSkillObject")
-local BattlePlayerBase = require("NewRoco.Modules.Core.Battle.BattleCore.BattlePlayerBase")
-local BattleUIModuleCmd = require("NewRoco.Modules.System.BattleUI.BattleUIModuleCmd")
-local LineTraceUtils = require("NewRoco.Modules.Core.Battle.Common.LineTraceUtils")
-local ServerData = require("Common.LocalServer.LocalBattleRSPTable")
-local BattlePlayer = require("NewRoco.Modules.Core.Battle.Entity.BattlePlayer")
-local BattleAttackPlayer = BattlePlayerBase:Extend()
+local L0_1, L1_1, L2_1, L3_1, L4_1, L5_1, L6_1, L7_1, L8_1, L9_1, L10_1, L11_1, L12_1, L13_1, L14_1, L15_1, L16_1, L17_1, L18_1, L19_1, L20_1, L21_1, L22_1, L23_1, L24_1, L25_1, L26_1, L27_1, L28_1, L29_1, L30_1, L31_1, L32_1, L33_1, L34_1, L35_1, L36_1, L37_1, L38_1, L39_1, L40_1, L41_1, L42_1, L43_1, L44_1, L45_1, L46_1, L47_1, L48_1, L49_1, L50_1, L51_1, L52_1, L53_1, L54_1, L55_1, L56_1, L57_1, L58_1, L59_1, L60_1, L61_1, L62_1, L63_1, L64_1, L65_1, L66_1, L67_1, L68_1, L69_1, L70_1, L71_1, L72_1, L73_1, L74_1, L75_1, L76_1, L77_1, L78_1, L79_1, L80_1, L81_1, L82_1, L83_1, L84_1, L85_1, L86_1, L87_1, L88_1, L89_1, L90_1, L91_1, L92_1, L93_1, L94_1, L95_1, L96_1, L97_1, L98_1, L99_1, L100_1, L101_1, L102_1, L103_1, L104_1, L105_1, L106_1, L107_1, L108_1, L109_1, L110_1, L111_1, L112_1, L113_1, L114_1, L115_1, L116_1, L117_1, L118_1, L119_1, L120_1, L121_1, L122_1, L123_1, L124_1, L125_1, L126_1, L127_1, L128_1, L129_1, L130_1, L131_1, L132_1, L133_1, L134_1, L135_1, L136_1, L137_1, L138_1, L139_1, L140_1, L141_1, L142_1, L143_1, L144_1, L145_1, L146_1, L147_1, L148_1, L149_1, L150_1, L151_1, L152_1, L153_1, L154_1, L155_1, L156_1, L157_1, L158_1, L159_1, L160_1, L161_1, L162_1, L163_1, L164_1, L165_1, L166_1, L167_1, L168_1, L169_1, L170_1, L171_1, L172_1, L173_1, L174_1, L175_1, L176_1, L177_1, L178_1, L179_1, L180_1, L181_1, L182_1, L183_1, L184_1, L185_1, L186_1, L187_1, L188_1, L189_1, L190_1, L191_1, L192_1, L193_1, L194_1, L195_1, L196_1, L197_1, L198_1, L199_1, L200_1, L201_1, L202_1, L203_1, L204_1, L205_1, L206_1, L207_1, L208_1, L209_1, L210_1, L211_1, L212_1, L213_1, L214_1, L215_1, L216_1, L217_1, L218_1, L219_1, L220_1, L221_1, L222_1, L223_1, L224_1, L225_1, L226_1, L227_1, L228_1, L229_1, L230_1, L231_1, L232_1, L233_1, L234_1, L235_1, L236_1, L237_1, L238_1, L239_1, L240_1, L241_1, L242_1, L243_1, L244_1, L245_1, L246_1, L247_1, L248_1, L249_1, L250_1, L251_1, L252_1, L253_1, L254_1
+L0_1 = require
+L1_1 = "Data.Config.Enum"
+L0_1 = L0_1(L1_1)
+L1_1 = require
+L2_1 = "Data.PB.ProtoEnum"
+L1_1 = L1_1(L2_1)
+L2_1 = require
+L3_1 = "Common.EventDispatcher"
+L2_1 = L2_1(L3_1)
+L3_1 = require
+L4_1 = "NewRoco.Modules.Core.Battle.Common.BattleEnum"
+L3_1 = L3_1(L4_1)
+L4_1 = require
+L5_1 = "NewRoco.Modules.Core.Battle.Common.BattleUtils"
+L4_1 = L4_1(L5_1)
+L5_1 = require
+L6_1 = "NewRoco.Modules.Core.Battle.Common.BattleEvent"
+L5_1 = L5_1(L6_1)
+L6_1 = require
+L7_1 = "NewRoco.Modules.Core.Battle.Common.BattleConst"
+L6_1 = L6_1(L7_1)
+L7_1 = require
+L8_1 = "NewRoco.Modules.Core.Battle.BattleCore.Skill.CastSkillObject"
+L7_1 = L7_1(L8_1)
+L8_1 = require
+L9_1 = "NewRoco.Modules.Core.Battle.BattleCore.BattlePlayerBase"
+L8_1 = L8_1(L9_1)
+L9_1 = require
+L10_1 = "NewRoco.Modules.System.BattleUI.BattleUIModuleCmd"
+L9_1 = L9_1(L10_1)
+L10_1 = require
+L11_1 = "NewRoco.Modules.Core.Battle.Common.LineTraceUtils"
+L10_1 = L10_1(L11_1)
+L11_1 = require
+L12_1 = "Common.LocalServer.LocalBattleRSPTable"
+L11_1 = L11_1(L12_1)
+L12_1 = require
+L13_1 = "NewRoco.Modules.Core.Battle.Entity.BattlePlayer"
+L12_1 = L12_1(L13_1)
+L14_1 = L8_1
+L13_1 = L8_1.Extend
+L13_1 = L13_1(L14_1)
 
-function BattleAttackPlayer:Ctor()
-  BattlePlayerBase.Ctor(self)
-  EventDispatcher():Attach(self)
-  self.BattleManager = _G.BattleManager
-  self.PawnManager = self.BattleManager.battlePawnManager
-  self.BreakFlow = false
-  self.finish_cb = nil
-  self.finish_cb_owner = nil
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = BattlePlayerBase.Ctor
+  L2_2 = A0_2
+  L1_2(L2_2)
+  L1_2 = EventDispatcher
+  L1_2 = L1_2()
+  L2_2 = L1_2
+  L1_2 = L1_2.Attach
+  L3_2 = A0_2
+  L1_2(L2_2, L3_2)
+  L1_2 = _G
+  L1_2 = L1_2.BattleManager
+  A0_2.BattleManager = L1_2
+  L1_2 = A0_2.BattleManager
+  L1_2 = L1_2.battlePawnManager
+  A0_2.PawnManager = L1_2
+  A0_2.BreakFlow = false
 end
 
-function BattleAttackPlayer:OnBattleEvent(eventName, ...)
-  if eventName == BattleEvent.SKillEvent_AllHitEnd then
-    self:ClearDefendShieldLoop()
-    return true
-  elseif eventName == BattleEvent.SKillEvent_BeCounterEnd then
-    self:ClearDefendShieldActor()
-    return true
-  elseif eventName == BattleEvent.SKillEvent_StateEffectEnd then
-    self:ClearDefendShieldEffect()
-    return true
-  elseif eventName == BattleEvent.DefenceOtherStart then
-    local petGuid = (...)
-    self:DefenceOtherStart(petGuid)
-    return true
-  elseif eventName == BattleEvent.DefenceOtherEnd then
-    local petGuid, ChangePetPlayer = ...
-    self:DefenceOtherEnd(petGuid, ChangePetPlayer)
-    return true
-  end
-end
+L13_1.Ctor = L14_1
 
-function BattleAttackPlayer:Reset()
-  self.CompleteCallback = nil
-  self.CompleteCallbackOwner = nil
-  self.SkillConf = nil
-  self.SkillObject = nil
-  self.blackBoard = nil
-  self.type = nil
-  self.IsFinishSKill = false
-  self.movingPlayerCount = 0
-  self.consumedHits = 0
-  self.consumedDamage = 0
-  self.MultiDamageTimes = 0
-  self.willWeakUpNumber = 0
-  self.IsTriggerOnHit = false
-  self.IsTriggerOnCounter = false
-  self.IsTriggerOnInterrupt = false
-  self.IsTriggerOnCounterEnd = false
-  self.BulletTimeId = -1
-  self.MultiAtkBulletTimeId = -1
-  self.multiAttackEnd = false
-  self.IsDelayHidePop = false
-end
-
-function BattleAttackPlayer:Play(performNode)
-  self:Reset()
-  self.performNode = performNode
-  self.performInfo = performNode:GetInfo()
-  self.totalHits = performNode:GetMultiAttackNumber()
-  self.skill_cast = performNode:GetPerformData()
-  self.SkillConf = _G.SkillUtils.GetSkillConf(self.skill_cast.skill_id)
-  self.IgnoreCamera = false
-  self.HideBattleMain = false
-  self.IsPreparePlay = false
-  self.StopBuffOver = false
-  Log.Debug("BattleAttackPlayer:Play caster_id:", self.skill_cast.caster_id, self.skill_cast.skill_id, self, self.totalHits)
-  if self:GetRuntimeData("is_finish") == true then
-    self:OnFinish()
-    return
-  end
-  if BattleManager.isPureLogicMode then
-    self:OnFinish()
-    return
-  end
-  if not self.SkillConf then
-    Log.Debug("\230\136\152\230\150\151\230\138\128\232\131\189\233\133\141\231\189\174\231\188\186\229\164\177\239\188\140\232\175\183\230\163\128\230\159\165\233\133\141\231\189\174\239\188\129\239\188\129\239\188\129\239\188\129 \230\138\128\232\131\189id\228\184\186", self.skill_cast.skill_id)
-    self:OnFinish()
-    return
-  end
-  if self.SkillConf.type == Enum.SkillActiveType.SAT_CHARGE then
-    Log.Debug("\232\147\132\229\138\155\230\138\128\232\131\189\231\172\172\228\184\128\233\152\182\230\174\181\239\188\140\232\183\179\232\191\135\232\161\168\230\188\148", self.skill_cast.skill_id)
-    self:OnFinish()
-    return
-  end
-  _G.BattleEventCenter:Bind(self, BattleEvent.SKillEvent_AllHitEnd, BattleEvent.SKillEvent_BeCounterEnd, BattleEvent.SKillEvent_StateEffectEnd, BattleEvent.DefenceOtherStart, BattleEvent.DefenceOtherEnd)
-  if self.SkillConf.type == Enum.SkillActiveType.SAT_PLAYERSKILL then
-    self.Caster = BattleManager.battlePawnManager:GetPlayerByGuid(self.skill_cast.caster_uin)
-    if not self.Caster then
-      Log.Error("\230\178\161\230\156\137\230\137\190\229\136\176Caster/CasterModel \229\183\178\231\187\143\232\183\179\232\191\135\232\161\168\230\188\148", self.skill_cast.caster_uin)
-      self:OnFinish()
-      return
-    end
-    self.Caster.attackPlayer = self
-    self.CasterPlayer = self.Caster
-    self.CastParam = self:PrepareSkill()
-    self:OnPlayPlayerSkill()
+function L14_1(A0_2, A1_2, ...)
+  local L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L2_2 = BattleEvent.SKillEvent_AllHitEnd
+  if A1_2 == L2_2 then
+    L3_2 = A0_2
+    L2_2 = A0_2.ClearDefendShieldLoop
+    L2_2(L3_2)
+    L2_2 = true
+    return L2_2
   else
-    self.Caster = _G.BattleManager.battlePawnManager:GetPetByGuid(self.skill_cast.caster_id)
-    if not (self.Caster and self.Caster.model) or self.Caster:IsDead() then
-      Log.Error("\230\178\161\230\156\137\230\137\190\229\136\176Caster/CasterModel \229\183\178\231\187\143\232\183\179\232\191\135\232\161\168\230\188\148", self.skill_cast.caster_id)
-      self:OnFinish()
-      return
-    end
-    self.CasterPlayer = self.Caster.player
-    self.Caster.attackPlayer = self
-    self.CastParam = self:PrepareSkill()
-    self.Caster:SwimSetLockIdle(false)
-    if self.CastParam and self.CastParam.TargetPets then
-      local Targets = self.CastParam.TargetPets
-      for _, v in pairs(Targets) do
-        v:SwimSetLockIdle(false)
-        v:SetIKEnable(false)
-      end
-    end
-    if self.CastParam and self.CastParam.ResID:find("Jineng/200001") then
-    elseif not self.Caster.card.petState:GetSleep() then
-      self.Caster:SetIKEnable(false)
-    end
-    if BattleConst.MoveToLegalLocationWhenBlock then
-      self:MoveToValidPos()
+    L2_2 = BattleEvent.SKillEvent_BeCounterEnd
+    if A1_2 == L2_2 then
+      L3_2 = A0_2
+      L2_2 = A0_2.ClearDefendShieldActor
+      L2_2(L3_2)
+      L2_2 = true
+      return L2_2
     else
-      self:CheckCopeSkill()
-    end
-  end
-end
-
-function BattleAttackPlayer:NeedCancelGatherBefore()
-  if not self.Caster.card.petState:GetGather() then
-    return false
-  end
-  if SkillUtils.IsCollectEnergySkill(self.skill_cast.skill_id) then
-    return true
-  end
-  local gatherSkill = self.Caster.card.petInfo.battle_inside_pet_info.charging_skill_id or 0
-  if self.skill_cast.skill_id == gatherSkill then
-    return true
-  end
-  gatherSkill = gatherSkill + 100
-  if self.skill_cast.skill_id == gatherSkill then
-    return true
-  end
-  return false
-end
-
-function BattleAttackPlayer:HandleBuffComplete()
-  if self.StopBuffOver then
-    return
-  end
-  self.StopBuffOver = true
-  self:TryOnPlay()
-end
-
-function BattleAttackPlayer:PreparePlay()
-  if self.IsPreparePlay then
-    return
-  end
-  self.IsPreparePlay = true
-  self:TryOnPlay()
-end
-
-function BattleAttackPlayer:TryOnPlay()
-  if self.StopBuffOver and self.IsPreparePlay then
-    self:OnPlay()
-  end
-end
-
-function BattleAttackPlayer:StopBuffPerform()
-  if self:NeedCancelGatherBefore() then
-    self.Caster.buffComponent:RegisterCompleteCallBack(Enum.BuffGroupSign.BGS_GATHER, self, self.HandleBuffComplete)
-    self.Caster.card.petState:CloseState(Enum.BuffGroupSign.BGS_GATHER)
-    return
-  end
-  self:HandleBuffComplete()
-end
-
-function BattleAttackPlayer:CheckCopeSkill()
-  self:StopBuffPerform()
-  if self:IsCopeSkill() then
-    if self.performNode.performPlayer.turnPlayer.IsMySelfPerform then
-      BattleManager.vBattleField.battleCameraManager:ChangeToPlayerPetByCopeSkill(0, nil, function()
-        self:EnterBulletTime()
-      end)
-    end
-    BattlePiecesManager:Play("NewRoco.Modules.Core.Battle.BattleCore.Pieces.Instances.BattlePieceCounterSkillPrePlay", self.Caster, self.PreparePlay, self)
-    self:ShowPopup()
-  else
-    self:EnterBulletTime()
-    self:ShowPopup()
-    self:PreparePlay()
-  end
-end
-
-function BattleAttackPlayer:ShowPopup()
-  local isPop = false
-  if not self.Caster.card:CheckIsMimic() then
-    local skillConf = _G.SkillUtils.GetSkillConf(self.skill_cast.skill_id)
-    if nil ~= skillConf then
-      if skillConf.type ~= Enum.SkillActiveType.SAT_FEATURE then
-        isPop = true
-      elseif skillConf.skill_feature == Enum.SkillFilterTitleType.SFTT_SPECIAL then
-        isPop = true
+      L2_2 = BattleEvent.SKillEvent_StateEffectEnd
+      if A1_2 == L2_2 then
+        L3_2 = A0_2
+        L2_2 = A0_2.ClearDefendShieldEffect
+        L2_2(L3_2)
+        L2_2 = true
+        return L2_2
       else
-        isPop = false
+        L2_2 = BattleEvent.DefenceOtherStart
+        if A1_2 == L2_2 then
+          L2_2 = (...)
+          L4_2 = A0_2
+          L3_2 = A0_2.DefenceOtherStart
+          L5_2 = L2_2
+          L3_2(L4_2, L5_2)
+          L3_2 = true
+          return L3_2
+        else
+          L2_2 = BattleEvent.DefenceOtherEnd
+          if A1_2 == L2_2 then
+            L2_2, L3_2 = ...
+            L5_2 = A0_2
+            L4_2 = A0_2.DefenceOtherEnd
+            L6_2 = L2_2
+            L7_2 = L3_2
+            L4_2(L5_2, L6_2, L7_2)
+            L4_2 = true
+            return L4_2
+          end
+        end
+      end
+    end
+  end
+end
+
+L13_1.OnBattleEvent = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  A0_2.CompleteCallback = nil
+  A0_2.CompleteCallbackOwner = nil
+  A0_2.SkillConf = nil
+  A0_2.SkillObject = nil
+  A0_2.blackBoard = nil
+  A0_2.type = nil
+  A0_2.IsFinishSKill = false
+  A0_2.movingPlayerCount = 0
+  A0_2.consumedHits = 0
+  A0_2.consumedDamage = 0
+  A0_2.MultiDamageTimes = 0
+  A0_2.willWeakUpNumber = 0
+  A0_2.IsTriggerOnHit = false
+  A0_2.IsTriggerOnCounter = false
+  A0_2.IsTriggerOnInterrupt = false
+  A0_2.IsTriggerOnCounterEnd = false
+  A0_2.BulletTimeId = -1
+  A0_2.MultiAtkBulletTimeId = -1
+  A0_2.multiAttackEnd = false
+  A0_2.IsDelayHidePop = false
+end
+
+L13_1.Reset = L14_1
+
+function L14_1(A0_2, A1_2)
+  local L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L3_2 = A0_2
+  L2_2 = A0_2.Reset
+  L2_2(L3_2)
+  A0_2.performNode = A1_2
+  L3_2 = A1_2
+  L2_2 = A1_2.GetInfo
+  L2_2 = L2_2(L3_2)
+  A0_2.performInfo = L2_2
+  L3_2 = A1_2
+  L2_2 = A1_2.GetMultiAttackNumber
+  L2_2 = L2_2(L3_2)
+  A0_2.totalHits = L2_2
+  L3_2 = A1_2
+  L2_2 = A1_2.GetPerformData
+  L2_2 = L2_2(L3_2)
+  A0_2.skill_cast = L2_2
+  L2_2 = _G
+  L2_2 = L2_2.SkillUtils
+  L2_2 = L2_2.GetSkillConf
+  L3_2 = A0_2.skill_cast
+  L3_2 = L3_2.skill_id
+  L2_2 = L2_2(L3_2)
+  A0_2.SkillConf = L2_2
+  A0_2.IgnoreCamera = false
+  A0_2.HideBattleMain = false
+  A0_2.IsPreparePlay = false
+  A0_2.StopBuffOver = false
+  L2_2 = Log
+  L2_2 = L2_2.Debug
+  L3_2 = "BattleAttackPlayer:Play caster_id:"
+  L4_2 = A0_2.skill_cast
+  L4_2 = L4_2.caster_id
+  L5_2 = A0_2.skill_cast
+  L5_2 = L5_2.skill_id
+  L6_2 = A0_2
+  L7_2 = A0_2.totalHits
+  L2_2(L3_2, L4_2, L5_2, L6_2, L7_2)
+  L2_2 = BattleManager
+  L2_2 = L2_2.isPureLogicMode
+  if L2_2 then
+    L3_2 = A0_2
+    L2_2 = A0_2.OnFinish
+    L2_2(L3_2)
+    return
+  end
+  L2_2 = A0_2.SkillConf
+  if not L2_2 then
+    L2_2 = Log
+    L2_2 = L2_2.Debug
+    L3_2 = "\230\136\152\230\150\151\230\138\128\232\131\189\233\133\141\231\189\174\231\188\186\229\164\177\239\188\140\232\175\183\230\163\128\230\159\165\233\133\141\231\189\174\239\188\129\239\188\129\239\188\129\239\188\129 \230\138\128\232\131\189id\228\184\186"
+    L4_2 = A0_2.skill_cast
+    L4_2 = L4_2.skill_id
+    L2_2(L3_2, L4_2)
+    L3_2 = A0_2
+    L2_2 = A0_2.OnFinish
+    L2_2(L3_2)
+    return
+  end
+  L2_2 = A0_2.SkillConf
+  L2_2 = L2_2.type
+  L3_2 = Enum.SkillActiveType
+  L3_2 = L3_2.SAT_CHARGE
+  if L2_2 == L3_2 then
+    L2_2 = Log
+    L2_2 = L2_2.Debug
+    L3_2 = "\232\147\132\229\138\155\230\138\128\232\131\189\231\172\172\228\184\128\233\152\182\230\174\181\239\188\140\232\183\179\232\191\135\232\161\168\230\188\148"
+    L4_2 = A0_2.skill_cast
+    L4_2 = L4_2.skill_id
+    L2_2(L3_2, L4_2)
+    L2_2 = A0_2.performNode
+    L3_2 = L2_2
+    L2_2 = L2_2.SyncEnergyForSkillPlayer
+    L4_2 = SkillUtils
+    L4_2 = L4_2.InstSkillIdToCfgId
+    L5_2 = A0_2.skill_cast
+    L5_2 = L5_2.skill_id
+    L4_2 = L4_2(L5_2)
+    L5_2 = A0_2.performInfo
+    L5_2 = L5_2.sync_data
+    L2_2(L3_2, L4_2, L5_2)
+    L3_2 = A0_2
+    L2_2 = A0_2.OnFinish
+    L2_2(L3_2)
+    return
+  end
+  L2_2 = _G
+  L2_2 = L2_2.BattleEventCenter
+  L3_2 = L2_2
+  L2_2 = L2_2.Bind
+  L4_2 = A0_2
+  L5_2 = BattleEvent.SKillEvent_AllHitEnd
+  L6_2 = BattleEvent.SKillEvent_BeCounterEnd
+  L7_2 = BattleEvent.SKillEvent_StateEffectEnd
+  L8_2 = BattleEvent.DefenceOtherStart
+  L9_2 = BattleEvent.DefenceOtherEnd
+  L2_2(L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2)
+  L2_2 = A0_2.SkillConf
+  L2_2 = L2_2.type
+  L3_2 = Enum.SkillActiveType
+  L3_2 = L3_2.SAT_PLAYERSKILL
+  if L2_2 == L3_2 then
+    L2_2 = BattleManager
+    L2_2 = L2_2.battlePawnManager
+    L3_2 = L2_2
+    L2_2 = L2_2.GetPlayerByGuid
+    L4_2 = A0_2.skill_cast
+    L4_2 = L4_2.caster_uin
+    L2_2 = L2_2(L3_2, L4_2)
+    A0_2.Caster = L2_2
+    L2_2 = A0_2.Caster
+    if not L2_2 then
+      L2_2 = Log
+      L2_2 = L2_2.Error
+      L3_2 = "\230\178\161\230\156\137\230\137\190\229\136\176Caster/CasterModel \229\183\178\231\187\143\232\183\179\232\191\135\232\161\168\230\188\148"
+      L4_2 = A0_2.skill_cast
+      L4_2 = L4_2.caster_uin
+      L2_2(L3_2, L4_2)
+      L3_2 = A0_2
+      L2_2 = A0_2.OnFinish
+      L2_2(L3_2)
+      return
+    end
+    L2_2 = A0_2.Caster
+    L2_2.attackPlayer = A0_2
+    L2_2 = A0_2.Caster
+    A0_2.CasterPlayer = L2_2
+    L3_2 = A0_2
+    L2_2 = A0_2.PrepareSkill
+    L2_2 = L2_2(L3_2)
+    A0_2.CastParam = L2_2
+    L3_2 = A0_2
+    L2_2 = A0_2.OnPlayPlayerSkill
+    L2_2(L3_2)
+  else
+    L2_2 = _G
+    L2_2 = L2_2.BattleManager
+    L2_2 = L2_2.battlePawnManager
+    L3_2 = L2_2
+    L2_2 = L2_2.GetPetByGuid
+    L4_2 = A0_2.skill_cast
+    L4_2 = L4_2.caster_id
+    L2_2 = L2_2(L3_2, L4_2)
+    A0_2.Caster = L2_2
+    L2_2 = A0_2.Caster
+    if L2_2 then
+      L2_2 = A0_2.Caster
+      L2_2 = L2_2.model
+      if L2_2 then
+        L2_2 = A0_2.Caster
+        L3_2 = L2_2
+        L2_2 = L2_2.IsDead
+        L2_2 = L2_2(L3_2)
+        if not L2_2 then
+          goto lbl_152
+        end
+      end
+    end
+    L2_2 = Log
+    L2_2 = L2_2.Error
+    L3_2 = "\230\178\161\230\156\137\230\137\190\229\136\176Caster/CasterModel \229\183\178\231\187\143\232\183\179\232\191\135\232\161\168\230\188\148"
+    L4_2 = A0_2.skill_cast
+    L4_2 = L4_2.caster_id
+    L2_2(L3_2, L4_2)
+    L3_2 = A0_2
+    L2_2 = A0_2.OnFinish
+    L2_2(L3_2)
+    do return end
+    ::lbl_152::
+    L2_2 = A0_2.Caster
+    L2_2 = L2_2.player
+    A0_2.CasterPlayer = L2_2
+    L2_2 = A0_2.Caster
+    L2_2.attackPlayer = A0_2
+    L3_2 = A0_2
+    L2_2 = A0_2.PrepareSkill
+    L2_2 = L2_2(L3_2)
+    A0_2.CastParam = L2_2
+    L2_2 = A0_2.Caster
+    L3_2 = L2_2
+    L2_2 = L2_2.SwimSetLockIdle
+    L4_2 = false
+    L2_2(L3_2, L4_2)
+    L2_2 = A0_2.CastParam
+    if L2_2 then
+      L2_2 = A0_2.CastParam
+      L2_2 = L2_2.TargetPets
+      if L2_2 then
+        L2_2 = A0_2.CastParam
+        L2_2 = L2_2.TargetPets
+        L3_2 = pairs
+        L4_2 = L2_2
+        L3_2, L4_2, L5_2, L6_2 = L3_2(L4_2)
+        for L7_2, L8_2 in L3_2, L4_2, L5_2, L6_2 do
+          L10_2 = L8_2
+          L9_2 = L8_2.SwimSetLockIdle
+          L11_2 = false
+          L9_2(L10_2, L11_2)
+          L10_2 = L8_2
+          L9_2 = L8_2.SetIKEnable
+          L11_2 = false
+          L9_2(L10_2, L11_2)
+        end
+      end
+    end
+    L2_2 = A0_2.CastParam
+    if L2_2 then
+      L2_2 = A0_2.CastParam
+      L2_2 = L2_2.ResID
+      L3_2 = L2_2
+      L2_2 = L2_2.find
+      L4_2 = "Jineng/200001"
+      L2_2 = L2_2(L3_2, L4_2)
+      if L2_2 then
+    end
+    else
+      L2_2 = A0_2.Caster
+      L2_2 = L2_2.card
+      L2_2 = L2_2.petState
+      L3_2 = L2_2
+      L2_2 = L2_2.GetSleep
+      L2_2 = L2_2(L3_2)
+      if not L2_2 then
+        L2_2 = A0_2.Caster
+        L3_2 = L2_2
+        L2_2 = L2_2.SetIKEnable
+        L4_2 = false
+        L2_2(L3_2, L4_2)
+      end
+    end
+    L2_2 = BattleConst.MoveToLegalLocationWhenBlock
+    if L2_2 then
+      L3_2 = A0_2
+      L2_2 = A0_2.MoveToValidPos
+      L2_2(L3_2)
+    else
+      L3_2 = A0_2
+      L2_2 = A0_2.CheckCopeSkill
+      L2_2(L3_2)
+    end
+  end
+end
+
+L13_1.Play = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.Caster
+  L1_2 = L1_2.card
+  L1_2 = L1_2.petState
+  L2_2 = L1_2
+  L1_2 = L1_2.GetGather
+  L1_2 = L1_2(L2_2)
+  if not L1_2 then
+    L1_2 = false
+    return L1_2
+  end
+  L1_2 = SkillUtils
+  L1_2 = L1_2.IsCollectEnergySkill
+  L2_2 = A0_2.skill_cast
+  L2_2 = L2_2.skill_id
+  L1_2 = L1_2(L2_2)
+  if L1_2 then
+    L1_2 = true
+    return L1_2
+  end
+  L1_2 = A0_2.Caster
+  L1_2 = L1_2.card
+  L1_2 = L1_2.petInfo
+  L1_2 = L1_2.battle_inside_pet_info
+  L1_2 = L1_2.charging_skill_id
+  if not L1_2 then
+    L1_2 = 0
+  end
+  L2_2 = A0_2.skill_cast
+  L2_2 = L2_2.skill_id
+  if L2_2 == L1_2 then
+    L2_2 = true
+    return L2_2
+  end
+  L1_2 = L1_2 + 100
+  L2_2 = A0_2.skill_cast
+  L2_2 = L2_2.skill_id
+  if L2_2 == L1_2 then
+    L2_2 = true
+    return L2_2
+  end
+  L2_2 = false
+  return L2_2
+end
+
+L13_1.NeedCancelGatherBefore = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.StopBuffOver
+  if L1_2 then
+    return
+  end
+  A0_2.StopBuffOver = true
+  L2_2 = A0_2
+  L1_2 = A0_2.TryOnPlay
+  L1_2(L2_2)
+end
+
+L13_1.HandleBuffComplete = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.IsPreparePlay
+  if L1_2 then
+    return
+  end
+  A0_2.IsPreparePlay = true
+  L2_2 = A0_2
+  L1_2 = A0_2.TryOnPlay
+  L1_2(L2_2)
+end
+
+L13_1.PreparePlay = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.StopBuffOver
+  if L1_2 then
+    L1_2 = A0_2.IsPreparePlay
+    if L1_2 then
+      L2_2 = A0_2
+      L1_2 = A0_2.OnPlay
+      L1_2(L2_2)
+    end
+  end
+end
+
+L13_1.TryOnPlay = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L2_2 = A0_2
+  L1_2 = A0_2.NeedCancelGatherBefore
+  L1_2 = L1_2(L2_2)
+  if L1_2 then
+    L1_2 = A0_2.Caster
+    L1_2 = L1_2.buffComponent
+    L2_2 = L1_2
+    L1_2 = L1_2.RegisterCompleteCallBack
+    L3_2 = Enum.BuffGroupSign
+    L3_2 = L3_2.BGS_GATHER
+    L4_2 = A0_2
+    L5_2 = A0_2.HandleBuffComplete
+    L1_2(L2_2, L3_2, L4_2, L5_2)
+    L1_2 = A0_2.Caster
+    L1_2 = L1_2.card
+    L1_2 = L1_2.petState
+    L2_2 = L1_2
+    L1_2 = L1_2.CloseState
+    L3_2 = Enum.BuffGroupSign
+    L3_2 = L3_2.BGS_GATHER
+    L1_2(L2_2, L3_2)
+    return
+  end
+  L2_2 = A0_2
+  L1_2 = A0_2.HandleBuffComplete
+  L1_2(L2_2)
+end
+
+L13_1.StopBuffPerform = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L2_2 = A0_2
+  L1_2 = A0_2.StopBuffPerform
+  L1_2(L2_2)
+  L2_2 = A0_2
+  L1_2 = A0_2.IsCopeSkill
+  L1_2 = L1_2(L2_2)
+  if L1_2 then
+    L1_2 = A0_2.performNode
+    L1_2 = L1_2.performPlayer
+    L1_2 = L1_2.turnPlayer
+    L1_2 = L1_2.IsMySelfPerform
+    if L1_2 then
+      L2_2 = BattleManager
+      L2_2 = L2_2.vBattleField
+      L2_2 = L2_2.battleCameraManager
+      L3_2 = L2_2
+      L2_2 = L2_2.ChangeToPlayerPetByCopeSkill
+      L4_2 = 0
+      L5_2 = nil
+      
+      function L6_2()
+        local L0_3, L1_3, L2_3, L3_3, L4_3, L5_3, L6_3, L7_3, L8_3, L9_3, L10_3, L11_3, L12_3, L13_3, L14_3, L15_3, L16_3, L17_3, L18_3, L19_3, L20_3, L21_3, L22_3, L23_3, L24_3, L25_3, L26_3, L27_3, L28_3, L29_3, L30_3, L31_3, L32_3, L33_3, L34_3, L35_3, L36_3, L37_3, L38_3, L39_3, L40_3, L41_3, L42_3, L43_3, L44_3, L45_3, L46_3, L47_3, L48_3, L49_3, L50_3, L51_3, L52_3, L53_3, L54_3, L55_3, L56_3, L57_3, L58_3, L59_3, L60_3, L61_3, L62_3, L63_3, L64_3, L65_3, L66_3, L67_3, L68_3, L69_3, L70_3, L71_3, L72_3, L73_3, L74_3, L75_3, L76_3, L77_3, L78_3, L79_3, L80_3, L81_3, L82_3, L83_3, L84_3, L85_3, L86_3, L87_3, L88_3, L89_3, L90_3, L91_3, L92_3, L93_3, L94_3, L95_3, L96_3, L97_3, L98_3, L99_3, L100_3, L101_3, L102_3, L103_3, L104_3, L105_3, L106_3, L107_3, L108_3, L109_3, L110_3, L111_3, L112_3, L113_3, L114_3, L115_3, L116_3, L117_3, L118_3, L119_3, L120_3, L121_3, L122_3, L123_3, L124_3, L125_3, L126_3, L127_3, L128_3, L129_3, L130_3, L131_3, L132_3, L133_3, L134_3, L135_3, L136_3, L137_3, L138_3, L139_3, L140_3, L141_3, L142_3, L143_3, L144_3, L145_3, L146_3, L147_3, L148_3, L149_3, L150_3, L151_3, L152_3, L153_3, L154_3, L155_3, L156_3, L157_3, L158_3, L159_3, L160_3, L161_3, L162_3, L163_3, L164_3, L165_3, L166_3, L167_3, L168_3, L169_3, L170_3, L171_3, L172_3, L173_3, L174_3, L175_3, L176_3, L177_3, L178_3, L179_3, L180_3, L181_3, L182_3, L183_3, L184_3, L185_3, L186_3, L187_3, L188_3, L189_3, L190_3, L191_3, L192_3, L193_3, L194_3, L195_3, L196_3, L197_3, L198_3, L199_3, L200_3, L201_3, L202_3, L203_3, L204_3, L205_3, L206_3, L207_3, L208_3, L209_3, L210_3, L211_3, L212_3, L213_3, L214_3, L215_3, L216_3, L217_3, L218_3, L219_3, L220_3, L221_3, L222_3, L223_3, L224_3, L225_3, L226_3, L227_3, L228_3, L229_3, L230_3, L231_3, L232_3, L233_3, L234_3, L235_3, L236_3, L237_3, L238_3, L239_3, L240_3, L241_3, L242_3, L243_3, L244_3, L245_3, L246_3, L247_3, L248_3, L249_3, L250_3, L251_3, L252_3, L253_3, L254_3
+        L0_3 = self
+        L1_3 = L0_3
+        L0_3 = L0_3.EnterBulletTime
+        L0_3(L1_3)
+      end
+      
+      L2_2(L3_2, L4_2, L5_2, L6_2)
+    end
+    L2_2 = BattlePiecesManager
+    L3_2 = L2_2
+    L2_2 = L2_2.Play
+    L4_2 = "NewRoco.Modules.Core.Battle.BattleCore.Pieces.Instances.BattlePieceCounterSkillPrePlay"
+    L5_2 = A0_2.Caster
+    L6_2 = A0_2.PreparePlay
+    L7_2 = A0_2
+    L8_2 = L1_2
+    L2_2(L3_2, L4_2, L5_2, L6_2, L7_2, L8_2)
+    L3_2 = A0_2
+    L2_2 = A0_2.ShowPopup
+    L2_2(L3_2)
+  else
+    L2_2 = A0_2
+    L1_2 = A0_2.EnterBulletTime
+    L1_2(L2_2)
+    L2_2 = A0_2
+    L1_2 = A0_2.ShowPopup
+    L1_2(L2_2)
+    L2_2 = A0_2
+    L1_2 = A0_2.PreparePlay
+    L1_2(L2_2)
+  end
+end
+
+L13_1.CheckCopeSkill = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = false
+  L2_2 = A0_2.Caster
+  L2_2 = L2_2.card
+  L3_2 = L2_2
+  L2_2 = L2_2.CheckIsMimic
+  L2_2 = L2_2(L3_2)
+  if not L2_2 then
+    L2_2 = _G
+    L2_2 = L2_2.SkillUtils
+    L2_2 = L2_2.GetSkillConf
+    L3_2 = A0_2.skill_cast
+    L3_2 = L3_2.skill_id
+    L2_2 = L2_2(L3_2)
+    if nil ~= L2_2 then
+      L3_2 = L2_2.type
+      L4_2 = Enum.SkillActiveType
+      L4_2 = L4_2.SAT_FEATURE
+      if L3_2 ~= L4_2 then
+        L1_2 = true
+      else
+        L3_2 = L2_2.skill_feature
+        L4_2 = Enum.SkillFilterTitleType
+        L4_2 = L4_2.SFTT_SPECIAL
+        if L3_2 == L4_2 then
+          L1_2 = true
+        else
+          L1_2 = false
+        end
       end
     else
-      isPop = true
+      L1_2 = true
     end
   end
-  if isPop then
-    local type = BattleEnum.InfoPopupType.UseSkill
-    if self:IsTriggerInterrupt() or self:IsTriggerCounter() then
-      type = BattleEnum.InfoPopupType.UseSkillCountered
+  if L1_2 then
+    L2_2 = BattleEnum.InfoPopupType
+    L2_2 = L2_2.UseSkill
+    L4_2 = A0_2
+    L3_2 = A0_2.IsTriggerInterrupt
+    L3_2 = L3_2(L4_2)
+    if not L3_2 then
+      L4_2 = A0_2
+      L3_2 = A0_2.IsTriggerCounter
+      L3_2 = L3_2(L4_2)
+      if not L3_2 then
+        goto lbl_47
+      end
     end
-    _G.BattleEventCenter:Dispatch(BattleEvent.UI_SHOW_INFO_POPUP, {
-      type,
-      self.Caster.player,
-      self
-    }, self)
+    L3_2 = BattleEnum.InfoPopupType
+    L2_2 = L3_2.UseSkillCountered
+    ::lbl_47::
+    L3_2 = _G
+    L3_2 = L3_2.BattleEventCenter
+    L4_2 = L3_2
+    L3_2 = L3_2.Dispatch
+    L5_2 = BattleEvent.UI_SHOW_INFO_POPUP
+    L6_2 = {}
+    L7_2 = L2_2
+    L8_2 = A0_2.Caster
+    L8_2 = L8_2.player
+    L9_2 = A0_2
+    L6_2[1] = L7_2
+    L6_2[2] = L8_2
+    L6_2[3] = L9_2
+    L7_2 = A0_2
+    L3_2(L4_2, L5_2, L6_2, L7_2)
   else
-    self.performNode:SyncEnergyForSkillPlayer(SkillUtils.InstSkillIdToCfgId(self.skill_cast.skill_id), self.performInfo.sync_data)
+    L2_2 = A0_2.performNode
+    L3_2 = L2_2
+    L2_2 = L2_2.SyncEnergyForSkillPlayer
+    L4_2 = SkillUtils
+    L4_2 = L4_2.InstSkillIdToCfgId
+    L5_2 = A0_2.skill_cast
+    L5_2 = L5_2.skill_id
+    L4_2 = L4_2(L5_2)
+    L5_2 = A0_2.performInfo
+    L5_2 = L5_2.sync_data
+    L2_2(L3_2, L4_2, L5_2)
   end
 end
 
-function BattleAttackPlayer:DelayHidePopup()
-  if not self.IsDelayHidePop then
-    self.IsDelayHidePop = true
-    self:SafeDelaySeconds("d_HidePopup", 1.2, self.HidePopup, self)
+L13_1.ShowPopup = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.IsDelayHidePop
+  if not L1_2 then
+    A0_2.IsDelayHidePop = true
+    L2_2 = A0_2
+    L1_2 = A0_2.SafeDelaySeconds
+    L3_2 = "d_HidePopup"
+    L4_2 = 1.2
+    L5_2 = A0_2.HidePopup
+    L6_2 = A0_2
+    L1_2(L2_2, L3_2, L4_2, L5_2, L6_2)
   end
 end
 
-function BattleAttackPlayer:HidePopup()
-  self.IsDelayHidePop = true
-  if self.CasterPlayer then
-    _G.BattleEventCenter:Dispatch(BattleEvent.UI_HIDE_INFO_POPUP, self.CasterPlayer, self)
+L13_1.DelayHidePopup = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  A0_2.IsDelayHidePop = true
+  L1_2 = A0_2.CasterPlayer
+  if L1_2 then
+    L1_2 = _G
+    L1_2 = L1_2.BattleEventCenter
+    L2_2 = L1_2
+    L1_2 = L1_2.Dispatch
+    L3_2 = BattleEvent.UI_HIDE_INFO_POPUP
+    L4_2 = A0_2.CasterPlayer
+    L5_2 = A0_2
+    L1_2(L2_2, L3_2, L4_2, L5_2)
   end
 end
 
-function BattleAttackPlayer:OnLastHit()
+L13_1.HidePopup = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
 end
 
-function BattleAttackPlayer:PrepareSkill()
+L13_1.OnLastHit = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.performNode
+  L2_2 = L1_2
+  L1_2 = L1_2.GetPerformData
+  L1_2 = L1_2(L2_2)
+  if not L1_2 then
+    L2_2 = nil
+    return L2_2
+  end
+  L2_2 = L1_2.skill_id
+  L3_2 = _G
+  L3_2 = L3_2.DataConfigManager
+  L4_2 = L3_2
+  L3_2 = L3_2.GetSkillResChangeConf
+  L5_2 = SkillUtils
+  L5_2 = L5_2.CheckSkillId
+  L6_2 = L2_2
+  L5_2 = L5_2(L6_2)
+  L6_2 = true
+  L3_2 = L3_2(L4_2, L5_2, L6_2)
+  L4_2 = false
+  if L3_2 then
+    L6_2 = A0_2
+    L5_2 = A0_2.IsTriggerBuffInCluster
+    L7_2 = L3_2.buff_id
+    L8_2 = A0_2.performNode
+    L9_2 = L8_2
+    L8_2 = L8_2.GetOwnerCluster
+    L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2 = L8_2(L9_2)
+    L5_2 = L5_2(L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2)
+    if not L5_2 then
+      L4_2 = true
+    end
+  end
+  L5_2 = CastSkillObject.FromPerformInfoToSkill
+  L6_2 = A0_2.performNode
+  L7_2 = L6_2
+  L6_2 = L6_2.GetPerformData
+  L6_2 = L6_2(L7_2)
+  L7_2 = L4_2 or L7_2
+  if L4_2 then
+    L7_2 = L3_2
+  end
+  L5_2 = L5_2(L6_2, L7_2)
+  if not L5_2 then
+    L6_2 = nil
+    return L6_2
+  end
+  L7_2 = L5_2
+  L6_2 = L5_2.SetCaster
+  L8_2 = A0_2.Caster
+  L8_2 = L8_2.model
+  L6_2 = L6_2(L7_2, L8_2)
+  L7_2 = L6_2
+  L6_2 = L6_2.SetCompleteCallback
+  L8_2 = A0_2.OnSkillComplete
+  L6_2 = L6_2(L7_2, L8_2)
+  L7_2 = L6_2
+  L6_2 = L6_2.SetStartFailedCallback
+  L8_2 = A0_2.OnStartFailed
+  L6_2 = L6_2(L7_2, L8_2)
+  L7_2 = L6_2
+  L6_2 = L6_2.SetSkillBreakCallback
+  L8_2 = A0_2.OnSkillBreak
+  L6_2 = L6_2(L7_2, L8_2)
+  L7_2 = L6_2
+  L6_2 = L6_2.SetOnHitCallback
+  L8_2 = A0_2.OnHit
+  L6_2 = L6_2(L7_2, L8_2)
+  L7_2 = L6_2
+  L6_2 = L6_2.SetOnInterruptCallback
+  L8_2 = A0_2.OnInterrupt
+  L6_2 = L6_2(L7_2, L8_2)
+  L7_2 = L6_2
+  L6_2 = L6_2.SetOnCounterCallback
+  L8_2 = A0_2.OnCounter
+  L6_2 = L6_2(L7_2, L8_2)
+  L7_2 = L6_2
+  L6_2 = L6_2.SetOnCopingCallback
+  L8_2 = A0_2.OnCoping
+  L6_2 = L6_2(L7_2, L8_2)
+  L7_2 = L6_2
+  L6_2 = L6_2.SetOnRemoveCutsceneBlackGround
+  L8_2 = A0_2.OnRemoveCutsceneBlackGround
+  L6_2 = L6_2(L7_2, L8_2)
+  L7_2 = L6_2
+  L6_2 = L6_2.SetOnCounterEndCallback
+  L8_2 = A0_2.OnCounterEnd
+  L6_2 = L6_2(L7_2, L8_2)
+  L7_2 = L6_2
+  L6_2 = L6_2.SetPower
+  L9_2 = A0_2
+  L8_2 = A0_2.GetAttackPower
+  L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2 = L8_2(L9_2)
+  L6_2 = L6_2(L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2)
+  L7_2 = L6_2
+  L6_2 = L6_2.SetIsRestraint
+  L9_2 = A0_2
+  L8_2 = A0_2.GetIsRestraint
+  L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2 = L8_2(L9_2)
+  L6_2 = L6_2(L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2)
+  L7_2 = L6_2
+  L6_2 = L6_2.SetIsRestrained
+  L9_2 = A0_2
+  L8_2 = A0_2.GetIsRestrained
+  L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2 = L8_2(L9_2)
+  L6_2 = L6_2(L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2)
+  L7_2 = L6_2
+  L6_2 = L6_2.SetReduceHP
+  L9_2 = A0_2
+  L8_2 = A0_2.GetReduceHP
+  L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2 = L8_2(L9_2)
+  L6_2 = L6_2(L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2)
+  L7_2 = L6_2
+  L6_2 = L6_2.SetCallbackOwner
+  L8_2 = A0_2
+  L6_2 = L6_2(L7_2, L8_2)
+  L7_2 = L6_2
+  L6_2 = L6_2.SetInterrupt
+  L8_2 = true
+  L6_2 = L6_2(L7_2, L8_2)
+  L7_2 = L6_2
+  L6_2 = L6_2.SetIsPassive
+  L8_2 = false
+  L6_2 = L6_2(L7_2, L8_2)
+  L7_2 = L6_2
+  L6_2 = L6_2.SetTargetPets
+  L9_2 = A0_2
+  L8_2 = A0_2.GetTargetPets
+  L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2 = L8_2(L9_2)
+  L6_2 = L6_2(L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2)
+  L7_2 = L6_2
+  L6_2 = L6_2.SetDamageType
+  L9_2 = A0_2
+  L8_2 = A0_2.GetDamageType
+  L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2 = L8_2(L9_2)
+  L6_2 = L6_2(L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2)
+  L7_2 = L6_2
+  L6_2 = L6_2.SetHideBuffBarCallback
+  L8_2 = A0_2.HideBuffBar
+  L6_2 = L6_2(L7_2, L8_2)
+  L7_2 = L6_2
+  L6_2 = L6_2.SetShowBuffBarCallback
+  L8_2 = A0_2.ShowBuffBar
+  L6_2 = L6_2(L7_2, L8_2)
+  L7_2 = L6_2
+  L6_2 = L6_2.SetHideTargetsBuffBarCallback
+  L8_2 = A0_2.HideTargetsBuffBar
+  L6_2 = L6_2(L7_2, L8_2)
+  L7_2 = L6_2
+  L6_2 = L6_2.SetShowTargetsBuffBarCallback
+  L8_2 = A0_2.ShowTargetsBuffBar
+  L6_2 = L6_2(L7_2, L8_2)
+  L7_2 = L6_2
+  L6_2 = L6_2.SetShowHPBarCallback
+  L8_2 = A0_2.ShowHPBars
+  L6_2 = L6_2(L7_2, L8_2)
+  L7_2 = L6_2
+  L6_2 = L6_2.SetHideHPBarCallback
+  L8_2 = A0_2.HideHPBars
+  L6_2 = L6_2(L7_2, L8_2)
+  L7_2 = L6_2
+  L6_2 = L6_2.SetOnFlyEnergyCallback
+  L8_2 = A0_2.OnFlyEnergy
+  L6_2 = L6_2(L7_2, L8_2)
+  L7_2 = L6_2
+  L6_2 = L6_2.SetOnOtherPetPerformCallback
+  L8_2 = A0_2.OtherPetShowAnim
+  L6_2 = L6_2(L7_2, L8_2)
+  L7_2 = L6_2
+  L6_2 = L6_2.SetTriggerBeforeHitCallback
+  L8_2 = A0_2.OnTriggerBeforeHit
+  L6_2 = L6_2(L7_2, L8_2)
+  L7_2 = L6_2
+  L6_2 = L6_2.SetSkillBreakCallback
+  L8_2 = A0_2.OnSkillBreakCallback
+  L6_2 = L6_2(L7_2, L8_2)
+  L7_2 = L6_2
+  L6_2 = L6_2.SetOnStopBulletTime
+  L8_2 = A0_2.OnStopBulletTime
+  L6_2 = L6_2(L7_2, L8_2)
+  L7_2 = L6_2
+  L6_2 = L6_2.SetOnAllHitEnd
+  L8_2 = A0_2.OnAllHitEnd
+  L6_2 = L6_2(L7_2, L8_2)
+  L7_2 = L6_2
+  L6_2 = L6_2.SetOnStateEffectEnd
+  L8_2 = A0_2.OnStateEffectEndEnd
+  L6_2 = L6_2(L7_2, L8_2)
+  L7_2 = L6_2
+  L6_2 = L6_2.SetOnNormalDefendEnd
+  L8_2 = A0_2.OnNormalDefendEnd
+  L6_2 = L6_2(L7_2, L8_2)
+  L7_2 = L6_2
+  L6_2 = L6_2.SetHidePopupCallback
+  L8_2 = A0_2.HideEffectPopup
+  L6_2 = L6_2(L7_2, L8_2)
+  L7_2 = L6_2
+  L6_2 = L6_2.SetShowPopupCallback
+  L8_2 = A0_2.ShowEffectPopup
+  L6_2 = L6_2(L7_2, L8_2)
+  L7_2 = L6_2
+  L6_2 = L6_2.SetExtraEvents
+  L8_2 = {}
+  L9_2 = A0_2.OnPostStart
+  L8_2.ActionStart = L9_2
+  L6_2(L7_2, L8_2)
+  L6_2 = A0_2.performNode
+  L6_2 = L6_2.IsLastHitNode
+  if L6_2 then
+    L7_2 = L5_2
+    L6_2 = L5_2.SetLastHitCallback
+    L8_2 = A0_2.OnLastHit
+    L6_2(L7_2, L8_2)
+    L7_2 = L5_2
+    L6_2 = L5_2.SetAcceptPreEnd
+    L8_2 = true
+    L6_2(L7_2, L8_2)
+  end
+  L7_2 = A0_2
+  L6_2 = A0_2.IsCopeSkill
+  L6_2 = L6_2(L7_2)
+  if L6_2 then
+    L7_2 = A0_2
+    L6_2 = A0_2.IsCopeSkillInterrupt
+    L6_2 = L6_2(L7_2)
+    if L6_2 then
+      L7_2 = A0_2
+      L6_2 = A0_2.SetTargetsStuck
+      L8_2 = true
+      L6_2(L7_2, L8_2)
+    end
+  end
+  L6_2 = A0_2.performNode
+  L7_2 = L6_2
+  L6_2 = L6_2.GetCounterNode
+  L6_2 = L6_2(L7_2)
+  if L6_2 then
+    L7_2 = _G
+    L7_2 = L7_2.BattleManager
+    L7_2 = L7_2.battlePawnManager
+    L8_2 = L7_2
+    L7_2 = L7_2.GetPetByGuid
+    L10_2 = L6_2
+    L9_2 = L6_2.GetPerformData
+    L9_2 = L9_2(L10_2)
+    L9_2 = L9_2.caster_id
+    L7_2 = L7_2(L8_2, L9_2)
+    L9_2 = L5_2
+    L8_2 = L5_2.SetBeCounterActor
+    L10_2 = A0_2.Caster
+    if L10_2 then
+      L10_2 = A0_2.Caster
+      L10_2 = L10_2.model
+    end
+    L8_2(L9_2, L10_2)
+    L9_2 = L5_2
+    L8_2 = L5_2.SetCounterActor
+    L10_2 = L7_2 or L10_2
+    if L7_2 then
+      L10_2 = L7_2.model
+    end
+    L8_2(L9_2, L10_2)
+  end
+  L7_2 = A0_2.performNode
+  L8_2 = L7_2
+  L7_2 = L7_2.GetBeCounterNode
+  L7_2 = L7_2(L8_2)
+  if L7_2 then
+    L8_2 = _G
+    L8_2 = L8_2.BattleManager
+    L8_2 = L8_2.battlePawnManager
+    L9_2 = L8_2
+    L8_2 = L8_2.GetPetByGuid
+    L11_2 = L7_2
+    L10_2 = L7_2.GetPerformData
+    L10_2 = L10_2(L11_2)
+    L10_2 = L10_2.caster_id
+    L8_2 = L8_2(L9_2, L10_2)
+    L10_2 = L5_2
+    L9_2 = L5_2.SetBeCounterActor
+    L11_2 = L8_2 or L11_2
+    if L8_2 then
+      L11_2 = L8_2.model
+    end
+    L9_2(L10_2, L11_2)
+    L10_2 = L5_2
+    L9_2 = L5_2.SetCounterActor
+    L11_2 = A0_2.Caster
+    if L11_2 then
+      L11_2 = A0_2.Caster
+      L11_2 = L11_2.model
+    end
+    L9_2(L10_2, L11_2)
+  end
+  L8_2 = L5_2.TargetPets
+  L8_2 = #L8_2
+  if 1 == L8_2 then
+    L8_2 = L5_2.TargetPets
+    L8_2 = L8_2[1]
+    L9_2 = A0_2.Caster
+    if L8_2 == L9_2 then
+      L8_2 = A0_2.BattleManager
+      L8_2 = L8_2.battlePawnManager
+      L9_2 = L8_2
+      L8_2 = L8_2.GetAllPawnActorForSkill
+      L8_2 = L8_2(L9_2)
+      L9_2 = A0_2.Caster
+      L9_2 = L9_2.teamEnm
+      L10_2 = BattleEnum.Team
+      L10_2 = L10_2.ENUM_ENEMY
+      if L9_2 == L10_2 then
+        L9_2 = {}
+        L10_2 = 1
+        L11_2 = 16
+        L12_2 = 1
+        for L13_2 = L10_2, L11_2, L12_2 do
+          if L13_2 <= 8 then
+            L14_2 = L13_2 - 1
+            L15_2 = 7 + L13_2
+            L15_2 = L8_2[L15_2]
+            L9_2[L14_2] = L15_2
+          else
+            L14_2 = L13_2 - 1
+            L15_2 = L13_2 - 9
+            L15_2 = L8_2[L15_2]
+            L9_2[L14_2] = L15_2
+          end
+        end
+        L8_2 = L9_2
+      end
+      L9_2 = pairs
+      L10_2 = L8_2
+      L9_2, L10_2, L11_2, L12_2 = L9_2(L10_2)
+      for L13_2, L14_2 in L9_2, L10_2, L11_2, L12_2 do
+        if L14_2 then
+          L15_2 = A0_2.Caster
+          L15_2 = L15_2.model
+          if L14_2 == L15_2 then
+            L8_2[L13_2] = "nil"
+            break
+          end
+        end
+      end
+      L10_2 = L5_2
+      L9_2 = L5_2.SetCharacters
+      L11_2 = L8_2
+      L9_2(L10_2, L11_2)
+    end
+  end
+  return L5_2
+end
+
+L13_1.PrepareSkill = L14_1
+
+function L14_1(A0_2, A1_2, A2_2)
+  local L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L3_2 = A0_2.performNode
+  if L3_2 then
+    L3_2 = A0_2.performNode
+    L4_2 = L3_2
+    L3_2 = L3_2.GetGroupID
+    L3_2 = L3_2(L4_2)
+    L4_2 = A2_2.ClusterGroups
+    L5_2 = ipairs
+    L6_2 = L4_2
+    L5_2, L6_2, L7_2, L8_2 = L5_2(L6_2)
+    for L9_2, L10_2 in L5_2, L6_2, L7_2, L8_2 do
+      L11_2 = L10_2.GroupId
+      if L11_2 ~= L3_2 then
+        L11_2 = L10_2.HeadNode
+        L12_2 = L11_2
+        L11_2 = L11_2.GetGroupRef
+        L11_2 = L11_2(L12_2)
+        if not L11_2 then
+          goto lbl_33
+        end
+        L11_2 = L10_2.HeadNode
+        L12_2 = L11_2
+        L11_2 = L11_2.GetGroupRef
+        L11_2 = L11_2(L12_2)
+        if L11_2 ~= L3_2 then
+          goto lbl_33
+        end
+      end
+      L12_2 = A0_2
+      L11_2 = A0_2.IsTriggerBuffInGroup
+      L13_2 = A1_2
+      L14_2 = L10_2
+      L11_2 = L11_2(L12_2, L13_2, L14_2)
+      if L11_2 then
+        L11_2 = true
+        return L11_2
+      end
+      ::lbl_33::
+    end
+  end
+  L3_2 = false
+  return L3_2
+end
+
+L13_1.IsTriggerBuffInCluster = L14_1
+
+function L14_1(A0_2, A1_2, A2_2)
+  local L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L3_2 = A0_2.performNode
+  if L3_2 then
+    L3_2 = A2_2.GroupNodes
+    L4_2 = ipairs
+    L5_2 = L3_2
+    L4_2, L5_2, L6_2, L7_2 = L4_2(L5_2)
+    for L8_2, L9_2 in L4_2, L5_2, L6_2, L7_2 do
+      L10_2 = A0_2.performNode
+      if L9_2 ~= L10_2 then
+        L11_2 = L9_2
+        L10_2 = L9_2.GetPerformType
+        L10_2 = L10_2(L11_2)
+        L11_2 = ProtoEnum.BattlePerformType
+        L11_2 = L11_2.BPT_BUFF_TRIGGER
+        if L10_2 == L11_2 then
+          L11_2 = L9_2
+          L10_2 = L9_2.GetPerformData
+          L10_2 = L10_2(L11_2)
+          L11_2 = L10_2.buff_id
+          if L11_2 == A1_2 then
+            L11_2 = L10_2.target_id
+            L12_2 = A0_2.skill_cast
+            L12_2 = L12_2.caster_id
+            if L11_2 == L12_2 then
+              L11_2 = true
+              return L11_2
+            end
+          end
+        end
+      end
+    end
+  end
+  L3_2 = false
+  return L3_2
+end
+
+L13_1.IsTriggerBuffInGroup = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.Caster
+  L1_2 = L1_2.team
+  A0_2.Team = L1_2
+  L1_2 = A0_2.Team
+  L1_2 = L1_2.player
+  A0_2.Player = L1_2
+  A0_2.BreakFlow = false
+  L2_2 = A0_2
+  L1_2 = A0_2.ApplyDefaultCamera
+  L1_2(L2_2)
+  L2_2 = A0_2
+  L1_2 = A0_2.CheerPetPerform
+  L1_2(L2_2)
+  L1_2 = A0_2.CastParam
+  if L1_2 then
+    L1_2 = ServerData.values
+    L1_2 = L1_2.battleMode
+    if L1_2 then
+      L1_2 = A0_2.Caster
+      L2_2 = L1_2
+      L1_2 = L1_2.ClearSkill
+      L1_2(L2_2)
+    end
+    L1_2 = A0_2.Caster
+    L2_2 = L1_2
+    L1_2 = L1_2.EnableGravity
+    L3_2 = false
+    L1_2(L2_2, L3_2)
+    L1_2 = nil
+    L2_2 = BattleSkillManager
+    L3_2 = L2_2
+    L2_2 = L2_2.PrepareSkill
+    L4_2 = A0_2.Caster
+    L5_2 = A0_2.Caster
+    L5_2 = L5_2.model
+    L5_2 = L5_2.RocoSkill
+    L6_2 = A0_2.CastParam
+    L2_2, L3_2 = L2_2(L3_2, L4_2, L5_2, L6_2)
+    A0_2.SkillObject = L3_2
+    L1_2 = L2_2
+    L2_2 = SkillUtils
+    L2_2 = L2_2.SetRangedMultiAtkTimes
+    L3_2 = A0_2.SkillObject
+    L4_2 = A0_2.totalHits
+    L4_2 = L4_2 - 1
+    L2_2(L3_2, L4_2)
+    L3_2 = A0_2
+    L2_2 = A0_2.CheckCopeSkillEvent
+    L2_2(L3_2)
+    L3_2 = A0_2
+    L2_2 = A0_2.ScanMultiDamage
+    L2_2(L3_2)
+    L3_2 = A0_2
+    L2_2 = A0_2.ScanEnergyPerform
+    L2_2(L3_2)
+    L2_2 = A0_2.performNode
+    L2_2 = L2_2.performPlayer
+    L2_2 = L2_2.turnPlayer
+    L2_2 = L2_2.IsMySelfPerform
+    if not L2_2 then
+      L2_2 = A0_2.SkillObject
+      L2_2.IsIgnoreCameraAction = true
+      A0_2.IgnoreCamera = true
+    end
+    L2_2 = BattleEventCenter
+    L3_2 = L2_2
+    L2_2 = L2_2.Dispatch
+    L4_2 = BattleEvent.StartSkill_AutoPerform
+    L5_2 = A0_2.SkillObject
+    L2_2(L3_2, L4_2, L5_2)
+    L3_2 = L1_2
+    L2_2 = L1_2.PlaySkill
+    L4_2 = A0_2.SkillObject
+    L2_2(L3_2, L4_2)
+    L2_2 = Log
+    L2_2 = L2_2.Debug
+    L3_2 = "BattleAttackPlayer SkillObject:"
+    L4_2 = A0_2.SkillObject
+    L5_2 = L4_2
+    L4_2 = L4_2.GetName
+    L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2 = L4_2(L5_2)
+    L2_2(L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2)
+    L2_2 = BattleEventCenter
+    L3_2 = L2_2
+    L2_2 = L2_2.Dispatch
+    L4_2 = BattleEvent.FX_PERF_ON_SKILL_PLAY_START
+    L5_2 = A0_2.skill_cast
+    L6_2 = A0_2.SkillObject
+    L2_2(L3_2, L4_2, L5_2, L6_2)
+  else
+    L2_2 = A0_2
+    L1_2 = A0_2.OnSkillComplete
+    L1_2(L2_2)
+    return
+  end
+  L2_2 = A0_2
+  L1_2 = A0_2.DelayHidePopup
+  L1_2(L2_2)
+end
+
+L13_1.OnPlayPlayerSkill = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L2_2 = A0_2
+  L1_2 = A0_2.DelayHidePopup
+  L1_2(L2_2)
+  L1_2 = A0_2.CastParam
+  if L1_2 then
+    L1_2 = A0_2.CastParam
+    L1_2 = L1_2.Interrupt
+    if L1_2 then
+      L1_2 = A0_2.CastParam
+      if L1_2 then
+        L1_2 = A0_2.Caster
+        L1_2 = L1_2.model
+        if L1_2 then
+          L1_2 = A0_2.Caster
+          L1_2 = L1_2.model
+          L1_2 = L1_2.RocoSkill
+          if L1_2 then
+            L1_2 = A0_2.Caster
+            L1_2 = L1_2.model
+            L1_2 = L1_2.RocoSkill
+            L2_2 = L1_2
+            L1_2 = L1_2.GetActiveSkill
+            L1_2 = L1_2(L2_2)
+            if L1_2 then
+              L2_2 = A0_2.Caster
+              L2_2 = L2_2.model
+              L2_2 = L2_2.RocoSkill
+              L3_2 = L2_2
+              L2_2 = L2_2.CancelSkill
+              L4_2 = L1_2
+              L5_2 = UE4
+              L5_2 = L5_2.ESkillActionResult
+              L5_2 = L5_2.SkillActionResultInterrupted
+              L2_2(L3_2, L4_2, L5_2)
+            end
+          end
+        end
+      end
+    end
+  end
+  L1_2 = A0_2.Caster
+  if L1_2 then
+    L1_2 = A0_2.Caster
+    L1_2 = L1_2.destroying
+    if not L1_2 then
+      L1_2 = A0_2.Caster
+      L1_2 = L1_2.destroyed
+      if not L1_2 then
+        L1_2 = A0_2.Caster
+        L1_2 = L1_2.model
+        if L1_2 then
+          L1_2 = A0_2.CastParam
+          if L1_2 then
+            L1_2 = A0_2.Caster
+            L1_2 = L1_2.model
+            L1_2 = L1_2.RocoSkill
+            if L1_2 then
+              L1_2 = A0_2.Caster
+              L2_2 = L1_2
+              L1_2 = L1_2.IsDead
+              L1_2 = L1_2(L2_2)
+              if not L1_2 then
+                goto lbl_69
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+  L2_2 = A0_2
+  L1_2 = A0_2.OnSkillComplete
+  L1_2(L2_2)
+  do return end
+  ::lbl_69::
+  L1_2 = Log
+  L1_2 = L1_2.Debug
+  L2_2 = "BattleAttackPlayer:performNode:GetInfo().skill_cast.caster_id:"
+  L3_2 = A0_2.skill_cast
+  L3_2 = L3_2.caster_id
+  L4_2 = A0_2.skill_cast
+  L4_2 = L4_2.skill_id
+  L5_2 = A0_2
+  L6_2 = A0_2.totalHits
+  L1_2(L2_2, L3_2, L4_2, L5_2, L6_2)
+  L2_2 = A0_2
+  L1_2 = A0_2.TryLookAtTarget
+  L1_2(L2_2)
+  L1_2 = A0_2.Caster
+  L1_2 = L1_2.team
+  A0_2.Team = L1_2
+  L1_2 = A0_2.Team
+  L1_2 = L1_2.player
+  A0_2.Player = L1_2
+  A0_2.BreakFlow = false
+  L2_2 = A0_2
+  L1_2 = A0_2.ApplyDefaultCamera
+  L1_2(L2_2)
+  L2_2 = A0_2
+  L1_2 = A0_2.CheerPetPerform
+  L1_2(L2_2)
+  L1_2 = ServerData.values
+  L1_2 = L1_2.battleMode
+  if L1_2 then
+    L1_2 = A0_2.Caster
+    L2_2 = L1_2
+    L1_2 = L1_2.ClearSkill
+    L1_2(L2_2)
+  end
+  L1_2 = nil
+  L2_2 = BattleSkillManager
+  L3_2 = L2_2
+  L2_2 = L2_2.PrepareSkill
+  L4_2 = A0_2.Caster
+  L5_2 = A0_2.Caster
+  L5_2 = L5_2.model
+  L5_2 = L5_2.RocoSkill
+  L6_2 = A0_2.CastParam
+  L2_2, L3_2 = L2_2(L3_2, L4_2, L5_2, L6_2)
+  A0_2.SkillObject = L3_2
+  L1_2 = L2_2
+  L2_2 = SkillUtils
+  L2_2 = L2_2.SetRangedMultiAtkTimes
+  L3_2 = A0_2.SkillObject
+  L4_2 = A0_2.totalHits
+  L4_2 = L4_2 - 1
+  L2_2(L3_2, L4_2)
+  L2_2 = A0_2.SkillObject
+  L3_2 = L2_2
+  L2_2 = L2_2.SetSkillID
+  L4_2 = A0_2.skill_cast
+  L4_2 = L4_2.skill_id
+  L2_2(L3_2, L4_2)
+  L3_2 = A0_2
+  L2_2 = A0_2.CheckCopeSkillEvent
+  L2_2(L3_2)
+  L3_2 = A0_2
+  L2_2 = A0_2.PreProcessShield
+  L2_2(L3_2)
+  L3_2 = A0_2
+  L2_2 = A0_2.ScanMultiDamage
+  L2_2(L3_2)
+  L3_2 = A0_2
+  L2_2 = A0_2.ScanEnergyPerform
+  L2_2(L3_2)
+  L3_2 = A0_2
+  L2_2 = A0_2.SpecialProcessForMimicPet
+  L2_2(L3_2)
+  L2_2 = A0_2.performNode
+  L2_2 = L2_2.performPlayer
+  L2_2 = L2_2.turnPlayer
+  L2_2 = L2_2.IsMySelfPerform
+  if not L2_2 then
+    L2_2 = BattleUtils.IsTeam
+    L2_2 = L2_2()
+    if L2_2 then
+      L2_2 = A0_2.SkillConf
+      if L2_2 then
+        L2_2 = A0_2.SkillConf
+        L2_2 = L2_2.is_showlens
+        if L2_2 > 0 then
+          A0_2.HideBattleMain = true
+          L2_2 = NRCModeManager
+          L3_2 = L2_2
+          L2_2 = L2_2.DoCmd
+          L4_2 = BattleUIModuleCmd.HideMainWindow
+          L5_2 = true
+          L6_2 = true
+          L2_2(L3_2, L4_2, L5_2, L6_2)
+      end
+    end
+    else
+      L2_2 = A0_2.SkillObject
+      L2_2.IsIgnoreCameraAction = true
+      A0_2.IgnoreCamera = true
+    end
+  end
+  L2_2 = A0_2.performNode
+  L3_2 = L2_2
+  L2_2 = L2_2.AddTimeoutDuration
+  L4_2 = A0_2.SkillObject
+  L5_2 = L4_2
+  L4_2 = L4_2.GetLength
+  L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2 = L4_2(L5_2)
+  L2_2(L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2)
+  L2_2 = BattleEventCenter
+  L3_2 = L2_2
+  L2_2 = L2_2.Dispatch
+  L4_2 = BattleEvent.StartSkill_AutoPerform
+  L5_2 = A0_2.SkillObject
+  L2_2(L3_2, L4_2, L5_2)
+  L2_2 = SkillUtils
+  L2_2 = L2_2.SpeedUpSkillEndEvent
+  L3_2 = A0_2.SkillObject
+  L2_2 = L2_2(L3_2)
+  if L2_2 > 0 then
+    L3_2 = A0_2.BattleManager
+    L3_2 = L3_2.battleRuntimeData
+    L4_2 = L3_2
+    L3_2 = L3_2.SetParallelShowTime
+    L5_2 = L2_2
+    L3_2(L4_2, L5_2)
+  end
+  L4_2 = L1_2
+  L3_2 = L1_2.PlaySkill
+  L5_2 = A0_2.SkillObject
+  L3_2 = L3_2(L4_2, L5_2)
+  L4_2 = UE4
+  L4_2 = L4_2.ESkillStartResult
+  L4_2 = L4_2.Success
+  if L3_2 ~= L4_2 then
+    L5_2 = A0_2
+    L4_2 = A0_2.OnSkillComplete
+    L4_2(L5_2)
+    return
+  end
+  L4_2 = Log
+  L4_2 = L4_2.Debug
+  L5_2 = "zgx BattleAttackPlayer: SkillObject:"
+  L6_2 = A0_2.SkillObject
+  L7_2 = L6_2
+  L6_2 = L6_2.GetName
+  L6_2 = L6_2(L7_2)
+  L7_2 = A0_2.SkillObject
+  L8_2 = L7_2
+  L7_2 = L7_2.GetLength
+  L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2 = L7_2(L8_2)
+  L4_2(L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2)
+  L4_2 = ServerData.values
+  L4_2 = L4_2.battleMode
+  if L4_2 then
+    L4_2 = string
+    L4_2 = L4_2.format
+    L5_2 = "FxPerf.Start %s_%s %f"
+    L6_2 = A0_2.skill_cast
+    L6_2 = L6_2.skill_id
+    L7_2 = A0_2.SkillObject
+    L8_2 = L7_2
+    L7_2 = L7_2.GetDisplayName
+    L7_2 = L7_2(L8_2)
+    L8_2 = 0
+    L4_2 = L4_2(L5_2, L6_2, L7_2, L8_2)
+    L5_2 = UE4
+    L5_2 = L5_2.UNRCStatics
+    L5_2 = L5_2.ExecConsoleCommand
+    L6_2 = L4_2
+    L5_2(L6_2)
+  end
+end
+
+L13_1.OnPlay = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = BattleUtils.IsCrowdBattle
+  L1_2 = L1_2()
+  if L1_2 then
+    L1_2 = BattleEnum.CheerPetPerformState
+    L1_2 = L1_2.AttackOther
+    L2_2 = A0_2.Caster
+    L2_2 = L2_2.teamEnm
+    L3_2 = BattleEnum.Team
+    L3_2 = L3_2.ENUM_TEAM
+    if L2_2 == L3_2 then
+      L3_2 = A0_2
+      L2_2 = A0_2.GetTargetPets
+      L2_2 = L2_2(L3_2)
+      L3_2 = ipairs
+      L4_2 = L2_2
+      L3_2, L4_2, L5_2, L6_2 = L3_2(L4_2)
+      for L7_2, L8_2 in L3_2, L4_2, L5_2, L6_2 do
+        L9_2 = L8_2.teamEnm
+        L10_2 = BattleEnum.Team
+        L10_2 = L10_2.ENUM_ENEMY
+        if L9_2 == L10_2 then
+          L9_2 = L8_2.card
+          L10_2 = L9_2
+          L9_2 = L9_2.IsCheerPet
+          L9_2 = L9_2(L10_2)
+          if not L9_2 then
+            L9_2 = BattleEnum.CheerPetPerformState
+            L1_2 = L9_2.BeAttack
+            break
+          end
+        end
+      end
+      L3_2 = BattleEnum.CheerPetPerformState
+      L3_2 = L3_2.AttackOther
+      if L1_2 == L3_2 then
+        return
+      end
+    end
+    L2_2 = A0_2.Caster
+    L2_2 = L2_2.card
+    L3_2 = L2_2
+    L2_2 = L2_2.IsCheerPet
+    L2_2 = L2_2(L3_2)
+    if not L2_2 then
+      L2_2 = BattleUtils.CheerPetsPerform
+      L3_2 = L1_2
+      L2_2(L3_2)
+    end
+  end
+end
+
+L13_1.CheerPetPerform = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.Caster
+  L3_2 = A0_2
+  L2_2 = A0_2.GetTargetPets
+  L2_2 = L2_2(L3_2)
+  L2_2 = L2_2[1]
+  L3_2 = Log
+  L3_2 = L3_2.Debug
+  L4_2 = "BattleAttackPlayer MoveToValidPos:"
+  L5_2 = L1_2
+  L6_2 = L2_2
+  L3_2(L4_2, L5_2, L6_2)
+  if L1_2 and L2_2 then
+    L4_2 = L1_2
+    L3_2 = L1_2.IsSame
+    L5_2 = L2_2
+    L3_2 = L3_2(L4_2, L5_2)
+    if not L3_2 then
+      L3_2 = BattleAIManager
+      L4_2 = L3_2
+      L3_2 = L3_2.CheckCurPositionIsValidToAtkTarget
+      L5_2 = L1_2
+      L6_2 = L2_2
+      L7_2 = A0_2
+      L8_2 = A0_2.OnSearchAndMoveComplete
+      L3_2(L4_2, L5_2, L6_2, L7_2, L8_2)
+  end
+  else
+    L4_2 = A0_2
+    L3_2 = A0_2.OnSearchAndMoveComplete
+    L3_2(L4_2)
+  end
+end
+
+L13_1.MoveToValidPos = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L2_2 = A0_2
+  L1_2 = A0_2.UpdateBattlePetPos
+  L1_2(L2_2)
+  L2_2 = A0_2
+  L1_2 = A0_2.CheckCopeSkill
+  L1_2(L2_2)
+end
+
+L13_1.OnSearchAndMoveComplete = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L2_2 = A0_2
+  L1_2 = A0_2.HideCasterBuffBar
+  L1_2(L2_2)
+  L2_2 = A0_2
+  L1_2 = A0_2.HideTargetsBuffBar
+  L1_2(L2_2)
+end
+
+L13_1.HideBuffBar = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L2_2 = A0_2
+  L1_2 = A0_2.ShowCasterBuffBar
+  L1_2(L2_2)
+  L2_2 = A0_2
+  L1_2 = A0_2.ShowTargetsBuffBar
+  L1_2(L2_2)
+end
+
+L13_1.ShowBuffBar = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.Caster
+  if not L1_2 then
+    return
+  end
+  L1_2 = A0_2.Caster
+  L2_2 = L1_2
+  L1_2 = L1_2.ChangeBuffVisibility
+  L3_2 = false
+  L1_2(L2_2, L3_2)
+end
+
+L13_1.HideCasterBuffBar = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.Caster
+  if not L1_2 then
+    return
+  end
+  L1_2 = A0_2.Caster
+  L2_2 = L1_2
+  L1_2 = L1_2.ChangeBuffVisibility
+  L3_2 = true
+  L1_2(L2_2, L3_2)
+end
+
+L13_1.ShowCasterBuffBar = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L2_2 = A0_2
+  L1_2 = A0_2.GetTargetPets
+  L1_2 = L1_2(L2_2)
+  if not L1_2 then
+    return
+  end
+  L2_2 = A0_2
+  L1_2 = A0_2.GetTargetPets
+  L1_2 = L1_2(L2_2)
+  L2_2 = 1
+  L3_2 = #L1_2
+  L4_2 = 1
+  for L5_2 = L2_2, L3_2, L4_2 do
+    L6_2 = L1_2[L5_2]
+    L7_2 = L6_2
+    L6_2 = L6_2.ChangeBuffVisibility
+    L8_2 = false
+    L6_2(L7_2, L8_2)
+  end
+end
+
+L13_1.HideTargetsBuffBar = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L2_2 = A0_2
+  L1_2 = A0_2.GetTargetPets
+  L1_2 = L1_2(L2_2)
+  if not L1_2 then
+    return
+  end
+  L2_2 = A0_2
+  L1_2 = A0_2.GetTargetPets
+  L1_2 = L1_2(L2_2)
+  L2_2 = 1
+  L3_2 = #L1_2
+  L4_2 = 1
+  for L5_2 = L2_2, L3_2, L4_2 do
+    L6_2 = L1_2[L5_2]
+    L7_2 = L6_2
+    L6_2 = L6_2.ChangeBuffVisibility
+    L8_2 = true
+    L6_2(L7_2, L8_2)
+  end
+end
+
+L13_1.ShowTargetsBuffBar = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = _G
+  L1_2 = L1_2.NRCModeManager
+  L2_2 = L1_2
+  L1_2 = L1_2.DoCmd
+  L3_2 = BattleUIModuleCmd.ShowHPBars
+  L1_2(L2_2, L3_2)
+end
+
+L13_1.ShowHPBars = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = _G
+  L1_2 = L1_2.NRCModeManager
+  L2_2 = L1_2
+  L1_2 = L1_2.DoCmd
+  L3_2 = BattleUIModuleCmd.HideHPBars
+  L1_2(L2_2, L3_2)
+end
+
+L13_1.HideHPBars = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.Caster
+  if L1_2 then
+    L1_2 = A0_2.Caster
+    L2_2 = L1_2
+    L1_2 = L1_2.SetPopupVisibility
+    L3_2 = false
+    L1_2(L2_2, L3_2)
+  end
+  L2_2 = A0_2
+  L1_2 = A0_2.GetTargetPets
+  L1_2 = L1_2(L2_2)
+  if L1_2 then
+    L2_2 = 1
+    L3_2 = #L1_2
+    L4_2 = 1
+    for L5_2 = L2_2, L3_2, L4_2 do
+      L6_2 = L1_2[L5_2]
+      L7_2 = L6_2
+      L6_2 = L6_2.SetPopupVisibility
+      L8_2 = false
+      L6_2(L7_2, L8_2)
+    end
+  end
+end
+
+L13_1.HideEffectPopup = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.Caster
+  if L1_2 then
+    L1_2 = A0_2.Caster
+    L2_2 = L1_2
+    L1_2 = L1_2.SetPopupVisibility
+    L3_2 = true
+    L1_2(L2_2, L3_2)
+  end
+  L2_2 = A0_2
+  L1_2 = A0_2.GetTargetPets
+  L1_2 = L1_2(L2_2)
+  if L1_2 then
+    L2_2 = 1
+    L3_2 = #L1_2
+    L4_2 = 1
+    for L5_2 = L2_2, L3_2, L4_2 do
+      L6_2 = L1_2[L5_2]
+      L7_2 = L6_2
+      L6_2 = L6_2.SetPopupVisibility
+      L8_2 = true
+      L6_2(L7_2, L8_2)
+    end
+  end
+end
+
+L13_1.ShowEffectPopup = L14_1
+
+function L14_1(A0_2, A1_2)
+  local L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+end
+
+L13_1.OnPlayerSkillComplete = L14_1
+
+function L14_1(A0_2, A1_2)
+  local L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L2_2 = A0_2.IsFinishSKill
+  if L2_2 then
+    L2_2 = Log
+    L2_2 = L2_2.Warning
+    L3_2 = "\230\138\128\232\131\189\229\183\178\231\187\147\230\157\159\228\190\157\231\132\182\232\176\131\231\148\168\229\136\176OnSkillComplete"
+    L2_2(L3_2)
+    return
+  end
+  L2_2 = A0_2.IgnoreCamera
+  L2_2 = A0_2.performNode
+  L2_2 = L2_2.IsFastPlay
+  L2_2 = not L2_2 and L2_2
+  L3_2 = A0_2.SkillObject
+  if L3_2 then
+    L3_2 = A0_2.SkillObject
+    L4_2 = L3_2
+    L3_2 = L3_2.GetBlackboard
+    L3_2 = L3_2(L4_2)
+    if L3_2 then
+      L5_2 = L3_2
+      L4_2 = L3_2.GetValueAsObject
+      L6_2 = "camActor_0001"
+      L4_2 = L4_2(L5_2, L6_2)
+      A0_2.Camera = L4_2
+      L5_2 = L3_2
+      L4_2 = L3_2.GetValueAsObject
+      L6_2 = "camActor_0001_SA"
+      L4_2 = L4_2(L5_2, L6_2)
+      A0_2.CameraBone = L4_2
+      L4_2 = A0_2.Camera
+      if L4_2 then
+        L4_2 = UE4
+        L4_2 = L4_2.UObject
+        L4_2 = L4_2.IsValid
+        L5_2 = A0_2.Camera
+        L4_2 = L4_2(L5_2)
+        if L4_2 then
+          L4_2 = A0_2.Camera
+          L5_2 = L4_2
+          L4_2 = L4_2.K2_DestroyActor
+          L4_2(L5_2)
+        end
+      end
+      L4_2 = A0_2.CameraBone
+      if L4_2 then
+        L4_2 = UE4
+        L4_2 = L4_2.UObject
+        L4_2 = L4_2.IsValid
+        L5_2 = A0_2.CameraBone
+        L4_2 = L4_2(L5_2)
+        if L4_2 then
+          L4_2 = A0_2.CameraBone
+          L5_2 = L4_2
+          L4_2 = L4_2.K2_DestroyActor
+          L4_2(L5_2)
+        end
+      end
+    end
+    L4_2 = A0_2.SkillObject
+    L4_2 = L4_2.IsIgnoreCameraAction
+    if L4_2 then
+      L2_2 = false
+    end
+  end
+  L3_2 = false
+  L5_2 = A0_2
+  L4_2 = A0_2.GetTargetPets
+  L4_2 = L4_2(L5_2)
+  L5_2 = nil
+  L6_2 = ipairs
+  L7_2 = L4_2
+  L6_2, L7_2, L8_2, L9_2 = L6_2(L7_2)
+  for L10_2, L11_2 in L6_2, L7_2, L8_2, L9_2 do
+    L13_2 = L11_2
+    L12_2 = L11_2.SetIKEnable
+    L14_2 = true
+    L12_2(L13_2, L14_2)
+    L13_2 = L11_2
+    L12_2 = L11_2.IsDead
+    L12_2 = L12_2(L13_2)
+    if L12_2 then
+      L3_2 = true
+      L5_2 = L11_2
+    end
+  end
+  if L3_2 then
+    L6_2 = L5_2.teamEnm
+    L7_2 = BattleEnum.Team
+    L7_2 = L7_2.ENUM_TEAM
+    if L6_2 == L7_2 then
+      L2_2 = false
+    else
+      L6_2 = L5_2.teamEnm
+      L7_2 = BattleEnum.Team
+      L7_2 = L7_2.ENUM_ENEMY
+      if L6_2 == L7_2 then
+        L6_2 = BattleUtils.IsPvp
+        L6_2 = L6_2()
+        if not L6_2 then
+          L6_2 = BattleUtils.IsPve
+          L6_2 = L6_2()
+          if not L6_2 then
+            L6_2 = BattleUtils.IsWeeklyChallenge
+            L6_2 = L6_2()
+            if not L6_2 then
+              L6_2 = BattleUtils.IsOnlyPve
+              L6_2 = L6_2()
+              if not L6_2 then
+                goto lbl_116
+              end
+            end
+          end
+        end
+        L2_2 = false
+      end
+    end
+  end
+  ::lbl_116::
+  if L2_2 then
+    L3_2 = _G
+    L3_2 = L3_2.BattleManager
+    L3_2 = L3_2.vBattleField
+    L3_2 = L3_2.battleCameraManager
+    if L3_2 then
+      L3_2 = _G
+      L3_2 = L3_2.BattleManager
+      L3_2 = L3_2.stateFsm
+      L4_2 = L3_2
+      L3_2 = L3_2.GetActiveStateName
+      L3_2 = L3_2(L4_2)
+      L4_2 = BattleEnum.StateNames
+      L4_2 = L4_2.SwapSelect
+      if L3_2 ~= L4_2 then
+        L3_2 = _G
+        L3_2 = L3_2.BattleManager
+        L3_2 = L3_2.stateFsm
+        L4_2 = L3_2
+        L3_2 = L3_2.GetActiveStateName
+        L3_2 = L3_2(L4_2)
+        L4_2 = BattleEnum.StateNames
+        L4_2 = L4_2.SelectRidPet
+        if L3_2 ~= L4_2 then
+          L3_2 = _G
+          L3_2 = L3_2.BattleManager
+          L3_2 = L3_2.vBattleField
+          L3_2 = L3_2.battleCameraManager
+          L4_2 = L3_2
+          L3_2 = L3_2.ChangeToSkill
+          L5_2 = 0.2
+          L3_2(L4_2, L5_2)
+        end
+      end
+    end
+  end
+  L3_2 = A0_2.Caster
+  if L3_2 then
+    L3_2 = A0_2.Caster
+    L4_2 = L3_2
+    L3_2 = L3_2.InstanceOf
+    L5_2 = BattlePlayer
+    L3_2 = L3_2(L4_2, L5_2)
+    if L3_2 then
+      L3_2 = A0_2.Caster
+      L4_2 = L3_2
+      L3_2 = L3_2.EnableGravity
+      L5_2 = true
+      L3_2(L4_2, L5_2)
+      L4_2 = A0_2
+      L3_2 = A0_2.OnFinish
+      L3_2(L4_2)
+      return
+    end
+  end
+  L4_2 = A0_2
+  L3_2 = A0_2.LeaveBulletTime
+  L3_2(L4_2)
+  L4_2 = A0_2
+  L3_2 = A0_2.LeaveMultiAtkBullet
+  L3_2(L4_2)
+  L4_2 = A0_2
+  L3_2 = A0_2.ResetShield
+  L3_2(L4_2)
+  L3_2 = BattleManager
+  L3_2 = L3_2.vBattleField
+  L3_2 = L3_2.BattleDepthCam
+  if L3_2 then
+    L3_2 = BattleManager
+    L3_2 = L3_2.vBattleField
+    L3_2 = L3_2.BattleDepthCam
+    L4_2 = L3_2
+    L3_2 = L3_2.Update
+    L3_2(L4_2)
+  end
+  L3_2 = A0_2.Caster
+  if L3_2 then
+    L3_2 = A0_2.Caster
+    L4_2 = L3_2
+    L3_2 = L3_2.SetIKEnable
+    L5_2 = true
+    L3_2(L4_2, L5_2)
+    L3_2 = A0_2.Caster
+    L3_2.attackPlayer = nil
+  else
+    L3_2 = Log
+    L3_2 = L3_2.Error
+    L4_2 = "\230\179\168\230\132\143\239\188\154\229\174\160\231\137\169\233\135\138\230\148\190\230\138\128\232\131\189\232\191\135\231\168\139\228\184\173\228\184\162\229\164\177\230\168\161\229\158\139"
+    L3_2(L4_2)
+  end
+  L3_2 = BattleUtils
+  L4_2 = L3_2
+  L3_2 = L3_2.RestartBattleState
+  L6_2 = A0_2
+  L5_2 = A0_2.GetTargetPets
+  L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2 = L5_2(L6_2)
+  L3_2(L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2)
+  L4_2 = A0_2
+  L3_2 = A0_2.CheckDynamicBattleFieldForPlayer
+  L3_2 = L3_2(L4_2)
+  if L3_2 then
+    L4_2 = A0_2
+    L3_2 = A0_2.IsCopeSkill
+    L3_2 = L3_2(L4_2)
+    L3_2 = not L3_2 and L3_2
+  end
+  L5_2 = A0_2
+  L4_2 = A0_2.IsCopeSkill
+  L4_2 = L4_2(L5_2)
+  if L4_2 then
+    L5_2 = A0_2
+    L4_2 = A0_2.SetCounter
+    L6_2 = false
+    L4_2(L5_2, L6_2)
+    L4_2 = BattleEventCenter
+    L5_2 = L4_2
+    L4_2 = L4_2.Dispatch
+    L6_2 = BattleEvent.SKillEvent_OnCounterEnd
+    L7_2 = A0_2.performNode
+    L8_2 = L7_2
+    L7_2 = L7_2.GetNodeIdx
+    L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2 = L7_2(L8_2)
+    L4_2(L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2)
+  end
+  L5_2 = A0_2
+  L4_2 = A0_2.IsTriggerCounter
+  L4_2 = L4_2(L5_2)
+  if not L4_2 then
+    L5_2 = A0_2
+    L4_2 = A0_2.IsTriggerInterrupt
+    L4_2 = L4_2(L5_2)
+    if not L4_2 then
+      goto lbl_238
+    end
+  end
+  L4_2 = BattleEventCenter
+  L5_2 = L4_2
+  L4_2 = L4_2.Dispatch
+  L6_2 = BattleEvent.SKillEvent_BeCounterEnd
+  L4_2(L5_2, L6_2)
+  ::lbl_238::
+  if L3_2 then
+    L5_2 = A0_2
+    L4_2 = A0_2.UpdateBattlePetPos
+    L4_2(L5_2)
+    L5_2 = A0_2
+    L4_2 = A0_2.MoveTeamPlayerFollowPet
+    L4_2(L5_2)
+    L5_2 = A0_2
+    L4_2 = A0_2.MoveEnemyPlayerFollowPet
+    L4_2(L5_2)
+    L5_2 = A0_2
+    L4_2 = A0_2.OnFinish
+    L4_2(L5_2)
+  else
+    L5_2 = A0_2
+    L4_2 = A0_2.OnFinish
+    L4_2(L5_2)
+  end
+  L4_2 = ServerData.values
+  L4_2 = L4_2.battleMode
+  if L4_2 then
+    L4_2 = BattleEventCenter
+    L5_2 = L4_2
+    L4_2 = L4_2.Dispatch
+    L6_2 = BattleEvent.FX_PERF_ON_SKILL_PLAY_PAUSE
+    L7_2 = A0_2.skill_cast
+    L8_2 = A0_2.SkillObject
+    L4_2(L5_2, L6_2, L7_2, L8_2)
+  end
+  L4_2 = BattleUtils.IsFinalBattleP1
+  L4_2 = L4_2()
+  if L4_2 then
+    L4_2 = _G
+    L4_2 = L4_2.BattleManager
+    L4_2 = L4_2.vBattleField
+    L4_2 = L4_2.battleCameraManager
+    if L4_2 then
+      L6_2 = L4_2
+      L5_2 = L4_2.SetLockCameraByG6
+      L7_2 = false
+      L5_2(L6_2, L7_2)
+    end
+  end
+end
+
+L13_1.OnSkillComplete = L14_1
+
+function L14_1(A0_2, A1_2)
+  local L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L2_2 = A0_2.SkillObject
+  if L2_2 then
+    L2_2 = A0_2.SkillObject
+    L3_2 = L2_2
+    L2_2 = L2_2.SetCounter
+    L4_2 = A1_2
+    L2_2(L3_2, L4_2)
+  end
+end
+
+L13_1.SetCounter = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.performNode
+  if L1_2 then
+    L1_2 = A0_2.performNode
+    L2_2 = L1_2
+    L1_2 = L1_2.GetCounterNode
+    L1_2 = L1_2(L2_2)
+    if L1_2 then
+      L2_2 = A0_2.SkillObject
+      L3_2 = L2_2
+      L2_2 = L2_2.SetBeCounter
+      L5_2 = L1_2
+      L4_2 = L1_2.GetNodeIdx
+      L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2 = L4_2(L5_2)
+      L2_2(L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2)
+      L3_2 = A0_2
+      L2_2 = A0_2.ActiveDefendShieldLoop
+      L2_2(L3_2)
+    end
+  end
+end
+
+L13_1.SetBeCounter = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L2_2 = A0_2
+  L1_2 = A0_2.GetTargetPets
+  L1_2 = L1_2(L2_2)
+  L2_2 = pairs
+  L3_2 = L1_2
+  L2_2, L3_2, L4_2, L5_2 = L2_2(L3_2)
+  for L6_2, L7_2 in L2_2, L3_2, L4_2, L5_2 do
+    L8_2 = A0_2.Caster
+    if L7_2 ~= L8_2 then
+      L7_2.HasShieldThisAttack = false
+    end
+  end
+end
+
+L13_1.ResetShield = L14_1
+
+function L14_1(A0_2, A1_2)
+  local L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L2_2 = A1_2.model
+  L3_2 = L2_2
+  L2_2 = L2_2.Abs_K2_GetActorLocation
+  L2_2 = L2_2(L3_2)
+  L3_2 = A1_2.card
+  L3_2 = L3_2.posInField
+  if not L3_2 then
+    L3_2 = 1
+  end
+  L4_2 = _G
+  L4_2 = L4_2.BattleManager
+  L4_2 = L4_2.battlePawnManager
+  L4_2 = L4_2.VBattleField
+  L5_2 = L4_2
+  L4_2 = L4_2.GetTeamPositionMap
+  L6_2 = A1_2.teamEnm
+  L4_2 = L4_2(L5_2, L6_2)
+  L6_2 = L4_2
+  L5_2 = L4_2.Get
+  L7_2 = L3_2
+  L5_2 = L5_2(L6_2, L7_2)
+  L7_2 = A1_2
+  L6_2 = A1_2.GetHalfHeight
+  L6_2 = L6_2(L7_2)
+  L7_2 = LineTraceUtils.GetPointValidLocation
+  L8_2 = L2_2
+  L9_2 = L6_2
+  L7_2, L8_2 = L7_2(L8_2, L9_2)
+  L10_2 = L5_2
+  L9_2 = L5_2.Abs_K2_SetActorLocation_WithoutHit
+  L11_2 = L8_2
+  L9_2(L10_2, L11_2)
+end
+
+L13_1.UpdateBattleConfPos = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = _G
+  L1_2 = L1_2.BattleManager
+  L1_2 = L1_2.battlePawnManager
+  L2_2 = L1_2
+  L1_2 = L1_2.GetCanSelectAllPet
+  L3_2 = BattleEnum.Team
+  L3_2 = L3_2.ENUM_TEAM
+  L1_2 = L1_2(L2_2, L3_2)
+  L2_2 = _G
+  L2_2 = L2_2.BattleManager
+  L2_2 = L2_2.battlePawnManager
+  L3_2 = L2_2
+  L2_2 = L2_2.GetCanSelectAllPet
+  L4_2 = BattleEnum.Team
+  L4_2 = L4_2.ENUM_ENEMY
+  L2_2 = L2_2(L3_2, L4_2)
+  L3_2 = #L1_2
+  if L3_2 > 0 then
+    L3_2 = #L2_2
+    if L3_2 > 0 then
+      L3_2 = _G
+      L3_2 = L3_2.BattleManager
+      L3_2 = L3_2.vBattleField
+      L4_2 = L3_2
+      L3_2 = L3_2.UpdateBattleFieldLocationAndRotationSettings
+      L5_2 = L1_2
+      L6_2 = L2_2
+      L3_2(L4_2, L5_2, L6_2)
+    end
+  end
+  L3_2 = pairs
+  L4_2 = L1_2
+  L3_2, L4_2, L5_2, L6_2 = L3_2(L4_2)
+  for L7_2, L8_2 in L3_2, L4_2, L5_2, L6_2 do
+    L10_2 = L8_2
+    L9_2 = L8_2.UpdateLocalRoundPerformInfo
+    L9_2(L10_2)
+    L10_2 = A0_2
+    L9_2 = A0_2.UpdateBattleConfPos
+    L11_2 = L8_2
+    L9_2(L10_2, L11_2)
+  end
+  L3_2 = pairs
+  L4_2 = L2_2
+  L3_2, L4_2, L5_2, L6_2 = L3_2(L4_2)
+  for L7_2, L8_2 in L3_2, L4_2, L5_2, L6_2 do
+    L10_2 = L8_2
+    L9_2 = L8_2.UpdateLocalRoundPerformInfo
+    L9_2(L10_2)
+    L10_2 = A0_2
+    L9_2 = A0_2.UpdateBattleConfPos
+    L11_2 = L8_2
+    L9_2(L10_2, L11_2)
+  end
+end
+
+L13_1.UpdateBattlePetPos = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = BattleConst.MoveToLegalLocationWhenBlock
+  if not L1_2 then
+    L1_2 = false
+    return L1_2
+  end
+  L1_2 = A0_2.performNode
+  L1_2 = L1_2.IsLastHitNode
+  if L1_2 then
+    L1_2 = false
+    return L1_2
+  end
+  L1_2 = true
+  return L1_2
+end
+
+L13_1.CheckDynamicBattleFieldForPlayer = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = BattleManager
+  L1_2 = L1_2.battlePawnManager
+  L2_2 = L1_2
+  L1_2 = L1_2.GetPlayerMyTeam
+  L1_2 = L1_2(L2_2)
+  L2_2 = BattleManager
+  L2_2 = L2_2.battlePawnManager
+  L3_2 = L2_2
+  L2_2 = L2_2.GetInFieldPet
+  L4_2 = BattleEnum.Team
+  L4_2 = L4_2.ENUM_TEAM
+  L2_2 = L2_2(L3_2, L4_2)
+  L3_2 = BattleManager
+  L3_2 = L3_2.battlePawnManager
+  L4_2 = L3_2
+  L3_2 = L3_2.GetInFieldPet
+  L5_2 = BattleEnum.Team
+  L5_2 = L5_2.ENUM_ENEMY
+  L3_2 = L3_2(L4_2, L5_2)
+  if L1_2 and L3_2 and L2_2 then
+    L4_2 = L1_2.model
+    if L4_2 then
+      L4_2 = L2_2.model
+      if L4_2 then
+        L4_2 = L3_2.model
+        if L4_2 then
+          L4_2 = L1_2.model
+          L4_2.AllowToTurn = true
+          L4_2 = _G
+          L4_2 = L4_2.BattleAIManager
+          L5_2 = L4_2
+          L4_2 = L4_2.SearchPlayerValidPosition
+          L6_2 = L1_2
+          L7_2 = L2_2
+          L8_2 = L3_2
+          L9_2 = A0_2
+          L10_2 = A0_2.OnSearchAndMovePlayerComplete
+          L4_2(L5_2, L6_2, L7_2, L8_2, L9_2, L10_2)
+      end
+    end
+  end
+  else
+    L5_2 = A0_2
+    L4_2 = A0_2.OnSearchAndMovePlayerComplete
+    L4_2(L5_2)
+  end
+end
+
+L13_1.MoveTeamPlayerFollowPet = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = BattleManager
+  L1_2 = L1_2.battlePawnManager
+  L2_2 = L1_2
+  L1_2 = L1_2.GetPlayerEnemyTeam
+  L1_2 = L1_2(L2_2)
+  L1_2 = L1_2()
+  L2_2 = BattleManager
+  L2_2 = L2_2.battlePawnManager
+  L3_2 = L2_2
+  L2_2 = L2_2.GetInFieldPet
+  L4_2 = BattleEnum.Team
+  L4_2 = L4_2.ENUM_ENEMY
+  L2_2 = L2_2(L3_2, L4_2)
+  L3_2 = BattleManager
+  L3_2 = L3_2.battlePawnManager
+  L4_2 = L3_2
+  L3_2 = L3_2.GetInFieldPet
+  L5_2 = BattleEnum.Team
+  L5_2 = L5_2.ENUM_TEAM
+  L3_2 = L3_2(L4_2, L5_2)
+  if L1_2 and L3_2 and L2_2 then
+    L4_2 = L1_2.model
+    if L4_2 then
+      L4_2 = L2_2.model
+      if L4_2 then
+        L4_2 = L3_2.model
+        if L4_2 then
+          L4_2 = _G
+          L4_2 = L4_2.BattleAIManager
+          L5_2 = L4_2
+          L4_2 = L4_2.SearchPlayerValidPosition
+          L6_2 = L1_2
+          L7_2 = L2_2
+          L8_2 = L3_2
+          L9_2 = A0_2
+          L10_2 = A0_2.OnSearchAndMovePlayerComplete
+          L4_2(L5_2, L6_2, L7_2, L8_2, L9_2, L10_2)
+      end
+    end
+  end
+  else
+    L5_2 = A0_2
+    L4_2 = A0_2.OnSearchAndMovePlayerComplete
+    L4_2(L5_2)
+  end
+end
+
+L13_1.MoveEnemyPlayerFollowPet = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L2_2 = A0_2
+  L1_2 = A0_2.OnFinish
+  L1_2(L2_2)
+end
+
+L13_1.SearchAndMovePlayerComplete = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.IsFinishSKill
+  if not L1_2 then
+    L2_2 = A0_2
+    L1_2 = A0_2.ForceEndMultiDamage
+    L1_2(L2_2)
+    L2_2 = A0_2
+    L1_2 = A0_2.OnCounter
+    L1_2(L2_2)
+    L2_2 = A0_2
+    L1_2 = A0_2.OnInterrupt
+    L1_2(L2_2)
+  end
+  L2_2 = A0_2
+  L1_2 = A0_2.StopDefenceBulletTime
+  L1_2(L2_2)
+  L2_2 = A0_2
+  L1_2 = A0_2.LeaveBulletTime
+  L1_2(L2_2)
+  L1_2 = A0_2.DefenceBulletTimeId
+  if L1_2 then
+    L1_2 = A0_2.DefenceBulletTimeId
+    if L1_2 > 0 then
+      L1_2 = Log
+      L1_2 = L1_2.Error
+      L2_2 = "zgx this should not happen, DefenceBulletTimeId is bigger then 0 at OnFinish"
+      L1_2(L2_2)
+      L1_2 = _G
+      L1_2 = L1_2.BattleBulletTimeManager
+      L2_2 = L1_2
+      L1_2 = L1_2.LeaveBulletTime
+      L3_2 = A0_2.DefenceBulletTimeId
+      L1_2(L2_2, L3_2)
+      A0_2.DefenceBulletTimeId = -1
+    end
+  end
+  L1_2 = A0_2.HideBattleMain
+  if L1_2 then
+    L1_2 = _G
+    L1_2 = L1_2.BattleEventCenter
+    L2_2 = L1_2
+    L1_2 = L1_2.Dispatch
+    L3_2 = BattleEvent.SHOW_MAIN_WHEN_SKILLOVER
+    L1_2(L2_2, L3_2)
+  end
+  L1_2 = _G
+  L1_2 = L1_2.BattleManager
+  L1_2 = L1_2.vBattleField
+  L1_2 = L1_2.battleFieldActor
+  if L1_2 then
+    L1_2 = UE
+    L1_2 = L1_2.UObject
+    L1_2 = L1_2.IsValid
+    L2_2 = _G
+    L2_2 = L2_2.BattleManager
+    L2_2 = L2_2.vBattleField
+    L2_2 = L2_2.battleFieldActor
+    L1_2 = L1_2(L2_2)
+    if L1_2 then
+      L1_2 = _G
+      L1_2 = L1_2.NRCEventCenter
+      L2_2 = L1_2
+      L1_2 = L1_2.DispatchEvent
+      L3_2 = BattleEvent.UPDATE_BATTLEFIELD_POS
+      L4_2 = _G
+      L4_2 = L4_2.BattleManager
+      L4_2 = L4_2.vBattleField
+      L4_2 = L4_2.battleFieldActor
+      L5_2 = L4_2
+      L4_2 = L4_2.Abs_K2_GetActorLocation
+      L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2 = L4_2(L5_2)
+      L1_2(L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2)
+  end
+  else
+    L1_2 = Log
+    L1_2 = L1_2.Error
+    L2_2 = "BattleAttackPlayer:OnFinish _G.BattleManager.vBattleField.battleFieldActor is nil"
+    L1_2(L2_2)
+  end
+  A0_2.SkillObject = nil
+  L2_2 = A0_2
+  L1_2 = A0_2.DelayHidePopup
+  L1_2(L2_2)
+  A0_2.IsFinishSKill = true
+  L1_2 = A0_2.performNode
+  L2_2 = L1_2
+  L1_2 = L1_2.PerformComplete
+  L1_2(L2_2)
+  L1_2 = _G
+  L1_2 = L1_2.BattleEventCenter
+  L2_2 = L1_2
+  L1_2 = L1_2.UnBind
+  L3_2 = A0_2
+  L1_2(L2_2, L3_2)
+end
+
+L13_1.OnFinish = L14_1
+
+function L14_1(A0_2, A1_2, A2_2)
+  local L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L3_2 = A0_2.performNode
+  L4_2 = L3_2
+  L3_2 = L3_2.DispatchPerformCallback
+  L5_2 = A1_2
+  L6_2 = A2_2
+  L3_2(L4_2, L5_2, L6_2)
+end
+
+L13_1.OnSkillCastMoment = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.IsTriggerOnCounter
+  if not L1_2 then
+    A0_2.IsTriggerOnCounter = true
+    L2_2 = A0_2
+    L1_2 = A0_2.IsTriggerCounter
+    L1_2 = L1_2(L2_2)
+    if L1_2 then
+      L2_2 = A0_2
+      L1_2 = A0_2.OnSkillCastMoment
+      L3_2 = ProtoEnum.Buffbasetrigger_type
+      L3_2 = L3_2.OnCounter
+      L1_2(L2_2, L3_2)
+    end
+  end
+end
+
+L13_1.OnCounter = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = _G
+  L1_2 = L1_2.NRCEventCenter
+  L2_2 = L1_2
+  L1_2 = L1_2.DispatchEvent
+  L3_2 = NRCGlobalEvent
+  L3_2 = L3_2.CLOSE_BLACK_SCREEN
+  L1_2(L2_2, L3_2)
+end
+
+L13_1.OnRemoveCutsceneBlackGround = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = BattleUtils.IsB1FinalBattleP3
+  L1_2 = L1_2()
+  if L1_2 then
+    L1_2 = _G
+    L1_2 = L1_2.NRCModuleManager
+    L2_2 = L1_2
+    L1_2 = L1_2.DoCmd
+    L3_2 = _G
+    L3_2 = L3_2.BattleUIModuleCmd
+    L3_2 = L3_2.CloseBattleUltimateSkillUI
+    L1_2(L2_2, L3_2)
+  end
+end
+
+L13_1.OnPostStart = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L2_2 = A0_2
+  L1_2 = A0_2.OnSkillCastMoment
+  L3_2 = ProtoEnum.Buffbasetrigger_type
+  L3_2 = L3_2.OnFlyEnergy
+  L1_2(L2_2, L3_2)
+end
+
+L13_1.OnFlyEnergy = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.IsTriggerOnInterrupt
+  if not L1_2 then
+    A0_2.IsTriggerOnInterrupt = true
+    L2_2 = A0_2
+    L1_2 = A0_2.IsTriggerInterrupt
+    L1_2 = L1_2(L2_2)
+    if L1_2 then
+      L2_2 = A0_2
+      L1_2 = A0_2.SetTargetsStuck
+      L3_2 = false
+      L1_2(L2_2, L3_2)
+      L2_2 = A0_2
+      L1_2 = A0_2.OnSkillCastMoment
+      L3_2 = ProtoEnum.Buffbasetrigger_type
+      L3_2 = L3_2.OnInterrupt
+      L1_2(L2_2, L3_2)
+      L1_2 = Log
+      L1_2 = L1_2.Warning
+      L2_2 = "BattleAttackPlayer:OnInterrupt"
+      L1_2(L2_2)
+    end
+  end
+end
+
+L13_1.OnInterrupt = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.IsTriggerOnCounterEnd
+  if not L1_2 then
+    A0_2.IsTriggerOnCounterEnd = true
+    L2_2 = A0_2
+    L1_2 = A0_2.IsTriggerCounterEnd
+    L1_2 = L1_2(L2_2)
+    if L1_2 then
+      L2_2 = A0_2
+      L1_2 = A0_2.OnSkillCastMoment
+      L3_2 = ProtoEnum.Buffbasetrigger_type
+      L3_2 = L3_2.OnCounterEnd
+      L1_2(L2_2, L3_2)
+    end
+  end
+end
+
+L13_1.OnCounterEnd = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = Log
+  L1_2 = L1_2.Debug
+  L2_2 = "BattleAttackPlayer:OnCoping"
+  L1_2(L2_2)
+  L2_2 = A0_2
+  L1_2 = A0_2.IsTriggerInterrupt
+  L1_2 = L1_2(L2_2)
+  if L1_2 then
+    L2_2 = A0_2
+    L1_2 = A0_2.OnInterrupt
+    L1_2(L2_2)
+    return
+  end
+  L2_2 = A0_2
+  L1_2 = A0_2.IsTriggerCounter
+  L1_2 = L1_2(L2_2)
+  if L1_2 then
+    L2_2 = A0_2
+    L1_2 = A0_2.OnCounter
+    L1_2(L2_2)
+  end
+end
+
+L13_1.OnCoping = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  A0_2.IsTriggerOnHit = true
+  L2_2 = A0_2
+  L1_2 = A0_2.OnSkillCastMoment
+  L3_2 = ProtoEnum.Buffbasetrigger_type
+  L3_2 = L3_2.OnHit
+  L1_2(L2_2, L3_2)
+  L2_2 = A0_2
+  L1_2 = A0_2.OnSkillCastMoment
+  L3_2 = ProtoEnum.Buffbasetrigger_type
+  L3_2 = L3_2.OnAnimationHit
+  L1_2(L2_2, L3_2)
+end
+
+L13_1.TriggerHit = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.multiAttackEnd
+  if L1_2 then
+    L1_2 = Log
+    L1_2 = L1_2.Warning
+    L2_2 = "ZGX \230\179\168\230\132\143\239\188\154\230\136\152\230\150\151\232\167\166\229\143\145\228\186\134\228\184\128\228\184\170\232\135\180\229\145\189\233\148\153\232\175\175\239\188\140\229\164\154\230\174\181\230\148\187\229\135\187\229\183\178\231\187\143\231\187\147\230\157\159\228\190\157\231\132\182\230\148\182\229\136\176\228\186\134\229\135\187\228\184\173\228\186\139\228\187\182\239\188\129\232\175\183\231\171\139\229\141\179\230\163\128\230\159\165\232\181\132\230\186\144\230\152\175\229\144\166\229\188\130\229\184\184"
+    L3_2 = A0_2.SkillObject
+    L4_2 = L3_2
+    L3_2 = L3_2.GetName
+    L3_2 = L3_2(L4_2)
+    L4_2 = A0_2.totalHits
+    L5_2 = A0_2.consumedHits
+    L1_2(L2_2, L3_2, L4_2, L5_2)
+    return
+  end
+  L2_2 = A0_2
+  L1_2 = A0_2.IsTriggerCounter
+  L1_2 = L1_2(L2_2)
+  if L1_2 then
+    L1_2 = _G
+    L1_2 = L1_2.RocoSkillEventCenter
+    L2_2 = L1_2
+    L1_2 = L1_2.DispatchEvent
+    L3_2 = _G
+    L3_2 = L3_2.RocoSkillEventCenter
+    L3_2 = L3_2.evenName
+    L3_2 = L3_2.OnHit
+    L1_2(L2_2, L3_2)
+  end
+  L2_2 = A0_2
+  L1_2 = A0_2.IsCopeSkillInterrupt
+  L1_2 = L1_2(L2_2)
+  if L1_2 then
+    L1_2 = A0_2.consumedDamage
+    if 0 == L1_2 then
+      L1_2 = Log
+      L1_2 = L1_2.Debug
+      L2_2 = "BattleAttackPlayer IsCopeSkillInterrupt"
+      L1_2(L2_2)
+      L2_2 = A0_2
+      L1_2 = A0_2.GetTargetPets
+      L1_2 = L1_2(L2_2)
+      L2_2 = 1
+      L3_2 = #L1_2
+      L4_2 = 1
+      for L5_2 = L2_2, L3_2, L4_2 do
+        L6_2 = Log
+        L6_2 = L6_2.Trace
+        L7_2 = "BattleAttackPlayer OnHit"
+        L6_2(L7_2)
+        L6_2 = L1_2[L5_2]
+        if L6_2 then
+          L7_2 = L6_2.attackPlayer
+          if L7_2 then
+            L7_2 = L6_2.attackPlayer
+            L8_2 = L7_2
+            L7_2 = L7_2.GetCounterNode
+            L7_2 = L7_2(L8_2)
+            L8_2 = A0_2.performNode
+            if L7_2 == L8_2 then
+              L7_2 = L6_2.attackPlayer
+              L8_2 = L7_2.SkillObject
+              L9_2 = L7_2.IsTriggerOnHit
+              if not L9_2 then
+                L10_2 = L7_2
+                L9_2 = L7_2.TriggerHit
+                L9_2(L10_2)
+              end
+              L9_2 = L7_2.OnSkillComplete
+              if L9_2 then
+                L10_2 = L7_2
+                L9_2 = L7_2.OnSkillComplete
+                L9_2(L10_2)
+              end
+              L10_2 = L6_2
+              L9_2 = L6_2.GetCurrentActiveSkill
+              L9_2 = L9_2(L10_2)
+              if L9_2 == L8_2 then
+                L11_2 = L6_2
+                L10_2 = L6_2.CancelSkillBySkillObject
+                L12_2 = L8_2
+                L13_2 = UE4
+                L13_2 = L13_2.ESkillActionResult
+                L13_2 = L13_2.SkillActionResultSuccessful
+                L10_2(L11_2, L12_2, L13_2)
+                L11_2 = L6_2
+                L10_2 = L6_2.PlayAnimByName
+                L12_2 = "Idle"
+                L13_2 = 1
+                L14_2 = -1
+                L15_2 = 0
+                L16_2 = 0
+                L17_2 = -1
+                L18_2 = -1
+                L10_2(L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2)
+                L11_2 = L6_2
+                L10_2 = L6_2.ShowForInterrupt
+                L10_2(L11_2)
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+  L1_2 = A0_2.SkillObject
+  if L1_2 then
+    L1_2 = A0_2.SkillObject
+    L2_2 = L1_2
+    L1_2 = L1_2.GetBeCounter
+    L1_2 = L1_2(L2_2)
+  end
+  if L1_2 then
+    L2_2 = A0_2.performNode
+    L2_2 = L2_2.OwnerGroup
+    L3_2 = L2_2
+    L2_2 = L2_2.StartRecord
+    L2_2(L3_2)
+  end
+  L2_2 = A0_2.consumedDamage
+  if 0 == L2_2 then
+    L3_2 = A0_2
+    L2_2 = A0_2.IsCopeSkill
+    L2_2 = L2_2(L3_2)
+    if not L2_2 and not L1_2 then
+      L3_2 = A0_2
+      L2_2 = A0_2.TryLookAtCaster
+      L2_2(L3_2)
+    end
+  end
+  L2_2 = A0_2.consumedDamage
+  L2_2 = L2_2 + 1
+  A0_2.consumedDamage = L2_2
+  L2_2 = A0_2.consumedDamage
+  L3_2 = A0_2.MultiDamageTimes
+  if L2_2 < L3_2 then
+    L3_2 = A0_2
+    L2_2 = A0_2.ExecuteMultiDamage
+    L2_2(L3_2)
+  else
+    L3_2 = A0_2
+    L2_2 = A0_2.OnceHit
+    L2_2(L3_2)
+  end
+  if L1_2 then
+    L2_2 = A0_2.performNode
+    L2_2 = L2_2.OwnerGroup
+    L2_2 = L2_2.RecordMinExecIdx
+    if L2_2 >= 0 then
+      L3_2 = A0_2.performNode
+      L3_2 = L3_2.OwnerGroup
+      L4_2 = L3_2
+      L3_2 = L3_2.StopRecord
+      L3_2(L4_2)
+      L3_2 = A0_2.performNode
+      L3_2 = L3_2.OwnerGroup
+      L3_2 = L3_2.OwnerCluster
+      L4_2 = L3_2
+      L3_2 = L3_2.AddNodesToTriggerByExecIdForKeepOrderCluster
+      L5_2 = L2_2
+      L3_2(L4_2, L5_2)
+    end
+  end
+end
+
+L13_1.OnHit = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.consumedDamage
+  if 1 == L1_2 then
+    L2_2 = A0_2
+    L1_2 = A0_2.OnSkillCastMoment
+    L3_2 = ProtoEnum.Buffbasetrigger_type
+    L3_2 = L3_2.OnAttackHit
+    L4_2 = A0_2.consumedHits
+    L3_2 = L3_2 + L4_2
+    L4_2 = ProtoEnum.BattlePerformType
+    L4_2 = L4_2.BPT_DAMAGE
+    L1_2(L2_2, L3_2, L4_2)
+  else
+    L2_2 = A0_2
+    L1_2 = A0_2.RecordMultiDamage
+    L3_2 = A0_2.consumedDamage
+    L4_2 = ProtoEnum.Buffbasetrigger_type
+    L4_2 = L4_2.OnAttackHit
+    L5_2 = A0_2.consumedHits
+    L4_2 = L4_2 + L5_2
+    L1_2(L2_2, L3_2, L4_2)
+    L1_2 = BattleEventCenter
+    L2_2 = L1_2
+    L1_2 = L1_2.Dispatch
+    L3_2 = BattleEvent.MultiAttack_TookDamage
+    L1_2(L2_2, L3_2)
+  end
+end
+
+L13_1.ExecuteMultiDamage = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.MultiDamageTimes
+  if L1_2 > 1 then
+    L1_2 = A0_2.consumedDamage
+    L2_2 = A0_2.MultiDamageTimes
+    if L1_2 < L2_2 then
+      L1_2 = 1
+      L2_2 = A0_2.MultiDamageTimes
+      L3_2 = A0_2.consumedDamage
+      L2_2 = L2_2 - L3_2
+      L3_2 = 1
+      for L4_2 = L1_2, L2_2, L3_2 do
+        L5_2 = A0_2.consumedDamage
+        L5_2 = L5_2 + 1
+        A0_2.consumedDamage = L5_2
+        L6_2 = A0_2
+        L5_2 = A0_2.ExecuteMultiDamage
+        L5_2(L6_2)
+      end
+    end
+  end
+end
+
+L13_1.ForceEndMultiDamage = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L2_2 = A0_2
+  L1_2 = A0_2.ProcessHitEvent
+  L1_2(L2_2)
+  L2_2 = A0_2
+  L1_2 = A0_2.ProcessMultiAtkPerform
+  L1_2(L2_2)
+end
+
+L13_1.OnceHit = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L2_2 = A0_2
+  L1_2 = A0_2.TryTriggerCopeSkill
+  L1_2(L2_2)
+  L2_2 = A0_2
+  L1_2 = A0_2.OnSkillCastMoment
+  L3_2 = ProtoEnum.Buffbasetrigger_type
+  L3_2 = L3_2.OnAttackHit
+  L4_2 = A0_2.consumedHits
+  L3_2 = L3_2 + L4_2
+  L1_2(L2_2, L3_2)
+  L1_2 = A0_2.MultiDamageTimes
+  if L1_2 > 1 then
+    L2_2 = A0_2
+    L1_2 = A0_2.ExecuteMultiDamage
+    L1_2(L2_2)
+  end
+  L1_2 = A0_2.consumedHits
+  L1_2 = L1_2 + 1
+  A0_2.consumedHits = L1_2
+  L1_2 = A0_2.totalHits
+  L2_2 = A0_2.consumedHits
+  if L1_2 <= L2_2 then
+    L2_2 = A0_2
+    L1_2 = A0_2.TriggerHit
+    L1_2(L2_2)
+  end
+end
+
+L13_1.ProcessHitEvent = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.IsFinishSKill
+  if L1_2 then
+    L1_2 = Log
+    L1_2 = L1_2.Warning
+    L2_2 = "\230\138\128\232\131\189\229\183\178\231\187\147\230\157\159\228\190\157\231\132\182\232\176\131\231\148\168\229\136\176OnSkillComplete"
+    L1_2(L2_2)
+    return
+  end
+  L1_2 = A0_2.SkillObject
+  if L1_2 then
+    L1_2 = A0_2.SkillObject
+    L1_2 = L1_2.Blackboard
+    A0_2.blackBoard = L1_2
+  end
+  L1_2 = A0_2.performNode
+  L2_2 = L1_2
+  L1_2 = L1_2.GetPerformRemainingTime
+  L1_2 = L1_2(L2_2)
+  L2_2 = false
+  L3_2 = A0_2.totalHits
+  if L3_2 > 1 and L1_2 <= 5 then
+    L3_2 = A0_2.totalHits
+    L4_2 = A0_2.consumedHits
+    L3_2 = L3_2 - L4_2
+    if L3_2 >= 3 then
+      L2_2 = true
+      L3_2 = SkillUtils
+      L3_2 = L3_2.SetRangedMultiAtkTimes
+      L4_2 = A0_2.SkillObject
+      L5_2 = 0
+      L3_2(L4_2, L5_2)
+    end
+  end
+  L3_2 = A0_2.totalHits
+  if L3_2 > 1 then
+    L3_2 = A0_2.consumedHits
+    if L3_2 > 0 then
+      L3_2 = A0_2.consumedHits
+      L4_2 = A0_2.totalHits
+      if L3_2 >= L4_2 then
+        L4_2 = A0_2
+        L3_2 = A0_2.LeaveMultiAtkBullet
+        L3_2(L4_2)
+      else
+        L4_2 = A0_2
+        L3_2 = A0_2.GetMultiAttackCurveValue
+        L5_2 = A0_2.consumedHits
+        L3_2 = L3_2(L4_2, L5_2)
+        if L3_2 > 0 then
+          L4_2 = Log
+          L4_2 = L4_2.Debug
+          L5_2 = "zgx BulletTime BattleAttackPlayer:ProcessMultiAtkPerform:curveValue"
+          L6_2 = L3_2
+          L7_2 = A0_2.MultiAtkBulletTimeId
+          L8_2 = A0_2.consumedHits
+          L9_2 = A0_2.totalHits
+          L4_2(L5_2, L6_2, L7_2, L8_2, L9_2)
+          L4_2 = A0_2.MultiAtkBulletTimeId
+          if L4_2 > 0 then
+            L4_2 = _G
+            L4_2 = L4_2.BattleBulletTimeManager
+            L5_2 = L4_2
+            L4_2 = L4_2.ChangeBulletTimeTask
+            L6_2 = A0_2.MultiAtkBulletTimeId
+            L7_2 = L3_2
+            L8_2 = -1
+            L4_2(L5_2, L6_2, L7_2, L8_2)
+          else
+            L4_2 = _G
+            L4_2 = L4_2.BattleBulletTimeManager
+            L5_2 = L4_2
+            L4_2 = L4_2.EnterBulletTime
+            L6_2 = UE
+            L6_2 = L6_2.EBulletTimeType
+            L6_2 = L6_2.ActionPerform
+            L7_2 = UE
+            L7_2 = L7_2.EBulletTimeChangeType
+            L7_2 = L7_2.Change
+            L8_2 = A0_2.Caster
+            L8_2 = L8_2.model
+            L9_2 = L8_2
+            L8_2 = L8_2.GetWorld
+            L8_2 = L8_2(L9_2)
+            L9_2 = L3_2
+            L10_2 = UE
+            L10_2 = L10_2.EBulletTimeChangeType
+            L10_2 = L10_2.Change
+            L11_2 = {}
+            L12_2 = 1
+            L4_2 = L4_2(L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2)
+            A0_2.MultiAtkBulletTimeId = L4_2
+          end
+        end
+      end
+    end
+  end
+  L3_2 = 1
+  L4_2 = A0_2.blackBoard
+  if L4_2 then
+    L4_2 = A0_2.SkillObject
+    if 0 ~= L4_2 then
+      L4_2 = A0_2.SkillObject
+      L4_2 = L4_2.SkillPerformType
+      if 0 ~= L4_2 then
+        L5_2 = A0_2.totalHits
+        L6_2 = A0_2.consumedHits
+        if L5_2 == L6_2 or L2_2 then
+          L5_2 = A0_2.blackBoard
+          L6_2 = L5_2
+          L5_2 = L5_2.SetValueAsInt
+          L7_2 = BattleConst.SkillObjData
+          L7_2 = L7_2.DefaultBlackboardParam
+          L7_2 = L7_2.MultiAtkFirstPass
+          L8_2 = 0
+          L5_2(L6_2, L7_2, L8_2)
+          L5_2 = A0_2.blackBoard
+          L6_2 = L5_2
+          L5_2 = L5_2.SetValueAsInt
+          L7_2 = BattleConst.SkillObjData
+          L7_2 = L7_2.DefaultBlackboardParam
+          L7_2 = L7_2.MultiAtkEnd
+          L8_2 = 1
+          L5_2(L6_2, L7_2, L8_2)
+          L5_2 = A0_2.blackBoard
+          L6_2 = L5_2
+          L5_2 = L5_2.SetValueAsInt
+          L7_2 = BattleConst.SkillObjData
+          L7_2 = L7_2.DefaultBlackboardParam
+          L7_2 = L7_2.MultiAtkLoop
+          L8_2 = 0
+          L5_2(L6_2, L7_2, L8_2)
+          A0_2.multiAttackEnd = true
+          return
+        end
+        L5_2 = A0_2.blackBoard
+        L6_2 = L5_2
+        L5_2 = L5_2.SetValueAsInt
+        L7_2 = BattleConst.SkillObjData
+        L7_2 = L7_2.DefaultBlackboardParam
+        L7_2 = L7_2.MultiAtkFirstPass
+        L8_2 = 0
+        L5_2(L6_2, L7_2, L8_2)
+        L6_2 = A0_2
+        L5_2 = A0_2.NeedMultiAtkLoop
+        L7_2 = A0_2.consumedHits
+        L8_2 = L3_2
+        L9_2 = A0_2.totalHits
+        L5_2 = L5_2(L6_2, L7_2, L8_2, L9_2)
+        if L5_2 then
+          L5_2 = A0_2.blackBoard
+          L6_2 = L5_2
+          L5_2 = L5_2.SetValueAsInt
+          L7_2 = BattleConst.SkillObjData
+          L7_2 = L7_2.DefaultBlackboardParam
+          L7_2 = L7_2.MultiAtkLoop
+          L8_2 = 1
+          L5_2(L6_2, L7_2, L8_2)
+        else
+          L5_2 = A0_2.blackBoard
+          L6_2 = L5_2
+          L5_2 = L5_2.SetValueAsInt
+          L7_2 = BattleConst.SkillObjData
+          L7_2 = L7_2.DefaultBlackboardParam
+          L7_2 = L7_2.MultiAtkLoop
+          L8_2 = 0
+          L5_2(L6_2, L7_2, L8_2)
+        end
+      end
+    end
+  end
+  A0_2.blackBoard = nil
+end
+
+L13_1.ProcessMultiAtkPerform = L14_1
+
+function L14_1(A0_2, A1_2)
+  local L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  if A1_2 and not (A1_2 <= 0) then
+    L2_2 = A0_2.totalHits
+    if L2_2 then
+      L2_2 = A0_2.totalHits
+      if not (L2_2 <= 1) then
+        goto lbl_13
+      end
+    end
+  end
+  L2_2 = 1.0
+  do return L2_2 end
+  ::lbl_13::
+  L2_2 = BattleResourceManager
+  L3_2 = L2_2
+  L2_2 = L2_2.GetCacheAssetDirect
+  L4_2 = BattleConst.AttackHitSpeedCurve
+  L5_2 = true
+  L2_2 = L2_2(L3_2, L4_2, L5_2)
+  if L2_2 then
+    L4_2 = L2_2
+    L3_2 = L2_2.GetFloatValue
+    L5_2 = A1_2
+    return L3_2(L4_2, L5_2)
+  end
+  L3_2 = 1
+  return L3_2
+end
+
+L13_1.GetMultiAttackCurveValue = L14_1
+
+function L14_1(A0_2, A1_2, A2_2, A3_2)
+  local L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L4_2 = math
+  L4_2 = L4_2.fmod
+  L5_2 = A1_2
+  L6_2 = A2_2
+  L4_2 = L4_2(L5_2, L6_2)
+  L4_2 = 0 == L4_2 and A1_2 < A3_2
+  return L4_2
+end
+
+L13_1.NeedMultiAtkLoop = L14_1
+
+function L14_1(A0_2, A1_2)
+  local L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L3_2 = A1_2
+  L2_2 = A1_2.GetAnimComponent
+  L2_2 = L2_2(L3_2)
+  if not L2_2 then
+    L3_2 = 0
+    return L3_2
+  end
+  L3_2 = 2
+  L4_2 = 1
+  L5_2 = L3_2
+  L6_2 = 1
+  for L7_2 = L4_2, L5_2, L6_2 do
+    L8_2 = "Attack1"
+    L9_2 = tostring
+    L10_2 = L7_2
+    L9_2 = L9_2(L10_2)
+    L8_2 = L8_2 .. L9_2
+    L10_2 = L2_2
+    L9_2 = L2_2.GetAnimLengthByName
+    L11_2 = L8_2
+    L9_2 = L9_2(L10_2, L11_2)
+    if 0 == L9_2 then
+      L10_2 = L7_2 - 1
+      return L10_2
+    end
+  end
+  return L3_2
+end
+
+L13_1.GetPetMultiAtkAnimCount = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L2_2 = A0_2
+  L1_2 = A0_2.OnSkillCastMoment
+  L3_2 = ProtoEnum.Buffbasetrigger_type
+  L3_2 = L3_2.OnBeforeHit
+  L1_2(L2_2, L3_2)
+end
+
+L13_1.OnTriggerBeforeHit = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = Log
+  L1_2 = L1_2.Error
+  L2_2 = "zgx \230\138\128\232\131\189\232\162\171\230\137\147\230\150\173\228\186\134\239\188\129BattleAttackPlayer"
+  L1_2(L2_2)
+  L1_2 = A0_2.IsFinishSKill
+  if not L1_2 then
+    L2_2 = A0_2
+    L1_2 = A0_2.OnSkillComplete
+    L1_2(L2_2)
+  end
+end
+
+L13_1.OnSkillBreakCallback = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.SkillObject
+  if not L1_2 then
+    return
+  end
+  L2_2 = A0_2
+  L1_2 = A0_2.LeaveBulletTime
+  L1_2(L2_2)
+  L1_2 = A0_2.SkillObject
+  L2_2 = L1_2
+  L1_2 = L1_2.GetAllActions
+  L1_2 = L1_2(L2_2)
+  L2_2 = 1
+  L4_2 = L1_2
+  L3_2 = L1_2.Length
+  L3_2 = L3_2(L4_2)
+  L4_2 = 1
+  for L5_2 = L2_2, L3_2, L4_2 do
+    L7_2 = L1_2
+    L6_2 = L1_2.Get
+    L8_2 = L5_2
+    L6_2 = L6_2(L7_2, L8_2)
+    L8_2 = L6_2
+    L7_2 = L6_2.IsA
+    L9_2 = UE4
+    L9_2 = L9_2.URocoPlayFxSystemAction
+    L7_2 = L7_2(L8_2, L9_2)
+    if L7_2 then
+      L6_2.bUseBulletTime = false
+    end
+  end
+end
+
+L13_1.OnStopBulletTime = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = BattleEventCenter
+  L2_2 = L1_2
+  L1_2 = L1_2.Dispatch
+  L3_2 = BattleEvent.SKillEvent_AllHitEnd
+  L1_2(L2_2, L3_2)
+end
+
+L13_1.OnAllHitEnd = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = BattleEventCenter
+  L2_2 = L1_2
+  L1_2 = L1_2.Dispatch
+  L3_2 = BattleEvent.SKillEvent_StateEffectEnd
+  L1_2(L2_2, L3_2)
+end
+
+L13_1.OnStateEffectEndEnd = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L2_2 = A0_2
+  L1_2 = A0_2.ClearDefendShieldActor
+  L1_2(L2_2)
+end
+
+L13_1.OnNormalDefendEnd = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L2_2 = A0_2
+  L1_2 = A0_2.IsCopeSkill
+  L1_2 = L1_2(L2_2)
+  if L1_2 then
+    L1_2 = A0_2.performNode
+    L2_2 = L1_2
+    L1_2 = L1_2.GetCastMoment
+    L1_2 = L1_2(L2_2)
+    L2_2 = ProtoEnum.Buffbasetrigger_type
+    L2_2 = L2_2.OnCounter
+    if L1_2 == L2_2 then
+    else
+      L2_2 = ProtoEnum.Buffbasetrigger_type
+      L2_2 = L2_2.OnInterrupt
+      if L1_2 == L2_2 then
+        L2_2 = Log
+        L2_2 = L2_2.Debug
+        L3_2 = "BattleAttackPlayer:TryTriggerCopeSkill"
+        L2_2(L3_2)
+        L3_2 = A0_2
+        L2_2 = A0_2.SetTargetsStuck
+        L4_2 = false
+        L2_2(L3_2, L4_2)
+      end
+    end
+  end
+end
+
+L13_1.TryTriggerCopeSkill = L14_1
+
+function L14_1(A0_2, A1_2)
+  local L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L3_2 = A0_2
+  L2_2 = A0_2.GetTargetPets
+  L2_2 = L2_2(L3_2)
+  L3_2 = 1
+  L4_2 = #L2_2
+  L5_2 = 1
+  for L6_2 = L3_2, L4_2, L5_2 do
+    L7_2 = L2_2[L6_2]
+    if L7_2 then
+      L8_2 = L7_2.model
+      if L8_2 then
+        L8_2 = L7_2.card
+        L8_2 = L8_2.petState
+        L9_2 = L8_2
+        L8_2 = L8_2.SetStuck
+        L10_2 = A1_2
+        L8_2(L9_2, L10_2)
+        L8_2 = L7_2.card
+        L8_2 = L8_2.petState
+        L9_2 = L8_2
+        L8_2 = L8_2.SetStuckPos
+        L10_2 = L7_2.model
+        L11_2 = L10_2
+        L10_2 = L10_2.K2_GetActorLocation
+        L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2 = L10_2(L11_2)
+        L8_2(L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2)
+      end
+    end
+  end
+end
+
+L13_1.SetTargetsStuck = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = {}
+  L2_2 = A0_2.skill_cast
+  L2_2 = L2_2.target_id
+  if L2_2 then
+    L2_2 = 1
+    L3_2 = A0_2.skill_cast
+    L3_2 = L3_2.target_id
+    L3_2 = #L3_2
+    L4_2 = 1
+    for L5_2 = L2_2, L3_2, L4_2 do
+      L7_2 = A0_2
+      L6_2 = A0_2.GetPetWithID
+      L8_2 = A0_2.skill_cast
+      L8_2 = L8_2.target_id
+      L8_2 = L8_2[L5_2]
+      L6_2 = L6_2(L7_2, L8_2)
+      if L6_2 then
+        L7_2 = table
+        L7_2 = L7_2.insert
+        L8_2 = L1_2
+        L9_2 = L6_2
+        L7_2(L8_2, L9_2)
+      end
+    end
+  end
+  return L1_2
+end
+
+L13_1.GetTargetPets = L14_1
+
+function L14_1(A0_2, A1_2, A2_2, A3_2)
+  local L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L5_2 = A0_2
+  L4_2 = A0_2.OnSkillComplete
+  L4_2(L5_2)
+end
+
+L13_1.OnStartFailed = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L2_2 = A0_2
+  L1_2 = A0_2.OnSkillComplete
+  L1_2(L2_2)
+end
+
+L13_1.OnSkillBreak = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.CompleteCallback
+  L2_2 = A0_2.CompleteCallbackOwner
+  A0_2.CompleteCallback = nil
+  A0_2.CompleteCallbackOwner = nil
+  if L1_2 then
+    L3_2 = L1_2
+    L4_2 = L2_2
+    L5_2 = A0_2.BreakFlow
+    L3_2(L4_2, L5_2)
+  end
+  L4_2 = A0_2
+  L3_2 = A0_2.Release
+  L3_2(L4_2)
+end
+
+L13_1.Finish = L14_1
+
+function L14_1(A0_2, A1_2)
+  local L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L2_2 = A0_2.PawnManager
+  L3_2 = L2_2
+  L2_2 = L2_2.GetPetByGuid
+  L4_2 = A1_2
+  L2_2 = L2_2(L3_2, L4_2)
+  return L2_2
+end
+
+L13_1.GetPetWithID = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.skill_cast
+  L1_2 = L1_2.type
+  L2_2 = ProtoEnum.SkillPerformType
+  L2_2 = L2_2.SPT_COUNTER
+  L1_2 = L1_2 == L2_2
+  return L1_2
+end
+
+L13_1.IsCopeSkill = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = Log
+  L1_2 = L1_2.Debug
+  L2_2 = "BattleAttackPlayer IsCopeSkillInterrupt:"
+  L3_2 = A0_2.skill_cast
+  L3_2 = L3_2.skill_id
+  L4_2 = A0_2.skill_cast
+  L4_2 = L4_2.type
+  L5_2 = A0_2.performNode
+  L6_2 = L5_2
+  L5_2 = L5_2.GetCastMomentToString
+  L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2 = L5_2(L6_2)
+  L1_2(L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2)
+  L1_2 = A0_2.skill_cast
+  L1_2 = L1_2.type
+  L2_2 = ProtoEnum.SkillPerformType
+  L2_2 = L2_2.SPT_COUNTER
+  L1_2 = L1_2 == L2_2
+  return L1_2
+end
+
+L13_1.IsCopeSkillInterrupt = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L2_2 = A0_2
+  L1_2 = A0_2.GetCounterNode
+  L1_2 = L1_2(L2_2)
+  L2_2 = L1_2 or L2_2
+  if L1_2 then
+    L3_2 = L1_2
+    L2_2 = L1_2.GetCastMoment
+    L2_2 = L2_2(L3_2)
+    L3_2 = ProtoEnum.Buffbasetrigger_type
+    L3_2 = L3_2.OnCounter
+    L2_2 = L2_2 == L3_2
+  end
+  return L2_2
+end
+
+L13_1.IsTriggerCounter = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L2_2 = A0_2
+  L1_2 = A0_2.GetCounterNode
+  L1_2 = L1_2(L2_2)
+  L2_2 = L1_2 or L2_2
+  if L1_2 then
+    L3_2 = L1_2
+    L2_2 = L1_2.GetCastMoment
+    L2_2 = L2_2(L3_2)
+    L3_2 = ProtoEnum.Buffbasetrigger_type
+    L3_2 = L3_2.OnInterrupt
+    L2_2 = L2_2 == L3_2
+  end
+  return L2_2
+end
+
+L13_1.IsTriggerInterrupt = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L2_2 = A0_2
+  L1_2 = A0_2.GetCounterNode
+  L1_2 = L1_2(L2_2)
+  L2_2 = L1_2 or L2_2
+  if L1_2 then
+    L3_2 = L1_2
+    L2_2 = L1_2.GetCastMoment
+    L2_2 = L2_2(L3_2)
+    L3_2 = ProtoEnum.Buffbasetrigger_type
+    L3_2 = L3_2.OnCounterEnd
+    L2_2 = L2_2 == L3_2
+  end
+  return L2_2
+end
+
+L13_1.IsTriggerCounterEnd = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.performNode
+  if L1_2 then
+    L1_2 = A0_2.performNode
+    L2_2 = L1_2
+    L1_2 = L1_2.GetCounterNode
+    return L1_2(L2_2)
+  end
+end
+
+L13_1.GetCounterNode = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.performNode
+  if L1_2 then
+    L1_2 = A0_2.performNode
+    L2_2 = L1_2
+    L1_2 = L1_2.GetBeCounterNode
+    return L1_2(L2_2)
+  end
+end
+
+L13_1.GetBeCounterNode = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = 1
+  return L1_2
+end
+
+L13_1.GetAttackPower = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.performNode
+  L2_2 = L1_2
+  L1_2 = L1_2.GetGroupNodes
+  L1_2 = L1_2(L2_2)
+  L2_2 = 1
+  L3_2 = #L1_2
+  L4_2 = 1
+  for L5_2 = L2_2, L3_2, L4_2 do
+    L6_2 = L1_2[L5_2]
+    L7_2 = L6_2
+    L6_2 = L6_2.IsDamageInfoNode
+    L6_2 = L6_2(L7_2)
+    if L6_2 then
+      L6_2 = L1_2[L5_2]
+      L7_2 = L6_2
+      L6_2 = L6_2.GetPerformData
+      L6_2 = L6_2(L7_2)
+      L7_2 = L6_2.restraint_type
+      L8_2 = ProtoEnum.SkillRestraintType
+      L8_2 = L8_2.SRT_RESTRAINT_ONE
+      L8_2 = L7_2 == L8_2
+      return L8_2
+    end
+  end
+  L2_2 = false
+  return L2_2
+end
+
+L13_1.GetIsRestraint = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.performNode
+  L2_2 = L1_2
+  L1_2 = L1_2.GetGroupNodes
+  L1_2 = L1_2(L2_2)
+  L2_2 = 1
+  L3_2 = #L1_2
+  L4_2 = 1
+  for L5_2 = L2_2, L3_2, L4_2 do
+    L6_2 = L1_2[L5_2]
+    L7_2 = L6_2
+    L6_2 = L6_2.IsDamageInfoNode
+    L6_2 = L6_2(L7_2)
+    if L6_2 then
+      L6_2 = L1_2[L5_2]
+      L7_2 = L6_2
+      L6_2 = L6_2.GetPerformData
+      L6_2 = L6_2(L7_2)
+      L7_2 = L6_2.restraint_type
+      L8_2 = ProtoEnum.SkillRestraintType
+      L8_2 = L8_2.SRT_RESTRAINTED_ONE
+      L8_2 = L7_2 == L8_2
+      return L8_2
+    end
+  end
+  L2_2 = false
+  return L2_2
+end
+
+L13_1.GetIsRestrained = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = 0
+  L2_2 = 0
+  L3_2 = A0_2.performNode
+  L4_2 = L3_2
+  L3_2 = L3_2.GetGroupNodes
+  L3_2 = L3_2(L4_2)
+  L4_2 = 1
+  L5_2 = #L3_2
+  L6_2 = 1
+  for L7_2 = L4_2, L5_2, L6_2 do
+    L8_2 = L3_2[L7_2]
+    L9_2 = L8_2
+    L8_2 = L8_2.IsDamageInfoNode
+    L8_2 = L8_2(L9_2)
+    if L8_2 then
+      L8_2 = L3_2[L7_2]
+      L9_2 = L8_2
+      L8_2 = L8_2.GetPerformData
+      L8_2 = L8_2(L9_2)
+      L9_2 = L3_2[L7_2]
+      L10_2 = L9_2
+      L9_2 = L9_2.GetSyncData
+      L9_2 = L9_2(L10_2)
+      L10_2 = L9_2.pet_sync_info
+      L10_2 = L10_2[1]
+      L10_2 = L10_2.hp_change
+      if L10_2 then
+        L10_2 = L9_2.pet_sync_info
+        L10_2 = L10_2[1]
+        L10_2 = L10_2.hp_change
+        L10_2 = -L10_2
+        if L1_2 < L10_2 then
+          L1_2 = L10_2
+          L2_2 = L8_2.target_id
+        end
+      end
+    end
+  end
+  if 0 ~= L2_2 then
+    L5_2 = A0_2
+    L4_2 = A0_2.GetPetWithID
+    L6_2 = L2_2
+    L4_2 = L4_2(L5_2, L6_2)
+    if L4_2 then
+      L6_2 = L4_2
+      L5_2 = L4_2.GetCard
+      L5_2 = L5_2(L6_2)
+      L5_2 = L5_2.max_hp
+      L5_2 = L1_2 / L5_2
+      return L5_2
+    end
+  end
+  L4_2 = 0
+  return L4_2
+end
+
+L13_1.GetReduceHP = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.SkillConf
+  if not L1_2 then
+    L1_2 = 1
+    return L1_2
+  else
+    L1_2 = A0_2.SkillConf
+    L1_2 = L1_2.damage_type
+    return L1_2
+  end
+end
+
+L13_1.GetDamageType = L14_1
+
+function L14_1(A0_2, A1_2)
+  local L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L2_2 = A0_2.skill_cast
+  L2_2 = L2_2.target_id
+  if L2_2 then
+    L2_2 = BattleUtils.PlayDefaultTargetCamera
+    L3_2 = A0_2.skill_cast
+    L3_2 = L3_2.target_id
+    L3_2 = L3_2[1]
+    L4_2 = A1_2
+    L5_2 = A1_2 or L5_2
+    if A1_2 then
+      L5_2 = A1_2.Invoke
+    end
+    L2_2(L3_2, L4_2, L5_2)
+  end
+end
+
+L13_1.ApplyDefaultCamera = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.Caster
+  if L1_2 then
+    L1_2 = BattleUtils.IsB1FinalBattleP3
+    L1_2 = L1_2()
+    if L1_2 then
+      L1_2 = A0_2.Caster
+      L1_2 = L1_2.teamEnm
+      L2_2 = BattleEnum.Team
+      L2_2 = L2_2.ENUM_ENEMY
+      if L1_2 == L2_2 then
+        return
+      end
+    end
+    L1_2 = BattleUtils.IsFinalBattle
+    L1_2 = L1_2()
+    if L1_2 then
+      L1_2 = A0_2.Caster
+      L1_2 = L1_2.teamEnm
+      L2_2 = BattleEnum.Team
+      L2_2 = L2_2.ENUM_ENEMY
+      if L1_2 == L2_2 then
+        return
+      end
+    end
+    L2_2 = A0_2
+    L1_2 = A0_2.GetTargetPets
+    L1_2 = L1_2(L2_2)
+    L2_2 = L1_2[1]
+    if L2_2 then
+      L2_2 = L1_2[1]
+      L2_2 = L2_2.teamEnm
+      L3_2 = A0_2.Caster
+      L3_2 = L3_2.teamEnm
+      if L2_2 ~= L3_2 then
+        L2_2 = A0_2.Caster
+        L3_2 = L2_2
+        L2_2 = L2_2.SetTurnTo
+        L4_2 = L1_2[1]
+        L5_2 = true
+        L2_2(L3_2, L4_2, L5_2)
+    end
+    else
+      L2_2 = A0_2.Caster
+      L3_2 = L2_2
+      L2_2 = L2_2.ResetRotation
+      L4_2 = true
+      L2_2(L3_2, L4_2)
+    end
+  end
+end
+
+L13_1.TryLookAtTarget = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.Caster
+  if L1_2 then
+    L2_2 = A0_2
+    L1_2 = A0_2.GetTargetPets
+    L1_2 = L1_2(L2_2)
+    L2_2 = ipairs
+    L3_2 = L1_2
+    L2_2, L3_2, L4_2, L5_2 = L2_2(L3_2)
+    for L6_2, L7_2 in L2_2, L3_2, L4_2, L5_2 do
+      if L7_2 then
+        L8_2 = BattleUtils.IsB1FinalBattleP3
+        L8_2 = L8_2()
+        if L8_2 then
+          L8_2 = L7_2.teamEnm
+          L9_2 = BattleEnum.Team
+          L9_2 = L9_2.ENUM_TEAM
+          if L8_2 == L9_2 then
+            return
+          end
+        end
+        L8_2 = BattleUtils.IsFinalBattle
+        L8_2 = L8_2()
+        if L8_2 then
+          L8_2 = L7_2.teamEnm
+          L9_2 = BattleEnum.Team
+          L9_2 = L9_2.ENUM_ENEMY
+          if L8_2 == L9_2 then
+            return
+          end
+        end
+        L8_2 = L7_2.teamEnm
+        L9_2 = A0_2.Caster
+        L9_2 = L9_2.teamEnm
+        if L8_2 == L9_2 then
+          L9_2 = L7_2
+          L8_2 = L7_2.ResetRotation
+          L10_2 = true
+          L8_2(L9_2, L10_2)
+        else
+          L9_2 = L7_2
+          L8_2 = L7_2.SetTurnTo
+          L10_2 = A0_2.Caster
+          L11_2 = true
+          L8_2(L9_2, L10_2, L11_2)
+        end
+      end
+    end
+  end
+end
+
+L13_1.TryLookAtCaster = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.Caster
+  if L1_2 then
+    L1_2 = A0_2.Caster
+    L2_2 = L1_2
+    L1_2 = L1_2.ResetRotation
+    L1_2(L2_2)
+  end
+end
+
+L13_1.ResetRotation = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.performNode
+  L2_2 = L1_2
+  L1_2 = L1_2.GetCastMoment
+  L1_2 = L1_2(L2_2)
+  L2_2 = ProtoEnum.Buffbasetrigger_type
+  L2_2 = L2_2.OnInterrupt
+  if L1_2 ~= L2_2 then
+    L1_2 = A0_2.performNode
+    L2_2 = L1_2
+    L1_2 = L1_2.GetCastMoment
+    L1_2 = L1_2(L2_2)
+    L2_2 = ProtoEnum.Buffbasetrigger_type
+    L2_2 = L2_2.OnCounter
+    if L1_2 ~= L2_2 then
+      goto lbl_72
+    end
+  end
+  L1_2 = Log
+  L1_2 = L1_2.Debug
+  L2_2 = "BattleAttackPlayer:EnterBulletTime "
+  L3_2 = A0_2.skill_cast
+  L3_2 = L3_2.skill_id
+  L1_2(L2_2, L3_2)
+  L1_2 = BattleConst.Show
+  L1_2 = L1_2.CounterSkillTimeDilation
+  L2_2 = A0_2.performNode
+  L3_2 = L2_2
+  L2_2 = L2_2.GetCastMoment
+  L2_2 = L2_2(L3_2)
+  L3_2 = ProtoEnum.Buffbasetrigger_type
+  L3_2 = L3_2.OnInterrupt
+  if L2_2 == L3_2 then
+    L2_2 = BattleConst.Show
+    L1_2 = L2_2.InterruptSkillTimeDilation
+  end
+  L2_2 = _G
+  L2_2 = L2_2.BattleBulletTimeManager
+  L3_2 = L2_2
+  L2_2 = L2_2.EnterBulletTime
+  L4_2 = UE
+  L4_2 = L4_2.EBulletTimeType
+  L4_2 = L4_2.Counter
+  L5_2 = UE
+  L5_2 = L5_2.EBulletTimeChangeType
+  L5_2 = L5_2.Change
+  L6_2 = A0_2.Caster
+  L6_2 = L6_2.model
+  L7_2 = L6_2
+  L6_2 = L6_2.GetWorld
+  L6_2 = L6_2(L7_2)
+  L7_2 = L1_2
+  L8_2 = UE
+  L8_2 = L8_2.EBulletTimeChangeType
+  L8_2 = L8_2.Keep
+  L9_2 = {}
+  L10_2 = A0_2.Caster
+  L10_2 = L10_2.model
+  L9_2[1] = L10_2
+  L10_2 = 1
+  L2_2 = L2_2(L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2)
+  A0_2.BulletTimeId = L2_2
+  L2_2 = BattleEventCenter
+  L3_2 = L2_2
+  L2_2 = L2_2.Dispatch
+  L4_2 = BattleEvent.SKillEvent_EnterBulletTime
+  L5_2 = A0_2.performNode
+  L6_2 = L5_2
+  L5_2 = L5_2.GetNodeIdx
+  L5_2 = L5_2(L6_2)
+  L6_2 = A0_2.SkillConf
+  L6_2 = L6_2.Skill_Type
+  L2_2(L3_2, L4_2, L5_2, L6_2)
+  L2_2 = BattleEventCenter
+  L3_2 = L2_2
+  L2_2 = L2_2.Dispatch
+  L4_2 = BattleEvent.DefenceOtherStart
+  L5_2 = A0_2.Caster
+  L5_2 = L5_2.guid
+  L2_2(L3_2, L4_2, L5_2)
+  ::lbl_72::
+end
+
+L13_1.EnterBulletTime = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.BulletTimeId
+  if L1_2 then
+    L1_2 = A0_2.BulletTimeId
+    if L1_2 >= 0 then
+      L1_2 = _G
+      L1_2 = L1_2.BattleBulletTimeManager
+      L2_2 = L1_2
+      L1_2 = L1_2.LeaveBulletTime
+      L3_2 = A0_2.BulletTimeId
+      L1_2(L2_2, L3_2)
+      A0_2.BulletTimeId = -1
+      L1_2 = BattleEventCenter
+      L2_2 = L1_2
+      L1_2 = L1_2.Dispatch
+      L3_2 = BattleEvent.SKillEvent_LeaveBulletTime
+      L4_2 = A0_2.performNode
+      L5_2 = L4_2
+      L4_2 = L4_2.GetNodeIdx
+      L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2 = L4_2(L5_2)
+      L1_2(L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2)
+    end
+  end
+end
+
+L13_1.LeaveBulletTime = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.MultiAtkBulletTimeId
+  if L1_2 then
+    L1_2 = A0_2.MultiAtkBulletTimeId
+    if L1_2 >= 0 then
+      L1_2 = Log
+      L1_2 = L1_2.Debug
+      L2_2 = "zgx BulletTime BattleAttackPlayer:LeaveMultiAtkBullet"
+      L1_2(L2_2)
+      L1_2 = UE4
+      L1_2 = L1_2.UNRCStatics
+      L1_2 = L1_2.RemoveBulletTimeTask
+      L2_2 = A0_2.MultiAtkBulletTimeId
+      L1_2(L2_2)
+      A0_2.MultiAtkBulletTimeId = -1
+    end
+  end
+end
+
+L13_1.LeaveMultiAtkBullet = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.BattleManager
+  L1_2 = L1_2.battlePawnManager
+  L2_2 = L1_2
+  L1_2 = L1_2.GetAllPets
+  L1_2 = L1_2(L2_2)
+  L2_2 = pairs
+  L3_2 = L1_2
+  L2_2, L3_2, L4_2, L5_2 = L2_2(L3_2)
+  for L6_2, L7_2 in L2_2, L3_2, L4_2, L5_2 do
+    L8_2 = A0_2.Caster
+    if L7_2 ~= L8_2 then
+      L8_2 = L7_2.teamEnm
+      L9_2 = A0_2.Caster
+      L9_2 = L9_2.teamEnm
+      if L8_2 == L9_2 then
+        L9_2 = L7_2
+        L8_2 = L7_2.PlayAnimByName
+        L10_2 = "Happy"
+        L11_2 = 1
+        L12_2 = -1
+        L13_2 = 0
+        L14_2 = 0
+        L15_2 = 1
+        L16_2 = -1
+        L8_2(L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2)
+      else
+        L9_2 = L7_2
+        L8_2 = L7_2.PlayAnimByName
+        L10_2 = "Fear"
+        L11_2 = 1
+        L12_2 = -1
+        L13_2 = 0
+        L14_2 = 0
+        L15_2 = 1
+        L16_2 = -1
+        L8_2(L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2)
+      end
+    end
+  end
+end
+
+L13_1.OtherPetShowAnim = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = SkillUtils
+  L1_2 = L1_2.SkillObjHasLuaEvent
+  L2_2 = A0_2.SkillObject
+  L3_2 = UE4
+  L3_2 = L3_2.ERocoSkillLuaEventType
+  L3_2 = L3_2.FlyEnergy
+  L1_2 = L1_2(L2_2, L3_2)
+  if L1_2 then
+    L1_2 = SkillUtils
+    L1_2 = L1_2.ScanEnergyPerform
+    L2_2 = A0_2.performNode
+    L3_2 = A0_2.skill_cast
+    L3_2 = L3_2.skill_id
+    L1_2(L2_2, L3_2)
+  end
+end
+
+L13_1.ScanEnergyPerform = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.totalHits
+  L1_2 = A0_2.performNode
+  L2_2 = L1_2
+  L1_2 = L1_2.IsMultiAttackType
+  L1_2 = L1_2 > 1 or L1_2
+  if not L1_2 then
+    L2_2 = A0_2.SkillObject
+    if L2_2 then
+      L2_2 = A0_2.SkillObject
+      L2_2 = L2_2.SkillPerformType
+      if 0 == L2_2 then
+        L2_2 = math
+        L2_2 = L2_2.max
+        L3_2 = 1
+        L4_2 = SkillUtils
+        L4_2 = L4_2.SkillObjGetLuaEvent
+        L5_2 = A0_2.SkillObject
+        L6_2 = UE4
+        L6_2 = L6_2.ERocoSkillLuaEventType
+        L6_2 = L6_2.TriggerBeHit
+        L4_2 = L4_2(L5_2, L6_2)
+        L4_2 = #L4_2
+        L2_2 = L2_2(L3_2, L4_2)
+        A0_2.MultiDamageTimes = L2_2
+        L2_2 = A0_2.MultiDamageTimes
+        if L2_2 > 1 then
+          L3_2 = A0_2
+          L2_2 = A0_2.ProcessMultiDamage
+          L4_2 = A0_2.MultiDamageTimes
+          L2_2(L3_2, L4_2)
+        end
+      end
+    end
+  end
+end
+
+L13_1.ScanMultiDamage = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.performNode
+  if L1_2 then
+    L1_2 = A0_2.performNode
+    L2_2 = L1_2
+    L1_2 = L1_2.GetGroupNodes
+    L1_2 = L1_2(L2_2)
+    L3_2 = A0_2
+    L2_2 = A0_2.GetTargetPets
+    L2_2 = L2_2(L3_2)
+    L3_2 = pairs
+    L4_2 = L1_2
+    L3_2, L4_2, L5_2, L6_2 = L3_2(L4_2)
+    for L7_2, L8_2 in L3_2, L4_2, L5_2, L6_2 do
+      L10_2 = L8_2
+      L9_2 = L8_2.GetPerformType
+      L9_2 = L9_2(L10_2)
+      L10_2 = ProtoEnum.BattlePerformType
+      L10_2 = L10_2.BPT_DAMAGE
+      if L9_2 == L10_2 then
+        L10_2 = L8_2
+        L9_2 = L8_2.GetPerformData
+        L9_2 = L9_2(L10_2)
+        L10_2 = L9_2.has_shield
+        if L10_2 then
+          L10_2 = ipairs
+          L11_2 = L2_2
+          L10_2, L11_2, L12_2, L13_2 = L10_2(L11_2)
+          for L14_2, L15_2 in L10_2, L11_2, L12_2, L13_2 do
+            if L15_2 then
+              L16_2 = L15_2.guid
+              L17_2 = L9_2.target_id
+              if L16_2 == L17_2 then
+                L15_2.HasShieldThisAttack = true
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+end
+
+L13_1.PreProcessShield = L14_1
+
+function L14_1(A0_2, A1_2)
+  local L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L2_2 = A0_2.performNode
+  L2_2 = L2_2.performNodeType
+  L3_2 = ProtoEnum.BattlePerformType
+  L3_2 = L3_2.BPT_SKILL_CAST
+  if L2_2 ~= L3_2 then
+    L2_2 = A0_2.performNode
+    L2_2 = L2_2.performNodeType
+    L3_2 = ProtoEnum.BattlePerformType
+    L3_2 = L3_2.BPT_COMBO_SKILL
+    if L2_2 ~= L3_2 then
+      goto lbl_32
+    end
+  end
+  L2_2 = A0_2.performNode
+  L3_2 = L2_2
+  L2_2 = L2_2.GetGroupNodes
+  L2_2 = L2_2(L3_2)
+  L3_2 = pairs
+  L4_2 = L2_2
+  L3_2, L4_2, L5_2, L6_2 = L3_2(L4_2)
+  for L7_2, L8_2 in L3_2, L4_2, L5_2, L6_2 do
+    L10_2 = L8_2
+    L9_2 = L8_2.GetCastMoment
+    L9_2 = L9_2(L10_2)
+    L10_2 = ProtoEnum.Buffbasetrigger_type
+    L10_2 = L10_2.OnAttackHit
+    if L9_2 >= L10_2 then
+      L10_2 = L8_2
+      L9_2 = L8_2.SetTotalDamageNumber
+      L11_2 = A1_2
+      L9_2(L10_2, L11_2)
+    end
+  end
+  ::lbl_32::
+end
+
+L13_1.ProcessMultiDamage = L14_1
+
+function L14_1(A0_2, A1_2, A2_2)
+  local L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L3_2 = A0_2.performNode
+  L3_2 = L3_2.performNodeType
+  L4_2 = ProtoEnum.BattlePerformType
+  L4_2 = L4_2.BPT_SKILL_CAST
+  if L3_2 ~= L4_2 then
+    L3_2 = A0_2.performNode
+    L3_2 = L3_2.performNodeType
+    L4_2 = ProtoEnum.BattlePerformType
+    L4_2 = L4_2.BPT_COMBO_SKILL
+    if L3_2 ~= L4_2 then
+      goto lbl_30
+    end
+  end
+  L3_2 = A0_2.performNode
+  L4_2 = L3_2
+  L3_2 = L3_2.GetGroupNodes
+  L3_2 = L3_2(L4_2)
+  L4_2 = pairs
+  L5_2 = L3_2
+  L4_2, L5_2, L6_2, L7_2 = L4_2(L5_2)
+  for L8_2, L9_2 in L4_2, L5_2, L6_2, L7_2 do
+    L11_2 = L9_2
+    L10_2 = L9_2.GetCastMoment
+    L10_2 = L10_2(L11_2)
+    if L10_2 == A2_2 then
+      L11_2 = L9_2
+      L10_2 = L9_2.SetPerformDamageNumber
+      L12_2 = A1_2
+      L10_2(L11_2, L12_2)
+    end
+  end
+  ::lbl_30::
+end
+
+L13_1.RecordMultiDamage = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.SkillObject
+  if L1_2 then
+    L1_2 = RocoEnv
+    L1_2 = L1_2.IS_SHIPPING
+    if not L1_2 then
+      L2_2 = A0_2
+      L1_2 = A0_2.IsTriggerInterrupt
+      L1_2 = L1_2(L2_2)
+      if L1_2 then
+        L2_2 = A0_2
+        L1_2 = A0_2.SkillObjHasCopeLuaEvent
+        L3_2 = UE4
+        L3_2 = L3_2.ERocoSkillLuaEventType
+        L3_2 = L3_2.SkillInterrupt
+        L1_2 = L1_2(L2_2, L3_2)
+        if not L1_2 then
+          L1_2 = Log
+          L1_2 = L1_2.Error
+          L2_2 = A0_2.CastParam
+          L2_2 = L2_2.ResID
+          L3_2 = " \231\188\186\229\176\145\229\186\148\229\175\185\230\138\128\231\154\132\230\137\147\230\150\173\228\186\139\228\187\182\239\188\129\239\188\129\239\188\129"
+          L2_2 = L2_2 .. L3_2
+          L1_2(L2_2)
+        end
+      end
+      L2_2 = A0_2
+      L1_2 = A0_2.IsTriggerCounter
+      L1_2 = L1_2(L2_2)
+      if L1_2 then
+        L2_2 = A0_2
+        L1_2 = A0_2.SkillObjHasCopeLuaEvent
+        L3_2 = UE4
+        L3_2 = L3_2.ERocoSkillLuaEventType
+        L3_2 = L3_2.SkillCounter
+        L1_2 = L1_2(L2_2, L3_2)
+        if not L1_2 then
+          L1_2 = Log
+          L1_2 = L1_2.Error
+          L2_2 = A0_2.CastParam
+          L2_2 = L2_2.ResID
+          L3_2 = " \231\188\186\229\176\145\229\186\148\229\175\185\230\138\128\231\154\132\230\143\146\229\133\165\228\186\139\228\187\182\239\188\129\239\188\129\239\188\129"
+          L2_2 = L2_2 .. L3_2
+          L1_2(L2_2)
+        end
+      end
+      L2_2 = A0_2
+      L1_2 = A0_2.IsTriggerCounterEnd
+      L1_2 = L1_2(L2_2)
+      if L1_2 then
+        L2_2 = A0_2
+        L1_2 = A0_2.SkillObjHasCopeLuaEvent
+        L3_2 = UE4
+        L3_2 = L3_2.ERocoSkillLuaEventType
+        L3_2 = L3_2.CounterEnd
+        L1_2 = L1_2(L2_2, L3_2)
+        if not L1_2 then
+          L1_2 = Log
+          L1_2 = L1_2.Warning
+          L2_2 = A0_2.CastParam
+          L2_2 = L2_2.ResID
+          L3_2 = " \231\188\186\229\176\145\229\186\148\229\175\185\230\138\128\231\154\132\230\148\187\229\135\187\231\187\147\230\157\159\228\186\139\228\187\182\239\188\129\239\188\129\239\188\129"
+          L2_2 = L2_2 .. L3_2
+          L1_2(L2_2)
+        end
+      end
+    end
+    L2_2 = A0_2
+    L1_2 = A0_2.SetBeCounter
+    L1_2(L2_2)
+    L2_2 = A0_2
+    L1_2 = A0_2.IsCopeSkill
+    L1_2 = L1_2(L2_2)
+    if L1_2 then
+      L2_2 = A0_2
+      L1_2 = A0_2.SetCounter
+      L3_2 = true
+      L1_2(L2_2, L3_2)
+      L2_2 = A0_2
+      L1_2 = A0_2.ActiveDefendShieldLoop
+      L1_2(L2_2)
+    end
+  end
+end
+
+L13_1.CheckCopeSkillEvent = L14_1
+
+function L14_1(A0_2, A1_2)
+  local L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L2_2 = SkillUtils
+  L2_2 = L2_2.SkillObjHasLuaEvent
+  L3_2 = A0_2.SkillObject
+  L4_2 = UE4
+  L4_2 = L4_2.ERocoSkillLuaEventType
+  L4_2 = L4_2.SkillCoping
+  L2_2 = L2_2(L3_2, L4_2)
+  if not L2_2 then
+    L2_2 = SkillUtils
+    L2_2 = L2_2.SkillObjHasLuaEvent
+    L3_2 = A0_2.SkillObject
+    L4_2 = A1_2
+    L2_2 = L2_2(L3_2, L4_2)
+  end
+  return L2_2
+end
+
+L13_1.SkillObjHasCopeLuaEvent = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.SkillConf
+  if not L1_2 then
+    return
+  end
+  L1_2 = A0_2.SkillConf
+  L1_2 = L1_2.Skill_Type
+  L2_2 = Enum.SkillType
+  L2_2 = L2_2.ST_DEFEND
+  if L1_2 == L2_2 then
+    L1_2 = UE4
+    L1_2 = L1_2.RocoCopingSkillUtils
+    L1_2 = L1_2.ActiveDefendShieldLoop
+    L2_2 = A0_2.SkillObject
+    L1_2(L2_2)
+  end
+end
+
+L13_1.ActiveDefendShieldLoop = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.hasClearDefendShield
+  if not L1_2 then
+    L1_2 = A0_2.SkillObject
+    if L1_2 then
+      L1_2 = UE4
+      L1_2 = L1_2.RocoCopingSkillUtils
+      L1_2 = L1_2.ClearDefendShieldActor
+      L2_2 = A0_2.SkillObject
+      L1_2(L2_2)
+      A0_2.hasClearDefendShield = true
+    end
+  end
+end
+
+L13_1.ClearDefendShieldActor = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.hasClearDefendShieldEffect
+  if not L1_2 then
+    L1_2 = A0_2.SkillObject
+    if L1_2 then
+      L1_2 = UE4
+      L1_2 = L1_2.RocoCopingSkillUtils
+      L1_2 = L1_2.ClearDefendShieldEffect
+      L2_2 = A0_2.SkillObject
+      L1_2(L2_2)
+      A0_2.hasClearDefendShieldEffect = true
+    end
+  end
+end
+
+L13_1.ClearDefendShieldEffect = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.hasClearDefendShieldLoop
+  if not L1_2 then
+    L1_2 = A0_2.SkillObject
+    if L1_2 then
+      L1_2 = UE4
+      L1_2 = L1_2.RocoCopingSkillUtils
+      L1_2 = L1_2.ClearDefendShieldLoop
+      L2_2 = A0_2.SkillObject
+      L1_2(L2_2)
+      A0_2.hasClearDefendShieldLoop = true
+    end
+  end
+end
+
+L13_1.ClearDefendShieldLoop = L14_1
+
+function L14_1(A0_2, A1_2)
+  local L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L2_2 = A0_2.IsFinishSKill
+  if not L2_2 then
+    L2_2 = A0_2.Caster
+    if L2_2 then
+      L2_2 = A0_2.skill_cast
+      if L2_2 then
+        L2_2 = false
+        L3_2 = A0_2.skill_cast
+        L3_2 = L3_2.change_target_id
+        if L3_2 then
+          L3_2 = A0_2.skill_cast
+          L3_2 = L3_2.change_target_id
+          L3_2 = L3_2 > 0
+        end
+        if L3_2 then
+          L4_2 = A0_2.skill_cast
+          L4_2 = L4_2.change_target_id
+          L2_2 = L4_2 or L2_2
+          if L4_2 then
+            L4_2 = A0_2.skill_cast
+            L4_2 = L4_2.change_target_id
+            L2_2 = L4_2 == A1_2
+          end
+          if not L2_2 then
+            L4_2 = A0_2.skill_cast
+            L4_2 = L4_2.target_id
+            if L4_2 then
+              L4_2 = ipairs
+              L5_2 = A0_2.skill_cast
+              L5_2 = L5_2.target_id
+              L4_2, L5_2, L6_2, L7_2 = L4_2(L5_2)
+              for L8_2, L9_2 in L4_2, L5_2, L6_2, L7_2 do
+                if L9_2 == A1_2 then
+                  L2_2 = true
+                  break
+                end
+              end
+            end
+          end
+          if L2_2 then
+            L4_2 = A0_2.Caster
+            L4_2 = L4_2.model
+            if L4_2 then
+              L4_2 = BattleManager
+              L4_2 = L4_2.battlePawnManager
+              L5_2 = L4_2
+              L4_2 = L4_2.GetPetByGuid
+              L6_2 = A1_2
+              L4_2 = L4_2(L5_2, L6_2)
+              if L4_2 then
+                L5_2 = L4_2.attackPlayer
+                if L5_2 then
+                  L5_2 = L4_2.attackPlayer
+                  L6_2 = L5_2
+                  L5_2 = L5_2.LeaveBulletTime
+                  L5_2(L6_2)
+                end
+              end
+              L6_2 = A0_2
+              L5_2 = A0_2.StopDefenceBulletTime
+              L5_2(L6_2)
+              L5_2 = _G
+              L5_2 = L5_2.BattleBulletTimeManager
+              L6_2 = L5_2
+              L5_2 = L5_2.EnterBulletTime
+              L7_2 = UE
+              L7_2 = L7_2.EBulletTimeType
+              L7_2 = L7_2.ActionPerform
+              L8_2 = UE
+              L8_2 = L8_2.EBulletTimeChangeType
+              L8_2 = L8_2.Keep
+              L9_2 = A0_2.Caster
+              L9_2 = L9_2.model
+              L10_2 = L9_2
+              L9_2 = L9_2.GetWorld
+              L9_2 = L9_2(L10_2)
+              L10_2 = 1
+              L11_2 = UE
+              L11_2 = L11_2.EBulletTimeChangeType
+              L11_2 = L11_2.Change
+              L12_2 = {}
+              L13_2 = A0_2.Caster
+              L13_2 = L13_2.model
+              L12_2[1] = L13_2
+              L13_2 = BattleConst.Show
+              L13_2 = L13_2.ZeroTimeDilation
+              L5_2 = L5_2(L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2)
+              A0_2.DefenceBulletTimeId = L5_2
+            end
+          end
+        end
+      end
+    end
+  end
+end
+
+L13_1.DefenceOtherStart = L14_1
+
+function L14_1(A0_2, A1_2, A2_2)
+  local L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L3_2 = A0_2.IsFinishSKill
+  if not L3_2 then
+    L3_2 = A0_2.Caster
+    if L3_2 then
+      L3_2 = A0_2.skill_cast
+      if L3_2 then
+        L3_2 = A0_2.skill_cast
+        L3_2 = L3_2.change_target_id
+        if L3_2 then
+          L3_2 = A0_2.skill_cast
+          L3_2 = L3_2.change_target_id
+          if L3_2 == A1_2 then
+            L3_2 = A2_2.PauseNum
+            L3_2 = L3_2 + 1
+            A2_2.PauseNum = L3_2
+            L3_2 = BattleManager
+            L3_2 = L3_2.battlePawnManager
+            L4_2 = L3_2
+            L3_2 = L3_2.GetPetByGuid
+            L5_2 = A1_2
+            L3_2 = L3_2(L4_2, L5_2)
+            L4_2 = CastSkillObject.Create
+            L4_2 = L4_2()
+            
+            function L5_2(A0_3)
+              local L1_3, L2_3, L3_3, L4_3, L5_3, L6_3, L7_3, L8_3, L9_3, L10_3, L11_3, L12_3, L13_3, L14_3, L15_3, L16_3, L17_3, L18_3, L19_3, L20_3, L21_3, L22_3, L23_3, L24_3, L25_3, L26_3, L27_3, L28_3, L29_3, L30_3, L31_3, L32_3, L33_3, L34_3, L35_3, L36_3, L37_3, L38_3, L39_3, L40_3, L41_3, L42_3, L43_3, L44_3, L45_3, L46_3, L47_3, L48_3, L49_3, L50_3, L51_3, L52_3, L53_3, L54_3, L55_3, L56_3, L57_3, L58_3, L59_3, L60_3, L61_3, L62_3, L63_3, L64_3, L65_3, L66_3, L67_3, L68_3, L69_3, L70_3, L71_3, L72_3, L73_3, L74_3, L75_3, L76_3, L77_3, L78_3, L79_3, L80_3, L81_3, L82_3, L83_3, L84_3, L85_3, L86_3, L87_3, L88_3, L89_3, L90_3, L91_3, L92_3, L93_3, L94_3, L95_3, L96_3, L97_3, L98_3, L99_3, L100_3, L101_3, L102_3, L103_3, L104_3, L105_3, L106_3, L107_3, L108_3, L109_3, L110_3, L111_3, L112_3, L113_3, L114_3, L115_3, L116_3, L117_3, L118_3, L119_3, L120_3, L121_3, L122_3, L123_3, L124_3, L125_3, L126_3, L127_3, L128_3, L129_3, L130_3, L131_3, L132_3, L133_3, L134_3, L135_3, L136_3, L137_3, L138_3, L139_3, L140_3, L141_3, L142_3, L143_3, L144_3, L145_3, L146_3, L147_3, L148_3, L149_3, L150_3, L151_3, L152_3, L153_3, L154_3, L155_3, L156_3, L157_3, L158_3, L159_3, L160_3, L161_3, L162_3, L163_3, L164_3, L165_3, L166_3, L167_3, L168_3, L169_3, L170_3, L171_3, L172_3, L173_3, L174_3, L175_3, L176_3, L177_3, L178_3, L179_3, L180_3, L181_3, L182_3, L183_3, L184_3, L185_3, L186_3, L187_3, L188_3, L189_3, L190_3, L191_3, L192_3, L193_3, L194_3, L195_3, L196_3, L197_3, L198_3, L199_3, L200_3, L201_3, L202_3, L203_3, L204_3, L205_3, L206_3, L207_3, L208_3, L209_3, L210_3, L211_3, L212_3, L213_3, L214_3, L215_3, L216_3, L217_3, L218_3, L219_3, L220_3, L221_3, L222_3, L223_3, L224_3, L225_3, L226_3, L227_3, L228_3, L229_3, L230_3, L231_3, L232_3, L233_3, L234_3, L235_3, L236_3, L237_3, L238_3, L239_3, L240_3, L241_3, L242_3, L243_3, L244_3, L245_3, L246_3, L247_3, L248_3, L249_3, L250_3, L251_3, L252_3, L253_3, L254_3
+              L2_3 = A0_3
+              L1_3 = A0_3.ChangeTargetAfterDefenceOther
+              L3_3 = realTarget
+              L1_3(L2_3, L3_3)
+            end
+            
+            function L6_2()
+              local L0_3, L1_3, L2_3, L3_3, L4_3, L5_3, L6_3, L7_3, L8_3, L9_3, L10_3, L11_3, L12_3, L13_3, L14_3, L15_3, L16_3, L17_3, L18_3, L19_3, L20_3, L21_3, L22_3, L23_3, L24_3, L25_3, L26_3, L27_3, L28_3, L29_3, L30_3, L31_3, L32_3, L33_3, L34_3, L35_3, L36_3, L37_3, L38_3, L39_3, L40_3, L41_3, L42_3, L43_3, L44_3, L45_3, L46_3, L47_3, L48_3, L49_3, L50_3, L51_3, L52_3, L53_3, L54_3, L55_3, L56_3, L57_3, L58_3, L59_3, L60_3, L61_3, L62_3, L63_3, L64_3, L65_3, L66_3, L67_3, L68_3, L69_3, L70_3, L71_3, L72_3, L73_3, L74_3, L75_3, L76_3, L77_3, L78_3, L79_3, L80_3, L81_3, L82_3, L83_3, L84_3, L85_3, L86_3, L87_3, L88_3, L89_3, L90_3, L91_3, L92_3, L93_3, L94_3, L95_3, L96_3, L97_3, L98_3, L99_3, L100_3, L101_3, L102_3, L103_3, L104_3, L105_3, L106_3, L107_3, L108_3, L109_3, L110_3, L111_3, L112_3, L113_3, L114_3, L115_3, L116_3, L117_3, L118_3, L119_3, L120_3, L121_3, L122_3, L123_3, L124_3, L125_3, L126_3, L127_3, L128_3, L129_3, L130_3, L131_3, L132_3, L133_3, L134_3, L135_3, L136_3, L137_3, L138_3, L139_3, L140_3, L141_3, L142_3, L143_3, L144_3, L145_3, L146_3, L147_3, L148_3, L149_3, L150_3, L151_3, L152_3, L153_3, L154_3, L155_3, L156_3, L157_3, L158_3, L159_3, L160_3, L161_3, L162_3, L163_3, L164_3, L165_3, L166_3, L167_3, L168_3, L169_3, L170_3, L171_3, L172_3, L173_3, L174_3, L175_3, L176_3, L177_3, L178_3, L179_3, L180_3, L181_3, L182_3, L183_3, L184_3, L185_3, L186_3, L187_3, L188_3, L189_3, L190_3, L191_3, L192_3, L193_3, L194_3, L195_3, L196_3, L197_3, L198_3, L199_3, L200_3, L201_3, L202_3, L203_3, L204_3, L205_3, L206_3, L207_3, L208_3, L209_3, L210_3, L211_3, L212_3, L213_3, L214_3, L215_3, L216_3, L217_3, L218_3, L219_3, L220_3, L221_3, L222_3, L223_3, L224_3, L225_3, L226_3, L227_3, L228_3, L229_3, L230_3, L231_3, L232_3, L233_3, L234_3, L235_3, L236_3, L237_3, L238_3, L239_3, L240_3, L241_3, L242_3, L243_3, L244_3, L245_3, L246_3, L247_3, L248_3, L249_3, L250_3, L251_3, L252_3, L253_3, L254_3
+              L0_3 = ChangePetPlayer.PauseNum
+              L0_3 = L0_3 - 1
+              ChangePetPlayer.PauseNum = L0_3
+              L0_3 = ChangePetPlayer.PauseNum
+              if L0_3 <= 0 then
+                L0_3 = ChangePetPlayer
+                L1_3 = L0_3
+                L0_3 = L0_3.Finish
+                L0_3(L1_3)
+              end
+            end
+            
+            function L7_2(A0_3)
+              local L1_3, L2_3, L3_3, L4_3, L5_3, L6_3, L7_3, L8_3, L9_3, L10_3, L11_3, L12_3, L13_3, L14_3, L15_3, L16_3, L17_3, L18_3, L19_3, L20_3, L21_3, L22_3, L23_3, L24_3, L25_3, L26_3, L27_3, L28_3, L29_3, L30_3, L31_3, L32_3, L33_3, L34_3, L35_3, L36_3, L37_3, L38_3, L39_3, L40_3, L41_3, L42_3, L43_3, L44_3, L45_3, L46_3, L47_3, L48_3, L49_3, L50_3, L51_3, L52_3, L53_3, L54_3, L55_3, L56_3, L57_3, L58_3, L59_3, L60_3, L61_3, L62_3, L63_3, L64_3, L65_3, L66_3, L67_3, L68_3, L69_3, L70_3, L71_3, L72_3, L73_3, L74_3, L75_3, L76_3, L77_3, L78_3, L79_3, L80_3, L81_3, L82_3, L83_3, L84_3, L85_3, L86_3, L87_3, L88_3, L89_3, L90_3, L91_3, L92_3, L93_3, L94_3, L95_3, L96_3, L97_3, L98_3, L99_3, L100_3, L101_3, L102_3, L103_3, L104_3, L105_3, L106_3, L107_3, L108_3, L109_3, L110_3, L111_3, L112_3, L113_3, L114_3, L115_3, L116_3, L117_3, L118_3, L119_3, L120_3, L121_3, L122_3, L123_3, L124_3, L125_3, L126_3, L127_3, L128_3, L129_3, L130_3, L131_3, L132_3, L133_3, L134_3, L135_3, L136_3, L137_3, L138_3, L139_3, L140_3, L141_3, L142_3, L143_3, L144_3, L145_3, L146_3, L147_3, L148_3, L149_3, L150_3, L151_3, L152_3, L153_3, L154_3, L155_3, L156_3, L157_3, L158_3, L159_3, L160_3, L161_3, L162_3, L163_3, L164_3, L165_3, L166_3, L167_3, L168_3, L169_3, L170_3, L171_3, L172_3, L173_3, L174_3, L175_3, L176_3, L177_3, L178_3, L179_3, L180_3, L181_3, L182_3, L183_3, L184_3, L185_3, L186_3, L187_3, L188_3, L189_3, L190_3, L191_3, L192_3, L193_3, L194_3, L195_3, L196_3, L197_3, L198_3, L199_3, L200_3, L201_3, L202_3, L203_3, L204_3, L205_3, L206_3, L207_3, L208_3, L209_3, L210_3, L211_3, L212_3, L213_3, L214_3, L215_3, L216_3, L217_3, L218_3, L219_3, L220_3, L221_3, L222_3, L223_3, L224_3, L225_3, L226_3, L227_3, L228_3, L229_3, L230_3, L231_3, L232_3, L233_3, L234_3, L235_3, L236_3, L237_3, L238_3, L239_3, L240_3, L241_3, L242_3, L243_3, L244_3, L245_3, L246_3, L247_3, L248_3, L249_3, L250_3, L251_3, L252_3, L253_3, L254_3
+              L1_3 = callBack
+              L2_3 = A0_3
+              L1_3(L2_3)
+              L1_3 = finishBack
+              L1_3()
+            end
+            
+            L9_2 = L4_2
+            L8_2 = L4_2.SetCallbackOwner
+            L10_2 = A0_2
+            L8_2(L9_2, L10_2)
+            L9_2 = L4_2
+            L8_2 = L4_2.SetOnStopBulletTime
+            L10_2 = L5_2
+            L8_2(L9_2, L10_2)
+            L9_2 = L4_2
+            L8_2 = L4_2.SetCompleteCallback
+            L10_2 = L6_2
+            L8_2(L9_2, L10_2)
+            L9_2 = L4_2
+            L8_2 = L4_2.SetIsPassive
+            L10_2 = true
+            L8_2(L9_2, L10_2)
+            L9_2 = L3_2
+            L8_2 = L3_2.PlaySkill
+            L10_2 = _G
+            L10_2 = L10_2.DataConfigManager
+            L11_2 = L10_2
+            L10_2 = L10_2.GetBattleGlobalConfig
+            L12_2 = "yanhu_buff112"
+            L10_2 = L10_2(L11_2, L12_2)
+            L10_2 = L10_2.num
+            L11_2 = A0_2
+            L12_2 = L7_2
+            L13_2 = L4_2
+            L8_2(L9_2, L10_2, L11_2, L12_2, L13_2)
+          end
+        end
+      end
+    end
+  end
+end
+
+L13_1.DefenceOtherEnd = L14_1
+
+function L14_1(A0_2, A1_2)
+  local L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L2_2 = A0_2.SkillObject
+  if L2_2 and A1_2 then
+    L2_2 = A0_2.SkillObject
+    L3_2 = L2_2
+    L2_2 = L2_2.SetTargets
+    L4_2 = {}
+    L5_2 = A1_2.model
+    L4_2[1] = L5_2
+    L2_2(L3_2, L4_2)
+  end
+  L3_2 = A0_2
+  L2_2 = A0_2.StopDefenceBulletTime
+  L2_2(L3_2)
+end
+
+L13_1.ChangeTargetAfterDefenceOther = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.DefenceBulletTimeId
+  if L1_2 then
+    L1_2 = A0_2.DefenceBulletTimeId
+    if L1_2 >= 0 then
+      L1_2 = _G
+      L1_2 = L1_2.BattleBulletTimeManager
+      L2_2 = L1_2
+      L1_2 = L1_2.LeaveBulletTime
+      L3_2 = A0_2.DefenceBulletTimeId
+      L1_2(L2_2, L3_2)
+      A0_2.DefenceBulletTimeId = -1
+    end
+  end
+end
+
+L13_1.StopDefenceBulletTime = L14_1
+
+function L14_1(A0_2)
+  local L1_2, L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2, L18_2, L19_2, L20_2, L21_2, L22_2, L23_2, L24_2, L25_2, L26_2, L27_2, L28_2, L29_2, L30_2, L31_2, L32_2, L33_2, L34_2, L35_2, L36_2, L37_2, L38_2, L39_2, L40_2, L41_2, L42_2, L43_2, L44_2, L45_2, L46_2, L47_2, L48_2, L49_2, L50_2, L51_2, L52_2, L53_2, L54_2, L55_2, L56_2, L57_2, L58_2, L59_2, L60_2, L61_2, L62_2, L63_2, L64_2, L65_2, L66_2, L67_2, L68_2, L69_2, L70_2, L71_2, L72_2, L73_2, L74_2, L75_2, L76_2, L77_2, L78_2, L79_2, L80_2, L81_2, L82_2, L83_2, L84_2, L85_2, L86_2, L87_2, L88_2, L89_2, L90_2, L91_2, L92_2, L93_2, L94_2, L95_2, L96_2, L97_2, L98_2, L99_2, L100_2, L101_2, L102_2, L103_2, L104_2, L105_2, L106_2, L107_2, L108_2, L109_2, L110_2, L111_2, L112_2, L113_2, L114_2, L115_2, L116_2, L117_2, L118_2, L119_2, L120_2, L121_2, L122_2, L123_2, L124_2, L125_2, L126_2, L127_2, L128_2, L129_2, L130_2, L131_2, L132_2, L133_2, L134_2, L135_2, L136_2, L137_2, L138_2, L139_2, L140_2, L141_2, L142_2, L143_2, L144_2, L145_2, L146_2, L147_2, L148_2, L149_2, L150_2, L151_2, L152_2, L153_2, L154_2, L155_2, L156_2, L157_2, L158_2, L159_2, L160_2, L161_2, L162_2, L163_2, L164_2, L165_2, L166_2, L167_2, L168_2, L169_2, L170_2, L171_2, L172_2, L173_2, L174_2, L175_2, L176_2, L177_2, L178_2, L179_2, L180_2, L181_2, L182_2, L183_2, L184_2, L185_2, L186_2, L187_2, L188_2, L189_2, L190_2, L191_2, L192_2, L193_2, L194_2, L195_2, L196_2, L197_2, L198_2, L199_2, L200_2, L201_2, L202_2, L203_2, L204_2, L205_2, L206_2, L207_2, L208_2, L209_2, L210_2, L211_2, L212_2, L213_2, L214_2, L215_2, L216_2, L217_2, L218_2, L219_2, L220_2, L221_2, L222_2, L223_2, L224_2, L225_2, L226_2, L227_2, L228_2, L229_2, L230_2, L231_2, L232_2, L233_2, L234_2, L235_2, L236_2, L237_2, L238_2, L239_2, L240_2, L241_2, L242_2, L243_2, L244_2, L245_2, L246_2, L247_2, L248_2, L249_2, L250_2, L251_2, L252_2, L253_2, L254_2
+  L1_2 = A0_2.SkillObject
+  if L1_2 then
+    L1_2 = A0_2.CastParam
+    if L1_2 then
+      L1_2 = A0_2.CastParam
+      L1_2 = L1_2.TargetPets
+      L2_2 = {}
+      L3_2 = ipairs
+      L4_2 = L1_2
+      L3_2, L4_2, L5_2, L6_2 = L3_2(L4_2)
+      for L7_2, L8_2 in L3_2, L4_2, L5_2, L6_2 do
+        L9_2 = L8_2.card
+        L10_2 = L9_2
+        L9_2 = L9_2.CheckIsMimic
+        L11_2 = true
+        L9_2 = L9_2(L10_2, L11_2)
+        if L9_2 then
+          L9_2 = table
+          L9_2 = L9_2.insert
+          L10_2 = L2_2
+          L11_2 = L8_2
+          L9_2(L10_2, L11_2)
+        end
+      end
+      L3_2 = #L2_2
+      if L3_2 > 0 then
+        L3_2 = A0_2.SkillObject
+        L4_2 = L3_2
+        L3_2 = L3_2.GetAllActions
+        L3_2 = L3_2(L4_2)
+        L4_2 = 1
+        L6_2 = L3_2
+        L5_2 = L3_2.Length
+        L5_2 = L5_2(L6_2)
+        L6_2 = 1
+        for L7_2 = L4_2, L5_2, L6_2 do
+          L9_2 = L3_2
+          L8_2 = L3_2.Get
+          L10_2 = L7_2
+          L8_2 = L8_2(L9_2, L10_2)
+          L9_2 = L8_2.m_Enable
+          if L9_2 then
+            L10_2 = L8_2
+            L9_2 = L8_2.IsA
+            L11_2 = UE
+            L11_2 = L11_2.URocoCharacterMaterialModifyAction
+            L9_2 = L9_2(L10_2, L11_2)
+            if not L9_2 then
+              L10_2 = L8_2
+              L9_2 = L8_2.IsA
+              L11_2 = UE
+              L12_2 = "URocoCharacterMaterialModifyWithComponentAction"
+              L11_2 = L11_2[L12_2]
+              L9_2 = L9_2(L10_2, L11_2)
+              if not L9_2 then
+                goto lbl_88
+              end
+            end
+            L9_2 = L8_2.TargetActorInfo
+            if L9_2 then
+              L9_2 = L8_2.TargetActorInfo
+              L9_2 = L9_2.ActorType
+              L10_2 = UE4
+              L10_2 = L10_2.ERocoSkillActorType
+              L10_2 = L10_2.DynamicTarget
+              if L9_2 == L10_2 then
+                L9_2 = A0_2.SkillObject
+                L9_2 = L9_2.DynamicData
+                L9_2 = L9_2.Targets
+                L10_2 = L8_2.TargetActorInfo
+                L10_2 = L10_2.DynamicTargetActorType
+                L10_2 = L10_2 + 1
+                L9_2 = L9_2[L10_2]
+                L10_2 = ipairs
+                L11_2 = L2_2
+                L10_2, L11_2, L12_2, L13_2 = L10_2(L11_2)
+                for L14_2, L15_2 in L10_2, L11_2, L12_2, L13_2 do
+                  L16_2 = L15_2.model
+                  if L9_2 == L16_2 then
+                    L8_2.m_Enable = false
+                  end
+                end
+              end
+            end
+          end
+          ::lbl_88::
+        end
+      end
+    end
+  end
+end
+
+L13_1.SpecialProcessForMimicPet = L14_1
+return L13_1

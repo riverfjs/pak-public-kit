@@ -26,6 +26,7 @@ function UMG_GiftVoucherSharing_C:SetCommonPopUpInfo()
   CommonPopUpData.Btn_RightHandler = self.OnConfirm
   CommonPopUpData.ClosePanelHandler = self.OnCancel
   CommonPopUpData.Btn_CloseHandler = self.OnCancel
+  CommonPopUpData.SkipCloseAnim = true
   CommonPopUpData.CloseBtnSound = 41401014
   self.OnPcCloseHandler = self.OnCancel
   self.PopUp:SetPanelInfo(CommonPopUpData)
@@ -48,6 +49,7 @@ function UMG_GiftVoucherSharing_C:OnCancel()
   local panelName = "UMG_GiftVoucherSharing"
   local isSelectBtn = _G.NRCModuleManager:DoCmd(MultiTouchModuleCmd.GetIsSelectBtn, moduleName, panelName)
   if isSelectBtn then
+    self.PopUp:SetLock(false)
     Log.Info("UMG_GiftVoucherSharing_C:OnCancel isSelectBtn", moduleName, panelName)
     return
   end

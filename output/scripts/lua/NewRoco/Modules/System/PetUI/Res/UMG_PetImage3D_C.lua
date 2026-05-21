@@ -6,13 +6,14 @@ require("Common.UE4Extension")
 local UMG_PetImage3D_C = _G.NRCViewBase:Extend("UMG_PetImage3D_C")
 
 function UMG_PetImage3D_C:OnConstruct()
-  _G.NRCEventCenter:RegisterEvent("UMG_PetImage3D_C", self, _G.NRCGlobalEvent.OnRocoTouchStart, self.OnRocoTouchStartHandler)
   _G.NRCEventCenter:RegisterEvent("UMG_PetImage3D_C", self, _G.NRCGlobalEvent.OnRocoTouchMove, self.OnRocoTouchMoveHandler)
   _G.NRCEventCenter:RegisterEvent("UMG_PetImage3D_C", self, _G.NRCGlobalEvent.OnRocoTouchEnd, self.OnRocoTouchEndHandler)
+  _G.NRCEventCenter:RegisterEvent("UMG_PetImage3D_C", self, PetUIModuleEvent.OnPlayPetSkill, self.OnPlayPetSkill)
   self:RegisterEvent(self, PetUIModuleEvent.OnShowOrClosePetEggBallChoosePanel, self.UpdatePetLocationInHatchingPanel)
   self:RegisterEvent(self, PetUIModuleEvent.OnOpenNewPetBagDetails, self.OnShowOrHidePetModule)
   self:RegisterEvent(self, PetUIModuleEvent.OnOpenNewPetBag, self.OnOpenNewPetBag)
   self:RegisterEvent(self, PetUIModuleEvent.OnUpdatePetImage3dData, self.OnUpdatePetImage3dData)
+  self:RegisterEvent(self, PetUIModuleEvent.PetSkillTipsOpen, self.OnPetSkillTipsOpen)
 end
 
 function UMG_PetImage3D_C:OnActive(baseConf, ModuleName, ModelPath)
@@ -99,6 +100,7 @@ function UMG_PetImage3D_C:OnActive(baseConf, ModuleName, ModelPath)
   self.startActorRotation = nil
   self.bEvoing = false
   self.IsOpenEvoPanel = false
+  self.bPlayingEggCrackSkill = false
   self.isPlayEggEffect = false
   self.isEgg = false
   self.eggModuleScale = nil
@@ -445,7 +447,7 @@ function UMG_PetImage3D_C:OnAnimFinish(_aniName)
   self:PlayAnimByName("Idle", -1)
 end
 
-function UMG_PetImage3D_C:OnRocoTouchStartHandler(touchIndex, position)
+function UMG_PetImage3D_C:HandleTouchStart(position)
   if self.PetRotationZero then
     return
   end
@@ -456,6 +458,18 @@ end
 
 function UMG_PetImage3D_C:OnRocoTouchMoveHandler(touchIndex, position)
   if self._canRotate == true then
+    if self.bPlayingEggCrackSkill then
+      return
+    end
+    if self.isPlayEggEffect then
+      return
+    end
+    if self.IsOpenEvoPanel then
+      return
+    end
+    if self.IsPlayShowPetSkill and not self.isEgg then
+      return
+    end
     self.bMoving = true
     local mouseLocation = position
     local deltaLocationX = 0
@@ -480,6 +494,9 @@ end
 
 function UMG_PetImage3D_C:OnRocoTouchEndHandler(touchIndex)
   if self._canRotate == true then
+    if self.bPlayingEggCrackSkill then
+      return
+    end
     if self.isPlayEggEffect == false and self._rotateValueTemp and self._rotateValueTemp < 1 then
       _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.OnClickPetImage3d)
     end
@@ -488,6 +505,12 @@ function UMG_PetImage3D_C:OnRocoTouchEndHandler(touchIndex)
     end
     self.bMoving = false
     if self.curAnimInfo and self.curAnimInfo.isPlayAnim then
+      return
+    end
+    if self.IsOpenEvoPanel then
+      return
+    end
+    if self.IsPlayShowPetSkill and not self.isEgg then
       return
     end
     if self.isPlayEggEffect == false and self._rotateValueTemp and self.randomAnimList and self._rotateValueTemp < 1 then
@@ -644,6 +667,10 @@ function UMG_PetImage3D_C:LoadSelectPetSkill()
   end
 end
 
+function UMG_PetImage3D_C:OnPlayPetSkill(SkillPath)
+  self:PlayPetSkillAsync(nil, SkillPath, nil)
+end
+
 function UMG_PetImage3D_C:PlayPetSkillAsync(Skill, SkillPath, bOnClick)
   if nil ~= Skill then
     local IsDispersion = false
@@ -777,7 +804,7 @@ function UMG_PetImage3D_C:IsCanPlayPetSkill()
   local IsOpenSkill = _G.NRCModuleManager:DoCmd(PetUIModuleCmd.GetOpenPetSKill)
   local isOpenPetBag = _G.NRCModuleManager:DoCmd(PetUIModuleCmd.GetOpenPetBag)
   local IsPlayPetSkill = _G.NRCModuleManager:DoCmd(PetUIModuleCmd.GetIsPlayPetSkill)
-  if IsOpenSkill or IsOpenAttribute or isOpenPetBag or IsPlayPetSkill then
+  if IsOpenSkill or isOpenPetBag or IsPlayPetSkill then
     return false
   end
   return true
@@ -1072,7 +1099,7 @@ function UMG_PetImage3D_C:SetEmptyBackground()
   local Path = _G.DataConfigManager:GetSkillColorConf(ModelFxType).JL_background_colour
   self.Path_1 = _G.DataConfigManager:GetSkillColorConf(ModelFxType).JL_background_clear
   if Path then
-    self:LoadPanelRes(Path, 255, self.OnLoadBackgroundColorSucc, self.OnLoadBackgroundClearFailed, nil)
+    self:LoadPanelRes(Path, 255, self.OnLoadEmptyBackgroundColorSucc, self.OnLoadBackgroundClearFailed, nil)
   else
     self:OnLoadBackgroundClearFailed()
   end
@@ -1326,6 +1353,23 @@ function UMG_PetImage3D_C:OnLoadBackgroundClearSucc(resRequest, mat_bj_1)
   self.Path_1 = nil
 end
 
+function UMG_PetImage3D_C:OnLoadEmptyBackgroundColorSucc(resRequest, mat_bj)
+  Log.Debug("UMG_PetImage3D_C:OnLoadEmptyBackgroundColorSucc mat_bj=[", mat_bj:GetFullName() or "", "]")
+  if not self.IsEmptyView then
+    return
+  end
+  self.mat_bj = mat_bj
+  self:LoadPanelRes(self.Path_1, 255, self.OnLoadEmptyBackgroundClearSucc, self.OnLoadBackgroundClearFailed, nil)
+end
+
+function UMG_PetImage3D_C:OnLoadEmptyBackgroundClearSucc(resRequest, mat_bj_1)
+  Log.Debug("UMG_PetImage3D_C:OnLoadEmptyBackgroundClearSucc mat_bj_1=[", mat_bj_1:GetFullName() or "", "]")
+  if not self.IsEmptyView then
+    return
+  end
+  self:OnLoadBackgroundClearSucc(resRequest, mat_bj_1)
+end
+
 function UMG_PetImage3D_C:OnLoadBackgroundClearFailed(resRequest, mat_bj_1)
   Log.Error("\231\178\190\231\129\181\232\131\140\230\153\175\229\138\160\232\189\189\229\164\177\232\180\165\228\186\134\239\188\140\228\189\134\230\152\175\232\191\152\230\152\175\229\133\129\232\174\184\230\137\147\229\188\128\231\149\140\233\157\162\239\188\140UMG_PetImage3D_C:OnLoadBackgroundClearFailed")
   _G.NRCModuleManager:DoCmd(PetUIModuleCmd.SetIsFirstLoadBackground, false)
@@ -1418,16 +1462,10 @@ function UMG_PetImage3D_C:OpenDetailCameraLocation(_CameraTrackType, _PetAttribu
   if self.PetLevelSequence and not isHasNewPetBag then
     if self.IsPlayTwoPanelSequence == false and _PetAttributeVisibleState and _PetBagVisibleState then
       if self.OpenTwoPanelLevelSequence then
-        self.PetLevelSequence:SetSequence(self.OpenTwoPanelLevelSequence)
-        self:BinSequenceCamera()
-        self.PetLevelSequence.SequencePlayer:Play()
-        self.IsPlayTwoPanelSequence = true
+        self:PlayOpenTwoPanelLevelSequence()
       end
     elseif self.IsPlayTwoPanelSequence == true and self.CloseTwoPanelLevelSequence then
-      self.PetLevelSequence:SetSequence(self.CloseTwoPanelLevelSequence)
-      self:BinSequenceCamera()
-      self.PetLevelSequence.SequencePlayer:Play()
-      self.IsPlayTwoPanelSequence = false
+      self:PlayCloseTwoPanelLevelSequence()
     end
   end
   if 0 == _CameraTrackType then
@@ -1456,26 +1494,42 @@ function UMG_PetImage3D_C:OpenDetailCameraLocation(_CameraTrackType, _PetAttribu
     self.IsDetailsMoveEnd = false
     self:PlayPetSkillAsync(self.OpenDetailsPlaySkill, self.OpenDetailsPlaySkillPath, true)
   elseif 2 == _CameraTrackType then
+    self:PlayOpenTwoPanelLevelSequence()
     self.IsOpenPetBag = true
     if self.IsOpenDetails then
       self:PlayPetSkillAsync(self.OpenDetailsPetBagPlaySkill, self.OpenDetailsPetBagPlaySkillPath, true)
     else
-      self.PetLevelSequence:SetSequence(self.OpenTwoPanelLevelSequence)
-      self:BinSequenceCamera()
-      self.PetLevelSequence.SequencePlayer:Play()
       self:PlayPetSkillAsync(self.OpenPetBagPlaySkill, self.OpenPetBagPlaySkillPath, true)
     end
   elseif 3 == _CameraTrackType then
+    self:PlayCloseTwoPanelLevelSequence()
     self.IsOpenPetBag = false
     if self.IsOpenDetails then
       self:PlayPetSkillAsync(self.CloseDetailsPetBagPlaySkill, self.CloseDetailsPetBagPlaySkillPath, true)
     else
-      self.PetLevelSequence:SetSequence(self.CloseTwoPanelLevelSequence)
-      self:BinSequenceCamera()
-      self.PetLevelSequence.SequencePlayer:Play()
       self:PlayPetSkillAsync(self.ClosePetBagPlaySkill, self.ClosePetBagPlaySkillPath, true)
     end
   end
+end
+
+function UMG_PetImage3D_C:PlayOpenTwoPanelLevelSequence()
+  if self.IsPlayTwoPanelSequence then
+    return
+  end
+  self.PetLevelSequence:SetSequence(self.OpenTwoPanelLevelSequence)
+  self:BinSequenceCamera()
+  self.PetLevelSequence.SequencePlayer:Play()
+  self.IsPlayTwoPanelSequence = true
+end
+
+function UMG_PetImage3D_C:PlayCloseTwoPanelLevelSequence()
+  if not self.IsPlayTwoPanelSequence then
+    return
+  end
+  self.PetLevelSequence:SetSequence(self.CloseTwoPanelLevelSequence)
+  self:BinSequenceCamera()
+  self.PetLevelSequence.SequencePlayer:Play()
+  self.IsPlayTwoPanelSequence = false
 end
 
 function UMG_PetImage3D_C:UpdatePetLocationInHatchingPanel(IsShowChoosePanel, DisplayMode, IsAnimFinished)
@@ -1543,7 +1597,6 @@ function UMG_PetImage3D_C:SetModelScale(_scale)
   local scale = _scale or 1
   if self._refActorIsolateWorld then
     self._refActorIsolateWorld:SetActorScale3D(UE4.FVector(scale, scale, scale))
-    Log.Debug("[OceanTestTag]UMG_PetImage3D_C:SetModelScale", _scale)
     local height = (self._refActorIsolateWorld:GetHalfHeight() or 0) * scale
     local PetLocation = UE4.FVector(0, 0, 0)
     if self.isEgg then
@@ -1605,7 +1658,6 @@ function UMG_PetImage3D_C:UpdateModelScaleAndOffset(_scale, _offset)
     local heightModelScale = PetMutationUtils.GetHeightModelScaleByPetData(self.uiPetData)
     _scale = _scale * heightModelScale * 1.0
     self._refActorIsolateWorld:SetActorScale3D(UE4.FVector(_scale, _scale, _scale))
-    Log.Debug("[OceanTestTag]UMG_PetImage3D_C:UpdateModelScaleAndOffset", _scale)
     local height = (self._refActorIsolateWorld:GetHalfHeight() + _offset.Z) * _scale
     local CurPetLocation = self._refActorIsolateWorld:Abs_K2_GetActorLocation()
     local NewPetLocation = UE4.FVector(CurPetLocation.X + _offset.X, CurPetLocation.Y + _offset.Y, height)
@@ -1622,7 +1674,6 @@ function UMG_PetImage3D_C:SetEvoModelScale(_scale)
   local scale = _scale or 1
   if self._evoTargetActor then
     self._evoTargetActor:SetActorScale3D(UE4.FVector(scale, scale, scale))
-    Log.Debug("[OceanTestTag]UMG_PetImage3D_C:SetEvoModelScale", _scale)
   end
 end
 
@@ -1831,12 +1882,9 @@ function UMG_PetImage3D_C:ResSetActorRotation(_dstDir)
 end
 
 function UMG_PetImage3D_C:EvoPlayPetSkill(bStart, bPlay)
-  if bPlay then
-    if bStart then
-      self:PlayPetSkillAsync(self.CloseDetailsPlaySkill, self.CloseDetailsPlaySkillPath, true)
-    else
-      self:PlayPetSkillAsync(self.OpenDetailsPlaySkill, self.OpenDetailsPlaySkillPath, true)
-    end
+  if not bPlay or bStart then
+  else
+    self:PlayPetSkillAsync(self.OpenDetailsPlaySkill, self.OpenDetailsPlaySkillPath, true)
   end
 end
 
@@ -1902,6 +1950,7 @@ function UMG_PetImage3D_C:OnNewEvoPanelDestruct()
   _G.NRCModuleManager:GetModule("PetUIModule"):DispatchEvent(PetUIModuleEvent.ShowPetInfoMainUI, true, true)
   _G.NRCModuleManager:GetModule("PetUIModule"):DispatchEvent(PetUIModuleEvent.Hide_CloseBtn, true)
   _G.NRCModuleManager:GetModule("PetUIModule"):DispatchEvent(PetUIModuleEvent.ShowHideRecommendedBtn, true)
+  _G.NRCModuleManager:GetModule("PetUIModule"):DispatchEvent(PetUIModuleEvent.ShowHideTimeRewindBtn, true)
   _G.NRCModuleManager:GetModule("PetUIModule"):DispatchEvent(PetUIModuleEvent.ShowHideGiftColleaguesBtn, true)
   _G.NRCModuleManager:DoCmd(PetUIModuleCmd.SetPetMainShareBtnVisibility, true)
   if self.skillCamera then
@@ -2190,7 +2239,6 @@ end
 
 function UMG_PetImage3D_C:EndEggSwitch()
   self.isPlayEggEffect = false
-  Log.Error("set 4")
   _G.NRCModuleManager:DoCmd(PetUIModuleCmd.SetIsPlayPetSkill, false)
   self:ShowStarEffect(true)
 end
@@ -2200,10 +2248,12 @@ function UMG_PetImage3D_C:ShowEggHatchUI()
 end
 
 function UMG_PetImage3D_C:PlayEggEffect(petGid, eggBallItemId)
+  Log.Debug("UMG_PetImage3D_C:PlayEggEffect")
   self.eggPetGid = petGid
   self.eggBallItemId = eggBallItemId
   self:LoadEggEffectAssect()
   self.isPlayEggEffect = true
+  self.bPlayingEggCrackSkill = true
   self.HatchedPetData = _G.DataModelMgr.PlayerDataModel:GetPetDataByGid(petGid)
   if self.HatchedPetData then
     self.eggPetBaseID = self.HatchedPetData.base_conf_id
@@ -2216,10 +2266,12 @@ function UMG_PetImage3D_C:PlayEggEffect(petGid, eggBallItemId)
 end
 
 function UMG_PetImage3D_C:EndEggEffect()
+  Log.Debug("UMG_PetImage3D_C:EndEggEffect")
   self.eggPetBaseID = nil
   self.eggPetGid = nil
   self.PetWorldView:DestroyActor(self._refActorIsolateWorld)
   self._refActorIsolateWorld = self.targetPetModel
+  self.bPlayingEggCrackSkill = false
   self:SetAnimList(nil, nil)
   _G.NRCModuleManager:GetModule("PetUIModule"):DispatchEvent(PetUIModuleEvent.EndEggEffect)
 end
@@ -2474,10 +2526,8 @@ function UMG_PetImage3D_C:PlaySharePetSkill(Skill, cb)
       if self.IsHideModule then
         self:OnShowOrHidePetModule(false)
       end
-      if self.IsOpenPetBag and self.IsPlayOpenPetBagG6 then
-        local PetLocation = self._startActorLocation
-        self._refActorIsolateWorld:Abs_K2_SetActorLocation_WithoutHit(UE4.FVector(-15, 0, PetLocation.Z))
-      end
+      local PetLocation = self._startActorLocation
+      self._refActorIsolateWorld:Abs_K2_SetActorLocation_WithoutHit(UE4.FVector(0, 0, PetLocation.Z))
       local rotateYaw = self.SkeletalMesh:K2_GetComponentRotation().Yaw
       self.SkeletalMesh:K2_AddWorldRotation(UE4.FRotator(0, -rotateYaw, 0), false, nil, false)
       _G.NRCModuleManager:DoCmd(PetUIModuleCmd.SetIsPlayPetSkill, true, false)
@@ -2601,6 +2651,8 @@ function UMG_PetImage3D_C:PlayEggEffectOnLoadSkill()
   if not (self.eggEffectSkillClass and self.targetPetModel and self._refActorIsolateWorld and UE4.UObject.IsValid(self._refActorIsolateWorld)) or not self._refActorIsolateWorld.RocoSkill then
     return
   end
+  local eggSwitchSkillObj = self._refActorIsolateWorld.RocoSkill:FindOrAddSkillObj(self.eggSwitchSkillClass)
+  self._refActorIsolateWorld.RocoSkill:CancelSkill(eggSwitchSkillObj, UE4.ESkillActionResult.SkillActionResultInterrupted)
   self:SetAnimList(nil, nil)
   local skillObj = self._refActorIsolateWorld.RocoSkill:FindOrAddSkillObj(self.eggEffectSkillClass)
   skillObj:SetCaster(self._refActorIsolateWorld)
@@ -2702,6 +2754,24 @@ end
 
 function UMG_PetImage3D_C:OnOpenNewPetBag(isOpen)
   self.IsOpenPetBag = isOpen
+end
+
+function UMG_PetImage3D_C:OnPetSkillTipsOpen(isOpen)
+  if self.IsOpenPetBag then
+    return
+  end
+  if isOpen then
+    self:PlayOpenTwoPanelLevelSequence()
+  else
+    self:PlayCloseTwoPanelLevelSequence()
+  end
+end
+
+function UMG_PetImage3D_C:PlayCloseTwoPanelLevelSequenceForced()
+  self.PetLevelSequence:SetSequence(self.CloseTwoPanelLevelSequence)
+  self:BinSequenceCamera()
+  self.PetLevelSequence.SequencePlayer:Play()
+  self.IsPlayTwoPanelSequence = false
 end
 
 return UMG_PetImage3D_C

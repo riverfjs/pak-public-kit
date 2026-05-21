@@ -33,7 +33,7 @@ end
 function MultiTouchModule:OnMultiTouchModuleWillDeactivate()
   self:Log("ModifyNRCMultiTouchSetting==OnMultiTouchModuleWillDeactivate")
   self.data.revertTimer = 0
-  UE4.UNRCStatics.ModifyNRCMultiTouchSetting(self.data.disableTouchLimit)
+  self:ModifyNRCMultiTouchSetting(self.data.disableTouchLimit)
 end
 
 function MultiTouchModule:OnMultiTouchModuleHasReactivated()
@@ -65,7 +65,7 @@ function MultiTouchModule:OnSetMultiTouchLimit(value)
   end
   self:Log("ModifyNRCMultiTouchSetting==OnSetMultiTouchLimit==TouchValue==", value)
   self.data.touchInputLimit = value
-  UE4.UNRCStatics.ModifyNRCMultiTouchSetting(self.data.touchInputLimit)
+  self:ModifyNRCMultiTouchSetting(self.data.touchInputLimit)
 end
 
 function MultiTouchModule:OnRevertMultiTouchLimit()
@@ -79,7 +79,11 @@ function MultiTouchModule:OnOpenBlockingMask()
     return
   end
   self:Log("ModifyNRCMultiTouchSetting==OnOpenBlockingMask")
-  UE4.UNRCStatics.ModifyNRCMultiTouchSetting(self.data.disableTouchLimit)
+  self:ModifyNRCMultiTouchSetting(self.data.disableTouchLimit)
+end
+
+function MultiTouchModule:ModifyNRCMultiTouchSetting(value)
+  UE4.UNRCStatics.ModifyNRCMultiTouchSetting(value, true)
 end
 
 function MultiTouchModule:OnCloseBlockingMask()
@@ -98,9 +102,11 @@ end
 
 function MultiTouchModule:OnAddSingleTouchPanel(panelData)
   if self:CheckCanAddPanelStack(panelData) then
+    self:Log("ModifyNRCMultiTouchSetting==OnAddSingleTouchPanel", panelData.panelName)
     local panel = {
       panelName = panelData.panelName,
-      touchCount = panelData.touchCount
+      touchCount = panelData.touchCount,
+      timestamp = _G.UpdateManager.Timestamp
     }
     table.insert(self.data.panelStack, panel)
     self:OnSetMultiTouchLimit(panelData.touchCount)
@@ -111,6 +117,7 @@ function MultiTouchModule:OnRemoveSingleTouchPanel(panelData)
   if self:CheckCanAddPanelStack(panelData) then
     for k, v in pairs(self.data.panelStack) do
       if v.panelName and v.panelName == panelData.panelName then
+        self:Log("ModifyNRCMultiTouchSetting==OnRemoveSingleTouchPanel", panelData.panelName)
         table.remove(self.data.panelStack, k)
         break
       end
@@ -144,13 +151,27 @@ function MultiTouchModule:CheckCanAddPanelStack(panelData)
   return isInAddPanelTypeList or panelData.isSingleTouchPanel or panelData.panelName == "LobbyMain" or panelData.panelName == "LobbyMainLocal"
 end
 
-function MultiTouchModule:GetCurPanelTouchCount()
+function MultiTouchModule:GetCurPanelTouchCount(checkPanel)
   local len = #self.data.panelStack
   if 0 == len then
     return self.data.defaultTouchLimit
   else
     local touchCount = self.data.panelStack[len].touchCount
     if touchCount then
+      if checkPanel and touchCount <= self.data.singleTouchLimit and len <= 1 then
+        local panelStackData = self.data.panelStack[len]
+        local panelName = panelStackData and panelStackData.panelName
+        local addTimeStamp = panelStackData and panelStackData.timestamp
+        local curTimeStamp = _G.UpdateManager.Timestamp
+        if panelName and addTimeStamp and curTimeStamp - addTimeStamp > 300 then
+          if not _G.NRCPanelManager:CheckPanelVisible(panelName) then
+            self.data.panelStack[len] = nil
+            NRCUtils.LuaFatalError("error touch limit!", "MultiTouch Exception", string.format("%s is not visible but still in panelStack!", panelName), true)
+          else
+            panelStackData.timestamp = curTimeStamp
+          end
+        end
+      end
       return math.max(touchCount, self.data.singleTouchLimit)
     else
       return self.data.singleTouchLimit
@@ -187,7 +208,7 @@ function MultiTouchModule:OnTick(deltaTime)
         self:OnSetMultiTouchLimit(self.data.joystickTouchLimit)
       end
     else
-      local curPanelTouchCount = self:GetCurPanelTouchCount()
+      local curPanelTouchCount = self:GetCurPanelTouchCount(true)
       if curTouchLimit ~= curPanelTouchCount then
         Log.Debug("ModifyNRCMultiTouchSetting==OnTick==correct the panelTouchCount!!!")
         self:OnSetMultiTouchLimit(curPanelTouchCount)

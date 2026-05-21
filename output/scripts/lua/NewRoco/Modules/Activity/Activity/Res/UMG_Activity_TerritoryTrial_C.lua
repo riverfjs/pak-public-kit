@@ -2,7 +2,6 @@ local Base = require("NewRoco.Modules.Activity.Activity.Template.UMG_Activity_Ba
 local UMG_Activity_TerritoryTrial_C = Base:Extend("UMG_Activity_TerritoryTrial_C")
 local ActivityUtils = require("NewRoco.Modules.System.Activity.ActivityUtils")
 local ActivityModuleEvent = require("NewRoco.Modules.System.Activity.ActivityModuleEvent")
-local ActivityEnum = require("NewRoco.Modules.System.Activity.ActivityEnum")
 
 function UMG_Activity_TerritoryTrial_C:BindUIElements()
   local uiElements = {}
@@ -19,8 +18,17 @@ end
 function UMG_Activity_TerritoryTrial_C:OnConstruct()
   Base.OnConstruct(self)
   self:OnAddEventListener()
-  self:InitPanel(self.activityInst:GetActivityData())
+  local _activityInst = self.activityInst
+  self:InitPanel(_activityInst:GetActivityData())
   self.redPointReward:SetupKey(215, self.activityInst:GetActivityId())
+  local curWorldLv = _G.DataModelMgr.PlayerDataModel:GetPlayerWorldLevel()
+  local requireLevel = _activityInst:GetWorldLevelRequired()
+  if curWorldLv < requireLevel then
+    self.RewardsPanel:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.NRCSwitcher_31:SetActiveWidgetIndex(1)
+    local targetStr = _G.DataConfigManager:GetWorldLevelConf(requireLevel + 1).title
+    self.NotUnlocked_Btn:SetOnlyShowTipText(string.format(_G.LuaText.activity_wolrd_level_low, targetStr))
+  end
 end
 
 function UMG_Activity_TerritoryTrial_C:OnDestruct()
@@ -47,6 +55,10 @@ function UMG_Activity_TerritoryTrial_C:InitPanel(territoryTrialData)
   local territoryTrialConf = _G.DataConfigManager:GetTerritoryTrialConf(_activityInst:GetSinglePartId())
   local trialChallengeConf = _G.DataConfigManager:GetTerritoryTrialChallengeConf(territoryTrialConf.challenge_id[1])
   if territoryTrialData then
+    if territoryTrialData.base_id ~= _activityInst:GetSinglePartId() then
+      return
+    end
+    Log.DebugFormat("UMG_Activity_TerritoryTrial_C UpdateData update_base_id:%d, self_base_id:%d", territoryTrialData.base_id, _activityInst:GetSinglePartId())
     self.PointsText1:SetText(_G.LuaText.territory_trial_tips1)
     self.PointsText:SetText(territoryTrialData.trial_info.highest_score or _G.LuaText.territory_trial_battle_tips7)
     self.RoundsText1:SetText(_G.LuaText.territory_trial_tips2)
@@ -127,7 +139,7 @@ function UMG_Activity_TerritoryTrial_C:InitPanel(territoryTrialData)
   g_data = {}
   g_data.level = bossConf.new_level
   g_data.type = baseConf.unit_type
-  skillConf = _G.DataConfigManager:GetSkillConf(normalBaseConf.pet_feature)
+  skillConf = _G.DataConfigManager:GetSkillConf(baseConf.pet_feature)
   g_data.skill_icon = skillConf.icon
   g_data.skill_desc = skillConf.desc
   g_data.skill_name = skillConf.name

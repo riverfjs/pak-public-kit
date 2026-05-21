@@ -40,6 +40,7 @@ function UMG_QuickChatBubble_C:OnDeactive()
   if self.data then
     self.data:SetQuickChatTemporaryInput(self.InputBox:GetText())
   end
+  _G.NRCModuleManager:DoCmd(_G.FriendModuleCmd.OpenEmoMainPanel, 1, false)
   if RocoEnv.PLATFORM_ANDROID or RocoEnv.PLATFORM_IOS or RocoEnv.PLATFORM_OPENHARMONY then
     UE4.UNRCStatics.ClearKeyboardFocus()
     Log.Debug("UMG_QuickChatBubble_C:OnDeactive ClearKeyboardFocus")

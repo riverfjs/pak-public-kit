@@ -23,6 +23,17 @@ function NRCAudioManager:Ctor()
   _G.NRCEventCenter:RegisterEvent("NRCAudioManager", self, SceneEvent.OnEnterSceneFinishNtyAckEnd, self.OnEnterSceneFinishNtyAckEnd)
   _G.NRCEventCenter:RegisterEvent("NPCModule", self, NPCModuleEvent.OnPlayerPetNumChanged, self.OnPlayerPetNumChanged)
   self.CaveSessionId = nil
+  self.CaveStateDelayHandler = nil
+  if _G.RocoEnv.USE_LOCALIZATION then
+    local curCulture = UE4.UNRCStatics.GetCurrentCulture()
+    if "zh-Hans-CN" == curCulture then
+      self:ChangeLanguage("Chinese")
+    elseif "en" == curCulture then
+      self:ChangeLanguage("English")
+    end
+  else
+    self:ChangeLanguage("Chinese")
+  end
 end
 
 function NRCAudioManager:OnEnterSceneFinishNtyAckEnd(notify, isReconnecting, isEnteringCell, preMapId, mapID)
@@ -56,6 +67,10 @@ end
 function NRCAudioManager:Free()
   self:RemoveEventListener()
   self.EventFinishCallback = {}
+  if self.CaveStateDelayHandler then
+    _G.DelayManager:CancelDelay(self.CaveStateDelayHandler)
+    self.CaveStateDelayHandler = nil
+  end
 end
 
 function NRCAudioManager:OnBackToLogin()
@@ -75,8 +90,12 @@ function NRCAudioManager:ResetAudioState()
   self:SetStateByName("Prologue_Compress", "OFF", "InitState")
   self:SetStateByName("Story_Movie", "None", "InitState")
   self:SetStateByName("Scene_State", "World", "InitState")
+  self:SetStateByName("Fullscreen", "Close", "InitState")
+  self:SetGlobalSwitch("Pet_Switch", "Pet_World", "InitState")
   self:SetGlobalSwitch("Amb_Area", "No", "InitState")
   self:SetGlobalRTPC("Seq_Ducking", 1, 0, "InitState")
+  self:SetGlobalRTPC("GameObj_Volume", 100, 0, "InitState")
+  self:SetGlobalRTPC("GameObj_Volume_Raw", 100, 0, "InitState")
   self.LobbyMainInnerOpen = false
   self.MainUIOpen = false
   self.CreatingPlayer = false
@@ -461,8 +480,11 @@ end
 
 function NRCAudioManager:OnCurrentCaveChanged(CurrentCaveName)
   Log.Debug("NRCAudioManager:OnCurrentCaveChanged", CurrentCaveName)
-  _G.DelayManager:CancelDelayByFunc(self.OnSetCaveState)
-  _G.DelayManager:DelaySeconds(1, self.OnSetCaveState, self, CurrentCaveName)
+  if self.CaveStateDelayHandler then
+    _G.DelayManager:CancelDelay(self.CaveStateDelayHandler)
+    self.CaveStateDelayHandler = nil
+  end
+  self.CaveStateDelayHandler = _G.DelayManager:DelaySeconds(1, self.OnSetCaveState, self, CurrentCaveName)
 end
 
 function NRCAudioManager:OnSetCaveState(CurrentCaveName)

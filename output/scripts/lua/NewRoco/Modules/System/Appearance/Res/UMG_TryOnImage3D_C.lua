@@ -7,9 +7,12 @@ function UMG_TryOnImage3D_C:OnConstruct()
   self.camera = nil
   self.captureComponent = nil
   self.bIsWearingWand = false
+  self.curWandId = nil
   self._SalonOverrides = {}
   self._GlassesOverrideId = {}
   self.curPendanta = nil
+  self.curPendantaFromUpgrade = false
+  self.curHelmetId = nil
   Log.Dump(self, 4, "UMG_TryOnImage3D_C:InitInfo")
 end
 
@@ -30,7 +33,7 @@ function UMG_TryOnImage3D_C:OnAddEventListener()
 end
 
 function UMG_TryOnImage3D_C:OnDestruct()
-  self.module:ClearRotAvatarPlayer()
+  self.module:ClearRotAvatarPlayer("TryOn")
 end
 
 function UMG_TryOnImage3D_C:SetFirstSuit(firstFashions, firstSalons, firstSuitId)
@@ -54,20 +57,14 @@ function UMG_TryOnImage3D_C:CreateAvatarPlayer(firstFashions, firstSalons, first
     end
   end)
   self.AvatarPlayer.OnLoadAvatarActorComplete:Bind(self.AvatarPlayer, function()
-    self.AvatarPlayer:SetActorHiddenInGame(false)
     if 1 == count then
       self.AvatarPlayer:SetActorHiddenInGame(false)
       bNeedFallback = false
     end
     count = count + 1
   end)
-  if firstSuitId then
-    UIUtils.SetAvatarSuit(self.AvatarPlayer, nil, firstSalons)
-  else
-    UIUtils.SetAvatarSuit(self.AvatarPlayer, nil, nil)
-  end
   self.Yaw = self.AvatarPlayer:K2_GetActorRotation().Yaw
-  self.module:InitAvatarRotationData(self.AvatarPlayer, self.Yaw, self.Yaw)
+  self.module:InitAvatarRotationData(self.AvatarPlayer, self.Yaw, self.Yaw, "TryOn")
   self.SalonIds = self:GetCurrentSalonIds()
   self.FakeAvatar = self.TryOnWorldView:SpawnActor(res, zeroTransform, UE4.ESpawnActorCollisionHandlingMethod.AlwaysSpawn)
   self.FakeAvatar:SetActorHiddenInGame(true)
@@ -77,15 +74,17 @@ end
 function UMG_TryOnImage3D_C:GetCurrentSalonIds()
   local wardrobeIndex = _G.DataModelMgr.PlayerDataModel:GetPlayerFashionInfo().current_wardrobe_index
   local currentWardrobe = _G.DataModelMgr.PlayerDataModel:GetPlayerFashionInfo().wardrobe_data[wardrobeIndex + 1]
-  local salonIds = currentWardrobe.salon_item_wear_id
   local result
-  if salonIds then
-    result = {}
-    for k, v in pairs(salonIds) do
-      local salonId = v
-      local salonItemConf = _G.DataConfigManager:GetSalonItemConf(salonId, true)
-      if salonItemConf then
-        result[salonItemConf.type] = salonId
+  if currentWardrobe then
+    local salonIds = currentWardrobe.salon_item_wear_id
+    if salonIds then
+      result = {}
+      for k, v in pairs(salonIds) do
+        local salonId = v
+        local salonItemConf = _G.DataConfigManager:GetSalonItemConf(salonId, true)
+        if salonItemConf then
+          result[salonItemConf.type] = salonId
+        end
       end
     end
   end
@@ -104,24 +103,64 @@ function UMG_TryOnImage3D_C:SetAvatarAppearance(fashionIds, salonIds, suitId)
         table.insert(showFashionIds, v)
       end
     end
+    if self.bIsWearingWand and self.curWandId then
+      table.insert(showFashionIds, self.curWandId)
+    end
+    if self.curPendanta and not self.curPendantaFromUpgrade then
+      table.insert(showFashionIds, self.curPendanta)
+    end
+    if self.curPendantaFromUpgrade then
+      self.curPendanta = nil
+      self.curPendantaFromUpgrade = false
+    end
+    self.curHelmetId = nil
+    local AppearanceUtils = require("NewRoco.Modules.System.Appearance.AppearanceUtils")
+    local hairConflicts = AppearanceUtils.GetConflictBodyTypes(UE4.EAvatarBodyType.Hair)
+    if hairConflicts then
+      for _, fashionId in ipairs(suitFashionIds) do
+        local avatarEnum = AppearanceUtils.GetAvatarEnumFromFashionId(fashionId)
+        if avatarEnum then
+          for _, conflictType in ipairs(hairConflicts) do
+            if avatarEnum == conflictType then
+              self.curHelmetId = fashionId
+              break
+            end
+          end
+        end
+        if self.curHelmetId then
+          break
+        end
+      end
+    end
     self.module:PlayReloadingSkill(self.AvatarPlayer)
     UIUtils.SetAvatarSuit(self.AvatarPlayer, showFashionIds, salonIds)
-    self.module:InitAvatarRotationData(self.AvatarPlayer, self.Yaw, self.Yaw)
-    self.module:SetPlayerAngle(0, self.AvatarPlayer)
+    self.module:SetPlayerAngle(0, self.AvatarPlayer, "TryOn")
     _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.PlayAvatarAnim, true, nil, self.AvatarPlayer)
   else
-    self.curPendanta = nil
     if fashionIds and #fashionIds > 0 then
       for k, v in ipairs(fashionIds) do
         UIUtils.SetAvatarFashion(self.AvatarPlayer, v, true)
         local fashionItemConf = _G.DataConfigManager:GetFashionItemConf(v)
         if fashionItemConf.type == _G.Enum.FashionLabelType.FLT_WAND then
           self.bIsWearingWand = true
+          self.curWandId = v
         elseif fashionItemConf.type == _G.Enum.FashionLabelType.FLT_PENDANTA then
           self.curPendanta = v
+          self.curPendantaFromUpgrade = false
+        else
+          local AppearanceUtils = require("NewRoco.Modules.System.Appearance.AppearanceUtils")
+          local avatarEnum = AppearanceUtils.GetAvatarEnumFromFashionId(v)
+          local hairConflicts = AppearanceUtils.GetConflictBodyTypes(UE4.EAvatarBodyType.Hair)
+          if avatarEnum and hairConflicts then
+            for _, conflictType in ipairs(hairConflicts) do
+              if avatarEnum == conflictType then
+                self.curHelmetId = v
+                break
+              end
+            end
+          end
         end
-        self.module:InitAvatarRotationData(self.AvatarPlayer, self.Yaw, self.Yaw)
-        self.module:SetPlayerAngle(fashionItemConf.type, self.AvatarPlayer)
+        self.module:SetPlayerAngle(fashionItemConf.type, self.AvatarPlayer, "TryOn")
         if fashionItemConf.type ~= _G.Enum.FashionLabelType.FLT_GLASSES then
           _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.PlayAvatarAnim, false, v, self.AvatarPlayer)
         end
@@ -129,16 +168,22 @@ function UMG_TryOnImage3D_C:SetAvatarAppearance(fashionIds, salonIds, suitId)
     end
     if salonIds and #salonIds > 0 then
       for k, v in ipairs(salonIds) do
-        UIUtils.SetAvatarSalon(self.AvatarPlayer, v)
         local salonItemConf = _G.DataConfigManager:GetSalonItemConf(v)
+        if salonItemConf and salonItemConf.type == _G.Enum.SalonLabelType.SLT_HAIR then
+          self:AutoRemoveHelmetForHair()
+        end
+        UIUtils.SetAvatarSalon(self.AvatarPlayer, v)
         if salonItemConf then
           self._SalonOverrides[salonItemConf.type] = v
         end
-        self.module:InitAvatarRotationData(self.AvatarPlayer, self.Yaw, self.Yaw)
-        self.module:SetPlayerAngle(salonItemConf.type, self.AvatarPlayer)
+        self.module:SetPlayerAngle(salonItemConf.type, self.AvatarPlayer, "TryOn")
       end
     end
   end
+end
+
+function UMG_TryOnImage3D_C:SetPendantaFromUpgrade(bFromUpgrade)
+  self.curPendantaFromUpgrade = bFromUpgrade
 end
 
 function UMG_TryOnImage3D_C:DemountFashionById(fashionId)
@@ -146,6 +191,14 @@ function UMG_TryOnImage3D_C:DemountFashionById(fashionId)
   local fashionItemConf = _G.DataConfigManager:GetFashionItemConf(fashionId)
   if fashionItemConf and fashionItemConf.type == _G.Enum.FashionLabelType.FLT_WAND then
     self.bIsWearingWand = false
+    self.curWandId = nil
+  end
+  if fashionItemConf and fashionItemConf.type == _G.Enum.FashionLabelType.FLT_PENDANTA then
+    self.curPendanta = nil
+    self.curPendantaFromUpgrade = false
+  end
+  if fashionId == self.curHelmetId then
+    self.curHelmetId = nil
   end
   if fashionItemConf and fashionItemConf.type ~= _G.Enum.FashionLabelType.FLT_GLASSES then
     _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.PlayAvatarAnim, false, fashionId, self.AvatarPlayer, false)
@@ -162,7 +215,26 @@ function UMG_TryOnImage3D_C:DemountSalonById(SalonId)
       UIUtils.SetAvatarSalon(self.AvatarPlayer, salonData)
     end
     self._SalonOverrides[salonItemConf.type] = nil
+    if salonItemConf.type == _G.Enum.SalonLabelType.SLT_HAIR then
+      self:RestoreHelmetAfterHairRemoval()
+    end
   end
+end
+
+function UMG_TryOnImage3D_C:AutoRemoveHelmetForHair()
+  if not self.curHelmetId then
+    return
+  end
+  UIUtils.SetAvatarFashion(self.AvatarPlayer, self.curHelmetId, false)
+  Log.Info("UMG_TryOnImage3D_C:AutoRemoveHelmetForHair - removed helmet", self.curHelmetId)
+end
+
+function UMG_TryOnImage3D_C:RestoreHelmetAfterHairRemoval()
+  if not self.curHelmetId then
+    return
+  end
+  UIUtils.SetAvatarFashion(self.AvatarPlayer, self.curHelmetId, true)
+  Log.Info("UMG_TryOnImage3D_C:RestoreHelmetAfterHairRemoval - restored helmet", self.curHelmetId)
 end
 
 function UMG_TryOnImage3D_C:RecoverToOriginalSalons()

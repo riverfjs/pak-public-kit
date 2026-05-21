@@ -136,19 +136,6 @@ function UMG_CardSharing_C:Init(petData, card_ids, unlockData, petBaseConfId)
         bExp = true
       end
     end
-    if petData.key_experience and petData.key_experience.pvp_first_win_info then
-      Text = ""
-      AddTime = os.date(dateText, petData.key_experience.pvp_first_win_info.win_time)
-      local msg = _G.DataConfigManager:GetLocalizationConf("pet_experience_form_2_card").msg
-      local Text_Info = string.format(msg, AddTime, petData.key_experience.pvp_first_win_info.enemy_name, petData.key_experience.pvp_first_win_info.last_killed_pet_name)
-      Text = string.format("%s%s", Text, Text_Info)
-      card2Text_array2[card2Text_index]:SetText(Text)
-      card2Text_array[card2Text_index]:SetText(Text)
-      card2Text_array2[card2Text_index]:SetVisibility(UE4.ESlateVisibility.selfHitTestInvisible)
-      card2Text_array[card2Text_index]:SetVisibility(UE4.ESlateVisibility.selfHitTestInvisible)
-      card2Text_index = card2Text_index + 1
-      bExp = true
-    end
     if petData.key_experience and petData.key_experience.legend_first_win_alone_info then
       Text = ""
       AddTime = os.date(dateText, petData.key_experience.legend_first_win_alone_info.win_time)

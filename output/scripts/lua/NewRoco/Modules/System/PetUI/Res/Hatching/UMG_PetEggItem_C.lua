@@ -30,6 +30,10 @@ function UMG_PetEggItem_C:SetItemIcon()
     local materialPath
     if self.randomEggConf.mutation_type == _G.Enum.MutationDiffType.MDT_GLASS and not self.eggInfo.mutation_type and not self.eggInfo.glass_info and self.randomEggConf.icon_mutation_safety_mat and self.randomEggConf.icon_mutation_safety_mat ~= "" then
       materialPath = self.randomEggConf.icon_mutation_safety_mat
+    elseif self.randomEggConf.mutation_type == _G.Enum.MutationDiffType.MDT_GLASS and self.eggInfo and self.eggInfo.mutation_type and self.eggInfo.glass_info and PetUtils.CheckIsHiddenGlass(self.randomEggConf.mutation_type, self.eggInfo.glass_info) then
+      self.EggIcon:SwitchToSetBrushFromMaterialInstanceMode(true)
+      self:LoadGlassRes()
+      return
     elseif self.randomEggConf.icon_mutation_mat then
       materialPath = self.randomEggConf.icon_mutation_mat
     end
@@ -40,19 +44,17 @@ function UMG_PetEggItem_C:SetItemIcon()
     end
   elseif self.eggInfo then
     if self.eggInfo.precious_egg_type == Enum.PreciousEggType.PET_SHINING_GLASS then
-      self.EggIcon:SwitchToSetBrushFromMaterialInstanceMode(true)
       if self:CheckIsGlassInfoKnown() then
         self:LoadGlassRes()
       else
-        self:LoadUnknownGlassRes()
+        self:LoadIconMatRes()
       end
     elseif self.eggInfo.precious_egg_type == Enum.PreciousEggType.PET_PRECIOUS then
       if self.eggInfo.glass_info and self.eggInfo.glass_info.glass_type then
-        self.EggIcon:SwitchToSetBrushFromMaterialInstanceMode(true)
         if self:CheckIsGlassInfoKnown() then
           self:LoadGlassRes()
         else
-          self:LoadUnknownGlassRes()
+          self:LoadIconMatRes()
         end
       else
         self.EggIcon:SwitchToSetBrushFromMaterialInstanceMode(false)
@@ -68,13 +70,10 @@ function UMG_PetEggItem_C:SetItemIcon()
         self.OnSetEggIconFinish
       })
     elseif self.eggInfo.precious_egg_type == Enum.PreciousEggType.PET_GLASS then
-      if self.eggInfo.glass_info and self.eggInfo.glass_info.glass_type then
-        self.EggIcon:SwitchToSetBrushFromMaterialInstanceMode(true)
-        if self:CheckIsGlassInfoKnown() then
-          self:LoadGlassRes()
-        else
-          self:LoadUnknownGlassRes()
-        end
+      if self:CheckIsGlassInfoKnown() then
+        self:LoadGlassRes()
+      else
+        self:LoadIconMatRes()
       end
     else
       local isCustomGlassEgg = false
@@ -85,14 +84,15 @@ function UMG_PetEggItem_C:SetItemIcon()
         end
       end
       if isCustomGlassEgg then
-        self.EggIcon:SwitchToSetBrushFromMaterialInstanceMode(true)
-        self:LoadUnknownGlassRes()
+        self:LoadIconMatRes(Enum.PreciousEggType.PET_CUSTOM_GLASS)
       else
         self.EggIcon:SwitchToSetBrushFromMaterialInstanceMode(false)
-        self.EggIcon:SetPathWithCallBack(self.iconPath, {
-          self,
-          self.OnSetEggIconFinish
-        })
+        if not self:LoadIconMatRes() then
+          self.EggIcon:SetPathWithCallBack(self.iconPath, {
+            self,
+            self.OnSetEggIconFinish
+          })
+        end
       end
     end
   end
@@ -178,13 +178,34 @@ function UMG_PetEggItem_C:OnLoadIconMarkFailed()
 end
 
 function UMG_PetEggItem_C:SetGlassMat()
-  if self.eggInfo.mutation_type and self.eggInfo.glass_info and PetUtils.CheckIsCommonGlass(self.eggInfo.mutation_type, self.eggInfo.glass_info) then
-    local particlePath, matchIndex = self:GetParticlePathAndMatchIndex()
-    if particlePath and matchIndex then
-      self.matchIndex = matchIndex
-      self:LoadPanelRes(particlePath, 255, self.OnLoadGlassIconResSuccess, self.OnLoadGlassIconResFailed)
-      return
+  local particlePath, matchIndex
+  if self.eggInfo.mutation_type and self.eggInfo.glass_info then
+    if PetUtils.CheckIsCommonGlass(self.eggInfo.mutation_type, self.eggInfo.glass_info) then
+      particlePath, matchIndex = self:GetParticlePathAndMatchIndex()
     end
+  else
+    matchIndex = 0
+    if self.randomEggConf.known_mutation_glass_particle and self.randomEggConf.mutation_param2 and 0 ~= self.randomEggConf.mutation_param2 then
+      local particleConf = _G.DataConfigManager:GetParticleRandomConf(self.randomEggConf.mutation_param2)
+      if particleConf and particleConf.headicon_particle_res then
+        particlePath = particleConf.headicon_particle_res
+      end
+    end
+    if self.randomEggConf.known_mutation_glass_color and self.randomEggConf.mutation_param1 then
+      matchIndex = self.randomEggConf.mutation_param1
+    end
+  end
+  if particlePath and matchIndex and 0 ~= matchIndex then
+    self.matchIndex = matchIndex
+    self:LoadPanelRes(particlePath, 255, self.OnLoadGlassIconResSuccess, self.OnLoadGlassIconResFailed)
+    return
+  elseif not particlePath and matchIndex and 0 ~= matchIndex then
+    self.matchIndex = matchIndex
+    self:OnSetGlassyColor()
+  elseif particlePath and matchIndex and 0 == matchIndex then
+    self.matchIndex = 0
+    self:LoadPanelRes(particlePath, 255, self.OnLoadGlassIconResSuccess, self.OnLoadGlassIconResFailed)
+    return
   end
   self:OnSetEggIconFinish()
 end
@@ -196,14 +217,14 @@ end
 function UMG_PetEggItem_C:GetParticlePathAndMatchIndex()
   if PetUtils.CheckIsCommonGlass(self.eggInfo.mutation_type, self.eggInfo.glass_info) and self.eggInfo.glass_info.glass_value then
     local shineId = self.eggInfo.glass_info.glass_value
-    local particleIndex, matchIndex
+    local particleIndex, matchIndex, particlePath
     particleIndex, shineId = PetUtils.GetShineDataValue(shineId, 20)
     matchIndex, shineId = PetUtils.GetShineDataValue(shineId, 0)
     local particleConf = _G.DataConfigManager:GetParticleRandomConf(particleIndex)
     if particleConf and particleConf.headicon_particle_res then
-      local particlePath = particleConf.headicon_particle_res
-      return particlePath, matchIndex
+      particlePath = particleConf.headicon_particle_res
     end
+    return particlePath, matchIndex
   end
   return nil, nil
 end
@@ -216,28 +237,28 @@ function UMG_PetEggItem_C:OnLoadGlassIconResSuccess(req, asset)
       material:SetScalarParameterValue("OpenGlassyOutline", 1)
       material:SetTextureParameterValue("StarTex", asset)
     end
-    if self.matchIndex then
-      local matchConf = _G.DataConfigManager:GetColorRandomConf(self.matchIndex)
-      if matchConf and matchConf.mat_color_1 then
-        local color1 = matchConf.mat_color_1
-        if material then
-          material:SetVectorParameterValue("Color01", UE4.FLinearColor(color1[1], color1[2], color1[3], color1[4]))
-        end
-      end
-      if matchConf and matchConf.mat_color_2 then
-        local color2 = matchConf.mat_color_2
-        if material then
-          material:SetVectorParameterValue("Color02", UE4.FLinearColor(color2[1], color2[2], color2[3], color2[4]))
-        end
-      end
-    end
+    self:OnSetGlassyColor()
   end
   self:OnSetEggIconFinish()
 end
 
+function UMG_PetEggItem_C:OnSetGlassyColor()
+  local material = self.EggIcon:GetDynamicMaterial()
+  if self.matchIndex and 0 ~= self.matchIndex and material then
+    local matchConf = _G.DataConfigManager:GetColorRandomConf(self.matchIndex)
+    if matchConf and matchConf.mat_color_1 then
+      local color1 = matchConf.mat_color_1
+      material:SetVectorParameterValue("Color01", UE4.FLinearColor(color1[1], color1[2], color1[3], color1[4]))
+    end
+    if matchConf and matchConf.mat_color_2 then
+      local color2 = matchConf.mat_color_2
+      material:SetVectorParameterValue("Color02", UE4.FLinearColor(color2[1], color2[2], color2[3], color2[4]))
+    end
+    material:SetScalarParameterValue("OpenOutlineFlowColor", 0)
+  end
+end
+
 function UMG_PetEggItem_C:LoadUnknownGlassRes()
-  local UnknownGlassMaterialPath = _G.DataConfigManager:GetGlobalConfigByKeyType("glass_egg_icon_mat", _G.DataConfigManager.ConfigTableId.PET_GLOBAL_CONFIG).str
-  self:LoadPanelRes(UnknownGlassMaterialPath, 255, self.OnLoadUnknownGlassMaterialSuccess, self.OnLoadUnknownGlassMaterialFailed)
 end
 
 function UMG_PetEggItem_C:OnLoadUnknownGlassMaterialSuccess(req, asset)
@@ -252,11 +273,56 @@ function UMG_PetEggItem_C:OnLoadUnknownGlassMaterialFailed()
   Log.Error("UMG_PetEggItem_C:OnLoadUnknownGlassMaterialFailed")
 end
 
+function UMG_PetEggItem_C:LoadIconMatRes(target_precious_egg_type)
+  if self.eggInfo == nil then
+    return false
+  end
+  local CurPreciousEggType = target_precious_egg_type
+  if nil == CurPreciousEggType then
+    CurPreciousEggType = self.eggInfo.precious_egg_type
+  end
+  if nil == CurPreciousEggType then
+    local PetEggConf = _G.DataConfigManager:GetPetEggConf(self.eggInfo.conf_id)
+    if PetEggConf then
+      CurPreciousEggType = PetEggConf.precious_egg_type
+    end
+  end
+  if CurPreciousEggType then
+    local PetEggTypeConf = _G.DataConfigManager:GetEggTypeConf(CurPreciousEggType + 1)
+    if PetEggTypeConf then
+      local IconMaterialPath = PetEggTypeConf.icon_tex
+      if IconMaterialPath then
+        self.EggIcon:SwitchToSetBrushFromMaterialInstanceMode(true)
+        self:LoadPanelRes(IconMaterialPath, 255, self.OnLoadIconMatResSuccess, self.OnLoadIconMatResFailed)
+        return true
+      end
+    end
+  end
+  return false
+end
+
+function UMG_PetEggItem_C:OnLoadIconMatResSuccess(req, asset)
+  self.EggIcon.MaterialInstance = asset
+  self.EggIcon:SetBrushFromMaterial(asset)
+  if self.iconPath then
+    self:LoadPanelRes(self.iconPath, 255, self.OnLoadIconResSuccess, self.OnLoadIconFailed)
+  end
+end
+
+function UMG_PetEggItem_C:OnLoadIconMatResFailed()
+  Log.Error("UMG_PetEggItem_C:OnLoadIconMatResFailed")
+end
+
 function UMG_PetEggItem_C:OnLoadIconResSuccess(req, Texture2D)
   if UE4.UObject.IsValid(self.EggIcon) then
     local material = self.EggIcon:GetDynamicMaterial()
     if material then
       material:SetTextureParameterValue("TargetTexture", Texture2D)
+      local iconRawSize = UE.FVector2D(1, 1)
+      if Texture2D then
+        iconRawSize = UE.FVector2D(Texture2D:Blueprint_GetSizeX(), Texture2D:Blueprint_GetSizeY())
+        self.EggIcon:SetBrushSize(iconRawSize)
+      end
       self:OnSetEggIconFinish()
     end
   end
@@ -273,6 +339,7 @@ function UMG_PetEggItem_C:LoadGlassRes()
     return
   end
   if EggInfo.glass_info and EggInfo.glass_info.glass_type and EggInfo.glass_info.glass_value then
+    self.EggIcon:SwitchToSetBrushFromMaterialInstanceMode(true)
     if 1 == EggInfo.glass_info.glass_type then
       if NORMAL_GLASS_MATERIAL_INS_PATH then
         self:LoadPanelRes(NORMAL_GLASS_MATERIAL_INS_PATH, 255, self.OnLoadNormalGlassMaterialSuccess, self.OnLoadNormalGlassMaterialFailed)
@@ -372,8 +439,8 @@ end
 function UMG_PetEggItem_C:GetHiddenGlassMaterialPath(glass_value)
   if glass_value then
     local HiddenGlassConf = _G.DataConfigManager:GetHiddenGlassConf(glass_value)
-    if HiddenGlassConf and HiddenGlassConf.headicon_mat_path then
-      return HiddenGlassConf.headicon_mat_path
+    if HiddenGlassConf and HiddenGlassConf.egg_icon_mat then
+      return HiddenGlassConf.egg_icon_mat
     end
   end
   return ""

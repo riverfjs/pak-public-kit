@@ -14,7 +14,6 @@ function MagicCreationModuleHead:OnConstruct()
   self:BindCmd(_G.MagicCreationModuleCmd.PreperformLocalReady, "PreperformLocalReady")
   self:BindCmd(_G.MagicCreationModuleCmd.CheckLandValid, "CheckLandValid")
   self:BindCmd(_G.MagicCreationModuleCmd.CheckNpcHeightDifferenceWithPlayer, "CheckNpcHeightDifferenceWithPlayer")
-  self:BindCmd(_G.MagicCreationModuleCmd.CheckBossAreaOverlap, "CheckBossAreaOverlap")
   self:BindCmd(_G.MagicCreationModuleCmd.CheckEavesExisted, "CheckEavesExisted")
   self:BindCmd(_G.MagicCreationModuleCmd.GetCanDrawDebug, "GetCanDrawDebug")
 end

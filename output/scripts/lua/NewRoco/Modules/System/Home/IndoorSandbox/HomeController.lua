@@ -78,6 +78,7 @@ function HomeController:OnEnter()
   UpdateManager:Register(self)
   NRCModuleManager:DoCmd(MainUIModuleCmd.SetGlobalPetHUDEnabled, false)
   HomeIndoorSandbox:DispatchEvent(HomeIndoorSandbox.Event.OnEnterHomeEditMode)
+  self.BeforeRuntimeLayoutVersion = HomeIndoorSandbox.Server.WorldData.RuntimeLayoutVersion
 end
 
 function HomeController:OnExit()
@@ -102,9 +103,8 @@ function HomeController:OnExit()
   playerModule:UnRegisterEvent(self, PlayerModuleEvent.ON_INPUT_TOUCH_START)
   self.ControlCam = nil
   self.ControlPawn = nil
-  self:CondStartResolveObstacle()
-  if (not self.ResolveObstacleTask or self.ResolveObstacleTask:IsFinish()) and UE.UObject.IsValid(self.Player.viewObj) and self.Player.ueController and UE.UObject.IsValid(self.Player.ueController) then
-    self.Player:LandPos(self.Player.viewObj:Abs_K2_GetActorLocation())
+  if self.BeforeRuntimeLayoutVersion ~= HomeIndoorSandbox.Server.WorldData.RuntimeLayoutVersion then
+    self:CondStartResolveObstacle()
   end
   if UE.UObject.IsValid(self.Player.viewObj) then
     self.Player.viewObj.CharacterMovement:SetMovementMode(self.OldMovementMode)
@@ -137,6 +137,13 @@ end
 
 function HomeController:CaptureObstacleObjects()
   self.EvaluateObstacleObjects = HomeIndoorSandbox.Utils.CapsuleTraceObstacleObjects()
+end
+
+function HomeController:LandPos()
+  local player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
+  if player and UE.UObject.IsValid(player.viewObj) and player.ueController and UE.UObject.IsValid(player.ueController) then
+    player:LandPos(player.viewObj:Abs_K2_GetActorLocation())
+  end
 end
 
 function HomeController:CondStartResolveObstacle()

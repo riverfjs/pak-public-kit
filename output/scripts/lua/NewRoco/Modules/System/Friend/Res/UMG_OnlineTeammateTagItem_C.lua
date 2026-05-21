@@ -42,16 +42,18 @@ function UMG_OnlineTeammateTagItem_C:OnTick(InDeltaTime)
   end
   self.tickTime = self.tickTime + InDeltaTime
   if self.tickTime >= 1 then
-    if self.teammateInfo and self.teammateInfo.pos and self.teammateInfo.pos.pos then
-      local shouldShow = self:ShouldShowTeammateTag()
-      if shouldShow then
-        self:SetVisibility(UE4.ESlateVisibility.Visible)
-        self:UpdatePositionAndDirection()
+    if self and UE4.UObject.IsValid(self) then
+      if self.teammateInfo and self.teammateInfo.pos and self.teammateInfo.pos.pos then
+        local shouldShow = self:ShouldShowTeammateTag()
+        if shouldShow then
+          self:SetVisibility(UE4.ESlateVisibility.Visible)
+          self:UpdatePositionAndDirection()
+        else
+          self:SetVisibility(UE4.ESlateVisibility.Collapsed)
+        end
       else
         self:SetVisibility(UE4.ESlateVisibility.Collapsed)
       end
-    else
-      self:SetVisibility(UE4.ESlateVisibility.Collapsed)
     end
     self.tickTime = 0
   end

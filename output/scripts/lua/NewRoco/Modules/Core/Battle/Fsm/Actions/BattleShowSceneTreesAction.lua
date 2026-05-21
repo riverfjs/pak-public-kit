@@ -47,7 +47,9 @@ function BattleShowSceneTreesAction:ShowTrees()
   self:ClearTreeDict()
   local staticMeshTreeLst = BattleManager.battleRuntimeData.battleHideStaticMeshLst
   for i = 1, #staticMeshTreeLst do
-    staticMeshTreeLst[i]:SetActorHiddenInGame(false)
+    if staticMeshTreeLst[i] and UE.UObject.IsValid(staticMeshTreeLst[i]) then
+      staticMeshTreeLst[i]:SetActorHiddenInGame(false)
+    end
   end
   BattleManager.battleRuntimeData.battleHideStaticMeshLst = {}
 end

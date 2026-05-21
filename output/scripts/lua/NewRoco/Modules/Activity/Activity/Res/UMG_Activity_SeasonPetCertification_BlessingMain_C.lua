@@ -433,6 +433,9 @@ function UMG_Activity_SeasonPetCertification_BlessingMain_C:OnShowPetWithOrder(u
 end
 
 function UMG_Activity_SeasonPetCertification_BlessingMain_C:UpdateSelectAndShowModel()
+  if 0 == #self.curPetDatas then
+    return
+  end
   if self.curPetData then
     for i, v in ipairs(self.curPetDatas) do
       if v.gid == self.curPetData.gid then

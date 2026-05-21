@@ -54,13 +54,16 @@ function UMG_LobbyMainInnerBottomIconListItem_C:OnItemSelected(_bSelected)
         if not RocoEnv.IS_SHIPPING and self.data.dev_target_url and self.data.dev_target_url ~= "" then
           url = self.data.dev_target_url
         end
-        if self.data.add_role_info then
+        if _G.BinDataUtils.IsPropertyExist(self.data, "add_role_info") and self.data.add_role_info then
           url = self:AddParms(url)
         end
         local screen_type = self.data.screen_type or 1
         self:ReleaseTimer()
         _G.NRCSDKManager:OpenWebView(url, screen_type, false, false)
       end, 1)
+    elseif 3 == self.data.id then
+      Log.Info("UMG_LobbyMainInnerBottomIconListItem_C:OnItemSelected ")
+      _G.NRCSDKManager:ShowGRobot()
     else
       local Text = string.format("ID\228\184\186 %d \231\154\132 \230\140\135\229\174\154UI \229\146\140 target_url \233\131\189\230\178\161\230\156\137\233\133\141\231\189\174 \230\178\161\230\156\137\231\155\184\229\133\179\229\138\159\232\131\189", self.data.id)
       _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, Text)

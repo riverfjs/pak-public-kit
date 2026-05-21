@@ -16,7 +16,7 @@ function UMG_TipsSourceItemNew_C:OnSkipClick()
   _G.DataModelMgr.PlayerDataModel:SetIsTraceByBag(true)
   if self.uiData.text then
     if self.uiData.text == "ActivityModuleCmd.OpenMainPanel" then
-      _G.NRCModuleManager:DoCmd(self.uiData.text, self.uiData.param2)
+      _G.NRCModuleManager:DoCmd(self.uiData.text, self.uiData.param2, self.uiData.param3)
     elseif self.uiData.text == "BigMapModuleCmd.OnTraceBossByEggItemId" then
       _G.NRCModuleManager:DoCmd(self.uiData.text, LuaText.jump_to_error_tips, self.uiData.param1[1])
     elseif self.uiData.text == "ShopModuleCmd.OpenMainPanel" then
@@ -30,6 +30,16 @@ function UMG_TipsSourceItemNew_C:OnSkipClick()
     elseif self.uiData.text == "ActivityModuleCmd.OpenFreeHuggersCardPanel" then
       _G.NRCModuleManager:DoCmd(TipsModuleCmd.Tips_CloseItemTips)
       _G.NRCModuleManager:DoCmd(self.uiData.text, self.uiData.param1)
+    elseif self.uiData.text == "BigMapModuleCmd.SendZoneNpcTraceCollectibles" then
+      _G.NRCModuleManager:DoCmd(self.uiData.text, self.uiData.param1, self.ItemId)
+    elseif self.uiData.text == "HandbookModuleCmd.OpenHandbookAchievementRewardByRewardItemId" then
+      if self.uiData.param1 and #self.uiData.param1 > 0 then
+        _G.NRCModuleManager:DoCmd(self.uiData.text, self.uiData.param1[1], self.ItemType, self.ItemId)
+      end
+    elseif self.uiData.text == "BigMapModuleCmd.OnTraceForceShowNpc" then
+      if self.uiData.param1 and #self.uiData.param1 > 0 then
+        _G.NRCModuleManager:DoCmd(self.uiData.text, self.uiData.param1[1])
+      end
     else
       _G.NRCModuleManager:DoCmd(self.uiData.text, LuaText.jump_to_error_tips)
     end
@@ -88,8 +98,12 @@ function UMG_TipsSourceItemNew_C:updateItemInfo(_data)
       end
     end
   end
-  if _data.isPreviewCard then
-    self.Icon:SetPath("PaperSprite'/Game/NewRoco/Modules/System/TipsModule/Raw/Atlas/TipsUI/Frames/img_yulan_png.img_yulan_png'")
+  if _G.BinDataUtils.IsPropertyExist(_data, "isPreviewCard") then
+    if _data.isPreviewCard then
+      self.Icon:SetPath("PaperSprite'/Game/NewRoco/Modules/System/TipsModule/Raw/Atlas/TipsUI/Frames/img_yulan_png.img_yulan_png'")
+    else
+      self.Icon:SetPath("PaperSprite'/Game/NewRoco/Modules/System/TipsModule/Raw/Atlas/TipsUI/Frames/img_laiyuan_png.img_laiyuan_png'")
+    end
   else
     self.Icon:SetPath("PaperSprite'/Game/NewRoco/Modules/System/TipsModule/Raw/Atlas/TipsUI/Frames/img_laiyuan_png.img_laiyuan_png'")
   end

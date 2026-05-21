@@ -16,6 +16,8 @@ function BeastPlayEnterPerform:Ctor(name, properties)
 end
 
 function BeastPlayEnterPerform:OnEnter()
+  self.SkillObj = nil
+  self.fourClipSkillOject = nil
   self.WillEnterCatch = false
   BattleManager:PlayBattleBGM()
   if BattleUtils.IsEnterCatchInTeamBattle() then
@@ -85,13 +87,45 @@ function BeastPlayEnterPerform:FourClipStart()
   self:ShowOrHideBattlePawn(true)
 end
 
+function BeastPlayEnterPerform.DoGetLimitedScreenSizeRatio(screenSizeRatio)
+  if RocoEnv.IS_EDITOR then
+    return screenSizeRatio
+  else
+    local GNRCBorderHorizontalRatio = 2.39
+    local GNRCBorderVerticalRatio = 0.75
+    local limitedScreenSizeRatio = math.min(math.max(screenSizeRatio, 1 / GNRCBorderVerticalRatio), GNRCBorderHorizontalRatio)
+    return limitedScreenSizeRatio
+  end
+end
+
+function BeastPlayEnterPerform.GetViewportAdaptFactor()
+  local size = UE4.UWidgetLayoutLibrary.GetViewportSize(UE4Helper.GetCurrentWorld())
+  local scale = UE4.UWidgetLayoutLibrary.GetViewportScale(UE4Helper.GetCurrentWorld())
+  local screenSize = size / scale
+  local screenSizeRatio = screenSize.X / screenSize.Y
+  local limitedScreenSizeRatio = BeastPlayEnterPerform.DoGetLimitedScreenSizeRatio(screenSizeRatio)
+  local factor = limitedScreenSizeRatio * 1080 / 2340
+  Log.DebugFormat("[rtSizeX] factor=%f, size.X=%f, size.Y=%f, scale=%f, screenSize.X=%f, screenSize.Y=%f, ratio(raw)=%f, ratio(limited)=%f", factor, size.X, size.Y, scale, screenSize.X, screenSize.Y, screenSizeRatio, limitedScreenSizeRatio)
+  Log.DebugFormat("[rtSizeX] factor(raw)=%f", screenSizeRatio * 1080 / 2340)
+  return factor
+end
+
 function BeastPlayEnterPerform.DoGetViewportRTSize(imageWidth)
   local size = UE4.UWidgetLayoutLibrary.GetViewportSize(UE4Helper.GetCurrentWorld())
   local scale = UE4.UWidgetLayoutLibrary.GetViewportScale(UE4Helper.GetCurrentWorld())
   local screenSize = size / scale
   local screenSizeRatio = screenSize.X / screenSize.Y
-  local factor = screenSizeRatio * 1080 / 2340
-  local rtSizeX = imageWidth / 2340 / factor
+  local standardTUIRatio = 2.1666666666666665
+  local rtSizeX = 0.25
+  local limitedScreenSizeRatio = BeastPlayEnterPerform.DoGetLimitedScreenSizeRatio(screenSizeRatio)
+  if standardTUIRatio <= limitedScreenSizeRatio then
+    local screenX = limitedScreenSizeRatio * 1080
+    rtSizeX = imageWidth / screenX
+  else
+    local screenY = 2340 / limitedScreenSizeRatio
+    rtSizeX = imageWidth / (2340 * (1080 / screenY))
+  end
+  Log.DebugFormat("[rtSizeX] imageWidth=%f, size.X=%f, size.Y=%f, scale=%f, screenSize.X=%f, screenSize.Y=%f, ratio(raw)=%f, ratio(limited)=%f, rtSizeX=%f", imageWidth, size.X, size.Y, scale, screenSize.X, screenSize.Y, screenSizeRatio, limitedScreenSizeRatio, rtSizeX)
   return rtSizeX
 end
 
@@ -116,6 +150,7 @@ function BeastPlayEnterPerform:InitEnterHud()
     for _, v in ipairs(FourImage) do
       ImageWidth = v.Slot.LayoutData.Offsets.Right
       local rtSizeX = BeastPlayEnterPerform.DoGetViewportRTSize(ImageWidth)
+      Log.Debug("[rtSizeX]", "index", _, "ImageWidth:", ImageWidth, "rtSizeX", rtSizeX)
       table.insert(self.PlayerWidthRatio, rtSizeX)
     end
   else
@@ -227,6 +262,7 @@ function BeastPlayEnterPerform:PlaySkill(name, skill)
         end
         if self.EnterSkillState == SkillNameIndex.FourClip then
           self:AdaptFourScreen(skill)
+          self.fourClipSkillOject = skill
         end
         self.SkillObj = skill
         skillComponent:PlaySkill(skill)
@@ -261,6 +297,13 @@ function BeastPlayEnterPerform:CloseFourEnterHud()
     self.FourEnterHud:RemoveFromViewport()
     self.FourEnterHud:Destruct()
     self.FourEnterHud = nil
+    if self.fourClipSkillOject then
+      local caster = self.fourClipSkillOject:GetCaster()
+      if UE.UObject.IsValid(caster) and UE.UObject.IsValid(caster.RocoSkill) then
+        caster.RocoSkill:CancelSkill(self.fourClipSkillOject, UE4.ESkillActionResult.SkillActionResultInterrupted)
+      end
+      self.fourClipSkillOject = nil
+    end
   end
   self.fsm:SetProperty("BeastHudRef", nil)
   UE4Helper.SetEnableWorldRendering(true, true)
@@ -310,6 +353,7 @@ end
 function BeastPlayEnterPerform:OnFinish()
   self.Boss = nil
   self.SkillObj = nil
+  self.fourClipSkillOject = nil
   if not self.WillEnterCatch then
     NRCModeManager:DoCmd(BattleUIModuleCmd.CloseTransformLoadingUI)
   end

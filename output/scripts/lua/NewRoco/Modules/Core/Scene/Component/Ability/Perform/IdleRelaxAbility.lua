@@ -52,7 +52,7 @@ function IdleRelaxAbility:Play(params)
       pet_serverid = params.pet_serverid
     end
     self.pet_serverid = pet_serverid
-    player:PlaySuitRelax(params.skill_interact_id, params.pet_id, pet_serverid, params.mutation_type, params.glass_info, params.nature)
+    player:PlaySuitRelax(params.skill_interact_id, params.pet_id, pet_serverid, params.mutation_type, params.glass_info, params.nature, params.ball_id)
     if petNpc then
       petNpc:AddEventListener(self, NPCModuleEvent.OnInteractionEnableChanged, self.OnPetInteractionEnableChanged)
     end

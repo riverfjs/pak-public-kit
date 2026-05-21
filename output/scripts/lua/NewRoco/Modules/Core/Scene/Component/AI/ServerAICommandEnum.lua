@@ -32,7 +32,9 @@ ServerAICommandEnum.ServerAICommandEvent = {
   TryInteractNpc = 29,
   VelocityOrientRotation = 30,
   WorldLaunchPlayer = 31,
-  PerceivePlayer = 32
+  SetNpcPos = 50,
+  PerceivePlayer = 32,
+  PlayChatBubble = 33
 }
 ServerAICommandEnum.ServerAICommand = nil
 

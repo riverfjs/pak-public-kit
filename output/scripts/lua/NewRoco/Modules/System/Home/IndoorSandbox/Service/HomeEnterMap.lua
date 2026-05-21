@@ -56,6 +56,7 @@ function HomeEnterMap:DoExitMap()
 end
 
 function HomeEnterMap:InternalEnterMap(HomeInfo)
+  _G.FunctionBanManager:RegisterConditionTypeChangeListener(self, self.OnPlayerConditionTypeChanged)
   HomeIndoorSandbox.World:Instantiate(HomeInfo)
   HomeIndoorSandbox:DispatchEvent(HomeIndoorSandbox.Event.OnEnterHomeMap)
   HomeIndoorSandbox.HomeAIServ:OnEnterHome()
@@ -83,6 +84,7 @@ function HomeEnterMap:RefreshFunctionBanInPlace()
 end
 
 function HomeEnterMap:InternalExitMap()
+  _G.FunctionBanManager:UnRegisterConditionTypeChangeListener(self, self.OnPlayerConditionTypeChanged)
   HomeIndoorSandbox.Module:CloseAllPanel()
   HomeIndoorSandbox:OnExitMap()
   HomeIndoorSandbox.World:Destroy()
@@ -91,6 +93,12 @@ function HomeEnterMap:InternalExitMap()
     HomeIndoorSandbox:LogDebug("RemovePlayerConditionType InternalExitMap", self.FunctionBanKey)
     _G.FunctionBanManager:RemovePlayerConditionType(self.FunctionBanKey)
     self.FunctionBanKey = nil
+  end
+end
+
+function HomeEnterMap:OnPlayerConditionTypeChanged(ConditionType, bHasConditionType)
+  if ConditionType == Enum.PlayerConditionType.PCT_SITDOWN and not bHasConditionType then
+    HomeIndoorSandbox.World.Controller:StopResolveObstacle()
   end
 end
 

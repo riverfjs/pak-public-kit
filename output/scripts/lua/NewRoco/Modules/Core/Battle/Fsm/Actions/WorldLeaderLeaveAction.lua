@@ -91,14 +91,17 @@ function WorldLeaderLeaveAction:OpenRoleHpDefeatedTip()
       asyncData.hp_change = changeHp
       asyncData.tips_key = "worldcombat_exit_tips"
       _G.NRCModuleManager:DoCmdAsync(asyncData, BattleUIModuleCmd.OpenRoleHpDefeatedTipPanel)
-      self:SafeDelaySeconds("d_Finish", BattleConst.Show.PveRoleHpShowTimeOnRunAway, function()
-        self.ShowHPTips = true
-        self:CheckFinish()
-      end, self)
+      self:SafeDelaySeconds("d_Finish", BattleConst.Show.PveRoleHpShowTimeOnRunAway, self.CloseHpDefeatedTip, self)
       return
     end
   end
   self.ShowHPTips = true
+  self:CheckFinish()
+end
+
+function WorldLeaderLeaveAction:CloseHpDefeatedTip()
+  self.ServerResponded = true
+  _G.NRCModuleManager:DoCmdAsync(nil, BattleUIModuleCmd.CloseRoleHpDefeatedTipPanel)
   self:CheckFinish()
 end
 

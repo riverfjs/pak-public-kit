@@ -17,7 +17,15 @@ end
 function UMG_Shop_TipsItemTemplate_C:OnItemSelected(_bSelected)
   if _bSelected then
     self:PlayAnimation(self.Tips_press)
-    _G.NRCModeManager:DoCmd(TipsModuleCmd.Tips_OpenItemTips, self.uiData.Id, self.uiData.Type, false, nil, nil, nil, nil, nil, self, self.CancelSelect)
+    local suitId = _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.GetSuitIdByExchangeVoucherId, self.uiData.Id)
+    if suitId then
+      _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.OpenAppearanceSuitDetailsPanel, suitId, nil, {
+        Caller = self,
+        CallBack = self.CancelSelect
+      })
+    else
+      _G.NRCModeManager:DoCmd(TipsModuleCmd.Tips_OpenItemTips, self.uiData.Id, self.uiData.Type, false, nil, nil, nil, nil, nil, self, self.CancelSelect)
+    end
   end
 end
 

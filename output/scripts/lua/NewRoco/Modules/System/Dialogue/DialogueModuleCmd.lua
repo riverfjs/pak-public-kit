@@ -69,4 +69,5 @@ DialogueModuleCmd.GetLastPetSubmitReportInfo = "DialogueModuleCmd.GetLastPetSubm
 DialogueModuleCmd.OpenTeachingImageUI = "DialogueModuleCmd.OpenTeachingImageUI"
 DialogueModuleCmd.UpdateExitConfirmMsgOn = "DialogueModuleCmd.UpdateExitConfirmMsgOn"
 DialogueModuleCmd.CheckHasDialogue = "DialogueModuleCmd.CheckHasDialogue"
+DialogueModuleCmd.GetCurDialogueOption = "DialogueModuleCmd.GetCurDialogueOption"
 return DialogueModuleCmd

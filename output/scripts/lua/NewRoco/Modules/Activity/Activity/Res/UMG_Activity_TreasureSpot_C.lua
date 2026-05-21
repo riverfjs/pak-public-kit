@@ -1,5 +1,6 @@
 local ActivityUtils = require("NewRoco.Modules.System.Activity.ActivityUtils")
 local UMG_Activity_TreasureSpot_C = _G.NRCPanelBase:Extend("UMG_Activity_TreasureSpot_C")
+local ActivityModuleEvent = require("NewRoco.Modules.System.Activity.ActivityModuleEvent")
 
 function UMG_Activity_TreasureSpot_C:InvalidWaitingRewardIds()
   self.RewardId = nil
@@ -9,12 +10,6 @@ end
 local redDotPath = "PaperSprite'/Game/NewRoco/Modules/System/Common/CommonStatic/Frames/img_red_liwu_png.img_red_liwu_png'"
 
 function UMG_Activity_TreasureSpot_C:OnActive(_activeObject)
-  self.redPointNew1.RedPointImage:SetPath(redDotPath)
-  self.redPointNew2.RedPointImage:SetPath(redDotPath)
-  self.redPointNew3.RedPointImage:SetPath(redDotPath)
-  self.redPointNew4.RedPointImage:SetPath(redDotPath)
-  self.redPointNew5.RedPointImage:SetPath(redDotPath)
-  self.BtnExplore.redPointNew.RedPointImage:SetPath(redDotPath)
   if _G.GlobalConfig.DebugOpenUI then
     NRCModeManager:GetCurMode():DisablePanelByLayer(Enum.UILayerType.UI_LAYER_MAIN)
     UE4Helper.SetEnableWorldRendering(false)
@@ -39,11 +34,13 @@ function UMG_Activity_TreasureSpot_C:OnDeactive()
     UE4Helper.SetEnableWorldRendering(true)
     return
   end
+  _G.NRCEventCenter:UnRegisterEvent(self, ActivityModuleEvent.TreasureHuntTracePet, self.TracePet)
   self:PlayAnimation(self.Close)
 end
 
 function UMG_Activity_TreasureSpot_C:OnAddEventListener()
   self:AddButtonListener(self.btnClose.btnClose, self.OnClickCloseBtn)
+  _G.NRCEventCenter:RegisterEvent("UMG_Activity_TreasureSpot_C", self, ActivityModuleEvent.TreasureHuntTracePet, self.TracePet)
 end
 
 function UMG_Activity_TreasureSpot_C:OnClickCloseBtn()
@@ -59,15 +56,13 @@ function UMG_Activity_TreasureSpot_C:InitUIElements()
     if conf then
       local treasureDataFromServer = self.activityInst:getTreasureDataFromServer(partID)
       if 1 == partID then
-        self.redPointNew1:SetVisibility(UE4.ESlateVisibility.Collapsed)
+        self.redPointNew1:SetupKey(215, {
+          self.activityInst:GetActivityId(),
+          1
+        })
         if treasureDataFromServer and treasureDataFromServer.reward_state == ProtoEnum.PlayerActivityInfo.ActivityRewardState.ARS_WAIT then
-          self.redPointNew1:SetVisibility(UE4.ESlateVisibility.Visible)
-          self.redPointNew1.RedPointImage:SetVisibility(UE4.ESlateVisibility.Visible)
-          self.redPointNew1:EnableAnimation()
-          self.redPointNew1:PlayAnimation(self.redPointNew1.In)
           self:AddButtonListener(self.NRCButton1, self.OnClickNRCButton1)
         elseif treasureDataFromServer and treasureDataFromServer.reward_state == ProtoEnum.PlayerActivityInfo.ActivityRewardState.ARS_DONE then
-          self.redPointNew1:PlayAnimation(self.redPointNew1.Out)
           self:OnSwitcherSwitcherContent1(2)
           self:AddButtonListener(self.NRCButton1, self.OnClickNRCButton1)
         elseif self.activityInst:IsSubActivityUnlocked(conf) then
@@ -83,15 +78,13 @@ function UMG_Activity_TreasureSpot_C:InitUIElements()
         end
       end
       if 2 == partID then
-        self.redPointNew2:SetVisibility(UE4.ESlateVisibility.Collapsed)
+        self.redPointNew2:SetupKey(215, {
+          self.activityInst:GetActivityId(),
+          2
+        })
         if treasureDataFromServer and treasureDataFromServer.reward_state == ProtoEnum.PlayerActivityInfo.ActivityRewardState.ARS_WAIT then
-          self.redPointNew2:SetVisibility(UE4.ESlateVisibility.Visible)
-          self.redPointNew2.RedPointImage:SetVisibility(UE4.ESlateVisibility.Visible)
-          self.redPointNew2:EnableAnimation()
-          self.redPointNew2:PlayAnimation(self.redPointNew2.In)
           self:AddButtonListener(self.NRCButton2, self.OnClickNRCButton2)
         elseif treasureDataFromServer and treasureDataFromServer.reward_state == ProtoEnum.PlayerActivityInfo.ActivityRewardState.ARS_DONE then
-          self.redPointNew2:PlayAnimation(self.redPointNew2.Out)
           self:OnSwitcherSwitcherContent2(2)
           self:AddButtonListener(self.NRCButton2, self.OnClickNRCButton2)
         elseif self.activityInst:IsSubActivityUnlocked(conf) then
@@ -107,15 +100,13 @@ function UMG_Activity_TreasureSpot_C:InitUIElements()
         end
       end
       if 3 == partID then
-        self.redPointNew3:SetVisibility(UE4.ESlateVisibility.Collapsed)
+        self.redPointNew3:SetupKey(215, {
+          self.activityInst:GetActivityId(),
+          3
+        })
         if treasureDataFromServer and treasureDataFromServer.reward_state == ProtoEnum.PlayerActivityInfo.ActivityRewardState.ARS_WAIT then
-          self.redPointNew3:SetVisibility(UE4.ESlateVisibility.Visible)
-          self.redPointNew3.RedPointImage:SetVisibility(UE4.ESlateVisibility.Visible)
-          self.redPointNew3:EnableAnimation()
-          self.redPointNew3:PlayAnimation(self.redPointNew3.In)
           self:AddButtonListener(self.NRCButton3, self.OnClickNRCButton3)
         elseif treasureDataFromServer and treasureDataFromServer.reward_state == ProtoEnum.PlayerActivityInfo.ActivityRewardState.ARS_DONE then
-          self.redPointNew3:PlayAnimation(self.redPointNew3.Out)
           self:OnSwitcherSwitcherContent3(2)
           self:AddButtonListener(self.NRCButton3, self.OnClickNRCButton3)
         elseif self.activityInst:IsSubActivityUnlocked(conf) then
@@ -131,15 +122,13 @@ function UMG_Activity_TreasureSpot_C:InitUIElements()
         end
       end
       if 4 == partID then
-        self.redPointNew4:SetVisibility(UE4.ESlateVisibility.Collapsed)
+        self.redPointNew4:SetupKey(215, {
+          self.activityInst:GetActivityId(),
+          4
+        })
         if treasureDataFromServer and treasureDataFromServer.reward_state == ProtoEnum.PlayerActivityInfo.ActivityRewardState.ARS_WAIT then
-          self.redPointNew4:SetVisibility(UE4.ESlateVisibility.Visible)
-          self.redPointNew4.RedPointImage:SetVisibility(UE4.ESlateVisibility.Visible)
-          self.redPointNew4:EnableAnimation()
-          self.redPointNew4:PlayAnimation(self.redPointNew4.In)
           self:AddButtonListener(self.NRCButton4, self.OnClickNRCButton4)
         elseif treasureDataFromServer and treasureDataFromServer.reward_state == ProtoEnum.PlayerActivityInfo.ActivityRewardState.ARS_DONE then
-          self.redPointNew4:PlayAnimation(self.redPointNew4.Out)
           self:OnSwitcherSwitcherContent4(2)
           self:AddButtonListener(self.NRCButton4, self.OnClickNRCButton4)
         elseif self.activityInst:IsSubActivityUnlocked(conf) then
@@ -155,15 +144,13 @@ function UMG_Activity_TreasureSpot_C:InitUIElements()
         end
       end
       if 5 == partID then
-        self.redPointNew5:SetVisibility(UE4.ESlateVisibility.Collapsed)
+        self.redPointNew5:SetupKey(215, {
+          self.activityInst:GetActivityId(),
+          5
+        })
         if treasureDataFromServer and treasureDataFromServer.reward_state == ProtoEnum.PlayerActivityInfo.ActivityRewardState.ARS_WAIT then
-          self.redPointNew5:SetVisibility(UE4.ESlateVisibility.Visible)
-          self.redPointNew5.RedPointImage:SetVisibility(UE4.ESlateVisibility.Visible)
-          self.redPointNew5:EnableAnimation()
-          self.redPointNew5:PlayAnimation(self.redPointNew5.In)
           self:AddButtonListener(self.NRCButton5, self.OnClickNRCButton5)
         elseif treasureDataFromServer and treasureDataFromServer.reward_state == ProtoEnum.PlayerActivityInfo.ActivityRewardState.ARS_DONE then
-          self.redPointNew5:PlayAnimation(self.redPointNew5.Out)
           self:OnSwitcherSwitcherContent5(2)
           self:AddButtonListener(self.NRCButton5, self.OnClickNRCButton5)
         elseif self.activityInst:IsSubActivityUnlocked(conf) then
@@ -206,32 +193,19 @@ function UMG_Activity_TreasureSpot_C:FocusDebris(_debrisIndex)
         if not treasureDataFromServer then
           return
         end
-        self.BtnExplore.redPointNew:SetVisibility(UE4.ESlateVisibility.Collapsed)
+        self.BtnExplore.redPointNew:SetupKey(215, {
+          self.activityInst:GetActivityId(),
+          partID
+        })
         if treasureDataFromServer.reward_state == _G.ProtoEnum.PlayerActivityInfo.ActivityRewardState.ARS_WAIT then
-          if 1 == _debrisIndex then
-            self.redPointNew1:PlayAnimation(self.redPointNew1.Loop)
-          elseif 2 == _debrisIndex then
-            self.redPointNew2:PlayAnimation(self.redPointNew2.Loop)
-          elseif 3 == _debrisIndex then
-            self.redPointNew3:PlayAnimation(self.redPointNew3.Loop)
-          elseif 4 == _debrisIndex then
-            self.redPointNew4:PlayAnimation(self.redPointNew4.Loop)
-          elseif 5 == _debrisIndex then
-            self.redPointNew5:PlayAnimation(self.redPointNew5.Loop)
-          end
           self.BtnExplore:SetBtnText(_G.LuaText.Treasure_Hunt_GetReward_Button)
           self.BtnExplore:SetVisibility(UE4.ESlateVisibility.Visible)
-          self.BtnExplore.redPointNew:SetVisibility(UE4.ESlateVisibility.Visible)
-          self.BtnExplore.redPointNew.RedPointImage:SetVisibility(UE4.ESlateVisibility.Visible)
-          self.BtnExplore.redPointNew:EnableAnimation()
-          self.BtnExplore.redPointNew:PlayAnimation(self.BtnExplore.redPointNew.In)
           self:RemoveButtonListener(self.BtnExplore.btnLevelUp)
           self.RewardId = self.activityInst:GetActivityId()
           self.RewardSubId = conf.id
           self:AddButtonListener(self.BtnExplore.btnLevelUp, self.OnClickBtnAcquireReward)
         elseif treasureDataFromServer.reward_state == _G.ProtoEnum.PlayerActivityInfo.ActivityRewardState.ARS_DONE then
           self.BtnExplore:SetVisibility(UE4.ESlateVisibility.Hidden)
-          self.BtnExplore.redPointNew:PlayAnimation(self.BtnExplore.redPointNew.Out)
           self:RemoveButtonListener(self.BtnExplore.btnLevelUp)
         else
           self.BtnExplore:SetVisibility(UE4.ESlateVisibility.Visible)
@@ -239,19 +213,7 @@ function UMG_Activity_TreasureSpot_C:FocusDebris(_debrisIndex)
           self:RemoveButtonListener(self.BtnExplore.btnLevelUp)
           self:AddButtonListener(self.BtnExplore.btnLevelUp, self.OnClickBtnExplore)
         end
-        local limitedPetCount = #conf.limit_pet
-        self.PetList:SetItemCount(limitedPetCount)
-        if limitedPetCount > 0 then
-          for j, v in ipairs(conf.limit_pet) do
-            local petBaseConf = _G.DataConfigManager:GetPetbaseConf(v)
-            if petBaseConf then
-              local item = self.PetList:GetItemByIndex(j - 1)
-              local modelConf = _G.DataConfigManager:GetModelConf(petBaseConf.model_conf)
-              item.Switcher:SetActiveWidgetIndex(0)
-              item.HeadIcon:SetPath(NRCUtils:FormatConfIconPath(modelConf.icon, _G.UIIconPath.HeadIconPath))
-            end
-          end
-        end
+        self.PetList:InitGridView(conf.limit_pet)
         local totalContentCount = #self.activityInst:GetContentIDs(conf)
         local remainedContentCount = 0
         if treasureDataFromServer.reward_state < 2 then
@@ -356,8 +318,10 @@ end
 
 function UMG_Activity_TreasureSpot_C:OnClickBtnExplore()
   _G.NRCAudioManager:PlaySound2DAuto(1325, "UMG_Activity_TreasureSpot_C:OnClickBtnAcquireReward")
-  self:FocusMapBySelectedId()
-  _G.GEMPostManager:SendActivityTLog(self.activityInst:GetActivityId())
+  if self.activityInst and self.activityInst:IsInProgress() then
+    self:FocusMapBySelectedId()
+    _G.GEMPostManager:SendActivityTLog(self.activityInst:GetActivityId())
+  end
 end
 
 function UMG_Activity_TreasureSpot_C:FocusMapBySelectedId()
@@ -409,6 +373,12 @@ end
 
 function UMG_Activity_TreasureSpot_C:OnSwitcherSwitcher_BG5(SwitcherIndex)
   self.Switcher_BG5:SetActiveWidgetIndex(SwitcherIndex)
+end
+
+function UMG_Activity_TreasureSpot_C:TracePet(petBase_id)
+  if self.activityInst:IsInProgress() then
+    ActivityUtils.RequestTracePet({petBase_id}, self.activityInst)
+  end
 end
 
 return UMG_Activity_TreasureSpot_C

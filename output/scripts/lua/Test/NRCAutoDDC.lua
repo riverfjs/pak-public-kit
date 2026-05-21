@@ -263,26 +263,45 @@ function NRCAutoDDC.OnScanNpcSkillBegin()
 end
 
 function NRCAutoDDC.InitNpcSkillList(InNpcDataTable, NpcId, NpcPath, PosIndex)
+  local function OnFailedProcess(InNpcId, InPosIndex)
+    NRCAutoDDC.SkillNpcPosIndex[InPosIndex] = true
+    
+    NRCAutoDDC.CurProcessNpcData[InNpcId] = nil
+    collectgarbage("collect")
+    UE4.UNRCStatics.ForceGarbageCollection(true)
+    NRCAutoDDC.OnScanNpcSkillBegin()
+  end
+  
   Log.Debug("[ScanNpcSkill] NRCAutoDDC.InitNpcSkillList - NpcId: ", NpcId)
   local NpcConf = _G.DataConfigManager:GetNpcConf(NpcId)
   if nil == NpcConf then
     Log.Debug("[ScanNpcSkill] InitNpcSkillList NpcConf == nil NpcId: ", NpcId)
+    OnFailedProcess(NpcId, PosIndex)
     return
   end
   if #NpcConf.traverse_data_param < 1 then
     Log.Debug("[ScanNpcSkill] InitNpcSkillList #NpcConf.traverse_data_param < 1 NpcId: ", NpcId)
+    OnFailedProcess(NpcId, PosIndex)
     return
   end
   local PetBaseId = NpcConf.traverse_data_param[1]
   local PetBaseConf = _G.DataConfigManager:GetPetbaseConf(PetBaseId)
   if nil == PetBaseConf then
     Log.Debug("[ScanNpcSkill] InitNpcSkillList PetBaseConf == nil NpcId: ", NpcId)
+    OnFailedProcess(NpcId, PosIndex)
     return
   end
   local LevelSkillConfId = PetBaseConf.level_skill_conf_id
   local LevelSkillConf = _G.DataConfigManager:GetLevelSkillConf(LevelSkillConfId)
   if nil == LevelSkillConf then
     Log.Debug("[ScanNpcSkill] InitNpcSkillList LevelSkillConf == nil NpcId: ", NpcId)
+    OnFailedProcess(NpcId, PosIndex)
+    return
+  end
+  local NPCClass = UE4.UClass.Load(NpcPath)
+  if nil == NPCClass then
+    Log.Warning("[ScanNpcSkill] NRCAutoDDC.OnScanNpcSkillBegin NPCClass == nil, skip this pet, NpcPath: ", NpcPath, "")
+    OnFailedProcess(NpcId, PosIndex)
     return
   end
   
@@ -314,11 +333,7 @@ function NRCAutoDDC.InitNpcSkillList(InNpcDataTable, NpcId, NpcPath, PosIndex)
   end
   if 0 == #InNpcDataTable.SkillNpcList then
     Log.Debug("[ScanNpcSkill] NRCAutoDDC.OnNpc has no skill - NpcId: ", NpcId)
-    NRCAutoDDC.SkillNpcPosIndex[PosIndex] = true
-    NRCAutoDDC.CurProcessNpcData[NpcId] = nil
-    collectgarbage("collect")
-    UE4.UNRCStatics.ForceGarbageCollection(true)
-    NRCAutoDDC.OnScanNpcSkillBegin()
+    OnFailedProcess(NpcId, PosIndex)
     return
   end
   local BPClass = UE4.UClass.Load(NpcPath)

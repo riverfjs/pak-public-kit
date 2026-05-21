@@ -87,6 +87,12 @@ function WorldCombatActionRcd:OnTick(DeltaTime)
   if self.currBoss and UE.UObject.IsValid(self.currBoss.viewObj) then
     ignoreActors:Add(self.currBoss.viewObj)
   end
+  local hideNpcViews = _G.NRCModuleManager:DoCmd(_G.WorldCombatModuleCmd.GetHideNpcViews)
+  for _, view in ipairs(hideNpcViews) do
+    if UE.UObject.IsValid(view) and not ignoreActors:Contains(view) then
+      ignoreActors:Add(view)
+    end
+  end
   Log.Debug("WorldCombatActionRcd:OnTick", DeltaTime, self.Runner:GetActorLocation(), ignoreActors)
   self.rcdAction:ActionTickProcess(DeltaTime, ignoreActors)
 end

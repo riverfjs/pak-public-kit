@@ -49,6 +49,7 @@ function TeleportBackAction:StartTeleportBack(pos)
     self.localPlayer:SetActorLocation(self.npcPos)
   end
   if BattleUtils.IsTeam() or BattleUtils.IsWeeklyChallenge() or BattleUtils.IsTrainBattle() then
+    BattleManager.vBattleField:ReloadLightingScenarioLevel()
     UE4.UNRCStatics.ExecConsoleCommand("WorldTileTool.FreezeWorldComposition 0")
     UE4.UNRCStatics.BlockTillLevelLoadCompleted(UE4Helper.GetCurrentWorld())
     self:TeleportEnvActorInZ(BattleManager.EnvActorZ)

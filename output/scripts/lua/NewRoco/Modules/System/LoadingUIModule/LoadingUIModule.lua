@@ -266,11 +266,11 @@ function LoadingUIModule:CloseCreatePlayerLoadingUI(isDelay, closeDirectly)
   end
   if isDelay then
     self.delayID = DelayManager:DelaySeconds(0.5, function()
-      if panel then
+      if panel and UE4.UObject.IsValid(panel) then
         panel:PlayFadeOutAnim()
       end
     end)
-  elseif panel then
+  elseif panel and UE4.UObject.IsValid(panel) then
     panel:PlayFadeOutAnim()
   end
 end

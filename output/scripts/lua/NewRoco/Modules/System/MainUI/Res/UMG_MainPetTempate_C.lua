@@ -6,7 +6,9 @@ local PetMutationUtils = require("NewRoco.Utils.PetMutationUtils")
 local BagModuleEnum = require("NewRoco.Modules.System.Bag.BagModuleEnum")
 local PetUIModuleEnum = require("NewRoco.Modules.System.PetUI.PetUIModuleEnum")
 local FriendModuleEvent = require("NewRoco.Modules.System.Friend.FriendModuleEvent")
+local TipEnum = require("NewRoco.Modules.System.TipsModule.Utils.TipEnum")
 local UMG_MainPetTempate_C = Base:Extend("UMG_MainPetTempate_C")
+local TICK_DELTA_TIME = 0.1
 
 function UMG_MainPetTempate_C:OnConstruct()
   self:AddEventListener()
@@ -24,6 +26,14 @@ function UMG_MainPetTempate_C:OnDestruct()
   if self.DelayFinshId then
     _G.DelayManager:CancelDelayById(self.DelayFinshId)
     self.DelayFinshId = nil
+  end
+  if self.DelayPlayNextSkillTipsId then
+    _G.DelayManager:CancelDelayById(self.DelayPlayNextSkillTipsId)
+    self.DelayPlayNextSkillTipsId = nil
+  end
+  if self.DelayPlayNextMedalTipsId then
+    _G.DelayManager:CancelDelayById(self.DelayPlayNextMedalTipsId)
+    self.DelayPlayNextMedalTipsId = nil
   end
   Log.Debug("UMG_MainPetTempate_C:OnDestruct")
   self:RemoveEventListener()
@@ -60,10 +70,10 @@ function UMG_MainPetTempate_C:OnItemUpdate(_data, _datalist, _index)
     self:SetVisibility(UE4.ESlateVisibility.Hidden)
     return
   end
-  self.skillTime = _G.DataConfigManager:GetPetGlobalConfig("skill_unlock_show_time").num / 1000
-  if self.opReasonType == PetUIModuleEnum.MainPetTemplateOpReasonType.LobbyMainUIShow then
-    self.CanvasPanelSkill_2:SetVisibility(UE4.ESlateVisibility.Collapsed)
-  end
+  self.levelUpShowTime = _G.DataConfigManager:GetPetGlobalConfig("level_up_show_time").num / 1000
+  self.skillUnlockShowTime = _G.DataConfigManager:GetPetGlobalConfig("skill_unlock_show_time").num / 1000
+  self.medalUnlockShowTime = _G.DataConfigManager:GetPetGlobalConfig("medal_unlock_show_time").num / 1000
+  self.energyRecoveredShowTime = _G.DataConfigManager:GetPetGlobalConfig("energy_recovered_show_time").num / 1000
   self.PanelLifebar:SetVisibility(UE4.ESlateVisibility.Collapsed)
   if self.levelOrSkillData == nil then
     self.levelOrSkillData = {}
@@ -71,14 +81,12 @@ function UMG_MainPetTempate_C:OnItemUpdate(_data, _datalist, _index)
   end
   self.waitAimState = 0
   self.index = _index
-  self.IsUpGrade = false
   self.IsPlaySkill = false
   self.IsTimer = false
   self.uiData = _data
   self.datalist = _datalist
   self.IsTouchStarted = false
   self.touchStartTime = 0
-  self.PanelFull:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self:HideAllState()
   self:UpdateItemInfo()
   if self.uiData.IsScrollPet then
@@ -150,7 +158,7 @@ function UMG_MainPetTempate_C:UpdateDiedState()
     end
   end
   local IsRidePet = false
-  if self.uiData.IsScrollPet or self.bThrow then
+  if self.bThrow then
     local player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
     if player then
       local RidePet = player.viewObj.BP_RideComponent.ScenePet
@@ -175,6 +183,7 @@ function UMG_MainPetTempate_C:UpdateItemInfo()
     self.oldRecycle = self.uiData.RecycleState
     self:ShowSelected(self.uiData.SelectedState)
     self:UpdateDiedState()
+    self:UpdateFriendRideStateShow()
   end
 end
 
@@ -191,11 +200,34 @@ function UMG_MainPetTempate_C:PCKeySetting()
   self:PCKeyShow(index)
 end
 
+function UMG_MainPetTempate_C:ForceUpdatePetRiderState(RidePetGid)
+  if not self.uiData or not self.uiData.PetData then
+    return
+  end
+  local IsRidePet = RidePetGid == self.uiData.PetData.gid
+  if IsRidePet then
+    self.HeadIcon:SetColorAndOpacity(UE4.FLinearColor(0.3, 0.3, 0.3, 1))
+  else
+    self.HeadIcon:SetColorAndOpacity(UE4.FLinearColor(1, 1, 1, 1))
+  end
+  if not self.uiData or not self.uiData.DiedState then
+    if IsRidePet then
+      self.HeadIcon:SetColorAndOpacity(UE4.FLinearColor(0.3, 0.3, 0.3, 1))
+    else
+      self.HeadIcon:SetColorAndOpacity(UE4.FLinearColor(1, 1, 1, 1))
+    end
+    self:SetClickable(not IsRidePet)
+  end
+end
+
 function UMG_MainPetTempate_C:OnItemClicked(selected)
   self:LongPressBreak()
 end
 
 function UMG_MainPetTempate_C:OnItemSelected(selected, bScrollChoose, bUserClick)
+  if _G.NRCModuleManager:DoCmd(MainUIModuleCmd.GetMainPetListVisibility) == UE4.ESlateVisibility.Collapsed then
+    return
+  end
   if selected then
     if not self.uiData then
       Log.Error("self.uiData is nil")
@@ -232,9 +264,25 @@ function UMG_MainPetTempate_C:OnItemSelected(selected, bScrollChoose, bUserClick
           _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, TipText)
         end
       end
+      if self.uiData and self.uiData.PetData and self.uiData.IsScrollPet then
+        local teamIndex = _G.DataModelMgr.PlayerDataModel:GetPlayerBattleTeamIndexByGid(self.uiData.PetData.gid)
+        if teamIndex then
+          teamIndex = teamIndex - 1
+          local needToSend = true
+          local selectedPetInfo = _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.GetThrowSelectPetInfo)
+          if selectedPetInfo and selectedPetInfo.gid == self.uiData.PetData.gid and selectedPetInfo.teamIdx == teamIndex and selectedPetInfo.selectIdx == self.index % 6 then
+            needToSend = false
+          end
+          if needToSend then
+            _G.NRCModeManager:DoCmd(_G.MainUIModuleCmd.SetSelectPetIndex, self.index % 6, self.uiData.PetData)
+            _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.UpdateThrowPetListSelectGid, self.uiData.PetData.gid, teamIndex, self.index % 6)
+          end
+        end
+      end
       if self.uiData.IsScrollPet then
         _G.NRCModuleManager:DoCmd(MainUIModuleCmd.UI_SetThrowItem, _G.MainUIModuleEnum.MainUIChooseType.PET, self.uiData.PetData, self.uiData.RecycleState, self.uiData.Session)
-        local RidePet = player.viewObj.BP_RideComponent.ScenePet
+        _G.NRCModuleManager:DoCmd(MainUIModuleCmd.UI_RefreshMainPetSelectedState, self.uiData.PetData.gid)
+        local RidePet = player and player.viewObj and player.viewObj.BP_RideComponent and player.viewObj.BP_RideComponent.ScenePet
         if not RidePet or self.uiData.PetData.gid ~= RidePet.gid or _G.DataModelMgr.PlayerDataModel:GetIsTeamPetByGid(self.uiData.PetData.gid) then
         else
           _G.NRCModuleManager:DoCmd(MainUIModuleCmd.SelectRidePetToThrow_ChangePetTeam, self.uiData.PetData.gid)
@@ -253,7 +301,7 @@ function UMG_MainPetTempate_C:OnItemSelected(selected, bScrollChoose, bUserClick
   _G.UpdateManager:UnRegister(self)
 end
 
-function UMG_MainPetTempate_C:BroadcastOnClicked()
+function UMG_MainPetTempate_C:SendPetResponseReq()
   if not self.IsLongPress then
     local req = _G.ProtoMessage:newZoneSelectMainTeamPetReq()
     req.gid = self.uiData.PetData.gid
@@ -280,11 +328,26 @@ function UMG_MainPetTempate_C:OnTouchStarted(MyGeometry, InTouchEvent)
       return UE4.UWidgetBlueprintLibrary.Handled()
     end
   end
+  if _G.BattleManager:IsInBattle() then
+    return
+  end
+  if _G.NRCModuleManager:DoCmd(MainUIModuleCmd.GetMainPetListVisibility) == UE4.ESlateVisibility.Collapsed then
+    return UE4.UWidgetBlueprintLibrary.Handled()
+  end
   local touchReasonType = _G.NRCModuleManager:DoCmd(MultiTouchModuleCmd.GetPanelSelectBtnReason, panelName).PETITEM
   _G.NRCModuleManager:DoCmd(MultiTouchModuleCmd.LockIsSelectBtn, moduleName, panelName, touchReasonType)
   self.IsOnClick = true
   self:SetSelectable(true)
   _G.UpdateManager:Register(self)
+  return UE4.UWidgetBlueprintLibrary.Handled()
+end
+
+function UMG_MainPetTempate_C:OnTouchEnded(MyGeometry, InTouchEvent)
+  Base.OnTouchEnded(self, MyGeometry, InTouchEvent)
+  if _G.NRCModuleManager:DoCmd(MainUIModuleCmd.GetMainPetListVisibility) == UE4.ESlateVisibility.Collapsed then
+    return UE4.UWidgetBlueprintLibrary.Handled()
+  end
+  self:SendPetResponseReq()
   return UE4.UWidgetBlueprintLibrary.Handled()
 end
 
@@ -406,6 +469,9 @@ function UMG_MainPetTempate_C:ShowRecycle(show)
     self.PetRecycle:SetVisibility(UE4.ESlateVisibility.Collapsed)
     return
   end
+  if self.uiData and self.uiData.PetData and self.uiData.PetData.gid and _G.NRCModuleManager:DoCmd(PlayerModuleCmd.CheckPetIsFriendRiding, self.uiData.PetData.gid) then
+    return
+  end
   if show then
     self.PetRecycle:SetVisibility(UE4.ESlateVisibility.Visible)
     if self.oldRecycle ~= show and not self:IsAnimationPlaying(self.PetRecycle_In) then
@@ -418,7 +484,17 @@ function UMG_MainPetTempate_C:ShowRecycle(show)
   end
 end
 
-function UMG_MainPetTempate_C:UpdateFriendRideStateShow(bShow)
+function UMG_MainPetTempate_C:UpdateFriendRideStateShow()
+  if self.uiData == nil then
+    return
+  end
+  if nil == self.uiData.PetData then
+    return
+  end
+  if nil == self.uiData.PetData.gid then
+    return
+  end
+  local bShow = _G.NRCModuleManager:DoCmd(PlayerModuleCmd.CheckPetIsFriendRiding, self.uiData.PetData.gid) or false
   bShow = bShow or false
   if bShow then
     self:StopAnimation(self.PetRecycle_In)
@@ -480,7 +556,6 @@ function UMG_MainPetTempate_C:ShowSelectedRest(show)
     self.SelectedAnim_bg:SetVisibility(UE4.ESlateVisibility.Visible)
     local curSelectedPetGid = _G.NRCModuleManager:DoCmd(MainUIModuleCmd.GetSelectedPetGid)
     if curSelectedPetGid ~= self.uiData.PetData.gid then
-      self:PlayAnimation(self.change_select)
     else
       self:PlayAnimation(self.change_selectloop)
     end
@@ -508,18 +583,16 @@ function UMG_MainPetTempate_C:PlaySelectAnim()
   end
 end
 
-function UMG_MainPetTempate_C:SetMedalInfo(AcquireType, isManuiOpen, MedalItem)
-  local MedalConf = _G.DataConfigManager:GetMedalConf(MedalItem.conf_id)
-  if AcquireType == BagModuleEnum.AcquireType.First then
-    self.MedalAnim = self.Medal_In
-    self.Medal_Icon:SetVisibility(UE4.ESlateVisibility.Collapsed)
-    self.EXP_1:SetText(LuaText.medal_text_1)
-  elseif AcquireType == BagModuleEnum.AcquireType.CountChange then
-    self.MedalAnim = self.Medal_In
+function UMG_MainPetTempate_C:SetMedalTipsInfo(medalTipsData)
+  if nil == medalTipsData then
+    return
+  end
+  local MedalConf = _G.DataConfigManager:GetMedalConf(medalTipsData.conf_id)
+  if medalTipsData.complete_cnt then
     self.Medal_Icon:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-    self.EXP_1:SetText(string.format(LuaText.medal_text_2, MedalItem.complete_cnt))
+    self.EXP_1:SetText(string.format(LuaText.medal_text_2, medalTipsData.complete_cnt))
     if MedalConf and MedalConf.can_repeat_get and MedalConf.can_repeat_get > 0 then
-      if MedalConf.repeat_get_award and #MedalConf.repeat_get_award > 0 and MedalItem.complete_cnt >= MedalConf.repeat_get_award[1].count then
+      if MedalConf.repeat_get_award and #MedalConf.repeat_get_award > 0 and medalTipsData.complete_cnt >= MedalConf.repeat_get_award[1].count then
         self.Medal_Icon:SetColorAndOpacity(UE4.UNRCStatics.HexToLinearColor("71c204FF"))
         self.EXP_1:SetColorAndOpacity(UE4.UNRCStatics.HexToSlateColor("71c204FF"))
       else
@@ -527,27 +600,19 @@ function UMG_MainPetTempate_C:SetMedalInfo(AcquireType, isManuiOpen, MedalItem)
         self.EXP_1:SetColorAndOpacity(UE4.UNRCStatics.HexToSlateColor("929086FF"))
       end
     end
+  else
+    self.Medal_Icon:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.EXP_1:SetText(LuaText.medal_text_1)
   end
   if MedalConf then
     self.EXP_2:SetText(MedalConf.name)
   end
-  if not isManuiOpen then
-    return
-  end
-  self:PlayMedalAnim()
+end
+
+function UMG_MainPetTempate_C:SetMedalInfo(AcquireType, isManuiOpen, MedalItem)
 end
 
 function UMG_MainPetTempate_C:PlayMedalAnim()
-  Log.Debug(self:IsAnimationPlaying(self.appears), self:IsAnimationPlaying(self.appears_1), self:IsAnimationPlaying(self.huodejineng_change_1), self:IsAnimationPlaying(self.Exp_ADD), "UMG_MainPetTempate_C:SetMedalInfo")
-  if self:IsAnimationPlaying(self.appears) or self:IsAnimationPlaying(self.appears_1) or self:IsAnimationPlaying(self.huodejineng_change_1) or self:IsAnimationPlaying(self.Exp_ADD) then
-    return
-  end
-  if self.MedalAnim then
-    _G.NRCAudioManager:PlaySound2DAuto(40008046, "UMG_MainPetTempate_C:PlayMedalAnim")
-    self.CanvasPanelMedal:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-    self:PlayAnimation(self.MedalAnim)
-    self.MedalAnim = nil
-  end
 end
 
 function UMG_MainPetTempate_C:OpItem(opType, opData, opReasonType)
@@ -566,10 +631,343 @@ function UMG_MainPetTempate_C:OpItem(opType, opData, opReasonType)
     self:ShowLock(self.uiData.IsLock)
     self.oldRecycle = self.uiData.RecycleState
   elseif opType == OpTypes.FriendRideState then
-    self:UpdateFriendRideStateShow(self.uiData.FriendRideState)
+    self:UpdateFriendRideStateShow()
   elseif opType == OpTypes.updateThrowPetSelect then
     self:UpdateThrowPetCanClick(opData and opData.bThrow)
+  elseif opType == OpTypes.ForceClearTips then
+    self:ForceClearAllTips()
   end
+end
+
+function UMG_MainPetTempate_C:PlayTips(petGid, petTipsItem)
+  if nil == petTipsItem then
+    return
+  end
+  local tipsType = petTipsItem.subType
+  local tipsData = petTipsItem.subData
+  if nil == tipsType or nil == tipsData then
+    return
+  end
+  if self.uiData and self.uiData.PetData and self.uiData.PetData.gid ~= petGid then
+    return
+  end
+  self:ClearTipsProperties()
+  self.TipsBelongPetGid = petGid
+  self.petTipsItem = petTipsItem
+  self.CurPlayingTipsType = tipsType
+  if tipsType == TipEnum.MainPetTipsType.Energy then
+    self:PlayEnergyTips(tipsData)
+  elseif tipsType == TipEnum.MainPetTipsType.Exp then
+    self:PlayExpTips(tipsData)
+  elseif tipsType == TipEnum.MainPetTipsType.Level then
+    self:PlayLevelTips(tipsData)
+  elseif tipsType == TipEnum.MainPetTipsType.Skill then
+    self:PlaySkillTips(tipsData)
+  elseif tipsType == TipEnum.MainPetTipsType.Medal then
+    self:PlayMedalTips(tipsData)
+  end
+end
+
+function UMG_MainPetTempate_C:OnPlayTipStatusChange(bPause)
+  Log.Debug("UMG_MainPetTempate_C:OnPlayTipStatusChange self.index=[", self.index or 0, "], bPause=[", bPause, "]")
+  self.bTipPaused = bPause
+end
+
+function UMG_MainPetTempate_C:CustomTick()
+  local bRemainTimeEnd = false
+  if not self.bTipPaused and self.TipsRemainTime ~= nil and self.TipsRemainTime > 0 then
+    self.TipsRemainTime = self.TipsRemainTime - TICK_DELTA_TIME
+    if self.TipsRemainTime <= 0 then
+      bRemainTimeEnd = true
+      self:OnTipsRemainTimeEnd()
+    end
+  end
+  if self.CustomTickDelayId then
+    _G.DelayManager:CancelDelay(self.CustomTickDelayId)
+    self.CustomTickDelayId = nil
+  end
+  if not bRemainTimeEnd then
+    self.CustomTickDelayId = _G.DelayManager:DelaySeconds(TICK_DELTA_TIME, self.CustomTick, self)
+  end
+end
+
+function UMG_MainPetTempate_C:OnTipsRemainTimeEnd()
+  Log.Debug("UMG_MainPetTempate_C:OnTipsRemainTimeEnd self.index=[", self.index or 0, "], self.CurPlayingTipsType=[", self.CurPlayingTipsType or 0, "]")
+  if self.CurPlayingTipsType == TipEnum.MainPetTipsType.Energy then
+    if self.petTipsItem and self.petTipsItem.subData and self.petTipsItem.subData.newEnergy > self.petTipsItem.subData.oldEnergy then
+      self.Energy:SetVisibility(UE4.ESlateVisibility.Collapsed)
+      self.Energy_1:SetVisibility(UE4.ESlateVisibility.Collapsed)
+      self:PlayAnimation(self.EnergyRecovery_out)
+      self:ShowSelectedRest(true)
+    elseif self.petTipsItem and self.petTipsItem.subData and self.petTipsItem.subData.newEnergy < self.petTipsItem.subData.oldEnergy then
+      self:EnergyTipsPlayEnd()
+    end
+  elseif self.CurPlayingTipsType == TipEnum.MainPetTipsType.Exp then
+    self:PlayDisappear()
+  elseif self.CurPlayingTipsType == TipEnum.MainPetTipsType.Level then
+    self:PlayDisappear()
+  elseif self.CurPlayingTipsType == TipEnum.MainPetTipsType.Skill then
+    self:PlayNextSkillTips()
+  elseif self.CurPlayingTipsType == TipEnum.MainPetTipsType.Medal then
+    self:PlayAnimation(self.Medal_Out)
+  end
+end
+
+function UMG_MainPetTempate_C:OnTipsPlayEnd(TargetPetGid)
+  Log.Debug("UMG_MainPetTempate_C:OnTipsPlayEnd self.index=[", self.index or 0, "], TargetPetGid=[", TargetPetGid or 0, "]")
+  local petGid = 0
+  if self.uiData and self.uiData.PetData then
+    petGid = self.uiData.PetData.gid
+  end
+  if TargetPetGid and TargetPetGid > 0 then
+    petGid = TargetPetGid
+  end
+  local Index = self.index
+  local petTipsItem = self.petTipsItem
+  self:ClearTipsProperties()
+  _G.NRCModeManager:DoCmd(MainUIModuleCmd.OnMainPetTemplateTipsPlayEnd, Index, petGid, petTipsItem)
+end
+
+function UMG_MainPetTempate_C:ForceClearAllTips()
+  self:ClearTipsProperties()
+  self:StopAnimation(self.appears)
+  self:StopAnimation(self.Exp_ADD)
+  self:StopAnimation(self.upgrade_appears)
+  self:StopAnimation(self.huodejineng_change_1)
+  self:StopAnimation(self.huodejineng_change_2)
+  self:StopAnimation(self.huodejineng_disappear_1)
+  self:StopAnimation(self.huodejineng_disappear_1_2)
+  self:StopAnimation(self.Medal_In)
+  self:StopAnimation(self.Medal_Out)
+  self.CanvasPanelSkill:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self.CanvasPanelSkill_1:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self.CanvasPanelSkill_2:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self.CanvasPanelMedal:SetVisibility(UE4.ESlateVisibility.Collapsed)
+end
+
+function UMG_MainPetTempate_C:PlayEnergyTips(energyTipsData)
+  local oldEnergy = energyTipsData.oldEnergy or 0
+  local newEnergy = energyTipsData.newEnergy or 0
+  local diffEnergy = newEnergy - oldEnergy
+  Log.Debug("UMG_MainPetTempate_C:PlayEnergyTips self.index=[", self.index or 0, "], oldEnergy=[", oldEnergy, "], newEnergy=[", newEnergy, "], diffEnergy=[", diffEnergy, "]")
+  if diffEnergy > 0 then
+    self:ShowSelected(false)
+    self.Energy:SetVisibility(UE4.ESlateVisibility.Visible)
+    self.Energy_1:SetVisibility(UE4.ESlateVisibility.Visible)
+    if newEnergy > 0 then
+      self.Switcher_90:SetActiveWidgetIndex(0)
+      self.Switcher:SetActiveWidgetIndex(0)
+      self.PetLevel_2:SetText(tostring(newEnergy))
+    else
+      self.Switcher_90:SetActiveWidgetIndex(1)
+      self.Switcher:SetActiveWidgetIndex(1)
+      self.PetLevel_4:SetText(tostring(newEnergy))
+    end
+    self:PlayAnimation(self.EnergyRecovery_In)
+    self:DisableEnergyZeroState()
+  elseif diffEnergy < 0 then
+    if 0 == newEnergy then
+      self.Switcher_90:SetActiveWidgetIndex(1)
+      self.Switcher:SetActiveWidgetIndex(1)
+      self.PetLevel_4:SetText(tostring(newEnergy))
+      self.Energy:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+      self.EmptyEnergy:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+      self.PetLevel_4:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+      self:PlayAnimation(self.EnergyRecovery_In)
+    else
+      self:EnergyTipsPlayEnd()
+    end
+  else
+    self:EnergyTipsPlayEnd()
+  end
+end
+
+function UMG_MainPetTempate_C:PlayExpTips(expTipsData)
+  local oldExp = expTipsData.old_exp or 0
+  local newExp = expTipsData.new_exp or 0
+  local curLevel = expTipsData.level or 0
+  Log.Debug("UMG_MainPetTempate_C:PlayExpTips self.index=[", self.index or 0, "], oldExp=[", oldExp, "], newExp=[", newExp, "], curLevel=[", curLevel, "]")
+  self:SetOldExp(oldExp)
+  self:SetNewExp(newExp)
+  self:SetOldLevel(curLevel)
+  self:SetNewLevel(curLevel)
+  local oldExpPercent = self:GetExpPercent(oldExp, curLevel)
+  local NewExpPercent = self:GetExpPercent(newExp, curLevel)
+  if oldExpPercent < NewExpPercent then
+    local expChangeText = string.format("%s%d", LuaText.umg_mainpettempate_1, newExp - oldExp)
+    self.EXP:SetText(expChangeText)
+    self.Under:SetPercent(oldExpPercent)
+    self:SetAppearInfo()
+    self:PlayAnimation(self.appears)
+    self:DisableEnergyZeroState()
+  end
+end
+
+function UMG_MainPetTempate_C:PlayLevelTips(levelTipsData)
+  self.bUpGrade = true
+  self.bAlreadyPlayUpgradeAnim = false
+  local oldExp = levelTipsData.old_exp or 0
+  local newExp = levelTipsData.new_exp or 0
+  local oldLevel = levelTipsData.old_level or 0
+  local newLevel = levelTipsData.new_level or 0
+  Log.Debug("UMG_MainPetTempate_C:PlayLevelTips self.index=[", self.index or 0, "], oldExp=[", oldExp, "], newExp=[", newExp, "], oldLevel=[", oldLevel, "], newLevel=[", newLevel, "]")
+  self:SetOldExp(oldExp)
+  self:SetNewExp(newExp)
+  self:SetOldLevel(oldLevel)
+  self:SetNewLevel(newLevel)
+  local oldExpPercent = self:GetExpPercent(oldExp, oldLevel)
+  local NewExpPercent = self:GetExpPercent(newExp, newLevel)
+  if oldExp < newExp then
+    local expChangeText = string.format("%s%d", LuaText.umg_mainpettempate_1, newExp - oldExp)
+    self.EXP:SetText(expChangeText)
+    self.Under:SetPercent(oldExpPercent)
+    self:PlayAnimation(self.appears)
+    self:SetAppearInfo()
+    self:DisableEnergyZeroState()
+  end
+end
+
+function UMG_MainPetTempate_C:PlaySkillTips(skillTipsData)
+  if nil == skillTipsData then
+    self:OnTipsPlayEnd()
+    return
+  end
+  if nil == skillTipsData.skills then
+    self:OnTipsPlayEnd()
+    return
+  end
+  if 0 == #skillTipsData.skills then
+    self:OnTipsPlayEnd()
+    return
+  end
+  Log.Debug("UMG_MainPetTempate_C:PlaySkillTips self.index=[", self.index or 0, "]")
+  if self.DelayPlayNextSkillTipsId then
+    _G.DelayManager:CancelDelayById(self.DelayPlayNextSkillTipsId)
+    self.DelayPlayNextSkillTipsId = nil
+  end
+  self.CacheWaitToShowSkillTipsList = skillTipsData.skills
+  self.RawSkillTipsNum = #skillTipsData.skills
+  self:DisableEnergyZeroState()
+  self:PlayNextSkillTips()
+end
+
+function UMG_MainPetTempate_C:PlayMedalTips(medalTipsData)
+  if nil == medalTipsData then
+    self:OnTipsPlayEnd()
+    return
+  end
+  if 0 == #medalTipsData then
+    self:OnTipsPlayEnd()
+    return
+  end
+  if self.DelayPlayNextMedalTipsId then
+    _G.DelayManager:CancelDelayById(self.DelayPlayNextMedalTipsId)
+    self.DelayPlayNextMedalTipsId = nil
+  end
+  self.CacheWaitToShowMedalTipsList = medalTipsData
+  self.RawMedalTipsNum = #medalTipsData
+  self:DisableEnergyZeroState()
+  self:PlayNextMedalTips()
+end
+
+function UMG_MainPetTempate_C:ClearTipsProperties()
+  self.petTipsItem = nil
+  self.CurPlayingTipsType = TipEnum.MainPetTipsType.None
+  self.bTipPaused = false
+  self.TipsRemainTime = 0
+  self.TipsBelongPetGid = 0
+  self.bUpGrade = false
+  self.bAlreadyPlayUpgradeAnim = false
+  self.CacheWaitToShowSkillTipsList = nil
+  self.RawSkillTipsNum = 0
+  self.CacheWaitToShowMedalTipsList = nil
+  self.RawMedalTipsNum = 0
+  self:SetOldExp(nil)
+  self:SetOldLevel(nil)
+  self:SetNewExp(nil)
+  self:SetNewLevel(nil)
+  if self.CustomTickDelayId then
+    _G.DelayManager:CancelDelayById(self.CustomTickDelayId)
+    self.CustomTickDelayId = nil
+  end
+end
+
+function UMG_MainPetTempate_C:EnergyTipsPlayEnd()
+  self:OnTipsPlayEnd()
+end
+
+function UMG_MainPetTempate_C:PlayNextSkillTips()
+  if self.CacheWaitToShowSkillTipsList ~= nil and #self.CacheWaitToShowSkillTipsList > 0 then
+    local bFirstSkillTips = false
+    if #self.CacheWaitToShowSkillTipsList == self.RawSkillTipsNum then
+      bFirstSkillTips = true
+    end
+    _G.NRCAudioManager:PlaySound2DAuto(40008026, "UMG_MainPetTempate_C:PlaySkillTips")
+    local skillTipsData = table.remove(self.CacheWaitToShowSkillTipsList, 1)
+    Log.Debug("UMG_MainPetTempate_C:PlayNextSkillTips self.index=[", self.index or 0, "], skillTipsData.id=[", skillTipsData.id or 0, "]")
+    self:ShowSkill(skillTipsData.id, false)
+    self:ShowRecycle(false)
+    if bFirstSkillTips then
+      self.CanvasPanelSkill:SetVisibility(UE4.ESlateVisibility.Collapsed)
+      self:PlayAnimation(self.appears_1)
+    else
+      self.CanvasPanelSkill:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
+      self.CanvasPanelSkill:SetRenderOpacity(1)
+      self:PlayAnimation(self.huodejineng_change_2)
+    end
+    self.CanvasPanelSkill_1:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
+    self.CanvasPanelSkill_2:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.CanvasPanelSkill_1:SetRenderOpacity(1)
+  else
+    self:PlayAnimation(self.huodejineng_disappear_1)
+    self:ShowRecycle(self.uiData.RecycleState)
+    self:OnTipsPlayEnd()
+  end
+end
+
+function UMG_MainPetTempate_C:PlayNextMedalTips()
+  if self.CacheWaitToShowMedalTipsList ~= nil and #self.CacheWaitToShowMedalTipsList > 0 then
+    local medalTipsData = table.remove(self.CacheWaitToShowMedalTipsList, 1)
+    self:SetMedalTipsInfo(medalTipsData)
+    _G.NRCAudioManager:PlaySound2DAuto(40008046, "UMG_MainPetTempate_C:PlayNextMedalTips")
+    self.CanvasPanelMedal:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    self:PlayAnimation(self.Medal_In)
+  else
+    self:ShowRecycle(self.uiData.RecycleState)
+    self:OnTipsPlayEnd()
+  end
+end
+
+function UMG_MainPetTempate_C:SetOldExp(value)
+  self.oldExp = value
+end
+
+function UMG_MainPetTempate_C:GetOldExp()
+  return self.oldExp or 0
+end
+
+function UMG_MainPetTempate_C:SetNewExp(value)
+  self.newExp = value
+end
+
+function UMG_MainPetTempate_C:GetNewExp()
+  return self.newExp or 0
+end
+
+function UMG_MainPetTempate_C:SetOldLevel(value)
+  self.oldLevel = value
+end
+
+function UMG_MainPetTempate_C:GetOldLevel()
+  return self.oldLevel or 0
+end
+
+function UMG_MainPetTempate_C:SetNewLevel(value)
+  self.newLevel = value
+end
+
+function UMG_MainPetTempate_C:GetNewLevel()
+  return self.newLevel or 0
 end
 
 function UMG_MainPetTempate_C:LvChange()
@@ -611,12 +1009,15 @@ function UMG_MainPetTempate_C:LvChange()
       self.IsNoChangeExp = false
       return
     end
+    if self.uiData.PetData.exp <= self.uiData.oldExp then
+      return
+    end
     Log.Debug("UMG_MainPetTempate_C:LvChange name=[", self.uiData.PetData.name or "", "], OldLv=[", self.uiData.oldlv or 0, "], NewLv=[", self.uiData.PetData.level or 0, "], OldExpPercent=[", lastExpPercent or 0, "], NewExpPercent=[", newExpPercent or 0, "")
     if self.olduiData.gid == self.uiData.PetData.gid and self.uiData.oldlv ~= nil and (lastExpPercent ~= newExpPercent or self.uiData.oldlv < self.uiData.PetData.level) then
       self.OverflowExpFlag = false
       self.PerformAnimation = true
       if self.uiData.oldlv < self.uiData.PetData.level then
-        self.IsUpGrade = true
+        self.bUpGrade = true
       end
       self:IsShowSelected(false)
       local NewExp = self.uiData.PetData.exp - self.uiData.oldExp
@@ -699,11 +1100,12 @@ function UMG_MainPetTempate_C:DisableEnergyZeroState()
 end
 
 function UMG_MainPetTempate_C:SetAppearInfo()
-  self.Exp:SetVisibility(UE4.ESlateVisibility.Visible)
+  self.Exp:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
   self.Exp:SetRenderOpacity(1)
   self.PanelUnder:SetRenderOpacity(1)
-  self.PanelUnder:SetVisibility(UE4.ESlateVisibility.Visible)
-  self.CanvasPanelSkill_2:SetVisibility(UE4.ESlateVisibility.Visible)
+  self.PanelUnder:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
+  self.PanelFull:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self.CanvasPanelSkill_2:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
   self.NRCImage_44:SetRenderOpacity(0)
   self.NRCImage_8:SetRenderOpacity(0)
 end
@@ -713,6 +1115,40 @@ function UMG_MainPetTempate_C:IsShowSelected(_IsShow)
     self.isShowEffect = true
     self:ShowSelectedRest(_IsShow)
   end
+end
+
+function UMG_MainPetTempate_C:PlayExpAnimation()
+end
+
+function UMG_MainPetTempate_C:PlayExpAddAnimation()
+  local oldLevel = self:GetOldLevel()
+  local oldExp = self:GetOldExp()
+  local newLevel = self:GetNewLevel()
+  local newExp = self:GetNewExp()
+  local oldExpPercent = self:GetExpPercent(oldExp, oldLevel)
+  local newExpPercent = self:GetExpPercent(newExp, newLevel)
+  if self.OverflowExpFlag then
+    oldExpPercent = 1
+    newExpPercent = 1
+  end
+  self.CanvasPanel_32:SetVisibility(UE4.ESlateVisibility.Visible)
+  local ani = self.Exp_ADD
+  local aniTime = ani:GetEndTime() - ani:GetStartTime()
+  local beginTime = ani:GetStartTime() + aniTime * oldExpPercent
+  local endTime = ani:GetStartTime() + aniTime * newExpPercent
+  if newLevel ~= oldLevel then
+    endTime = ani:GetEndTime()
+  end
+  if beginTime >= endTime then
+    endTime = beginTime + 0.01
+  end
+  if self.IsPlayAnim == true then
+    endTime = 1
+    beginTime = 1
+    self.IsPlayAnim = false
+  end
+  _G.NRCAudioManager:PlaySound2DAuto(40008008, "UMG_MainPetTempate_C:ShowSelected")
+  self:PlayAnimationTimeRange(ani, beginTime, endTime)
 end
 
 function UMG_MainPetTempate_C:playPetExpAnimation(_OldPetUiData, _UiData)
@@ -752,7 +1188,7 @@ end
 
 function UMG_MainPetTempate_C:OnPetExpEffectPlayEnd()
   if self.OldPetUiData.isContinueExpEffect == false then
-    if false == self.IsUpGrade then
+    if false == self.bUpGrade then
       self.waitAimState = 0
       _G.NRCEventCenter:DispatchEvent(MainUIModuleEvent.OnMainPetListAimNumberChange)
     else
@@ -761,7 +1197,7 @@ function UMG_MainPetTempate_C:OnPetExpEffectPlayEnd()
     end
     return
   end
-  self.IsUpGrade = true
+  self.bUpGrade = true
   local lastPetInfo = self.OldPetUiData.PetData
   local lastExpPercent = self:GetPercent(lastPetInfo)
   self.CanvasPanel_32:SetVisibility(UE4.ESlateVisibility.Visible)
@@ -778,6 +1214,32 @@ function UMG_MainPetTempate_C:OnPetExpEffectPlayEnd()
   self.OldPetUiData.isContinueExpEffect = false
 end
 
+function UMG_MainPetTempate_C:OnExpAddAnimPlayEnd()
+  if self.bUpGrade and not self.bAlreadyPlayUpgradeAnim then
+    self.CanvasPanel_32:SetVisibility(UE4.ESlateVisibility.Visible)
+    local newExpPercent = self:GetExpPercent(self.newExp, self.newLevel)
+    local Anim = self.Exp_ADD
+    local animTime = Anim:GetEndTime() - Anim:GetStartTime()
+    local startTime = Anim:GetStartTime()
+    local endTime = startTime + animTime * newExpPercent
+    if startTime >= endTime then
+      endTime = startTime + 0.01
+    end
+    self:PlayAnimationTimeRange(Anim, startTime, endTime)
+    self.PanelFull:SetVisibility(UE4.ESlateVisibility.Visible)
+    self:PlayAnimation(self.upgrade_appears)
+    self.bAlreadyPlayUpgradeAnim = true
+    _G.NRCAudioManager:PlaySound2D(40008021, "UMG_MainPetTempate_C:OnExpAddAnimPlayEnd")
+  else
+    self.TipsRemainTime = self.levelUpShowTime
+    if self.CustomTickDelayId then
+      _G.DelayManager:CancelDelay(self.CustomTickDelayId)
+      self.CustomTickDelayId = nil
+    end
+    self.CustomTickDelayId = _G.DelayManager:DelaySeconds(TICK_DELTA_TIME, self.CustomTick, self)
+  end
+end
+
 function UMG_MainPetTempate_C:GetPercent(PetData)
   Log.Debug("UMG_MainPetTempate_C:GetPercent")
   if PetData.level and PetData.level > 0 then
@@ -787,6 +1249,28 @@ function UMG_MainPetTempate_C:GetPercent(PetData)
       local maxExp = petLevelConf and petLevelConf.pet_exp or 1
       if PetData.level > 1 then
         petLevelConf = _G.DataConfigManager:GetPetLevelConf(PetData.level - 1)
+        if petLevelConf then
+          maxExp = maxExp - petLevelConf.pet_exp
+          curExp = curExp - petLevelConf.pet_exp
+        end
+      end
+      if 0 ~= maxExp and 0 ~= curExp then
+        local expPercent = curExp / maxExp
+        return expPercent
+      end
+    end
+  end
+  return 0
+end
+
+function UMG_MainPetTempate_C:GetExpPercent(exp, level)
+  if level and level > 0 then
+    local petLevelConf = _G.DataConfigManager:GetPetLevelConf(level)
+    if petLevelConf then
+      local curExp = exp
+      local maxExp = petLevelConf and petLevelConf.pet_exp or 1
+      if level > 1 then
+        petLevelConf = _G.DataConfigManager:GetPetLevelConf(level - 1)
         if petLevelConf then
           maxExp = maxExp - petLevelConf.pet_exp
           curExp = curExp - petLevelConf.pet_exp
@@ -847,108 +1331,9 @@ function UMG_MainPetTempate_C:PlayLevelChang(norlevel)
 end
 
 function UMG_MainPetTempate_C:ShowChangeEnergyAnimation()
-  if self.olduiData and self.uiData.PetData.gid ~= self.olduiData.PetData.gid and self.DelaySkillId then
-    _G.DelayManager:CancelDelayById(self.DelaySkillId)
-    self.DelaySkillId = nil
-    self.CanvasPanelSkill:SetVisibility(UE4.ESlateVisibility.Collapsed)
-    self.CanvasPanelSkill_1:SetVisibility(UE4.ESlateVisibility.Collapsed)
-    self:StopAnimation(self.huodejineng_change_2)
-  end
-  self:ShowEnergyZeroState(self.uiData.PetData.energy)
-  if self.uiData.IsWaitEnergy then
-    self:DisableEnergyZeroState()
-    self:ShowSelected(false)
-    local oldEnrgy = self.olduiData and self.olduiData.PetData.energy
-    if self.uiData and self.uiData.EneryDiff and self.uiData.EneryDiff > 0 or oldEnrgy and oldEnrgy < self.uiData.PetData.energy then
-      local addEnergy = self.uiData.PetData.energy - oldEnrgy
-      if self.uiData.EneryDiff > 0 then
-        addEnergy = self.uiData.EneryDiff
-      end
-      self.Energy:SetVisibility(UE4.ESlateVisibility.Visible)
-      self.Energy_1:SetVisibility(UE4.ESlateVisibility.Visible)
-      if self.uiData.PetData.energy > 0 then
-        self.Switcher_90:SetActiveWidgetIndex(0)
-        self.Switcher:SetActiveWidgetIndex(0)
-        self.PetLevel_2:SetText(tostring(self.uiData.PetData.energy))
-      else
-        self.Switcher_90:SetActiveWidgetIndex(1)
-        self.Switcher:SetActiveWidgetIndex(1)
-        self.PetLevel_4:SetText(tostring(self.uiData.PetData.energy))
-      end
-      if self.isShow then
-        self.isShowEffect = true
-        self:ShowSelectedRest(false)
-      end
-      self:PlayAnimation(self.EnergyRecovery_In)
-      self:DisableEnergyZeroState()
-    end
-    self.DelayPlayId = _G.DelayManager:DelaySeconds(3, function()
-      self.Energy:SetVisibility(UE4.ESlateVisibility.Collapsed)
-      self.Energy_1:SetVisibility(UE4.ESlateVisibility.Collapsed)
-      self:PlayAnimation(self.EnergyRecovery_out)
-      if self.isShow then
-        self.isShowEffect = false
-        self:ShowSelectedRest(true)
-      end
-      self:LvChange()
-    end)
-  else
-    self:LvChange()
-  end
 end
 
 function UMG_MainPetTempate_C:ShowSkillAnima(levelEnd, showLevel)
-  Log.Debug("UMG_MainPetTempate_C:ShowSkillAnima name=[", self.uiData.PetData.name, "], #self.levelOrSkillData=[", #self.levelOrSkillData, "]")
-  if #self.levelOrSkillData > 0 then
-    self:DisableEnergyZeroState()
-    _G.NRCAudioManager:PlaySound2DAuto(40008026, "UMG_MainPetTempate_C:ShowSelected")
-    self.animaPlaying = true
-    self.IsPlayingSkill = true
-    local data = table.remove(self.levelOrSkillData, 1)
-    if 1 == data.showtype then
-      self:ShowSkill(data.id, false)
-    else
-      self:ShowSkill(data.id, true)
-    end
-    if levelEnd then
-      self.CanvasPanelSkill:SetVisibility(UE4.ESlateVisibility.Collapsed)
-      self.CanvasPanelSkill_1:SetVisibility(UE4.ESlateVisibility.Visible)
-      self.CanvasPanelSkill_2:SetVisibility(UE4.ESlateVisibility.Collapsed)
-      if showLevel then
-        self:PlayAnimation(self.huodejineng_change_1)
-      else
-        self.CanvasPanelSkill_1:SetRenderOpacity(1)
-        self:PlayAnimation(self.appears_1)
-      end
-    else
-      self.CanvasPanelSkill:SetVisibility(UE4.ESlateVisibility.Visible)
-      self.CanvasPanelSkill_1:SetVisibility(UE4.ESlateVisibility.Visible)
-      self.CanvasPanelSkill_2:SetVisibility(UE4.ESlateVisibility.Collapsed)
-      self.CanvasPanelSkill:SetRenderOpacity(1)
-      self.CanvasPanelSkill_1:SetRenderOpacity(1)
-      self:PlayAnimation(self.huodejineng_change_2)
-    end
-    self:ShowRecycle(false)
-    self.DelaySkillId = _G.DelayManager:DelaySeconds(self.skillTime, function()
-      self:ShowSkillAnima()
-    end)
-  else
-    self.animaPlaying = false
-    self.isShowEffect = false
-    if self.IsPlayingSkill then
-      if self.isShow then
-        self:PlayAnimation(self.huodejineng_disappear_1)
-        self:ShowSelectedRest(self.isShow)
-      else
-        self:PlayAnimation(self.huodejineng_disappear_1)
-      end
-    else
-      self:ShowSelectedRest(self.isShow)
-    end
-    self.IsPlayingSkill = false
-    self.oldRecycle = not self.uiData.RecycleState
-    self:ShowRecycle(self.uiData.RecycleState)
-  end
 end
 
 function UMG_MainPetTempate_C:ShowSkill(id, handbookSkill)
@@ -1029,19 +1414,11 @@ function UMG_MainPetTempate_C:PlayUpGrade()
 end
 
 function UMG_MainPetTempate_C:PlayDisappear()
-  if self.IsTimer then
-    return
+  self:PlayAnimation(self.huodejineng_disappear_1_2)
+  self.isShowEffect = false
+  if self.isShow then
+    self:ShowSelectedRest(self.isShow)
   end
-  self.IsTimer = true
-  _G.DelayManager:DelaySeconds(1.5, function()
-    if self and UE4.UObject.IsValid(self) then
-      self:PlayAnimation(self.huodejineng_disappear_1_2)
-      self.isShowEffect = false
-      if self.isShow then
-        self:ShowSelectedRest(self.isShow)
-      end
-    end
-  end)
 end
 
 function UMG_MainPetTempate_C:OnAnimationStarted(anim)
@@ -1060,29 +1437,25 @@ function UMG_MainPetTempate_C:OnAnimationFinished(anim)
       self:PlayMedalAnim()
     end
   elseif anim == self.appears then
-    self.CanvasPanelSkill_2:SetVisibility(UE4.ESlateVisibility.Visible)
-    self.OldPetUiData.oldLv = self.uiData.oldlv
-    self:playPetExpAnimation(self.OldPetUiData, self.uiData)
+    self.CanvasPanelSkill_2:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
+    self:PlayExpAddAnimation()
     self.uiData.oldlv = nil
     self.uiData.oldExp = nil
     _G.NRCEventCenter:DispatchEvent(MainUIModuleEvent.OnUpdateMainPetTipsShowState, self.uiData.PetData.gid)
   elseif anim == self.Exp_ADD then
     self.CanvasPanel_32:SetVisibility(UE4.ESlateVisibility.Collapsed)
-    self:OnPetExpEffectPlayEnd()
+    self:OnExpAddAnimPlayEnd()
   elseif anim == self.upgrade_appears then
-    self.UpgradeAnim = true
-    self.IsUpGrade = false
-    self:PlayUpGrade()
   elseif anim == self.LevelUp then
-    self.LevelUpAnim = true
-    self:PlayUpGrade()
   elseif anim == self.huodejineng_disappear_1_2 then
     self.CanvasPanelSkill_2:SetVisibility(UE4.ESlateVisibility.Collapsed)
     if 0 == self.waitAimState then
       self:ShowEnergyZeroState(self.uiData.PetData.energy)
       self.IsTimer = false
     end
-    self:PlayMedalAnim()
+    if self.CurPlayingTipsType == TipEnum.MainPetTipsType.Exp or self.CurPlayingTipsType == TipEnum.MainPetTipsType.Level then
+      self:OnTipsPlayEnd()
+    end
   elseif anim == self.huodejineng_disappear_1_3 then
     self.CanvasPanelSkill_2:SetVisibility(UE4.ESlateVisibility.Collapsed)
     if 1 == self.waitAimState then
@@ -1093,24 +1466,61 @@ function UMG_MainPetTempate_C:OnAnimationFinished(anim)
   elseif anim == self.PetRecycle_Out then
     self.PetRecycle:SetVisibility(UE4.ESlateVisibility.Collapsed)
   elseif anim == self.Medal_In then
-    self:PlayAnimation(self.Medal_Out)
+    self:OnMedalShowAnimPlayEnd()
   elseif anim == self.Medal_Out then
     self.CanvasPanelMedal:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self:PlayNextMedalTips()
   elseif anim == self.change_unselect or anim == self.change_selectloop then
     self:PlayMedalAnim()
+  elseif anim == self.EnergyRecovery_in then
+    self:OnEnergyRecoveryShowAnimPlayEnd()
+  elseif anim == self.EnergyRecovery_out then
+    self:EnergyTipsPlayEnd()
+  elseif anim == self.appears_1 then
+    self:OnSkillShowAnimPlayEnd()
+  elseif anim == self.huodejineng_change_2 then
+    self:OnSkillShowAnimPlayEnd()
   end
 end
 
-function UMG_MainPetTempate_C:OnAllWaitFinsh(isOnePlay)
+function UMG_MainPetTempate_C:OnEnergyRecoveryShowAnimPlayEnd()
+  if self.CurPlayingTipsType == TipEnum.MainPetTipsType.Energy then
+    self.TipsRemainTime = self.energyRecoveredShowTime
+    if self.CustomTickDelayId then
+      _G.DelayManager:CancelDelay(self.CustomTickDelayId)
+      self.CustomTickDelayId = nil
+    end
+    self.CustomTickDelayId = _G.DelayManager:DelaySeconds(TICK_DELTA_TIME, self.CustomTick, self)
+  end
+end
+
+function UMG_MainPetTempate_C:OnSkillShowAnimPlayEnd()
+  if self.CurPlayingTipsType == TipEnum.MainPetTipsType.Skill then
+    self.TipsRemainTime = self.skillUnlockShowTime
+    if self.CustomTickDelayId then
+      _G.DelayManager:CancelDelay(self.CustomTickDelayId)
+      self.CustomTickDelayId = nil
+    end
+    self.CustomTickDelayId = _G.DelayManager:DelaySeconds(TICK_DELTA_TIME, self.CustomTick, self)
+  end
+end
+
+function UMG_MainPetTempate_C:OnMedalShowAnimPlayEnd()
+  if self.CurPlayingTipsType == TipEnum.MainPetTipsType.Medal then
+    self.TipsRemainTime = self.medalUnlockShowTime
+    if self.CustomTickDelayId then
+      _G.DelayManager:CancelDelay(self.CustomTickDelayId)
+      self.CustomTickDelayId = nil
+    end
+    self.CustomTickDelayId = _G.DelayManager:DelaySeconds(TICK_DELTA_TIME, self.CustomTick, self)
+  end
+end
+
+function UMG_MainPetTempate_C:OnAllWaitFinsh(isOnePlay, onePlayIndex)
   if self.uiData and self.uiData.PetData then
     Log.Debug("UMG_MainPetTempate_C:OnAllWaitFinsh, name=[", self.uiData.PetData.name, "]")
   end
-  if true == isOnePlay and self.IsNoChangeExp == false then
-    self:PlayAnimation(self.huodejineng_disappear_1_2)
-    if self.isShow then
-      self:ShowSelectedRest(self.isShow)
-    end
-    self.PerformAnimation = false
+  if isOnePlay and onePlayIndex ~= self.index then
     return
   end
   if self.IsNoChangeExp then
@@ -1119,7 +1529,6 @@ function UMG_MainPetTempate_C:OnAllWaitFinsh(isOnePlay)
   end
   Log.Debug("UMG_MainPetTempate_C:OnAllWaitFinsh, waitAimState=[", self.waitAimState, "]")
   if 0 == self.waitAimState then
-    self:PlayDisappear()
     self.PerformAnimation = false
   elseif 1 == self.waitAimState then
     if self.IsTimer then
@@ -1129,6 +1538,10 @@ function UMG_MainPetTempate_C:OnAllWaitFinsh(isOnePlay)
       self.IsTimer = true
     end
     self.DelayFinshId = _G.DelayManager:DelaySeconds(1.5, function()
+      if self.DelayFinshId then
+        _G.DelayManager:CancelDelayById(self.DelayFinshId)
+        self.DelayFinshId = nil
+      end
       if #self.levelOrSkillData <= 0 then
         self:PlayAnimation(self.huodejineng_disappear_1_3)
         self.isShowEffect = false
@@ -1159,7 +1572,7 @@ end
 function UMG_MainPetTempate_C:UnPetInfoPanel(_Parent)
   self.Parent = _Parent
   if self.IsOnClick then
-    self:BroadcastOnClicked()
+    self:SendPetResponseReq()
   end
   self:LongPressBreak()
 end
@@ -1186,6 +1599,10 @@ function UMG_MainPetTempate_C:CheckLock()
     self.uiData.IsLock = true
     self:UpdateItemInfo()
   end
+end
+
+function UMG_MainPetTempate_C:OnDisable()
+  self:LongPressBreak()
 end
 
 return UMG_MainPetTempate_C

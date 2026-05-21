@@ -3,6 +3,7 @@ local SceneUtils = require("NewRoco.Modules.Core.Scene.Common.SceneUtils")
 local Delegate = require("Utils.Delegate")
 local HiddenEvent = require("NewRoco.Modules.Core.Scene.Component.Hidden.HiddenEvent")
 local NPCModuleEnum = require("NewRoco.Modules.Core.NPC.NPCModuleEnum")
+local PetMutationUtils = require("NewRoco.Utils.PetMutationUtils")
 local Base = require("NewRoco.Modules.Core.Scene.Component.ActorComponent")
 local HiddenComponent = Base:Extend("HiddenComponent")
 HiddenComponent.State = {
@@ -80,6 +81,14 @@ function HiddenComponent:GetConfigurationHiddenType()
   local configHiddenType = TypeNone
   if not self.owner then
     return configHiddenType, Dummy
+  end
+  local mutType = self.owner.serverData.npc_base.mutation_type
+  if PetMutationUtils.GetMutationValue(mutType, _G.Enum.MutationDiffType.MDT_SHINING) then
+    local mutHiddenType = self.owner.config.shining_world_hide
+    local mutHiddenParam = self.owner.config.shining_world_hide_param
+    if mutHiddenType and mutHiddenType ~= TypeNone then
+      return mutHiddenType, mutHiddenParam
+    end
   end
   local RefreshContent = _G.DataConfigManager:GetNpcRefreshContentConf(self.owner.serverData.npc_base.npc_content_cfg_id, true)
   if RefreshContent then
@@ -224,6 +233,8 @@ function HiddenComponent:BeginHide()
 end
 
 function HiddenComponent:EndHide(caller, callback)
+  callback = callback or function()
+  end
   if not self.action or not self.owner.viewObj then
     callback(caller, AIDefines.ActionResult.Invalid, self)
     return
@@ -342,10 +353,14 @@ function HiddenComponent:FinalizeHidden(result, silent)
 end
 
 function HiddenComponent:UpdateLogicStatus()
-  if self.owner.AIComponent and self.owner.AIComponent.isServerAI then
+  local AIComp = self.owner and self.owner.AIComponent
+  if AIComp and AIComp.isServerAI then
     return
   end
   if self.removed then
+    return
+  end
+  if AIComp and AIComp.IsCurrentInHome() then
     return
   end
   local status = self:GetLogicStatus()
@@ -636,8 +651,21 @@ local function GetResistCaptureList()
   return RESIST_CAPTURE_LIST
 end
 
-function HiddenComponent:IsResistCapture()
-  return self:CanHide() and self:IsHidden() and GetResistCaptureList()[self.hiddenType] or false
+function HiddenComponent:IsResistCapture(ballActId)
+  if not self:CanHide() then
+    return false
+  end
+  if not self:IsHidden() then
+    return false
+  end
+  if not GetResistCaptureList()[self.hiddenType] then
+    return false
+  end
+  local ballActConf = ballActId and _G.DataConfigManager:GetBallAct(ballActId, true)
+  if ballActConf and table.contains(ballActConf.ball_wh_mimic, self.hiddenType) then
+    return false
+  end
+  return true
 end
 
 return HiddenComponent

@@ -11,6 +11,7 @@ local ThrowSessionStatusEnum = require("NewRoco.Modules.Core.NPC.ThrowSessionSta
 local RocoSkillProxy = require("NewRoco.Utils.RocoSkillProxy")
 local NPCModuleEvent = require("NewRoco.Modules.Core.NPC.NPCModuleEvent")
 local RelationTreeEvent = reload("NewRoco.Modules.System.RelationTree.RelationTreeEvent")
+local NPCModuleEnum = require("NewRoco.Modules.Core.NPC.NPCModuleEnum")
 local Base = ActorComponent
 local PetStatusComponent = Base:Extend("PetStatusComponent")
 
@@ -256,6 +257,13 @@ function PetStatusComponent:SetStatus(Type)
       Session:ForceSetCanBeRecycle(true)
     end
   end
+  if Type == PetStatusType.Interact then
+    if self.owner and self.owner.InteractionComponent then
+      self.owner.InteractionComponent:SetInteractionEnable(false, NPCModuleEnum.NpcInteractDisableFlag.NPC_IS_BUSY)
+    end
+  else
+    self.owner.InteractionComponent:SetInteractionEnable(true, NPCModuleEnum.NpcInteractDisableFlag.NPC_IS_BUSY)
+  end
   local OldType = self.Type
   self.Type = Type
   self.owner:SendEvent(NPCModuleEvent.OnPetStatusChange, Type, OldType)
@@ -276,6 +284,9 @@ function PetStatusComponent:OnDistanceOptimize(sqrDistanceIgnoreZ, viewDotValue,
   end
   local CurrentTime = os.time()
   if CurrentTime - self.PrevSyncTime <= 2 then
+    return
+  end
+  if self.owner and self.owner.IsMagicReplayActor and self.owner:IsMagicReplayActor() then
     return
   end
   local CurrentLocation = self.owner:GetActorLocation()

@@ -1,5 +1,5 @@
 local Class = _G.MakeSimpleClass
-local ActorComponent = Class("ActorComponent")
+local ActorComponent = Class("ActorComponent", nil, 128)
 ActorComponent:SetMemberCount(2)
 
 function ActorComponent:PreCtor()

@@ -8,6 +8,10 @@ end
 function UMG_DialogueOverlay_C:OnDestruct()
 end
 
+function UMG_DialogueOverlay_C:OnDisable()
+  self.ExitConfirmMsgOn = false
+end
+
 function UMG_DialogueOverlay_C:OnActive(caller, callback)
   if caller and callback then
     callback(caller)

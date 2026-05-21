@@ -8,6 +8,7 @@ local PetAbilitySlotManager = require("NewRoco.Modules.System.MainUI.Res.Ability
 local AbilityHelperManager = require("NewRoco.Modules.Core.Scene.Component.Ability.AbilityHelperManager")
 local PetUtils = require("NewRoco.Utils.PetUtils")
 local PlayerModuleEvent = require("NewRoco.Modules.Core.PlayerModule.PlayerModuleEvent")
+local FunctionBanModuleEvent = require("NewRoco.Modules.System.FunctionBan.FunctionBanModuleEvent")
 local UMG_PlayerAbilities_C = _G.NRCViewBase:Extend("UMG_PlayerAbilities_C")
 
 function UMG_PlayerAbilities_C:OnConstruct()
@@ -65,6 +66,7 @@ function UMG_PlayerAbilities_C:AddAllIMC()
     mappingContext2:BindAction("IA_AbilitySlotUntransform", self, "OnPcAbilitySlotUntransform", UE.ETriggerEvent.Triggered)
     mappingContext2:BindAction("IA_TransformSkillStart_Transform", self, "OnPcAbilitySlotMainStart", UE.ETriggerEvent.Triggered)
     mappingContext2:BindAction("IA_TransformSkillEnd_Transform", self, "OnPcAbilitySlotMainEnd", UE.ETriggerEvent.Triggered)
+    mappingContext2:BindAction("IA_AbilitySlot_SecondMainStart", self, "OnPcAbilitySlotSecondMainStart", UE.ETriggerEvent.Triggered)
     mappingContext2:DisableInputMappingContext()
   end
   local mappingContext3 = self:AddInputMappingContext("IMC_PlayerAbilityOnPet")
@@ -353,6 +355,7 @@ function UMG_PlayerAbilities_C:AddEventListener()
   end
   _G.DataModelMgr.PlayerDataModel:AddEventListener(self, ENUM_PLAYER_DATA_EVENT.STORY_FLAG_CHANGE, self.OnFlagUpdate)
   _G.NRCEventCenter:RegisterEvent("UMG_PlayerAbilities_C", self, SceneEvent.PlayerBornFinish, self.OnSceneLoaded)
+  _G.NRCEventCenter:RegisterEvent("UMG_PlayerAbilities_C", self, FunctionBanModuleEvent.OnUIFuncVisibilityChange, self.OnUIFuncVisibilityChange)
   local homeModule = _G.NRCModuleManager:GetModule("HomeModule")
   if homeModule then
     local HomeModuleEvent = require("NewRoco/Modules/System/Home/HomeModuleEvent")
@@ -373,6 +376,7 @@ function UMG_PlayerAbilities_C:RemoveEventListener()
   end
   _G.DataModelMgr.PlayerDataModel:RemoveEventListener(self, ENUM_PLAYER_DATA_EVENT.STORY_FLAG_CHANGE, self.OnFlagUpdate)
   _G.NRCEventCenter:UnRegisterEvent(self, SceneEvent.PlayerBornFinish, self.OnSceneLoaded)
+  _G.NRCEventCenter:UnRegisterEvent(self, FunctionBanModuleEvent.OnUIFuncVisibilityChange, self.OnUIFuncVisibilityChange)
   local homeModule = _G.NRCModuleManager:GetModule("HomeModule")
   if homeModule then
     local HomeModuleEvent = require("NewRoco/Modules/System/Home/HomeModuleEvent")
@@ -401,6 +405,13 @@ function UMG_PlayerAbilities_C:OnFlagUpdate(flagId, bIsHomeOwner)
     return
   end
   self:AutoSetThrowItemVisibility()
+end
+
+function UMG_PlayerAbilities_C:OnUIFuncVisibilityChange(uiFunctionId, bHide)
+  if uiFunctionId == Enum.FunctionEntrance.FE_THROW and self.AbilitySlot_Throw and self.AbilitySlot_Throw.ThrowItemType ~= nil and self.AbilitySlot_Throw.ThrowItemType > 1 then
+    Log.DebugFormat("UMG_PlayerAbilities_C:OnUIFuncVisibilityChange update AutoSetThrowItemVisibility, uiFunctionId=%s, bHide=%s, ThrowItemType=%s", tostring(uiFunctionId), tostring(bHide), tostring(self.AbilitySlot_Throw.ThrowItemType))
+    self:AutoSetThrowItemVisibility()
+  end
 end
 
 function UMG_PlayerAbilities_C:InitInfo()

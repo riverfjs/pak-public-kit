@@ -5,6 +5,10 @@ function UMG_Scrapbook_CollectList_C:OnConstruct()
 end
 
 function UMG_Scrapbook_CollectList_C:OnDestruct()
+  if self.DelayId then
+    _G.DelayManager:CancelDelayById(self.DelayId)
+    self.DelayId = nil
+  end
 end
 
 function UMG_Scrapbook_CollectList_C:OnItemUpdate(_data, datalist, index)

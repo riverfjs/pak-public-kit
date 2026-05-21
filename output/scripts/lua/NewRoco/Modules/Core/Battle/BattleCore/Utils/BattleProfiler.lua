@@ -1,7 +1,7 @@
 local BattleProfiler = NRCClass:Extend("BattleEventCenter")
 local FsmEnum = require("NewRoco.Modules.Core.Fsm.FsmEnum")
-local PetUtils = require("NewRoco.Utils.PetUtils")
 local FsmAction = require("NewRoco.Modules.Core.Fsm.FsmAction")
+local FsmState = require("NewRoco.Modules.Core.Fsm.FsmState")
 BattleProfilerTag = {
   EnterBattle,
   LeaveBattle
@@ -18,7 +18,11 @@ _G.BattleProfilerType = {
   FinalBattle = 9,
   LegendaryBattle = 10,
   Wild1VN = 11,
-  WeeklyChallenge = 12
+  WeeklyChallenge = 12,
+  PVPFate = 13,
+  PVPRapids = 14,
+  PVPInsect = 15,
+  PVPSpeed = 16
 }
 _G.BattleProfilerCheckPoint = {
   None = 0,
@@ -40,7 +44,13 @@ _G.BattleProfilerCheckPoint = {
   PVPRankClickPrepareConfirm = 15,
   PVPFriendRequireCompetition = 16,
   PVPFriendResponseCompetition = 17,
-  WeeklyChallengeClick = 18
+  WeeklyChallengeClick = 18,
+  PVPFateDuel = 19,
+  PVPRapidsDuel = 20,
+  PVPInsectDuel = 21,
+  PVPSpeedDuel = 22,
+  PVPFriendDuel = 23,
+  PVPRankDuel = 24
 }
 
 function BattleProfiler:Init()
@@ -231,6 +241,33 @@ function BattleProfiler:BuildBattleCheckPointDict()
       e = true
     },
     {
+      t = BattleProfilerType.PVPFriend,
+      p = {
+        BattleProfilerCheckPoint.PVPFriendDuel,
+        BattleProfilerCheckPoint.PVPRankClickPrepareConfirm,
+        BattleProfilerCheckPoint.BattleEnterNotify
+      },
+      e = true
+    },
+    {
+      t = BattleProfilerType.PVPSpeed,
+      p = {
+        BattleProfilerCheckPoint.PVPSpeedDuel,
+        BattleProfilerCheckPoint.PVPRankClickPrepareConfirm,
+        BattleProfilerCheckPoint.BattleEnterNotify
+      },
+      e = true
+    },
+    {
+      t = BattleProfilerType.PVPFate,
+      p = {
+        BattleProfilerCheckPoint.PVPFateDuel,
+        BattleProfilerCheckPoint.PVPRankClickPrepareConfirm,
+        BattleProfilerCheckPoint.BattleEnterNotify
+      },
+      e = true
+    },
+    {
       t = BattleProfilerType.WeeklyChallenge,
       p = {
         BattleProfilerCheckPoint.NPCDialog,
@@ -314,7 +351,7 @@ function BattleProfiler:TryStartProfiler()
   self:SetTypeCheckPointLstEnable()
   if 1 == #self.checkPointLst then
     local lstP = self.checkPointLst[#self.checkPointLst].pt
-    Log.Msg("BattleProfiler TryStartProfiler:", lstP, lstP1)
+    Log.Msg("BattleProfiler TryStartProfiler:", lstP)
     for i = 1, #self.battleTypeCheckPointLst do
       local battleProfilerType = self.battleTypeCheckPointLst[i].t
       local e = self.battleTypeCheckPointLst[i].e
@@ -415,7 +452,17 @@ function BattleProfiler:StartProfiler(profilerType)
   elseif profilerType == BattleProfilerType.PVPFriend then
     self.battleName = "PVP\229\165\189\229\143\139\229\175\185\230\136\152"
     self:ConstructJson(self.battleType, self.battleID, self.battleName)
-    self:StartPVPFriendProfiler()
+    self:StartPVPRankProfiler()
+    self:SetRecordClickState(false)
+  elseif profilerType == BattleProfilerType.PVPFate then
+    self.battleName = "PVP\229\145\189\232\191\144\229\175\185\230\136\152"
+    self:ConstructJson(self.battleType, self.battleID, self.battleName)
+    self:StartPVPRankProfiler()
+    self:SetRecordClickState(false)
+  elseif profilerType == BattleProfilerType.PVPSpeed then
+    self.battleName = "PVP\230\158\129\233\128\159\229\175\185\230\136\152"
+    self:ConstructJson(self.battleType, self.battleID, self.battleName)
+    self:StartPVPRankProfiler()
     self:SetRecordClickState(false)
   else
     self:SetRecordClickState(true)
@@ -594,7 +641,7 @@ function BattleProfiler:OnEnterAction(Fsm, FsmAction)
   local boo = self:IsHitIntervalBegin(self.curState, FsmAction:GetName())
   if not boo then
   end
-  local action = self:GetAction(FsmAction:GetName())
+  local action = self:GetAction(FsmAction.state:GetName(), FsmAction:GetName())
   action.bTime = UE4.UNRCStatics.GetMilliSeconds()
   self:InsertAction(self.battleType, self.battleID, action)
 end
@@ -607,7 +654,7 @@ function BattleProfiler:OnFinishAction(Fsm, FsmAction)
   if self.stopRecordActionTime then
     return
   end
-  local action = self:GetAction(FsmAction:GetName())
+  local action = self:GetAction(FsmAction.state:GetName(), FsmAction:GetName())
   action.eTime = UE4.UNRCStatics.GetMilliSeconds()
   if action.bTime then
     action.costTime = action.eTime - action.bTime
@@ -625,7 +672,7 @@ function BattleProfiler:OnExitAction(Fsm, FsmAction)
     return
   end
   self:IsHitStopRecordActionPos(self.curState, FsmAction:GetName())
-  local action = self:GetAction(FsmAction:GetName())
+  local action = self:GetAction(FsmAction.state:GetName(), FsmAction:GetName())
   if not action.costTime and action.bTime then
     action.eTime = UE4.UNRCStatics.GetMilliSeconds()
     action.costTime = action.eTime - action.bTime
@@ -643,17 +690,17 @@ function BattleProfiler:MarkActionIsChecked(stateName, actionName)
   return false
 end
 
-function BattleProfiler:GetAction(actionName)
+function BattleProfiler:GetAction(stateName, actionName)
   local actions = self:GetInterval(self.battleType, self.battleID).Actions
   for i = 1, #actions do
-    if actions[i].actionName == actionName then
+    if actions[i].stateName == stateName and actions[i].actionName == actionName then
       Log.Debug("BattleProfiler GetAction succ:", actionName)
       return actions[i]
     end
   end
   Log.Debug("BattleProfiler GetAction fail:", actionName)
   local action = {}
-  action.stateName = self.curState
+  action.stateName = stateName
   action.actionName = actionName
   return action
 end
@@ -740,8 +787,8 @@ end
 
 function BattleProfiler:StartWildSeamlessBattleProfiler()
   if _G.EnableSpeedUpNearbyEnterBattle then
-    self:MarkInterval(self.battleType, self.battleID, "\229\147\141\229\186\148\232\128\151\230\151\182", self.ClickState, self.ClickAction, "EnterPerform", "BattlePrepareWithoutWaitAction")
-    self:MarkInterval(self.battleType, self.battleID, "\229\138\160\232\189\189\232\128\151\230\151\182", "EnterPerform", "BattleStopBattleStandAnimation", "NearbyEnter", "BattleCheckPrepareResIsOverAction")
+    self:MarkInterval(self.battleType, self.battleID, "\229\147\141\229\186\148\232\128\151\230\151\182", self.ClickState, self.ClickAction, "EnterPerform", "PreEnterBattlePerformAction")
+    self:MarkInterval(self.battleType, self.battleID, "\229\138\160\232\189\189\232\128\151\230\151\182", "EnterPerform", "BattlePlayBattleStandAnimAction", "NearbyEnter", "BattleCheckPrepareResIsOverAction")
     self:MarkInterval(self.battleType, self.battleID, "\230\136\152\229\156\186\232\181\132\230\186\144\229\138\160\232\189\189\233\152\182\230\174\181", "NearbyEnter", "HideBattlePawnsAction", "RoundSelect", "BattleOpenPredictionAction")
     self:MarkStopActionRecordPos(self.battleType, self.battleID, "RoundSelect", "BattleOpenPredictionAction")
   else
@@ -822,20 +869,6 @@ function BattleProfiler:StartPVPRankProfiler()
   end
 end
 
-function BattleProfiler:StartPVPFriendProfiler()
-  if _G.EnableSpeedUpEnterPVPBattle then
-    self:MarkInterval(self.battleType, self.battleID, "\229\147\141\229\186\148\232\128\151\230\151\182", self.ClickState, self.ClickAction, "PvpPreInit", "BattleCheckBattlePlayerOverAction")
-    self:MarkInterval(self.battleType, self.battleID, "\229\138\160\232\189\189\232\128\151\230\151\182", "PvpPreInit", "BattleMultiPvPEnter1Action", "PvpPreInit", "BattleHideScenePetAction")
-    self:MarkInterval(self.battleType, self.battleID, "\230\136\152\229\156\186\232\161\168\230\188\148\233\152\182\230\174\181\232\128\151\230\151\182", "PvpPreInit", "BattleMultiPvPEnter2Action", "RoundSelect", "BattleOpenPredictionAction")
-    self:MarkStopActionRecordPos(self.battleType, self.battleID, "RoundSelect", "BattleOpenPredictionAction")
-  else
-    self:MarkInterval(self.battleType, self.battleID, "\229\147\141\229\186\148\232\128\151\230\151\182", self.ClickState, self.ClickAction, "PVPEnter", "BattlePvPCloseAirWallAction")
-    self:MarkInterval(self.battleType, self.battleID, "\229\138\160\232\189\189\232\128\151\230\151\182", "PVPEnter", "BattleMultiPvPEnter1Action", "PVPEnter", "BattleMultiPvPEnter1Action")
-    self:MarkInterval(self.battleType, self.battleID, "\230\136\152\229\156\186\232\161\168\230\188\148\233\152\182\230\174\181\232\128\151\230\151\182", "PVPEnter", "ShowBattlePawnsAction", "RoundSelect", "BattleOpenPredictionAction")
-    self:MarkStopActionRecordPos(self.battleType, self.battleID, "RoundSelect", "BattleOpenPredictionAction")
-  end
-end
-
 function BattleProfiler:StartLeaderProfiler()
   if _G.EnableSpeedUpEnterLeaderBattle then
     self:MarkInterval(self.battleType, self.battleID, "\229\147\141\229\186\148\232\128\151\230\151\182", self.ClickState, self.ClickAction, "WorldLeaderRoleShow", "BattleHideScenePetAction")
@@ -888,9 +921,10 @@ function BattleProfiler:EnterClickState()
   self.curState = self.ClickState
   local fsmAction = FsmAction()
   fsmAction.name = self.ClickAction
+  fsmAction.state = FsmState("Init")
   self:OnEnterAction(nil, fsmAction)
   self:OnFinishAction(nil, fsmAction)
-  local action = self:GetAction(fsmAction:GetName())
+  local action = self:GetAction(fsmAction.state:GetName(), fsmAction:GetName())
   local bTime = 0
   local eTime = 0
   if action then

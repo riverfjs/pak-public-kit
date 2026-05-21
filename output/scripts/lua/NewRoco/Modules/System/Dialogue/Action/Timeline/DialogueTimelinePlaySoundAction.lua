@@ -34,10 +34,10 @@ function DialogueTimelinePlaySoundAction:OnEnter()
     self:Finish()
     return
   end
-  if 0 == self.OwnerActorID then
+  if 0 == self.OwnerActorID and 0 == self.NPCContentID then
     self.Handler = _G.NRCAudioManager:PlaySound2DByEventNameAuto(self.SoundEvent, "DialogueTimelinePlaySoundAction")
   else
-    local ActorView = self:GetActorView(self.OwnerActorID)
+    local ActorView = self:GetActorView(self.OwnerActorID, self.NPCContentID)
     if ActorView and UE.UObject.IsValid(ActorView) then
       self.Handler = _G.NRCAudioManager:PlaySound3DWithActorByEventNameAuto(self.SoundEvent, ActorView, "DialogueTimelinePlaySoundAction")
     else

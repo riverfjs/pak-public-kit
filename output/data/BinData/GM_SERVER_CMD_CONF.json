@@ -1193,7 +1193,13 @@
           "param_require": true,
           "param_type": 101,
           "param_name": "操作类型",
-          "param_desc": "1:查询宠物回溯奖励 2:回溯宠物并获得奖励"
+          "param_desc": "1:查询回溯奖励 2:回溯并获得奖励 3:模拟老号 4.批量创建快照 5.批量清理缓存"
+        },
+        {
+          "param_key": "need_check",
+          "param_type": 101,
+          "param_name": "查询时检查回溯条件",
+          "param_desc": "不填不检查，1：检查"
         }
       ]
     },
@@ -1259,7 +1265,24 @@
           "param_require": true,
           "param_type": 101,
           "param_name": "是否解锁全部盒子",
-          "param_desc": "0:仅解锁下一个 1:解锁全部"
+          "param_desc": "0:仅解锁下一个 1:解锁全部(GM解锁)",
+          "param_option": [
+            "0",
+            "1"
+          ]
+        },
+        {
+          "param_key": "unlock_group",
+          "param_require": true,
+          "param_type": 101,
+          "param_name": "使用的解锁条件组id",
+          "param_desc": "条件组id，默认可填0"
+        },
+        {
+          "param_key": "gm_unlock",
+          "param_type": 101,
+          "param_name": "是否无视解锁条件",
+          "param_desc": "非0为无视解锁条件"
         }
       ]
     },
@@ -1273,7 +1296,14 @@
           "param_key": "mark_type",
           "param_type": 201,
           "param_name": "解锁盒子标记",
-          "param_desc": "不填时解锁所有标记"
+          "param_desc": "不填时解锁所有标记",
+          "param_option": [
+            "1",
+            "2",
+            "4",
+            "8",
+            "16"
+          ]
         }
       ]
     },
@@ -1763,6 +1793,230 @@
         }
       ]
     },
+    "86": {
+      "id": 86,
+      "cmd_id": "get_rank_user",
+      "cmd_name": "查询玩家排名",
+      "cmd_desc": "查询指定玩家在指定排行榜上的排名数据",
+      "cmd_belong": "排行榜-通用",
+      "param_list": [
+        {
+          "param_key": "uin",
+          "param_type": 102,
+          "param_name": "玩家UIN",
+          "param_desc": "不填默认是自己的uin"
+        },
+        {
+          "param_key": "rank_type",
+          "param_require": true,
+          "param_type": 101,
+          "param_name": "排行榜类型",
+          "param_desc": "对应RankListType的枚举值"
+        },
+        {
+          "param_key": "rank_id",
+          "param_require": true,
+          "param_type": 102,
+          "param_name": "排行榜id",
+          "param_desc": "唯一确定一个榜单实例的id"
+        },
+        {
+          "param_key": "is_image",
+          "param_type": 101,
+          "param_name": "是否镜像榜",
+          "param_desc": "是否拉取镜像榜,不填默认0"
+        }
+      ]
+    },
+    "87": {
+      "id": 87,
+      "cmd_id": "get_rank_list",
+      "cmd_name": "查询榜单列表",
+      "cmd_desc": "查询一个排行榜从指定排名开始的一批排行榜列表",
+      "cmd_belong": "排行榜-通用",
+      "param_list": [
+        {
+          "param_key": "rank_type",
+          "param_require": true,
+          "param_type": 101,
+          "param_name": "排行榜类型",
+          "param_desc": "对应RankListType的枚举值"
+        },
+        {
+          "param_key": "rank_id",
+          "param_require": true,
+          "param_type": 102,
+          "param_name": "排行榜id",
+          "param_desc": "唯一确定一个榜单实例的id"
+        },
+        {
+          "param_key": "from",
+          "param_type": 102,
+          "param_name": "起始排名",
+          "param_desc": "查询起始排名,最小从1开始,不填默认1"
+        },
+        {
+          "param_key": "count",
+          "param_type": 102,
+          "param_name": "数量",
+          "param_desc": "请求多少条数据,不填默认1"
+        },
+        {
+          "param_key": "is_image",
+          "param_type": 101,
+          "param_name": "是否镜像榜",
+          "param_desc": "是否拉取镜像榜,不填默认0"
+        }
+      ]
+    },
+    "88": {
+      "id": 88,
+      "cmd_id": "report_rank_user",
+      "cmd_name": "上报玩家排名",
+      "cmd_desc": "模拟向排行榜上报数据,没有ext信息",
+      "cmd_belong": "排行榜-通用",
+      "param_list": [
+        {
+          "param_key": "rank_type",
+          "param_require": true,
+          "param_type": 101,
+          "param_name": "排行榜类型",
+          "param_desc": "对应RankListType的枚举值"
+        },
+        {
+          "param_key": "rank_id",
+          "param_require": true,
+          "param_type": 102,
+          "param_name": "排行榜id",
+          "param_desc": "唯一确定一个榜单实例的id"
+        },
+        {
+          "param_key": "score",
+          "param_require": true,
+          "param_type": 102,
+          "param_name": "分数",
+          "param_desc": "排名主要依据,必须大于0"
+        },
+        {
+          "param_key": "sort_field1",
+          "param_type": 102,
+          "param_name": "辅助排序字段1",
+          "param_desc": "没有辅助排序字段可不填"
+        },
+        {
+          "param_key": "sort_field2",
+          "param_type": 102,
+          "param_name": "辅助排序字段2",
+          "param_desc": "没有辅助排序字段可不填"
+        },
+        {
+          "param_key": "sort_field3",
+          "param_type": 102,
+          "param_name": "辅助排序字段3",
+          "param_desc": "没有辅助排序字段可不填"
+        },
+        {
+          "param_key": "sort_field4",
+          "param_type": 102,
+          "param_name": "辅助排序字段4",
+          "param_desc": "没有辅助排序字段可不填"
+        },
+        {
+          "param_key": "sort_field5",
+          "param_type": 102,
+          "param_name": "辅助排序字段5",
+          "param_desc": "没有辅助排序字段可不填"
+        }
+      ]
+    },
+    "89": {
+      "id": 89,
+      "cmd_id": "clear_rank_user",
+      "cmd_name": "清理玩家排名",
+      "cmd_desc": "清理排行榜上指定玩家的排名信息",
+      "cmd_belong": "排行榜-通用",
+      "param_list": [
+        {
+          "param_key": "uin",
+          "param_type": 102,
+          "param_name": "玩家UIN",
+          "param_desc": "不填默认是自己的uin"
+        },
+        {
+          "param_key": "rank_type",
+          "param_require": true,
+          "param_type": 101,
+          "param_name": "排行榜类型",
+          "param_desc": "对应RankListType的枚举值"
+        },
+        {
+          "param_key": "rank_id",
+          "param_require": true,
+          "param_type": 102,
+          "param_name": "排行榜id",
+          "param_desc": "唯一确定一个榜单实例的id"
+        }
+      ]
+    },
+    "90": {
+      "id": 90,
+      "cmd_id": "clear_rankboard",
+      "cmd_name": "清理排行榜",
+      "cmd_desc": "清理排行榜所有排名信息",
+      "cmd_belong": "排行榜-通用",
+      "param_list": [
+        {
+          "param_key": "rank_type",
+          "param_require": true,
+          "param_type": 101,
+          "param_name": "排行榜类型",
+          "param_desc": "对应RankListType的枚举值"
+        },
+        {
+          "param_key": "rank_id",
+          "param_require": true,
+          "param_type": 102,
+          "param_name": "排行榜id",
+          "param_desc": "唯一确定一个榜单实例的id"
+        },
+        {
+          "param_key": "is_image",
+          "param_type": 101,
+          "param_name": "是否镜像榜",
+          "param_desc": "是否拉取镜像榜,不填默认0"
+        }
+      ]
+    },
+    "91": {
+      "id": 91,
+      "cmd_id": "gen_bots_rankboard",
+      "cmd_name": "生成机器人排行",
+      "cmd_desc": "用于批量构造一些假数据,方便测试",
+      "cmd_belong": "排行榜-通用",
+      "param_list": [
+        {
+          "param_key": "rank_type",
+          "param_require": true,
+          "param_type": 101,
+          "param_name": "排行榜类型",
+          "param_desc": "对应RankListType的枚举值"
+        },
+        {
+          "param_key": "rank_id",
+          "param_require": true,
+          "param_type": 102,
+          "param_name": "排行榜id",
+          "param_desc": "唯一确定一个榜单实例的id"
+        },
+        {
+          "param_key": "bot_num",
+          "param_require": true,
+          "param_type": 101,
+          "param_name": "机器人数量",
+          "param_desc": "只能在[1,200]范围"
+        }
+      ]
+    },
     "92": {
       "id": 92,
       "cmd_id": "gen_rank_image",
@@ -1839,6 +2093,32 @@
     },
     "95": {
       "id": 95,
+      "cmd_id": "finish_spec_battle",
+      "cmd_name": "快速完成自选难度的战斗",
+      "cmd_desc": "快速完成自选难度的战斗",
+      "param_list": [
+        {
+          "param_key": "spce_battle_id",
+          "param_require": true,
+          "param_type": 101,
+          "param_name": "配置ID",
+          "param_desc": "SPEC_BATTLE_UI_CONF.ID"
+        },
+        {
+          "param_key": "difficulty_num",
+          "param_require": true,
+          "param_type": 101,
+          "param_name": "难度"
+        },
+        {
+          "param_key": "activity_id",
+          "param_type": 101,
+          "param_name": "活动ID"
+        }
+      ]
+    },
+    "96": {
+      "id": 96,
       "cmd_id": "test_height_weight",
       "cmd_name": "身高体重测试",
       "cmd_desc": "测试精灵身高体重算法，统计体重奖牌命中概率",
@@ -1876,6 +2156,375 @@
           "param_type": 101,
           "param_name": "是否体重波动",
           "param_desc": "1=波动 0=不波动"
+        }
+      ]
+    },
+    "97": {
+      "id": 97,
+      "cmd_id": "get_current_scene_info",
+      "cmd_name": "获取当前所在场景ID",
+      "cmd_desc": "获取当前所在场景的 scene id 和 res id"
+    },
+    "98": {
+      "id": 98,
+      "cmd_id": "modify_llm_pet_tag_cfg",
+      "cmd_name": "修改宠物llm tag配置",
+      "cmd_desc": "修改宠物llm tag相关配置",
+      "cmd_belong": "AI-LLM",
+      "param_list": [
+        {
+          "param_key": "modify_type",
+          "param_require": true,
+          "param_type": 102,
+          "param_name": "变更类型",
+          "param_desc": "1:每次增加权重 2:性格tag阈值1 3:性格tag阈值2"
+        },
+        {
+          "param_key": "modify_val",
+          "param_require": true,
+          "param_type": 102,
+          "param_name": "变更值",
+          "param_desc": "要设置的配置值"
+        }
+      ]
+    },
+    "99": {
+      "id": 99,
+      "cmd_id": "open_llm_debug",
+      "cmd_name": "开启llm debug",
+      "cmd_desc": "开启llm debug",
+      "cmd_belong": "AI-LLM",
+      "param_list": [
+        {
+          "param_key": "enable",
+          "param_require": true,
+          "param_type": 101,
+          "param_name": "开启"
+        }
+      ]
+    },
+    "100": {
+      "id": 100,
+      "cmd_id": "gm_abnormal_status",
+      "cmd_name": "异常状态",
+      "cmd_desc": "异常状态",
+      "param_list": [
+        {
+          "param_key": "opcode",
+          "param_require": true,
+          "param_type": 102,
+          "param_name": "0:添加 1:移除",
+          "param_desc": "0:添加 1:移除"
+        },
+        {
+          "param_key": "status_conf_id",
+          "param_require": true,
+          "param_type": 101,
+          "param_name": "异常状态ID",
+          "param_desc": "异常状态ID"
+        },
+        {
+          "param_key": "duration_ms",
+          "param_type": 101,
+          "param_name": "持续时长ms",
+          "param_desc": "持续时长ms"
+        }
+      ]
+    },
+    "102": {
+      "id": 102,
+      "cmd_id": "trigger_cell_ai_cycle_group_check",
+      "cmd_name": "触发一次服务器cell ai 群组发起",
+      "cmd_desc": "触发一次服务器cell ai 群组发起",
+      "cmd_belong": "AI-调试",
+      "param_list": [
+        {
+          "param_key": "cell_ai_cfg_id",
+          "param_require": true,
+          "param_type": 201,
+          "param_name": "cell AI配置id",
+          "param_desc": "要触发的配置id"
+        },
+        {
+          "param_key": "belong_domain_id",
+          "param_require": true,
+          "param_type": 102,
+          "param_name": "npc所属魔力之源id",
+          "param_desc": "测试npc所属魔力之源id"
+        }
+      ]
+    },
+    "103": {
+      "id": 103,
+      "cmd_id": "photo_contest_score_range_stat_report",
+      "cmd_name": "精灵合影活动-修改全服统计分数上报",
+      "cmd_desc": "修改全服统计分数上报",
+      "param_list": [
+        {
+          "param_key": "activity_id",
+          "param_require": true,
+          "param_type": 101,
+          "param_name": "活动id",
+          "param_desc": "ACTIVITY_CONF.id"
+        },
+        {
+          "param_key": "season_id",
+          "param_require": true,
+          "param_type": 101,
+          "param_name": "主题配置id",
+          "param_desc": "TAKEPHOTO_COMPETITION_CONF.id"
+        },
+        {
+          "param_key": "old_score",
+          "param_type": 101,
+          "param_name": "旧的点赞数",
+          "param_desc": "当前分数段人数减1，不填则为新上报"
+        },
+        {
+          "param_key": "new_score",
+          "param_require": true,
+          "param_type": 101,
+          "param_name": "新的点赞数",
+          "param_desc": "当前分数段人数加1"
+        }
+      ]
+    },
+    "104": {
+      "id": 104,
+      "cmd_id": "set_global_challenge_progress",
+      "cmd_name": "修改全服挑战进度",
+      "cmd_desc": "修改全服挑战进度",
+      "param_list": [
+        {
+          "param_key": "activity_id",
+          "param_require": true,
+          "param_type": 102,
+          "param_name": "活动ID"
+        },
+        {
+          "param_key": "belong_sign",
+          "param_require": true,
+          "param_type": 102,
+          "param_name": "进度标识"
+        },
+        {
+          "param_key": "value",
+          "param_require": true,
+          "param_type": 102,
+          "param_name": "目标值"
+        }
+      ]
+    },
+    "108": {
+      "id": 108,
+      "cmd_id": "test_lottery_draw",
+      "cmd_name": "测试六一抽奖",
+      "cmd_desc": "测试六一抽奖",
+      "param_list": [
+        {
+          "param_key": "pool_id",
+          "param_require": true,
+          "param_type": 102,
+          "param_name": "抽奖奖池配置ID",
+          "param_desc": "抽奖奖池配置ID"
+        },
+        {
+          "param_key": "draw_count",
+          "param_type": 102,
+          "param_name": "抽奖次数，默认为 1",
+          "param_desc": "抽奖次数，默认为 1"
+        },
+        {
+          "param_key": "logic_id",
+          "param_type": 102,
+          "param_name": "抽奖optionid",
+          "param_desc": "抽奖optionid，不填每次重置抽奖数据"
+        },
+        {
+          "param_key": "interact_pet_id",
+          "param_type": 102,
+          "param_name": "交互精灵",
+          "param_desc": "交互精灵"
+        },
+        {
+          "param_key": "rider_pet_id",
+          "param_type": 102,
+          "param_name": "骑乘精灵",
+          "param_desc": "骑乘精灵"
+        },
+        {
+          "param_key": "throwed_pet_ids",
+          "param_type": 201,
+          "param_name": "投掷精灵的pet_id 列表",
+          "param_desc": "投掷精灵的 pet_id 列表，逗号分隔（如 \"101,102,103\"），GM 会逐个添加精灵并获取 gid"
+        },
+        {
+          "param_key": "is_visit",
+          "param_type": 102,
+          "param_name": "是否处于拜访状态",
+          "param_desc": "是否处于拜访状态"
+        },
+        {
+          "param_key": "is_visit_owner",
+          "param_type": 102,
+          "param_name": "是否为拜访的主人",
+          "param_desc": "是否为拜访的主人"
+        },
+        {
+          "param_key": "is_travel_together",
+          "param_type": 101,
+          "param_name": "是否处于同行状态",
+          "param_desc": "是否处于同行状态"
+        }
+      ]
+    },
+    "107": {
+      "id": 107,
+      "cmd_id": "action_bonus_show_catch_points",
+      "cmd_name": "生成捕捉刷新点",
+      "cmd_desc": "生成捕捉刷新点",
+      "cmd_belong": "场景-通用",
+      "param_list": [
+        {
+          "param_key": "search_radius",
+          "param_require": true,
+          "param_type": 102,
+          "param_name": "搜索半径(cm)",
+          "param_desc": "搜索半径(cm)"
+        },
+        {
+          "param_key": "sphere_radius",
+          "param_type": 102,
+          "param_name": "球体半径(cm)",
+          "param_desc": "球体半径(cm)"
+        },
+        {
+          "param_key": "show_time",
+          "param_type": 102,
+          "param_name": "球体显示时长(秒)",
+          "param_desc": "球体显示时长(秒)"
+        }
+      ]
+    },
+    "110": {
+      "id": 110,
+      "cmd_id": "delete_npc_by_refresh_type",
+      "cmd_name": "一键删除指定NPC",
+      "cmd_desc": "一键删除指定NPC",
+      "cmd_belong": "场景-通用",
+      "param_list": [
+        {
+          "param_key": "refresh_type",
+          "param_require": true,
+          "param_type": 102,
+          "param_name": "NPC刷新类型",
+          "param_desc": "NPC刷新类型"
+        },
+        {
+          "param_key": "radius_cm",
+          "param_type": 102,
+          "param_name": "距离(cm)",
+          "param_desc": "距离(cm)"
+        }
+      ]
+    },
+    "111": {
+      "id": 111,
+      "cmd_id": "test_relocate_bonus_npcs",
+      "cmd_name": "修复连续捕捉NPC",
+      "cmd_desc": "修复连续捕捉NPC",
+      "cmd_belong": "场景-通用",
+      "param_list": [
+        {
+          "param_key": "num_positions",
+          "param_type": 102,
+          "param_name": "NPC点位个数",
+          "param_desc": "NPC点位个数"
+        },
+        {
+          "param_key": "offset_range",
+          "param_type": 102,
+          "param_name": "距离(cm)",
+          "param_desc": "距离(cm)"
+        }
+      ]
+    },
+    "112": {
+      "id": 112,
+      "cmd_id": "photo_contest_score_range_stat_query",
+      "cmd_name": "精灵合影活动-查询全服统计分数信息",
+      "cmd_desc": "查询活动点赞数在全服名次信息",
+      "param_list": [
+        {
+          "param_key": "activity_id",
+          "param_require": true,
+          "param_type": 101,
+          "param_name": "活动id",
+          "param_desc": "ACTIVITY_CONF.id"
+        },
+        {
+          "param_key": "season_id",
+          "param_require": true,
+          "param_type": 101,
+          "param_name": "主题配置id",
+          "param_desc": "TAKEPHOTO_COMPETITION_CONF.id"
+        },
+        {
+          "param_key": "score",
+          "param_require": true,
+          "param_type": 101,
+          "param_name": "查询的分数",
+          "param_desc": "点赞数"
+        }
+      ]
+    },
+    "113": {
+      "id": 113,
+      "cmd_id": "home_pet_query_predicted_egg",
+      "cmd_name": "查询精灵生蛋预测",
+      "cmd_desc": "查询玩家家园精灵的生蛋预测时间，包括是否已有蛋、预测生蛋时间、是否已到预测时间"
+    },
+    "119": {
+      "id": 119,
+      "cmd_id": "photo_contest_set_like_count",
+      "cmd_name": "精灵合影活动-设置玩家全服统计分数",
+      "cmd_desc": "只修改玩家数据，不修改投稿作品的点赞数，用于奖励测试",
+      "param_list": [
+        {
+          "param_key": "activity_id",
+          "param_require": true,
+          "param_type": 101,
+          "param_name": "活动id",
+          "param_desc": "ACTIVITY_CONF.id"
+        },
+        {
+          "param_key": "season_id",
+          "param_require": true,
+          "param_type": 101,
+          "param_name": "主题配置id",
+          "param_desc": "TAKEPHOTO_COMPETITION_CONF.id"
+        },
+        {
+          "param_key": "count",
+          "param_require": true,
+          "param_type": 101,
+          "param_name": "点赞数",
+          "param_desc": "最新的点赞数"
+        }
+      ]
+    },
+    "120": {
+      "id": 120,
+      "cmd_id": "action_bonus_set_judge_gift_num",
+      "cmd_name": "连续捕捉设置judgeGiftNum",
+      "cmd_desc": ">=0设置为指定值并锁定，<0解除锁定",
+      "param_list": [
+        {
+          "param_key": "gm_judge_set_gift_num",
+          "param_require": true,
+          "param_type": 101,
+          "param_name": "设定值",
+          "param_desc": ">=0设置为指定值并锁定，<0解除锁定"
         }
       ]
     }

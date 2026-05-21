@@ -66,7 +66,7 @@ function UMG_SharedFriendsHeadItem_C:VisitorChanged()
   end
 end
 
-function UMG_SharedFriendsHeadItem_C:BroadcastOnClicked()
+function UMG_SharedFriendsHeadItem_C:OnTouchEnded(MyGeometry, InTouchEvent)
   if not self.clickable then
     if self.isTip then
       _G.NRCModuleManager:DoCmd(_G.BattlePassModuleCmd.OpenPetDetailPanel, self.data.inner_petbase_id, true)
@@ -74,6 +74,8 @@ function UMG_SharedFriendsHeadItem_C:BroadcastOnClicked()
       _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.team_battle_visit_no_master_text)
     end
   end
+  Base.OnTouchEnded(self, MyGeometry, InTouchEvent)
+  return UE4.UWidgetBlueprintLibrary.Unhandled()
 end
 
 return UMG_SharedFriendsHeadItem_C

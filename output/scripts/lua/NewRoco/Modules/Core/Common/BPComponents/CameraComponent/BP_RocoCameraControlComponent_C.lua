@@ -135,6 +135,9 @@ function BP_RocoCameraControlComponent_C:OnTick(DeltaSeconds)
   if (self._isControllingView or self._ueCtrl.Aiming) and not self._resetRotation then
     return
   end
+  if not self._ueCtrl or self._ueCtrl.IsCameraControlDisabled and self._ueCtrl:IsCameraControlDisabled() then
+    return
+  end
   self:TickCheckParams(DeltaSeconds)
   self:TickLerp(DeltaSeconds)
 end
@@ -377,6 +380,9 @@ local TickLerpRotationCache = UE4.FRotator()
 
 function BP_RocoCameraControlComponent_C:TickLerp(DeltaSeconds)
   if not self._ueCtrl then
+    return
+  end
+  if self._ueCtrl.IsCameraControlDisabled and self._ueCtrl:IsCameraControlDisabled() then
     return
   end
   UE4.UNRCStatics.GetControlRotationFromControllerInplace(self._ueCtrl, TickLerpRotationCache)

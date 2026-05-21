@@ -26,6 +26,10 @@ function UMG_Activity_Tab_C:OnItemUpdate(_data, datalist, index)
     }
     local mainTabId = mainTabConf.id
     if mainTabId > 0 and mainTabId <= #redPointIds then
+      if 3 == mainTabId then
+        self.RedDot:ClearIgnoreRedPointDataList()
+        self.RedDot:SetIgnoreRedPointDataList(Enum.RedPointReason.RPR_ACTIVITY_TAB_NOTIFY, {300006})
+      end
       self.RedDot:SetupKey(redPointIds[mainTabId], nil, _data.extraKeyList)
     else
       Log.ErrorFormat("\229\136\134\233\161\181[%d]\231\188\186\229\176\145\231\186\162\231\130\185\233\133\141\231\189\174!", mainTabId)

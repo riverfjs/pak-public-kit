@@ -11,6 +11,7 @@ function ScenePlayerCrouchBuff:OnBegin(player)
     playerBP.bIsCrouch = true
     self.statCurveID = player.statComponent:ApplyStat(StatType.MAX_WALK_SPEED_CURVE, nil, nil, characterMovement)
     self.statSpeedID = player.statComponent:ApplyStat(StatType.MAX_WALK_SPEED, characterMovement.MaxWalkSpeedCrouched, nil, characterMovement)
+    characterMovement.RM_MaxSpeed = 500
   end
   self.player = player
 end

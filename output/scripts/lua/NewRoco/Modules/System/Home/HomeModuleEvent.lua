@@ -1,6 +1,5 @@
 local HomeModuleEvent = {}
 HomeModuleEvent.OnPetLiveIn = "HomeModuleEvent.OnPetLiveIn"
-HomeModuleEvent.OnPetRecycle = "HomeModuleEvent.OnPetRecycle"
 HomeModuleEvent.OnPlayerNestDistanceChanged = "HomeModuleEvent.OnPlayerNestDistanceChanged"
 HomeModuleEvent.ClosePetLivePanel = "HomeModuleEvent.ClosePetLivePanel"
 HomeModuleEvent.OnSelectLivePetFilter = "HomeModuleEvent.OnSelectLivePetFilter"
@@ -59,4 +58,5 @@ HomeModuleEvent.OnComboBoxSelectChanged = "HomeModuleEvent.OnComboBoxSelectChang
 HomeModuleEvent.GetMoreFriendDataByFurnitureId = "HomeModuleEvent.GetMoreFriendDataByFurnitureId"
 HomeModuleEvent.OnFriendFurniturePanelScroll = "HomeModuleEvent.OnFriendFurniturePanelScroll"
 HomeModuleEvent.OnTeamEnterHomeRefresh = "HomeModuleEvent.OnTeamEnterHomeRefresh"
+HomeModuleEvent.UpdateFurnitureFilter = "HomeModuleEvent.UpdateFurnitureFilter"
 return HomeModuleEvent

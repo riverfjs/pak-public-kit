@@ -1,5 +1,6 @@
 local Base = require("NewRoco.TUI.BP_NRCItemBase_C")
 local NPCShopUtils = require("NewRoco.Modules.System.NPCShopUI.NPCShopUtils")
+local NPCShopUIModuleEvent = reload("NewRoco.Modules.System.NPCShopUI.NPCShopUIModuleEvent")
 local UMG_ClaimRewardList_C = Base:Extend("UMG_ClaimRewardList_C")
 
 function UMG_ClaimRewardList_C:OnConstruct()
@@ -113,6 +114,7 @@ function UMG_ClaimRewardList_C:GetReceiveShopTotalConsumptionRewardRsp(_rsp)
       reqTag = "UMG_ClaimRewardList_C:GetReceiveShopTotalConsumptionRewardRsp"
     }
     _G.NRCModuleManager:DoCmd(_G.NPCShopUIModuleCmd.OnCmdReqGetShopData, reqShopData)
+    _G.NRCModuleManager:GetModule("NPCShopUIModule"):DispatchEvent(NPCShopUIModuleEvent.RefreshHasCountAfterClaimReward)
     self:PlayAnimation(self.Get)
   end
 end

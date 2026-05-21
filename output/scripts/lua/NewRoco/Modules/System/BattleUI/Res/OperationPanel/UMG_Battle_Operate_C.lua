@@ -2,11 +2,55 @@ local BattleEnum = require("NewRoco.Modules.Core.Battle.Common.BattleEnum")
 local BattleEvent = require("NewRoco.Modules.Core.Battle.Common.BattleEvent")
 local EnhancedInputModuleEvent = require("NewRoco.Modules.Core.EnhancedInput.EnhancedInputModuleEvent")
 local BattleUtils = require("NewRoco.Modules.Core.Battle.Common.BattleUtils")
+local BattleConst = require("NewRoco.Modules.Core.Battle.Common.BattleConst")
 local UMG_Battle_Operate_C = NRCPanelBase:Extend("UMG_Battle_Operate_C")
+local inputActionInfoListWhenIsShow = {
+  {
+    name = "IA_BattleSkillStart",
+    method = "SelectSkillOperateStart"
+  },
+  {
+    name = "IA_BattleRunAwayStart",
+    method = "SelectRunAwayOperateStart"
+  },
+  {
+    name = "IA_BattleChangeStart",
+    method = "SelectChangeOperateStart"
+  },
+  {
+    name = "IA_BattleBagStart",
+    method = "SelectBagOperateStart"
+  },
+  {
+    name = "IA_BattleCatchStart",
+    method = "SelectCatchOperateStart"
+  },
+  {
+    name = "IA_BattleRunAwayEnd",
+    method = "SelectRunAwayOperateEnd"
+  },
+  {
+    name = "IA_BattleBagEnd",
+    method = "SelectBagOperateEnd"
+  },
+  {
+    name = "IA_BattleCatchEnd",
+    method = "SelectCatchOperateEnd"
+  },
+  {
+    name = "IA_BattleChangeEnd",
+    method = "SelectChangeOperateEnd"
+  },
+  {
+    name = "IA_BattleSkillEnd",
+    method = "SelectSkillOperateEnd"
+  }
+}
 
 function UMG_Battle_Operate_C:Construct()
   self.curIndex = -1
   self.battleManager = _G.BattleManager
+  self.bindActionSucceed = false
   self.toggles = {
     [self.BtnEscape.CheckBoxName] = {
       index = 0,
@@ -101,7 +145,7 @@ function UMG_Battle_Operate_C:Construct()
   self:AddListener()
   _G.BattleEventCenter:Bind(self, BattleEvent.BATTLE_CLICKED_PLAYERSKILL, BattleEvent.BATTLE_CLICKED_UI_CANCELPLAYERSKILL, BattleEvent.UI_HIDE, BattleEvent.BATTLE_USE_PLAYERSKILL_SUCCESS, BattleEvent.BATTLE_BEGIN_USE_PLAYERSKILL, BattleEvent.TEAM_BATTLE_CATCH, BattleEvent.RefreshVisitCatch, BattleEvent.BATTLE_PET_DIE, BattleEvent.ROUND_START, BattleEvent.CHANGE_OPERATE_TYPE, BattleEvent.UI_UPDATE_PLAYERSKILL_TUTORIAL, BattleEvent.REFRESH_BUFF, BattleEvent.REMOVE_BUFF)
   _G.NRCEventCenter:RegisterEvent("UMG_Battle_Operate_C", self, EnhancedInputModuleEvent.KeyMappingsChanged, self.PCKeySetting)
-  self:BindInputAction()
+  self.conditionList = {}
   self.isForceToggle = false
 end
 
@@ -115,6 +159,7 @@ function UMG_Battle_Operate_C:SetGuid(_guid, pet)
   self.guid = _guid
   self.CurPet = pet
   self:UpdateChangeBanImage()
+  self:UpdateBuffType145Image(_guid)
 end
 
 function UMG_Battle_Operate_C:RefreshPanel()
@@ -135,12 +180,46 @@ function UMG_Battle_Operate_C:UpdateChangeBanImage()
   if not self.IsCanChange or not self.ChangeBanImage then
     return
   end
-  if BattleUtils.HasLockChangePetState(self.CurPet) then
-    self.ChangeBanImage:SetVisibility(UE4.ESlateVisibility.Visible)
-    self.ChangePetToggle:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
+  if BattleUtils.IsPvpScare() then
+    local changePetConfig = BattleUtils.GetCanChangePetConfig()
+    if changePetConfig > 2 then
+      self.ChangePetButton:SetVisibility(UE4.ESlateVisibility.Visible)
+      self.ChangeBanImage:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
+      self.ChangePetToggle:SetVisibility(UE4.ESlateVisibility.Visible)
+    elseif 2 == changePetConfig then
+      self.ChangePetButton:SetVisibility(UE4.ESlateVisibility.Collapsed)
+      self.ChangeBanImage:SetVisibility(UE4.ESlateVisibility.Visible)
+      self.ChangePetToggle:SetVisibility(UE4.ESlateVisibility.Visible)
+    else
+      self.ChangePetButton:SetVisibility(UE4.ESlateVisibility.Collapsed)
+      self.ChangeBanImage:SetVisibility(UE4.ESlateVisibility.Collapsed)
+      self.ChangePetToggle:SetVisibility(UE4.ESlateVisibility.Visible)
+    end
   else
-    self.ChangeBanImage:SetVisibility(UE4.ESlateVisibility.Collapsed)
-    self.ChangePetToggle:SetVisibility(UE4.ESlateVisibility.Visible)
+    self.ChangePetButton:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    if BattleUtils.HasLockChangePetState(self.CurPet) then
+      self.ChangeBanImage:SetVisibility(UE4.ESlateVisibility.Visible)
+      self.ChangePetToggle:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
+    else
+      self.ChangeBanImage:SetVisibility(UE4.ESlateVisibility.Collapsed)
+      self.ChangePetToggle:SetVisibility(UE4.ESlateVisibility.Visible)
+    end
+  end
+end
+
+function UMG_Battle_Operate_C:UpdateBuffType145Image(petId)
+  if self.guid ~= petId then
+    return
+  end
+  local battlePet = self.CurPet
+  local battleCard = battlePet and battlePet.card
+  local buffComponent = battlePet and battlePet.buffComponent
+  local buffs = buffComponent and buffComponent:GetAllBuffsByOrderType(ProtoEnum.BuffType.BFT_O_FORTYFIVE) or {}
+  local buffsListCount = #buffs
+  if buffsListCount > 0 then
+    self.showBuffType145Ui = true
+  else
+    self.showBuffType145Ui = false
   end
 end
 
@@ -229,7 +308,7 @@ function UMG_Battle_Operate_C:UpdateSurrenderPanel()
 end
 
 function UMG_Battle_Operate_C:SetIsCanChangePet()
-  if BattleUtils.IsTeam() or not BattleUtils.IsCanChangePetBattleMode() then
+  if BattleUtils.IsTeam() or BattleUtils.IsPvpScare() and not BattleUtils.IsCanChangePetBattleMode() then
     self:IsCanChangePet(false)
   else
     self:IsCanChangePet(true)
@@ -272,6 +351,9 @@ function UMG_Battle_Operate_C:UpdateCatchPanel()
 end
 
 function UMG_Battle_Operate_C:UpdateItemPanel()
+  if not UE.UObject.IsValid(self) then
+    return
+  end
   if BattleUtils.IsUseItemBattleMode() then
     self.ItemPanel:SetVisibility(UE4.ESlateVisibility.Visible)
     self.ItemToggle:SetVisibility(UE4.ESlateVisibility.Visible)
@@ -315,6 +397,8 @@ end
 function UMG_Battle_Operate_C:WaitingRecycle()
   self:UnBindInputAction()
   self:RemoveListener()
+  _G.NRCEventCenter:UnRegisterEvent(self, EnhancedInputModuleEvent.KeyMappingsChanged, self.PCKeySetting)
+  _G.BattleEventCenter:UnBind(self)
 end
 
 function UMG_Battle_Operate_C:Destruct()
@@ -328,11 +412,15 @@ function UMG_Battle_Operate_C:Destruct()
   table.clear(self.toggles)
   self.toggles = nil
   self:UnBindInputAction()
-  NRCUmgClass.Destruct(self)
+  _G.NRCEventCenter:UnRegisterEvent(self, EnhancedInputModuleEvent.KeyMappingsChanged, self.PCKeySetting)
   _G.BattleEventCenter:UnBind(self)
+  NRCUmgClass.Destruct(self)
 end
 
 function UMG_Battle_Operate_C:OnBattleEvent(eventName, ...)
+  if self.isDestruct or not UE.UObject.IsValid(self) then
+    return
+  end
   if eventName == BattleEvent.BATTLE_CLICKED_PLAYERSKILL then
     self:OnClickedPlayerSkill()
   elseif eventName == BattleEvent.BATTLE_CLICKED_UI_CANCELPLAYERSKILL then
@@ -364,6 +452,8 @@ function UMG_Battle_Operate_C:OnBattleEvent(eventName, ...)
       else
         self:CanCatch()
       end
+    else
+      self:CanCatch()
     end
     self:CheckFinalBattleEnergyIsFull()
   elseif eventName == BattleEvent.CHANGE_OPERATE_TYPE then
@@ -371,7 +461,11 @@ function UMG_Battle_Operate_C:OnBattleEvent(eventName, ...)
   elseif eventName == BattleEvent.UI_UPDATE_PLAYERSKILL_TUTORIAL then
     self:OnUpdatePlayerSkillTutorial(...)
   elseif eventName == BattleEvent.REFRESH_BUFF or eventName == BattleEvent.REMOVE_BUFF then
+    local battlePet = (...)
+    local battleCard = battlePet and battlePet.card
+    local petId = battleCard and battleCard.guid
     self:UpdateChangeBanImage()
+    self:UpdateBuffType145Image(petId)
   end
 end
 
@@ -390,6 +484,19 @@ function UMG_Battle_Operate_C:PlayOpen()
   end
   self:StopAnimation(self.close)
   self:PlayAnimation(self.open)
+  local currDisplay = self.showBuffType145UiDisplay or false
+  local nextDisplay = self.showBuffType145Ui or false
+  self.showBuffType145UiDisplay = nextDisplay
+  if currDisplay ~= nextDisplay then
+    if not currDisplay and nextDisplay then
+      self.Arrow:SetVisibility(UE.ESlateVisibility.SelfHitTestInvisible)
+      self.Arrow_1:SetVisibility(UE.ESlateVisibility.SelfHitTestInvisible)
+      self:PlayAnimation(self.ChangePanel_Highlight)
+    elseif currDisplay and not nextDisplay then
+      self.Arrow:SetVisibility(UE.ESlateVisibility.Collapsed)
+      self.Arrow_1:SetVisibility(UE.ESlateVisibility.Collapsed)
+    end
+  end
 end
 
 function UMG_Battle_Operate_C:PlayCallingNamesEffect()
@@ -510,58 +617,18 @@ function UMG_Battle_Operate_C:BindInputAction()
   if self.bindActionSucceed then
     return
   end
-  local mappingContext = self:GetInputMappingContext("IMC_Battle")
+  local mappingContext = self:GetInputMappingContext(BattleConst.ImcBattleName)
   if mappingContext then
-    local actions = {
-      {
-        name = "IA_BattleSkillStart",
-        method = "SelectSkillOperateStart"
-      },
-      {
-        name = "IA_BattleRunAwayStart",
-        method = "SelectRunAwayOperateStart"
-      },
-      {
-        name = "IA_BattleChangeStart",
-        method = "SelectChangeOperateStart"
-      },
-      {
-        name = "IA_BattleBagStart",
-        method = "SelectBagOperateStart"
-      },
-      {
-        name = "IA_BattleCatchStart",
-        method = "SelectCatchOperateStart"
-      },
-      {
-        name = "IA_BattleRunAwayEnd",
-        method = "SelectRunAwayOperateEnd"
-      },
-      {
-        name = "IA_BattleBagEnd",
-        method = "SelectBagOperateEnd"
-      },
-      {
-        name = "IA_BattleCatchEnd",
-        method = "SelectCatchOperateEnd"
-      },
-      {
-        name = "IA_BattleChangeEnd",
-        method = "SelectChangeOperateEnd"
-      },
-      {
-        name = "IA_BattleSkillEnd",
-        method = "SelectSkillOperateEnd"
-      }
-    }
+    local actions = inputActionInfoListWhenIsShow or {}
     for _, action in ipairs(actions) do
-      mappingContext:BindAction(action.name, self, action.method, UE.ETriggerEvent.Triggered)
+      local name = action and action.name
+      local method = action and action.method
+      mappingContext:BindAction(name, self, method, UE.ETriggerEvent.Triggered)
     end
     self.bindActionSucceed = true
   else
     self.bindActionSucceed = false
   end
-  self.conditionList = {}
 end
 
 function UMG_Battle_Operate_C:recordInputActionTrigger(inputActionName)
@@ -569,43 +636,17 @@ function UMG_Battle_Operate_C:recordInputActionTrigger(inputActionName)
 end
 
 function UMG_Battle_Operate_C:UnBindInputAction()
-  local mappingContext = self:GetInputMappingContext("IMC_Battle")
+  if not self.bindActionSucceed then
+    return
+  end
+  local mappingContext = self:GetInputMappingContext(BattleConst.ImcBattleName)
   if mappingContext then
-    local actions = {
-      {
-        name = "IA_BattleSkillStart"
-      },
-      {
-        name = "IA_BattleChangeStart"
-      },
-      {
-        name = "IA_BattleCatchStart"
-      },
-      {
-        name = "IA_BattleBagStart"
-      },
-      {
-        name = "IA_BattleRunAwayStart"
-      },
-      {
-        name = "IA_BattleSkillEnd"
-      },
-      {
-        name = "IA_BattleChangeEnd"
-      },
-      {
-        name = "IA_BattleCatchEnd"
-      },
-      {
-        name = "IA_BattleBagEnd"
-      },
-      {
-        name = "IA_BattleRunAwayEnd"
-      }
-    }
+    local actions = inputActionInfoListWhenIsShow or {}
     for _, action in ipairs(actions) do
-      mappingContext:UnBindAction(action.name)
+      local name = action and action.name
+      mappingContext:UnBindAction(name)
     end
+    self.bindActionSucceed = false
   end
 end
 
@@ -850,6 +891,11 @@ function UMG_Battle_Operate_C:AddListener()
   else
     Log.Error("self.BanCatchClickBtn.OnClicked \228\184\186\231\169\186")
   end
+  if self.ChangePetButton.OnClicked then
+    self.ChangePetButton.OnClicked:Add(self, self.OnChangePetClick)
+  else
+    Log.Error("self.ChangePetButton.OnClicked \228\184\186\231\169\186")
+  end
 end
 
 function UMG_Battle_Operate_C:GetToggleByIndex(index)
@@ -874,6 +920,12 @@ function UMG_Battle_Operate_C:RemoveListener()
     self.ItemToggle_1:DoDestruct()
     self.StepAwayToggle:DoDestruct()
     self.GiveUpToggle:DoDestruct()
+    if self.BanCatchClickBtn and self.BanCatchClickBtn.OnClicked then
+      self.BanCatchClickBtn.OnClicked:Remove(self, self.BanCatchBtnClick)
+    end
+    if self.ChangePetButton and self.ChangePetButton.OnClicked then
+      self.ChangePetButton.OnClicked:Remove(self, self.OnChangePetClick)
+    end
     self.isRemoveListener = true
   end
 end
@@ -1101,8 +1153,26 @@ end
 function UMG_Battle_Operate_C:BanCatchBtnClick()
   if self.visitCanCatch == false then
     _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, _G.DataConfigManager:GetGlobalConfig("visit_catch_number_notice").str)
+  elseif BattleUtils.CheckEnemyIsSurpriseBoxPet() then
+    _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, _G.LuaText.cant_cache_box_elite_in_battle)
   else
     _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, _G.LuaText.cant_cache_nightmare_elite_in_battle)
+  end
+end
+
+function UMG_Battle_Operate_C:OnChangePetClick()
+  local changePetConfig = BattleUtils.GetCanChangePetConfig()
+  if changePetConfig >= 3 then
+    local tipKey = BattleUtils.GetChangePetTipKey(BattleUtils.GetCanChangePetConfig())
+    local tipText = _G.DataConfigManager:GetLocalizationConf(tipKey, true)
+    if tipText and tipText.msg then
+      _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, tipText.msg)
+    else
+      tipKey = BattleUtils.GetChangePetTipKey(3)
+      tipText = _G.DataConfigManager:GetLocalizationConf(tipKey, true)
+      _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, tipText.msg)
+    end
+    return
   end
 end
 

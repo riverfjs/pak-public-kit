@@ -80,6 +80,8 @@ function BattleFinalBattleShowAction:PlaySkill()
   skillObj:RegisterEventCallback("ChangeCamera", self, self.OnChangeCamera)
   skillObj:RegisterEventCallback("End", self, self.OnSkillComplete)
   skillObj:RegisterEventCallback("PreEnd", self, self.OnSkillComplete)
+  skillObj:RegisterEventCallback("Interrupt", self, self.OnSkillComplete)
+  skillObj:RegisterEventCallback("StartFailed", self, self.OnSkillComplete)
   skillComponent:PlaySkill(skillObj)
 end
 

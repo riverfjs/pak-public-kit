@@ -442,7 +442,9 @@ function UMG_MedalWonPanel_C:OnClosePanel()
     return
   end
   self:DispatchEvent(PetUIModuleEvent.OpenDetailPanelEvent, false, true)
-  self:DispatchEvent(PetUIModuleEvent.SetPetHiddenInGame, false)
+  if not self.module:HasPanel("NewPetBag") then
+    self:DispatchEvent(PetUIModuleEvent.SetPetHiddenInGame, false)
+  end
   self:RemoveAllRed()
   if self.WearMedal then
     self:PlayAnimation(self.Own_out)

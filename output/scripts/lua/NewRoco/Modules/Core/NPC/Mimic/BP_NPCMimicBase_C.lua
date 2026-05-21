@@ -32,6 +32,17 @@ function BP_NPCMimicBase_C:ApplyVisibilityState()
   end
 end
 
+function BP_NPCMimicBase_C:RegisterToTrailSystem(DetectType)
+  if not UE4.UObject.IsValid(self) then
+    return
+  end
+  Log.Debug("ViewNPCBase:RegisterToTrailSystem", self:GetDebugInfo())
+  local NRCTrailSystem = UE4.ANRCTrailSystem.Get(self)
+  DetectType = DetectType or UE4.ENRCTrailFootstepDetectType.OneTime
+  local Origin, Extend = self:GetActorBounds(false)
+  NRCTrailSystem:RegisterObjectByActor(self, DetectType, Origin, Extend)
+end
+
 function BP_NPCMimicBase_C:GetExplodeLocation()
   local vec = self:Abs_K2_GetActorLocation()
   return UE4.FVector(vec.X, vec.Y, vec.Z + 70)

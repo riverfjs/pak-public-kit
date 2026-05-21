@@ -50,4 +50,20 @@ local AbilityID = {
   MAGIC_VIDEO = 1300129,
   RIDE_ALL_JUMP = 1300131
 }
+local SceneMagicTypeToAbilityID = {
+  [ProtoEnum.SceneMagicType.SMT_STAR] = AbilityID.MAGIC_STAR,
+  [ProtoEnum.SceneMagicType.SMT_WIND] = AbilityID.MAGIC_WIND,
+  [ProtoEnum.SceneMagicType.SMT_CREATE] = AbilityID.MAGIC_CREATE,
+  [ProtoEnum.SceneMagicType.SMT_LIQUEFY] = AbilityID.MAGIC_TRANSFORM,
+  [ProtoEnum.SceneMagicType.SMT_CREATE_MAGIC_MASSAGE] = AbilityID.MAGIC_MESSAGE,
+  [ProtoEnum.SceneMagicType.SMT_CREATE_MAGIC_VIDEO] = AbilityID.MAGIC_VIDEO
+}
+
+function AbilityID.GetAbilityIdFromSceneMagicType(SceneMagicType)
+  if not SceneMagicType then
+    return nil
+  end
+  return SceneMagicTypeToAbilityID[SceneMagicType]
+end
+
 return AbilityID

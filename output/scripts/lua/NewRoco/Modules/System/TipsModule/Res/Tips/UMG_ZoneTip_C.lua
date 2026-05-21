@@ -30,8 +30,16 @@ function UMG_ZoneTip_C:OnShowActivityZoneTip(desc)
     self.ParentPanel:ConsumeNext()
     return
   end
+  local name2 = ""
+  local nameList = string.split(desc, "_")
+  if nameList and #nameList > 1 then
+    name1 = nameList[1]
+    name2 = nameList[2]
+  end
   self:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
   self.ParentPanel:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  self.SizeBox_61:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self.NRCText_1:SetVisibility(UE4.ESlateVisibility.Collapsed)
   if self:IsAnimationPlaying(self.In) then
     self.IsStop = true
     self:StopAnimation(self.In)
@@ -45,8 +53,18 @@ function UMG_ZoneTip_C:OnShowActivityZoneTip(desc)
   self:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
   local Font = self.zoneTitle.Font
   self.zoneTitle:SetText(name1)
+  if not string.IsNilOrEmpty(name2) then
+    self.Ununlocked:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    self.Title:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    self.Title:SetText(name2)
+    _G.NRCEventCenter:DispatchEvent(TipsModuleEvent.TopHud_StartPlayMapTips)
+    self:PlayAnimation(self.In_0)
+  else
+    self.Ununlocked:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.Title:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self:PlayAnimation(self.In)
+  end
   UE4.UNRCAudioManager.Get():PlaySound2DAuto(1357, "UMG_ZoneTip_C:OnShowZoneTip")
-  self.Ununlocked:SetVisibility(UE4.ESlateVisibility.Collapsed)
   Font.Size = 58
   self.zoneTitle:SetFont(Font)
   _G.NRCEventCenter:DispatchEvent(TipsModuleEvent.TopHud_StartPlayMapTips)

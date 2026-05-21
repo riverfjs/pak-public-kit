@@ -6,7 +6,10 @@ function ScenePlayerMagicStarBuff:OnBegin(owner, MagicInfo)
   Base.OnBegin(self, owner, MagicInfo)
   local WandData = owner:GetCurWandDataByMagicType(ProtoEnum.SceneMagicType.SMT_STAR)
   self.magicInfo.mozhangBP.DisappearFx = WandData.NS_Star_Disappead
-  _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.SendSenseEvent, self.owner:GetActorLocationFrameCache(), Enum.DotsAIWorldEventType.DAWET_MAGIC_STAR_UPLEVEL, nil, 0)
+  if self.owner.IsMagicReplayActor and self.owner:IsMagicReplayActor() then
+  else
+    _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.SendSenseEvent, self.owner:GetActorLocationFrameCache(), Enum.DotsAIWorldEventType.DAWET_MAGIC_STAR_UPLEVEL, nil, 0)
+  end
   self.owner:SendEvent(PlayerModuleEvent.ON_CHARGE_VITALITY_BEGIN)
 end
 
@@ -34,7 +37,10 @@ function ScenePlayerMagicStarBuff:OnCharged(newChargedLevel)
     return
   end
   self.magicInfo.customMagicInfo.ballLua.viewObj:SetChargeLevel(newChargedLevel)
-  _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.SendSenseEvent, self.owner:GetActorLocationFrameCache(), Enum.DotsAIWorldEventType.DAWET_MAGIC_STAR_UPLEVEL, nil, newChargedLevel + 1)
+  if self.owner.IsMagicReplayActor and self.owner:IsMagicReplayActor() then
+  else
+    _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.SendSenseEvent, self.owner:GetActorLocationFrameCache(), Enum.DotsAIWorldEventType.DAWET_MAGIC_STAR_UPLEVEL, nil, newChargedLevel + 1)
+  end
   if 1 == newChargedLevel then
     self.magicInfo.mozhangBP:PlayFX(self.magicInfo.mozhangBP.StarXuli1Loop, false)
     self.magicInfo.mozhangBP:PlayFXOnce(self.magicInfo.mozhangBP.StarXuli1)

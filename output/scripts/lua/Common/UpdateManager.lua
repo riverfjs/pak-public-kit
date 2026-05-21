@@ -1,5 +1,5 @@
 local LinkedList = require("Utils.LinkedList")
-local DONT_REPORT = not _G.AppMain:ShouldPopErrorWin()
+local IS_SHIPPING = _G.RocoEnv.IS_SHIPPING
 local UpdateManager = {}
 UpdateManager.Timestamp = 0
 UpdateManager.CurGCTickIdx = 0
@@ -38,7 +38,7 @@ end
 function UpdateManager:OnTick(deltaTime, realTickTime)
   self.Timestamp = self.Timestamp + realTickTime
   self.FrameCnt = self.FrameCnt + 1
-  if DONT_REPORT then
+  if IS_SHIPPING then
     local CallingNode = self.List.CallingNode
     local StuckOnDelayManager = false
     if CallingNode and CallingNode.Value == _G.DelayManager then
@@ -106,7 +106,7 @@ function UpdateManager:IterateTargets(Target, RealTickTime)
       if OnTick then
         OnTick(Target, RealTickTime)
       end
-    elseif not DONT_REPORT and not UpdateManager.MemleakSet[Target] then
+    elseif not IS_SHIPPING and not UpdateManager.MemleakSet[Target] then
       Log.Error("UpdateManager OnTick:item\229\135\186\231\142\176\230\179\132\230\188\143:", type(Target), Target, Target.Object)
       UpdateManager.MemleakSet[Target] = 1
     end

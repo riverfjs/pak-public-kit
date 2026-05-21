@@ -19,4 +19,7 @@ ShareUIModuleCmd.GetShareBaseButtonType = "ShareUIModuleCmd.GetShareBaseButtonTy
 ShareUIModuleCmd.OpenShareCardDebugPanel = "ShareUIModuleCmd.OpenShareCardDebugPanel"
 ShareUIModuleCmd.CheckRewardStateEntrance = "ShareUIModuleCmd.CheckRewardStateEntrance"
 ShareUIModuleCmd.CheckShareChannelIsOpen = "ShareUIModuleCmd.CheckShareChannelIsOpen"
+ShareUIModuleCmd.SetIsSharingPetVideo = "ShareUIModuleCmd.SetIsSharingPetVideo"
+ShareUIModuleCmd.SetIsSharingMagicVideo = "ShareUIModuleCmd.SetIsSharingMagicVideo"
+ShareUIModuleCmd.PlayPetVideoShareInAnim = "ShareUIModuleCmd.PlayPetVideoShareInAnim"
 return ShareUIModuleCmd

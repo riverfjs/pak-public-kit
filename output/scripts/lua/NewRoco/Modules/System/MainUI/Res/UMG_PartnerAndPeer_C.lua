@@ -356,21 +356,23 @@ end
 
 function UMG_PartnerAndPeer_C:GetMatchString(str)
   local text = str
-  if string.find(text, "{") then
-    local match = ""
-    local pattern = "%b{}"
-    while match do
-      match = string.match(text, pattern)
-      if match then
-        if "{\232\183\159\233\154\143\228\187\187\229\138\161}" == match then
-          local taskName = self:GetFollowTaskName()
-          text = text:gsub(match, taskName)
-        elseif "{\232\183\159\233\154\143npc}" == match then
-          local npcName = self:GetFollowNpcName()
-          text = text:gsub(match, npcName)
-        end
-      end
-    end
+  if string.find(text, "{\232\183\159\233\154\143\228\187\187\229\138\161}") or string.find(text, "{FollowerTask}") then
+    local taskName = self:GetFollowTaskName()
+    text = text:gsub("{\232\183\159\233\154\143\228\187\187\229\138\161}", function()
+      return taskName
+    end)
+    text = text:gsub("{FollowerTask}", function()
+      return taskName
+    end)
+  end
+  if string.find(text, "{\232\183\159\233\154\143npc}") or string.find(text, "{FollowerNpc}") then
+    local npcName = self:GetFollowNpcName()
+    text = text:gsub("{\232\183\159\233\154\143npc}", function()
+      return npcName
+    end)
+    text = text:gsub("{FollowerNpc}", function()
+      return npcName
+    end)
   end
   return text
 end
@@ -671,7 +673,7 @@ end
 
 function UMG_PartnerAndPeer_C:PlayNextDialogue()
   Log.Debug("\228\188\153\228\188\180\229\144\140\232\161\140==UMG_PartnerAndPeer_C:PlayNextDialogue==111")
-  self.Handler = nil
+  self:OnCancelHandler()
   self.IsPlayDialogue = false
   if self.ConfId then
     local followTalkConf = _G.DataConfigManager:GetNpcFollowTalkConf(self.ConfId)
@@ -899,6 +901,7 @@ function UMG_PartnerAndPeer_C:OnRelogin()
   Log.Debug("\228\188\153\228\188\180\229\144\140\232\161\140==UMG_PartnerAndPeer_C:OnRelogin")
   self:HidePanel()
   self.IsRelogin = true
+  self:StopCurDialog()
 end
 
 function UMG_PartnerAndPeer_C:OnReloginRefreshFollowData(followData)

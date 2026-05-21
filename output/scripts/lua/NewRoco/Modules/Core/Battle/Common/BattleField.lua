@@ -33,6 +33,7 @@ BattleField.debugLastEnterBattleRotateAns = nil
 BattleField.debugLastEnterBattleOriRotate = nil
 BattleField.debugLastEnterBattleRotateBit = nil
 BattleField.debugLastUseFullStation = nil
+BattleField.debugLastUseDataLayer = nil
 
 function BattleField.PrepareBattleField()
   Log.Debug("BattleField.PrepareBattleField")
@@ -67,7 +68,6 @@ BattleField.lastDataMapID = -1
 
 function BattleField.ChangeScene(id)
   if BattleField.lastDataFileName then
-    unload(BattleField.lastDataFileName)
     BattleField.mapData = nil
     BattleField.lastDataFileName = nil
     BattleField.lastDataMapID = -1
@@ -207,6 +207,7 @@ function BattleField.FindNearestBattlePoint(pos, playerTransform, bUseFullStatio
   end
   BattleField.debugLastUseFullStation = bUseFullStation
   dataLayer = dataLayer or 0
+  BattleField.debugLastUseDataLayer = dataLayer
   if 0 == pos.X and 0 == pos.Y then
     Log.Error("\228\189\191\231\148\168FindNearestBattlePoint\230\142\165\229\143\163\230\151\182\231\150\145\228\188\188\228\188\160\229\133\165\228\186\134\231\155\184\229\175\185\229\157\144\230\160\135 \230\179\168\239\188\154\232\175\165\230\142\165\229\143\163\229\191\133\233\161\187\228\189\191\231\148\168\231\187\157\229\175\185\229\157\144\230\160\135", pos.X, pos.Y, pos.Z)
   end
@@ -226,12 +227,6 @@ function BattleField.FindNearestBattlePoint(pos, playerTransform, bUseFullStatio
   local sceneModule = NRCModuleManager:GetModule("SceneModule")
   if sceneModule.config and sceneModule.config.scene_res_id ~= 10003 or -1 ~= BattleField.lastDataMapID and 10003 ~= BattleField.lastDataMapID then
     if BattleField.debugUseServerBattleField then
-      return pos, 0
-    else
-      BattleField.LoadCurSceneData()
-    end
-    if not BattleField.mapData then
-      Log.Error("\229\176\157\232\175\149\232\191\155\229\133\165\230\136\152\229\156\186\230\151\182\230\137\190\228\184\141\229\136\176\230\136\152\230\150\151\230\149\176\230\141\174")
       return pos, 0
     end
     return BattleField.FindNearestBattlePoint3D(pos, playerTransform, bUseFullStation, BattleField.mapData, debugFlag)
@@ -323,45 +318,14 @@ function BattleField.FindNearestBattlePoint3D(pos, playerTransform, bUseFullStat
   local rotate = 0
   local BoundSize = 500
   local near = (BoundSize * BoundSize * BoundSize + 1) * (BoundSize * BoundSize * BoundSize + 1)
-  local extendType
-  for i, d in ipairs(mapData) do
-    local dx = d[1]
-    local dy = d[2]
-    local dz = d[3]
-    local xx = x - dx
-    local yy = y - dy
-    local zz = z - dz
-    local dis = xx * xx + yy * yy + zz * zz
-    if near > dis then
-      near = dis
-      DebugQueryData.x = d[1]
-      DebugQueryData.y = d[2]
-      DebugQueryData.z = d[3]
-      if not bUseFullStation or #d < 9 then
-        data.x = d[4]
-        data.y = d[5]
-        data.z = d[6]
-        rotate = d[7] or 0
-        extendType = d[8]
-      else
-        data.x = d[9]
-        data.y = d[10]
-        data.z = d[11]
-        rotate = d[12] or 0
-        extendType = d[13]
-      end
-    end
-  end
-  Log.Debug("DebugQueryData.x,y,z: ", DebugQueryData.x, DebugQueryData.y, DebugQueryData.z)
-  Log.Debug("data.x,y,z: ", data.x, data.y, data.z)
-  local playerLocation
+  local extendType, playerLocation
   if playerTransform then
     playerLocation = UE4.FVector(playerTransform.Translation.X, playerTransform.Translation.Y, playerTransform.Translation.Z)
   else
     local player = NRCModeManager:DoCmd(PlayerModuleCmd.GET_LOCAL_PLAYER)
     playerLocation = player.viewObj:Abs_K2_GetActorLocation()
   end
-  local ans = UE4.FVector(-data.x * 100, -data.z * 100, data.y * 100)
+  ans, rotate, extendType = UE4.UNRCBattleFieldStatics.DebugNearestBattlePoint_SubLevel(pos, bUseFullStation, debugFlag or BattleField.debugBattlePointLine)
   local rotateAns, forwardvec
   Log.Debug("extendType", extendType)
   if -1 ~= extendType then

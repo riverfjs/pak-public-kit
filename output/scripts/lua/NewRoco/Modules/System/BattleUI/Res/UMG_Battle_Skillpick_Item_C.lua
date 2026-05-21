@@ -170,7 +170,7 @@ function UMG_Battle_Skillpick_Item_C:RefreshLoopAnim()
 end
 
 function UMG_Battle_Skillpick_Item_C:StopUnClick_loop()
-  if self.IsPlayingAnimation(self.UnClick_loop) then
+  if self:IsAnimationPlaying(self.UnClick_loop) then
     self:StopAnimation(self.UnClick_loop)
   end
 end

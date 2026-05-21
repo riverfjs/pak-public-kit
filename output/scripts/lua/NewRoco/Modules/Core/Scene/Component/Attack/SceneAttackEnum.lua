@@ -18,6 +18,7 @@ SceneAttackEnum.ActionType = {
 SceneAttackEnum.PlayerAttackPerformType = {
   PAPT_Light = 1,
   PAPT_Heavy = 2,
-  PAPT_Normal = 3
+  PAPT_Normal = 3,
+  PAPT_None = 1000
 }
 return SceneAttackEnum

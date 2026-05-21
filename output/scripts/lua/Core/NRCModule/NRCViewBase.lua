@@ -551,6 +551,16 @@ function NRCViewBase:SetAllInputMappingContextActive(_active)
   end
 end
 
+function NRCViewBase:SetAllInputMappingContextPriority(_priority)
+  local mappingContextCached = self.mappingContextCached
+  if not mappingContextCached then
+    return
+  end
+  for _, mappingContext in pairs(mappingContextCached) do
+    mappingContext:SetMappingContextPriority(_priority)
+  end
+end
+
 function NRCViewBase:Log(...)
   if self.enableLog then
     Log.LogWithLevel(Log.LOG_LEVEL.ELogDebug, 4, self.LogPrefix, ...)

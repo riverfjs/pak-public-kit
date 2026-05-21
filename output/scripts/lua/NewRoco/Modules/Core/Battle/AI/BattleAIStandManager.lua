@@ -72,6 +72,10 @@ function BattleAIStandManager:GetLeftPos(pet)
     local leftDir = -UE4.UKismetMathLibrary.GetRightVector(pet.model:K2_GetActorRotation())
     local leftLoc = oriPos + leftDir * 200
     local groundPos, isHit = LineTraceUtils.GetPointValidLocationByLine(leftLoc, 1000, false)
+    local nav_point, nav_result = UE4.UNavigationSystemV1.K2_ProjectPointToNavigation(UE4Helper.GetCurrentWorld(), groundPos)
+    if not nav_result then
+      return nil
+    end
     local dist = math.abs(groundPos.Z - leftLoc.Z)
     if dist <= 50 then
       self.leftPosCache = groundPos

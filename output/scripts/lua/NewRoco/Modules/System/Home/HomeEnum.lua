@@ -112,4 +112,14 @@ function HomeEnum.GetItemQualityBgImgPath(QualityVal)
   return Path
 end
 
+HomeEnum.FurnitureFilterMode = {}
+HomeEnum.FurnitureFilterMode.Bag = 1
+HomeEnum.FurnitureFilterMode.BagDecompose = 2
+HomeEnum.FurnitureFilterMode.Craft = 3
+HomeEnum.FurnitureFilterMode.Atlas = 4
+
+function HomeEnum.MakeFurniturePhotoViewData()
+  return {TexturePath = "", FurnitureName = ""}
+end
+
 return HomeEnum

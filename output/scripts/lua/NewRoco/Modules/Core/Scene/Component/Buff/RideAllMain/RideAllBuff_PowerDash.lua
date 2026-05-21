@@ -45,7 +45,7 @@ function RideAllBuff_PowerDash:OnBuffBegin(Owner, SkillConf)
   local _min
   _min, self._maxChargingTime = self._chargePercentCurve:GetTimeRange()
   _min, self._maxDashingTime = self._dashSpeedCurve:GetTimeRange()
-  self._holdTime = 0.2
+  self._holdTime = tonumber(SkillConf.move_param_5) or 0.2
   self._maxChargingSpeedPercent = tonumber(SkillConf.move_param_1)
   self._maxChargingSpeed = self._maxChargingSpeedPercent * self.WalkComp.BaseMaxSpeed
   self.owner:AddEventListener(self, PlayerModuleEvent.ON_AIM_JOYSTICK_RELEASED, self.OnAimJoystickReleased)
@@ -146,7 +146,6 @@ function RideAllBuff_PowerDash:StartCharging()
   self.RidePet:K2_SetActorRotation(Rotation, false)
   if not UE4Helper.IsPCMode() then
     _G.NRCModuleManager:GetModule("MainUIModule"):DispatchEvent(MainUIModuleEvent.UI_SHOW_ABILITY_AIM_JOYSTICK, true)
-    _G.NRCModuleManager:GetModule("MainUIModule"):DispatchEvent(MainUIModuleEvent.UI_UPDATE_JOYSTICK_LOCK_MOVE, false)
   else
     _G.NRCModuleManager:GetModule("MainUIModule"):DispatchEvent(MainUIModuleEvent.ChangePCCancelChargeBtnVisibility, true)
   end
@@ -290,7 +289,6 @@ function RideAllBuff_PowerDash:OnBuffFinish(param)
   self.RidePet:RemoveEventListener(self, RidePetEvent.HANDLE_IMPACT, self.HandleImpact)
   self.owner:RemoveEventListener(self, MainUIModuleEvent.PCCancelChargeBtnClicked, self.OnCancel)
   _G.NRCEventCenter:UnRegisterEvent(self, _G.NRCGlobalEvent.OnApplicationWillEnterBackground, self.OnEnterBackground)
-  _G.NRCModuleManager:GetModule("MainUIModule"):DispatchEvent(MainUIModuleEvent.UI_UPDATE_JOYSTICK_LOCK_MOVE, true)
   self.LastHitActor = false
   if self._status == PowerDashStatus.InDashing then
     self.WalkComp.AccelerateCurve = self._oldAccelerateCurve

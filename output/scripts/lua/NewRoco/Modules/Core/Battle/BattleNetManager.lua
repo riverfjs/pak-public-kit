@@ -118,11 +118,6 @@ end
 function BattleNetManager:OnReciviceLogin(isRelogin)
 end
 
-function BattleNetManager:SendEnterBattleReq(req, caller, rspHandler)
-  Log.Trace("--------------  send EnterBattleReq")
-  self.battleServer:SendWithHandler(ProtoCMD.ZoneSvrCmd.ZONE_BATTLE_ENTER_BATTLE_FIELD_REQ, req, caller, rspHandler)
-end
-
 function BattleNetManager:SendBattleLoadFinishReq(req, caller, rspHandler)
   local pos_info, battle_center, battle_radius = BattleManager.battleRuntimeData:ConstructSendFlowFinishData()
   local validObserverPointIndexList = BattleManager.battleRuntimeData:GetValidObserverPointIndexList()
@@ -200,13 +195,15 @@ function BattleNetManager:SendBattleSupplyPetReqWithHandle(req, caller, rspHandl
   self.battleServer:SendWithHandler(ProtoCMD.ZoneSvrCmd.ZONE_BATTLE_SUPPLY_PET_REQ, req, caller, rspHandler)
 end
 
-function BattleNetManager:SendEscapeReq()
+function BattleNetManager:SendEscapeReq(runAwayType)
   local req = _G.ProtoMessage:newZoneBattlePlayerRunawayReq()
+  req.runaway_type = runAwayType or 0
   return self.battleServer:Send(ProtoCMD.ZoneSvrCmd.ZONE_BATTLE_PLAYER_RUNAWAY_REQ, req)
 end
 
-function BattleNetManager:SendEscapeReqWithHandle(caller, rspHandler)
+function BattleNetManager:SendEscapeReqWithHandle(caller, rspHandler, runAwayType)
   local req = _G.ProtoMessage:newZoneBattlePlayerRunawayReq()
+  req.runaway_type = runAwayType or 0
   return self.battleServer:SendWithHandler(ProtoCMD.ZoneSvrCmd.ZONE_BATTLE_PLAYER_RUNAWAY_REQ, req, caller, rspHandler)
 end
 
@@ -216,6 +213,7 @@ end
 
 function BattleNetManager:SendBattlePlayerExitReq()
   local req = _G.ProtoMessage:newZoneBattlePlayerExitReq()
+  req.battle_id = _G.BattleManager.battleRuntimeData:GetBattleID()
   self.battleServer:Send(ProtoCMD.ZoneSvrCmd.ZONE_BATTLE_PLAYER_EXIT_REQ, req)
 end
 
@@ -241,6 +239,7 @@ function BattleNetManager:ZoneBattleEnterNotify(notify)
   BattleDebugger:HookGetter_ZoneBattleMessage__battle_attr(notify)
   Log.Trace("BattleNetManager:ZoneBattleEnterNotify")
   self:CacheNotify(ProtoCMD.ZoneSvrCmd.ZONE_BATTLE_ENTER_NOTIFY, notify)
+  _G.BattleEventCenter:Dispatch(BattleEvent.ON_RECEIVE_BATTLE_ENTER)
 end
 
 function BattleNetManager:ZoneBattlePrePlayNotify(notify)
@@ -267,7 +266,22 @@ function BattleNetManager:ZoneBattleRoundStartNotify(notify)
     }
     self:CacheNotify(ProtoCMD.ZoneSvrCmd.ZONE_BATTLE_PERFORM_START_NOTIFY, performNotify)
   end
+  if notify and notify.state_info.round > 1 then
+    self:SetIsJumpAiPerform()
+  end
   self:CacheNotify(ProtoCMD.ZoneSvrCmd.ZONE_BATTLE_ROUND_START_NOTIFY, notify)
+end
+
+function BattleNetManager:SetIsJumpAiPerform()
+  if not _G.BattleManager.stateFsm then
+    return
+  end
+  local activeStateName = _G.BattleManager.stateFsm:GetActiveStateName()
+  local needJump = activeStateName == BattleEnum.StateNames.RoundPlay or activeStateName == BattleEnum.StateNames.PrePlay
+  if needJump then
+    _G.BattleManager.battleRuntimeData:SetIsJumpAiPerform(true)
+    _G.BattleEventCenter:Dispatch(BattleEvent.WAIT_PERFORM_END)
+  end
 end
 
 function BattleNetManager:ZoneBattleCmdSyncNotify(notify)
@@ -284,6 +298,12 @@ end
 function BattleNetManager:ZoneBattlePerformStartNotify(notify)
   BattleDebugger:HookGetter_ZoneBattleMessage__battle_attr(notify)
   Log.Trace("BattleNetManager:ZoneBattlePerformStartNotify")
+  if notify then
+    local currentRound = _G.BattleManager:GetCurRound()
+    if currentRound < notify.perform_cmd.round then
+      self:SetIsJumpAiPerform()
+    end
+  end
   self:CacheNotify(ProtoCMD.ZoneSvrCmd.ZONE_BATTLE_PERFORM_START_NOTIFY, notify)
 end
 
@@ -500,18 +520,11 @@ function BattleNetManager:ExecuteCachedNotify()
     if not fsm then
       BattleManager:ResetBattleState(currentNotify)
       self:ClearCachedNotify()
-      self:SendEscapeReq()
+      self:SendEscapeReq(BattleEnum.RunAwayType.NoFsm)
       return
     end
     if not self:IsReadyToProcessNext(fsm) then
       Log.DebugFormat("Battle not ready, will wait... ")
-      if keyStr == _G.ProtoCMD.ZoneSvrCmd.ZONE_BATTLE_ROUND_START_NOTIFY then
-        local notify = currentNotify.notify
-        if not BattleUtils.IsB1FinalBattle() and notify and notify.state_info.round > 1 then
-          _G.BattleManager.battleRuntimeData:SetIsJumpAiPerform(true)
-          _G.BattleEventCenter:Dispatch(BattleEvent.WAIT_PERFORM_END)
-        end
-      end
       return
     end
   end
@@ -542,6 +555,7 @@ function BattleNetManager:HandleBattleEnterNotify(notify)
         table.remove(self.cachedBattleNotify, 1)
         _G.BattleManager:SetSeqNumber(notify.data_seq_num)
         _G.BattleManager.battleInfoManager:Clear()
+        _G.BattleManager.battleRuntimeData.battleType = notify.battle_mode
         _G.BattleManager.battleRuntimeData:SetBattleInitInfo(notify)
         _G.BattleManager:SetPotentialTaskID(notify)
         fsm:SendEvent(BattleEvent.EnterRebuildBattleField)

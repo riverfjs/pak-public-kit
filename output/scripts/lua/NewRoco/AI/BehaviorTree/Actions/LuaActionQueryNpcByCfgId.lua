@@ -8,6 +8,7 @@ function LuaActionQueryNpcByCfgId:OnStart(owner)
   if currentTime - ai_npc_retrieval_interval < last_npc_retrieval_time then
     return self:Finish(false)
   end
+  local selfNpc = owner.Npc
   last_npc_retrieval_time = currentTime
   local npcCfgId = self.NpcCfgId:GetValue(owner)
   local queryDis = self.QueryDis:GetValue(owner)
@@ -26,7 +27,7 @@ function LuaActionQueryNpcByCfgId:OnStart(owner)
     return self:Finish(false)
   end
   for _, npc in pairs(npcs) do
-    if npc.config and npc.config.id == npcCfgId and npc.viewObj and not npc.isDestroy then
+    if selfNpc ~= npc and npc.config and npc.config.id == npcCfgId and npc.viewObj and not npc.isDestroy then
       local loc = npc:GetActorLocation()
       local dist = loc and UE.FVector.Dist(loc, centerPos) or queryDis
       if minDist > dist then

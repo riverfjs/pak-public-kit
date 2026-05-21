@@ -9,6 +9,7 @@ function MagicReplayModuleData:Ctor()
   self.replayFeedDetail = nil
   self.replayNpcId = nil
   self.mainMagicActorId = nil
+  self.replaySeqInfo = nil
 end
 
 function MagicReplayModuleData:InitUploadInfo()

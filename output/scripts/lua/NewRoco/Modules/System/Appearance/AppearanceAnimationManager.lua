@@ -83,11 +83,15 @@ function AppearanceAnimationManager:_PlayHighestPriorityAnim(avatar)
     if nil ~= self.AvatarPlayingAnimDelayId[avatar] then
       _G.DelayManager:CancelDelayById(self.AvatarPlayingAnimDelayId[avatar])
     end
-    local lastTime = animComp:PlayAnimByName(request.animName)
-    self.AvatarPlayingAnimDelayId[avatar] = _G.DelayManager:DelaySeconds(lastTime, function()
+    local lastTime = animComp:GetAnimLengthByName(request.animName)
+    if lastTime and lastTime > 0 then
+      self.AvatarPlayingAnimDelayId[avatar] = _G.DelayManager:DelaySeconds(lastTime, function()
+        self.AvatarPlayingAnimTable[avatar] = request.loopAnimName
+        self.AvatarPlayingAnimDelayId[avatar] = nil
+      end)
+    else
       self.AvatarPlayingAnimTable[avatar] = request.loopAnimName
-      self.AvatarPlayingAnimDelayId[avatar] = nil
-    end)
+    end
     if request.playParam then
       animComp:PlayBeginLoopAnimByName(request.animName, request.loopAnimName, request.playParam.rate, request.playParam.blendInTime)
     else

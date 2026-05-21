@@ -55,6 +55,8 @@ local TogetherSyncComponent = require("NewRoco.Modules.Core.Scene.Component.Toge
 local CatchRecordComponent = require("NewRoco.Modules.Core.Scene.Component.Interaction.CatchRecordComponent")
 local StoryFlagModuleEvent = require("NewRoco.Modules.System.StoryFlag.StoryFlagModuleEvent")
 local HUDComponent = require("NewRoco.Modules.Core.Scene.Component.HUD.LocalPlayerHUDComponent")
+local AbnormalStatusComponent = require("NewRoco.Modules.Core.Scene.Component.Status.AbnormalStatus.AbnormalStatusComponent")
+local ResonanceComponent = require("NewRoco.Modules.Core.Scene.Component.ResonanceComponent")
 local SceneLocalPlayer = Base:Extend("SceneLocalPlayer")
 SceneLocalPlayer:SetMemberCount(32)
 
@@ -101,8 +103,7 @@ function SceneLocalPlayer:PreCtor(module)
     StatusCheckerEnum.Battle,
     StatusCheckerEnum.Teleport,
     StatusCheckerEnum.Dialogue,
-    StatusCheckerEnum.MainPanel,
-    StatusCheckerEnum.Catch
+    StatusCheckerEnum.MainPanel
   })
   self.AddLobbyDownTipsChecker = StatusCheckerGroup({
     StatusCheckerEnum.Battle,
@@ -205,7 +206,7 @@ function SceneLocalPlayer:BindUPlayer()
   self:UpdateRelationTreeRequestHUD()
   if _G.AppMain:HasDebug() and NRCModuleManager:DoCmd(DebugModuleCmd.CheckIsInPhotoEditorMode) then
     self.viewObj.CharacterMovement.GravityScale = 0
-    self:SetViewVisible(UE4.ESlateVisibility.Collapsed)
+    self:SetViewVisible(false)
   end
 end
 
@@ -473,7 +474,7 @@ function SceneLocalPlayer:OnPlayerBorn(pos, isReconnect)
   self:SetActorLocation(pos)
   self.viewObj.CharacterMovement:ConsumeInputVector()
   self.viewObj.CharacterMovement:StopMovementImmediately()
-  if self.statusComponent and (not self.statusComponent._isConnected or self.statusComponent._recovering or self.statusComponent._shouldWaitRecover) then
+  if not NRCEnv:IsLocalMode() and self.statusComponent and (not self.statusComponent._isConnected or self.statusComponent._recovering or self.statusComponent._shouldWaitRecover) then
   else
     self._bearing = false
     if self:LandPos(pos) then
@@ -716,8 +717,15 @@ function SceneLocalPlayer:InternalCathPetEffect()
   if self.cachedCathPet.bonus_event_pool_cfg_id == nil then
     return
   end
+  local bonusType = self.cachedCathPet.bonus_type
+  local bUseContainerConf = self:GetCatchTipsTypeInBonusContainerConf(bonusType)
   local cfgId = self.cachedCathPet.bonus_event_pool_cfg_id
-  local cfg = _G.DataConfigManager:GetBonusEventPoolConf(cfgId)
+  local cfg
+  if bUseContainerConf then
+    cfg = _G.DataConfigManager:GetBonusContainerConf(cfgId, true)
+  else
+    cfg = _G.DataConfigManager:GetBonusEventPoolConf(cfgId, true)
+  end
   if cfg then
     local soundId = cfg.sound_id
     local time = _G.DataConfigManager:GetGlobalConfigByKeyType("season_continuous_catch_tips_duration", _G.DataConfigManager.ConfigTableId.GLOBAL_CONFIG).num / 1000
@@ -733,8 +741,31 @@ function SceneLocalPlayer:InternalCathPetEffect()
       }
       _G.NRCModuleManager:DoCmd(TipsModuleCmd.OnShowContinuousCatchTip, Data)
     end
+    _G.NRCModuleManager:DoCmd(_G.SeasonIntegrationModuleCmd.PlayBonusCatchEffect)
+  else
+    Log.Warning("SceneLocalPlayer:InternalCathPetEffect cfg is nil", bonusType, cfgId)
   end
   self.cachedCathPet = nil
+end
+
+function SceneLocalPlayer:GetCatchTipsTypeInBonusContainerConf(type)
+  if not type then
+    return false
+  end
+  local conf = _G.DataConfigManager:GetSeasonGlobalConfig(13, true)
+  if not conf then
+    return false
+  end
+  local nums = conf.numList
+  if not nums then
+    return false
+  end
+  for _, value in pairs(nums) do
+    if value == type then
+      return true
+    end
+  end
+  return false
 end
 
 function SceneLocalPlayer:AddLobbyDownTipsEffect(tipsInfo)
@@ -973,6 +1004,8 @@ function SceneLocalPlayer:InitComponent()
   self.socialComponent = self:EnsureComponent(SocialComponent)
   self:EnsureComponent(TogetherSyncComponent)
   self:EnsureComponent(CatchRecordComponent)
+  self:EnsureComponent(AbnormalStatusComponent)
+  self:EnsureComponent(ResonanceComponent)
   local HeadLookAtComponent = self:GetHeadLookAtComponent()
   if HeadLookAtComponent then
     HeadLookAtComponent:SetPlayer(self)
@@ -1173,6 +1206,7 @@ end
 function SceneLocalPlayer:OnReConnect(bLight)
   Base.OnReConnect(self, bLight)
   self:InitPetInfoMap()
+  _G.DataModelMgr.PlayerDataModel:ResetPetFriendRideState()
   self:SendEvent(PlayerModuleEvent.ON_RIDEPET_CHANGE_MOVETYPE)
 end
 
@@ -1195,25 +1229,7 @@ function SceneLocalPlayer:LandOnActor(actorViewObj)
 end
 
 function SceneLocalPlayer:LandPos(pos)
-  local PlatformActorID = self.serverData.base.platform_actor_id or 0
-  if 0 == PlatformActorID then
-    if self.statusComponent:HasStatus(Enum.WorldPlayerStatusType.WPST_RIDEALL) or self.statusComponent:HasStatus(Enum.WorldPlayerStatusType.WPST_CLIMB) then
-      Log.Debug("[SceneLocalPlayer]   OnPlayerBorn Skip Land When Ride or Climb")
-    else
-      if UE.UObject.IsValid(self.viewObj) then
-        local bLanded = self.viewObj.CharacterMovement:Abs_Land(pos)
-        if not bLanded then
-          Log.Debug("[SceneLocalPlayer]   OnPlayerBorn LandPos Failed", pos)
-          return false
-        end
-      end
-      Log.Debug("[SceneLocalPlayer] platform_actor_id = 0, OnPlayerBorn LandPos ", pos, PlatformActorID)
-      return true
-    end
-  else
-    Log.Debug("[SceneLocalPlayer]   OnPlayerBorn LandPos PlatformActorID", PlatformActorID)
-  end
-  return false
+  return Base.LandPos(self, pos)
 end
 
 function SceneLocalPlayer:ForceSendMoveReq(bIgnorePlatformActor, platform_actor_id)
@@ -1284,6 +1300,7 @@ end
 
 function SceneLocalPlayer:ClearTaskAreaCache()
   self.taskAreaRideAllBanType = {}
+  self.taskAreaRideAllBanTaskIds = {}
 end
 
 function SceneLocalPlayer:CheckTaskAreaRideAllBanType()
@@ -1316,16 +1333,21 @@ function SceneLocalPlayer:CheckTaskAreaRideAllBanType()
 end
 
 function SceneLocalPlayer:EnterTaskArea(taskID)
+  Log.Debug("[SceneLocalPlayer]EnterTaskArea", taskID)
   if taskID and 0 ~= taskID then
     local taskConf = _G.DataConfigManager:GetTable(DataConfigManager.ConfigTableId.TASK_STATE_CONF):GetAllDatas()
     if taskConf then
       local taskData = taskConf[taskID]
+      Log.Debug("[SceneLocalPlayer]EnterTaskArea", taskID, taskData)
       if taskData then
         self.taskAreaRideAllBanType = self.taskAreaRideAllBanType or {}
         if taskData.rideall_ban_type then
           for _, v in ipairs(taskData.rideall_ban_type) do
+            Log.Debug("[SceneLocalPlayer]EnterTaskArea", taskID, v)
             self.taskAreaRideAllBanType[v] = self.taskAreaRideAllBanType[v] and self.taskAreaRideAllBanType[v] + 1 or 1
           end
+          self.taskAreaRideAllBanTaskIds = self.taskAreaRideAllBanTaskIds or {}
+          table.insert(self.taskAreaRideAllBanTaskIds, taskID)
         end
         self:CheckTaskAreaRideAllBanType()
       end
@@ -1350,9 +1372,39 @@ function SceneLocalPlayer:LeaveTaskArea(taskID)
               end
             end
           end
+          if self.taskAreaRideAllBanTaskIds then
+            for i, id in ipairs(self.taskAreaRideAllBanTaskIds) do
+              if id == taskID then
+                table.remove(self.taskAreaRideAllBanTaskIds, i)
+                break
+              end
+            end
+          end
         end
       end
     end
+  end
+end
+
+function SceneLocalPlayer:GetTaskAreaRideAllBanTips()
+  if self.taskAreaRideAllBanTaskIds then
+    local taskConf = _G.DataConfigManager:GetTable(DataConfigManager.ConfigTableId.TASK_STATE_CONF):GetAllDatas()
+    if taskConf then
+      for _, taskID in ipairs(self.taskAreaRideAllBanTaskIds) do
+        local taskData = taskConf[taskID]
+        if taskData and taskData.rideall_ban_tips and taskData.rideall_ban_tips ~= "" then
+          return taskData.rideall_ban_tips
+        end
+      end
+    end
+  end
+  return nil
+end
+
+function SceneLocalPlayer:ShowTaskAreaRideAllBanTips()
+  local tips = self:GetTaskAreaRideAllBanTips()
+  if tips then
+    NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText[tips])
   end
 end
 
@@ -1360,6 +1412,8 @@ function SceneLocalPlayer:DeleteRelationTreeRequestHUD(IsDelete)
   if IsDelete then
     local HeadWidget = self.viewObj.LocalHeadWidget:GetUserWidgetObject()
     HeadWidget:ClearOldData()
+  else
+    self:UpdateRelationTreeRequestHUD()
   end
 end
 
@@ -1506,6 +1560,8 @@ function SceneLocalPlayer:DumpCriticalVariables()
     end
     Log.WarningFormat("IMC Stack: %s , %s", table.concat(IMCStack, ","), enhancedInputModule.blockImcCaller and string.format("IMC_Block(%s)", enhancedInputModule.blockImcCaller) or "")
   end
+  local playerModule = NRCModuleManager:GetModule("PlayerModule")
+  Log.WarningFormat("playerModule %s, %s", playerModule._hideAllPlayer, playerModule._hideNotVisitPlayer)
   Log.Warning("=============================LocalPlayer Critical Variables========================================")
 end
 

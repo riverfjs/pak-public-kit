@@ -1,6 +1,7 @@
 local GVoiceManager = _G.Singleton:Extend("GVoiceManager")
 local FriendModuleEvent = require("NewRoco.Modules.System.Friend.FriendModuleEvent")
 local SceneEvent = require("NewRoco.Modules.Core.Scene.Common.SceneEvent")
+local AICoachModuleEvent = require("NewRoco.Modules.System.AICoachModule.AICoachModuleEvent")
 
 function GVoiceManager:Ctor()
   self:RegisterEvent()
@@ -16,7 +17,7 @@ function GVoiceManager:Init(PlayerUin)
   self.GVoiceMgrInstance = UE.UNRCVoiceManager.GetInstance()
   self.GVoiceMgrInstanceRef = UnLua.Ref(self.GVoiceMgrInstance)
   if self.GVoiceMgrInstance then
-    self.GVoiceMgrInstance:InitVoice(tostring(PlayerUin), "", true, false)
+    self.GVoiceMgrInstance:InitVoice(tostring(PlayerUin), "", true, true)
     self:BeginReceiver()
     self:RegisterDelegate()
     self.GVoiceMgrInstance:ApplyMessageKey()
@@ -69,6 +70,7 @@ end
 
 function GVoiceManager:PlayRecordedFileFinishedHanle(code, filePath)
   Log.Debug(string.format("GVoiceManager:PlayRecordedFileFinishedHanle code = %s, filePath = %s", code, filePath))
+  _G.NRCEventCenter:DispatchEvent(AICoachModuleEvent.OnPlayRecordedFileFinished, code, filePath)
 end
 
 function GVoiceManager:GetMicLevel()
@@ -85,6 +87,7 @@ function GVoiceManager:PlayRecordedFile(filePath)
   local RetCode = -1
   if self.GVoiceMgrInstance then
     RetCode = self.GVoiceMgrInstance:PlayRecordedFile(filePath)
+    Log.Debug(string.format("GVoiceManager:PlayRecordedFile RetCode is:%d, filePath:%s ", RetCode, filePath))
   end
   return RetCode
 end

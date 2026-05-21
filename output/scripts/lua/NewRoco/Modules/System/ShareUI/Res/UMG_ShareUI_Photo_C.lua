@@ -307,4 +307,12 @@ function UMG_ShareUI_Photo_C:OnAnimationFinished(Animation)
   end
 end
 
+function UMG_ShareUI_Photo_C:ShowPlayerInfoPanel(isShow)
+  if isShow then
+    self.PhotoSub.PersonalInformation:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  else
+    self.PhotoSub.PersonalInformation:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  end
+end
+
 return UMG_ShareUI_Photo_C

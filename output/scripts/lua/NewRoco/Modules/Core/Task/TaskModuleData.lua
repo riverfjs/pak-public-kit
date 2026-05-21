@@ -1200,16 +1200,6 @@ end
 
 function TaskModuleData:UpdateTaskTips()
   for k, v in pairs(self.TaskMap) do
-    Log.Debug("TaskModuleData:UpdateTaskTips ", k)
-    if v.ShouldRemove then
-      Log.Debug("TaskModuleData:UpdateTaskTips Remove", k)
-      v:ConsumeRemove()
-    end
-  end
-end
-
-function TaskModuleData:UpdateTaskTips()
-  for k, v in pairs(self.TaskMap) do
     if v.ShouldRemove then
       Log.Debug("TaskModuleData:UpdateTaskTips Remove", k)
       v:ConsumeRemove()

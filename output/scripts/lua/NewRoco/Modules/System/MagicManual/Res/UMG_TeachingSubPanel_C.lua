@@ -28,6 +28,7 @@ function UMG_TeachingSubPanel_C:OnEnable(module)
   else
     self.TabList2:SelectItemByIndex(0)
   end
+  self:PlayAnimation(self.Change)
   self:OnAddEventListener()
 end
 
@@ -41,6 +42,39 @@ function UMG_TeachingSubPanel_C:SelectTabBySubTabIndex(TabIndex)
     end
     self.TabList2:SelectItemByIndex(index)
   end
+end
+
+function UMG_TeachingSubPanel_C:checkTabIndexByBattleId(tabList, Sort)
+  if not tabList or 0 == #tabList then
+    return
+  end
+  if not self.module.OpenTeachBattleId then
+    return
+  end
+  if Sort == self.data.TeachType.Restraint then
+    for i, v in ipairs(tabList) do
+      local tasks = v.data and v.data.tasks
+      if tasks and #tasks > 0 then
+        for _, k in ipairs(tasks) do
+          if k.conf and k.conf.data[1] == self.module.OpenTeachBattleId then
+            return i - 1
+          end
+        end
+      end
+    end
+  elseif Sort == self.data.TeachType.Battle then
+    for i, v in ipairs(tabList) do
+      local tasks = v.data and v.data.tasks
+      if tasks and #tasks > 0 then
+        for _, k in ipairs(tasks) do
+          if k.conf and k.conf.data == self.module.OpenTeachBattleId then
+            return i - 1
+          end
+        end
+      end
+    end
+  end
+  self.module.OpenTeachBattleId = nil
 end
 
 function UMG_TeachingSubPanel_C:GetTabList(Sort)
@@ -143,7 +177,8 @@ function UMG_TeachingSubPanel_C:GetTabList(Sort)
     end
     table.sort(tabList, sortTabList)
   end
-  return tabList
+  local selectIndex = self:checkTabIndexByBattleId(tabList, Sort)
+  return tabList, selectIndex
 end
 
 function UMG_TeachingSubPanel_C:OnRefreshTeachUI(type, _data, _conf)
@@ -202,9 +237,9 @@ end
 
 function UMG_TeachingSubPanel_C:OnRefreshTeachTabUI(tabIndex, Sort, tableName)
   self.sort = Sort
-  local TabList = self:GetTabList(Sort)
+  local TabList, selectIndex = self:GetTabList(Sort)
   self.TabList:InitList(TabList)
-  self.TabList:SelectItemByIndex(0)
+  self.TabList:SelectItemByIndex(selectIndex or 0)
 end
 
 function UMG_TeachingSubPanel_C:OnRefreshPanel()
@@ -252,6 +287,12 @@ function UMG_TeachingSubPanel_C:OnAddEventListener()
 end
 
 function UMG_TeachingSubPanel_C:OnKnowBtnClicked()
+  if self.module:HasPanel("MagicManualMainPanel") then
+    local Panel = self.module:GetPanel("MagicManualMainPanel")
+    if Panel:IsInOutAnim() then
+      return
+    end
+  end
   local DialogContext = require("NewRoco.Modules.System.TipsModule.DialogContext")
   local Context = DialogContext()
   local title = LuaText.TIPS

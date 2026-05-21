@@ -54,11 +54,15 @@ function UMG_ComboBox_item_C:OnItemSelected(_bSelected)
   end
   if _bSelected then
     if not self.uiData.ComType or self.uiData.ComType == CommonBtnEnum.ComboBoxType.BigMap then
-      _G.NRCModuleManager:DoCmd(BigMapModuleCmd.ChangeSelectedScene, self.uiData.sceneResId)
-      self.RedDot:EraseRedPoint()
+      if BigMapModuleCmd then
+        _G.NRCModuleManager:DoCmd(BigMapModuleCmd.ChangeSelectedScene, self.uiData.sceneResId)
+        self.RedDot:EraseRedPoint()
+      end
     elseif self.uiData.ComType == CommonBtnEnum.ComboBoxType.MagicManual then
-      _G.NRCModuleManager:DoCmd(MagicManualModuleCmd.SetSelectMagicManualRegion, self.uiData.RegionId)
-      self:PlayAnimation(self.select)
+      if MagicManualModuleCmd then
+        _G.NRCModuleManager:DoCmd(MagicManualModuleCmd.SetSelectMagicManualRegion, self.uiData.RegionId)
+        self:PlayAnimation(self.select)
+      end
     elseif self.uiData.ComType == CommonBtnEnum.ComboBoxType.PetShare then
       _G.NRCEventCenter:DispatchEvent(PetUIModuleEvent.OnShareComboBoxSelectChanged, self.uiIndex, self.datalist)
       _G.NRCModuleManager:DoCmd(PetUIModuleCmd.ResetRightPanelDescText)

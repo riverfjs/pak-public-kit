@@ -1,12 +1,13 @@
 local UMG_WarningPrompt_C = _G.NRCPanelBase:Extend("UMG_WarningPrompt_C")
+local Enum = require("Data.Config.Enum")
 
 function UMG_WarningPrompt_C:OnActive(RuleIds, Caller, CallBack, is_flower_task)
-  is_flower_task = is_flower_task or false
+  self.is_flower_task = is_flower_task or false
   self:UpdateData(RuleIds, Caller, CallBack)
   if not is_flower_task then
     self:AddListen()
   end
-  self:RefreshUI(is_flower_task)
+  self:RefreshUI()
   self:PlayAnimation(self.In)
 end
 
@@ -21,23 +22,42 @@ function UMG_WarningPrompt_C:UpdateData(RuleIds, Caller, CallBack)
   self.CountDown = Conf.num / 1000
   self.strText = ""
   self.descText = ""
+  self.battle_rules = {}
   local first = true
   for _, ruleId in pairs(RuleIds) do
     local ruleConf = _G.DataConfigManager:GetBattleRuleConf(ruleId)
-    if first then
-      if ruleConf.title then
-        self.strText = string.format("%s: %s", ruleConf.title, ruleConf.desc)
+    if ruleConf then
+      if self.is_flower_task or _G.BattleManager.battleRuntimeData.battleType == Enum.BattleType.BT_NPC_CHALLENGE or _G.BattleManager.battleRuntimeData.battleType == Enum.BattleType.BT_BOSS_CHALLENGE then
+        if first then
+          if ruleConf.title then
+            self.strText = string.format("%s: %s", ruleConf.title, ruleConf.desc)
+          else
+            self.strText = ruleConf.desc
+          end
+        else
+          self.strText = self.strText .. "\n" .. string.format("%s: %s", ruleConf.title, ruleConf.desc)
+        end
       else
-        self.strText = ruleConf.desc
+        local rule_text = ""
+        if ruleConf.title then
+          rule_text = string.format([[
+%s
+%s]], ruleConf.title, ruleConf.desc)
+        else
+          rule_text = ruleConf.desc
+        end
+        table.insert(self.battle_rules, {
+          descText = rule_text,
+          id = ruleId,
+          limitIndex = #RuleIds
+        })
       end
-    else
-      self.strText = self.strText .. "\n" .. string.format("%s: %s", ruleConf.title, ruleConf.desc)
     end
   end
 end
 
-function UMG_WarningPrompt_C:RefreshUI(is_flower_task)
-  if is_flower_task then
+function UMG_WarningPrompt_C:RefreshUI()
+  if self.is_flower_task then
     self.Btn:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
   else
     self.Btn.OnClicked:Add(self, self.Onclick)
@@ -49,7 +69,17 @@ function UMG_WarningPrompt_C:RefreshUI(is_flower_task)
     self:CountDownOver()
   end
   self.descText = self.strText
-  self.TxtPower:SetText(self.strText)
+  if self.is_flower_task or _G.BattleManager.battleRuntimeData.battleType == Enum.BattleType.BT_NPC_CHALLENGE or _G.BattleManager.battleRuntimeData.battleType == Enum.BattleType.BT_BOSS_CHALLENGE then
+    self.TxtPower:SetText(self.strText)
+    self.NRCImage_47:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    self.HorizontalBox_0:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    self.NounInterpretationTips:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  else
+    self.NounInterpretationTips:SetDescList(self.battle_rules)
+    self.NRCImage_47:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.HorizontalBox_0:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.NounInterpretationTips:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  end
 end
 
 function UMG_WarningPrompt_C:OnDescTextClicked(id)

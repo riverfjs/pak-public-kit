@@ -118,11 +118,11 @@ function UMG_PlantAcquisitionItem_C:UpdateUIProperty()
     font.Size = 26
   end
   self.QuantityText:SetFont(font)
+  self.Title_1:SetText(self.uiData.currentOwnNum)
   if self.uiData.selectedNum > 0 then
     self.ReduceBtn:SetVisibility(UE4.ESlateVisibility.Visible)
     self.Quantity:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
   else
-    self.Title_1:SetText(self.uiData.currentOwnNum)
     self.ReduceBtn:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.Quantity:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end

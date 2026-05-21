@@ -5,6 +5,7 @@ TipEnum.TipObjectType = {
   NewPet = 2,
   PetLevelUp = 3,
   PetNewSkill = 4,
+  MainPetTips = 5,
   TaskComplete = 6,
   TaskAccept = 7,
   TaskUpdate = 8,
@@ -24,7 +25,6 @@ TipEnum.TipObjectType = {
   TopHudTips = 24,
   HandbookTopic = 25,
   LobbyRegionPreUpdate = 26,
-  MainPetExpOrLevelChange = 27,
   RolePlayGetTips = 28,
   NPCRosterTips = 29,
   LegendaryTaskUnlockTips = 30,
@@ -35,7 +35,8 @@ TipEnum.TipObjectType = {
   TeachingUnlockTips = 35,
   PetCertification = 36,
   ReceiveBPGiftTips = 37,
-  SeasonBeginsTips = 38
+  SeasonBeginsTips = 38,
+  ActivityCommonOpenTips = 39
 }
 TipEnum.NewFlagType = {
   None = 0,
@@ -57,6 +58,14 @@ TipEnum.Title = {
   [TipEnum.TitleType.Task] = LuaText.tipenum_4,
   [TipEnum.TitleType.Report] = LuaText.tipenum_5
 }
+TipEnum.MainPetTipsType = {
+  None = 0,
+  Exp = 1,
+  Level = 2,
+  Skill = 3,
+  Energy = 4,
+  Medal = 5
+}
 TipEnum.TopHudTipsType = {
   None = 0,
   ZoneTips = 1,
@@ -73,11 +82,7 @@ TipEnum.TopHudTipsType = {
   CatchPetTips = 12,
   PetCertification = 13
 }
-TipEnum.LobbyDownTipsType = {
-  BookPrompt = 0,
-  PassAccomplish = 1,
-  TeachingUnlock = 2
-}
+TipEnum.LobbyDownTipsType = {BookPrompt = 0, PassAccomplish = 1}
 TipEnum.PropTipsType = {GoodsItem = 1, PlayerAddExp = 2}
 TipEnum.TipDisplayArea = {
   Top = 1,
@@ -111,7 +116,8 @@ TipEnum.TipsPauseReason = {
   RelationTreeUIOpen = 8192,
   DungeonReward = 16384,
   MagicReplay = 32768,
-  PreparationPanel = 65536
+  PreparationPanel = 65536,
+  SceneRunTest = 131072
 }
 TipEnum.OpenPetTipsType = {
   None = 0,

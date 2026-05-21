@@ -2,6 +2,8 @@ require("UnLuaEx")
 local Base = require("NewRoco.Modules.Core.NPC.Instance.BP_NPCInstanceMechanismBase_C")
 local SceneUtils = require("NewRoco.Modules.Core.Scene.Common.SceneUtils")
 local AIComponent = require("NewRoco.Modules.Core.Scene.Component.AI.AIComponent")
+local a = require("Common.Coroutine.async")
+local au = require("Common.Coroutine.async_util")
 local BP_NPCInstanceWeightPlate_C = Base:Extend("BP_NPCInstanceWeightPlate_C")
 local CheckEnterSize = UE.FVector(23, 23, 10)
 
@@ -169,12 +171,13 @@ function BP_NPCInstanceWeightPlate_C:LeaveOverlap(OtherActor, Component)
   if self.PlayerStanding > 0 then
     return
   end
-  _G.DelayManager:DelaySeconds(0.1, function()
-    local MoveComp = Character.movementComponent
+  a.task(function()
+    a.wait(au.DelaySeconds(0.1))
+    local MoveComp = Character and Character.movementComponent
     if MoveComp then
       MoveComp:SendMoveReq(true)
     end
-  end)
+  end)()
   if not self.bControlByServer then
     self:CheckActorShow(false)
   end

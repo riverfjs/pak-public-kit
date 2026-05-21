@@ -70,6 +70,15 @@ function TakePhotosModeMgr:OnEnterMode(Target)
   self.PrevMode = OldMode
   self.CurrMode = Target
   self:GetModule():DispatchEvent(TakePhotosModuleEvent.OnToggleMode, Target, OldMode)
+  if Target == self.TakePhotosModeSelfie then
+    _G.NRCEventCenter:DispatchEvent(TakePhotosModuleEvent.OnToggleSelfieCameraMode)
+  elseif Target == self.TakePhotosMode1P then
+    _G.NRCEventCenter:DispatchEvent(TakePhotosModuleEvent.OnToggleFirstPersonCameraMode)
+  elseif Target == self.TakePhotosModeTripod then
+    _G.NRCEventCenter:DispatchEvent(TakePhotosModuleEvent.OnToggleTripodCameraMode)
+  elseif Target == self.TakePhotosModeWorld then
+    _G.NRCEventCenter:DispatchEvent(TakePhotosModuleEvent.OnToggleTripodWorldMode)
+  end
 end
 
 function TakePhotosModeMgr:TryEnter1PMode()

@@ -26,7 +26,7 @@ function DialogueTimelineNPCHideAnimAction:OnEnter()
     Log.Warning("\230\136\152\230\150\151\228\184\173\230\151\160\230\179\149\228\189\191\231\148\168\232\167\146\232\137\178\233\154\144\232\151\143\229\138\159\232\131\189")
     return
   end
-  local actor = self:GetActor(self.OwnerActorID)
+  local actor = self:GetActor(self.OwnerActorID, self.NPCContentID)
   self:ConsumeActorPerform(actor)
 end
 

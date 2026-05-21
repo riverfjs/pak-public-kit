@@ -41,6 +41,12 @@ function UMG_SystemSettingAgreementItem_C:InitInfo()
 end
 
 function UMG_SystemSettingAgreementItem_C:OnBtnClicked()
+  if self.cdTimer then
+    return
+  end
+  self.cdTimer = _G.TimerManager:CreateTimer(self, "UMG_SystemSettingAgreementItem_C_OnBtnClicked", 1, nil, function()
+    self.cdTimer = nil
+  end, 0.1)
   self:PlayAnimation(self.Press)
 end
 

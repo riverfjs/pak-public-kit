@@ -16,6 +16,7 @@ local FriendModuleEvent = require("NewRoco.Modules.System.Friend.FriendModuleEve
 local LoadingUIModuleEvent = require("NewRoco.Modules.System.LoadingUIModule.LoadingUIModuleEvent")
 local WorldCombatRecord = require("NewRoco.Modules.System.WorldCombat.WorldCombatRecord")
 local WorldCombatBossInfo = require("NewRoco.Modules.System.WorldCombat.WorldCombatBossInfo")
+local MiniGameModuleEvent = require("NewRoco.Modules.System.MiniGame.MiniGameModuleEvent")
 local PosDiffLerpThreshold = 10
 local DirDiffLerpThreshold = 5
 local BossPosDirLerpAction = _G.MakeSimpleClass("BossPosDirLerpAction")
@@ -60,6 +61,7 @@ function WorldCombatModule:OnConstruct()
   self.cachedServerTips = nil
   self.currSkillActions = {}
   self.bEditorPerformanceImprovement = false
+  self.hideNpcViews = {}
 end
 
 function WorldCombatModule:OnActive()
@@ -73,6 +75,7 @@ function WorldCombatModule:OnActive()
   _G.NRCEventCenter:RegisterEvent(self.name, self, LoadingUIModuleEvent.LOADING_UI_CLOSED, self.OnLoadingClosed)
   _G.NRCEventCenter:RegisterEvent(self.name, self, _G.WorldCombatModuleEvent.BossReconnect, self.OnBossReconnect)
   _G.NRCEventCenter:RegisterEvent(self.name, self, _G.WorldCombatModuleEvent.BossInited, self.OnBossInited)
+  _G.NRCEventCenter:RegisterEvent(self.name, self, MiniGameModuleEvent.OnMiniGameExit, self.OnMiniGameExit)
   _G.NRCEventCenter:RegisterEvent(self.name, self, _G.NRCGlobalEvent.OnApplicationHasEnteredForeground, self.OnEnterForeground)
   _G.NRCEventCenter:RegisterEvent(self.name, self, _G.NRCGlobalEvent.OnApplicationWillEnterBackground, self.OnEnterBackground)
   _G.UpdateManager:UnRegister(self)
@@ -102,6 +105,7 @@ function WorldCombatModule:OnDeactive()
   _G.NRCEventCenter:UnRegisterEvent(self, LoadingUIModuleEvent.LOADING_UI_CLOSED, self.OnLoadingClosed)
   _G.NRCEventCenter:UnRegisterEvent(self, _G.WorldCombatModuleEvent.BossReconnect, self.OnBossReconnect)
   _G.NRCEventCenter:UnRegisterEvent(self, _G.WorldCombatModuleEvent.BossInited, self.OnBossInited)
+  _G.NRCEventCenter:UnRegisterEvent(self, MiniGameModuleEvent.OnMiniGameExit, self.OnMiniGameExit)
   _G.NRCEventCenter:UnRegisterEvent(self, _G.NRCGlobalEvent.OnApplicationHasEnteredForeground, self.OnEnterForeground)
   _G.NRCEventCenter:UnRegisterEvent(self, _G.NRCGlobalEvent.OnApplicationWillEnterBackground, self.OnEnterBackground)
   if self.DelayCheckDelegate then
@@ -1322,6 +1326,40 @@ end
 
 function WorldCombatModule:OnToggleEditorPerformanceImprovement()
   self.bEditorPerformanceImprovement = not self.bEditorPerformanceImprovement
+end
+
+function WorldCombatModule:OnAddHideNpcViews(npcView)
+  if not self.hideNpcViews then
+    self.hideNpcViews = {}
+  end
+  if not UE.UObject.IsValid(npcView) then
+    return
+  end
+  if table.contains(self.hideNpcViews, npcView) then
+    return
+  end
+  table.insert(self.hideNpcViews, npcView)
+end
+
+function WorldCombatModule:OnRemoveHideNpcViews(npcView)
+  if not self.hideNpcViews then
+    self.hideNpcViews = {}
+  end
+  if not UE.UObject.IsValid(npcView) then
+    return
+  end
+  table.removeValue(self.hideNpcViews, npcView)
+end
+
+function WorldCombatModule:OnGetHideNpcViews()
+  if not self.hideNpcViews then
+    self.hideNpcViews = {}
+  end
+  return self.hideNpcViews
+end
+
+function WorldCombatModule:OnMiniGameExit()
+  self.hideNpcViews = {}
 end
 
 return WorldCombatModule

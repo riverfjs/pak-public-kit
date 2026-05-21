@@ -41,6 +41,17 @@ function UMG_Activity_StageAwardItem_C:SetTitle(title)
   end
 end
 
+function UMG_Activity_StageAwardItem_C:SetBgImg(normalPath, selectPath)
+  if not string.IsNilOrEmpty(normalPath) and not string.IsNilOrEmpty(selectPath) then
+    if self.changtai then
+      self.changtai:SetPath(normalPath)
+    end
+    if self.xuanzhong then
+      self.xuanzhong:SetPath(selectPath)
+    end
+  end
+end
+
 function UMG_Activity_StageAwardItem_C:SetProgress(cur, total, conditionEnum)
   cur = cur or 0
   total = total or 0

@@ -13,6 +13,8 @@ local BattlePet = require("NewRoco.Modules.Core.Battle.Entity.BattlePet")
 local ShieldComponent = require("NewRoco.Modules.Core.Scene.Component.Boss.ShieldComponent")
 local SystemSettingModuleEvent = require("NewRoco.Modules.System.SystemSetting.SystemSettingModuleEvent")
 local PetUtils = require("NewRoco.Utils.PetUtils")
+local ThrowUtils = require("NewRoco.Modules.Core.NPC.ThrowUtils")
+local NPCModuleEnum = require("NewRoco.Modules.Core.NPC.NPCModuleEnum")
 local BP_NPCCharacter_C = Base:Extend("BP_NPCCharacter_C")
 local OutLineVisibleRangeSqr = _G.DataConfigManager:GetGlobalConfigByKeyType("outline_visible_range", _G.DataConfigManager.ConfigTableId.GLOBAL_CONFIG).num
 OutLineVisibleRangeSqr = OutLineVisibleRangeSqr * OutLineVisibleRangeSqr
@@ -40,6 +42,7 @@ function BP_NPCCharacter_C:Initialize(Initializer)
   self.NightmareFxPathToInst = {}
   self.FxIDs = {}
   self.PendingFx = {}
+  self.isPlayingRecycling = false
 end
 
 function BP_NPCCharacter_C:Init()
@@ -106,7 +109,7 @@ function BP_NPCCharacter_C:OnFrameLoad(distanceRatio)
   if not SceneUtils.debugCloseNPCFacialAndWidget then
     local Character = self.sceneCharacter
     if Character then
-      local hud = _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.GetHudFromPool, "UMG_Hud_Pet")
+      local hud = _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.GetHudFromPool, NPCModuleEnum.HudPoolType.PetHud)
       if not hud then
         local hudClass = _G.NRCBigWorldPreloader:Get("PET_HUD")
         hud = UE4.UWidgetBlueprintLibrary.Create(self, hudClass)
@@ -378,10 +381,15 @@ function BP_NPCCharacter_C:CanThrowInter(Item)
     local SceneCharacter = self.sceneCharacter
     local AIDisable = false
     if SceneCharacter.AIComponent then
-      AIDisable = SceneCharacter.AIComponent:HasControlFlags(Enum.SceneAiControlFlags.SACF_DISABLE_THROW_BATTLE)
+      if Item and Item.ThrowSession and Item.ThrowSession:HasPet() then
+        AIDisable = SceneCharacter.AIComponent:HasControlFlags(Enum.SceneAiControlFlags.SACF_DISABLE_THROW_BATTLE)
+        Log.Debug("\230\138\149\230\142\183\232\191\155\230\136\152\230\150\151\229\164\177\232\180\165\239\188\140\231\155\174\230\160\135AI\231\166\129\231\148\168\228\186\134\230\138\149\230\142\183\232\191\155\230\136\152")
+      else
+        AIDisable = SceneCharacter.AIComponent:HasControlFlags(Enum.SceneAiControlFlags.SACF_DISABLE_CAPTURE)
+        Log.Debug("\230\138\149\230\142\183\230\141\149\230\141\137\229\164\177\232\180\165\239\188\140\231\155\174\230\160\135AI\231\166\129\231\148\168\228\186\134\230\138\149\230\142\183\230\141\149\230\141\137")
+      end
     end
     if AIDisable then
-      Log.Debug("\230\138\149\230\142\183\232\191\155\230\136\152\230\150\151\229\164\177\232\180\165\239\188\140\231\155\174\230\160\135AI\231\166\129\231\148\168\228\186\134\230\138\149\230\142\183\232\191\155\230\136\152")
       return false
     end
     return true
@@ -426,7 +434,10 @@ function BP_NPCCharacter_C:OnThrowItemEnter(item, OtherComp, HitLocation, HitNor
       return
     end
   end
-  if ThrowType ~= Enum.THROWING_INTERACT_TYPE.TIT_WILD_PET and ThrowType ~= Enum.THROWING_INTERACT_TYPE.TIT_CHIEF then
+  local CanBattle, _ = SceneCharacter.InteractionComponent:CanBattleWithBox()
+  local hasPet = Session:HasPet()
+  local ReadyToBattle = CanBattle and hasPet
+  if ThrowType ~= Enum.THROWING_INTERACT_TYPE.TIT_WILD_PET and ThrowType ~= Enum.THROWING_INTERACT_TYPE.TIT_CHIEF and not ReadyToBattle then
     if Session:HasPet() then
       item:ReleaseFailedIfStop()
     else
@@ -478,7 +489,8 @@ function BP_NPCCharacter_C:OnThrowItemEnter(item, OtherComp, HitLocation, HitNor
         local WeakPointName
         if WeakPointComponent then
           WeakPointName = WeakPointComponent:TryGetWeakPoint(OtherComp, item)
-          if WeakPointName then
+          if not WeakPointName or self.sceneCharacter.IsMagicReplayActor and self.sceneCharacter:IsMagicReplayActor() then
+          else
             _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.SendSenseEvent, self:Abs_K2_GetActorLocation(), Enum.DotsAIWorldEventType.DAWET_BOSS_WEAKPOINT_HITTED)
           end
         end
@@ -666,8 +678,8 @@ function BP_NPCCharacter_C:Recycle()
   local HUD = self.HeadWidget:GetWidget()
   if UE.UObject.IsValid(HUD) then
     HUD.ParentHeadWidget = nil
-    _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.ReturnHudToPool, "UMG_Hud_Pet", HUD)
     self.HeadWidget:SetWidget(nil)
+    _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.ReturnHudToPool, NPCModuleEnum.HudPoolType.PetHud, HUD)
   end
   self.ThrowSession = nil
   self.RocoFX:Deactivate()
@@ -928,7 +940,10 @@ function BP_NPCCharacter_C:FlyBackToPlayer(Hide, OverrideBall, Caller, Callback)
   end
   local ThrowSession = SceneCharacter and SceneCharacter.ThrowSession
   if ThrowSession and (ThrowSession:IsRecycling() or ThrowSession:IsDestroyed()) then
-    Log.Debug("\233\135\141\229\164\141\229\155\158\230\148\182", ThrowSession:ToString())
+    if not self.isPlayingRecycling then
+      self:MarkThrowDestroyed()
+      self:FlyComplete()
+    end
     return
   end
   self:TogglePhysics(false)
@@ -989,6 +1004,7 @@ function BP_NPCCharacter_C:FlyBackToPlayer(Hide, OverrideBall, Caller, Callback)
   Skill:RegisterEventCallback("Destroy", self, self.MarkThrowDestroyed)
   Skill:RegisterEventCallback("PreStart", self, self.FlySkillPreStart)
   Skill:RegisterEventCallback("CheckCaster", self, self.CheckFlyBackSkillCaster)
+  self.isPlayingRecycling = true
   Skill:PlaySkill(self, self.OnSkillCallBack)
   if ThrowSession then
     ThrowSession:SetRecycling()
@@ -1072,6 +1088,7 @@ function BP_NPCCharacter_C:TogglePhysics(on)
 end
 
 function BP_NPCCharacter_C:FlyComplete(Name, Skill)
+  self.isPlayingRecycling = false
   if not self.sceneCharacter then
     return
   end
@@ -1318,6 +1335,16 @@ function BP_NPCCharacter_C:PlayLoopPerform()
   if not self.sceneCharacter then
     return
   end
+  local config = self.sceneCharacter.config
+  if config and config.original_emotion and self.RocoAnim then
+    Log.Debug("BP_NPCCharacter_C:PlayLoopPerform", config.original_emotion, self:GetDebugInfo())
+    local anim = self.RocoAnim:GetAnimSequenceByName(config.original_emotion)
+    if anim and self.SetNPCIdleAdditiveAnim then
+      self:SetNPCIdleAdditiveAnim(anim)
+    elseif self.ClearNPCIdleAdditiveAnim then
+      self:ClearNPCIdleAdditiveAnim()
+    end
+  end
   local serverData = self.sceneCharacter.serverData
   local npc_base = serverData and serverData.npc_base
   local loop_action = npc_base and npc_base.loop_action
@@ -1443,15 +1470,12 @@ function BP_NPCCharacter_C:AskCanEnterThrow(Ball, Component)
     if not CatchTarget.canTriggerInteraction then
       return false
     end
-    local LogicComp = CatchTarget.LogicStatusComponent
-    if LogicComp then
-      local IsNightmare, _, _ = LogicComp:GetStatus(Enum.SpaceActorLogicStatus.SALS_NIGHTMARE_ELITE)
-      if IsNightmare then
-        return false
-      end
+    local IsDisableByMutation = ThrowUtils.IsDisableByMutation(CatchTarget, Ball and Ball.BallId)
+    if IsDisableByMutation then
+      return false
     end
     local HiddenComp = CatchTarget.HiddenComponent
-    if HiddenComp and HiddenComp:IsResistCapture() then
+    if HiddenComp and HiddenComp:IsResistCapture(Session and Session:GetBallId()) then
       return false
     end
     local AIComp = CatchTarget.AIComponent

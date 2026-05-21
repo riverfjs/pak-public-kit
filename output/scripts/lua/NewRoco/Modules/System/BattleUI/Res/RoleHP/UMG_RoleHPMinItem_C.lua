@@ -73,7 +73,7 @@ end
 
 function UMG_RoleHPMinItem_C:CancelDelay()
   if self.delayShowAnimId then
-    _G.DelayManager:CancelDelay(self.delayShowAnimId)
+    self:CancelDelay(self.delayShowAnimId)
   end
   self.delayShowAnimId = nil
 end

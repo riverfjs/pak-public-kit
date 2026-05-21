@@ -65,6 +65,7 @@ function TakePhotoGroupOption:Toggle(Index)
     end
     NewOption:Toggle(true)
     self.OnOptionChanged:Invoke(NewOption, OldOption)
+    return true
   end
 end
 
@@ -334,6 +335,7 @@ function TakePhotoSettings:Ctor()
   self.ActionMirror = TakePhotoOption()
   self.EmojiGroup = self:InitCreateEmojiOptions()
   self.FashionGroup = self:InitFashionGroup()
+  self.CameraSkinGroup = self:InitCameraSkinGroup()
   self:InitFocalRegionSetting()
 end
 
@@ -362,6 +364,47 @@ end
 
 function TakePhotoSettings:ResetCamera()
   self.CameraRollProgress:Reset(false)
+end
+
+function TakePhotoSettings:InitCameraSkinGroup()
+  local player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
+  local CameraInfo = player.serverData.camera_info
+  local SkinList = CameraInfo and CameraInfo.unlock_skin_ids or {}
+  local CurrentSkinId = CameraInfo and CameraInfo.skin_id or 0
+  local TempSkinList = {}
+  local TempSkinMap = {}
+  for i, v in ipairs(SkinList) do
+    TempSkinList[i] = v
+    TempSkinMap[v] = true
+  end
+  table.sort(TempSkinList, function(a, b)
+    return a < b
+  end)
+  local OptionsList = {}
+  local AllData = _G.DataConfigManager:GetAllByTableID(_G.DataConfigManager.ConfigTableId.CAMERA_SKIN_CONF) or {}
+  for i, Data in pairs(AllData) do
+    if Data.is_initial and not TempSkinMap[Data.id] then
+      local Option = TakePhotoOption("")
+      table.insert(OptionsList, Option)
+      Option.CustomData = {
+        SkinId = Data.id,
+        SkinConf = Data
+      }
+    end
+  end
+  local InitIndex = 1
+  for i, SkinId in ipairs(TempSkinList) do
+    local Option = TakePhotoOption("")
+    table.insert(OptionsList, Option)
+    Option.CustomData = {
+      SkinId = SkinId,
+      SkinConf = _G.DataConfigManager:GetCameraSkinConf(SkinId, true)
+    }
+    if CurrentSkinId == SkinId then
+      InitIndex = #OptionsList
+    end
+  end
+  return TakePhotoGroupOption(OptionsList, InitIndex)
 end
 
 function TakePhotoSettings:InitFashionGroup()
@@ -613,6 +656,45 @@ function TakePhotoSettings:CreateFashionGroupUIDataList()
     table.insert(UIDataList, Data)
   end
   return UIDataList
+end
+
+function TakePhotoSettings:CreateCameraSkinGroupUIDataList()
+  local UIDataList = {}
+  for i, o in ipairs(self.CameraSkinGroup.OptionList) do
+    local SkinId = o.CustomData and o.CustomData.SkinId
+    local SkinConf = o.CustomData and o.CustomData.SkinConf
+    local Data = {
+      SkinId = SkinId,
+      SkinConf = SkinConf,
+      OnClicked = function()
+        if self.CameraSkinGroup:Toggle(i) then
+          _G.NRCAudioManager:PlaySound2DAuto(40007001, "CameraSkinChanged")
+          _G.NRCModuleManager:DoCmd(_G.TakePhotosModuleCmd.ReqChangeCameraTexture, SkinId)
+        end
+      end,
+      IsSelected = function()
+        return self.CameraSkinGroup:GetSelectedIndex() == i
+      end,
+      RedDotKey = 494,
+      RedDotExtraKey = {SkinId}
+    }
+    table.insert(UIDataList, Data)
+  end
+  return UIDataList
+end
+
+function TakePhotoSettings:RemoveCameraSkinRedDots()
+  Log.Debug("TakePhotoSettings:RemoveCameraSkinRedDots()")
+  local RedDotKey = 494
+  for i, o in ipairs(self.CameraSkinGroup.OptionList) do
+    local SkinId = o.CustomData and o.CustomData.SkinId
+    local ExtraKey = {SkinId}
+    local bRed = _G.NRCModuleManager:DoCmd(_G.RedPointModuleCmd.IsRedPointLightUp, RedDotKey, ExtraKey)
+    if bRed then
+      _G.NRCModuleManager:DoCmd(_G.RedPointModuleCmd.EraseRedPoint, RedDotKey, ExtraKey)
+      Log.Debug("TakePhotoSettings:RemoveCameraSkinRedDots()", SkinId)
+    end
+  end
 end
 
 function TakePhotoSettings:GetTakePhotoBurstNum()

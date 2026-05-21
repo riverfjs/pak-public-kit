@@ -1,5 +1,5 @@
-local PetUIModuleEvent = require("NewRoco.Modules.System.PetUI.PetUIModuleEvent")
 local UMG_ChooseAlternativePet_C = _G.NRCPanelBase:Extend("UMG_ChooseAlternativePet_C")
+local PetUIModuleEvent = require("NewRoco.Modules.System.PetUI.PetUIModuleEvent")
 
 function UMG_ChooseAlternativePet_C:OnActive(petList, startIndex)
   _G.NRCAudioManager:PlaySound2DAuto(41400009, "UMG_ChooseAlternativePet_C:OnActive")

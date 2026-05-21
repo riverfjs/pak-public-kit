@@ -28,6 +28,18 @@ function UMG_NpcInfo_Magic_C:OnEnable(isCamp, title, node, npcInfo)
     self.MagicInfo:GetPetNum()
   else
     self.npcName_2:SetText(title)
+    if not node or 0 == string.len(node) then
+      local worldMapId = npcInfo.world_map_cfg_id
+      local worldMapConf = _G.DataConfigManager:GetWorldMapConf(worldMapId, true)
+      local Icon = worldMapConf.npcicon_levelup[1].icon
+      local param = string.split(Icon, "/")
+      if #param <= 1 then
+        local bigMapModule = _G.NRCModuleManager:GetModule("BigMapModule")
+        if bigMapModule then
+          node = bigMapModule:GetBigMapIconRes(Icon)
+        end
+      end
+    end
     self.Node_1:SetPath(node)
     self.MagicInfo:UpdateInfo(npcInfo, true)
   end

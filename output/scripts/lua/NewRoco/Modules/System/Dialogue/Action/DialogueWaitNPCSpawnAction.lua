@@ -17,6 +17,10 @@ end
 
 function DialogueWaitNPCSpawnAction:OnEnter()
   self:InjectProperties()
+  if _G.RocoEnv.IS_EDITOR and self.Finish then
+    self:Finish()
+    return
+  end
   self.timeout = 2
   self:OnTick(0)
   self:Finish()

@@ -72,6 +72,8 @@ function InviteComponent:RevertRestore()
     end
     self.CurStatus = nil
   end
+  self.owner.statusComponent:ClearStatus(ProtoEnum.WorldPlayerStatusType.WPST_HAND_IN_HAND)
+  self.owner.statusComponent:ClearStatus(ProtoEnum.WorldPlayerStatusType.WPST_HAND_IN_HAND_2P)
 end
 
 function InviteComponent:DeAttach()
@@ -236,14 +238,18 @@ function InviteComponent:InviteAccept(playerUin, interactType, InteractParam, bT
     end
     
     _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_SCENE_RELATION_INTERACT_ACCEPT_REQ, req, rspWrapper, OnSvrRspHandle, nil, true)
+    if self.owner and self.owner.inputComponent ~= nil then
+      self:EnableIgnoreMoveInputForRelationInteractRsp()
+      _G.TimerManager:CreateTimer(self, "WaitRelationInteractRsp", 1, nil, self.DisableIgnoreMoveInputForRelationInteractRsp, 99999)
+    end
     self.owner.statusComponent:RemoveStatus(ProtoEnum.WorldPlayerStatusType.WPST_TWO_PLAYER_ANIM_INVITE)
     if interactType == ProtoEnum.InteractInviteType.IIT_BATTLE then
       _G.BattleNetManager:DelayOpenPVP()
-      goto lbl_159
+      goto lbl_179
       Log.Error("InviteAccept Failed, interactType = ", interactType)
     end
   end
-  ::lbl_159::
+  ::lbl_179::
   _G.NRCEventCenter:DispatchEvent(RelationTreeEvent.RELATION_INVITE_CANCEL_UPDATE, true)
   self.TargetUin = nil
   self.InviteType = nil
@@ -443,6 +449,11 @@ function InviteComponent:OnInviteRsp(rsp)
         end
       elseif code == ProtoEnum.MOBA_RET.SceneErr.ERR_SCENE_PEER_FUNCTION_BANNED then
         msg = _G.DataConfigManager:GetLocalizationConf("RLTT_Error_Code_2444").msg
+      else
+        local TextConf = _G.DataConfigManager:GetLocalizationConf(string.format("RLTT_Error_Code_%d", code))
+        if TextConf then
+          msg = TextConf.msg
+        end
       end
       _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, msg)
     end
@@ -477,6 +488,7 @@ function InviteComponent:OnInviteCancelRsp(rsp, req, customData)
 end
 
 function InviteComponent:OnInviteAcceptRsp(rsp, req, customData)
+  self:DisableIgnoreMoveInputForRelationInteractRsp()
   local code = rsp.ret_info.ret_code
   if 0 ~= code then
     Log.Error("InviteComponent:OnInviteAcceptRsp Error ", code, rsp.ret_info.ret_msg)
@@ -580,6 +592,8 @@ function InviteComponent:OnInviteNty(nty)
       self.CurStatus = nil
     end
     self.owner.viewObj.BP_RideComponent:OnDoubleNotifyEnd()
+    self.owner.statusComponent:ClearStatus(ProtoEnum.WorldPlayerStatusType.WPST_HAND_IN_HAND)
+    self.owner.statusComponent:ClearStatus(ProtoEnum.WorldPlayerStatusType.WPST_HAND_IN_HAND_2P)
     self:ClearPreStatusList(otherUin)
     self:RemoveInviter(target_uin)
     if nty.interact_type == ProtoEnum.InteractInviteType.IIT_INVITE_TOGETHER or nty.interact_type == ProtoEnum.InteractInviteType.IIT_REQUEST_TOGETHER then
@@ -592,13 +606,19 @@ function InviteComponent:OnInviteNty(nty)
         _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.travel_together_time_out)
       elseif nty.notify_reason == ProtoEnum.RELATION_INTERACT_NOTIFY_REASON.RINR_DIS_TOO_FAR then
         _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.travel_together_distance_far)
-      elseif nty.notify_reason == ProtoEnum.RELATION_INTERACT_NOTIFY_REASON.RINR_RECOVER_FAIL or nty.notify_reason == ProtoEnum.RELATION_INTERACT_NOTIFY_REASON.RINR_ENTER_VISIT_FAIL then
+      elseif nty.notify_reason == ProtoEnum.RELATION_INTERACT_NOTIFY_REASON.RINR_RECOVER_FAIL then
+        _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.teleport_fail_hold_hands)
+      elseif nty.notify_reason == ProtoEnum.RELATION_INTERACT_NOTIFY_REASON.RINR_ENTER_VISIT_FAIL then
         _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.teleport_together_both_fail)
       elseif nty.notify_reason == ProtoEnum.RELATION_INTERACT_NOTIFY_REASON.RINR_OUT_AIRWALL then
         _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.travel_together_illegal_area)
       end
     end
   elseif notify_type == ProtoEnum.RELATION_INTERACT_NOTIFY_TYPE.RINT_CHANGE then
+    if nil == self._interactType then
+      Log.error("InviteComponent NotifyChange _interactType is nil")
+      return
+    end
     self._ChangeTogetherType = self._interactType
     self._interactType = nil
     local Player1p = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GetPlayerByUin, nty.uin1)
@@ -723,7 +743,7 @@ function InviteComponent:IsCanOverrideInteract(NewInteractType, OldInteractType)
   if not OldInteractType then
     return true
   end
-  if self:IsTogetherType(OldInteractType) and not self:IsTogetherType(NewInteractType) then
+  if self:IsTogetherType(OldInteractType) then
     return true
   end
   return false
@@ -1006,6 +1026,22 @@ function InviteComponent:ClearPreStatusList(otherUin)
   if player and player.statusComponent.ClearPreStatusList then
     player.statusComponent:ClearPreStatusList()
   end
+end
+
+function InviteComponent:EnableIgnoreMoveInputForRelationInteractRsp()
+  if not self.owner or not self.owner.inputComponent then
+    return
+  end
+  Log.Debug("EnableIgnoreMoveInputForRelationInteractRsp")
+  self.owner.inputComponent:SetIgnoreMoveInput(self, true, "WaitRelationInteractRsp")
+end
+
+function InviteComponent:DisableIgnoreMoveInputForRelationInteractRsp()
+  if not self.owner or not self.owner.inputComponent then
+    return
+  end
+  Log.Debug("DisableIgnoreMoveInputForRelationInteractRsp")
+  self.owner.inputComponent:SetIgnoreMoveInput(self, false, "WaitRelationInteractRsp")
 end
 
 return InviteComponent

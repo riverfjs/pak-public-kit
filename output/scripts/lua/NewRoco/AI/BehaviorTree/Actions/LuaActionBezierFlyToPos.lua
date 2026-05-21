@@ -2,6 +2,9 @@ local BezierFlyComponent = require("NewRoco.Modules.Core.Scene.Component.Movemen
 local AIDefines = require("NewRoco.AI.AIDefines")
 local Base = require("NewRoco.AI.BehaviorTree.LuaActionBase")
 local LuaActionBezierFlyToPos = Base:Extend("LuaActionBezierFly")
+local STUCK_CHECK_INTERVAL = 0.5
+local STUCK_THRESHOLD_DIST = 1.0
+local STUCK_TIMEOUT = 3.0
 
 function LuaActionBezierFlyToPos:OnStart(AIController, ...)
   local args = {
@@ -37,18 +40,51 @@ function LuaActionBezierFlyToPos:OnStart(AIController, ...)
     return self:Finish(false)
   end
   bezComp:ContinuousFly(continuous)
-  if self.d_Timeout then
-    DelayManager:CancelDelayById(self.d_Timeout)
-  end
-  self.d_Timeout = DelayManager:DelaySeconds(10, self.OnTimeOut, self, owner.Npc)
   selfPos.Z = selfPos.Z - owner.Npc:GetHalfHeight()
   bezComp:StartFly(selfFwd, selfPos, ctrl1Pos, ctrl2Pos, anchorPos, 20, self, self.FlyEnd)
+  self.d_StuckAccumTime = 0
+  self.d_StuckLastPos = owner.Npc:GetActorLocation()
+  self:StartStuckCheck(owner.Npc)
+end
+
+function LuaActionBezierFlyToPos:StartStuckCheck(npc)
+  self:StopStuckCheck()
+  self.d_StuckCheck = DelayManager:DelaySeconds(STUCK_CHECK_INTERVAL, self.OnStuckCheck, self, npc)
+end
+
+function LuaActionBezierFlyToPos:StopStuckCheck()
+  if self.d_StuckCheck then
+    DelayManager:CancelDelayById(self.d_StuckCheck)
+    self.d_StuckCheck = nil
+  end
+end
+
+function LuaActionBezierFlyToPos:OnStuckCheck(npc)
+  self.d_StuckCheck = nil
+  if not npc or npc.isDestroy then
+    return
+  end
+  local curPos = npc:GetActorLocation()
+  local dist = UE4.UKismetMathLibrary.Vector_Distance(curPos, self.d_StuckLastPos)
+  if dist < STUCK_THRESHOLD_DIST then
+    self.d_StuckAccumTime = self.d_StuckAccumTime + STUCK_CHECK_INTERVAL
+    if self.d_StuckAccumTime >= STUCK_TIMEOUT then
+      self:StopStuckCheck()
+      if npc.BezierFlyComponent then
+        npc.BezierFlyComponent:AbortFly()
+      end
+      self:Finish(false)
+      return
+    end
+  else
+    self.d_StuckAccumTime = 0
+    self.d_StuckLastPos = curPos
+  end
+  self:StartStuckCheck(npc)
 end
 
 function LuaActionBezierFlyToPos:FlyEnd(result)
-  if self.d_Timeout then
-    DelayManager:CancelDelayById(self.d_Timeout)
-  end
+  self:StopStuckCheck()
   if AIDefines.ActionResult.Ok(result) then
     self:Finish(true)
   else
@@ -66,18 +102,8 @@ function LuaActionBezierFlyToPos:OnInterrupt(AIController, ...)
   else
     bezComp:ContinuousFly(false)
   end
-  if self.d_Timeout then
-    DelayManager:CancelDelayById(self.d_Timeout)
-  end
+  self:StopStuckCheck()
   bezComp:AbortFly()
-end
-
-function LuaActionBezierFlyToPos:OnTimeOut(npc)
-  self.d_Timeout = nil
-  if npc and not npc.isDestroy and npc.BezierFlyComponent then
-    npc.BezierFlyComponent:AbortFly()
-  end
-  self:Finish(false)
 end
 
 return LuaActionBezierFlyToPos

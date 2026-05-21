@@ -1,17 +1,68 @@
-local TipsModuleEvent = require("NewRoco.Modules.System.TipsModule.TipsModuleEvent")
 local UMG_LobbyDownTips_C = _G.NRCPanelBase:Extend("UMG_LobbyDownTips_C")
+local TipEnum = require("NewRoco.Modules.System.TipsModule.Utils.TipEnum")
 
 function UMG_LobbyDownTips_C:OnConstruct()
+  self.tipsDisplayController = _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.GetDisplayController, TipEnum.TipObjectType.LobbyDownTips)
 end
 
 function UMG_LobbyDownTips_C:OnDestruct()
+  if self.tipsDisplayController then
+    self.tipsDisplayController:UnBindView()
+    self.tipsDisplayController = nil
+  end
 end
 
-function UMG_LobbyDownTips_C:UpdateTipsData()
-  if not self.CurrentTip and self.module then
-    local tip = self.module:ExerciseTips()
-    self:TipsPlay(tip)
+function UMG_LobbyDownTips_C:OnActive()
+  self:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  if self.tipsDisplayController then
+    self.tipsDisplayController:BindView(self)
+    self.tipsDisplayController:GetExecutor():StartTipDispatchStateListener()
   end
+end
+
+function UMG_LobbyDownTips_C:OnPlayTips(tip)
+  self:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  self:TipsPlay(tip)
+end
+
+function UMG_LobbyDownTips_C:OnPlayTipStatusChange(pause)
+  if pause then
+    local tip = self.tipsDisplayController:GetExecutor():GetDisplayingTip()
+    if tip then
+      local tipUmg
+      if tip.type == TipEnum.LobbyDownTipsType.BookPrompt then
+        tipUmg = self.UMG_BookPrompt
+      elseif tip.type == TipEnum.LobbyDownTipsType.PassAccomplish then
+        tipUmg = self.UMG_Pass_Accomplish
+      end
+      if tipUmg then
+        self.curPausedTipUmg = tipUmg
+        local handled = false
+        if tipUmg.SetPaused then
+          handled = tipUmg:SetPaused(true)
+        end
+        if not handled then
+          tipUmg:SetVisibility(UE4.ESlateVisibility.Collapsed)
+        end
+      end
+    end
+  else
+    local curPausedTipUmg = self.curPausedTipUmg
+    self.curPausedTipUmg = nil
+    if curPausedTipUmg then
+      local handled = false
+      if curPausedTipUmg.SetPaused then
+        handled = curPausedTipUmg:SetPaused(false)
+      end
+      if not handled then
+        curPausedTipUmg:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+      end
+    end
+  end
+end
+
+function UMG_LobbyDownTips_C:OnAllTipsFinished()
+  self:TipsEnd()
 end
 
 function UMG_LobbyDownTips_C:BindInputAction()
@@ -26,74 +77,36 @@ function UMG_LobbyDownTips_C:UnBindInputAction()
 end
 
 function UMG_LobbyDownTips_C:OnDisable()
-  self:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self:UnBindInputAction()
 end
 
 function UMG_LobbyDownTips_C:OnEnable()
-  if self.module.TipsPause then
-    return
-  end
   self:BindInputAction()
-  if self.module and self.module:IsNeedShowDownTips() then
-    self:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-  end
 end
 
 function UMG_LobbyDownTips_C:OpenMessageDetailsUI()
-  if self.CurrentTip then
-    if 0 == self.CurrentTip.type then
+  local CurrentTip = self.tipsDisplayController and self.tipsDisplayController:GetExecutor():GetDisplayingTip()
+  if CurrentTip then
+    if CurrentTip.type == TipEnum.LobbyDownTipsType.BookPrompt then
       self.UMG_BookPrompt:OnbtnOpenHanbook()
-    elseif 1 == self.CurrentTip.type then
+    elseif CurrentTip.type == TipEnum.LobbyDownTipsType.PassAccomplish then
       self.UMG_Pass_Accomplish:OnClickButton_57()
-    elseif 2 == self.CurrentTip.type then
-      self.TeachingUnlockTips:OpenPanel()
     end
   end
-end
-
-function UMG_LobbyDownTips_C:IsShowPanel(isShow)
-  if isShow then
-    self:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-    self.UMG_BookPrompt:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-    self.UMG_Pass_Accomplish:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-    self.TeachingUnlockTips:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-    self.UMG_BookPrompt:ContinueDelayTimer()
-  else
-    self.UMG_BookPrompt:SetVisibility(UE4.ESlateVisibility.Collapsed)
-    self.UMG_Pass_Accomplish:SetVisibility(UE4.ESlateVisibility.Collapsed)
-    self.TeachingUnlockTips:SetVisibility(UE4.ESlateVisibility.Collapsed)
-    self:SetVisibility(UE4.ESlateVisibility.Collapsed)
-  end
-  if isShow and not self.CurrentTip then
-    self:UpdateTipsData()
-  end
-end
-
-function UMG_LobbyDownTips_C:OnActive()
-  self:UpdateTipsData()
-  self:IsShowPanel(self.module:IsNeedShowDownTips())
 end
 
 function UMG_LobbyDownTips_C:TipsPlay(tip)
-  self.CurrentTip = tip
   UE4.UNRCAudioManager.Get():PlaySound2DAuto(40008001, "UMG_BookPrompt_C:OnConstruct")
   self:OnSwitcherNRCSwitcher_19(tip.type)
   local isStart = false
-  if 0 == tip.type then
+  if tip.type == TipEnum.LobbyDownTipsType.BookPrompt then
     isStart = true
+    self.UMG_BookPrompt:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     self.UMG_BookPrompt:ConsumeTip(tip, self)
-  elseif 1 == tip.type then
+  elseif tip.type == TipEnum.LobbyDownTipsType.PassAccomplish then
     isStart = true
+    self.UMG_Pass_Accomplish:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     self.UMG_Pass_Accomplish:OnActive(tip, self)
-  elseif 2 == tip.type then
-    if self.TeachingUnlockTips and self.TeachingUnlockTips.OnActive then
-      isStart = true
-      self.TeachingUnlockTips:SetVisibility(UE4.ESlateVisibility.Collapsed)
-      self.TeachingUnlockTips:OnActive(tip, self)
-    else
-      Log.Error("self.TeachingUnlockTips or self.TeachingUnlockTips.OnActive Not Found")
-    end
   end
   if isStart then
     _G.NRCEventCenter:DispatchEvent(NRCGlobalEvent.LOBBY_DOWN_TIPS_START)
@@ -102,30 +115,12 @@ end
 
 function UMG_LobbyDownTips_C:TipsEnd()
   _G.NRCEventCenter:DispatchEvent(NRCGlobalEvent.LOBBY_DOWN_TIPS_END)
-  self.CurrentTip = nil
   self:DoClose()
 end
 
-function UMG_LobbyDownTips_C:StopTips()
-end
-
-function UMG_LobbyDownTips_C:PlayTips()
-end
-
 function UMG_LobbyDownTips_C:TipsNext()
-  if self.CurrentTip then
-    self.CurrentTip:MarkFinished()
-  end
-  if not self.module:IsNeedShowDownTips() then
-    self.module.isTipsOpening = false
-    self:TipsEnd()
-    return
-  end
-  local tip = self.module:ExerciseTips()
-  if tip then
-    self:TipsPlay(tip)
-  else
-    self:TipsEnd()
+  if self.tipsDisplayController then
+    self.tipsDisplayController:GetExecutor():ConsumeNextTip()
   end
 end
 

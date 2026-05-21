@@ -4,6 +4,8 @@ local FarmUtils = require("NewRoco.Modules.System.Farm.FarmUtils")
 local FarmConst = require("NewRoco.Modules.System.Farm.FarmConst")
 local ResQueue = require("NewRoco.Utils.ResQueue")
 local Base = NPCActionBase
+local a = require("Common.Coroutine.async")
+local au = require("Common.Coroutine.async_util")
 local NPCActionHomeRoleWater = Base:Extend("NPCActionHomeRoleWater")
 
 function NPCActionHomeRoleWater:Ctor(Owner, Config, Info, View)
@@ -104,9 +106,10 @@ function NPCActionHomeRoleWater:SkillComplete(Name, Skill)
     local LandID = self.OwnerNpc:GetFarmLandId()
     local ReduceTime = self.ReduceTime
     self.ReduceTime = nil
-    _G.DelayManager:DelaySeconds(0.3, function()
+    a.task(function()
+      a.wait(au.DelaySeconds(0.3))
       FarmUtils.AddFloatingText(LandID, ReduceTime)
-    end)
+    end)()
   end
   self:Finish(true)
   _G.NRCEventCenter:UnRegisterEvent(self, _G.NRCGlobalEvent.ON_RECONNECT_FINISH, self.OnReconnect)

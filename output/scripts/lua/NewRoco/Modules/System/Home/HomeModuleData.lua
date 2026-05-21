@@ -138,13 +138,22 @@ function HomeModuleData:InitFurnitureHandBook()
   self.FurnitureAtlasNum = 0
   local FurnitureAtlasInfo = self.FurnitureAtlasInfo
   local HANDBOOK_CONF = _G.DataConfigManager:GetTable(DataConfigManager.ConfigTableId.FURNITURE_HANDBOOK_CONF):GetAllDatas()
+  local cur_time = math.floor(_G.ZoneServer:GetServerTime() / 1000)
   for _, conf in pairs(HANDBOOK_CONF) do
-    local furnitureData = {
-      id = conf.id,
-      reward_status = 1
-    }
-    FurnitureAtlasInfo[conf.id] = furnitureData
-    self.FurnitureAtlasNum = self.FurnitureAtlasNum + 1
+    if not string.IsNilOrEmpty(conf.open_time) then
+      local dateTime, success = UE4.UKismetMathLibrary.DateTimeFromString(conf.open_time)
+      if success and dateTime then
+        local open_time = UE4.UNRCStatics.ToTimestamp(dateTime) - 28800
+        if cur_time >= open_time then
+          local furnitureData = {
+            id = conf.id,
+            reward_status = 1
+          }
+          FurnitureAtlasInfo[conf.id] = furnitureData
+          self.FurnitureAtlasNum = self.FurnitureAtlasNum + 1
+        end
+      end
+    end
   end
 end
 

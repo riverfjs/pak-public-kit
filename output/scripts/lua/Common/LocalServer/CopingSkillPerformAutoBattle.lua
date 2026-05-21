@@ -183,6 +183,7 @@ function CopingSkillPerformAutoBattle:OnBattleEvent(eventName, ...)
   if eventName == BattleEvent.ROUND_STATE_SELECT then
     Log.Warning("CopingSkillPerformAutoBattle:OnBattleEvent ", ...)
     BattleSkillManager:PreLoadSingleResInternal(BattleConst.CounterSkillPreFx)
+    BattleSkillManager:PreLoadSingleResInternal(BattleConst.CounterSkillPreNpc)
     self.isStarted = true
     _G.DelayManager:DelayFrames(30, self.ReleaseSkillRes, self)
     _G.DelayManager:DelayFrames(60, self.PerformNextSkill, self)
@@ -464,7 +465,7 @@ function CopingSkillPerformAutoBattle:OnCountSkill(skillObj, skillType)
     self.target.model
   }, 1)
   local preCountSkill = "NewRoco.Modules.Core.Battle.BattleCore.Pieces.Instances.BattlePieceCounterSkillPrePlay"
-  BattlePiecesManager:Play(preCountSkill, self.target, self.PlayCountSkill, self)
+  BattlePiecesManager:Play(preCountSkill, self.target, self.PlayCountSkill, self, true)
   Log.Debug(string.format("CopingSkillPerformAutoBattle:OnCountSkill %d_%d", self.skillIndex, SkillConf.id))
 end
 

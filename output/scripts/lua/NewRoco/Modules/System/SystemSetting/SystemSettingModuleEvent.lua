@@ -18,4 +18,6 @@ SystemSettingModuleEvent.GetUserSubscribeTplInfo = "SystemSettingModuleEvent.OnG
 SystemSettingModuleEvent.CloudMessageManagementBtnOKClicked = "SystemSettingModuleEvent.CloudMessageManagementBtnOKClicked"
 SystemSettingModuleEvent.SecondPasswordStatusChangeEvent = "SystemSettingModuleEvent.SecondPasswordStatusChangeEvent"
 SystemSettingModuleEvent.UnLockGetBindPhoneInfoReq = "SystemSettingModuleEvent.UnLockGetBindPhoneInfoReq"
+SystemSettingModuleEvent.EnterSleepMode = "SystemSettingModuleEvent.EnterSleepMode"
+SystemSettingModuleEvent.QuitSleepMode = "SystemSettingModuleEvent.QuitSleepMode"
 return SystemSettingModuleEvent

@@ -17,15 +17,19 @@ function UMG_FriendFruitItem_C:OnItemUpdate(_data, datalist, index)
     self.Item:SetPath(NRCUtils:FormatConfIconPath(bagItemConf.icon, _G.UIIconPath.BagItemPath))
     if cruTime - _data.fruit_active_timestamp < 0 or cruTime - _data.slot_active_timestamp < 0 then
       self.CD:SetVisibility(UE4.ESlateVisibility.Visible)
+      self.HourglassWidget:SetActiveWidgetIndex(1)
+      self.NRCImage:SetVisibility(UE4.ESlateVisibility.Collapsed)
     end
   elseif cruTime - _data.slot_active_timestamp < 0 then
     self.CD:SetVisibility(UE4.ESlateVisibility.Visible)
     self.Item_1:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.NRCImage_37:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.HourglassWidget:SetActiveWidgetIndex(0)
   end
 end
 
 function UMG_FriendFruitItem_C:OnItemSelected(_bSelected)
-  if _bSelected and self.data and 0 ~= self.data then
+  if _bSelected and self.data and 0 ~= self.data.fruit_id then
     local FruitContent = {}
     FruitContent.BagItem = {}
     FruitContent.BagItem.id = self.data.fruit_id

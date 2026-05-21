@@ -203,6 +203,7 @@ function UMG_DistrictMapGuide_C:OnUpdateDataList()
   else
     self.Switcher:SetActiveWidgetIndex(0)
     self.List:InitList(curDataList)
+    self.List:SetScrollOffset(0)
   end
 end
 

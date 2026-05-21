@@ -166,11 +166,10 @@ function UMG_UpgradeSuitLevel_C:OnClickBackButton()
     local fashionIds = suitsConf and suitsConf.item_id or {}
     local wandId = _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.GetCurSuitWandId)
     table.insert(fashionIds, wandId)
-    _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.BuyAndWearSuitReq, curSelectedIndex, fashionIds, salonIds)
+    _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.BuyAndWearSuitReq, curSelectedIndex - 1, fashionIds, salonIds)
   else
     local isBan = _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.CheckUIFunctionBan, _G.Enum.FunctionEntrance.FE_FAST_DRESSUP)
-    local isHide = _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.CheckUIFunctionHide, _G.Enum.FunctionEntrance.FE_FAST_DRESSUP)
-    if not isBan and not isHide then
+    if not isBan then
       self.bOpenClosetPanelWhenClose = true
     else
       _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, _G.LuaText.umg_gameinfomain_1)
@@ -186,10 +185,9 @@ function UMG_UpgradeSuitLevel_C:OnAnimationFinished(Anim)
     if self.bOpenClosetPanelWhenClose then
       if self:IsClosetOpened() then
         if self.module then
-          self.module:ClosePanel("SeasonalCombinationBagShop")
-        end
-        if self.module then
-          self.module:ClosePanel("AppearanceTryOn")
+          self.module:BringPanelToFront("AppearanceCloset")
+        else
+          Log.Error("Module\228\184\141\229\173\152\229\156\168")
         end
       else
         _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.OpenAppearanceClosetPanel, nil, true)

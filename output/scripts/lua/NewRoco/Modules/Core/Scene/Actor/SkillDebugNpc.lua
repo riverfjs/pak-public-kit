@@ -368,27 +368,11 @@ function SkillDebugNpc:ClearTimers()
 end
 
 function SkillDebugNpc:AdjustModelHeight()
-  local heightModelScale = 1
-  local serverHeight = self.serverData and self.serverData.npc_base.height_scale
-  if serverHeight and serverHeight > 0 and serverHeight < 20 then
-    heightModelScale = serverHeight
-  elseif self:IsPet() and self.serverData then
-    heightModelScale = PetMutationUtils.GetNpcHeightModelScale(self.config, self.serverData.npc_base.height)
-    if self.LogicStatusComponent then
-      local IsElite, _, _ = self.LogicStatusComponent:GetStatus(Enum.SpaceActorLogicStatus.SALS_NIGHTMARE_ELITE)
-      if IsElite then
-        local Conf = _G.DataConfigManager:GetNightmareEliteConf(self.serverData.npc_base.npc_content_cfg_id, true)
-        if Conf then
-          heightModelScale = (Conf.model_scale or 100) / 100 * heightModelScale
-        end
-      end
-    end
-  end
   if self.viewObj:IsA(UE.ARocoCharacter) and _G.NRCAudioManager then
     _G.NRCAudioManager:SetEmitterSwitch("Pet_Switch", "Pet_World", self.viewObj)
-    UE.UNRCCharacterUtils.SetCharacterMeshScale(self.viewObj, self:GetConfigScale() * heightModelScale)
+    UE.UNRCCharacterUtils.SetCharacterMeshScale(self.viewObj, self:GetConfigScale())
   else
-    self.viewObj:SetActorScale3D(_G.FVectorOne * self:GetConfigScale() * heightModelScale)
+    self.viewObj:SetActorScale3D(_G.FVectorOne * self:GetConfigScale())
   end
 end
 

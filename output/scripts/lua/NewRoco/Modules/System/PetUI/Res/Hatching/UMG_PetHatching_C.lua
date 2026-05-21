@@ -9,6 +9,11 @@ local EnumCurHatchingEggType = {
   RandomEgg = 2,
   CustomGlassEgg = 3
 }
+local EnumRefreshUpdateHatchSecsReasonType = {
+  None = 0,
+  HatchSecsUpdate = 1,
+  UsedIncubationProgressItem = 2
+}
 
 function UMG_PetHatching_C:OnActive(gid)
   self:OnAddEventListener()
@@ -24,6 +29,7 @@ function UMG_PetHatching_C:OnUpdateData(gid)
   self:SetIsClicking(false)
   self:UpdatePanel(true)
   self.lastTargetTime = 0
+  self:ResetProgressPlayQueue()
 end
 
 function UMG_PetHatching_C:UpdatePanel(isRemove)
@@ -40,6 +46,7 @@ function UMG_PetHatching_C:UpdatePanel(isRemove)
   local selectIndex = 0
   local dataList = {}
   self.bHaveHatchingEgg = #backpackEggList > 0
+  self.Egg:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.Switcher:SetActiveWidgetIndex(self.bHaveHatchingEgg and 0 or 1)
   if not self.bHaveHatchingEgg then
     self:PlayAnimation(self.Empty_In)
@@ -93,6 +100,40 @@ function UMG_PetHatching_C:SetCommonTitle()
   self.Title1:SetSubtitle(self.titleConf.subtitle[1].subtitle)
 end
 
+function UMG_PetHatching_C:ResetProgressPlayQueue()
+  self.ProgressPlayQueue = {}
+  self.bPlayingProgressAddAnim = false
+  self.bPlayAddAnimFullPercent = false
+end
+
+function UMG_PetHatching_C:CreateProgressPlayNodeAndAddQueue(Progress, hatchProgressUpdateReasonType)
+  local ProgressPlayNode = {TargetProgress = Progress, HatchProgressUpdateReasonType = hatchProgressUpdateReasonType}
+  table.insert(self.ProgressPlayQueue, ProgressPlayNode)
+  if not self.bPlayingProgressAddAnim then
+    self:PlayNextProgressPlayNode()
+  end
+end
+
+function UMG_PetHatching_C:PlayNextProgressPlayNode()
+  if 0 == #self.ProgressPlayQueue then
+    return
+  end
+  local ProgressPlayNode = table.remove(self.ProgressPlayQueue, 1)
+  local HatchProgressUpdateReasonType = ProgressPlayNode.HatchProgressUpdateReasonType
+  HatchProgressUpdateReasonType = HatchProgressUpdateReasonType or EnumRefreshUpdateHatchSecsReasonType.None
+  if PetUtils.CheckPetEggIsHatchSecsMax(self.curEggGid) and HatchProgressUpdateReasonType == EnumRefreshUpdateHatchSecsReasonType.None then
+    self:PlayNextProgressPlayNode()
+    return
+  end
+  if self.bPlayAddAnimFullPercent then
+    self:PlayNextProgressPlayNode()
+    return
+  end
+  if not self.bPlayAddAnimFullPercent then
+    self:LoadingProgress(ProgressPlayNode.TargetProgress)
+  end
+end
+
 function UMG_PetHatching_C:LoadingProgress(progress)
   self.progress = progress
   if not self.IsFinishEggSwitch then
@@ -107,15 +148,85 @@ function UMG_PetHatching_C:LoadingProgress(progress)
     self.lastTargetTime = targetTime - 0.1
   end
   self.Egg:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  self:UpdateIncubationProgressBtn()
   progress = math.floor(progress)
   self.NRCText_132:SetText(string.format("%.0f", progress))
   self:PlayAnimationTimeRange(self.Add, self.lastTargetTime, targetTime)
+  self.bPlayingProgressAddAnim = true
+  local DelayTime = targetTime - self.lastTargetTime
   self.lastTargetTime = targetTime
+  if progress >= 100 then
+    self:UpdateEstablishContractBtn()
+    self.bPlayAddAnimFullPercent = true
+    self:DelaySeconds(DelayTime + 0.3, function()
+      self.Egg:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    end)
+  end
+end
+
+function UMG_PetHatching_C:ClearGreenProgressBar()
+  self:StopAnimation(self.Add_Green)
+  self:SetGreenProgressBarVisible(false)
+  if self.selectIndex then
+    local PetHatchingItem = self.petHeadList:GetItemByIndex(self.selectIndex - 1)
+    if PetHatchingItem then
+      PetHatchingItem:ClearGreenProgressBar()
+    end
+  end
+end
+
+function UMG_PetHatching_C:SetGreenProgressBarVisible(bVisible)
+  self.EggProgressBar_1:SetVisibility(bVisible and UE4.ESlateVisibility.SelfHitTestInvisible or UE4.ESlateVisibility.Collapsed)
+  self.GreenBox:SetVisibility(bVisible and UE4.ESlateVisibility.SelfHitTestInvisible or UE4.ESlateVisibility.Collapsed)
+  self.GreenDot:SetVisibility(bVisible and UE4.ESlateVisibility.SelfHitTestInvisible or UE4.ESlateVisibility.Collapsed)
+end
+
+function UMG_PetHatching_C:UpdateGreenProgressBar(InSelectedQuantity, UpdateReasonType)
+  Log.Debug("UMG_PetHatching_C:UpdateGreenProgressBar")
+  local PetUIModule = NRCModuleManager:GetModule("PetUIModule")
+  if PetUIModule and PetUIModule.data then
+    local CurSelectedItemData = PetUIModule.data:GetCurSelectItemDataInHatchingRightPanel()
+    if CurSelectedItemData and CurSelectedItemData.conf.item_behavior[1] and CurSelectedItemData.conf.item_behavior[1].use_action and CurSelectedItemData.conf.item_behavior[1].use_action == _G.Enum.ItemBehavior.IB_PET_HATCH_PROCESS_ADD and CurSelectedItemData.conf.item_behavior[1].ratio and CurSelectedItemData.conf.item_behavior[1].ratio[1] and CurSelectedItemData.conf.item_behavior[1].ratio[1] > 0 then
+      local ItemAddProgressPercent = CurSelectedItemData.conf.item_behavior[1].ratio[1]
+      local FinalPreviewProgress = ItemAddProgressPercent * InSelectedQuantity
+      if self.FinalPreviewProgress ~= nil and FinalPreviewProgress == self.FinalPreviewProgress and UpdateReasonType ~= PetUIModuleEnum.HatchingPanelCommonAddSubtractPanelUpdateReasonType.HatchSecsUpdate then
+        return
+      end
+      self.FinalPreviewProgress = FinalPreviewProgress
+      local AnimEndTime = self.Add_Green:GetEndTime()
+      local TargetPlayTime = AnimEndTime / 100 * FinalPreviewProgress
+      if 0 == TargetPlayTime then
+        TargetPlayTime = 0.001
+      end
+      if nil == self.LastGreenAnimPlayEndTime then
+        self.LastGreenAnimPlayEndTime = self.lastTargetTime or 0
+      end
+      local TargetPlayEndTime = TargetPlayTime + self.lastTargetTime
+      if AnimEndTime < TargetPlayEndTime then
+        TargetPlayEndTime = AnimEndTime
+      end
+      self:SetGreenProgressBarVisible(true)
+      self:StopAnimation(self.Add_Green)
+      if TargetPlayEndTime > self.LastGreenAnimPlayEndTime then
+        self:PlayAnimationTimeRange(self.Add_Green, self.LastGreenAnimPlayEndTime, TargetPlayEndTime, 1, UE4.EUMGSequencePlayMode.FORWARD)
+      else
+        self:PlayAnimationTimeRange(self.Add_Green, AnimEndTime - self.LastGreenAnimPlayEndTime, TargetPlayEndTime, 1, UE4.EUMGSequencePlayMode.REVERSE, 1, false)
+      end
+      self.LastGreenAnimPlayEndTime = TargetPlayEndTime
+      if self.selectIndex then
+        local PetHatchingItem = self.petHeadList:GetItemByIndex(self.selectIndex - 1)
+        if PetHatchingItem then
+          PetHatchingItem:UpdateGreenProgressBar(FinalPreviewProgress)
+        end
+      end
+    end
+  end
 end
 
 function UMG_PetHatching_C:OnConstruct()
   self:RegisterEvent(self, PetUIModuleEvent.SelectPetEgg, self.OnSelectPetEgg)
   _G.NRCEventCenter:RegisterEvent(self.name, self, PetUIModuleEvent.OnUpdateHatchSecs, self.OnUpdateHatchSecs)
+  _G.NRCEventCenter:RegisterEvent("UMG_PetHatching_C", self, PetUIModuleEvent.OnUsedIncubationProgressItemSuccess, self.OnUsedIncubationProgressItemSuccess)
   self:RegisterEvent(self, PetUIModuleEvent.OnStopHatchEgg, self.OnStopHatchEgg)
   self:RegisterEvent(self, PetUIModuleEvent.OnClickPetImage3d, self.OnPetPerform)
   self:RegisterEvent(self, PetUIModuleEvent.FinshEggSwitch, self.OnFinishEggSwitch)
@@ -126,6 +237,7 @@ end
 
 function UMG_PetHatching_C:OnDestruct()
   _G.NRCEventCenter:UnRegisterEvent(self, PetUIModuleEvent.OnUpdateHatchSecs, self.OnUpdateHatchSecs)
+  _G.NRCEventCenter:UnRegisterEvent(self, PetUIModuleEvent.OnUsedIncubationProgressItemSuccess, self.OnUsedIncubationProgressItemSuccess)
   self:UnRegisterEvent(self, PetUIModuleEvent.SelectPetEgg, self.OnSelectPetEgg)
   self:UnRegisterEvent(self, PetUIModuleEvent.OnStopHatchEgg, self.OnStopHatchEgg)
   self:UnRegisterEvent(self, PetUIModuleEvent.OnClickPetImage3d, self.OnPetPerform)
@@ -159,6 +271,7 @@ end
 function UMG_PetHatching_C:OnAddEventListener()
   self:AddButtonListener(self.btnCloseSubPanel2.btnClose, self.ClosePanel1)
   self:AddButtonListener(self.btn, self.ClosePanel)
+  self:AddButtonListener(self.ClickBtn, self.OnClickIncubationProgressBtn)
   self:AddButtonListener(self.UMG_Btn2Grey.btnLevelUp, self.ClickEggBtn)
   self:AddButtonListener(self.UMG_Btn2.btnLevelUp, self.ClickEggBtn)
   self:AddButtonListener(self.RetrieveBtn.btnLevelUp, self.ClickEggBtn)
@@ -189,12 +302,15 @@ function UMG_PetHatching_C:OnFinishEggSwitch(isFinish)
       UE4.UNRCAudioManager.Get():PlaySound2DAuto(40002031, "UMG_PetHatching_C:OnFinishEggSwitch")
       self.CanvasPanel_77:SetVisibility(UE4.ESlateVisibility.Collapsed)
       self.EggProgressBar:SetPercent(0)
+      if self.progress then
+        self.NRCText_132:SetText(string.format("%.0f", math.floor(self.progress)))
+      end
       self:DelaySeconds(0.4, function()
         self.CanvasPanel_77:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-        self:LoadingProgress(self.progress)
+        self:CreateProgressPlayNodeAndAddQueue(self.progress)
       end)
       self:DelaySeconds(0.15, function()
-        self.Egg:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+        self:UpdateIncubationProgressBtn()
       end)
     end
     self:SetIsClicking(false)
@@ -210,21 +326,36 @@ function UMG_PetHatching_C:OnFinishEggSwitch(isFinish)
   end
 end
 
-function UMG_PetHatching_C:OnShowOrClosePetEggBallChoosePanel(IsShow, DisplayMode, IsAnimFinished)
+function UMG_PetHatching_C:OnShowOrClosePetEggBallChoosePanel(IsShow, DisplayMode, IsAnimFinished, CloseReasonType)
   if IsShow then
     if not IsAnimFinished then
+      self:ClearGreenProgressBar()
       if DisplayMode == PetUIModuleEnum.PetHatchingRightPanelDisplayMode.SelectPetBall then
       elseif DisplayMode == PetUIModuleEnum.PetHatchingRightPanelDisplayMode.SelectEgg then
-        self:StopAnimation(self.Empty_MoveLeft)
-        self:StopAnimation(self.Empty_MoveRight)
-        self:PlayAnimation(self.Empty_MoveLeft)
+        self.HorizontalBox_Tips:SetVisibility(UE4.ESlateVisibility.Collapsed)
+      elseif DisplayMode == PetUIModuleEnum.PetHatchingRightPanelDisplayMode.IncubationProgress then
+        self.HorizontalBox_Tips:SetVisibility(UE4.ESlateVisibility.Collapsed)
+        self.FinalPreviewProgress = nil
+        self.LastGreenAnimPlayEndTime = nil
       end
+      self:StopAnimation(self.Empty_MoveLeft)
+      self:StopAnimation(self.Empty_MoveRight)
+      self:PlayAnimation(self.Empty_MoveLeft)
     else
       self:SetIsClicking(false)
     end
   else
-    if IsAnimFinished or DisplayMode == PetUIModuleEnum.PetHatchingRightPanelDisplayMode.SelectPetBall then
-    elseif DisplayMode == PetUIModuleEnum.PetHatchingRightPanelDisplayMode.SelectEgg then
+    if not IsAnimFinished then
+      if DisplayMode == PetUIModuleEnum.PetHatchingRightPanelDisplayMode.SelectPetBall then
+      elseif DisplayMode == PetUIModuleEnum.PetHatchingRightPanelDisplayMode.SelectEgg then
+      elseif DisplayMode == PetUIModuleEnum.PetHatchingRightPanelDisplayMode.IncubationProgress then
+        self.HorizontalBox_Tips:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+        if CloseReasonType ~= PetUIModuleEnum.PetHatchingRightPanelCloseReasonType.UsedIncubationProgressItem then
+          self:ClearGreenProgressBar()
+        end
+        self.FinalPreviewProgress = nil
+        self.LastGreenAnimPlayEndTime = nil
+      end
       self:StopAnimation(self.Empty_MoveLeft)
       self:StopAnimation(self.Empty_MoveRight)
       self:PlayAnimation(self.Empty_MoveRight)
@@ -262,6 +393,10 @@ function UMG_PetHatching_C:OnUpdateHatchSecs(rsp)
     self.isFinishHatching = secs / eggMaxSeces >= 1
   end
   self.NRCSwitcher_BottomPanel:SetActiveWidgetIndex(self.isFinishHatching and 1 or 0)
+  local bAlreadyHatched = false
+  if eggData and eggData.hatched_secs and eggMaxSeces <= eggData.hatched_secs then
+    bAlreadyHatched = true
+  end
   for i, eggInfo in pairs(_G.DataModelMgr.PlayerDataModel:GetPlayerBackpackEggInfo()) do
     for j = 1, #rsp.egg_gid do
       if rsp.egg_gid[j] == eggInfo.gid and rsp.hatched_secs[j] then
@@ -269,15 +404,76 @@ function UMG_PetHatching_C:OnUpdateHatchSecs(rsp)
       end
     end
   end
-  if eggMaxSeces then
-    self:LoadingProgress(math.clamp(secs / eggMaxSeces * 100, 0, 100))
+  if eggMaxSeces and not bAlreadyHatched then
+    self:CreateProgressPlayNodeAndAddQueue(math.clamp(secs / eggMaxSeces * 100, 0, 100), EnumRefreshUpdateHatchSecsReasonType.HatchSecsUpdate)
   end
+  _G.NRCModuleManager:DoCmd(PetUIModuleCmd.UpdateHatchingRightPanelCommonAddSubtractPanel, PetUIModuleEnum.HatchingPanelCommonAddSubtractPanelUpdateReasonType.HatchSecsUpdate)
   if self.isFinishHatching then
     self:UpdateEstablishContractBtn()
-    self:DelaySeconds(0.5, function()
-      self.Egg:SetVisibility(UE4.ESlateVisibility.Collapsed)
-    end)
+    local RightPanelDisplayMode = _G.NRCModuleManager:DoCmd(PetUIModuleCmd.GetHatchingRightPanelDisplayMode)
+    if RightPanelDisplayMode == PetUIModuleEnum.PetHatchingRightPanelDisplayMode.IncubationProgress then
+      _G.NRCModuleManager:DoCmd(PetUIModuleCmd.CloseHatchingRightPanel)
+    end
   end
+end
+
+function UMG_PetHatching_C:RefreshUpdateHatchSecs(EggGid, NewHatchSecs, UpdateReasonType)
+  if nil == EggGid then
+    Log.Error("UMG_PetHatching_C:RefreshUpdateHatchSecs EggGid is nil")
+    return
+  end
+  if nil == NewHatchSecs then
+    Log.Error("UMG_PetHatching_C:RefreshUpdateHatchSecs NewHatchSecs is nil")
+    return
+  end
+  local secs = NewHatchSecs
+  local eggData = self.eggInfo.bagItem.egg_data
+  local LastHatchSecs = self.eggInfo.eggData.hatched_secs
+  self.isFinishHatching = false
+  local eggMaxSeces
+  if eggData and 0 == eggData.conf_id then
+    eggMaxSeces = eggData.max_hatched_secs
+    self.isFinishHatching = secs / eggMaxSeces >= 1
+  elseif eggData and 0 ~= eggData.conf_id then
+    local eggConf = _G.DataConfigManager:GetPetEggConf(eggData.conf_id)
+    eggMaxSeces = eggConf.hatch_data
+    self.isFinishHatching = secs / eggMaxSeces >= 1
+  end
+  self.NRCSwitcher_BottomPanel:SetActiveWidgetIndex(self.isFinishHatching and 1 or 0)
+  for _, eggInfo in pairs(_G.DataModelMgr.PlayerDataModel:GetPlayerBackpackEggInfo()) do
+    if EggGid == eggInfo.gid then
+      eggInfo.eggData.hatched_secs = NewHatchSecs
+    end
+  end
+  if eggMaxSeces then
+    self:CreateProgressPlayNodeAndAddQueue(math.clamp(secs / eggMaxSeces * 100, 0, 100), UpdateReasonType)
+  end
+end
+
+function UMG_PetHatching_C:OnUsedIncubationProgressItemSuccess(EggGid, NewHatchSecs)
+  if self.selectIndex then
+    local PetHatchingItem = self.petHeadList:GetItemByIndex(self.selectIndex - 1)
+    if PetHatchingItem and PetHatchingItem.itemInfo and PetHatchingItem.itemInfo.gid and PetHatchingItem.itemInfo.gid == EggGid then
+      PetHatchingItem:RefreshUpdateHatchSecs(NewHatchSecs)
+      self:RefreshUpdateHatchSecs(EggGid, NewHatchSecs, EnumRefreshUpdateHatchSecsReasonType.UsedIncubationProgressItem)
+    end
+  end
+end
+
+function UMG_PetHatching_C:UpdateIncubationProgressBtn()
+  local bShow = false
+  local bHaveEggItem = false
+  if self.curEggGid then
+    local EggItem = _G.NRCModeManager:DoCmd(_G.BagModuleCmd.GetBagItemByGid, self.curEggGid)
+    if EggItem then
+      bHaveEggItem = true
+    end
+  end
+  local ItemList = PetUtils.GetIncubationProgressItemList()
+  if ItemList and #ItemList > 0 and not self.isFinishHatching and bHaveEggItem then
+    bShow = true
+  end
+  self.ClickBtn:SetVisibility(bShow and UE4.ESlateVisibility.SelfHitTestInvisible or UE4.ESlateVisibility.Collapsed)
 end
 
 function UMG_PetHatching_C:UpdateEstablishContractBtn()
@@ -383,6 +579,8 @@ function UMG_PetHatching_C:OnSelectPetEgg(eggInfo, selectIndex)
     end
   end
   self:StopTargetAnimations()
+  self:ClearGreenProgressBar()
+  self:ResetProgressPlayQueue()
   self.selectIndex = selectIndex
   if self.isFirstOpen == false then
     self.button_close:SetRenderOpacity(1)
@@ -457,6 +655,10 @@ function UMG_PetHatching_C:OnPetPerform()
   end
 end
 
+function UMG_PetHatching_C:GetCurEggHatchingProgress()
+  return self.progress
+end
+
 function UMG_PetHatching_C:ClosePanel()
   Log.Debug("UMG_PetHatching_C:ClosePanel")
   if self:CheckIsSelectBtn() then
@@ -520,12 +722,24 @@ function UMG_PetHatching_C:IsBagHaveEggItem()
     end
   end
   local PreciousItemList = _G.NRCModuleManager:DoCmd(_G.BagModuleCmd.GetBagItemArrayByLableType, _G.Enum.ItemLableType.ILT_PRECIOUS)
-  for _, item in pairs(PreciousItemList) do
+  for _, item in pairs(PreciousItemList or {}) do
     if item and item.conf and item.conf.type == _G.Enum.BagItemType.BI_GLASS_EGG_PIECE and item.num and item.num > 0 then
       bHave = true
     end
   end
   return bHave
+end
+
+function UMG_PetHatching_C:OnClickIncubationProgressBtn()
+  Log.Debug("UMG_PetHatching_C:OnClickIncubationProgressBtn")
+  if self:GetIsClicking() then
+    Log.Debug("UMG_PetHatching_C:OnClickIncubationProgressBtn IsClicking=[true] return")
+    return
+  end
+  local IncubationProgressItemList = PetUtils.GetIncubationProgressItemList()
+  if nil ~= IncubationProgressItemList and #IncubationProgressItemList > 0 then
+    NRCModuleManager:DoCmd(PetUIModuleCmd.OpenHatchingRightPanel, PetUIModuleEnum.PetHatchingRightPanelDisplayMode.IncubationProgress, IncubationProgressItemList, self.curEggGid)
+  end
 end
 
 function UMG_PetHatching_C:ClickEggBtn()
@@ -562,8 +776,8 @@ function UMG_PetHatching_C:ClickEggBtn()
   if self:GetCurHatchingEggType() == EnumCurHatchingEggType.CustomGlassEgg then
     des = self:GetCustomGlassEggRemoveTipsContent()
   end
-  local leftText = conf and conf.button_left or LuaText.umg_pet_attribute_3
-  local rightText = conf and conf.button_right or LuaText.umg_pet_attribute_4
+  local leftText = LuaText.umg_pet_attribute_3
+  local rightText = LuaText.umg_pet_attribute_4
   local Context = DialogContext()
   Context:SetTitle(title):SetContent(des):SetClickAnywhereClose(true):SetMode(DialogContext.Mode.OK_CANCEL):SetCallback(self, self.RemoveEggCallblack):SetCloseOnCancel(true):SetButtonText(rightText, leftText)
   _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.Dialog_OpenDialog, Context)
@@ -623,6 +837,8 @@ function UMG_PetHatching_C:OnAnimationFinished(aim)
     self.UMG_Btn2:SetRenderOpacity(1)
     self:SetIsClicking(false)
   elseif aim == self.Add then
+    self.bPlayingProgressAddAnim = false
+    self:PlayNextProgressPlayNode()
   end
 end
 

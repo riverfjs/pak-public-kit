@@ -2,9 +2,6 @@ local Base = require("NewRoco.Modules.Core.Scene.Component.Buff.Magic.ScenePlaye
 local NPCModuleEvent = require("NewRoco.Modules.Core.NPC.NPCModuleEvent")
 local MagicCreationUtils = require("NewRoco.Modules.System.MagicCreation.MagicCreationUtils")
 local SceneUtils = require("NewRoco.Modules.Core.Scene.Common.SceneUtils")
-local HomeEntranceAreaId = 141030025
-local HomeEntranceRotator = UE4.FRotator(0, 65, 0)
-local HomeEntranceExtent = UE4.FVector(2500, 2500, 1000)
 local ScenePlayerCreateBuff = Base:Extend("ScenePlayerCreateBuff")
 local TopKFinderNum = 8
 local TopKDistance = 800
@@ -26,9 +23,7 @@ function ScenePlayerCreateBuff:OnBegin(owner, MagicInfo)
   if teleportConf and teleportConf.range and teleportConf.range > 0 then
     self.AirWallCheckAdditionalDistance = teleportConf.range
   end
-  self.BossAreaCheckRadius = MagicCreationUtils.TryGetGlobalConfig(_G.DataConfigManager.ConfigTableId.NPC_GLOBAL_CONFIG, "create_magic_boss_area_distance", "num", 500)
   self:CreateLocalNPC()
-  self:SetHomeEntranceInfo()
 end
 
 function ScenePlayerCreateBuff:CreateLocalNPC()
@@ -57,6 +52,10 @@ function ScenePlayerCreateBuff:OnNpcLoaded(viewObj)
     return
   end
   npc:RemoveEventListener(self, NPCModuleEvent.VIEW_LOADED, self.OnNpcLoaded)
+  local areaQueryManager = UE4.UAreaQueryManager.Get(_G.UE4Helper.GetCurrentWorld())
+  if areaQueryManager then
+    areaQueryManager:RegisterActor(viewObj)
+  end
   self:UpdateNpcTransform()
   self:CheckNpcValid()
 end
@@ -100,8 +99,12 @@ function ScenePlayerCreateBuff:UpdateNpcTransform()
   local direction = cameraManager:GetCameraRotation():ToVector()
   local radius = viewObj.BoundingRadius or 0.0
   local npcTargetOrigin = playerPosition + direction * (self.CreateDistance + radius)
-  npc:SetActorLocation(SceneUtils.ConvertRelativeToAbsolute(npcTargetOrigin))
-  MagicCreationUtils.NpcSnapToGround(npc)
+  self.centerSurfaceInfo = MagicCreationUtils.GetSurfaceInfo(npcTargetOrigin)
+  if self.centerSurfaceInfo ~= nil then
+    npc:SetActorLocation(SceneUtils.ConvertRelativeToAbsolute(self.centerSurfaceInfo.position))
+  else
+    npc:SetActorLocation(SceneUtils.ConvertRelativeToAbsolute(npcTargetOrigin))
+  end
 end
 
 function ScenePlayerCreateBuff:CheckNpcValid()
@@ -128,12 +131,12 @@ function ScenePlayerCreateBuff:GetNpcValidType(npc)
   if false == viewObj or nil == viewObj then
     return MagicCreationUtils.NpcValidType.Invalid
   end
-  local origin, extent = MagicCreationUtils.GetActorBounds(viewObj)
-  if _G.NRCModuleManager:DoCmd(_G.MagicCreationModuleCmd.CheckBossAreaOverlap, origin, self.BossAreaCheckRadius, true) then
-    return MagicCreationUtils.NpcValidType.BossArea
+  if viewObj.bBannedByArea then
+    return MagicCreationUtils.NpcValidType.AreaBan
   end
-  local isHeightValid = _G.NRCModuleManager:DoCmd(_G.MagicCreationModuleCmd.CheckNpcHeightDifferenceWithPlayer, origin)
-  local isLandValid = _G.NRCModuleManager:DoCmd(_G.MagicCreationModuleCmd.CheckLandValid, origin, extent)
+  local origin, extent = MagicCreationUtils.GetActorBounds(viewObj)
+  local isHeightValid = _G.NRCModuleManager:DoCmd(_G.MagicCreationModuleCmd.CheckNpcHeightDifferenceWithPlayer, origin, self.centerSurfaceInfo)
+  local isLandValid = _G.NRCModuleManager:DoCmd(_G.MagicCreationModuleCmd.CheckLandValid, origin, extent, self.centerSurfaceInfo)
   if isLandValid == MagicCreationUtils.NpcValidType.Water then
     return isLandValid
   end
@@ -143,10 +146,14 @@ function ScenePlayerCreateBuff:GetNpcValidType(npc)
   if isLandValid ~= MagicCreationUtils.NpcValidType.Valid then
     return isLandValid
   end
-  if MagicCreationUtils.CheckAirWallNearby(npc, self.AirWallCheckAdditionalDistance) then
+  if MagicCreationUtils.CheckAirWallNearby(origin, extent, self.AirWallCheckAdditionalDistance) then
     return MagicCreationUtils.NpcValidType.AirWall
   end
   if MagicCreationUtils.CheckOverlap(npc, origin, extent) then
+    return MagicCreationUtils.NpcValidType.Overlap
+  end
+  local actor = self.centerSurfaceInfo.actor
+  if actor.FixCoord then
     return MagicCreationUtils.NpcValidType.Overlap
   end
   local topKNpcs = _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.GetTopKNpcInCpp, TopKFinderNum, TopKDistance)
@@ -159,13 +166,10 @@ function ScenePlayerCreateBuff:GetNpcValidType(npc)
       end
     end
   end
-  if _G.NRCModuleManager:DoCmd(_G.MagicCreationModuleCmd.CheckEavesExisted, origin, extent, {
+  if _G.NRCModuleManager:DoCmd(_G.MagicCreationModuleCmd.CheckEavesExisted, origin, extent, npc:GetActorRotation(), {
     npc.viewObj
   }) then
     return MagicCreationUtils.NpcValidType.OverlapEaves
-  end
-  if self:CheckInHomeEntrance(origin, extent) then
-    return MagicCreationUtils.NpcValidType.WrongScene
   end
   return MagicCreationUtils.NpcValidType.Valid
 end
@@ -188,33 +192,6 @@ function ScenePlayerCreateBuff:ConstValidateTopK(npc, ignore)
     return false
   end
   return true
-end
-
-function ScenePlayerCreateBuff:SetHomeEntranceInfo()
-  local areaConf = _G.DataConfigManager:GetAreaConf(HomeEntranceAreaId, true)
-  if nil == areaConf then
-    return
-  end
-  local center_xyz = areaConf.center_xyz
-  if nil == center_xyz or #center_xyz < 3 then
-    return
-  end
-  local location = UE4.FVector(center_xyz[1], center_xyz[2], center_xyz[3])
-  self.homeEntranceTransform = UE4.FTransform(HomeEntranceRotator:ToQuat(), location, _G.FVectorOne)
-end
-
-function ScenePlayerCreateBuff:CheckInHomeEntrance(origin, extent)
-  if not self.homeEntranceTransform then
-    return false
-  end
-  local abs_origin = SceneUtils.ConvertRelativeToAbsolute(origin)
-  if UE4.UKismetMathLibrary.IsPointInBoxWithTransform(abs_origin, self.homeEntranceTransform, HomeEntranceExtent) then
-    if _G.NRCModuleManager:DoCmd(_G.MagicCreationModuleCmd.GetCanDrawDebug) then
-      UE4.UKismetSystemLibrary.Abs_DrawDebugBox(_G.UE4Helper.GetCurrentWorld(), self.homeEntranceTransform.Translation, HomeEntranceExtent, UE4.FLinearColor(0.8, 0.2, 0.05, 0.8), self.homeEntranceTransform.Rotation:ToRotator(), 0.03333333333333333, 5)
-    end
-    return true
-  end
-  return false
 end
 
 return ScenePlayerCreateBuff

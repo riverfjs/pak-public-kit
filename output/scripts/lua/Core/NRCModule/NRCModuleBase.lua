@@ -4,6 +4,7 @@ local NRCResourceManagerEnum = require("Core.Service.ResourceManager.NRCResource
 local PriorityEnum = require("PriorityEnum")
 local NRCPanelEnum = require("Core.NRCPanel.NRCPanelEnum")
 local DefaultPreLoadPanelResCacheTime = 5
+local WaitingRspPanelSeq = 1
 local PanelStatus = {
   Enable = 1,
   Disable = 2,
@@ -386,36 +387,78 @@ function NRCModuleBase:MarkPanelWaitingOpen(panelName, cancel)
 end
 
 function NRCModuleBase:OpenPanel(panelName, ...)
-  self:OpenPanelEx(panelName, PriorityEnum.UI_OpenPanel, ...)
+  local panelOptionIndex
+  local panelArg = table.pack(...)
+  local panelOpenOptions
+  for i = 1, panelArg.n do
+    local arg = panelArg[i]
+    if "table" == type(arg) and rawget(arg, "__isPanelOpenOptions") then
+      panelOpenOptions = arg
+      panelOptionIndex = i
+      break
+    end
+  end
+  if panelOptionIndex then
+    local newArgs = {}
+    local newArgsCount = 0
+    for i = 1, panelArg.n do
+      if i ~= panelOptionIndex then
+        newArgsCount = newArgsCount + 1
+        newArgs[newArgsCount] = panelArg[i]
+      end
+    end
+    return self:OpenPanelImpl(panelName, panelOpenOptions, table.unpack(newArgs, 1, newArgsCount))
+  else
+    return self:OpenPanelImpl(panelName, panelOpenOptions, ...)
+  end
 end
 
 function NRCModuleBase:OpenPanelEx(panelName, priorityEnum, ...)
+  return self:OpenPanelImpl(panelName, _G.NRCPanelOpenOptions.New():SetPriority(priorityEnum), ...)
+end
+
+function NRCModuleBase:OpenPanelImpl(panelName, panelOpenOptions, ...)
+  self:Log("OpenPanel:", panelName, ...)
   local panelData = self:GetPanelData(panelName)
   if not panelData then
     self:LogError("OpenPanel fail: panelData is nil", panelName)
-    return
+    return NRCPanelEnum.PanelOpenResult.Error
   end
-  panelData.loadPriority = priorityEnum or PriorityEnum.UI_OpenPanel
+  panelData.loadPriority = panelOpenOptions and panelOpenOptions.priority or PriorityEnum.UI_OpenPanel
   local curStatus = self:MarkPanelWaitingOpen(panelName, true)
   if curStatus == PanelStatus.Closed then
-    return
+    return NRCPanelEnum.PanelOpenResult.NotAllowed
   end
-  local bool, v = self:HasPanel(panelName)
-  local needCloseFirst = _G.NRCPanelManager:CheckNeedCloseFirst(panelData)
-  if v > 0 and not needCloseFirst then
-    if RocoEnv.IS_EDITOR then
-      self:LogWarning("\232\175\183\229\139\191\229\164\154\230\172\161\230\137\147\229\188\128\229\144\140\228\184\128\228\184\170\233\157\162\230\157\191:", panelName)
+  local hasPanel = self:HasPanel(panelName)
+  local isPanelInOpening = self:IsPanelInOpening(panelName)
+  if hasPanel or isPanelInOpening then
+    local openStrategy = panelOpenOptions and panelOpenOptions.openStrategy or NRCPanelEnum.NRCPanelOpenStrategy.Default
+    if openStrategy == NRCPanelEnum.NRCPanelOpenStrategy.Default then
+      local needCloseFirst = _G.NRCPanelManager:CheckNeedCloseFirst(panelData)
+      if not needCloseFirst then
+        if RocoEnv.IS_EDITOR then
+          self:LogWarning("\232\175\183\229\139\191\229\164\154\230\172\161\230\137\147\229\188\128\229\144\140\228\184\128\228\184\170\233\157\162\230\157\191:", panelName)
+        end
+        return hasPanel and NRCPanelEnum.PanelOpenResult.Opened or NRCPanelEnum.PanelOpenResult.Opening
+      else
+        self:ClosePanel(panelName)
+      end
+    elseif openStrategy == NRCPanelEnum.NRCPanelOpenStrategy.ForceCloseFirst then
+      self:ClosePanel(panelName)
+    elseif openStrategy == NRCPanelEnum.NRCPanelOpenStrategy.BringToFront then
+      if isPanelInOpening and panelOpenOptions and panelOpenOptions.refreshOpeningArgs then
+        _G.NRCPanelManager:RefreshPanelOpenArg(self, panelData, table.pack(...))
+      end
+      self:BringPanelToFront(panelName, ...)
+      return NRCPanelEnum.PanelOpenResult.BringToFront
     end
-    return
   end
-  if needCloseFirst and bool then
-    self:ClosePanel(panelName)
-  end
-  self:Log("OpenPanel:", panelName, ...)
-  local panelArg = table.pack(...)
+  local panelOpenResult = NRCPanelEnum.PanelOpenResult.Error
   if GlobalConfig.DontShowUI == false then
-    local succ = _G.NRCPanelManager:OpenPanel(self, panelData, panelArg)
-    if succ then
+    local panelArg = table.pack(...)
+    local success = _G.NRCPanelManager:OpenPanel(self, panelData, panelArg)
+    if success then
+      panelOpenResult = NRCPanelEnum.PanelOpenResult.Success
       self:AddOpening(panelName)
       self:AddLiving(panelName)
       if curStatus ~= PanelStatus.Disable then
@@ -426,12 +469,35 @@ function NRCModuleBase:OpenPanelEx(panelName, priorityEnum, ...)
       end
     end
   end
+  return panelOpenResult
 end
 
 function NRCModuleBase:OpenPanelTest(panelName, ...)
   local panelArg = table.pack(...)
   if GlobalConfig.DontShowUI == false then
     _G.NRCPanelManager:OpenPanelTest(self, self:GetPanelData(panelName), panelArg)
+  end
+end
+
+function NRCModuleBase:BringPanelToFront(panelName, ...)
+  self:Log("BringPanelToFront:", panelName, ...)
+  local panelData = self:GetPanelData(panelName)
+  if panelData then
+    local layerCtrl = _G.NRCPanelManager:GetLayerCtrl(panelData.panelLayer)
+    if layerCtrl then
+      layerCtrl:BringToFront(panelData.panelName, ...)
+    end
+  end
+end
+
+function NRCModuleBase:SendPanelToBack(panelName, ...)
+  self:Log("SendPanelToBack:", panelName, ...)
+  local panelData = self:GetPanelData(panelName)
+  if panelData then
+    local layerCtrl = _G.NRCPanelManager:GetLayerCtrl(panelData.panelLayer)
+    if layerCtrl then
+      layerCtrl:SendToBack(panelData.panelName, ...)
+    end
   end
 end
 
@@ -443,22 +509,29 @@ function NRCModuleBase:SendOpenReq(module, panelData, openReqParam)
         req[k] = v
       end
     end
+    local seq = WaitingRspPanelSeq + 1
+    WaitingRspPanelSeq = seq
     local OpenReqInfo = {
       Module = module,
       PanelData = panelData,
-      CmdId = openReqParam.cmdId
+      CmdId = openReqParam.cmdId,
+      Seq = seq
     }
     _G.NRCProfilerLog:NRCProtoReqAndRspInterval(openReqParam.cmdId, true, panelData.panelName)
     local sendSuccess = _G.ZoneServer:SendWithHandler(openReqParam.cmdId, req, _G.MakeWeakFunctor(self, self.OnPanelActive, OpenReqInfo), OnSvrRspHandleAdapter)
     if sendSuccess then
-      self.moduleWaitingRspPanelLst[panelData.panelName] = true
+      self.moduleWaitingRspPanelLst[panelData.panelName] = seq
     end
     return sendSuccess
   end
 end
 
 function NRCModuleBase:OnPanelActive(_openReqInfo, _rsp)
-  _G.NRCProfilerLog:NRCProtoReqAndRspInterval(_openReqInfo.CmdId, false, _openReqInfo.PanelData.panelName)
+  local panelName = _openReqInfo.PanelData.panelName
+  if self.moduleWaitingRspPanelLst[panelName] ~= _openReqInfo.Seq then
+    return
+  end
+  _G.NRCProfilerLog:NRCProtoReqAndRspInterval(_openReqInfo.CmdId, false, panelName)
   if _openReqInfo.PanelData and _openReqInfo.PanelData.openReqParam then
     local openReqParam = _openReqInfo.PanelData.openReqParam
     if openReqParam and openReqParam.Caller and openReqParam.Callback then
@@ -466,7 +539,7 @@ function NRCModuleBase:OnPanelActive(_openReqInfo, _rsp)
     end
   end
   _G.NRCPanelManager:OnReceiveOpenRsp(_openReqInfo.Module, _openReqInfo.PanelData, _rsp)
-  self.moduleWaitingRspPanelLst[_openReqInfo.PanelData.panelName] = nil
+  self.moduleWaitingRspPanelLst[panelName] = nil
 end
 
 function NRCModuleBase:OnOpenPanelCallback(panelName, panelIndex, isSucc)
@@ -544,14 +617,18 @@ function NRCModuleBase:DisablePanelByLayer(layer, filterPanelList)
   for i = 1, #self.moduleLivingPanelLst do
     local panelName = self.moduleLivingPanelLst[i]
     local panelData = self:GetPanelData(panelName)
-    if panelData.panelLayer == layer and self:IsPanelEnabled(panelName) then
+    if panelData and panelData.panelLayer == layer then
       if self.modulePanelPrevStatueDict[panelName] == false then
         self:Log("\232\175\183\229\139\191\229\164\154\230\172\161\232\176\131\231\148\168DisablePanelByLayer\239\188\140\232\176\131\231\148\168DisablePanelByLayer\229\144\142\233\156\128\232\166\129\232\176\131\231\148\168RevertPanelEnableStateByLayer\229\164\141\229\142\159UI\231\138\182\230\128\129", layer)
         return
       end
       if not filterPanelList or not filterPanelList[panelName] then
         self.modulePanelPrevStatueDict[panelName] = false
-        self:DisablePanel(panelName)
+        if self:IsPanelEnabled(panelName) then
+          self:DisablePanel(panelName)
+        else
+          self:SetPanelEnable(panelName, false)
+        end
       else
         Log.Debug("\232\175\165\233\157\162\230\157\191\232\162\171\232\191\135\230\187\164\239\188\140\228\184\141Disable\232\175\165\233\157\162\230\157\191\239\188\140" .. panelName)
       end
@@ -571,12 +648,15 @@ function NRCModuleBase:RevertPanelEnableStateByLayer(layer)
   for i = 1, #self.moduleLivingPanelLst do
     local panelName = self.moduleLivingPanelLst[i]
     local panelData = self:GetPanelData(panelName)
-    if panelData.panelLayer == layer and self.modulePanelPrevStatueDict[panelName] ~= nil then
+    if panelData and panelData.panelLayer == layer and self.modulePanelPrevStatueDict[panelName] ~= nil then
       if self.modulePanelPrevStatueDict[panelName] then
         self:DisablePanel(panelName)
-      elseif layer ~= _G.Enum.UILayerType.UI_LAYER_MAIN or not _G.BattleManager.isInBattle then
-        self:EnablePanel(panelName)
-        self.modulePanelPrevStatueDict[panelName] = nil
+      else
+        local bCheckHasDisableMainPopUp = _G.NRCModuleManager:DoCmd(MainUIModuleCmd.CheckHasDisableMainPopUp) or false
+        if layer ~= _G.Enum.UILayerType.UI_LAYER_MAIN or not _G.BattleManager.isInBattle and not bCheckHasDisableMainPopUp then
+          self:EnablePanel(panelName)
+          self.modulePanelPrevStatueDict[panelName] = nil
+        end
       end
     end
   end
@@ -598,7 +678,7 @@ function NRCModuleBase:ClosePanelByLayer(layer)
     for i = #livingPanelLst, 1, -1 do
       local panelName = livingPanelLst[i]
       local panelData = self:GetPanelData(panelName)
-      if panelData.panelLayer == layer then
+      if panelData and panelData.panelLayer == layer then
         self:ClosePanel(panelName)
       end
     end

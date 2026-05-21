@@ -88,11 +88,13 @@ end
 function BattlePetMoveToRightPosAction:HidePerception()
   local BattleMain = BattleUtils.GetMainWindow()
   for _, v in ipairs(self.MovePets) do
-    v.model.HeadWidget:SetHiddenInGame(true)
-    v.model.HeadWidget:SetComponentTickEnabled(false)
-    local hud = v.model.HeadWidget:GetUserWidgetObject()
-    if hud then
-      hud:SetVisible(false)
+    if UE4.UObject.IsValid(v.model) then
+      v.model.HeadWidget:SetHiddenInGame(true)
+      v.model.HeadWidget:SetComponentTickEnabled(false)
+      local hud = v.model.HeadWidget:GetUserWidgetObject()
+      if hud then
+        hud:SetVisible(false)
+      end
     end
     if BattleMain and BattleMain.PerceptionPanel then
       BattleMain.PerceptionPanel:LosePlayer(v)

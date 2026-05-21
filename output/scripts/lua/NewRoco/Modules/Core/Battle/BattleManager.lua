@@ -615,6 +615,7 @@ function BattleManager:EnterBattle()
   self.TeamBattleNotifyQueue = {}
   self.IsMeetNewPet = false
   self.IsTeamBossToCatch = false
+  self.bDirectUpdateUI = false
   if _G.UpdateManager then
     _G.UpdateManager:Register(self)
   end
@@ -627,6 +628,7 @@ function BattleManager:EnterBattle()
   if BattleUtils.IsTeam() then
     UE.UNRCStatics.ExecConsoleCommand("r.AllowOcclusionQueries 0")
   end
+  BattleLevelHelper:OnEnterBattle()
   NRCEventCenter:RegisterEvent("BattleManager", self, NRCGlobalEvent.OnApplicationWillEnterBackground, self.OnApplicationWillEnterBackground)
   NRCEventCenter:RegisterEvent("BattleManager", self, NRCGlobalEvent.OnApplicationHasEnteredForeground, self.OnApplicationHasEnteredForeground)
 end
@@ -693,7 +695,6 @@ function BattleManager:LeaveBattle()
     UE4.UNRCStatics.ExecConsoleCommand("s.HeavyToRenderThreadPostLoadMask 7")
     UE4.UNRCStatics.ChangeLevelStreamingMode(0)
   end
-  _G.NRCModuleManager:DoCmd(_G.EnvSystemModuleCmd.LockWeather, Enum.WeatherType.WT_NONE, LockWeatherReason.Battle)
   NRCModuleManager:DoCmd(PlayerModuleCmd.UnLockTeleport, TeleportLockEnum.LockType.BATTLE)
   _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.ReloadAvatar, PlayerModuleCmd.AvatarUnloadReason.Battle)
   self:OpenTaskBlackScreen()
@@ -744,6 +745,7 @@ function BattleManager:LeaveBattle()
   self.CurTeamBattlePerformNotify = nil
   self.LastSequencePerformNotify = nil
   self.curRandBgmStage = nil
+  self.bDirectUpdateUI = false
   self.SelectTargetManager:Clear()
   self.Target = BattleUtils.GetTraceNpc()
   if self.Target then
@@ -804,6 +806,7 @@ function BattleManager:LeaveBattle()
     self:RemoveAllListeners()
     self.isClear = true
     NRCModeManager:DoCmd(PlayerModuleCmd.HIDE_ALL, false)
+    _G.NRCModuleManager:DoCmd(_G.EnvSystemModuleCmd.LockWeather, Enum.WeatherType.WT_NONE, LockWeatherReason.Battle)
   end)
   BattleBudget:PushTask(nil, function()
     _G.BattlePlayerPool:Clear()
@@ -855,7 +858,7 @@ function BattleManager:LeaveBattle()
   NRCModeManager:GetCurMode():RevertPanelEnableStateByLayer(_G.Enum.UILayerType.UI_LAYER_DIALOGUE)
   NRCModeManager:GetCurMode():RevertPanelEnableStateByLayer(_G.Enum.UILayerType.UI_LAYER_TOP)
   NRCModeManager:GetCurMode():RevertPanelEnableStateByLayer(_G.Enum.UILayerType.UI_LAYER_FULLSCREEN)
-  NRCModeManager:DoCmd(MainUIModuleCmd.OpenPanelLobbyMain)
+  NRCModeManager:DoCmd(MainUIModuleCmd.TryOpenMainPanel)
   if BattleUtils.IsTrainBattle() and _G.BattleManager.battleRuntimeData and _G.BattleManager.battleRuntimeData.battleConfig then
     local battleId = _G.BattleManager.battleRuntimeData.battleConfig.id
     _G.NRCModeManager:DoCmd(BattleUIModuleCmd.SetTeachBattleId, battleId)
@@ -887,6 +890,8 @@ function BattleManager:LeaveBattle()
     NRCModuleManager:DoCmd(_G.LegendaryBattleModuleCmd.OnBattleEnd)
     UE.UNRCStatics.ExecConsoleCommand("r.AllowOcclusionQueries 1")
   end
+  BattleLevelHelper:OnLeaveBattle()
+  BattleLog:OnExitBattle()
   _G.NRCModuleManager:DoCmd(_G.LevelSelectionModuleCmd.BattleFinishedOpenLeveBattleSilhouette)
   local fadeInfo = self.battleRuntimeData.fadeInfo
   if fadeInfo and fadeInfo.cameraFadeRuleId then
@@ -921,6 +926,7 @@ function BattleManager:AfterBattleOver(isForce)
     self.stateFsm:Stop()
     self.stateFsm = nil
   end
+  _G.IsEnterBattleByDebug = nil
   self.TeleportBackPos = nil
   self.EnvActorZ = nil
   BattleUtils.ToggleMove(true)
@@ -985,6 +991,12 @@ function BattleManager:OnTick(deltaTime)
     self.battleObjectManager:OnTick(deltaTime)
     self.battleResourceManager:OnTick(deltaTime)
     self.battleFadeManager:OnTick(deltaTime)
+    if self.bDirectUpdateUI then
+      self.bDirectUpdateUI = false
+      local ignoreOptions = self.directUpdateUIIgnoreOptions
+      self.directUpdateUIIgnoreOptions = nil
+      _G.BattleEventCenter:Dispatch(BattleEvent.DIRECT_UPDATE_UI, ignoreOptions)
+    end
   end
 end
 
@@ -1028,6 +1040,7 @@ function BattleManager:RemoveListeners()
 end
 
 function BattleManager:OnEnterBattleNotify(notify)
+  Log.Msg("BattleProfiler:OnEnterBattleNotify \230\148\182\229\136\176\232\191\155\229\133\165\230\136\152\230\150\151\229\155\158\229\140\133")
   BattleBudget:ProcessAll()
   self:SetSeqNumber(notify.data_seq_num)
   self.isPreloadResWithoutWaiting = false
@@ -1463,10 +1476,14 @@ function BattleManager:GoToRoundStartNextState(notify)
       end
     end
   elseif notify.state_type == _G.ProtoEnum.BATTLE_STATE_NOTIFY_TYPE.BATTLE_STATE_SELECT_EVOLUTION then
-    if notify.state_info.evolution_data and #notify.state_info.evolution_data > 0 then
+    local stateInfo = notify and notify.state_info
+    local evolution_data_list = stateInfo and stateInfo.evolution_data or {}
+    if evolution_data_list and #evolution_data_list > 0 then
       Log.Debug("\231\173\137\229\190\133\231\142\169\229\174\182\232\191\155\229\140\150")
-      self.battleRuntimeData:SetEvolutionSelectActionInfo(notify.state_info.evolution_data)
+      self.battleRuntimeData:SetEvolutionSelectActionInfo(evolution_data_list)
       self.stateFsm:SendEvent(BattleEvent.EnterEvolutionSelect)
+    else
+      Log.Error("[BattleManager] notify.state_type \228\184\186 BATTLE_STATE_SELECT_EVOLUTION \229\141\180\230\178\161\230\156\137 evolution_data \230\149\176\230\141\174\239\188\140\232\175\183\230\163\128\230\159\165")
     end
   else
     Log.Debug("unknow state type : ", notify.state_type)
@@ -2147,6 +2164,7 @@ function BattleManager:OnBattleFinishNotify(notify)
   end
   self:RevertWorldPlayer()
   self.battleRuntimeData.battleSettleData:SetData(notify)
+  self.battleRuntimeData:SetRestartInfo(notify)
   if self.battleRuntimeData.battleType == ProtoEnum.BattleType.BT_LEADERFIGHT and self.battleRuntimeData.battleSettleData:BattleResult() == ProtoEnum.BATTLE_RESULT_TYPE.TRUE_BATTLE_RESULT_WIN_DEFEAT then
     _G.NRCModuleManager:DoCmd(TipsModuleCmd.Tips_ShowPropTips, TipObject.FromLeaderFight(notify, TipEnum.TipObjectType.LeaderFight), ProtoCMD.ZoneSvrCmd.ZONE_BATTLE_FINISH_NOTIFY)
   end
@@ -2326,6 +2344,12 @@ function BattleManager:OnWorldPrepared(isRelogin)
     if not isBattle then
       Log.Warning("BattleManager \229\164\132\228\186\142\230\136\152\230\150\151\228\184\173\239\188\140\228\189\134\230\156\141\229\138\161\229\153\168\231\138\182\230\128\129\229\183\178\232\132\177\231\166\187\230\136\152\230\150\151  \233\156\128\232\166\129\229\188\186\232\161\140\233\148\128\230\175\129BattleManager")
       Log.Debug("BattleManager:OnWorldPrepared isBattle Resume")
+      if self.stateFsm then
+        local activeStateName = self.stateFsm:GetActiveStateName()
+        if "FinalBattleOver" == activeStateName then
+          return
+        end
+      end
       self.stateFsm:Resume()
       self.stateFsm:SendEvent(BattleEvent.EnterNormalOver)
     elseif self.TeleportBackPos then

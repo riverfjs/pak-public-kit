@@ -25,6 +25,7 @@ function BattleB1P3EnterSequenceAction:OnVideoFinish()
   else
     Log.Warning("BattleB1P3EnterSequenceAction fsm is nil")
   end
+  NRCModuleManager:DoCmd(BlackScreenModuleCmd.OpenGlobalBlackScreenIfNeed, -100, false)
   self:Finish()
 end
 

@@ -2,7 +2,6 @@ local EnhancedInputModuleEvent = require("NewRoco.Modules.Core.EnhancedInput.Enh
 local UMG_BagGiftTips_C = _G.NRCPanelBase:Extend("UMG_BagGiftTips_C")
 
 function UMG_BagGiftTips_C:OnConstruct()
-  self:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self:OnAddEventListener()
   self:PCKeySetting()
   self.text:SetText(LuaText.get_gift_text02)
@@ -12,6 +11,7 @@ end
 
 function UMG_BagGiftTips_C:OnActive(tipsControllerModule)
   Log.Info("umg baggifttips active")
+  self:SetVisibility(UE4.ESlateVisibility.Collapsed)
   local curModule = tipsControllerModule
   self.tipsDisplayController = curModule and curModule.getUniversalTipsController
   if self.tipsDisplayController then
@@ -93,7 +93,7 @@ end
 function UMG_BagGiftTips_C:OnUpdateTips(tip, interval)
   if tip and tip.timeLeft and self.currentTipData then
     self.ShowTime = tip.timeLeft
-    local countdownText = self.currentTipData.countdownText or "(%d\231\167\146)"
+    local countdownText = self.currentTipData.countdownText or _G.LuaText.BagGiftTips_Cd
     self.text_1:SetText(string.format(countdownText, self.ShowTime))
   end
 end

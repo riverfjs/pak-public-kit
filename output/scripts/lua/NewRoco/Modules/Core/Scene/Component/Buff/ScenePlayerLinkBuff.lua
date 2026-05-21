@@ -126,7 +126,7 @@ function ScenePlayerLinkBuff:SyncLinkPos()
   if curServerTime - self._lastSyncTime > SYNC_INTERVAL then
     if self.isLinking and UE.UObject.IsValid(self.owner.viewObj) then
       local ownerPos = self.owner.viewObj:Abs_K2_GetActorLocation()
-      self.syncReq.report_pos = SceneUtils.ClientPos2ServerPos(ownerPos, nil, self.syncPos)
+      self.syncReq.report_pos = SceneUtils.PlayerPos2ServerPos(ownerPos, nil, self.syncPos)
       self.syncReq.pos_diff = nil
       _G.ZoneServer:Send(ProtoCMD.ZoneSvrCmd.ZONE_SCENE_RELATION_TRAVEL_TOGETHER_SYNC_REQ, self.syncReq, false)
       Log.DebugFormat("TravelTogetherSync req uin %d, %s", self.owner:GetLogicId(), self.syncReq.report_pos)

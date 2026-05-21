@@ -307,6 +307,13 @@ function TipObject.FromRewardItem(item)
   return tip
 end
 
+function TipObject.CreateMainPetTips(petTipsData)
+  local tip = TipObject()
+  tip.tipType = TipEnum.TipObjectType.MainPetTips
+  tip.customData = petTipsData
+  return tip
+end
+
 function TipObject.CreateAddExpPropTip(expData)
   if not expData then
     return
@@ -626,13 +633,6 @@ function TipObject.CreateCommonTips(content, delay, color, showTime)
   return tip
 end
 
-function TipObject.CreateMainPetExpOrLevelChangeMarkTip(data)
-  local tip = TipObject()
-  tip.tipType = TipEnum.TipObjectType.MainPetExpOrLevelChange
-  tip.customData = data
-  return tip
-end
-
 function TipObject.CreateLobbyRegionPreUpdateTip(cmdId)
   local tip = TipObject()
   tip.tipType = TipEnum.TipObjectType.LobbyRegionPreUpdate
@@ -809,6 +809,15 @@ end
 function TipObject.CreateSeasonBeginsTips()
   local tip = TipObject()
   tip.tipType = TipEnum.TipObjectType.SeasonBeginsTips
+  return tip
+end
+
+function TipObject.CreateActivityCommonOpenTips(activityId, bDebug)
+  local tip = TipObject()
+  tip.tipType = TipEnum.TipObjectType.ActivityCommonOpenTips
+  tip.tipCustomType = activityId
+  local tipsData = {activityId = activityId, bDebug = bDebug}
+  tip.customData = tipsData
   return tip
 end
 

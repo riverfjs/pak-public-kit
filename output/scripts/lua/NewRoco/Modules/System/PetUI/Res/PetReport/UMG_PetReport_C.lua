@@ -52,11 +52,11 @@ function UMG_PetReport_C:InitUI()
 end
 
 function UMG_PetReport_C:OnClickedClose()
-  if self:IsAnimationPlaying(self.Out) then
+  if self:IsAnimationPlaying(self.In) or self:IsAnimationPlaying(self.Out) then
     return
   end
-  if self:IsAnimationPlaying(self.In) or self:IsAnimationPlaying(self.Collect_1) or self.GetCoinTimer then
-    self.bReadToClose = true
+  self.bReadToClose = true
+  if self:IsAnimationPlaying(self.Collect_1) or self.GetCoinTimer then
     if self.coinSoundID then
       _G.NRCAudioManager:ReleaseSession(self.coinSoundID, true, "UMG_PetReport_C:OnClickedClose", false, 0.2)
       self.coinSoundID = nil

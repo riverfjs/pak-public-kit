@@ -1,3 +1,4 @@
+local SceneUtils = require("NewRoco.Modules.Core.Scene.Common.SceneUtils")
 local Base = require("NewRoco.TUI.BP_NRCItemBase_C")
 local UMG_PromptList_C = Base:Extend("UMG_PromptList_C")
 
@@ -18,7 +19,7 @@ end
 
 function UMG_PromptList_C:OnTransBtnClicked()
   _G.NRCAudioManager:PlaySound2DAuto(41401003, "UMG_PromptList_C:OnTransBtnClicked")
-  _G.NRCModuleManager:DoCmd(BigMapModuleCmd.SetMapCenterByNPC, self.uiData.refreshId, 0.5)
+  _G.NRCModuleManager:DoCmd(BigMapModuleCmd.SetMapCenterByNPC, self.uiData.refreshId, 0.5, nil, nil, SceneUtils.GetSceneResId())
 end
 
 function UMG_PromptList_C:OnItemUpdate(_data, datalist, index)

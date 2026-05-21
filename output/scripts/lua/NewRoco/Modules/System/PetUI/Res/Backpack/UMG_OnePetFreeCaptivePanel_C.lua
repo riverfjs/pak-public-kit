@@ -1,4 +1,5 @@
 local PetUIModuleEvent = reload("NewRoco.Modules.System.PetUI.PetUIModuleEvent")
+local PetUIModuleEnum = require("NewRoco.Modules.System.PetUI.PetUIModuleEnum")
 local PetUtils = require("NewRoco.Utils.PetUtils")
 local PetMutationUtils = require("NewRoco.Utils.PetMutationUtils")
 local UMG_OnePetFreeCaptivePanel_C = _G.NRCPanelBase:Extend("UMG_OnePetFreeCaptivePanel_C")
@@ -10,9 +11,14 @@ end
 function UMG_OnePetFreeCaptivePanel_C:OnDestruct()
 end
 
-function UMG_OnePetFreeCaptivePanel_C:OnActive(_data)
+function UMG_OnePetFreeCaptivePanel_C:OnActive(_data, stateType, coverRewardList)
+  stateType = stateType or PetUIModuleEnum.PetFreeCaptivePanelStateType.None
   self:SetCommonPopUpInfo(self.PopUp4)
-  self.PopUp4:SetDescInfo(LuaText.pet_remove_text)
+  if stateType == PetUIModuleEnum.PetFreeCaptivePanelStateType.None then
+    self.PopUp4:SetDescInfo(LuaText.pet_remove_text)
+  elseif stateType == PetUIModuleEnum.PetFreeCaptivePanelStateType.IncludeCanTraceBackPet then
+    self.PopUp4:SetDescInfo(LuaText.pet_free_return_tip)
+  end
   self.PopUp4:SetBtnLeftText(LuaText.umg_petfreecaptiveanimals_1)
   self.PopUp4:SetBtnRightText(LuaText.umg_petfreecaptiveanimals_2)
   self:LoadAnimation(0)
@@ -22,6 +28,7 @@ function UMG_OnePetFreeCaptivePanel_C:OnActive(_data)
   self.uiData.gid = {}
   self.uiData.PetFreeAward = {}
   self.uiData.UnlockedHabitItemNum = {}
+  self.coverRewardList = coverRewardList
   self:SetUpList()
   self:SetNewBelowList()
   self:UpdateList()
@@ -72,15 +79,28 @@ end
 
 function UMG_OnePetFreeCaptivePanel_C:UpdateList()
   local wardItemInfo = self.uiData.PetFreeAward
+  if self.coverRewardList then
+    wardItemInfo = self.coverRewardList
+  end
   local itemInfo = {}
   for i, item in pairs(wardItemInfo) do
-    local itemCfg = item.Id > 0 and _G.DataConfigManager:GetBagItemConf(item.Id) or nil
-    table.insert(itemInfo, {
-      itemCfg = itemCfg,
-      itemId = item.Id,
-      itemCount = item.Count,
-      itemType = item.Type
-    })
+    if self.coverRewardList == nil then
+      local itemCfg = item.Id > 0 and _G.DataConfigManager:GetBagItemConf(item.Id) or nil
+      table.insert(itemInfo, {
+        itemCfg = itemCfg,
+        itemId = item.Id,
+        itemCount = item.Count,
+        itemType = item.Type
+      })
+    else
+      local itemCfg = item.id > 0 and _G.DataConfigManager:GetBagItemConf(item.id) or nil
+      table.insert(itemInfo, {
+        itemCfg = itemCfg,
+        itemId = item.id,
+        itemCount = item.num,
+        itemType = item.Type
+      })
+    end
   end
   table.sort(itemInfo, function(a, b)
     if a.itemCfg.sort_id ~= b.itemCfg.sort_id then
@@ -114,6 +134,10 @@ function UMG_OnePetFreeCaptivePanel_C:SetBelowList()
 end
 
 function UMG_OnePetFreeCaptivePanel_C:SetNewBelowList()
+  if self.coverRewardList ~= nil then
+    Log.Debug("UMG_OnePetFreeCaptivePanel_C:SetNewBelowList, coverRewardList ~= nil, return")
+    return
+  end
   local petData = self.uiData.petList
   for i, _petData in ipairs(petData) do
     local AwardList = PetUtils.GetPetFreeAwradList(_petData)
@@ -241,7 +265,7 @@ function UMG_OnePetFreeCaptivePanel_C:SetAttributeAward(_PetAttributeData, Type)
   local PetAttributeData = _PetAttributeData or 0
   local PetEffortsList = _G.DataConfigManager:GetTable(_G.DataConfigManager.ConfigTableId.PET_EFFORTS_LEVEL):GetAllDatas()
   for i, PetEfforts in pairs(PetEffortsList) do
-    if type(PetAttributeData) == "table" and PetEfforts.attribute_type == Type and PetEfforts.efforts_level == PetAttributeData.effort_lv and PetEfforts.free_item_id and 0 ~= PetEfforts.free_item_id then
+    if type(PetAttributeData) == "table" and PetEfforts.attribute_type == Type and PetEfforts.free_item_id and 0 ~= PetEfforts.free_item_id then
       table.insert(self.uiData.PetFreeAward, {
         Count = PetEfforts.free_item_data,
         Id = PetEfforts.free_item_id,

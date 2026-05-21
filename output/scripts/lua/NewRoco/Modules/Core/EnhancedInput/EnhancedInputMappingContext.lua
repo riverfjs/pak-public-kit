@@ -11,6 +11,7 @@ function EnhancedInputMappingContext:Ctor(contextName)
   self.contextName = contextName
   self.sortNumber = GetContextSeq()
   self.bindActions = {}
+  self.bindActionsKey = {}
   self.onlyForChangeKey = {}
   self.mappingContext = UE.UNRCEnhancedInputHelper.GetInputMappingContext(contextName)
   if not self.mappingContext then
@@ -37,6 +38,7 @@ function EnhancedInputMappingContext:Release()
   self:DisableInputMappingContext()
   self.mappingContext = nil
   self.bindActions = {}
+  self.bindActionsKey = {}
 end
 
 function EnhancedInputMappingContext:GetMappingContextName()
@@ -55,6 +57,8 @@ function EnhancedInputMappingContext:EnableInputMappingContext(_priority)
   local mappingContext = self.mappingContext
   if mappingContext and UE.UObject.IsValid(mappingContext) then
     self.sortNumber = GetContextSeq()
+    self.priority = _priority
+    self.isActive = true
     _G.NRCModuleManager:DoCmd(_G.EnhancedInputModuleCmd.EnhancedInputHelperAddInputMappingContext, mappingContext, _priority)
     for _actionName, _ in pairs(self.bindActions) do
       local bindKey = _G.NRCModuleManager:DoCmd(_G.EnhancedInputModuleCmd.GetMappingKey, _actionName)
@@ -66,6 +70,8 @@ function EnhancedInputMappingContext:EnableInputMappingContext(_priority)
 end
 
 function EnhancedInputMappingContext:DisableInputMappingContext()
+  self.priority = nil
+  self.isActive = false
   local mappingContext = self.mappingContext
   if mappingContext and UE.UObject.IsValid(mappingContext) then
     _G.NRCModuleManager:DoCmd(_G.EnhancedInputModuleCmd.EnhancedInputHelperRemoveInputMappingContext, mappingContext)
@@ -73,9 +79,21 @@ function EnhancedInputMappingContext:DisableInputMappingContext()
 end
 
 function EnhancedInputMappingContext:SetMappingContextActive(_active)
+  self.isActive = _active
   local mappingContext = self.mappingContext
   if mappingContext and UE.UObject.IsValid(mappingContext) then
     return UE.UNRCEnhancedInputHelper.SetInputMappingContextActive(mappingContext, _active or false)
+  end
+end
+
+function EnhancedInputMappingContext:SetMappingContextPriority(_priority)
+  if not _priority then
+    return
+  end
+  self.priority = _priority
+  local mappingContext = self.mappingContext
+  if mappingContext and UE.UObject.IsValid(mappingContext) then
+    return UE.UNRCEnhancedInputHelper.SetInputMappingContextPriority(mappingContext, _priority)
   end
 end
 
@@ -125,6 +143,7 @@ function EnhancedInputMappingContext:ChangeKey(_actionName, _newKey)
       Log.ErrorFormat("EnhancedInputMappingContext:ChangeKey invalid key name = %s for _actionName = %s, please check DEFAULT_BUTTON_CONF table config", tostring(_newKey), tostring(_actionName))
     end
     mappingContext:ChangeMapKey(inputAction, UE.EKeys[_newKey])
+    self.bindActionsKey[_actionName] = _newKey
   end
 end
 
@@ -139,6 +158,7 @@ function EnhancedInputMappingContext:AddKey(_actionName, _newKey)
   local inputAction = self.bindActions[_actionName]
   if inputAction and UE.UObject.IsValid(inputAction) then
     mappingContext:MapKey(inputAction, UE.EKeys[_newKey])
+    self.bindActionsKey[_actionName] = _newKey
   end
 end
 
@@ -153,6 +173,7 @@ function EnhancedInputMappingContext:RemoveKey(_actionName, _removeKey)
   local inputAction = self.bindActions[_actionName]
   if inputAction and UE.UObject.IsValid(inputAction) then
     mappingContext:UnmapKey(inputAction, UE.EKeys[_removeKey])
+    self.bindActionsKey[_actionName] = nil
   end
 end
 
@@ -168,10 +189,12 @@ end
 function EnhancedInputMappingContext:GetDebugData()
   local debugData = {}
   debugData.sortNumber = self.sortNumber
+  debugData.priority = self.priority
   debugData.contextName = self.contextName
+  debugData.isActive = self.isActive
   debugData.bindActions = {}
   for _actionName, _ in pairs(self.bindActions) do
-    debugData.bindActions[_actionName] = _G.NRCModuleManager:DoCmd(_G.EnhancedInputModuleCmd.GetMappingKey, _actionName) or "Not Find Key!"
+    debugData.bindActions[_actionName] = self.bindActionsKey[_actionName] or _G.NRCModuleManager:DoCmd(_G.EnhancedInputModuleCmd.GetMappingKey, _actionName) or "Not Find Key!"
   end
   return debugData
 end

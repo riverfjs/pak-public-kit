@@ -31,6 +31,16 @@ function UMG_Common_ListItemIcon_C:OnItemUpdate(_data, datalist, index)
   self.uiData = _data
   self._index = index
   self:SetInfo()
+  if _data.SpecialShowHandle then
+    _data.SpecialShowHandle = nil
+    self:SpecialShowHandle()
+  end
+end
+
+function UMG_Common_ListItemIcon_C:SpecialShowHandle()
+  self.BGColor:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  self:PlayAnimation(self.change1)
+  UE4.UNRCAudioManager.Get():PlaySound2DAuto(41400001, "UMG_ItemRewards_C:OnActive")
 end
 
 function UMG_Common_ListItemIcon_C:SetInfo()
@@ -86,7 +96,10 @@ function UMG_Common_ListItemIcon_C:SetInfo()
     if self.Time then
       self.Time:SetVisibility(UE4.ESlateVisibility.Collapsed)
     end
-    if bagItemConf and bagItemConf.type == _G.Enum.BagItemType.BI_BP_GIFT_SUB then
+    if _data.IsShowExpire then
+      self:SafeCall(self.Mask, "SetVisibility", UE4.ESlateVisibility.SelfHitTestInvisible)
+      self:SafeCall(self.Expired_1, "SetVisibility", UE4.ESlateVisibility.SelfHitTestInvisible)
+    elseif bagItemConf and bagItemConf.type == _G.Enum.BagItemType.BI_BP_GIFT_SUB then
       local bagModule = _G.NRCModuleManager:GetModule("BagModule")
       if bagModule then
         local bagModuleData = bagModule:GetData()
@@ -114,7 +127,11 @@ function UMG_Common_ListItemIcon_C:SetInfo()
       local petBaseConf = _G.DataConfigManager:GetPetbaseConf(_data.itemId)
       if nil ~= petBaseConf then
         local modelConf = _G.DataConfigManager:GetModelConf(petBaseConf.model_conf)
-        iconPath = modelConf.icon
+        if petBaseConf.have_shiny and 1 == petBaseConf.have_shiny and modelConf.shiny_icon then
+          iconPath = modelConf.shiny_icon
+        else
+          iconPath = modelConf.icon
+        end
       end
     else
       local petInfo = _G.DataConfigManager:GetPetConf(_data.itemId, true)
@@ -122,7 +139,11 @@ function UMG_Common_ListItemIcon_C:SetInfo()
         local petBaseConf = _G.DataConfigManager:GetPetbaseConf(petInfo.base_id)
         if nil ~= petBaseConf then
           local modelConf = _G.DataConfigManager:GetModelConf(petBaseConf.model_conf)
-          iconPath = modelConf.icon
+          if petBaseConf.have_shiny and 1 == petBaseConf.have_shiny and modelConf.shiny_icon then
+            iconPath = modelConf.shiny_icon
+          else
+            iconPath = modelConf.icon
+          end
         end
       else
         local monsterConf = _G.DataConfigManager:GetMonsterConf(_data.itemId)
@@ -130,7 +151,11 @@ function UMG_Common_ListItemIcon_C:SetInfo()
           local petBaseConf = _G.DataConfigManager:GetPetbaseConf(monsterConf.base_id)
           if nil ~= petBaseConf then
             local modelConf = _G.DataConfigManager:GetModelConf(petBaseConf.model_conf)
-            iconPath = modelConf.icon
+            if petBaseConf.have_shiny and 1 == petBaseConf.have_shiny and modelConf.shiny_icon then
+              iconPath = modelConf.shiny_icon
+            else
+              iconPath = modelConf.icon
+            end
           end
         end
       end
@@ -205,6 +230,12 @@ function UMG_Common_ListItemIcon_C:SetInfo()
         self:SetQuality(4)
       end
       iconPath = fashionBondConf.fashion_bond_icon
+    end
+  elseif _data.itemType == _G.Enum.GoodsType.GT_MEDAL then
+    local medalConf = _G.DataConfigManager:GetMedalConf(_data.itemId)
+    if medalConf then
+      iconPath = medalConf.icon
+      self:SetQuality(medalConf.quality)
     end
   end
   if _data.bShowNum == true then
@@ -289,6 +320,7 @@ function UMG_Common_ListItemIcon_C:SetInfo()
       end
     end
   end
+  self:SetConverted(self.uiData.bConverted)
   self:SetAlreadyReceived(self.uiData.bShowGetTag or self.uiData.isDone or self.uiData.bGray)
   self:SetExtra_1(self.uiData.bShowFirstVictory)
   if self.NRCImage_38 then
@@ -315,6 +347,12 @@ function UMG_Common_ListItemIcon_C:SetInfo()
     elseif tag == Enum.RewardTag.RTA_ACTIVITY and _data.reward_reason and _data.reward_reason == ProtoEnum.FlowReason.FLOW_REASON_ACTIVITY_DROP then
       self.Extra:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
       self.ExtraText:SetText(LuaText.activity_special_tip)
+    elseif tag == _G.Enum.RewardTag.RTA_ACTIVITY_FLOWER_MEDAL then
+      self.Extra:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+      self.ExtraText:SetText(_G.LuaText.FlowerHard_RewardTag_Medal)
+    elseif tag == _G.Enum.RewardTag.RTA_ACTIVITY_FLOWER_FIRST then
+      self.Extra:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+      self.ExtraText:SetText(_G.LuaText.FlowerHard_RewardTag_First)
     elseif _data.itemId and _data.itemType == _G.Enum.GoodsType.GT_BAGITEM then
       local BagItemConf = _G.DataConfigManager:GetBagItemConf(_data.itemId)
       if BagItemConf then
@@ -324,6 +362,14 @@ function UMG_Common_ListItemIcon_C:SetInfo()
           self.ExtraText:SetText(LuaText.BossEvoItem_Title)
         end
       end
+    end
+  elseif self.CountLabel then
+    if tag == _G.Enum.RewardTag.RTA_ACTIVITY_FLOWER_MEDAL then
+      self.CountLabel:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+      self.NumberText:SetText(_G.LuaText.FlowerHard_RewardTag_Medal)
+    elseif tag == _G.Enum.RewardTag.RTA_ACTIVITY_FLOWER_FIRST then
+      self.CountLabel:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+      self.NumberText:SetText(_G.LuaText.FlowerHard_RewardTag_First)
     end
   end
   if nil == self.uiData.IsCanClick then
@@ -353,11 +399,16 @@ function UMG_Common_ListItemIcon_C:SetInfo()
   end
   self.Color:SetVisibility(_data.itemType == _G.Enum.GoodsType.GT_PET and UE4.ESlateVisibility.Collapsed or UE4.ESlateVisibility.SelfHitTestInvisible)
   if self.ClassUMG then
-    if _data.classIcon and _data.classNumber then
+    if _data.classIcon then
       self.ClassUMG:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
       self.ClassUMG.ClassIcon:SetPath(_data.classIcon)
-      self.ClassUMG.Switcher_1:SetActiveWidgetIndex(0)
-      self.ClassUMG.DanGrading:SetPath(_data.classNumber)
+      if not string.IsNilOrEmpty(_data.classNumber) then
+        self.ClassUMG.Switcher_1:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+        self.ClassUMG.Switcher_1:SetActiveWidgetIndex(0)
+        self.ClassUMG.DanGrading:SetPath(_data.classNumber)
+      else
+        self.ClassUMG.Switcher_1:SetVisibility(UE4.ESlateVisibility.Collapsed)
+      end
     else
       self.ClassUMG:SetVisibility(UE4.ESlateVisibility.Collapsed)
     end
@@ -465,6 +516,15 @@ function UMG_Common_ListItemIcon_C:HideTextQuantity()
   self.Quantity:SetVisibility(UE4.ESlateVisibility.Collapsed)
 end
 
+function UMG_Common_ListItemIcon_C:SetConverted(bConverted)
+  if bConverted then
+    self:SafeCall(self.Converted, "SetVisibility", UE4.ESlateVisibility.SelfHitTestInvisible)
+    self:SafeCall(self.ConvertedText, "SetText", LuaText.goods_return_text)
+  else
+    self:SafeCall(self.Converted, "SetVisibility", UE4.ESlateVisibility.Collapsed)
+  end
+end
+
 function UMG_Common_ListItemIcon_C:SetAlreadyReceived(bShowGetTag)
   if true == bShowGetTag then
     self.AlreadyReceived:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
@@ -543,13 +603,16 @@ function UMG_Common_ListItemIcon_C:SetCanClick(IsCanClick)
   end
 end
 
-function UMG_Common_ListItemIcon_C:OnItemSelected(_bSelected)
+function UMG_Common_ListItemIcon_C:OnItemSelected(_bSelected, _isScroll)
   Log.Debug(self.IsSelect, "UMG_Common_ListItemIcon_C:OnItemSelected")
   if _bSelected then
+    if not self.uiData then
+      return
+    end
     if self.uiData.OnClicked then
       self.uiData.OnClicked(self.uiData, self._index)
     end
-    if self.uiData.bShowTip and not self.uiData.IsDoCmd then
+    if self.uiData.bShowTip and not self.uiData.IsDoCmd and not _isScroll then
       self:OpenTips()
       return
     end
@@ -601,6 +664,9 @@ function UMG_Common_ListItemIcon_C:OnItemSelected(_bSelected)
           self:PlayAnimation(self.change1)
           self.IsSelect = true
         else
+          if _isScroll then
+            return
+          end
           local remainCnt, maxCnt, isBattleState, Position, overrideNum, Caller, CallBack, OpenCallBack
           local showErrorTipsWhenNotFound = self.uiData and self.uiData.showDefaultIconWhenConfigError
           local showDefaultIconWhenNotFound = self.uiData and self.uiData.showDefaultIconWhenConfigError
@@ -667,7 +733,11 @@ function UMG_Common_ListItemIcon_C:OpenTips()
     return
   end
   self:LockSelectBtn()
-  _G.NRCAudioManager:PlaySound2DAuto(1303, "UMG_Common_ListItemIcon_C:OpenTips")
+  if self.uiData.openTipsSoundId then
+    _G.NRCAudioManager:PlaySound2DAuto(self.uiData.openTipsSoundId, "UMG_Common_ListItemIcon_C:OpenTips")
+  else
+    _G.NRCAudioManager:PlaySound2DAuto(1303, "UMG_Common_ListItemIcon_C:OpenTips")
+  end
   if self.uiData.itemType == _G.Enum.GoodsType.GT_FASHION_SUITS then
     _G.NRCModuleManager:DoCmd(AppearanceModuleCmd.OpenAppearanceSuitDetailsPanel, self.uiData.itemId)
   elseif self.uiData.itemType == _G.Enum.GoodsType.GT_REWARD then
@@ -695,19 +765,36 @@ function UMG_Common_ListItemIcon_C:OpenTips()
       _G.NRCModeManager:DoCmd(TipsModuleCmd.OpenItemTipsSimplify, param)
       return
     end
-    local GID
+    local param, GID
     if self.uiData and self.uiData.bagItemGid then
       GID = self.uiData.bagItemGid
     end
     if self.uiData and self.uiData.bag_item then
       GID = self.uiData.bag_item.gid
     end
-    _G.NRCModeManager:DoCmd(TipsModuleCmd.Tips_OpenItemTips, self.uiData.itemId, self.uiData.itemType, false, remainCnt, maxCnt, isBattleState, Position, overrideNum, Caller, CallBack, OpenCallBack, showErrorTipsWhenNotFound, showDefaultIconWhenNotFound, GID)
+    if self.uiData and self.uiData.gid then
+      GID = self.uiData.gid
+    end
+    if self.uiData and self.uiData.eggInfo then
+      param = {
+        EggInfo = self.uiData.eggInfo
+      }
+    end
+    local quality = self.uiData and self.uiData.AssignQuality
+    _G.NRCModeManager:DoCmd(TipsModuleCmd.Tips_OpenItemTips, self.uiData.itemId, self.uiData.itemType, false, remainCnt, maxCnt, isBattleState, Position, overrideNum, Caller, CallBack, OpenCallBack, showErrorTipsWhenNotFound, showDefaultIconWhenNotFound, GID, quality, param)
   end
 end
 
 function UMG_Common_ListItemIcon_C:OnDeactive()
   self.uiData = nil
+end
+
+function UMG_Common_ListItemIcon_C:OnTouchEnded(MyGeometry, InTouchEvent)
+  if self.clickable and not self.IsSelect then
+    _G.NRCAudioManager:PlaySound2DAuto(41401003, "UMG_Common_ListItemIcon_C:OnItemSelected")
+  end
+  Base.OnTouchEnded(self, MyGeometry, InTouchEvent)
+  return UE4.UWidgetBlueprintLibrary.Unhandled()
 end
 
 function UMG_Common_ListItemIcon_C:CheckIsSelectBtn()
@@ -734,13 +821,22 @@ function UMG_Common_ListItemIcon_C:SetIcon(icon_path)
         bagItemInfo = self.uiData.bag_item
       end
       local egg_data = bagItemInfo and bagItemInfo.egg_data
-      if not egg_data and bagItemConf.item_behavior and bagItemConf.item_behavior[1] and bagItemConf.item_behavior[1].ratio2 and bagItemConf.item_behavior[1].ratio2[1] then
-        egg_data = {}
-        egg_data.random_egg_conf = bagItemConf.item_behavior[1].ratio2[1]
-        local randomEggConf = _G.DataConfigManager:GetPetRandomEggConf(bagItemConf.item_behavior[1].ratio2[1])
-        if randomEggConf then
-          local PreciousEggType = randomEggConf.precious_egg_type
-          if PreciousEggType ~= _G.Enum.PreciousEggType.PET_NONE then
+      if not egg_data then
+        if bagItemConf.item_behavior and bagItemConf.item_behavior[1] and bagItemConf.item_behavior[1].ratio2 and bagItemConf.item_behavior[1].ratio2[1] then
+          egg_data = {}
+          egg_data.random_egg_conf = bagItemConf.item_behavior[1].ratio2[1]
+          local randomEggConf = _G.DataConfigManager:GetPetRandomEggConf(bagItemConf.item_behavior[1].ratio2[1])
+          if randomEggConf then
+            local PreciousEggType = randomEggConf.precious_egg_type
+            if PreciousEggType ~= _G.Enum.PreciousEggType.PET_NONE then
+              local quality = 5
+              self:SetQuality(quality)
+            end
+          end
+        end
+        if self.uiData.eggInfo then
+          egg_data = self.uiData.eggInfo
+          if self.uiData.eggInfo and self.uiData.eggInfo.glass_info then
             local quality = 5
             self:SetQuality(quality)
           end

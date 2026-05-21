@@ -16,7 +16,8 @@ function UMG_VerticalTabBtn_C:OnEnterFilterGlassItem(bEnter)
     if self.uiData.LabelType ~= Enum.FashionLabelType.FLT_CLOTHES then
       self.Unclickable:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
       self:SetClickable(false)
-      self:SetupRedDot(false)
+      self.RedDot:SetupKey(0)
+      self.RedDot:Refresh()
       self:SetupSpecialRedDot(false)
     else
       self.Unclickable:SetVisibility(UE4.ESlateVisibility.Collapsed)
@@ -113,6 +114,9 @@ function UMG_VerticalTabBtn_C:OnTouchEnded(MyGeometry, InTouchEvent)
 end
 
 function UMG_VerticalTabBtn_C:SetupRedDot(hasDot)
+  if not self.clickable and hasDot then
+    return
+  end
   self.bHasRedDot = hasDot
   if hasDot then
     self.RedDot:SetupKey(406)
@@ -160,6 +164,9 @@ function UMG_VerticalTabBtn_C:SetupMap()
 end
 
 function UMG_VerticalTabBtn_C:SetDressPrompt(bShouldShow)
+  if not self.clickable and bShouldShow then
+    return
+  end
   self.bShowDressPrompt = bShouldShow
   if bShouldShow and not self.RedDot:IsRed() and not self.RedDot_1:IsRed() then
     self.UpgradePrompt:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
@@ -214,29 +221,10 @@ function UMG_VerticalTabBtn_C:HandleDressPrompt(bFashion, labelType, parent, bIs
 end
 
 function UMG_VerticalTabBtn_C:_CheckIsOwnedItem(itemId, bFashion, labelType)
-  if labelType == _G.Enum.FashionLabelType.FLT_CLOTHES then
-    for k, v in ipairs(self.ClothToComponentMap) do
-      local showItemList = self.parent.data:GetClosetShowItemList(bFashion, v)
-      for k1, v1 in ipairs(showItemList) do
-        if itemId == v1 then
-          return true
-        end
-      end
-    end
+  if not (bFashion and itemId) or 0 == itemId then
+    return false
   end
-  if labelType == _G.Enum.FashionLabelType.FLT_ACCESSORIES then
-    for k, v in ipairs(self.AccessortToComponentMap) do
-      local showItemList = self.parent.data:GetClosetShowItemList(bFashion, v)
-      for k1, v1 in ipairs(showItemList) do
-        if itemId == v1 then
-          return true
-        end
-      end
-    end
-  end
-  if labelType == _G.Enum.FashionLabelType.FLT_SALON or not bFashion then
-  end
-  return false
+  return self.parent.module:OnCmdCheckHasOwned(_G.Enum.GoodsType.GT_FASHION, itemId)
 end
 
 return UMG_VerticalTabBtn_C

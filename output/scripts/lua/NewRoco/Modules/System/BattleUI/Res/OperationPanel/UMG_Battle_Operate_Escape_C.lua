@@ -1,3 +1,4 @@
+local BattleEnum = require("NewRoco.Modules.Core.Battle.Common.BattleEnum")
 local UMG_Battle_Operate_Escape_C = NRCUmgClass:Extend("")
 
 function UMG_Battle_Operate_Escape_C:Construct()
@@ -12,7 +13,7 @@ end
 
 function UMG_Battle_Operate_Escape_C:OnDialogCallback(result)
   if result then
-    _G.BattleNetManager:SendEscapeReq()
+    _G.BattleNetManager:SendEscapeReq(BattleEnum.RunAwayType.Abandon)
   end
 end
 

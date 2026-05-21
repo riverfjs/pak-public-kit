@@ -35,4 +35,5 @@ MagicManualModuleEvent.OnMagicManualComBoxItemSelect = "MagicManualModuleEvent.O
 MagicManualModuleEvent.UpdateMagicTeachingPanel = "MagicManualModuleEvent.UpdateMagicTeachingPanel"
 MagicManualModuleEvent.OnRecallPanelClose = "MagicManualModuleEvent.OnRecallPanelClose"
 MagicManualModuleEvent.OnRecallButtonAnimFinished = "MagicManualModuleEvent.OnRecallButtonAnimFinished"
+MagicManualModuleEvent.OnMagicManualMainPanelTouchEnded = "MagicManualModuleEvent.OnMagicManualMainPanelTouchEnded"
 return MagicManualModuleEvent

@@ -48,25 +48,43 @@ function SelfieCameraControl:GatherAttachParamsConfig(Rider)
     local ScenePet = self.Player:GetRidePetLua()
     local PetBaseId = ScenePet.config.id
     local RideConf = _G.DataConfigManager:GetAllRidePet(PetBaseId)
-    local selfie_takephoto_params = _G.TakePhotoEditorTools and _G.TakePhotoEditorTools.Get():GetSelfieTakePhotoParams(PetBaseId) or RideConf.selfie_takephoto_params or ""
-    local nums = string.split(selfie_takephoto_params, ";")
-    for i, num in ipairs(nums) do
-      nums[i] = tonumber(num) or 0
+    if _G.TakePhotoEditorTools and _G.TakePhotoEditorTools.Get() then
+      local Tls = _G.TakePhotoEditorTools.Get()
+      local view_offset_h = Tls:GetSelfieData("view_offset_h")
+      local view_offset_v = Tls:GetSelfieData("view_offset_v")
+      local cam_offset_h = Tls:GetSelfieData("cam_offset_h")
+      local cam_offset_d = Tls:GetSelfieData("cam_offset_d")
+      local cam_offset_l = Tls:GetSelfieData("cam_offset_l")
+      local cam_min_l = Tls:GetSelfieData("cam_min_l")
+      local cam_max_l = Tls:GetSelfieData("cam_max_l")
+      AttachParamsConfigs.HorizontalViewOffset = view_offset_h
+      AttachParamsConfigs.ViewHeightOffset = view_offset_v
+      AttachParamsConfigs.HorizontalCamOffset = cam_offset_h
+      AttachParamsConfigs.InitHeightOffset = cam_offset_l
+      AttachParamsConfigs.DistanceViewOffset = cam_offset_d
+      AttachParamsConfigs.MiniCameraHeight = cam_min_l
+      AttachParamsConfigs.MaxiCameraHeight = cam_max_l
+    else
+      local selfie_takephoto_params = RideConf.selfie_takephoto_params or ""
+      local nums = string.split(selfie_takephoto_params, ";")
+      for i, num in ipairs(nums) do
+        nums[i] = tonumber(num) or 0
+      end
+      local view_offset_h = nums[1] or 0
+      local view_offset_v = nums[2] or 0
+      local cam_offset_h = nums[3] or 0
+      local cam_offset_d = nums[4] or 200
+      local cam_offset_l = nums[5] or 0
+      local cam_min_l = nums[6] or 0
+      local cam_max_l = nums[7] or 150
+      AttachParamsConfigs.HorizontalViewOffset = view_offset_h
+      AttachParamsConfigs.ViewHeightOffset = view_offset_v
+      AttachParamsConfigs.HorizontalCamOffset = cam_offset_h
+      AttachParamsConfigs.InitHeightOffset = cam_offset_l
+      AttachParamsConfigs.DistanceViewOffset = cam_offset_d
+      AttachParamsConfigs.MiniCameraHeight = cam_min_l
+      AttachParamsConfigs.MaxiCameraHeight = cam_max_l
     end
-    local view_offset_h = nums[1] or 0
-    local view_offset_v = nums[2] or 0
-    local cam_offset_h = nums[3] or 0
-    local cam_offset_d = nums[4] or 200
-    local cam_offset_l = nums[5] or 0
-    local cam_min_l = nums[6] or 0
-    local cam_max_l = nums[7] or 150
-    AttachParamsConfigs.HorizontalViewOffset = view_offset_h
-    AttachParamsConfigs.ViewHeightOffset = view_offset_v
-    AttachParamsConfigs.HorizontalCamOffset = cam_offset_h
-    AttachParamsConfigs.InitHeightOffset = cam_offset_l
-    AttachParamsConfigs.DistanceViewOffset = cam_offset_d
-    AttachParamsConfigs.MiniCameraHeight = cam_min_l
-    AttachParamsConfigs.MaxiCameraHeight = cam_max_l
   end
   return AttachParamsConfigs
 end
@@ -107,6 +125,9 @@ function SelfieCameraControl:OnSelfieConfigChangedEd()
   local Forward = ViewOffset - LocationOffset
   self.AttachParams.ReadOnlyViewPointOffset = ViewOffset
   self.AttachParams.ReadOnlyRelativeTransform = UE.FTransform(Forward:ToQuat(), LocationOffset, FVectorOne)
+  if self.DesiredHeight then
+    self.ElapsedInputHeight = InitHeightOffset - self.DesiredHeight
+  end
   Log.Debug("SelfieCameraControl Editor Rotation:", self.AttachParams.ReadOnlyRelativeTransform.Rotation:ToRotator())
 end
 
@@ -550,7 +571,8 @@ function SelfieCameraControl:GatherAttachedOwner()
       local Mesh = ridePet.Mesh
       local Rotation = Mesh and Mesh:K2_GetComponentRotation()
       local RiderComponent = self.Player:GetRideComponent()
-      if Rotation and RiderComponent and (RiderComponent.RideMoveType == ProtoEnum.SceneRideAllType.SRAT_GROUND or RiderComponent.RideMoveType == ProtoEnum.SceneRideAllType.SRAT_FLY or RiderComponent.RideMoveType == ProtoEnum.SceneRideAllType.SRAT_SWIM) then
+      local RiderBp = self.Player:GetRidePetBP()
+      if Rotation and RiderComponent and (RiderComponent.RideMoveType == ProtoEnum.SceneRideAllType.SRAT_GROUND or RiderComponent.RideMoveType == ProtoEnum.SceneRideAllType.SRAT_FLY or RiderComponent.RideMoveType == ProtoEnum.SceneRideAllType.SRAT_SWIM or RiderBp and 0 == RiderComponent.RideMoveType and RiderBp.CharacterMovement.MovementMode == UE.EMovementMode.MOVE_Falling) then
         local ScenePet = self.Player:GetRidePetLua()
         if ScenePet then
           local RideConf = _G.DataConfigManager:GetAllRidePet(ScenePet.config.id, true)
@@ -613,6 +635,7 @@ end
 
 function SelfieCameraControl:Apply2PRiderConfig(AttachParams)
   assert(AttachParams)
+  AttachParams.bCamera2pRiderRotationDirty = true
   AttachParams.Camera2pRiderRotation = nil
   local ScenePet = self.Player:GetRidePetLua()
   if ScenePet then
@@ -744,8 +767,8 @@ function SelfieCameraControl:DoCollisionTest(TestPosition)
 end
 
 function SelfieCameraControl:Enter()
-  self.bHandActionDirty = false
   self.bPendingExit = false
+  self.bHandActionDirty = false
   self.Overlaps = {}
   self:InternalClearInput()
   self.SelfieCameraResource.OnSpawned:Clear()
@@ -881,9 +904,12 @@ function SelfieCameraControl:Tick2pRider(Dt)
   end
   self:Sync2pRiderAnimationInstanceFov()
   if not self.Player.ueController.BP_RocoCameraControlComponent._isControllingView then
-    local WorldRotation = MeshComponent:Abs_K2_GetComponentToWorld():TransformRotation(self.AttachParams.Camera2pRiderRotation)
-    local WorldRotator = WorldRotation:ToRotator()
-    self.Player.ueController:SetControlRotation(WorldRotator)
+    if self.AttachParams.bCamera2pRiderRotationDirty then
+      self.AttachParams.bCamera2pRiderRotationDirty = false
+      local WorldRotation = MeshComponent:Abs_K2_GetComponentToWorld():TransformRotation(self.AttachParams.Camera2pRiderRotation)
+      local WorldRotator = WorldRotation:ToRotator()
+      self.Player.ueController:SetControlRotation(WorldRotator)
+    end
   else
     local WorldRotator = self.Player.ueController:GetControlRotation()
     local LocalRotation = MeshComponent:Abs_K2_GetComponentToWorld():InverseTransformRotation(WorldRotator:ToQuat())

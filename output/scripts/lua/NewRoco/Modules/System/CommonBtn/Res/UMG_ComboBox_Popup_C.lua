@@ -6,6 +6,8 @@ function UMG_ComboBox_Popup_C:OnConstruct()
   self.lastScreenPosX = 0
   self.lastScreenPosY = 0
   self.InAnimCallBack = nil
+  self.InAnim = self.In2
+  self.OutAnim = self.Out2
   self.OnVisibilityChanged:Add(self, self.HandleOnVisibilityChanged)
 end
 
@@ -100,22 +102,32 @@ function UMG_ComboBox_Popup_C:PlayAnimationInfo(IsIn)
   self:StopAllAnimations()
   if IsIn then
     self:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-    self:PlayAnimation(self.In2)
+    self:PlayAnimation(self.InAnim)
   else
-    self:PlayAnimation(self.Out2)
+    self:PlayAnimation(self.OutAnim)
   end
 end
 
 function UMG_ComboBox_Popup_C:OnAnimationFinished(Anim)
-  if Anim == self.Out2 then
+  if Anim == self.OutAnim then
     self:SetVisibility(UE4.ESlateVisibility.Collapsed)
-  elseif Anim == self.In2 and self.InAnimCallBack then
+  elseif Anim == self.InAnim and self.InAnimCallBack then
     self.InAnimCallBack()
   end
 end
 
 function UMG_ComboBox_Popup_C:SetInAnimCallBack(cb)
   self.InAnimCallBack = cb
+end
+
+function UMG_ComboBox_Popup_C:SetAnimChoice(isDown)
+  if isDown then
+    self.InAnim = self.In
+    self.OutAnim = self.Out
+  else
+    self.InAnim = self.In2
+    self.OutAnim = self.Out2
+  end
 end
 
 return UMG_ComboBox_Popup_C

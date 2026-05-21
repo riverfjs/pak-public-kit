@@ -22,6 +22,10 @@ function UMG_GorgeousMedal_C:OnConstruct()
 end
 
 function UMG_GorgeousMedal_C:OnUnDoFoldCollapsed()
+  local curType = _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.GetCurTopExclusionPanel)
+  if curType ~= AppearanceModuleEnum.ExclusionPanelType.GorgeousMedal then
+    return
+  end
   self:StopAllAnimations()
   local medalId
   if self.curSelectMedal then
@@ -34,6 +38,7 @@ function UMG_GorgeousMedal_C:OnUnDoFoldCollapsed()
 end
 
 function UMG_GorgeousMedal_C:OnActive(medalId)
+  _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.SetCurTopExclusionPanel, AppearanceModuleEnum.ExclusionPanelType.GorgeousMedal)
   _G.NRCEventCenter:DispatchEvent(AppearanceModuleEvent.OnGorgeousMedalOpen)
   self:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
   self:RefreshMedalState()
@@ -368,11 +373,15 @@ function UMG_GorgeousMedal_C:RefreshMedalList(type, clearSelect)
     self.curSelectMedal = nil
   end
   local sortedData = self:MedalSortHandle(self.MedalInfoMap[type]) or {}
+  local curSelectMedalId = self.curSelectMedal and self.curSelectMedal.conf.id or 0
   self.MedalList:ClearSelection()
-  self.MedalList:SetCustomData({
-    curSelectMedalId = self.curSelectMedal and self.curSelectMedal.conf.id or 0
-  })
+  self.MedalList:SetCustomData({curSelectMedalId = curSelectMedalId})
   self.MedalList:InitList(sortedData)
+  for i, v in pairs(sortedData) do
+    if v.conf.id == curSelectMedalId then
+      self.MedalList:SelectItemByIndex(i - 1)
+    end
+  end
 end
 
 function UMG_GorgeousMedal_C:RefreshLeftView()
@@ -647,7 +656,13 @@ function UMG_GorgeousMedal_C:OnUpgradeBtnClick()
   if self.curSelectMedal then
     self.bIsGoToOtherPanel = true
     self:PlayCloseAnim()
-    _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.OpenFashionUpgradePanel, self.curSelectMedal.suitId)
+    self:DispatchEvent(AppearanceModuleEvent.SetAppearanceTabSelectedIndex, 0)
+    self:DelayFrames(2, function()
+      local closetPanel = self.module:GetPanel("AppearanceCloset")
+      if closetPanel then
+        closetPanel:GoToSuitUpgrade(self.curSelectMedal.suitId, true)
+      end
+    end)
   end
 end
 

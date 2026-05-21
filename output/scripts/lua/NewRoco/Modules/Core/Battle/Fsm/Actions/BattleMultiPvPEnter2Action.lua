@@ -50,6 +50,9 @@ function BattleMultiPvPEnter2Action:LoadPetSkill()
   MyCastObject:SetDynamicData({
     BallAdditionalPaths = self.ballPath
   })
+  MyCastObject:SetCallbackOwner(self)
+  MyCastObject:SetSkillBreakCallback(self.OnSkillEnd)
+  MyCastObject:SetStartFailedCallback(self.OnSkillEnd)
   local characters = BattleManager.battlePawnManager:GetAllPawnActorForSkill()
   local teamOuterSkillCharacters = {}
   table.copy(characters, teamOuterSkillCharacters)
@@ -90,6 +93,9 @@ function BattleMultiPvPEnter2Action:LoadPetSkill()
   EnemyCastObject:SetDynamicData({
     BallAdditionalPaths = self.enemyBallPath
   })
+  EnemyCastObject:SetCallbackOwner(self)
+  EnemyCastObject:SetSkillBreakCallback(self.OnSkillEndEnemy)
+  EnemyCastObject:SetStartFailedCallback(self.OnSkillEndEnemy)
   EnemyCastObject:SetCharacters(characters)
   local enemyPets = BattleManager.battlePawnManager:GetInFieldAllPet(BattleEnum.Team.ENUM_ENEMY)
   if #enemyPets > 0 then

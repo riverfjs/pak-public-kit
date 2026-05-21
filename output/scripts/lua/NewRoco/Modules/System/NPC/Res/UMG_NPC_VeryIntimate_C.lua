@@ -34,6 +34,7 @@ function UMG_NPC_VeryIntimate_C:RefreshStatus(newStatus)
   self.bIsButtonActive = newStatus
   if newStatus then
     self:PlayAnimation(self.Dark2Bright)
+    UE4.UNRCAudioManager.Get():PlaySound2DAuto(40004007, "UMG_NPC_VeryIntimate_C:Anim.Dark2Bright")
   else
     self:PlayAnimation(self.Bright2Dark)
   end

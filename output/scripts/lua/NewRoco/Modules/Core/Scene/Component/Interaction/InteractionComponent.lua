@@ -234,6 +234,7 @@ function InteractionComponent:CalcCheckOpts()
   if not ID and not Option then
     self._highestManualPriority = -1
   end
+  self.owner:SendEvent(NPCModuleEvent.OnInteractingChanged, self:HasAnyInteractingOption())
 end
 
 function InteractionComponent:OnSetViewObj()
@@ -286,6 +287,7 @@ function InteractionComponent:StartCheckOption(option)
       self:OnHighPriorityOptionActive(ID, option)
     end
   end
+  self.owner:SendEvent(NPCModuleEvent.OnInteractingChanged, self:HasAnyInteractingOption())
 end
 
 function InteractionComponent:StopCheckOption(option)
@@ -632,6 +634,8 @@ function InteractionComponent:GetMainAction()
         choose = v
       elseif v:GetPriority() > choose:GetPriority() then
         choose = v
+      elseif v:GetPriority() == choose:GetPriority() and v.config.id < choose.config.id then
+        choose = v
       end
     end
   end
@@ -645,6 +649,8 @@ function InteractionComponent:GetActiveBattleAction()
       if not choose then
         choose = v
       elseif v:GetPriority() > choose:GetPriority() then
+        choose = v
+      elseif v:GetPriority() == choose:GetPriority() and v.config.id < choose.config.id then
         choose = v
       end
     end
@@ -677,7 +683,7 @@ function InteractionComponent:OnPlayerEnterActionArea()
       end
     end
   else
-    Log.Debug("InteractionComponent:OnPlayerEnterActionArea \229\183\178\232\162\171\231\166\129\231\148\168\228\186\164\228\186\146")
+    Log.Debug("InteractionComponent:OnPlayerEnterActionArea \229\183\178\232\162\171\231\166\129\231\148\168\228\186\164\228\186\146", self.DisableFlag, self.DisableFlagTemp)
   end
 end
 
@@ -737,17 +743,23 @@ function InteractionComponent:CanBattleWithReason()
   for _, v in pairs(self._options) do
     if v:IsOptionEnable(true) and not v:NeedStatusNotify() then
       local PetActionType = v.config.pet_action.action_type or Enum.ActionType.ACT_NONE
-      if PetActionType == Enum.ActionType.ACT_NONE then
-        local actionType = v.config.action.action_type
-        if actionType == Enum.ActionType.ACT_BATTLE then
-          return true, EFailedReason.Success
-        end
-        if actionType == Enum.ActionType.ACT_TOUCHBATTLE then
-          return true, EFailedReason.Success
-        end
-      elseif PetActionType == Enum.ActionType.ACT_BATTLE then
+      if PetActionType == Enum.ActionType.ACT_BATTLE then
         return true, 0, EFailedReason.Success
       elseif PetActionType == Enum.ActionType.ACT_TOUCHBATTLE then
+        return true, 0, EFailedReason.Success
+      elseif PetActionType == Enum.ActionType.ACT_BOX_BATTLE then
+        return true, 0, EFailedReason.Success
+      end
+    end
+  end
+  return false, EFailedReason.DefaultFailed
+end
+
+function InteractionComponent:CanBattleWithBox()
+  for _, v in pairs(self._options) do
+    if v.optionInfo and v.optionInfo.enabled then
+      local PetActionType = v.config.pet_action.action_type or Enum.ActionType.ACT_NONE
+      if PetActionType == Enum.ActionType.ACT_BOX_BATTLE then
         return true, 0, EFailedReason.Success
       end
     end
@@ -760,7 +772,7 @@ function InteractionComponent:DoCheckCanBattle_PetCreator()
   if bBossType then
     return true
   end
-  local bHighValue = UIUtils.CheckIsHighValuePet(self.serverData)
+  local bHighValue = UIUtils.CheckIsHighValuePet(self)
   if not bHighValue then
     return true
   end
@@ -803,9 +815,14 @@ function InteractionComponent:CanBattleMaxRangeSquared()
         if actionType == Enum.ActionType.ACT_TOUCHBATTLE and maxFightRange < v.config.pet_fight_radius then
           maxFightRange = v.config.pet_fight_radius
         end
+        if actionType == Enum.ActionType.ACT_BOX_BATTLE and maxFightRange < v.config.pet_fight_radius then
+          maxFightRange = v.config.pet_fight_radius
+        end
       elseif PetActionType == Enum.ActionType.ACT_BATTLE and maxFightRange < v.config.pet_fight_radius then
         maxFightRange = v.config.pet_fight_radius
       elseif PetActionType == Enum.ActionType.ACT_TOUCHBATTLE and maxFightRange < v.config.pet_fight_radius then
+        maxFightRange = v.config.pet_fight_radius
+      elseif PetActionType == Enum.ActionType.ACT_BOX_BATTLE and maxFightRange < v.config.pet_fight_radius then
         maxFightRange = v.config.pet_fight_radius
       end
     end
@@ -828,9 +845,14 @@ function InteractionComponent:GetBattleOption()
         if actionType == Enum.ActionType.ACT_TOUCHBATTLE then
           return v
         end
+        if actionType == Enum.ActionType.ACT_BOX_BATTLE then
+          return v
+        end
       elseif PetActionType == Enum.ActionType.ACT_BATTLE then
         return v
       elseif PetActionType == Enum.ActionType.ACT_TOUCHBATTLE then
+        return v
+      elseif PetActionType == Enum.ActionType.ACT_BOX_BATTLE then
         return v
       end
     end
@@ -1383,6 +1405,12 @@ function InteractionComponent:OnLeaveVisit()
   self:UpdateCachedOptions()
 end
 
+function InteractionComponent:OnHomeVisitChange()
+  self:OnPlayerTeleportStart()
+  self:CalcCheckOpts()
+  self:UpdateCachedOptions()
+end
+
 function InteractionComponent:OnPetStatusChanged()
   self:UpdateCachedOptions()
 end
@@ -1530,6 +1558,10 @@ end
 
 function InteractionComponent.GetCachedShownNpc()
   return npcShownCached
+end
+
+function InteractionComponent:HasAnyInteractingOption()
+  return next(self._checkOptions) ~= nil
 end
 
 return InteractionComponent

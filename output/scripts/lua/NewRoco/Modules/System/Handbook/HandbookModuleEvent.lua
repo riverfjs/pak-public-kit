@@ -25,4 +25,10 @@ HandbookModuleEvent.OnChangCurBookPreviewWorld = "HandbookModuleEvent.OnChangCur
 HandbookModuleEvent.OnCloseDazzlingPopUp = "HandbookModuleEvent.OnCloseDazzlingPopUp"
 HandbookModuleEvent.OnHandbookPetStateChange = "HandbookModuleEvent.OnHandbookPetStateChange"
 HandbookModuleEvent.OnChangSelectItemData = "HandbookModuleEvent.OnChangSelectItemData"
+HandbookModuleEvent.OnChangeSelectPhotoSwitcher = "HandbookModuleEvent.OnChangeSelectPhotoSwitcher"
+HandbookModuleEvent.OnUpdateLeftItemListTaskState = "HandbookModuleEvent.OnUpdateLeftItemListTaskState"
+HandbookModuleEvent.OnClickHandbookSeasonTable = "HandbookModuleEvent.OnClickHandbookSeasonTable"
+HandbookModuleEvent.OnUpdateRegionalLocalRedPoint = "HandbookModuleEvent.OnUpdateRegionalLocalRedPoint"
+HandbookModuleEvent.OnChangeAreaSelectItem = "HandbookModuleEvent.OnChangeAreaSelectItem"
+HandbookModuleEvent.OnIsShowRegionalBtnMask = "HandbookModuleEvent.OnIsShowRegionalBtnMask"
 return HandbookModuleEvent

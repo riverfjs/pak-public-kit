@@ -44,6 +44,7 @@ function DialogueModuleHead:OnConstruct()
   self:BindCmd(_G.DialogueModuleCmd.OnSyncDialogue, "OnSyncDialogue")
   self:BindCmd(_G.DialogueModuleCmd.CleanUpFsm, "CleanUpFsm")
   self:BindCmd(_G.DialogueModuleCmd.UpdateExitConfirmMsgOn, "UpdateExitConfirmMsgOn")
+  self:BindCmd(_G.DialogueModuleCmd.GetCurDialogueOption, "GetCurDialogueOption")
 end
 
 return DialogueModuleHead

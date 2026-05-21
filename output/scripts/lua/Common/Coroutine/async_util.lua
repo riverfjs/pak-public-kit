@@ -259,6 +259,65 @@ local function CreatePromiseLite()
   }
 end
 
+local function CreateOpenPanelFuture(PanelName, Timeout)
+  Timeout = Timeout or 3
+  local Promise = CreatePromise()
+  local Finished = false
+  local SuccessHandler, FailedHandler, TimeoutID
+  
+  local function Cleanup()
+    if SuccessHandler then
+      _G.NRCEventCenter:UnRegisterEvent(self, _G.NRCPanelEvent.LoadPanelSucc, SuccessHandler)
+      SuccessHandler = nil
+    end
+    if FailedHandler then
+      _G.NRCEventCenter:UnRegisterEvent(self, _G.NRCPanelEvent.LoadPanelFail, FailedHandler)
+      FailedHandler = nil
+    end
+    if TimeoutID then
+      _G.DelayManager:CancelDelayById(TimeoutID)
+      TimeoutID = nil
+    end
+  end
+  
+  function SuccessHandler(panelData)
+    if Finished then
+      return
+    end
+    if panelData and panelData.panelName == PanelName then
+      Finished = true
+      Cleanup()
+      Promise.resolve({true, panelData})
+    end
+  end
+  
+  function FailedHandler(panelData)
+    if Finished then
+      return
+    end
+    if panelData and panelData.panelName == PanelName then
+      Finished = true
+      Cleanup()
+      Promise.resolve({
+        false,
+        "LoadPanelFail"
+      })
+    end
+  end
+  
+  _G.NRCEventCenter:RegisterEvent("async", self, _G.NRCPanelEvent.LoadPanelSucc, SuccessHandler)
+  _G.NRCEventCenter:RegisterEvent("async", self, _G.NRCPanelEvent.LoadPanelFail, FailedHandler)
+  TimeoutID = _G.DelayManager:DelaySeconds(Timeout, function()
+    if Finished then
+      return
+    end
+    Finished = true
+    Cleanup()
+    Promise.resolve({false, "Timeout"})
+  end)
+  return Promise.future
+end
+
 local __context_cmd = {__async_command__ = true, __async_get_context__ = true}
 
 local function GetContext()
@@ -279,5 +338,6 @@ return {
   WaitUntilCondition = WaitUntilCondition,
   GetContext = GetContext,
   CreatePromise = CreatePromise,
-  CreatePromiseLite = CreatePromiseLite
+  CreatePromiseLite = CreatePromiseLite,
+  CreateOpenPanelFuture = CreateOpenPanelFuture
 }

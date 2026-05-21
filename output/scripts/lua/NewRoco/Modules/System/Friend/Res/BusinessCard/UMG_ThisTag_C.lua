@@ -76,6 +76,10 @@ function UMG_ThisTag_C:OnPcClose()
 end
 
 function UMG_ThisTag_C:OnDeactive()
+  if RocoEnv.PLATFORM_ANDROID or RocoEnv.PLATFORM_IOS or RocoEnv.PLATFORM_OPENHARMONY then
+    UE4.UNRCStatics.ClearKeyboardFocus()
+    Log.Debug("UMG_ThisTag_C:OnDeactive ClearKeyboardFocus")
+  end
 end
 
 function UMG_ThisTag_C:OnAddEventListener()
@@ -205,6 +209,7 @@ function UMG_ThisTag_C:OnModifyPlayerRemarkRsp(_rsp)
     _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.Dialog_OpenDialog, dialogContext)
     return
   end
+  _G.DataModelMgr.PlayerDataModel:SetPlayerOpenid(_rsp.name)
   local nameChangedTimeStamp = _rsp.last_name_changed_time or 0
   if 0 == nameChangedTimeStamp then
     self.Btn_Affirm:SetTitleTextAndIcon(nil, nil, nil, nil, LuaText.role_rename_cd_des)
@@ -475,6 +480,7 @@ function UMG_ThisTag_C:PlayerNameHandle(InputBoxInfo, maxLen, showTip)
   local newInputTextBackup = InputBoxInfo:GetText()
   local newInputText = InputBoxInfo:GetText()
   newInputText = UIUtils.RemoveEmoji(newInputText)
+  newInputText = UIUtils.RemoveInvalidCharsByFont(newInputText, InputBoxInfo.WidgetStyle.Font.FontObject)
   newInputText = string.gsub(newInputText, "[\r\n]", "")
   newInputText = string.GetSubStr(newInputText, maxLen)
   if showTip and newInputTextBackup ~= newInputText then

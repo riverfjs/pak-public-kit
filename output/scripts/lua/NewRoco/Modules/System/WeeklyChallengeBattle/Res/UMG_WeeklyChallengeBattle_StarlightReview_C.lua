@@ -47,6 +47,11 @@ function UMG_WeeklyChallengeBattle_StarlightReview_C:OnDestruct()
     self.npcAction:Finish()
     self.npcAction = nil
   end
+  if self.comboBoxDelayId then
+    _G.DelayManager:CancelDelayById(self.comboBoxDelayId)
+    self.comboBoxDelayId = nil
+  end
+  self:ClearCurtainTimeoutProtection()
 end
 
 function UMG_WeeklyChallengeBattle_StarlightReview_C:OnPcClose()
@@ -274,6 +279,7 @@ function UMG_WeeklyChallengeBattle_StarlightReview_C:OnDeactive()
   _G.NRCEventCenter:UnRegisterEvent(self, WeeklyChallengeBattleModuleEvent.ChangeHistoryTeamUsePhotoData, self.ChangeHistoryTeamUsePhotoData)
   _G.NRCEventCenter:UnRegisterEvent(self, WeeklyChallengeBattleModuleEvent.ChangeCurrTeamUseTeamData, self.ChangeCurrTeamUseTeamData)
   _G.NRCEventCenter:UnRegisterEvent(self, WeeklyChallengeBattleModuleEvent.ChangeCurrTeamUsePhotoData, self.ChangeCurrTeamUsePhotoData)
+  _G.NRCEventCenter:UnRegisterEvent(self, WeeklyChallengeBattleModuleEvent.ReleaseStarLightDragItemPlayAnim, self.ReleaseStarLightDragItemPlayAnim)
   NRCEventCenter:UnRegisterEvent(self, PetUIModuleEvent.ReleaseStarLightDragItem, self.ReleaseStarLightDragItem)
   NRCEventCenter:UnRegisterEvent(self, PetUIModuleEvent.StartDragStarLightPet, self.StartDragStarLightPet)
   NRCEventCenter:UnRegisterEvent(self, TakePhotosModuleEvent.OnPhotoPanelClose, self.OnPhotoPanelClose)
@@ -309,6 +315,7 @@ function UMG_WeeklyChallengeBattle_StarlightReview_C:OnAddEventListener()
   _G.NRCEventCenter:RegisterEvent("UMG_WeeklyChallengeBattle_StarlightReview_C", self, WeeklyChallengeBattleModuleEvent.ChangeCurrTeamUseTeamData, self.ChangeCurrTeamUseTeamData)
   _G.NRCEventCenter:RegisterEvent("UMG_WeeklyChallengeBattle_StarlightReview_C", self, WeeklyChallengeBattleModuleEvent.ChangeCurrTeamUsePhotoData, self.ChangeCurrTeamUsePhotoData)
   _G.NRCEventCenter:RegisterEvent("UMG_WeeklyChallengeBattle_StarlightReview_C", self, WeeklyChallengeBattleModuleEvent.ChangeHistoryTeamUsePhotoData, self.ChangeHistoryTeamUsePhotoData)
+  _G.NRCEventCenter:RegisterEvent("UMG_WeeklyChallengeBattle_StarlightReview_C", self, WeeklyChallengeBattleModuleEvent.ReleaseStarLightDragItemPlayAnim, self.ReleaseStarLightDragItemPlayAnim)
   NRCEventCenter:RegisterEvent("UMG_WeeklyChallengeBattle_StarlightReview_C", self, TakePhotosModuleEvent.OnPhotoPanelClose, self.OnPhotoPanelClose)
   self:AddButtonListener(self.btnClose.btnClose, self.OnExitShootPanelButtonClick)
   self:AddButtonListener(self.btnClose_6.btnClose, self.OnExitHistoryShootPanelButtonClick)
@@ -395,6 +402,12 @@ function UMG_WeeklyChallengeBattle_StarlightReview_C:ReleaseStarLightDragItem(it
   if self.itemIndex and self.itemIndex == newItemIndex then
     return
   end
+  if not self.UMG_StarLightWorldView.petDataInfoList[self.itemIndex] then
+    self.UMG_StarLightWorldView.petDataInfoList[self.itemIndex] = {}
+  end
+  if not self.UMG_StarLightWorldView.petDataInfoList[newItemIndex] then
+    self.UMG_StarLightWorldView.petDataInfoList[newItemIndex] = {}
+  end
   self:ReleaseStarLightDragItemPlayAnim()
   if self.currentOpenPanelType == self.PanelType.EditLocationPanel then
     local tempData = self.petFullIDData[self.itemIndex]
@@ -419,25 +432,26 @@ function UMG_WeeklyChallengeBattle_StarlightReview_C:ReleaseStarLightDragItem(it
   end
 end
 
-function UMG_WeeklyChallengeBattle_StarlightReview_C:ReleaseStarLightDragItemPlayAnim()
+function UMG_WeeklyChallengeBattle_StarlightReview_C:ReleaseStarLightDragItemPlayAnim(itemIndex)
+  local index = self.itemIndex or itemIndex
+  if not self.itemIndex and not itemIndex then
+    return
+  end
+  local PetNumberUIItem = self.UMG_StarLightWorldView:GetCurrModePetNumberUIItem(index)
+  PetNumberUIItem:StopAllAnimations()
+  PetNumberUIItem:PlayAnimation(PetNumberUIItem.unselect)
   if self.DragItemInstance:GetVisibility() == UE4.ESlateVisibility.Collapsed then
     return
   end
-  if not self.itemIndex then
-    return
-  end
   if self.currentOpenPanelType == self.PanelType.EditLocationPanel then
-    local originItem = self.OpponentLineUp:GetItemByIndex(self.itemIndex - 1)
+    local originItem = self.OpponentLineUp:GetItemByIndex(index - 1)
     originItem:PlayAnimation(originItem.unselect)
+    originItem.TeamSequenceNumber:StopAllAnimations()
     originItem.TeamSequenceNumber:PlayAnimation(originItem.TeamSequenceNumber.unselect)
-    local PetNumberUIItem = self.UMG_StarLightWorldView:GetCurrModePetNumberUIItem(self.itemIndex)
-    PetNumberUIItem:PlayAnimation(PetNumberUIItem.unselect)
   elseif self.currentOpenPanelType == self.PanelType.EditLocation_History then
-    local originItem = self.OpponentLineUp_1:GetItemByIndex(self.itemIndex - 1)
+    local originItem = self.OpponentLineUp_1:GetItemByIndex(index - 1)
     originItem:PlayAnimation(originItem.unselect)
     originItem.TeamSequenceNumber:PlayAnimation(originItem.TeamSequenceNumber.unselect)
-    local PetNumberUIItem = self.UMG_StarLightWorldView:GetCurrModePetNumberUIItem(self.itemIndex)
-    PetNumberUIItem:PlayAnimation(PetNumberUIItem.unselect)
   end
 end
 
@@ -561,11 +575,8 @@ function UMG_WeeklyChallengeBattle_StarlightReview_C:OnStartShowButtonClick()
   end
   self.isStartChallenge = true
   _G.NRCModuleManager:DoCmd(_G.WeeklyChallengeBattleModuleCmd.RefreshAllUsablePetBalancedData)
-  Log.Info("UMG_WeeklyChallengeBattle_StarlightReview_C:OnStartShowButtonClick Refreshing pet balanced data, waiting...")
-  _G.NRCModuleManager:DoCmd(_G.WeeklyChallengeBattleModuleCmd.AddBalancedDataReadyCallback, function()
-    Log.Info("UMG_WeeklyChallengeBattle_StarlightReview_C:OnStartShowButtonClick Data ready, executing callback")
-    self:_DoOpenStarlightShowdownPanel()
-  end)
+  Log.Info("UMG_WeeklyChallengeBattle_StarlightReview_C:OnStartShowButtonClick Refreshing pet balanced data asynchronously")
+  self:_DoOpenStarlightShowdownPanel()
 end
 
 function UMG_WeeklyChallengeBattle_StarlightReview_C:_DoOpenStarlightShowdownPanel()
@@ -764,6 +775,7 @@ end
 
 function UMG_WeeklyChallengeBattle_StarlightReview_C:OpenStarlightShowdownPanel()
   _G.NRCModuleManager:DoCmd(_G.WeeklyChallengeBattleModuleCmd.OpenStarlightShowdownPanel)
+  _G.NRCModuleManager:DoCmd(_G.WeeklyChallengeBattleModuleCmd.CloseCurtainPopup)
 end
 
 function UMG_WeeklyChallengeBattle_StarlightReview_C:OnAnimationFinished(Anim)
@@ -1058,7 +1070,8 @@ function UMG_WeeklyChallengeBattle_StarlightReview_C:InitHistoryDateComboBox()
     end
   end
   if #comboBoxData > 0 then
-    _G.DelayManager:DelaySeconds(0.1, function()
+    self.comboBoxDelayId = _G.DelayManager:DelaySeconds(0.1, function()
+      self.comboBoxDelayId = nil
       if not self.UMG_StarLightPhoto or not self.UMG_StarLightPhoto.Date_ComboBox then
         return
       end

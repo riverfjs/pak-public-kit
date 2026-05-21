@@ -1,5 +1,6 @@
 local BattleCard = require("NewRoco.Modules.Core.Battle.Entity.Card.BattleCard")
 local BattleUtils = require("NewRoco.Modules.Core.Battle.Common.BattleUtils")
+local BattleEnum = require("NewRoco.Modules.Core.Battle.Common.BattleEnum")
 local BattlePlayerDeck = NRCClass()
 
 function BattlePlayerDeck:Ctor(owner)
@@ -16,7 +17,9 @@ function BattlePlayerDeck:Init(params)
     local uin = _G.DataModelMgr.PlayerDataModel:GetPlayerInfo().brief_info.uin
     if uin == self.Owner.roleInfo.base.role_uin and not BattleUtils.IsWatchingBattle() then
       local DialogContext = require("NewRoco.Modules.System.TipsModule.DialogContext")
-      local Ctx = DialogContext():SetTitle("Tips"):SetContent("No BattlePetInfo!!!  "):SetMode(DialogContext.Mode.OK):SetCallback(_G.BattleNetManager, _G.BattleNetManager.SendEscapeReq)
+      local Ctx = DialogContext():SetTitle("Tips"):SetContent("No BattlePetInfo!!!  "):SetMode(DialogContext.Mode.OK):SetCallback(_G.BattleNetManager, function()
+        _G.BattleNetManager:SendEscapeReq(BattleEnum.RunAwayType.NoCardInfo)
+      end)
       _G.NRCModuleManager:DoCmd(TipsModuleCmd.Dialog_OpenDialog, Ctx)
       return
     else
@@ -26,6 +29,23 @@ function BattlePlayerDeck:Init(params)
   for i = 1, #params do
     local petInfo = params[i]
     self.cards[i] = BattleCard(self.Owner, petInfo, i)
+  end
+end
+
+function BattlePlayerDeck:AdditionalInitByOthers(petInfos)
+  if petInfos then
+    for i = 1, #petInfos do
+      local petInfo = petInfos[i]
+      local incommingPetId = petInfo.battle_inside_pet_info.pet_id
+      local existingCard = self:GetCardByGuid(incommingPetId)
+      if nil == existingCard then
+        existingCard = BattleCard(self.Owner, petInfo, #self.cards)
+        table.insert(self.cards, existingCard)
+      else
+        existingCard:ReplaceByServer(petInfo)
+        existingCard:RefreshByServer()
+      end
+    end
   end
 end
 

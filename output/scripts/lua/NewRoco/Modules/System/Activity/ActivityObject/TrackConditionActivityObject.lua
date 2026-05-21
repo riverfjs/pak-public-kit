@@ -7,8 +7,18 @@ local TrackConditionActivityObject = Base:Extend("TrackConditionActivityObject")
 
 function TrackConditionActivityObject:OnConstruct(_conf)
   self.trackConditionConf = _G.DataConfigManager:GetActivityTrackConditionConf(self:GetSinglePartId())
-  if self.trackConditionConf and self.trackConditionConf.score_reward_id and self.trackConditionConf.score_reward_id > 0 then
-    self.SeasonCheckinConf = _G.DataConfigManager:GetActivityScoreRewardConf(self.trackConditionConf.score_reward_id)
+  if self.trackConditionConf and self.trackConditionConf.stage_reward_group_id and self.trackConditionConf.stage_reward_group_id > 0 then
+    self.stageRewardConfList = {}
+    local groupConf = _G.DataConfigManager:GetAllByName("ACTIVITY_STAGE_REWARD_CONF")
+    for base_id, conf in pairs(groupConf) do
+      if conf.group_id == self.trackConditionConf.stage_reward_group_id then
+        table.insert(self.stageRewardConfList, conf)
+      end
+    end
+    table.sort(self.stageRewardConfList, function(a, b)
+      return a.id < b.id
+    end)
+    self.SeasonCheckinConf = self.stageRewardConfList and self.stageRewardConfList[1]
   end
   self.receivedRewardsIndex = {}
   self.conditionRewardMap = {}
@@ -77,6 +87,19 @@ function TrackConditionActivityObject:GetLotteryState()
   return 0
 end
 
+function TrackConditionActivityObject:GetActivityRewardsIndex()
+  local received_rewards_index = {}
+  for index, RewardConfList in ipairs(self.stageRewardConfList) do
+    for i, v in ipairs(self.receivedRewardsIndex) do
+      if v == RewardConfList.id then
+        table.insert(received_rewards_index, index)
+        break
+      end
+    end
+  end
+  return received_rewards_index
+end
+
 function TrackConditionActivityObject:OnRewardItemStatusChange(_itemObj, _userOperation)
   if _itemObj then
     self:SendEvent(ActivityModuleEvent.TrackConditionRewardItemProgressChange, self, _itemObj)
@@ -103,7 +126,11 @@ function TrackConditionActivityObject:OnSvrUpdateActivityData(_cmdId, _updateDat
       local received_rewards_index = {}
       for i, v in ipairs(_activityData.score_reward_comp_data.reward_data) do
         if v.state == ProtoEnum.PlayerActivityInfo.ActivityRewardState.ARS_DONE then
-          table.insert(received_rewards_index, v.activity_rewards_index)
+          for index, RewardConfList in ipairs(self.stageRewardConfList) do
+            if RewardConfList.id == v.activity_rewards_index then
+              table.insert(received_rewards_index, index - 1)
+            end
+          end
         end
       end
       self:UpdateReceivedRewardsIndex(received_rewards_index, false, nil)
@@ -182,7 +209,7 @@ function TrackConditionActivityObject:IsRewardGet(pointIndex)
 end
 
 function TrackConditionActivityObject:GetPoints()
-  local SeasonCheckinConf = self.SeasonCheckinConf
+  local SeasonCheckinConf = self.stageRewardConfList and self.stageRewardConfList[1]
   local curNum = 0
   if SeasonCheckinConf then
     if SeasonCheckinConf.change_goods_type == Enum.GoodsType.GT_VITEM then
@@ -196,13 +223,12 @@ function TrackConditionActivityObject:GetPoints()
 end
 
 function TrackConditionActivityObject:GetPointsRewards()
-  return self.SeasonCheckinConf and self.SeasonCheckinConf.reward_group
+  return self.stageRewardConfList
 end
 
 function TrackConditionActivityObject:GetPointsMax()
-  local SeasonCheckinConf = self.SeasonCheckinConf
   local targetNum = 0
-  local reward_group = SeasonCheckinConf and SeasonCheckinConf.reward_group
+  local reward_group = self.stageRewardConfList
   for i, v in ipairs(reward_group) do
     if v.points_condition and v.points_condition > 0 and targetNum < v.points_condition then
       targetNum = v.points_condition
@@ -219,9 +245,18 @@ function TrackConditionActivityObject:ReqGetRewards(pointIndexGroup)
     ActivityUtils.ShowActivityExpiredTips()
     return
   end
+  local received_rewards_index = {}
+  for index, RewardConfList in ipairs(self.stageRewardConfList) do
+    for i, v in ipairs(pointIndexGroup) do
+      if v == index - 1 then
+        table.insert(received_rewards_index, RewardConfList.id)
+        break
+      end
+    end
+  end
   local req = _G.ProtoMessage:newZoneReceivePlayerActivitySeasonCheckinRewardReq()
   req.activity_id = self:GetActivityId()
-  req.activity_reward_indexs = pointIndexGroup
+  req.activity_reward_indexs = received_rewards_index
   ActivityUtils.SendMsgToSvr(_G.ProtoCMD.ZoneSvrCmd.ZONE_RECEIVE_PLAYER_ACTIVITY_SEASON_CHECKIN_REWARD_REQ, req, self, self.OnZoneReceivePlayerActivityPetCatchRewardRsp)
 end
 
@@ -233,7 +268,16 @@ function TrackConditionActivityObject:OnZoneReceivePlayerActivityPetCatchRewardR
     Log.ErrorFormat("parameter error! req[%d] != cur[%d]", _req and _req.activity_id or 0, self:GetActivityId())
     return
   end
-  self:UpdateReceivedRewardsIndex(_req.activity_reward_indexs, true, _protoData)
+  local received_rewards_index = {}
+  for index, RewardConfList in ipairs(self.stageRewardConfList) do
+    for i, v in ipairs(_req.activity_reward_indexs) do
+      if v == RewardConfList.id then
+        table.insert(received_rewards_index, index - 1)
+        break
+      end
+    end
+  end
+  self:UpdateReceivedRewardsIndex(received_rewards_index, true, _protoData)
 end
 
 function TrackConditionActivityObject:UpdateReceivedRewardsIndex(_receivedRewardsIndex, _userOperation, _protoData)

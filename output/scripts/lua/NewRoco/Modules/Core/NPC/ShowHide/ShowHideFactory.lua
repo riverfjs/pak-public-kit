@@ -7,7 +7,8 @@ ShowHideFactory.Registry = {
   [Enum.PlayerConditionType.PCT_MATCHING] = require("NewRoco.Modules.Core.NPC.ShowHide.BattlePvpRankMatchingShowHide"),
   [Enum.PlayerConditionType.PCT_LEGENDARY_BATTLE_ENTRENCE] = require("NewRoco.Modules.Core.NPC.ShowHide.LegendaryBattleHide"),
   [Enum.PlayerConditionType.PCT_EDITING_HOME] = require("NewRoco.Modules.Core.NPC.ShowHide.HomeEditShowHide"),
-  [Enum.PlayerConditionType.PCT_PVP_RANK_MAIN_UI] = require("NewRoco.Modules.Core.NPC.ShowHide.BattlePvpRankMatchingShowHide")
+  [Enum.PlayerConditionType.PCT_PVP_RANK_MAIN_UI] = require("NewRoco.Modules.Core.NPC.ShowHide.BattlePvpRankMatchingShowHide"),
+  [Enum.PlayerConditionType.PCT_WORLD_COMBATING] = require("NewRoco.Modules.Core.NPC.ShowHide.WorldCombatShowHide")
 }
 ShowHideFactory.Instances = {}
 

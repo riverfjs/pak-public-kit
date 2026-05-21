@@ -44,9 +44,11 @@ function UMG_MedalList_C:SetData()
       self.data.PetData.gid,
       self.data.MedalData.conf_id
     })
-    if self.data.MedalData.is_wear and (not self.data.MedalData.wear_pet_gid or 0 == self.data.MedalData.wear_pet_gid or self.data.MedalData.wear_pet_gid == self.data.PetData.gid) then
+    if self.data.MedalData.is_wear then
       self:SetOnNewStateRemove()
-      self.Equipped:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+      if not self.data.MedalData.wear_pet_gid or 0 == self.data.MedalData.wear_pet_gid or self.data.MedalData.wear_pet_gid == self.data.PetData.gid then
+        self.Equipped:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+      end
     else
       self.Equipped:SetVisibility(UE4.ESlateVisibility.Collapsed)
     end

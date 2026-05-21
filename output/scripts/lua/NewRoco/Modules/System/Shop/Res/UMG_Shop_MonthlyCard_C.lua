@@ -8,6 +8,7 @@ function UMG_Shop_MonthlyCard_C:OnConstruct()
   self.SignDesc:SetText(_G.LuaText.YueKa_Accumulated_Login_Tips)
   self.rewardTitle1:SetText(_G.LuaText.YueKa_Reward_Buy)
   self.rewardTitle2:SetText(_G.LuaText.YueKa_Reward_Accumulated_Login)
+  self.ReceivedText:SetText(_G.LuaText.YueKa_Reward_Got)
   local clientMonthCardConf = _G.NRCModuleManager:DoCmd(_G.ShopModuleCmd.OnCmdGetClientMonthCardConf)
   do
     local _rewardConf = clientMonthCardConf.buyRewardId and _G.DataConfigManager:GetRewardConf(clientMonthCardConf.buyRewardId)
@@ -133,10 +134,16 @@ function UMG_Shop_MonthlyCard_C:OnRefreshMonthCardData(_monthCardData)
     end
     self.ProgressBar:SetPercent(signDays / maxSignDay)
   end
+  self.Received:SetVisibility(UE4.ESlateVisibility.Collapsed)
   local leftDays = _monthCardData.left_days or 0
-  if leftDays > 1 then
+  if leftDays >= 1 then
     self.Countdown:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     self.DayLeft:SetText(string.format(_G.LuaText.YueKa_Reward_Day, leftDays - 1))
+    if _monthCardData.daily_rewards and 1 == _monthCardData.daily_rewards then
+      self.Received:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    else
+      self.Received:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    end
   else
     self.Countdown:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
@@ -169,6 +176,9 @@ function UMG_Shop_MonthlyCard_C:OnClickPurchaseOrRenewal()
     return
   end
   _G.NRCAudioManager:PlaySound2DAuto(1220002023, "UMG_Shop_MonthlyCard_C:OnClickPurchaseOrRenewal")
+  if _G.NRCModuleManager:DoCmd(_G.PayModuleCmd.IfLimitPay, self.goodsId) then
+    return
+  end
   if not _G.NRCModuleManager:DoCmd(_G.ShopModuleCmd.OnCmdCanBuyMonthCard) then
     return
   end

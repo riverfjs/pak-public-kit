@@ -1,4 +1,3 @@
-local TipsModuleEvent = require("NewRoco.Modules.System.TipsModule.TipsModuleEvent")
 local JsonUtils = require("Common.JsonUtils")
 local MainUIModuleEvent = reload("NewRoco.Modules.System.MainUI.MainUIModuleEvent")
 local PetUIModuleEvent = require("NewRoco.Modules.System.PetUI.PetUIModuleEvent")
@@ -8,8 +7,6 @@ local ScenePlayerInputManager = require("NewRoco.Modules.Core.Scene.ScenePlayerI
 local LoadingUIModuleEvent = require("NewRoco.Modules.System.LoadingUIModule.LoadingUIModuleEvent")
 local WorldCombatModuleEvent = require("NewRoco.Modules.System.WorldCombat.WorldCombatModuleEvent")
 local OnlineModuleEvent = require("NewRoco.Modules.Core.Online.OnlineModuleEvent")
-local CinematicModuleEvent = reload("NewRoco.Modules.Core.Cinematic.CinematicModuleEvent")
-local DialogueModuleEvent = require("NewRoco.Modules.System.Dialogue.DialogueModuleEvent")
 local ENUM_PLAYER_DATA_EVENT = require("Data.Global.PlayerDataEvent")
 local BagModuleEnum = require("NewRoco.Modules.System.Bag.BagModuleEnum")
 local NPCModuleEvent = require("NewRoco.Modules.Core.NPC.NPCModuleEvent")
@@ -19,6 +16,9 @@ local PriorityEnum = require("PriorityEnum")
 local WidgetPerformanceTier = require("NewRoco.Modules.System.TUI.WidgetPerformanceTier")
 local _JoystickConfigFilename = "NrcJoystickConfig"
 local CommonUtils = require("NewRoco.Utils.CommonUtils")
+local MainPanelMgr = require("NewRoco.Modules.System.MainUI.MainPanelMgr")
+local TipUtils = require("NewRoco.Modules.System.TipsModule.Utils.TipUtils")
+local TipEnum = require("NewRoco.Modules.System.TipsModule.Utils.TipEnum")
 local MainUIModule = NRCModuleBase:Extend("MainUIModule")
 local SceneUtils = require("NewRoco.Modules.Core.Scene.Common.SceneUtils")
 
@@ -33,9 +33,9 @@ function MainUIModule:OnConstruct()
   self.SelectPetIndex = 0
   self.PetData = nil
   self.bAiming = false
-  self.TickIntervel = 0
+  self.TickInterval = 0
   self.showNpcLvList = nil
-  self.InnerPanelTickIntervel = 0
+  self.InnerPanelTickInterval = 0
   self.LobbyMainInnerClosing = false
   self.LT = UE4.FVector2D()
   self.RB = UE4.FVector2D()
@@ -44,14 +44,17 @@ function MainUIModule:OnConstruct()
   self.SelectLongPressPetIndex = 0
   self.switcherIndex = 0
   self.CurrentVitra = 0
+  self.LastThroowSelectInfo = nil
+  self.CurThroowSelectInfo = nil
   local joystickConfig = JsonUtils.LoadSaved(_JoystickConfigFilename, {})
   if joystickConfig.IsLockedJoystick == true or false == joystickConfig.IsLockedJoystick then
     self.IsLockMoveJoystick = joystickConfig.IsLockedJoystick
   else
     self.IsLockMoveJoystick = true
   end
+  local uin = _G.DataModelMgr.PlayerDataModel:GetPlayerUin() or 0
+  self.IsFreedomPropPlaceMode = joystickConfig.bIsFreedomModeMap and joystickConfig.bIsFreedomModeMap[tostring(uin)] or false
   self.NeedDisableLobbyMainPopupList = {}
-  self.OpeningTip = nil
   self.lockPetLandPos = UE4.FVector(0, 0, 0)
   self.threeFingerPos = {
     UE4.FVector2D(0, 0),
@@ -66,7 +69,20 @@ function MainUIModule:OnConstruct()
   self.NewFollowDataCache = nil
 end
 
+function MainUIModule:GetCurMainPanel()
+  return self.MainPanelMgr:GetCurMainUI()
+end
+
+function MainUIModule:HasAnyMainUIOpened()
+  return self.MainPanelMgr:HasAnyMainUIOpened()
+end
+
+function MainUIModule:HasAnyMainUIShowing()
+  return self.MainPanelMgr:HasAnyMainUIShowing()
+end
+
 function MainUIModule:OnActive()
+  self.MainPanelMgr = MainPanelMgr(self)
   self:RegPanel("LobbyMain", "UMG_LobbyMain", Enum.UILayerType.UI_LAYER_MAIN, nil, 4)
   self:RegPanel("LobbyMainLocal", "Ability/UMG_LocalUI", Enum.UILayerType.UI_LAYER_MAIN, nil, 4)
   self:RegPanel("TemperatureHot", "Tempreture/UMG_Tempreture_Hot", Enum.UILayerType.UI_LAYER_MAIN)
@@ -78,9 +94,9 @@ function MainUIModule:OnActive()
   self:RegPanel("CompassUnlockTips", "compass/UMG_CompassUnLockTips", Enum.UILayerType.UI_LAYER_MAIN)
   self:RegPanel("UnlockGuidBook", "UMG_BigManual_Cover", Enum.UILayerType.UI_LAYER_POPUP)
   self:RegPanel("LobbyPropTips", "UMG_LobbyPropTips", Enum.UILayerType.UI_LAYER_TOP)
-  self:RegPanel("LobbyDownTips", "UMG_LobbyDownTips", Enum.UILayerType.UI_LAYER_TOP, nil, nil, nil, nil, true)
+  self:RegPanel("LobbyDownTips", "UMG_LobbyDownTips", Enum.UILayerType.UI_LAYER_TOP, nil, nil, nil, nil, true):SetEnableTouchMask(false)
   self:RegPanel("HUDSimpleList", "UMG_HUDSimpleList", Enum.UILayerType.UI_LAYER_POPUP)
-  self:RegPanel_1("AdditionalTarget", "/Game/NewRoco/Modules/System/Common/res/UMG_AdditionalTargetCombat", Enum.UILayerType.UI_LAYER_MAIN, nil, nil, nil, nil, true)
+  self:RegPanel_1("AdditionalTarget", "/Game/NewRoco/Modules/System/Common/res/UMG_AdditionalTargetCombat", Enum.UILayerType.UI_LAYER_BG, nil, nil, nil, nil, true):SetEnableTouchMask(false)
   self:RegPanel("UMG_LeftBottomFunctionEntry", "UMG_LeftBottomFunctionEntry", Enum.UILayerType.UI_LAYER_TOP)
   self:RegPanel("SimpleUseList", "UMG_SimpleUseList", Enum.UILayerType.UI_LAYER_POPUP)
   self:RegPanel("PartnerAndPeer", "UMG_PartnerAndPeer", Enum.UILayerType.UI_LAYER_POPUP)
@@ -88,33 +104,30 @@ function MainUIModule:OnActive()
   self:RegPanel("ShowMagicMessage", "UMG_ShowMagicMessage", Enum.UILayerType.UI_LAYER_POPUP, nil, 1, true, true)
   self:RegPanel("MagicMessageCommentPopUp", "UMG_MagicMessageCommentPopUp", Enum.UILayerType.UI_LAYER_POPUP, nil, nil, nil, true)
   self:RegPanel("ShowFakeMagicMessage", "UMG_ShowMagicMessage_Fake", Enum.UILayerType.UI_LAYER_POPUP, nil, 1, true, true)
-  self:RegPanel("MagicMessageMusicToolbar", "UMG_MusicToolbar", Enum.UILayerType.UI_LAYER_MAIN, nil, 1, true, false)
+  self:RegPanel("MagicMessageMusicToolbar", "UMG_MusicToolbar", Enum.UILayerType.UI_LAYER_MAIN, nil, nil, nil, false)
   self:RegPanel_1("WaitTogetherPanel", "/Game/NewRoco/Modules/System/BattleUI/Res/BattleUIItem/UMG_Battle_WaitingTeammatesCountdown", Enum.UILayerType.UI_LAYER_GLOBAL_BLACK, nil, 1, true, nil)
-  self:RegPanel("PrivilegeIntroductionPopUp", "UMG_Privilege_IntroductionPopUp", Enum.UILayerType.UI_LAYER_POPUP)
+  self:RegPanel("PrivilegeIntroductionPopUp", "UMG_Privilege_IntroductionPopUp", Enum.UILayerType.UI_LAYER_POPUP, nil, nil, nil, true)
   self:RegPanel("MyTeamPanel", "UMG_MyTeamPanel", Enum.UILayerType.UI_LAYER_POPUP)
+  self:RegPanel("PropPlacementPanel", "Ability/UMG_PropPlacement", Enum.UILayerType.UI_LAYER_TOP)
   self:RegPanel("UMG_GvoiceTips", "UMG_GvoiceTips", Enum.UILayerType.UI_LAYER_TOP)
   self:RegUMGNPCInteractMainPanel()
-  _G.NRCEventCenter:RegisterEvent("MainUIModule", self, SceneEvent.OnPlayerDead, self.DeadClosePanel)
-  _G.NRCEventCenter:RegisterEvent("MainUIModule", self, CinematicModuleEvent.Ended, self.CinematicRebornShowPanel)
-  _G.NRCEventCenter:RegisterEvent("MainUIModule", self, CinematicModuleEvent.Started, self.CinematicDeadClosePanel)
+  _G.NRCEventCenter:RegisterEvent("MainUIModule", self, SceneEvent.OnPlayerDead, self.OnPlayerDead)
+  _G.NRCEventCenter:RegisterEvent("MainUIModule", self, SceneEvent.OnPlayerReborn, self.OnPlayerReborn)
   _G.NRCEventCenter:RegisterEvent("MainUIModule", self, LoadingUIModuleEvent.LOADING_UI_OPENED, self.DeadClosePanelWithBlock)
   _G.NRCEventCenter:RegisterEvent("MainUIModule", self, LoadingUIModuleEvent.LOADING_UI_CLOSED, self.RebornShowPanelWithBlock)
-  _G.NRCEventCenter:RegisterEvent("MainUIModule", self, WorldCombatModuleEvent.Enter, self.OnEnterWorldCombat)
-  _G.NRCEventCenter:RegisterEvent("MainUIModule", self, WorldCombatModuleEvent.Exit, self.OnExitWorldCombat)
-  _G.NRCEventCenter:RegisterEvent("MainUIModule", self, DialogueModuleEvent.DialogueStarted, self.DialogueDeadClosePanel)
-  _G.NRCEventCenter:RegisterEvent("MainUIModule", self, DialogueModuleEvent.DialogueEnded, self.DialogueRebornShowPanel)
+  _G.NRCEventCenter:RegisterEvent("MainUIModule", self, WorldCombatModuleEvent.Enter, self.OnWorldCombatEnter)
+  _G.NRCEventCenter:RegisterEvent("MainUIModule", self, WorldCombatModuleEvent.Exit, self.OnWorldCombatExit)
   _G.NRCEventCenter:RegisterEvent("MainUIModule", self, SceneEvent.PlayerBornFinish, self.OnMapLoaded)
   _G.DataModelMgr.PlayerDataModel:AddEventListener(self, ENUM_PLAYER_DATA_EVENT.RELOGIN_UPDATE_PET, self.RefreshMainPet)
   _G.NRCEventCenter:RegisterEvent("MainUIModule", self, MainUIModuleEvent.MAINUICLOSE, self.OnMainUIClose)
   _G.NRCEventCenter:RegisterEvent("MainUIModule", self, MainUIModuleEvent.OnInVisible, self.OnInVisible)
+  _G.NRCEventCenter:RegisterEvent("MainUIModule", self, _G.NRCGlobalEvent.ON_RECONNECT_START, self.OnReconnectStar)
   _G.NRCEventCenter:RegisterEvent("MainUIModule", self, _G.NRCGlobalEvent.ON_RECONNECT_FINISH, self.OnReconnect)
   _G.NRCEventCenter:RegisterEvent("MainUIModule", self, MainUIModuleEvent.OnLobbyMainInnerOpened, self.OnLobbyMainInnerOpened)
   _G.NRCEventCenter:RegisterEvent("MainUIModule", self, MainUIModuleEvent.OnLobbyMainInnerClosed, self.OnLobbyMainInnerClosed)
   _G.NRCEventCenter:RegisterEvent("MainUIModule", self, SceneEvent.OnEnterSceneFinishNtyAck, self.AfterEnterScene)
   _G.NRCEventCenter:RegisterEvent("MainUIModule", self, NPCModuleEvent.WorldCombatBoxVisible, self.OnWorldCombatBoxVisible)
   _G.NRCEventCenter:RegisterEvent("MainUIModule", self, NPCModuleEvent.WorldCombatBoxInvisible, self.OnWorldCombatBoxInvisible)
-  _G.NRCEventCenter:RegisterEvent("MainUIModule", self, TipsModuleEvent.Tips_DisplayCoordinatorPaused, self.OnPaused)
-  _G.NRCEventCenter:RegisterEvent("MainUIModule", self, TipsModuleEvent.Tips_DisplayCoordinatorResumed, self.OnResumed)
   _G.NRCEventCenter:RegisterEvent("MainUIModule", self, MainUIModuleEvent.OnBarrierShow, self.OpenAdditionalTarget)
   _G.NRCEventCenter:RegisterEvent("MainUIModule", self, WishCrystalModuleEvent.WISH_CRYSTAL_STARLIGHT_INFO_UPDATE, self.OnStarligthInfoUpdate)
   _G.NRCEventCenter:RegisterEvent("MainUIModule", self, WishCrystalModuleEvent.WISH_CRYSTAL_STARLIGHT_EXCHANGE, self.OnStarligthExchange)
@@ -124,7 +137,11 @@ function MainUIModule:OnActive()
   self.player = _G.NRCModeManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
   self.playerController = self.player:GetUEController()
   self:GetAimRectRange()
-  self.isTipsOpening = false
+  self.LobbyDownTipsController = TipUtils.CreteTipsDisplayController(TipEnum.TipObjectType.LobbyDownTips, self, self.OnCmdOpenLobbyDownTips)
+  self.LobbyDownTipsController:GetExecutor():EnableTipSort(function(a, b)
+    return a.type < b.type
+  end)
+  self.MainPetTipsController = TipUtils.CreteTipsDisplayController(TipEnum.TipObjectType.MainPetTips)
   local LocalPlayer = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
   if LocalPlayer then
     LocalPlayer:AddEventListener(self, PlayerModuleEvent.ON_BODY_TEMP_CHANGED, self.OnBodyTempChange)
@@ -150,6 +167,7 @@ function MainUIModule:OnActive()
   end
   self:TryShowGameMatrixTips()
   self:OnCmdOpenPermissionTips("")
+  _G.NRCPanelManager:InitAllUmgStaticConfig()
 end
 
 function MainUIModule:OnCmdShowPermissionTips(bShow, tips)
@@ -232,8 +250,20 @@ end
 
 function MainUIModule:OnBeginTrowRsp(ThrowSession, rsp)
   local change_Team = rsp.change_team
-  if change_Team and change_Team.main_team_idx and change_Team.team_type == Enum.PlayerTeamType.PTT_BIG_WORLD then
-    _G.DataModelMgr.PlayerDataModel:SetPlayerBigWorldPetTeamMainIndex(change_Team.main_team_idx)
+  if change_Team then
+    if change_Team.main_team_idx and change_Team.team_type == Enum.PlayerTeamType.PTT_BIG_WORLD then
+      _G.DataModelMgr.PlayerDataModel:SetPlayerBigWorldPetTeamMainIndex(change_Team.main_team_idx)
+      _G.DataModelMgr.PlayerDataModel:OnPetMainTeamChanged(change_Team.main_team_idx)
+      local gid = ThrowSession:GetGID()
+      local index, petData = _G.DataModelMgr.PlayerDataModel:GetPetDataAndTeamIndexByGid(gid)
+      _G.NRCModuleManager:GetModule("PetUIModule"):DispatchEvent(PetUIModuleEvent.PET_TEAM_CHANGE)
+      local battlePetList = _G.DataModelMgr.PlayerDataModel:GetPlayerBattlePetInfo()
+      _G.NRCModeManager:DoCmd(MainUIModuleCmd.SetSelectPetIndex, index, petData)
+      _G.NRCModuleManager:DoCmd(PetUIModuleCmd.SetPetSelectIndex, index)
+      _G.NRCModuleManager:GetModule("MainUIModule"):DispatchEvent(MainUIModuleEvent.UI_Refresh_MainPet, 1, battlePetList, true)
+      _G.NRCModuleManager:DoCmd(MainUIModuleCmd.UI_RefreshMainPetSelectedState, petData.gid)
+    end
+  elseif rsp and rsp.ret_info and 0 == rsp.ret_info.ret_code and ThrowSession:GetThrowType() == _G.ProtoEnum.ThrowType.THROW_PET then
     local gid = ThrowSession:GetGID()
     local index, petData = _G.DataModelMgr.PlayerDataModel:GetPetDataAndTeamIndexByGid(gid)
     _G.NRCModuleManager:GetModule("PetUIModule"):DispatchEvent(PetUIModuleEvent.PET_TEAM_CHANGE)
@@ -246,15 +276,16 @@ function MainUIModule:OnBeginTrowRsp(ThrowSession, rsp)
   if self:HasPanel("LobbyMain") then
     local panel = self:GetPanel("LobbyMain")
     panel.Switcher.Slot:SetZOrder(0)
-    panel.Switcher:SetActiveWidgetIndex(0)
     panel.UMG_MainPet:UpdateThrowPetCanClick(false)
     panel.MainPetScrollList:UpdateThrowPetCanClick(false)
-    panel.MainPetScrollList:InitPanelInfo(true)
+    panel.Switcher:SetActiveWidgetIndex(0)
   end
 end
 
 function MainUIModule:OpenInteractMain()
-  self:OpenPanel("NPCInteractMain")
+  if not self:HasPanel("NPCInteractMain") then
+    self:OpenPanel("NPCInteractMain")
+  end
 end
 
 function MainUIModule:CmdOpenMyTeamPanel()
@@ -363,6 +394,16 @@ function MainUIModule:DoCmdResetMainPetProgress()
   end
 end
 
+function MainUIModule:DoCmdGetMainPetListVisibility()
+  if self:HasPanel("LobbyMain") then
+    local panel = self:GetPanel("LobbyMain")
+    if panel and panel.UMG_MainPet and panel.UMG_MainPet.MainPetList then
+      return panel.UMG_MainPet.MainPetList:GetVisibility()
+    end
+  end
+  return UE4.ESlateVisibility.Collapsed
+end
+
 function MainUIModule:DoCmdSwitchPetAfterAnim()
   if self:HasPanel("LobbyMain") then
     Log.Debug(self.switcherIndex, "MainUIModule:DoCmdSwitchPetAfterAnim")
@@ -404,110 +445,39 @@ function MainUIModule:OnInVisible()
   end
 end
 
-function MainUIModule:OnCmdOpenOrCloseMainUIDownTips(_bOpen)
-  if _bOpen then
-    self:RebornShowPanel()
-  else
-    self:DeadClosePanel()
-  end
+function MainUIModule:OnCmdOpenOrCloseMainUIDownTips(_bOpen, _Reason)
+  self:OnCmdIsShowDownTips(_bOpen, _Reason)
 end
 
-function MainUIModule:DeadClosePanel(Reason)
-  if type(Reason) == "table" then
-    Reason = nil
-  end
-  self:OnCmdIsShowDownTips(false, Reason)
+function MainUIModule:OnPlayerDead()
+  self:OnCmdIsShowDownTips(false, "OnPlayerDead")
 end
 
-function MainUIModule:CinematicDeadClosePanel()
-  self:DeadClosePanel("Cinematic")
+function MainUIModule:OnPlayerReborn(Reason)
+  self:OnCmdIsShowDownTips(true, "OnPlayerDead")
 end
 
-function MainUIModule:CinematicRebornShowPanel()
-  self:RebornShowPanel("Cinematic")
+function MainUIModule:OnWorldCombatEnter()
+  self:OnCmdIsShowDownTips(false, "OnWorldCombatEnter")
 end
 
-function MainUIModule:DialogueDeadClosePanel()
-  self:DeadClosePanel("Dialogue")
-end
-
-function MainUIModule:DialogueRebornShowPanel()
-  self:RebornShowPanel("Dialogue")
+function MainUIModule:OnWorldCombatExit()
+  self:OnCmdIsShowDownTips(true, "OnWorldCombatEnter")
 end
 
 function MainUIModule:DeadClosePanelWithBlock(bIsBlockPCInput)
   if bIsBlockPCInput then
     self:AddPcInputBlock()
   end
-  self:OnCmdIsShowDownTips(false)
 end
 
 function MainUIModule:AddPcInputBlock()
   _G.NRCModuleManager:DoCmd(_G.EnhancedInputModuleCmd.AddBlockIMC, self)
 end
 
-function MainUIModule:OnPaused()
-  Log.Debug("MainUITips OnPaused")
-  self:DeadClosePanel("DisplayCoordinator")
-end
-
-function MainUIModule:OnResumed()
-  Log.Debug("MainUITips OnResumed")
-  self:RebornShowPanel("DisplayCoordinator")
-end
-
-function MainUIModule:RebornShowPanel(Reason)
-  if type(Reason) == "table" then
-    Reason = nil
-  end
-  self:SetShowDownTipsEnabled(true, Reason)
-  if _G.NRCModeManager:GetCurMode().modeName == "LoginMode" then
-    self.tips = nil
-    return
-  end
-  local HasPanel = self:HasPanel("LobbyDownTips")
-  if HasPanel then
-    self:OnCmdIsShowDownTips(true, Reason)
-  elseif self.tips and #self.tips > 0 then
-    self.isTipsOpening = true
-    self:OpenPanel("LobbyDownTips")
-  end
-end
-
 function MainUIModule:RebornShowPanelWithBlock(bIsBlockPCInput)
-  self:SetShowDownTipsEnabled(true)
   if not bIsBlockPCInput then
     self:RemovePcInputBlock()
-  end
-  if _G.NRCModeManager:GetCurMode().modeName == "LoginMode" then
-    self.tips = nil
-    return
-  end
-  local HasPanel = self:HasPanel("LobbyDownTips")
-  if HasPanel then
-    self:OnCmdIsShowDownTips(true)
-  elseif self.tips and #self.tips > 0 then
-    self.isTipsOpening = true
-    self:OpenPanel("LobbyDownTips")
-  end
-end
-
-function MainUIModule:OnEnterWorldCombat()
-  self:OnCmdIsShowDownTips(false, "OnEnterWorldCombat")
-end
-
-function MainUIModule:OnExitWorldCombat()
-  self:SetShowDownTipsEnabled(true, "OnEnterWorldCombat")
-  if _G.NRCModeManager:GetCurMode().modeName == "LoginMode" then
-    self.tips = nil
-    return
-  end
-  local HasPanel = self:HasPanel("LobbyDownTips")
-  if HasPanel then
-    self:OnCmdIsShowDownTips(true, "OnEnterWorldCombat")
-  elseif self.tips and #self.tips > 0 then
-    self.isTipsOpening = true
-    self:OpenPanel("LobbyDownTips")
   end
 end
 
@@ -520,6 +490,34 @@ function MainUIModule:OnMiniMapTimeSync(TimeSync)
   if self:HasPanel("LobbyMain") then
     local panel = self:GetPanel("LobbyMain")
     panel:MiniMapTimeSync(TimeSync.game_time)
+  end
+end
+
+function MainUIModule:SetMainUICanCache(CanCache)
+  if self.delayRefreshMainUIId then
+    _G.DelayManager:CancelDelayById(self.delayRefreshMainUIId)
+    self.delayRefreshMainUIId = nil
+  end
+  if self:HasPanel("LobbyMain") then
+    local panel = self:GetPanel("LobbyMain")
+    panel.InvalidationBox_0:SetCanCache(CanCache)
+    panel.InvalidationBox_0:InvalidateLayoutAndVolatility()
+  end
+end
+
+function MainUIModule:RefreshMainUICache()
+  if self:HasPanel("LobbyMain") then
+    local panel = self:GetPanel("LobbyMain")
+    panel.InvalidationBox_0:SetCanCache(false)
+    panel.InvalidationBox_0:InvalidateLayoutAndVolatility()
+    if self.delayRefreshMainUIId then
+      _G.DelayManager:CancelDelayById(self.delayRefreshMainUIId)
+      self.delayRefreshMainUIId = nil
+    end
+    self.delayRefreshMainUIId = _G.DelayManager:DelayFrames(2, function()
+      panel.InvalidationBox_0:SetCanCache(true)
+      panel.InvalidationBox_0:InvalidateLayoutAndVolatility()
+    end)
   end
 end
 
@@ -623,12 +621,6 @@ function MainUIModule:UpdateSafeZone(isSaveZone)
   panel:OnGameSecureAreaChanage(isSaveZone)
 end
 
-function MainUIModule:OnShowLevelUp(expInfo)
-end
-
-function MainUIModule:ShowUIUnlock(UnlockData)
-end
-
 function MainUIModule:OpenUnlockGuidBook(_GuidBookData)
   Log.Debug("MainUIModule:OpenUnlockGuidBook")
   if self:HasPanel("UnlockGuidBook") then
@@ -641,7 +633,9 @@ end
 
 function MainUIModule:OnCmdPlayRewardTips(Data)
   local panel = self:GetPanel("LobbyMain")
-  panel.UMG_LobbyPropTips:PlayTips(Data)
+  if panel and panel.UMG_LobbyPropTips then
+    panel.UMG_LobbyPropTips:PlayTips(Data)
+  end
 end
 
 function MainUIModule:SetRewardTipsEnabled(bEnable, Reason)
@@ -698,132 +692,27 @@ function MainUIModule:OnCmdUpdateVisitListInfo()
     local panel = self:GetPanel("LobbyMain")
     if panel then
       panel.UMG_Compass:UpdateVisitIcons()
-      local compassIcon = panel.UMG_CompassIcon
-      if panel.UMG_CompassIcon and compassIcon.UMG_Minimap and compassIcon.isContruct and not compassIcon.isDestruct then
-        compassIcon.UMG_Minimap:UpdateVisitorInfo()
-      end
     end
-  end
-end
-
-function MainUIModule:NeedCoverShow(NewTipData, OldTipData)
-  local NewTipsTeachId = NewTipData.teach_id
-  local NewTipPriority = NewTipData.priority
-  local OldTipsTeachId = OldTipData.teach_id
-  local OldTipPriority = OldTipData.priority
-  if NewTipPriority and 0 ~= NewTipPriority then
-    if OldTipPriority and 0 ~= OldTipPriority then
-      if NewTipPriority ~= OldTipPriority then
-        return NewTipPriority < OldTipPriority
-      else
-        return NewTipsTeachId > OldTipsTeachId
-      end
-    else
-      return false
-    end
-  else
-    return true
-  end
-end
-
-function MainUIModule:IsNeedShowDownTips()
-  return not self.LobbyDownTipsVisibilityBanReasons or not next(self.LobbyDownTipsVisibilityBanReasons)
-end
-
-function MainUIModule:SetShowDownTipsEnabled(bEnable, Reason, bDisableLog)
-  Reason = Reason or "Default"
-  if not self.LobbyDownTipsVisibilityBanReasons then
-    self.LobbyDownTipsVisibilityBanReasons = {}
-  end
-  if bEnable then
-    self.LobbyDownTipsVisibilityBanReasons[Reason] = nil
-  else
-    self.LobbyDownTipsVisibilityBanReasons[Reason] = true
-  end
-  if not bDisableLog then
-    Log.Trace("MainUITips SetShowDownTipsEnabled", bEnable, Reason)
   end
 end
 
 function MainUIModule:OnCmdIsShowDownTips(_IsShow, Reason)
-  self:SetShowDownTipsEnabled(_IsShow, Reason, true)
-  local bDesiredShow = self:IsNeedShowDownTips()
-  Log.Trace("MainUITips OnCmdIsShowDownTips", _IsShow, Reason, bDesiredShow)
-  if not bDesiredShow then
-    for r, v in pairs(self.LobbyDownTipsVisibilityBanReasons) do
-      Log.Debug("MainUITips LobbyDownTips has banned by", r)
-    end
-  end
-  local HasPanel = self:HasPanel("LobbyDownTips")
-  if HasPanel then
-    local Panel = self:GetPanel("LobbyDownTips")
-    Panel:IsShowPanel(bDesiredShow)
-  end
-end
-
-function MainUIModule:AddTips(tip)
-  if self.tips == nil then
-    self.tips = {}
-  end
-  if 2 == tip.type then
-    if self.OpeningTip and 2 == self.OpeningTip.type and self:HasPanel("LobbyDownTips") then
-      local needCover = self:NeedCoverShow(tip.tipData, self.OpeningTip.tipData)
-      if needCover then
-        local Panel = self:GetPanel("LobbyDownTips")
-        Panel.TeachingUnlockTips:RefreshPanel(tip.tipData, true)
-      end
-      tip:MarkFinished()
-    else
-      local hasTeachTips = false
-      for i = 1, #self.tips do
-        if tip.type == self.tips[i].type then
-          local needCover = self:NeedCoverShow(tip.tipData, self.tips[i].tipData)
-          if needCover then
-            self.tips[i]:MarkFinished()
-            self.tips[i] = tip
-          else
-            tip:MarkFinished()
-          end
-          hasTeachTips = true
-          break
-        end
-      end
-      if not hasTeachTips then
-        table.insert(self.tips, tip)
-      end
-    end
-  else
-    table.insert(self.tips, tip)
-  end
-  table.sort(self.tips, function(a, b)
-    return a.type < b.type
-  end)
-end
-
-function MainUIModule:ExerciseTips()
-  if self.tips == nil or 0 == #self.tips then
-    self.isTipsOpening = false
-    return nil
-  end
-  local tip = table.remove(self.tips, 1)
-  self.OpeningTip = tip
-  return tip
-end
-
-function MainUIModule:OnCmdOpenLobbyDownTips(tip)
-  self:AddTips(tip)
-  local IsCinematicPlaying = _G.NRCModuleManager:DoCmd(CinematicModuleCmd.IsPlaying)
-  local ShowConfirmTeleportTips = _G.NRCModuleManager:DoCmd(TipsModuleCmd.Tips_HasConfirmTeleportTips)
-  local IsLocalGamePlaying = _G.NRCModuleManager:DoCmd(MiniGameModuleCmd.IsOpenCamera)
-  local IsInWorldCombat = _G.NRCModuleManager:DoCmd(WorldCombatModuleCmd.IsInWorldCombat)
-  local HasDialogue = _G.NRCModuleManager:DoCmd(DialogueModuleCmd.HasDialogue)
-  local HasTeamBattlePanel = _G.NRCModuleManager:DoCmd(TeamBattleModuleCmd.HasPreWarInformationPanel)
-  local HasRelationTreePanel = _G.NRCModuleManager:DoCmd(RelationTreeCmd.HasRelationTreePanel)
-  if self.isTipsOpening or HasRelationTreePanel or IsCinematicPlaying or ShowConfirmTeleportTips or IsLocalGamePlaying or IsInWorldCombat or HasDialogue or HasTeamBattlePanel then
+  if not Reason then
+    Log.Error("MainUITips OnCmdIsShowDownTips. Reason is nil")
     return
   end
+  Log.Debug("MainUITips OnCmdIsShowDownTips", _IsShow, Reason)
+  if self.LobbyDownTipsController then
+    if not _IsShow then
+      self.LobbyDownTipsController:GetExecutor():Pause(Reason)
+    else
+      self.LobbyDownTipsController:GetExecutor():Resume(Reason)
+    end
+  end
+end
+
+function MainUIModule:OnCmdOpenLobbyDownTips()
   if not self:HasPanel("LobbyDownTips") then
-    self.isTipsOpening = true
     self:OpenPanel("LobbyDownTips")
   end
 end
@@ -994,7 +883,8 @@ function MainUIModule:OpenCompassUnLockTips(param)
 end
 
 function MainUIModule:OnDeactive()
-  _G.NRCEventCenter:UnRegisterEvent(self, SceneEvent.OnPlayerDead, self.DeadCloseGamePanel)
+  _G.NRCEventCenter:UnRegisterEvent(self, SceneEvent.OnPlayerDead, self.OnPlayerDead)
+  _G.NRCEventCenter:UnRegisterEvent(self, SceneEvent.OnPlayerReborn, self.OnPlayerReborn)
   _G.NRCEventCenter:UnRegisterEvent(self, SceneEvent.PlayerBornFinish, self.OnMapLoaded)
   _G.DataModelMgr.PlayerDataModel:RemoveEventListener(self, ENUM_PLAYER_DATA_EVENT.RELOGIN_UPDATE_PET, self.RefreshMainPet)
   _G.NRCEventCenter:UnRegisterEvent(self, MainUIModuleEvent.MAINUICLOSE, self.OnMainUIClose)
@@ -1002,8 +892,8 @@ function MainUIModule:OnDeactive()
   _G.NRCEventCenter:UnRegisterEvent(self, MainUIModuleEvent.OnLobbyMainInnerOpened, self.OnLobbyMainInnerOpened)
   _G.NRCEventCenter:UnRegisterEvent(self, MainUIModuleEvent.OnLobbyMainInnerClosed, self.OnLobbyMainInnerClosed)
   _G.NRCEventCenter:UnRegisterEvent(self, SceneEvent.OnEnterSceneFinishNtyAck, self.AfterEnterScene)
-  _G.NRCEventCenter:UnRegisterEvent(self, WorldCombatModuleEvent.Enter, self.DeadClosePanel)
-  _G.NRCEventCenter:UnRegisterEvent(self, WorldCombatModuleEvent.Exit, self.RebornShowPanel)
+  _G.NRCEventCenter:UnRegisterEvent(self, WorldCombatModuleEvent.Enter, self.OnWorldCombatEnter)
+  _G.NRCEventCenter:UnRegisterEvent(self, WorldCombatModuleEvent.Exit, self.OnWorldCombatExit)
   _G.NRCEventCenter:UnRegisterEvent(self, WishCrystalModuleEvent.WISH_CRYSTAL_STARLIGHT_INFO_UPDATE, self.OnStarligthInfoUpdate)
   _G.NRCEventCenter:UnRegisterEvent(self, WishCrystalModuleEvent.WISH_CRYSTAL_STARLIGHT_EXCHANGE, self.OnStarligthExchange)
   _G.DataModelMgr.PlayerDataModel:RemoveEventListener(self, ENUM_PLAYER_DATA_EVENT.STORY_FLAG_ADDED, self.OnStoryFlagAdded)
@@ -1014,17 +904,23 @@ function MainUIModule:OnDeactive()
     LocalPlayer:RemoveEventListener(self, PlayerModuleEvent.ON_BODY_TEMP_CHANGED, self.OnBodyTempChange)
   end
   _G.ZoneServer:RemoveProtocolListener(self, _G.ProtoCMD.ZoneSvrCmd.ZONE_CHANGE_SELECTED_THROW_ITEM_NOTIFY, self.CheckRefreshThrowItemInfo)
+  if self.LobbyDownTipsController then
+    self.LobbyDownTipsController:Free()
+    self.LobbyDownTipsController = nil
+  end
+  if self.MainPetTipsController then
+    self.MainPetTipsController:Free()
+    self.MainPetTipsController = nil
+  end
 end
 
 function MainUIModule:OnTick(deltaTime)
   if self.bAiming == true and self.ReqItemType ~= _G.MainUIModuleEnum.MainUIChooseType.MAGIC then
-    self.TickIntervel = self.TickIntervel + deltaTime
-    if self.TickIntervel > 0.2 then
+    self.TickInterval = self.TickInterval + deltaTime
+    if self.TickInterval > 0.2 then
       self:ShowNPCLv(self.bAiming)
-      self.TickIntervel = 0
+      self.TickInterval = 0
     end
-  end
-  if self.threeFingerPanelVisible == false then
   end
 end
 
@@ -1161,70 +1057,73 @@ function MainUIModule:CalcAngle(pos1, pos2)
   return math.deg(math.acos(cosAngle))
 end
 
+function MainUIModule:SwitchMainPanel(NewMainUIType, bNotTemp, bReBindIA)
+  self.MainPanelMgr:SwitchMainPanel(NewMainUIType, bNotTemp, bReBindIA)
+end
+
 function MainUIModule:OnCmdOpenLobbyMainPanel()
   local bInDialogue
   if _G.DialogueModuleCmd then
     bInDialogue = _G.NRCModuleManager:DoCmd(_G.DialogueModuleCmd.HasDialogue)
   end
   if _G.BattleManager.isInBattle or bInDialogue then
+    self:LogWarning("Open LobbyMainPanel Failed, maybe in battle or dialogue")
     return
   end
+  self:Log("OnCmdOpenLobbyMainPanel", NRCModeManager:GetCurMode(), NRCModeManager:GetCurMode().modeName)
+  if not NRCEnv:IsLocalMode() then
+    self:SwitchMainPanel(MainUIModuleEnum.MainUIPanelType.LobbyMain, false)
+    self:OnLobbyMainOpen()
+  elseif _G.AppMain:HasDebug() and not NRCModuleManager:DoCmd(DebugModuleCmd.CheckIsInPhotoEditorMode) then
+    self:SwitchMainPanel(MainUIModuleEnum.MainUIPanelType.LobbyMainLocal, false)
+  end
+end
+
+function MainUIModule:OnLobbyMainOpen()
   if self:HasPanel("NPCInteractMain") then
     local panel = self:GetPanel("NPCInteractMain")
     panel.ShouldCollapse = false
   end
-  self:Log("OnCmdOpenLobbyMainPanel", NRCModeManager:GetCurMode(), NRCModeManager:GetCurMode().modeName)
-  if not NRCEnv:IsLocalMode() then
-    local isOpening, _ = self:HasPanel("LobbyMain")
-    if isOpening then
-      local mainUI = self:GetPanel("LobbyMain")
-      if mainUI then
-        self:EnablePanel("LobbyMain")
-      end
-    else
-      self:OpenPanel("LobbyMain")
-    end
-    if self:HasPanel("MagicMessageMusicToolbar") then
-      self:EnablePanel("MagicMessageMusicToolbar")
-    end
-    local magicReplayModule = _G.NRCModuleManager:GetModule("MagicReplayModule")
-    if magicReplayModule and magicReplayModule:HasPanel("ReplayPanel") then
-      magicReplayModule:EnablePanel("ReplayPanel")
-    end
-  else
-    self:Log("OnCmdOpenLobbyMainPanel localMode")
-    local isOpening, _ = self:HasPanel("LobbyMainLocal")
-    if isOpening then
-      local mainUI = self:GetPanel("LobbyMainLocal")
-      if mainUI then
-        self:EnablePanel("LobbyMainLocal")
-      end
-    elseif _G.AppMain:HasDebug() and not NRCModuleManager:DoCmd(DebugModuleCmd.CheckIsInPhotoEditorMode) then
-      self:OpenPanel("LobbyMainLocal")
-    end
+  if self:HasPanel("MagicMessageMusicToolbar") then
+    self:EnablePanel("MagicMessageMusicToolbar")
+  end
+  local magicReplayModule = _G.NRCModuleManager:GetModule("MagicReplayModule")
+  if magicReplayModule and magicReplayModule:HasPanel("ReplayPanel") then
+    magicReplayModule:EnablePanel("ReplayPanel")
   end
 end
 
 function MainUIModule:OnCmdCloseLobbyMainPanel()
   self:Log("OnCmdCloseLobbyMainPanel")
   if not NRCEnv:IsLocalMode() then
-    self:DisablePanel("LobbyMain")
-    if self:HasPanel("NPCInteractMain") then
-      local panel = self:GetPanel("NPCInteractMain")
-      panel.ShouldCollapse = true
-    end
-    self:DoCmdCloseHUDSimpleList()
-    self:DoCmdCloseSimpleUseList()
-    if self:HasPanel("MagicMessageMusicToolbar") then
-      self:DisablePanel("MagicMessageMusicToolbar")
-    end
-    local magicReplayModule = _G.NRCModuleManager:GetModule("MagicReplayModule")
-    if magicReplayModule and magicReplayModule:HasPanel("ReplayPanel") then
-      magicReplayModule:DisablePanel("ReplayPanel")
-    end
+    self:SwitchMainPanel(MainUIModuleEnum.MainUIPanelType.None, false)
+    self:OnCloseLobbyMain()
   else
-    self:DisablePanel("LobbyMainLocal")
+    self:SwitchMainPanel(MainUIModuleEnum.MainUIPanelType.None, false)
   end
+end
+
+function MainUIModule:OnCloseLobbyMain()
+  if self:HasPanel("NPCInteractMain") then
+    local panel = self:GetPanel("NPCInteractMain")
+    panel.ShouldCollapse = true
+  end
+  self:DoCmdCloseHUDSimpleList()
+  self:DoCmdCloseSimpleUseList()
+  if self:HasPanel("MagicMessageMusicToolbar") then
+    self:DisablePanel("MagicMessageMusicToolbar")
+  end
+  local magicReplayModule = _G.NRCModuleManager:GetModule("MagicReplayModule")
+  if magicReplayModule and magicReplayModule:HasPanel("ReplayPanel") then
+    magicReplayModule:DisablePanel("ReplayPanel")
+  end
+end
+
+function MainUIModule:TryOpenMainPanel()
+  if self.MainPanelMgr.CurUIType == MainUIModuleEnum.MainUIPanelType.None then
+    self.MainPanelMgr.CurUIType = MainUIModuleEnum.MainUIPanelType.LobbyMain
+  end
+  self:SwitchMainPanel(self.MainPanelMgr.CurUIType)
 end
 
 function MainUIModule:OnCmdOpenLobbyMainInnerPanel(OpenType)
@@ -1309,6 +1208,7 @@ function MainUIModule:RegPanel_1(name, path, layer, customDisableRendering, touc
   registerData.enablePcEsc = false
   registerData.disableLoadBlock = disableLoadBlock
   self:RegisterPanel(registerData)
+  return registerData
 end
 
 function MainUIModule:RegPanel(name, path, layer, customDisableRendering, touchCount, isSingleTouchPanel, enablePcEsc, disableLoadBlock)
@@ -1322,6 +1222,7 @@ function MainUIModule:RegPanel(name, path, layer, customDisableRendering, touchC
   registerData.enablePcEsc = enablePcEsc and enablePcEsc or false
   registerData.disableLoadBlock = disableLoadBlock
   self:RegisterPanel(registerData)
+  return registerData
 end
 
 function MainUIModule:RegUMGNPCInteractMainPanel()
@@ -1379,6 +1280,9 @@ function MainUIModule:ShowFrontSight(show, cancelType, isAbility)
   self:DispatchEvent(MainUIModuleEvent.UI_ShowFrontSight, show, cancelType, isAbility)
   if false == show then
     local player = _G.NRCModuleManager:DoCmd(PlayerModuleCmd.GET_LOCAL_PLAYER)
+    if self.ReqItemType == _G.MainUIModuleEnum.MainUIChooseType.PET and not isAbility then
+      self:OnBeginSelectPetMain()
+    end
     if self.ReqItemType ~= _G.MainUIModuleEnum.MainUIChooseType.MAGIC then
       local AllNpcs = _G.NRCModuleManager:DoCmd(NPCModuleCmd.GetAllNPCInIter)
       if type(AllNpcs) == "table" then
@@ -1394,6 +1298,14 @@ function MainUIModule:ShowFrontSight(show, cancelType, isAbility)
   end
 end
 
+function MainUIModule:GetAimJoystickPointerIndex(mode)
+  if not self:HasPanel("LobbyMain") then
+    return -1
+  end
+  local panel = self:GetPanel("LobbyMain")
+  return panel:GetAimJoystickPointerIndex(mode)
+end
+
 function MainUIModule:UpdateFrontSight(isCollision)
   self:DispatchEvent(MainUIModuleEvent.UI_UpdateFrontSight, isCollision)
 end
@@ -1403,6 +1315,9 @@ function MainUIModule:SetThrowItem(type, itemInfo, recycleState, Session)
     self.selectedItemId = itemInfo.id
   else
     self.selectedItemId = 0
+  end
+  if type == _G.MainUIModuleEnum.MainUIChooseType.PET then
+    self:SaveCurMainUIThrowSelectInfo(itemInfo.gid)
   end
   self:DispatchEvent(MainUIModuleEvent.UI_SetThrowItem, type, itemInfo, recycleState, Session)
   _G.NRCEventCenter:DispatchEvent(MainUIModuleEvent.UI_SetThrowItem, type, itemInfo)
@@ -1760,39 +1675,43 @@ function MainUIModule:UpdataMainUIBlockInfo(areaId)
   panel:MainUIBlockByArea(areaId)
 end
 
-function MainUIModule:OnCmdShowTemperatureHot(bShowUI)
+function MainUIModule:OnCmdShowTemperatureHot(bShowUI, bForce)
   if bShowUI then
-    _G.NRCAudioManager:PlaySound2DAuto(40008012, "UMG_LevelMain_C:OnSystemIconClicked")
     if self:HasPanel("TemperatureHot") then
       local panel = self:GetPanel("TemperatureHot")
       panel:DoCustomOpen()
       return
     end
+    Log.Debug("MainUIModule:OnCmdShowTemperatureHot", bShowUI, 2)
     self:OpenPanel("TemperatureHot")
   else
     if not self:HasPanel("TemperatureHot") then
+      self:ClosePanel("TemperatureHot")
       return
     end
+    Log.Debug("MainUIModule:OnCmdShowTemperatureHot", bShowUI, 2)
     local panel = self:GetPanel("TemperatureHot")
-    panel:DoCustomClose()
+    panel:DoCustomClose(bForce)
   end
 end
 
-function MainUIModule:OnCmdShowTemperatureCold(bShowUI)
+function MainUIModule:OnCmdShowTemperatureCold(bShowUI, bForce)
   if bShowUI then
-    _G.NRCAudioManager:PlaySound2DAuto(40008010, "UMG_LevelMain_C:OnSystemIconClicked")
     if self:HasPanel("TemperatureCold") then
       local panel = self:GetPanel("TemperatureCold")
       panel:DoCustomOpen()
       return
     end
+    Log.Debug("MainUIModule:OnCmdShowTemperatureCold", bShowUI, 2)
     self:OpenPanel("TemperatureCold")
   else
     if not self:HasPanel("TemperatureCold") then
+      self:ClosePanel("TemperatureCold")
       return
     end
+    Log.Debug("MainUIModule:OnCmdShowTemperatureCold", bShowUI, 2)
     local panel = self:GetPanel("TemperatureCold")
-    panel:DoCustomClose()
+    panel:DoCustomClose(bForce)
   end
 end
 
@@ -1862,11 +1781,11 @@ function MainUIModule:OnCmdCloseCompass(bClose)
   end
 end
 
-function MainUIModule:CompassChangeToHidde(bClose)
+function MainUIModule:CompassChangeToHidde(hiddenState)
   if self:HasPanel("LobbyMain") then
     local panel = self:GetPanel("LobbyMain")
     if panel.UMG_Compass and panel.UMG_Compass.isContruct and not panel.UMG_Compass.isDestruct then
-      panel.UMG_Compass:ChangeCompassState(3)
+      panel.UMG_Compass:ChangeCompassState(3, hiddenState)
     end
   end
 end
@@ -1885,6 +1804,16 @@ function MainUIModule:CompassChangeToNormal(bClose)
     local panel = self:GetPanel("LobbyMain")
     if panel.UMG_Compass and panel.UMG_Compass.isContruct and not panel.UMG_Compass.isDestruct then
       panel.UMG_Compass:ChangeCompassState(1)
+    end
+  end
+end
+
+function MainUIModule:SetMiniMapOrCompassState(state)
+  if self:HasPanel("LobbyMain") then
+    local panel = self:GetPanel("LobbyMain")
+    local compassIcon = panel.UMG_CompassIcon
+    if panel.UMG_CompassIcon and compassIcon.UMG_Minimap and compassIcon.isContruct and not compassIcon.isDestruct then
+      compassIcon.UMG_Minimap:ChangeMinimapState(state)
     end
   end
 end
@@ -1913,6 +1842,24 @@ end
 
 function MainUIModule:GetMoveJoystickMode()
   return self.IsLockMoveJoystick
+end
+
+function MainUIModule:OnCmdSetPropPlaceMode(_bIsFreedomMode)
+  if self.IsFreedomPropPlaceMod == _bIsFreedomMode then
+    return
+  end
+  self.IsFreedomPropPlaceMode = _bIsFreedomMode
+  local joystickConfig = JsonUtils.LoadSaved(_JoystickConfigFilename, {})
+  if not joystickConfig.bIsFreedomModeMap then
+    joystickConfig.bIsFreedomModeMap = {}
+  end
+  local uin = _G.DataModelMgr.PlayerDataModel:GetPlayerUin() or 0
+  joystickConfig.bIsFreedomModeMap[tostring(uin)] = _bIsFreedomMode
+  JsonUtils.DumpSaved(_JoystickConfigFilename, joystickConfig)
+end
+
+function MainUIModule:OnCmdGetPropPlaceMode()
+  return self.IsFreedomPropPlaceMode and 1 or 0
 end
 
 function MainUIModule:OnCmdMainUIIsShow()
@@ -2060,15 +2007,6 @@ function MainUIModule:ShowHandbookTopicTips(tip)
   end
   local panel = self:GetPanel("LobbyMain")
   panel.ProjectTask:AddNew(tip)
-end
-
-function MainUIModule:ShowMainPetExpOrLevelChangeTip(tip)
-  if not self:HasPanel("LobbyMain") then
-    tip:MarkFinished()
-    return
-  end
-  local panel = self:GetPanel("LobbyMain")
-  panel.UMG_MainPet:ActiveBlockingTip(tip)
 end
 
 function MainUIModule:GetIsJoystickTouch()
@@ -2307,6 +2245,10 @@ function MainUIModule:ZoneSceneGetFollowInfoRsp(rsp)
     local desc = _G.LuaText:GetErrorDesc(rsp.ret_info.ret_code)
     _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, desc, nil, nil, 1)
   end
+end
+
+function MainUIModule:OnReconnectStar()
+  self:OnCmdClosePropPlacementPanel()
 end
 
 function MainUIModule:OnReconnect()
@@ -2587,25 +2529,40 @@ function MainUIModule:OnCmdCheckIsShowFrontSight()
 end
 
 function MainUIModule:OpenCreateMagicMessage(param)
+  local umgName = "UMG_CreateMagicMessage"
+  if param.ChildConf then
+    local conf = param.ChildConf
+    if conf.create_magic_message ~= "" then
+      umgName = conf.create_magic_message
+    end
+  end
+  local umgPath = string.format("/Game/NewRoco/Modules/System/MainUI/Res/%s", umgName)
+  local panelData = self:GetPanelData("CreateMagicMessage")
+  panelData.panelPath = NRCUtils.FormatBlueprintAssetPath(umgPath)
   self:OpenPanel("CreateMagicMessage", param)
 end
 
-function MainUIModule:OnLoadPanelRes()
-  local ResListData = _G.NRCPanelResLoadData()
-  ResListData.PreLoadResList = {}
-  table.insert(ResListData.PreLoadResList, UEPath.Font)
-  table.insert(ResListData.PreLoadResList, UEPath.Font_1)
-  return ResListData
-end
-
 function MainUIModule:OpenShowMagicMessage(feedDetail, Action, SoundSession)
-  local ResListData = self:OnLoadPanelRes()
   local param = {
     feedDetail = feedDetail,
     Action = Action,
     SoundSession = SoundSession
   }
-  self:OpenPanel("ShowMagicMessage", param, ResListData)
+  local umgName = "UMG_ShowMagicMessage"
+  if feedDetail.feed_info and feedDetail.feed_info.sub_type and 0 ~= feedDetail.feed_info.sub_type then
+    local subMarkMessageTable = _G.DataConfigManager:GetTable(DataConfigManager.ConfigTableId.MARK_MESSAGE_CHILD_CONF):GetAllDatas()
+    for k, v in pairs(subMarkMessageTable) do
+      local subMarkMessageConf = v
+      if subMarkMessageConf.gameplay_type == param.feedDetail.feed_info.category and subMarkMessageConf.child_type == feedDetail.feed_info.sub_type then
+        umgName = subMarkMessageConf.show_magic_message
+        break
+      end
+    end
+  end
+  local umgPath = string.format("/Game/NewRoco/Modules/System/MainUI/Res/%s", umgName)
+  local panelData = self:GetPanelData("ShowMagicMessage")
+  panelData.panelPath = NRCUtils.FormatBlueprintAssetPath(umgPath)
+  self:OpenPanel("ShowMagicMessage", param)
 end
 
 function MainUIModule:OpenMagicMessageCommentPopUp(grid_id, feed_id)
@@ -2634,8 +2591,8 @@ function MainUIModule:ReThrowEquipItem()
 end
 
 function MainUIModule:OnCmdCloseQuickChat()
-  if self:HasPanel("LobbyMain") then
-    local panel = self:GetPanel("LobbyMain")
+  if self:HasAnyMainUIOpened() then
+    local panel = self:GetCurMainPanel()
     panel:CloseQuickChat()
   end
 end
@@ -2790,9 +2747,26 @@ function MainUIModule:OnCmdAbilitySlotChangeMagicLimit()
 end
 
 function MainUIModule:OnCmdSavePerformanceTier()
+  if not (JsonUtils and JsonUtils.LoadSaved) or not JsonUtils.DumpSaved then
+    Log.Error("JsonUtils\229\183\165\229\133\183\229\135\189\230\149\176\228\184\141\229\143\175\231\148\168")
+    return
+  end
+  if not WidgetPerformanceTier or not WidgetPerformanceTier.GetTier then
+    Log.Error("WidgetPerformanceTier\230\168\161\229\157\151\228\184\141\229\143\175\231\148\168")
+    return
+  end
   local WidgetPerformanceTierInfo = JsonUtils.LoadSaved("WidgetPerformanceTier", false)
   if not WidgetPerformanceTierInfo then
-    JsonUtils.DumpSaved("WidgetPerformanceTier", WidgetPerformanceTier.GetTier())
+    local tierData = WidgetPerformanceTier.GetTier()
+    if not tierData then
+      Log.Error("\232\142\183\229\143\150\230\128\167\232\131\189\229\136\134\230\161\163\230\149\176\230\141\174\229\164\177\232\180\165")
+      return
+    end
+    local saveResult = JsonUtils.DumpSaved("WidgetPerformanceTier", tierData)
+    if not saveResult then
+      Log.Error("\228\191\157\229\173\152\230\128\167\232\131\189\229\136\134\230\161\163\230\150\135\228\187\182\229\164\177\232\180\165")
+      return
+    end
   end
 end
 
@@ -2882,6 +2856,90 @@ end
 
 function MainUIModule:OnCmdSetNewFollowDataCache(cache)
   self.NewFollowDataCache = cache
+end
+
+function MainUIModule:OnCmdOpenBallUseBagPanel()
+  self:DoCmdOpenSimpleUseList(1)
+end
+
+function MainUIModule:OnCmdChangePlayerTags(action)
+  if action then
+    _G.NRCEventCenter:DispatchEvent(MainUIModuleEvent.OnPlayerTagsChange, action.actor_id, action.player_tags)
+  end
+end
+
+function MainUIModule:OnCmdOpenPropPlacementPanel(npcId)
+  self:OpenPanel("PropPlacementPanel", npcId)
+end
+
+function MainUIModule:OnCmdClosePropPlacementPanel()
+  if self:HasPanel("PropPlacementPanel") then
+    self:ClosePanel("PropPlacementPanel")
+  end
+end
+
+function MainUIModule:OnCmdMainPetTemplateTipsPlayEnd(index, petGid, petTipsItem)
+  if self:HasPanel("LobbyMain") then
+    local panel = self:GetPanel("LobbyMain")
+    if panel and panel.UMG_MainPet then
+      panel.UMG_MainPet:OnMainPetTemplateTipsPlayEnd(index, petGid, petTipsItem)
+    end
+  end
+end
+
+function MainUIModule:OnSetThrowSelectPetInfo(gid, team_idx, idx)
+  if gid and team_idx and idx then
+    self.CurThroowSelectInfo = {
+      gid = gid,
+      teamIdx = team_idx,
+      selectIdx = idx
+    }
+  end
+end
+
+function MainUIModule:OnCmdGetThrowSelectPetInfo()
+  return self.CurThroowSelectInfo
+end
+
+function MainUIModule:SaveCurMainUIThrowSelectInfo(gid)
+  local isMainTeamIndex, TeamIdx = _G.DataModelMgr.PlayerDataModel:GetIsBigWorldMainTeamIndexByGid(gid)
+  if not isMainTeamIndex then
+    local SelectIndex, petData = _G.DataModelMgr.PlayerDataModel:GetPetDataAndTeamIndexByGid(gid)
+    local PetTeams = _G.DataModelMgr.PlayerDataModel:GetPlayerPetTeamInfoByTeamType(Enum.PlayerTeamType.PTT_BIG_WORLD)
+    if TeamIdx and SelectIndex and PetTeams and PetTeams.teams[TeamIdx] and PetTeams.teams[TeamIdx].pet_infos and PetTeams.teams[TeamIdx].pet_infos[SelectIndex] then
+      local gid = PetTeams.teams[TeamIdx].pet_infos[SelectIndex].pet_gid
+      self.CurThroowSelectInfo = {
+        gid = gid,
+        teamIdx = TeamIdx,
+        selectIdx = SelectIndex
+      }
+    end
+  end
+  return self.CurThroowSelectInfo
+end
+
+function MainUIModule:OnBeginSelectPetMain()
+  if self.CurThroowSelectInfo and self.LastThroowSelectInfo and self.CurThroowSelectInfo.teamIdx == self.LastThroowSelectInfo.teamIdx then
+    return
+  end
+  if self.CurThroowSelectInfo and self:HasPanel("LobbyMain") then
+    local gid = self.CurThroowSelectInfo.gid
+    local panel = self:GetPanel("LobbyMain")
+    local teamIdx = self.CurThroowSelectInfo.teamIdx
+    _G.DataModelMgr.PlayerDataModel:SetPlayerBigWorldPetTeamMainIndex(teamIdx)
+    local petData = _G.DataModelMgr.PlayerDataModel:GetPetDataByGid(gid)
+    _G.NRCModuleManager:GetModule("PetUIModule"):DispatchEvent(PetUIModuleEvent.PET_TEAM_CHANGE)
+    local battlePetList = _G.DataModelMgr.PlayerDataModel:GetPlayerBattlePetInfo()
+    _G.NRCModeManager:DoCmd(MainUIModuleCmd.SetSelectPetIndex, self.CurThroowSelectInfo.selectIdx, petData)
+    _G.NRCModuleManager:DoCmd(PetUIModuleCmd.SetPetSelectIndex, self.CurThroowSelectInfo.selectIdx)
+    _G.NRCModuleManager:GetModule("MainUIModule"):DispatchEvent(MainUIModuleEvent.UI_Refresh_MainPet, 1, battlePetList, true)
+    _G.NRCModuleManager:DoCmd(PetUIModuleCmd.ChangePetMainTeams, teamIdx, _G.ProtoEnum.PlayerTeamType.PTT_BIG_WORLD)
+    panel.Switcher.Slot:SetZOrder(0)
+    panel.Switcher:SetActiveWidgetIndex(0)
+    panel.UMG_MainPet:UpdateThrowPetCanClick(false)
+    panel.MainPetScrollList:UpdateThrowPetCanClick(false)
+    self.CurThroowSelectInfo = nil
+  end
 end
 
 return MainUIModule

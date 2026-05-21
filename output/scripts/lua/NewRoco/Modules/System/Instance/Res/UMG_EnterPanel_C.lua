@@ -1,3 +1,5 @@
+local MagicManualUtils = require("NewRoco/Modules/System/MagicManual/MagicManualUtils")
+local nameColorBoundary = _G.DataConfigManager:GetPetGlobalConfig("pet_level_boundary").num
 local UMG_EnterPanel_C = _G.NRCPanelBase:Extend("UMG_EnterPanel_C")
 local InstanceModuleEvent = require("NewRoco.Modules.Core.Instance.InstanceModuleEvent")
 
@@ -137,6 +139,22 @@ function UMG_EnterPanel_C:OnActive()
     recommendLevel = string.format("\230\142\168\232\141\144\233\173\148\230\179\149\229\184\136\230\152\159\231\186\167 %s", tostring(dconf.battle_starlevel))
     self.MagicStarLevel:SetText(recommendLevel)
     self.CanvasPanel_84:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  elseif dconf.enemy_id and dconf.enemy_id[1] then
+    self.CanvasPanel_84:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    local level, IsReCom = MagicManualUtils.GetBossLevel(dconf.enemy_id[1])
+    local worldLevel = (_G.DataModelMgr.PlayerDataModel:GetPlayerWorldLevel() or 0) + 1
+    local pet_level_limit = _G.DataConfigManager:GetWorldLevelConf(worldLevel).pet_level_limit
+    local subLevel = level - pet_level_limit
+    local fColor = UE4.UNRCStatics.HexToSlateColor("#ffffff")
+    if subLevel > nameColorBoundary then
+      fColor = UE4.UNRCStatics.HexToSlateColor("#c12a2a")
+    elseif subLevel > 0 and subLevel <= nameColorBoundary then
+      fColor = UE4.UNRCStatics.HexToSlateColor("#e77d00")
+    else
+      fColor = UE4.UNRCStatics.HexToSlateColor("#ffffff")
+    end
+    self.MagicStarLevel:SetColorAndOpacity(fColor)
+    self.MagicStarLevel:SetText(string.format(LuaText.dungeon_enemy_level_description, level))
   else
     self.CanvasPanel_84:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end

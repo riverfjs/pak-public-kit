@@ -21,11 +21,15 @@ function BP_NPCInstanceEntrance_C:PlayUseEffect(action)
   self.Use:Clear()
   self:SetEffectShow(self.Use, true, true)
   _G.NRCAudioManager:PlaySound2DAuto(UseSound, "BP_NPCInstanceEntrance_C:PlayUseEffect")
-  _G.DelayManager:DelaySeconds(1.5, self.OnUseEffectFinish, self)
+  self.waitUseEffectFinish = _G.DelayManager:DelaySeconds(1.5, self.OnUseEffectFinish, self)
 end
 
 function BP_NPCInstanceEntrance_C:OnUseEffectFinish()
   if self.action then
+  end
+  if self.waitUseEffectFinish then
+    _G.DelayManager:CancelDelayById(self.waitUseEffectFinish)
+    self.waitUseEffectFinish = nil
   end
   self.isInteraction = false
 end

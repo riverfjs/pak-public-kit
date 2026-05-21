@@ -86,6 +86,7 @@ function UMG_Activity_SeasonSignItem_C:OnItemUpdate(Data, datalist, index)
 end
 
 function UMG_Activity_SeasonSignItem_C:SetInfo()
+  self:StopAllAnimations()
   local ConditionRewardConf = _G.DataConfigManager:GetActivityConditionRewardConf(self.activity_part_id)
   local taskId = ConditionRewardConf and ConditionRewardConf.condition_group[1] and ConditionRewardConf.condition_group[1].condition_param
   local taskConf = _G.DataConfigManager:GetTaskConf(taskId)
@@ -121,6 +122,7 @@ function UMG_Activity_SeasonSignItem_C:SetInfo()
     elseif self.state == ProtoEnum.PlayerActivityInfo.ActivityPartState.APS_WAIT then
       self.Switcher:SetActiveWidgetIndex(1)
       self.NRCImage_Get:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+      self:PlayAnimation(self.Available, 0, 99999)
     end
   else
     local targetNum = taskConf.task_condition[1].count
@@ -131,6 +133,7 @@ function UMG_Activity_SeasonSignItem_C:SetInfo()
       self.Switcher:SetActiveWidgetIndex(2)
     elseif self.state == ProtoEnum.PlayerActivityInfo.ActivityPartState.APS_WAIT then
       self.NRCImage_Get:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+      self:PlayAnimation(self.Available, 0, 99999)
       self.Switcher:SetActiveWidgetIndex(1)
     end
   end

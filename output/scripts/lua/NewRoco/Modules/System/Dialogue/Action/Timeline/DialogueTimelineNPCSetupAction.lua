@@ -86,7 +86,7 @@ function DialogueTimelineNPCSetupAction:OnEnter()
   if bInBattle then
     Log.Warning("\230\136\152\230\150\151\229\164\167\230\166\130\230\178\161\230\156\137\229\164\180\230\156\157\229\144\145\229\138\159\232\131\189\239\188\140\229\166\130\230\158\156\232\161\168\231\142\176\230\156\137\233\151\174\233\162\152\232\175\183\231\187\153\229\188\128\229\143\145\230\143\144\233\156\128\230\177\130\239\188\140\232\176\162\232\176\162")
   end
-  local actor = self:GetActor(self.OwnerActorID)
+  local actor = self:GetActor(self.OwnerActorID, self.NPCContentID)
   self:ConsumeActorPerform(actor)
 end
 

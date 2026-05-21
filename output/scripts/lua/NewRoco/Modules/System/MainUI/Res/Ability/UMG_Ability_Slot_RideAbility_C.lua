@@ -349,6 +349,9 @@ function UMG_Ability_Slot_RideAbility_C:OnCast(isPress)
   if errorCode == AbilityErrorCode.VITALITY_NOT_ENOUGH and MainUIModuleCmd then
     NRCModuleManager:DoCmd(MainUIModuleCmd.UI_OnDashAbilityVitalityDeficiency)
   end
+  if errorCode == AbilityErrorCode.TASK_AREA_BAN and self.localPlayer and self.localPlayer.ShowTaskAreaRideAllBanTips and isPress then
+    self.localPlayer:ShowTaskAreaRideAllBanTips()
+  end
   if errorCode ~= AbilityErrorCode.NO_ERROR then
     Log.Debug(AbilityErrorCode.ToString(errorCode))
   end

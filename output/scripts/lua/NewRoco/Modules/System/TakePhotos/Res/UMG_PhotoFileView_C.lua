@@ -3,6 +3,7 @@ local DialogContext = require("NewRoco.Modules.System.TipsModule.DialogContext")
 local TakePhotosModuleEvent = require("NewRoco/Modules/System/TakePhotos/TakePhotosModuleEvent")
 local ShareUIModuleEvent = reload("NewRoco.Modules.System.ShareUI.ShareUIModuleEvent")
 local CommonUtils = require("NewRoco.Utils.CommonUtils")
+local TakePhotoFileManager = require("NewRoco.Modules.System.TakePhotos.Common.TakePhotoFileManager")
 local UIUtils = require("NewRoco.Utils.UIUtils")
 local UMG_PhotoFileView_C = _G.NRCPanelBase:Extend("UMG_PhotoFileView_C")
 
@@ -49,7 +50,6 @@ function UMG_PhotoFileView_C:OnDestruct()
   self:CancelShareDelayId()
   self.ShareUIReward:CancelShareDelayId()
   self:UnBindInputAction()
-  self:SetInputBlockEnabled(false)
   if self.requestCode then
     UE.UNRCPermissionMgr.CancelRequestPermissionCallback(self.requestCode)
     self.requestCode = nil
@@ -61,6 +61,10 @@ end
 function UMG_PhotoFileView_C:OnActive(PhotoData)
   if PhotoData and PhotoData.ExtraInfo then
     self.ExtraInfo = PhotoData.ExtraInfo
+  end
+  if _G.ONLY_ANIMATION then
+    self:LoadAnimation(0)
+    return
   end
   self:RefreshByPhotoData(PhotoData)
   if self.ShareIsOpen then
@@ -163,8 +167,21 @@ function UMG_PhotoFileView_C:OnAddEventListener()
   self:AddButtonListener(self.NRCButton_Bg, function()
     return self:ReqClose()
   end)
+  self:AddButtonListener(self.dropOut.btnClose, self.ReqClose)
   self.Switch.OnCheckStateChanged:Add(self, self.RefreshWaterMaskVisibility)
-  _G.NRCEventCenter:UnRegisterEvent(self, ShareUIModuleEvent.SHOW_ENTRANCE_REWARD, self.CheckShowShareReward)
+  _G.NRCEventCenter:RegisterEvent(self, ShareUIModuleEvent.SHOW_ENTRANCE_REWARD, self.CheckShowShareReward)
+  if self.PostBtn then
+    self:AddButtonListener(self.PostBtn.btnLevelUp, self.RequestReportActivityPhoto)
+    self:AddButtonListener(self.AlreadyPosterBtn.btnLevelUp, self.AlreadyReportActivityPhoto)
+    self:AddButtonListener(self.RepostBtn.btnLevelUp, self.ReplaceReportActivityPhoto)
+    self.AlreadyPosterBtn:SetCommonText(LuaText.pic_game_submit_already)
+    self.PostBtn:SetCommonText(LuaText.pic_game_submit_button)
+    self.RepostBtn:SetCommonText(LuaText.pic_game_resubmit)
+    if self.AlreadyPosterBtn.img_suo then
+      self.AlreadyPosterBtn.img_suo:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    end
+  end
+  self:RegisterEvent(self, TakePhotosModuleEvent.OnPhotoActivitySubmit, self.OnPhotoActivitySubmit)
 end
 
 function UMG_PhotoFileView_C:OnDeleteBtnClicked()
@@ -252,6 +269,11 @@ function UMG_PhotoFileView_C:OnShareBtnClicked()
     self:LogWarning("[TakePhoto] PhotoData is nil")
     return
   end
+  local PhotoPath = self.PhotoData:GetPhotoPath()
+  if not PhotoPath then
+    self:LogWarning("[TakePhoto] loading photo", self.PhotoData.SerialId)
+    return
+  end
   self:OnReqShare()
 end
 
@@ -264,6 +286,9 @@ function UMG_PhotoFileView_C:OnSaveBtnClicked()
   local PhotoPath = self.PhotoData:GetPhotoPath()
   if not PhotoPath then
     self:LogWarning("[TakePhoto] loading photo", self.PhotoData.SerialId)
+    return
+  end
+  if not self.PhotoData:IsValidPhoto() then
     return
   end
   local bWaterMaskEnabled = self.PhotoData.bWaterMaskEnabled
@@ -381,10 +406,28 @@ function UMG_PhotoFileView_C:OnReqUploadPhotoToCard()
   end
 end
 
+function UMG_PhotoFileView_C:CanDisplay(PhotoData)
+  local PhotoActivityManager = _G.NRCModuleManager:DoCmd(_G.TakePhotosModuleCmd.GetPhotoActivityManager)
+  local InAlbumSubmitStatus = PhotoActivityManager and PhotoActivityManager:InAlbumSubmitStatus()
+  return not InAlbumSubmitStatus or PhotoActivityManager:CanRequestPhotoData(PhotoData)
+end
+
+function UMG_PhotoFileView_C:GetNext()
+  return self.PhotoData:GetNext(function(PhotoData)
+    return self:CanDisplay(PhotoData)
+  end)
+end
+
+function UMG_PhotoFileView_C:GetPrevious()
+  return self.PhotoData:GetPrevious(function(PhotoData)
+    return self:CanDisplay(PhotoData)
+  end)
+end
+
 function UMG_PhotoFileView_C:RefreshByPhotoData(PhotoData)
   self.PhotoData = PhotoData
-  local Next = self.PhotoData:GetNext()
-  local Prev = self.PhotoData:GetPrevious()
+  local Next = self:GetNext()
+  local Prev = self:GetPrevious()
   if not Next and not Prev then
     self._LeftBtn:SetVisibility(UE.ESlateVisibility.Collapsed)
     self._RightBtn:SetVisibility(UE.ESlateVisibility.Collapsed)
@@ -433,15 +476,15 @@ function UMG_PhotoFileView_C:RefreshByPhotoData(PhotoData)
   else
     self._DeleteBtn:SetVisibility(UE.ESlateVisibility.SelfHitTestInvisible)
   end
-  self:UpdateTransform()
-end
-
-function UMG_PhotoFileView_C:DisplayNext()
-  local Next = self.PhotoData:GetNext()
-  if Next then
-    self:RefreshByPhotoData(Next)
-    self:RefreshDotList()
+  local bShowPhotoCamera = _G.DataModelMgr.PlayerDataModel:CompassShouldAppear()
+  if bShowPhotoCamera then
+    self.PhotoCamera:SetVisibility(UE.ESlateVisibility.SelfHitTestInvisible)
+  else
+    self.PhotoCamera:SetVisibility(UE.ESlateVisibility.Collapsed)
   end
+  self:UpdateTransform()
+  self:RefreshActivityReportButtons()
+  self:RefreshUploadProgressMask()
 end
 
 function UMG_PhotoFileView_C:OnAnimationStarted(Anim)
@@ -450,8 +493,16 @@ function UMG_PhotoFileView_C:OnAnimationStarted(Anim)
   end
 end
 
+function UMG_PhotoFileView_C:DisplayNext()
+  local Next = self:GetNext()
+  if Next then
+    self:RefreshByPhotoData(Next)
+    self:RefreshDotList()
+  end
+end
+
 function UMG_PhotoFileView_C:DisplayPrevious()
-  local Previous = self.PhotoData:GetPrevious()
+  local Previous = self:GetPrevious()
   if Previous then
     self:RefreshByPhotoData(Previous)
     self:RefreshDotList()
@@ -468,33 +519,35 @@ function UMG_PhotoFileView_C:OnReqDelete()
 end
 
 function UMG_PhotoFileView_C:OnReqUpload()
+  if not self.PhotoData:IsUploadFinish() then
+    return
+  end
   self.PhotoData:OnReqUpload()
 end
 
-function UMG_PhotoFileView_C:SetInputBlockEnabled(bEnable)
-  if bEnable ~= self.bInputBlockedEnabled then
-    self.bInputBlockedEnabled = bEnable
-    if bEnable then
-      _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.OpenInputBlocker, "UMG_PhotoFileView_C")
-    else
-      _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.CloseInputBlocker, "UMG_PhotoFileView_C")
-    end
-    self:ToggleUploadProgressMask(bEnable)
-  end
-end
-
 function UMG_PhotoFileView_C:OnBeginUploadPhoto(PhotoData)
-  self:SetInputBlockEnabled(true)
+  self:RefreshUploadProgressMask()
 end
 
 function UMG_PhotoFileView_C:OnFinishUploadPhoto(PhotoData, RemotePhotoData)
-  self:SetInputBlockEnabled(false)
-  if RemotePhotoData then
+  if RemotePhotoData and PhotoData == self.PhotoData then
     self:InternalRefreshUploadStatus()
+  end
+  self:RefreshUploadProgressMask()
+end
+
+function UMG_PhotoFileView_C:RefreshUploadProgressMask()
+  if self.PhotoData:IsUploadFinish() then
+    self:ToggleUploadProgressMask(false)
+  else
+    self:ToggleUploadProgressMask(true)
   end
 end
 
 function UMG_PhotoFileView_C:OnReqUploadCard()
+  if not self.PhotoData:IsUploadFinish() then
+    return
+  end
   self.PhotoData:OnReqUploadCard()
 end
 
@@ -513,7 +566,7 @@ function UMG_PhotoFileView_C:RefreshDotList()
   end
   local SectionList = self.PhotoData.SectionList
   local Num = SectionList and #SectionList or 0
-  if Num > 1 then
+  if Num > 1 and not self.PhotoData.bDisableSectionDots then
     local FakeDataList = {}
     local SelectedIndex = 1
     for i, Data in pairs(SectionList) do
@@ -568,24 +621,73 @@ function UMG_PhotoFileView_C:ToggleUploadProgressMask(bEnabled)
     return
   end
   self.bEnabledUploadMask = bEnabled
-  if not self.NRCWidgetLoader_LoadUpload then
+  local LoadUpload = self.PhotoFile.UMG_LoadUpload
+  if not LoadUpload then
     return
   end
-  self.NRCWidgetLoader_LoadUpload:SetVisibility(bEnabled and UE.ESlateVisibility.Visible or UE.ESlateVisibility.Collapsed)
-  if not self.NRCWidgetLoader_LoadUpload:GetPanel() then
-    self.NRCWidgetLoader_LoadUpload:LoadPanelSync(self)
-  end
+  LoadUpload:SetVisibility(bEnabled and UE.ESlateVisibility.Visible or UE.ESlateVisibility.Collapsed)
   if bEnabled then
-    local panel = self.NRCWidgetLoader_LoadUpload:GetPanel()
-    if panel then
-      panel:SetCardUploading()
-    end
+    LoadUpload:SetCardUploading()
   else
-    local panel = self.NRCWidgetLoader_LoadUpload:GetPanel()
-    if panel then
-      panel:StopAllAnimations()
+    LoadUpload:StopAllAnimations()
+  end
+end
+
+function UMG_PhotoFileView_C:OnPhotoActivitySubmit()
+  self:RefreshActivityReportButtons()
+end
+
+function UMG_PhotoFileView_C:RefreshActivityReportButtons()
+  local PhotoActivityManager = _G.NRCModuleManager:DoCmd(TakePhotosModuleCmd.GetPhotoActivityManager)
+  local InActivitySubmitStatus = PhotoActivityManager and PhotoActivityManager:InAlbumSubmitStatus() and PhotoActivityManager:CanRequestPhotoData(self.PhotoData)
+  if self.Switcher then
+    if InActivitySubmitStatus then
+      self.ZHAOPIAN:SetVisibility(UE.ESlateVisibility.Collapsed)
+      self.HorizontalBox_0:SetVisibility(UE.ESlateVisibility.Collapsed)
+      self.Switcher:SetVisibility(UE.ESlateVisibility.SelfHitTestInvisible)
+      if PhotoActivityManager:IsPhotoDataHasBeenSubmit(self.PhotoData) then
+        self.Switcher:SetActiveWidgetIndex(1)
+      else
+        local SubmitContent = PhotoActivityManager:GetSubmitContest()
+        if SubmitContent then
+          self.Switcher:SetActiveWidgetIndex(2)
+        else
+          self.Switcher:SetActiveWidgetIndex(0)
+        end
+      end
+      self.Switch:SetIsChecked(false)
+      self:RefreshWaterMaskVisibility()
+    else
+      self.ZHAOPIAN:SetVisibility(UE.ESlateVisibility.SelfHitTestInvisible)
+      self.HorizontalBox_0:SetVisibility(UE.ESlateVisibility.SelfHitTestInvisible)
+      self.Switcher:SetVisibility(UE.ESlateVisibility.Collapsed)
     end
   end
+end
+
+function UMG_PhotoFileView_C:RequestReportActivityPhoto()
+  _G.NRCAudioManager:PlaySound2DAuto(41401001, "UMG_PhotoFileView_C:RequestReportActivityPhoto")
+  if not self.PhotoData:IsUploadFinish() then
+    return
+  end
+  Log.Debug("RequestReportActivityPhoto")
+  self.PhotoData:OnReqUploadReport()
+end
+
+function UMG_PhotoFileView_C:AlreadyReportActivityPhoto()
+  if not self.PhotoData:IsUploadFinish() then
+    return
+  end
+  Log.Debug("AlreadyReportActivityPhoto")
+  self.PhotoData:OnReqUploadReport()
+end
+
+function UMG_PhotoFileView_C:ReplaceReportActivityPhoto()
+  if not self.PhotoData:IsUploadFinish() then
+    return
+  end
+  Log.Debug("ReplaceReportActivityPhoto")
+  self.PhotoData:OnReqUploadReport()
 end
 
 function UMG_PhotoFileView_C:RefreshInnerWaterMaskImmediate()

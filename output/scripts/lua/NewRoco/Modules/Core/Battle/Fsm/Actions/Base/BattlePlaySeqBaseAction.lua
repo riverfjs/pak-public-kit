@@ -1,6 +1,7 @@
 local BattleClientBranchActionBase = require("NewRoco.Modules.Core.Battle.Fsm.Actions.Base.BattleClientBranchActionBase")
 local FsmUtils = require("NewRoco.Modules.Core.Fsm.FsmUtils")
 local Base = BattleClientBranchActionBase
+local CinematicModuleEvent = require("NewRoco.Modules.Core.Cinematic.CinematicModuleEvent")
 local BattlePlaySeqBaseAction = Base:Extend("BattlePlayAnimBaseAction")
 FsmUtils.MergeMembers(Base, BattlePlaySeqBaseAction, {})
 
@@ -53,6 +54,35 @@ function BattlePlaySeqBaseAction:Play(path, bindingFunc, needPauseOnEnd)
   return levelSequenceActor
 end
 
+function BattlePlaySeqBaseAction:PlayWithSubtitle(path, bindingFunc, needPauseOnEnd)
+  local Always = UE4.ESpawnActorCollisionHandlingMethod.AlwaysSpawn
+  local Klass = _G.NRCBigWorldPreloader:Get("CinematicPlayer")
+  local CurrentWorld = _G.UE4Helper.GetCurrentWorld()
+  local Player = _G.NRCModuleManager:DoCmd(PlayerModuleCmd.GET_LOCAL_PLAYER)
+  self.levelSequenceActor = CurrentWorld:SpawnActor(Klass, Player.viewObj:GetTransform(), Always, CurrentWorld)
+  local Settings = UE4.FMovieSceneSequencePlaybackSettings()
+  if needPauseOnEnd then
+    Settings.bPauseAtEnd = true
+  end
+  self.levelSequenceActor.PlaybackSettings = Settings
+  local leveSequenceRes = _G.BattleResourceManager:GetCacheAssetDirect(path)
+  self.levelSequenceActor:SetSequence(leveSequenceRes)
+  self.levelSequence = self.levelSequenceActor.SequencePlayer
+  local battleFieldActor = _G.BattleManager.vBattleField.battleFieldActor
+  self.currentBattleFieldActor = battleFieldActor
+  battleFieldActor:SetCacheLSCall(self, self.ToFinish)
+  self.levelSequence.OnFinished:Add(battleFieldActor, battleFieldActor.OnLevelSequenceEnd)
+  if bindingFunc then
+    bindingFunc(self.levelSequenceActor)
+  end
+  local EnableRebasing = UE4.UNRCStatics.IsEnabledWorldRebasing(CurrentWorld)
+  if true == EnableRebasing then
+    self.levelSequenceActor:ApplyWorldOffsetToSequence()
+  end
+  self.levelSequenceActor.SequencePlayer:Play()
+  _G.NRCEventCenter:DispatchEvent(CinematicModuleEvent.OpenCinematicBar, true)
+end
+
 function BattlePlaySeqBaseAction:ToFinish()
   self:RemoveLevelSequence()
   if self.currentBattleFieldActor then
@@ -73,6 +103,7 @@ function BattlePlaySeqBaseAction:ToFinish()
   else
     Log.Warning("BattlePlaySeqBaseAction fsm is nil")
   end
+  _G.NRCEventCenter:DispatchEvent(CinematicModuleEvent.CloseCinematicBar)
   self:Finish()
 end
 

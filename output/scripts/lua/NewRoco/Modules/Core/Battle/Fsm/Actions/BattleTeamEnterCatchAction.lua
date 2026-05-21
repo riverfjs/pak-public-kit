@@ -78,8 +78,7 @@ function BattleTeamEnterCatchAction:BossStun()
 end
 
 function BattleTeamEnterCatchAction:SkillFinish()
-  if not self.IsFinish then
-    self.IsFinish = true
+  if not self.finished then
     self.Boss = nil
     self:Finish()
   end

@@ -72,6 +72,10 @@ function HomeEditService:TryCreateItemInfo(FurnitureData, ScreenPos)
       return false
     end
     local RoomData = HomeIndoorSandbox.Server.WorldData:GetRoomData(RoomId)
+    if not RoomData then
+      HomeIndoorSandbox:Ensure(false, "Invalid Room", RoomId)
+      return
+    end
     local Count = RoomData:GetPropsCount()
     if Count >= DataConfigManager:GetHomeGlobalConfig("furniture_num_max").num then
       self:NotifyEditSpawnPropsStatus(HomeEnum.EnmEditPropsStatus.PRE_CHECK_FAILED_MAX_NUM)
@@ -281,7 +285,6 @@ function HomeEditService:MoveSelectedProps(ScreenPos)
   local FurnitureItemConf = PropsData.Conf
   local bEnable, HomePlane, WorldLocation, ParentPropsData = HomeIndoorSandbox.Utils.ProjectileProps(FurnitureItemConf, DesiredScreenPos, self.TheSelectedPropsActor)
   if bEnable then
-    self.TheSelectedPropsActor:SetCameraCollisionEnabled(false)
     self.TheSelectedPropsActor:UseSpringArm(true)
     local RoomPlane = HomePlane
     if RoomPlane and RoomPlane.RoomId == self.EditRoomId then
@@ -296,7 +299,6 @@ end
 function HomeEditService:StopSelectProps()
   self.bStopSelectionMovement = true
   if self.TheSelectedPropsActor then
-    self.TheSelectedPropsActor:SetCameraCollisionEnabled(true)
   end
 end
 
@@ -321,10 +323,10 @@ end
 function HomeEditService:UnloadPackUpProps()
   if self.TheSelectedPropsActor then
     local PropsData = self.TheSelectedPropsActor.PropsData
-    local Pet = PropsData:ResolvePetNpc()
-    if Pet then
+    local AnyDynamicNpc = PropsData:AnyDynamicNpc()
+    if AnyDynamicNpc then
       self:CancelPlaceProps()
-      HomeIndoorSandbox:LogWarn("cannot unload furniture during edit:", PropsData.Id, Pet)
+      HomeIndoorSandbox:LogWarn("cannot unload furniture during edit:", PropsData.Id)
       HomeIndoorSandbox.HomeTipsServ:ShowUnloadPetFurnitureMessageBox()
       return
     end
@@ -350,9 +352,9 @@ end
 
 function HomeEditService:UnloadPackUpSpecifyProps(PropsData, bDisableMessageBox)
   if HomeIndoorSandbox:Ensure(not self.TheSelectedPropsActor, "selecting props, cannot unload props by manager") then
-    local Pet = PropsData:ResolvePetNpc()
-    if Pet then
-      HomeIndoorSandbox:LogWarn("cannot unload furniture:", PropsData.Id, Pet)
+    local AnyDynamicNpc = PropsData:AnyDynamicNpc()
+    if AnyDynamicNpc then
+      HomeIndoorSandbox:LogWarn("cannot unload furniture:", PropsData.Id)
       if not bDisableMessageBox then
         HomeIndoorSandbox.HomeTipsServ:ShowUnloadPetFurnitureMessageBox()
       end

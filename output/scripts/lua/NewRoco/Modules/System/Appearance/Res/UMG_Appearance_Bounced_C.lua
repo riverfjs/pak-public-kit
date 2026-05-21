@@ -198,7 +198,36 @@ function UMG_Appearance_Bounced_C:OnBtnConfirmClicked()
       _G.NRCModeManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.input_sensitive_words_tips)
       Log.Debug("FASHION_CHANGENAME HasSpecialChars newName", newName)
     else
-      _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.SetFashionDataReq, self.uiData[1].Index, nil, newName, false, false)
+      local bIsProperly = _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.CheckOutfitProperly)
+      if not bIsProperly then
+        _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, _G.LuaText.dressup_wear_pajamas_tips)
+        return
+      end
+      local fashionIds = {}
+      local bHasWand = false
+      if self.data.TempAppearData and #self.data.TempAppearData > 0 then
+        for k, v in ipairs(self.data.TempAppearData) do
+          local itemConf
+          if not bHasWand then
+            itemConf = _G.DataConfigManager:GetFashionItemConf(v.FashionId)
+          end
+          if itemConf and itemConf.type == _G.Enum.FashionLabelType.FLT_WAND then
+            bHasWand = true
+          end
+          table.insert(fashionIds, v.FashionId)
+        end
+      end
+      if not bHasWand then
+        local wandId = _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.GetCurSuitWandId)
+        table.insert(fashionIds, wandId)
+      end
+      local salonIds = {}
+      if self.data.TempBeautyData and #self.data.TempBeautyData > 0 then
+        for k, v in ipairs(self.data.TempBeautyData) do
+          table.insert(salonIds, v.SalonId)
+        end
+      end
+      _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.SetFashionDataReq, self.uiData[1].Index, fashionIds, newName, false, false, nil, nil, salonIds)
     end
   elseif self.type == AppearanceModuleEnum.OpenTipType.FASHION_CHANGESUIT then
     self.data.canChangeWardrobeIndex = true

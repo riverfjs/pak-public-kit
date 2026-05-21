@@ -38,7 +38,13 @@ end
 
 function UMG_Control_Camera_Home_C:LuaOnTouchEnded(finger)
   Log.Debug("[Home] LuaOnTouchEnded==", finger)
+  self.TouchIndex = -1
   self.Module:DispatchEvent(HomeModuleEvent.OnTouchCameraEnd, self.ScreenPos)
+end
+
+function UMG_Control_Camera_Home_C:OnMouseCaptureLost()
+  Log.Debug("[OnMouseCaptureLost] UMG_Control_Camera_Home_C")
+  self:LuaOnTouchEnded(0)
 end
 
 return UMG_Control_Camera_Home_C

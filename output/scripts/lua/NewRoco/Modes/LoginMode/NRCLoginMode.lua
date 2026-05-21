@@ -13,7 +13,7 @@ function NRCLoginMode:OnConstruct()
     UE.UNRCStatics.EnableLuaDebugger(5067)
   end
   if _G.AppMain:IfMountPaksInAdvance() and not _G.AppMain.IsFullPackage() and not _G.AppMain.IsLocalSavedHasBasePaks() then
-    local NeedToDownloadBasePakList, SizeNeedToDownload, LargestSize = _G.PufferUpdateResTask:GetBasePakListNeedToDownload()
+    local NeedToDownloadBasePakList, SizeNeedToDownload, LargestSize = _G.PufferUpdateResTask:GetBasePakListWithPatchNeedToDownload()
     if NeedToDownloadBasePakList then
       if #NeedToDownloadBasePakList > 0 then
         Log.Debug("[NRCLoginMode:OnConstruct]\230\178\161\228\184\139\232\189\189\229\174\140\229\174\140\230\149\180\229\140\133\239\188\140\228\184\141\230\143\144\229\137\141mount")
@@ -75,8 +75,7 @@ function NRCLoginMode:OnActive()
   end
   UE4.UKismetSystemLibrary.ExecuteConsoleCommand(nil, "WorldTileTool.FreezeWorldComposition 0")
   _G.GlobalConfig.HasEnteredLoginMode = true
-  UE4.UGPMStatics.MarkLevelLoad("Login")
-  _G.NRCSDKManager:StartCustomStutter(false)
+  _G.NRCSDKManager:MarkLevelLoad("Login")
   if _G.GlobalConfig.MemoryAutoTest then
     UE4.UKismetSystemLibrary.ExecuteConsoleCommand(nil, "WorldTileTool.FreezeAllLevels 0")
     UE4.UKismetSystemLibrary.ExecuteConsoleCommand(nil, "n.CustomGameModePath None")

@@ -19,6 +19,10 @@ function UMG_AntiAddiction_C:OnActive(_instruction, IsBan)
   UE4Helper.SetDesiredShowCursor(true, "UMG_AntiAddiction_C")
 end
 
+function UMG_AntiAddiction_C:OnPcClose()
+  Log.Debug("UMG_AntiAddiction_C:ClosePanel invoked")
+end
+
 function UMG_AntiAddiction_C:OnDeactive()
   UE4Helper.ReleaseDesiredShowCursor("UMG_AntiAddiction_C")
 end

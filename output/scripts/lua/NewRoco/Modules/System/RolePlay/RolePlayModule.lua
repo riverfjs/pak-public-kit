@@ -10,6 +10,7 @@ local LoadingUIModuleEvent = require("NewRoco.Modules.System.LoadingUIModule.Loa
 local RolePlayComponent = require("NewRoco.Modules.Core.Scene.Component.RolePlay.RolePlayComponent")
 local NPCModuleEvent = require("NewRoco.Modules.Core.NPC.NPCModuleEvent")
 local SceneEvent = require("NewRoco.Modules.Core.Scene.Common.SceneEvent")
+local NPCModuleEnum = require("NewRoco.Modules.Core.NPC.NPCModuleEnum")
 
 function RolePlayModule:OnConstruct()
   _G.RolePlayModuleCmd = reload("NewRoco.Modules.System.RolePlay.RolePlayModuleCmd")
@@ -18,7 +19,7 @@ function RolePlayModule:OnConstruct()
   self.rolePlayTipsController = TipsDisplayController(TipEnum.TipObjectType.RolePlayGetTips, self, self.OpenRolePlayGetTipsPanel)
   self.timeInterval = 0
   self:RegPanel("RolePlayMainPanel", "/Game/NewRoco/Modules/System/RolePlay/Res/UMG_RolePlayMainPanel", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, "Open", "Close", true)
-  self:RegPanel("RolePlay_GetTips", "/Game/NewRoco/Modules/System/RolePlay/Res/UMG_RolePlay_GetTips", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, "Appear", "Disappear", true, true)
+  self:RegPanel("RolePlay_GetTips", "/Game/NewRoco/Modules/System/RolePlay/Res/UMG_RolePlay_GetTips", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, "Appear", "Disappear", true, true):SetEnableTouchMask(false)
 end
 
 function RolePlayModule:OnActive()
@@ -76,6 +77,7 @@ function RolePlayModule:RegPanel(name, path, layer, customDisableRendering, open
   registerData.enablePcEsc = not disablePcEsc
   registerData.disableLoadBlock = disableLoadBlock
   self:RegisterPanel(registerData)
+  return registerData
 end
 
 local function CheckRolePlayStoryFlag()
@@ -198,6 +200,10 @@ function RolePlayModule:ExecuteRolePlay(params)
     if stopMove then
       player:Stop()
       self.joystickTouchStartTime = _G.ZoneServer:GetServerTime()
+    end
+    local rideComponent = player:GetRideComponent()
+    if rideComponent then
+      rideComponent:TryChangeToLink()
     end
     player.statusComponent:ApplyStatus(Enum.WorldPlayerStatusType.WPST_ROLEPLAY_BEHAVIOR, ProtoEnum.WPST_OpCode.WPST_OPCODE_ADD, RPbehavior_type, params.statusParams)
   end
@@ -410,7 +416,10 @@ function RolePlayModule:OnTick(deltaTime)
       local limitDis = self.data.propItemConfMap[npcId] and self.data.propItemConfMap[npcId].prop_recycle_distance * 100 * (self.data.propItemConfMap[npcId].prop_recycle_distance * 100) or 100000000
       if limitDis < npc.squaredDis2Local then
         self:SetInRecycleNpcId(npcId)
-        _G.NRCModeManager:DoCmd(_G.NPCModuleCmd.RecycleSceneSeat, npcId, playerID)
+        local Player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
+        if Player and Player.playerToyComponent then
+          Player.playerToyComponent:RecycleRolePlayProp(npcId, playerID)
+        end
       end
     end
   end
@@ -509,6 +518,65 @@ end
 
 function RolePlayModule:RemoveHiddenSuitTipsId(suitId)
   self.data:RemoveHiddenSuitTipsId(suitId)
+end
+
+function RolePlayModule:OnRolePlayHoldInfoChange(Action, Tag, BaseData)
+  Log.Debug("RolePlayModule:OnRolePlayHoldInfoChange", Action, Tag, BaseData)
+  if not Action then
+    return
+  end
+  local Player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GetPlayerByServerID, BaseData.operator_obj_id)
+  if not Player then
+    return
+  end
+  local NPC = _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.GetNpcByServerID, Action.npc_id)
+  if not NPC then
+    return
+  end
+  if -1 == Action.slot_idx then
+    if Action.reason then
+      if Action.reason == ProtoEnum.RoleplayHoldInfoChangeReason.RHICR_ClENT_REQ_CANCEL_HOLD then
+      elseif Action.reason == ProtoEnum.RoleplayHoldInfoChangeReason.RHICR_OTHER_OPEN_BLIND_BOX then
+        local OutPlayer = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GetPlayerByUin, Action.op_avatar_uin)
+        if OutPlayer and not OutPlayer.isLocal and Player.playerToyComponent then
+          Player.playerToyComponent:PlayJumpBoxAnim(OutPlayer, NPC)
+        end
+      else
+        if Player.playerToyComponent then
+          Player.playerToyComponent:RevertPLayer()
+        end
+        if Player.isLocal then
+          _G.FunctionBanManager:RemovePlayerConditionType(Enum.PlayerConditionType.PCT_PROP_BLINDBOX)
+        end
+      end
+    else
+      if Player.playerToyComponent then
+        Player.playerToyComponent:RevertPLayer()
+      end
+      if Player.isLocal then
+        _G.FunctionBanManager:RemovePlayerConditionType(Enum.PlayerConditionType.PCT_PROP_BLINDBOX)
+      end
+    end
+    if Player.playerToyComponent then
+      Player.playerToyComponent:OnPlayerLeaveBox()
+      local PropPlayerInfo = {}
+      PropPlayerInfo.slot_idx = 0
+      PropPlayerInfo.entered_npc_id = 0
+      local PropNPCInfo = {}
+      PropNPCInfo.slot_idx = 0
+      PropNPCInfo.holder_avatar_id = 0
+      Player.playerToyComponent:SavePropNpcServerData(Player, NPC, {PropNPCInfo}, PropPlayerInfo)
+    end
+  elseif Player.playerToyComponent then
+    Player.playerToyComponent:OnPlayerEnterBox()
+    local PropPlayerInfo = {}
+    PropPlayerInfo.slot_idx = 0
+    PropPlayerInfo.entered_npc_id = NPC.serverData.base.actor_id
+    local PropNPCInfo = {}
+    PropNPCInfo.slot_idx = 0
+    PropNPCInfo.holder_avatar_id = Player.serverData.base.actor_id
+    Player.playerToyComponent:SavePropNpcServerData(Player, NPC, {PropNPCInfo}, PropPlayerInfo)
+  end
 end
 
 return RolePlayModule

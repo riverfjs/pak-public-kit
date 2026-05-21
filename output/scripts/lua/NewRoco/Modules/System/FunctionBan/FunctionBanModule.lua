@@ -174,6 +174,9 @@ function FunctionBanModule:OnRegisterUIResumeCmd(uiName, cmd)
 end
 
 function FunctionBanModule:AddFuncEntranceConstraints(Reason, FunctionEntrance, ConstraintFunc)
+  if not self.functionEntranceLogicConstraints[FunctionEntrance] then
+    self.functionEntranceLogicConstraints[FunctionEntrance] = {}
+  end
   self.functionEntranceLogicConstraints[FunctionEntrance][ConstraintFunc] = Reason or true
 end
 
@@ -197,7 +200,7 @@ function FunctionBanModule:IfFuncEntranceConstraint(FunctionEntrance)
   if not Constraints or not next(Constraints) then
     return false
   end
-  for Constraint, v in pairs() do
+  for Constraint, v in pairs(Constraints) do
     if Constraint() then
       Log.Debug("FunctionBan function entrance constraint by", v)
       return true
@@ -344,35 +347,13 @@ local function _CheckRoleLevelMet(cond)
   return needLevel <= heroLv, banMsg
 end
 
-local function _CheckStoryFlagMet(cond, ConditionContext)
+local function _CheckStoryFlagMet(cond)
   local flags = cond.unlock_param
   local isMet = false
-  local StoryFlagMap = ConditionContext and ConditionContext.StoryFlagMap
-  if not StoryFlagMap then
-    StoryFlagMap = {}
-    local HomeOwnerStoryFlags = _G.DataModelMgr.PlayerDataModel:GetHomeOwnerStoryFlags()
-    if HomeOwnerStoryFlags and #HomeOwnerStoryFlags > 0 then
-      for _, Flag in ipairs(HomeOwnerStoryFlags) do
-        if not _G.DataModelMgr.PlayerDataModel:IsUseSelfStoryFlag(Flag) then
-          StoryFlagMap[Flag] = true
-        end
-      end
-    end
-    local StoryFlags = _G.DataModelMgr.PlayerDataModel:GetStoryFlags()
-    if StoryFlags then
-      for i, v in pairs(StoryFlags) do
-        if _G.DataModelMgr.PlayerDataModel:IsUseSelfStoryFlag(v) then
-          StoryFlagMap[v] = true
-        end
-      end
-    end
-    if ConditionContext then
-      ConditionContext.StoryFlagMap = StoryFlagMap
-    end
-  end
+  local PlayerDataModel = _G.DataModelMgr.PlayerDataModel
   for _, flag in ipairs(flags) do
-    local hasFlag = StoryFlagMap[tonumber(flag)]
-    if hasFlag then
+    local flagNum = tonumber(flag)
+    if PlayerDataModel:HasStoryFlag(flagNum) then
       isMet = true
       break
     end
@@ -452,12 +433,11 @@ function FunctionBanModule:OnCheckUIFunctionBan(uiFunctionId, autoPopMsg, onlyCh
   if not cfg then
     return false
   end
-  local ConditionContext = {}
   if not self.gmSkipCheckUIFunctionBan then
     for _, cond in ipairs(cfg.unlock_cond_list) do
       local checkMetFunc = _CondCheckFuncDic[cond.unlock_type]
       if checkMetFunc then
-        local isMet, banMsg = checkMetFunc(cond, ConditionContext)
+        local isMet, banMsg = checkMetFunc(cond)
         if not isMet then
           if autoPopMsg then
             _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, banMsg)

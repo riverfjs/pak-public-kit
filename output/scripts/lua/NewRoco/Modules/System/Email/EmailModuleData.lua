@@ -342,7 +342,7 @@ function EmailModuleData:SetNoticeListDatas(NoticeList)
 end
 
 function EmailModuleData:AddNoticeRedPoint()
-  _G.NRCModuleManager:DoCmd(RedPointModuleCmd.UpdateWithReasonPointData, _G.Enum.RedPointReason.RPR_NEW_NOTICE, self.NoticeRedPointIds)
+  _G.NRCModuleManager:DoCmd(RedPointModuleCmd.UpdateWithReasonPointData, _G.Enum.RedPointReason.RPR_NEW_NOTICE, table.copy(self.NoticeRedPointIds))
 end
 
 function EmailModuleData:RemoveNoticeRedPoint(id)
@@ -352,7 +352,7 @@ function EmailModuleData:RemoveNoticeRedPoint(id)
       JsonUtils.DumpSaved(string.format("Notices/Notice_Red_%s", id), {id = id, state = false})
     end
   end
-  _G.NRCModuleManager:DoCmd(RedPointModuleCmd.UpdateWithReasonPointData, _G.Enum.RedPointReason.RPR_NEW_NOTICE, self.NoticeRedPointIds)
+  _G.NRCModuleManager:DoCmd(RedPointModuleCmd.UpdateWithReasonPointData, _G.Enum.RedPointReason.RPR_NEW_NOTICE, table.copy(self.NoticeRedPointIds))
 end
 
 function EmailModuleData:InitRedPointData()

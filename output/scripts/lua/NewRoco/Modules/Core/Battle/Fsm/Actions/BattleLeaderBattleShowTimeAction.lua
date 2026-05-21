@@ -33,9 +33,8 @@ function BattleLeaderBattleShowTimeAction:OnEnter()
     Log.Debug("BattleLeaderBattleShowTimeAction", cameraTransform, bossTransform, worldRelativeTransform, worldCameraFov)
     self:Finish()
   else
-    self:Play(player, {
-      target.npc.viewObj
-    }, BattleConst.Define.LeaderBattleShowTime, true)
+    local targetModel = target and target.npc.viewObj
+    self:Play(player, {targetModel}, BattleConst.Define.LeaderBattleShowTime, true)
     _G.BattleManager:PlayBattleBGM()
   end
 end

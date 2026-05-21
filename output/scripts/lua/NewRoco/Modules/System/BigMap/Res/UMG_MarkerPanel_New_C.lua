@@ -220,6 +220,10 @@ function UMG_MarkerPanel_New_C:OnTraceBtn()
   end
   self.lockBtn = true
   _G.NRCModuleManager:DoCmd(BigMapModuleCmd.MapMarkOperate, self.MarkerInfo.MarkerData.mark_id, 4, self.MarkerInfo.MarkerData, nil, nil, self.MarkerInfo.MarkerData.is_track)
+  if self.MarkerInfo.IsOnClickCustomMarker then
+    local Name = self.InputBox:GetText()
+    _G.NRCModuleManager:DoCmd(BigMapModuleCmd.MapMarkOperate, self.MarkerInfo.MarkerData.mark_id, _G.ProtoEnum.MapMarkOpType.MMOT_MODIFY_MARK, self.SelectMarker, Name, self.MarkerInfo.SelectScenePos)
+  end
 end
 
 function UMG_MarkerPanel_New_C:OnAnimationFinished(Animation)

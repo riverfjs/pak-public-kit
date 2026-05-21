@@ -20,6 +20,7 @@ function NPCActionOpenPVPRankedMatchUI:EndAction()
   _G.FunctionBanManager:RemovePlayerConditionType(_G.Enum.PlayerConditionType.PCT_PVP_RANK_MAIN_UI)
   _G.NRCEventCenter:UnRegisterEvent(self, PVPRankedMatchModuleEvent.ExistPVPQualifierPanel, self.ExistingOpenBlackScreen)
   _G.NRCEventCenter:UnRegisterEvent(self, PVPRankedMatchModuleEvent.StartRankMatch, self.OnStartRankMatch)
+  _G.NRCEventCenter:UnRegisterEvent(self, _G.NRCGlobalEvent.ON_CONNECTED, self.OnConnected)
   if _G.PVPRankedMatchCameraActor and UE.UObject.IsValid(_G.PVPRankedMatchCameraActor) then
     _G.PVPRankedMatchCameraActor:K2_DestroyActor()
   end
@@ -146,9 +147,14 @@ function NPCActionOpenPVPRankedMatchUI:AddListener()
   _G.NRCEventCenter:UnRegisterEvent(self, PVPRankedMatchModuleEvent.StartRankMatch, self.OnStartRankMatch)
   _G.NRCEventCenter:RegisterEvent("NPCActionOpenPVPRankedMatchUI", self, PVPRankedMatchModuleEvent.ExistPVPQualifierPanel, self.ExistingOpenBlackScreen)
   _G.NRCEventCenter:RegisterEvent("NPCActionOpenPVPRankedMatchUI", self, PVPRankedMatchModuleEvent.StartRankMatch, self.OnStartRankMatch)
+  _G.NRCEventCenter:RegisterEvent("NPCActionOpenPVPRankedMatchUI", self, _G.NRCGlobalEvent.ON_CONNECTED, self.OnConnected)
 end
 
 function NPCActionOpenPVPRankedMatchUI:OnExistPVPQualifierPanel()
+  self:EndAction()
+end
+
+function NPCActionOpenPVPRankedMatchUI:OnConnected()
   self:EndAction()
 end
 

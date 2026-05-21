@@ -18,4 +18,5 @@ BattlePassModuleEvent.OnPurchaseSuccess = "BattlePassModuleEvent.OnPurchaseSucce
 BattlePassModuleEvent.OnPurchaseSuccessClose = "BattlePassModuleEvent.OnPurchaseSuccessClose"
 BattlePassModuleEvent.OnDirectPurchase = "BattlePassModuleEvent.OnDirectPurchase"
 BattlePassModuleEvent.OnShowEvolutionaryBtn = "BattlePassModuleEvent.OnShowEvolutionaryBtn"
+BattlePassModuleEvent.RefreshAnotherThemeFriendUI = "BattlePassModuleEvent.RefreshAnotherThemeFriendUI"
 return BattlePassModuleEvent

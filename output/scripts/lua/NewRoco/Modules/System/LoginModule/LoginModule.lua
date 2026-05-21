@@ -225,13 +225,26 @@ function LoginModule:GetActiveServers(InServerList)
   local BaseEnvironment = UE4.UNRCStatics.GetStringFromGGameIni("/Script/NRC.Maple", "BaseEnvironment")
   local AuditEnvironment = UE4.UNRCStatics.GetStringFromGGameIni("/Script/NRC.Maple", "AuditEnvironment")
   local PreEnvironment = UE4.UNRCStatics.GetStringFromGGameIni("/Script/NRC.Maple", "PreEnvironment")
-  local MapleEnvironment = BaseEnvironment
-  local bIsAudit = AppMain.isAuditVersion
-  Log.Debug("bIsAudit  :  ", bIsAudit)
-  if bIsAudit then
-    Log.Debug("set AuditEnvironment")
-    MapleEnvironment = AuditEnvironment
+  local userDefineStr = AppMain.userDefineStr
+  Log.Debug("userDefineStr  :  ", userDefineStr)
+  local settings = {}
+  if userDefineStr then
+    for key, value in string.gmatch(userDefineStr, "([^&=]+)=([^&]*)") do
+      if not settings[key] then
+        settings[key] = {}
+      end
+      table.insert(settings[key], value)
+    end
   end
+  Log.Dump(settings, 3, "settings data")
+  local MapleEnvironment
+  if settings and table.containsKey(settings, "MapleId") then
+    for _, value in ipairs(settings.MapleId) do
+      MapleEnvironment = tostring(value)
+    end
+  end
+  MapleEnvironment = MapleEnvironment or BaseEnvironment
+  Log.Debug("MapleEnvironment  :  ", MapleEnvironment)
   for _, channel in pairs(ChannelAsInt) do
     Log.Debug("ChannelAsInt -- ", channel)
   end
@@ -549,7 +562,7 @@ function LoginModule:SetPanelIsDownloading(isDownloading)
 end
 
 function LoginModule:CheckIfShowDownloadResBtn()
-  local bIsNeedDownloadBasePaks = _G.PufferUpdateResTask:IsNeedDownloadBasePaks()
+  local bIsNeedDownloadBasePaks = _G.PufferUpdateResTask:IsNeedDownloadBasePaksWithPatch()
   Log.Debug("bIsNeedDownloadBasePaks: ", bIsNeedDownloadBasePaks)
   local Panel = self:GetPanel(LoginEnum.PanelNames.NRCLoginPanel)
   if Panel then
@@ -578,14 +591,14 @@ function LoginModule:CheckDownloadBaseRes()
     LoginUtils.SendEventToLoginFsm(LoginModuleEvent.DownloadBaseResAfterLogin)
     return
   end
-  local bNeedToDownload = _G.PufferUpdateResTask:IsNeedDownloadBasePaks()
+  local bNeedToDownload = _G.PufferUpdateResTask:IsNeedDownloadBasePaksWithPatch()
   if bNeedToDownload then
     local bTaskFinish = _G.DataModelMgr.PlayerDataModel:IsAssignStoryFlags(Enum.PlayerStoryFlagEnum.PSF_FUNC_MINI_PACKAGE_DONE)
     Log.Debug("[LoginModule:CheckDownloadBaseRes]bTaskFinish: ", bTaskFinish)
     _G.NRCEventCenter:DispatchEvent(UpdateUIModuleEvent.CheckTaskIsFinished, bTaskFinish)
     _G.NRCModuleManager:DoCmd(OnlineModuleCmd.Logout)
     _G.NRCSDKManager:CloseGamelet()
-    local NeedToDownloadBasePakList, SizeNeedToDownload, LargestSize = _G.PufferUpdateResTask:GetBasePakListNeedToDownload()
+    local NeedToDownloadBasePakList, SizeNeedToDownload, LargestSize = _G.PufferUpdateResTask:GetBasePakListWithPatchNeedToDownload()
     local GB = string.format("%.2f", SizeNeedToDownload / 1024 / 1024 / 1024)
     if bTaskFinish then
       local Context = DialogContext()
@@ -704,7 +717,7 @@ function LoginModule:OnDownloadBatchProgress(BatchTaskId, NowSize, TotalSize)
   self:SetProgress(Percent, UpdateStageLocalText.PufferBasePaksDownloading, UpdateTask:FormatBytes(TotalSize), UpdateTask:FormatBytes(NowSize), UpdateTask:GetCurrentSpeed())
 end
 
-function LoginModule:OnPufferDownloadBatchReturn(BatchTaskId, FiledId, IsSuccess, ErrorCode, BatchType, StrRet, SingleFileErrorCode)
+function LoginModule:OnPufferDownloadBatchReturn(BatchTaskId, FiledId, IsSuccess, ErrorCode, BatchType, SingleFileErrorCode)
   _G.NRCBackgroundDownloadMgr:SetIsUpdating(false)
   if IsSuccess then
     _G.NRCEventCenter:DispatchEvent(UpdateUIModuleEvent.ReportDownloadEnd, LoginEnum.DownloadReportType.BaseDownloadEnd, BatchTaskId)
@@ -871,7 +884,7 @@ function LoginModule:OnLoadLoginNoticeData(noticeList)
 end
 
 function LoginModule:StartDownloadBaseRes()
-  local NeedToDownloadBasePakList, SizeNeedToDownload, LargestSize = _G.PufferUpdateResTask:GetBasePakListNeedToDownload()
+  local NeedToDownloadBasePakList, SizeNeedToDownload, LargestSize = _G.PufferUpdateResTask:GetBasePakListWithPatchNeedToDownload()
   if NeedToDownloadBasePakList then
     if #NeedToDownloadBasePakList > 0 then
       Log.Debug("[LoginModule:DownloadBasePak] get total file size: ", SizeNeedToDownload)
@@ -879,9 +892,9 @@ function LoginModule:StartDownloadBaseRes()
         return
       end
       self:CheckInternetConnection(function(this)
-        _G.NRCBackgroundDownloadMgr:SetIsUpdating(true)
         local BasePakTaskId = _G.PufferUpdateResTask:DownloadBatchListByPakList(NeedToDownloadBasePakList)
         if BasePakTaskId then
+          _G.NRCBackgroundDownloadMgr:SetIsUpdating(true)
           _G.NRCBackgroundDownloadMgr:SetBackgroundDownloadInfo(UE4.EBackgroundDownloadType.Base, BasePakTaskId)
           _G.NRCEventCenter:DispatchEvent(UpdateUIModuleEvent.ReportDownloadBegin, LoginEnum.DownloadReportType.BaseDownloadBegin, BasePakTaskId)
         else

@@ -141,6 +141,9 @@ end
 
 function RolePlayComponent:StartRpBehavior(conf, executeParam, bDisablePerfEffectStage)
   Log.Debug("RolePlayComponent:StartRpBehavior", conf.id, bDisablePerfEffectStage)
+  if self.owner.isLocal then
+    _G.FunctionBanManager:AddPlayerConditionType(Enum.PlayerConditionType.PCT_ROLEPLAY_EMOTE)
+  end
   local startFailed = true
   if conf and self.owner.viewObj then
     local role_play_param = executeParam.role_play_param
@@ -177,6 +180,9 @@ end
 
 function RolePlayComponent:StopRpBehavior(abortFlag)
   Log.Debug("RolePlayComponent:StopRpBehavior", abortFlag)
+  if self.owner.isLocal then
+    _G.FunctionBanManager:RemovePlayerConditionType(Enum.PlayerConditionType.PCT_ROLEPLAY_EMOTE)
+  end
   if not self.owner.isLocal or abortFlag then
     self:CancelLoadingRpSkill()
     self:CancelPlayingRpSkill()
@@ -188,12 +194,15 @@ function RolePlayComponent:StopRpBehavior(abortFlag)
       end
     end
   end
-  if self.skillType == ProtoEnum.RolePlaySkillType.RPST_PET_TREE_CLOSE and ProtoEnum.RolePlaySkillType.RPST_IDLE_BOND then
+  local isSuitRelaxSkill = self.skillType == ProtoEnum.RolePlaySkillType.RPST_PET_TREE_CLOSE or self.skillType == ProtoEnum.RolePlaySkillType.RPST_IDLE_BOND
+  if isSuitRelaxSkill then
     local localPlayer = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
     if localPlayer and localPlayer == self.owner and _G.RelationTreeCmd then
       local bondId, petGid, OwnerActorId = _G.NRCModuleManager:DoCmd(_G.RelationTreeCmd.GetPlayingCloseBondId)
       local bondItem = _G.DataModelMgr.PlayerDataModel:GetFashionBondItem(bondId)
-      if bondItem and bondItem.pet_tree_interacted and bondItem.color_suit_state == _G.Enum.FashionBondColorSuitState.FBCSS_CLAIMABLE then
+      local PetDataForCheck = _G.DataModelMgr.PlayerDataModel:GetPetDataByGid(petGid)
+      local isPetShiny = PetDataForCheck and (PetMutationUtils.GetMutationValue(PetDataForCheck.mutation_type, _G.Enum.MutationDiffType.MDT_SHINING) or PetUtils.CheckIsShiningGlass(PetDataForCheck.mutation_type) or PetUtils.CheckIsHiddenShiningGlass(PetDataForCheck.mutation_type, PetDataForCheck.glass_info) or PetUtils.CheckIsShiningChaos(PetDataForCheck.mutation_type))
+      if bondItem and bondItem.pet_tree_interacted and bondItem.color_suit_state == _G.Enum.FashionBondColorSuitState.FBCSS_CLAIMABLE and isPetShiny then
         Log.Warning("\228\186\178\230\152\181\229\138\168\228\189\156RolePlay\231\187\147\230\157\159\239\188\140\232\167\166\229\143\145\229\188\130\232\137\178\229\165\151\232\163\133\232\142\183\229\143\150 bondId: %s", bondId)
         _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.ClaimHeterochromeSuitReq, bondId, petGid)
       else
@@ -206,7 +215,7 @@ function RolePlayComponent:StopRpBehavior(abortFlag)
             local isClanmable = _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.CheckPetGlassTintIsClaimableByBondID, bondId, GlassInfo, IsYiSe)
             if isClanmable then
               Log.Warning("\228\186\178\230\152\181\229\138\168\228\189\156RolePlay\231\187\147\230\157\159\239\188\140\232\167\166\229\143\145\231\130\171\229\189\169\229\165\151\232\163\133\232\142\183\229\143\150 bondId: %s", bondId)
-              _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.SendClaimGlassTintReq, bondId, IsYiSe, GlassInfo)
+              _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.SendClaimGlassTintReq, bondId, IsYiSe, GlassInfo, nil, PetData)
             end
           end
         end
@@ -217,7 +226,9 @@ function RolePlayComponent:StopRpBehavior(abortFlag)
   if self.playingRpBehaviorId then
     _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.ApplyRpBehavior, self.playingRpBehaviorId, abortFlag and UE.EDotsStatusType.Abort or UE.EDotsStatusType.Finish, self.owner)
   end
-  _G.NRCEventCenter:DispatchEvent(DebugModuleEvent.StopRpBehavior, abortFlag)
+  if _G.AppMain:HasDebug() then
+    _G.NRCEventCenter:DispatchEvent(DebugModuleEvent.StopRpBehavior, abortFlag)
+  end
   self:ClearPlayingRpSkill()
   self.rpResReq = nil
   self.playingRpBehaviorId = nil

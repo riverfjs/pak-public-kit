@@ -49,13 +49,20 @@ function LuaActionSceneCommand:RunCommandInternal(Controller)
     end
     if CommandType == _G.Enum.NpcSceneCommandType.NSC_UPLOAD_POS then
       npc.module.SceneAIManager:RequestReportPosition(npc)
-    elseif not self.CullingCheck(CommandType, CommandParam, npc) then
-      local info = _G.ProtoMessage:newClientAiCommandInfo()
-      info.actor_id = npc:GetServerId()
-      info.action_id = CommandType
-      info.command_param = CommandParam
-      npc:GetServerPosition(info.pos)
-      _G.SceneAIUtils.GetSceneAIManager():EnqueueMessage_SceneCommand(info)
+    else
+      local StringParam
+      if CommandType == _G.Enum.NpcSceneCommandType.NSC_LLM_OVERWRITE_BT or CommandType == _G.Enum.NpcSceneCommandType.NSC_LLM_OVERWRITE_BT_START then
+        StringParam = Controller:GetMfbbString("Global_LlmPetBehaviorId")
+      end
+      if not self.CullingCheck(CommandType, CommandParam, npc) then
+        local info = _G.ProtoMessage:newClientAiCommandInfo()
+        info.actor_id = npc:GetServerId()
+        info.action_id = CommandType
+        info.command_param = CommandParam
+        info.string_param = StringParam
+        npc:GetServerPosition(info.pos)
+        _G.SceneAIUtils.GetSceneAIManager():EnqueueMessage_SceneCommand(info)
+      end
     end
   end
   if not bPersistCmd then

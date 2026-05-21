@@ -22,6 +22,7 @@ local NodeStateToNameDict = {
   Gather = "Gather",
   Nightmare = "Nightmare",
   NightmareOne = "NightmareOne",
+  SurpriseBox = "SurpriseBox",
   IdleToHappy = "IdleToHappy",
   BattleMimic = "BattleMimic",
   BlackMagic = "BlackMagic",
@@ -141,6 +142,11 @@ function BattlePetState:Ctor(owner)
       state = NodeStateToNameDict.NightmareOne,
       parent = NodeStateToNameDict.Show,
       buffSign = BuffGroupSign.BGS_NIGHTMARE_ONE
+    },
+    {
+      state = NodeStateToNameDict.SurpriseBox,
+      parent = NodeStateToNameDict.Show,
+      buffSign = BuffGroupSign.BGS_FANTASTIC_BOX
     },
     {
       state = NodeStateToNameDict.IdleToHappy,
@@ -333,6 +339,14 @@ function BattlePetState:GetMimic()
     return true, BuffGroupSign.BGS_MIMIC
   elseif self:GetState(NodeStateToNameDict.BattleMimic) then
     return true, BuffGroupSign.BGS_BATTLE_MIMIC
+  else
+    return false
+  end
+end
+
+function BattlePetState:GetSurpriseBox()
+  if self:GetState(NodeStateToNameDict.SurpriseBox) then
+    return true, BuffGroupSign.BGS_FANTASTIC_BOX
   else
     return false
   end

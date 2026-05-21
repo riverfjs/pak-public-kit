@@ -56,6 +56,8 @@ DialogueCameraSetupAction.DetectionSettings = {near = 3000, far = 25000}
 
 function DialogueCameraSetupAction:Ctor(name, properties)
   Base.Ctor(self, name, properties)
+  self.FinishDelayHandler = -1
+  self.CameraChangeDelayHandler = -1
 end
 
 function DialogueCameraSetupAction:IsNormalInteraction(type)
@@ -1020,7 +1022,8 @@ function DialogueCameraSetupAction:Finish()
     self.ParentModule.FirstEnter = false
     if self.DialogueConf.camera_switch_type == Enum.CameraSwitchType.CAMST_NORMAL then
       local KamLerpTime = DialogueConst.EnterTime
-      DelayManager:DelaySeconds(KamLerpTime, Base.Finish, self)
+      self:ClearDelayHandle()
+      self.FinishDelayHandler = _G.DelayManager:DelaySeconds(KamLerpTime, Base.Finish, self)
     else
       Base.Finish(self)
     end
@@ -1238,7 +1241,8 @@ function DialogueCameraSetupAction:ChangeCamera(Camera, DeltaTime, BlendFunc, co
   BlendFunc = BlendFunc or UE4.EViewTargetBlendFunction.VTBlend_EaseOut
   controller:SetViewTargetWithBlend(Camera, DeltaTime, BlendFunc, 2)
   if Callback then
-    _G.DelayManager:DelaySeconds(DeltaTime, Callback, self)
+    self:ClearCameraChangeDelayHandler()
+    self.CameraChangeDelayHandler = _G.DelayManager:DelaySeconds(DeltaTime, Callback, self)
   end
 end
 
@@ -1296,15 +1300,33 @@ function DialogueCameraSetupAction:ClearCachedUObjectRefs()
   self.SpringArm = nil
 end
 
+function DialogueCameraSetupAction:ClearDelayHandle()
+  if self.FinishDelayHandler > 0 then
+    _G.DelayManager:CancelDelayById(self.FinishDelayHandler)
+  end
+  self.FinishDelayHandler = -1
+end
+
+function DialogueCameraSetupAction:ClearCameraChangeDelayHandler()
+  if self.CameraChangeDelayHandler > 0 then
+    _G.DelayManager:CancelDelayById(self.CameraChangeDelayHandler)
+  end
+  self.CameraChangeDelayHandler = -1
+end
+
 function DialogueCameraSetupAction:OnFinish()
   if self.bLegacyCameraChanged then
     _G.NRCModuleManager:DoCmd(CameraModuleCmd.StopCameraSkillPlaying)
   end
   self:ClearCachedUObjectRefs()
+  self:ClearDelayHandle()
+  self:ClearCameraChangeDelayHandler()
 end
 
 function DialogueCameraSetupAction:OnExit()
   self:ClearCachedUObjectRefs()
+  self:ClearDelayHandle()
+  self:ClearCameraChangeDelayHandler()
 end
 
 return DialogueCameraSetupAction

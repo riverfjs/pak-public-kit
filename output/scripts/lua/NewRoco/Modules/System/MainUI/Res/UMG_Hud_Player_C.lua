@@ -213,9 +213,16 @@ function UMG_Hud_Player_C:SetRelationTreeState(RelationTreeType, ActionID)
     self.PerformPanel:SetVisibility(UE4.ESlateVisibility.Collapsed)
     local StatePanelVisibility = self.StatePanel:IsVisible()
     if not StatePanelVisibility then
-      if table.getTableCount(self.OldData) <= 0 then
+      local RelationBubbleVisible = self.RelationTree_Interaction:IsVisible()
+      local NeedPlayAnimIn = table.getTableCount(self.OldData) <= 0 or not RelationBubbleVisible or not self:IsVisible()
+      local forbiddenAudio = false
+      if self.Player and self.Player.viewObj and self.Player:IsVisible() and not self.Player.viewObj:GetActorHidden() then
+      else
+        forbiddenAudio = true
+      end
+      if NeedPlayAnimIn then
         self.OldData = {RelationTreeType = RelationTreeType, ActionID = ActionID}
-        self.RelationTree_Interaction:UpdateHeadHUD(true, RelationTreeType, ActionID, false, true)
+        self.RelationTree_Interaction:UpdateHeadHUD(true, RelationTreeType, ActionID, false, true, nil, forbiddenAudio)
       elseif self.OldData and (self.OldData.RelationTreeType ~= RelationTreeType or self.OldData.ActionID ~= ActionID) then
         self.OldData = {RelationTreeType = RelationTreeType, ActionID = ActionID}
         self.RelationTree_Interaction:PlayerAnimChangeOut(true, RelationTreeType, ActionID)
@@ -273,6 +280,14 @@ function UMG_Hud_Player_C:SetNameVisible(visible)
   end
   self.nameVisible = visible
   self:CheckVisible()
+end
+
+function UMG_Hud_Player_C:SetReturnIconVisible(visible)
+  if visible then
+    self.Starlight:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  else
+    self.Starlight:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  end
 end
 
 function UMG_Hud_Player_C:SetVisible(visible)
@@ -434,6 +449,7 @@ function UMG_Hud_Player_C:DelayDoCheckVisible()
   self.DelayCheckVisible = nil
   local isShow = self.StatePanel:IsVisible() or self.PerformPanel:IsVisible() or self.NamePanel:IsVisible() or self.InteractionOptions:IsVisible() or self.RelationTree_Interaction:IsVisible() or self.NotSocializingText:IsVisible() or self.NotSocializing:IsVisible()
   self:SetVisible(isShow)
+  self:SetDetailedInfo(isShow and "" or "InVisible")
 end
 
 function UMG_Hud_Player_C:CancelDelayCheckVisible()

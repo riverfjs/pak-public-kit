@@ -129,14 +129,18 @@ end
 
 function UMG_EquipItem_C:ShowSelected(show)
   if show then
-    self.selected = true
-    if self.uiData and self.uiData.id then
-      self:PlaySelectedAnim()
-    else
-      self.SelectedAnim:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    if not self.selected then
+      self.selected = true
+      if self.uiData and self.uiData.id then
+        self:PlaySelectedAnim()
+      else
+        self:StopAllAnimations()
+        self:PlayAnimation(self.change2)
+      end
     end
-  else
-    self.SelectedAnim:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  elseif self.selected then
+    self:StopAllAnimations()
+    self:PlayAnimation(self.change2)
     self.selected = false
   end
 end
@@ -266,8 +270,8 @@ function UMG_EquipItem_C:PlaySelectedAnim()
   if not self.hasPlaySelectAnim then
     self.hasPlaySelectAnim = true
   end
-  self.SelectedAnim:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
   local curSelectedPetGid = _G.NRCModuleManager:DoCmd(MainUIModuleCmd.GetSelectedPetGid)
+  self:StopAllAnimations()
   if 0 ~= curSelectedPetGid then
     UE4.UNRCAudioManager.Get():PlaySound2DAuto(1115, "UMG_EquipItem_C:ShowSelected")
     self:PlayAnimation(self.change1)

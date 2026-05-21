@@ -4,6 +4,7 @@ local PetUtils = require("NewRoco.Utils.PetUtils")
 local TipEnum = require("NewRoco.Modules.System.TipsModule.Utils.TipEnum")
 local MagicManualUtils = require("NewRoco/Modules/System/MagicManual/MagicManualUtils")
 local ModuleEvent = require("NewRoco.Modules.System.WeeklyChallengeBattle.WeeklyChallengeBattleModuleEvent")
+local UIUtils = require("NewRoco.Utils.UIUtils")
 local UMG_FormationPanel_C = _G.NRCPanelBase:Extend("UMG_FormationPanel_C")
 
 function UMG_FormationPanel_C:OnActive(bFromPetHeadIcon)
@@ -17,6 +18,7 @@ function UMG_FormationPanel_C:OnActive(bFromPetHeadIcon)
   self.bIsOpeningPetDetailsPanel = false
   self.bIsEditMode = false
   self.bIsSwapMode = false
+  self.bIsPetListInited = false
   self.curPetDataList = {}
   self.curFilterRule = nil
   self.curSortRuleType = _G.Enum.PetSequenceDefault.SEQUENCE_CHEER_POINT_DOWN
@@ -35,6 +37,7 @@ function UMG_FormationPanel_C:OnActive(bFromPetHeadIcon)
   self.curSelectedPetIndex = 0
   self.lastMode = nil
   self.lastCheerPoint = nil
+  self._pendingChangeSelectPetData = nil
   self:_InitPanel()
 end
 
@@ -125,12 +128,15 @@ function UMG_FormationPanel_C:OnTeamPetChanged(petList)
         end
       end
       if not bHasData then
-        for i = 1, self.WarehouseList:GetItemCount() do
-          if self.WarehouseList:OpItemByIndex(i, 5, selectedGid) then
-            index = i
-            bIsInTeam = false
-            bHasData = true
-            break
+        local warehouseListDatas = self.WarehouseList._listDatas
+        if warehouseListDatas then
+          for i = 1, #warehouseListDatas do
+            if warehouseListDatas[i] and warehouseListDatas[i].petData and warehouseListDatas[i].petData.gid == selectedGid then
+              index = i
+              bIsInTeam = false
+              bHasData = true
+              break
+            end
           end
         end
       end
@@ -498,6 +504,7 @@ function UMG_FormationPanel_C:_InitPetList()
     })
   end
   self.PetList:InitGridView(initList)
+  self.bIsPetListInited = true
   self:_SetPetListClickable()
   local totalCheerUpPoint = self:_CalculateCheerUpPoint(petDataList)
   self:_SetTeamCheerPoint(totalCheerUpPoint)
@@ -536,7 +543,20 @@ end
 
 function UMG_FormationPanel_C:UpdateTeamPetList(petDataList)
   self.CurrentTeamPets = petDataList
-  self:_InitPetList()
+  if self.bIsPetListInited and self.PetList:GetItemCount() == #petDataList then
+    local listDatas = self.PetList._listDatas
+    for i = 1, #petDataList do
+      listDatas[i].petData = petDataList[i]
+      listDatas[i].bIsEditMode = self.bIsEditMode
+      listDatas[i].bIsSwapMode = self.bIsSwapMode
+      self.PetList:OpItemByIndex(i, 8, petDataList[i])
+    end
+    self:_SetPetListClickable()
+    local totalCheerUpPoint = self:_CalculateCheerUpPoint(petDataList)
+    self:_SetTeamCheerPoint(totalCheerUpPoint)
+  else
+    self:_InitPetList()
+  end
   local filterList = self:_FilterPet()
   self:UpdateWarehouseList(filterList)
 end
@@ -728,12 +748,20 @@ function UMG_FormationPanel_C:UpdatePetDetailPanel(petContext, bIsWarehouse, ind
     self.UMG_CollectBtn.Switcher:SetActiveWidgetIndex(1)
   end
   local balancedPetData = _G.NRCModuleManager:DoCmd(_G.WeeklyChallengeBattleModuleCmd.GetPetBalancedDataByGid, petContext.gid)
-  if balancedPetData then
-    self:DispatchEvent(ModuleEvent.ChangeSelectPet, balancedPetData)
+  local petDataToDispatch = balancedPetData or _G.DataModelMgr.PlayerDataModel:GetPetDataByGid(petContext.gid)
+  local bIsPetDetailOpening = self.module:HasPanel("PetDetail")
+  if bIsPetDetailOpening then
+    self:DispatchEvent(ModuleEvent.ChangeSelectPet, petDataToDispatch)
+    self._pendingChangeSelectPetData = nil
   else
-    local newPetContext = _G.DataModelMgr.PlayerDataModel:GetPetDataByGid(petContext.gid)
-    self:DispatchEvent(ModuleEvent.ChangeSelectPet, newPetContext)
+    self._pendingChangeSelectPetData = petDataToDispatch
   end
+end
+
+function UMG_FormationPanel_C:ConsumePendingChangeSelectPetData()
+  local data = self._pendingChangeSelectPetData
+  self._pendingChangeSelectPetData = nil
+  return data
 end
 
 function UMG_FormationPanel_C:DeselectWarehousePetByIndex(index)
@@ -1191,19 +1219,12 @@ function UMG_FormationPanel_C:_IsThisWeekCatchPet(petData)
   if not self.eventConf or type(self.eventConf.start_time) ~= "string" then
     return false
   end
-  local year, month, day, hour, min, sec = string.match(self.eventConf.start_time, "(%d+)-(%d+)-(%d+) (%d+):(%d+):(%d+)")
-  if not year then
+  local TimeUtils = require("NewRoco.Modules.System.EnvSystem.TimeUtils")
+  local startTimestamp = TimeUtils.ToTimeStamp(self.eventConf.start_time)
+  if 0 == startTimestamp then
+    Log.Error("UMG_FormationPanel_C:_IsThisWeekCatchPet: Failed to parse start_time:", self.eventConf.start_time)
     return false
   end
-  local startTimeTable = {
-    year = tonumber(year),
-    month = tonumber(month),
-    day = tonumber(day),
-    hour = tonumber(hour),
-    min = tonumber(min),
-    sec = tonumber(sec)
-  }
-  local startTimestamp = os.time(startTimeTable)
   return startTimestamp < petData.add_time
 end
 
@@ -1357,7 +1378,7 @@ function UMG_FormationPanel_C:OnSwapPetDuringSwapMode(position)
   end
   self.WarehouseList:ClearSelection()
   self.PetList:ClearSelection()
-  self:QuitSwapMode()
+  self:QuitSwapMode(true)
 end
 
 function UMG_FormationPanel_C:OnAddPetDuringSwapMode(position)

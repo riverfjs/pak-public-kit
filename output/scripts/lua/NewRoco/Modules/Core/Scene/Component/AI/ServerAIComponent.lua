@@ -2,6 +2,7 @@ local Base = require("NewRoco.Modules.Core.Scene.Component.ActorComponent")
 local AIDefines = require("NewRoco.AI.AIDefines")
 local Queue = require("Utils.Queue")
 local SceneAnimEnum = require("NewRoco.Modules.Core.Scene.Common.SceneAnimEnum")
+local NPCModuleEnum = require("NewRoco.Modules.Core.NPC.NPCModuleEnum")
 local SceneUtils = require("NewRoco.Modules.Core.Scene.Common.SceneUtils")
 local _localNRCModuleManager = NRCModuleManager
 local LuaMathUtils = require("NewRoco.Utils.LuaMathUtils")
@@ -39,6 +40,9 @@ function ServerAIComponent:Ctor()
   self.persistAnimTimerHandle = nil
   self.currentPersistAnimName = nil
   self.recording_move = false
+  self.skillProxyMap = {}
+  self.skillInterruptFlagMap = {}
+  self._forceLockRegistered = false
 end
 
 ServerAIComponent.command_func = {}
@@ -66,6 +70,7 @@ function ServerAIComponent:BindFunction()
     [ServerAICommandEnum.ServerAICommandEvent.PlayPerceptionEffect] = ServerAIComponent.PlayPerceptionEffect,
     [ServerAICommandEnum.ServerAICommandEvent.PlayPerceptionHud] = ServerAIComponent.PlayPerceptionHud,
     [ServerAICommandEnum.ServerAICommandEvent.PerceivePlayer] = ServerAIComponent.PerceivePlayer,
+    [ServerAICommandEnum.ServerAICommandEvent.PlayChatBubble] = ServerAIComponent.PlayChatBubble,
     [ServerAICommandEnum.ServerAICommandEvent.ServerAttach] = ServerAIComponent.ServerAttach,
     [ServerAICommandEnum.ServerAICommandEvent.CancelServerAttach] = ServerAIComponent.CancelServerAttach,
     [ServerAICommandEnum.ServerAICommandEvent.PlaySkill] = ServerAIComponent.PlaySkill,
@@ -83,6 +88,7 @@ function ServerAIComponent:BindFunction()
     [ServerAICommandEnum.ServerAICommandEvent.StopRealtimeDialog] = ServerAIComponent.StopRealtimeDialog,
     [ServerAICommandEnum.ServerAICommandEvent.StickTo] = ServerAIComponent.StickTo,
     [ServerAICommandEnum.ServerAICommandEvent.FinishStickTo] = ServerAIComponent.FinishStickTo,
+    [ServerAICommandEnum.ServerAICommandEvent.SetNpcPos] = ServerAIComponent.SetNpcPos,
     [ServerAICommandEnum.ServerAICommandEvent.TryInteractNpc] = ServerAIComponent.TryInteractNpc,
     [ServerAICommandEnum.ServerAICommandEvent.VelocityOrientRotation] = ServerAIComponent.VelocityOrientRotation,
     [ServerAICommandEnum.ServerAICommandEvent.WorldLaunchPlayer] = ServerAIComponent.WorldLaunchPlayer
@@ -128,6 +134,7 @@ function ServerAIComponent:DeAttach()
     self.event_queue:Clear()
     self.event_queue = nil
   end
+  self:_CleanAllSkillProxies(true)
   self.AIComp = nil
   self.owner = nil
 end
@@ -148,7 +155,7 @@ function ServerAIComponent:UpdateData(ServerData, isReconnect)
           local rotation = SceneUtils.ServerPos2ClientRotator(ServerData.base.pt.dir)
           local halfHeight = self.owner:GetHalfHeight()
           local pinnedTarget = SceneUtils.GetPosInLand(target, halfHeight, 2 * halfHeight)
-          if pinnedTarget.Z > target.Z then
+          if pinnedTarget and pinnedTarget.Z > target.Z then
             target.Z = pinnedTarget.Z
           end
           view:Abs_K2_SetActorLocationAndRotation_WithoutHit(target, rotation, false, true)
@@ -170,6 +177,7 @@ end
 
 function ServerAIComponent:OnControllerDestroy()
   self.recording_move = self.AIComp and self.AIComp.isServerAI
+  self:_CleanAllSkillProxies(true)
 end
 
 function ServerAIComponent:OnDistanceOptimize(distance, viewDotValue, bulkyVisible, distanceRatio)
@@ -484,6 +492,21 @@ function ServerAIComponent:FinishStickTo(action)
   snapComp:CancelSnap()
 end
 
+function ServerAIComponent:SetNpcPos(action)
+  local AIController = self.AIComp:GetControllerSafe()
+  if not AIController then
+    return
+  end
+  local FlowComp = AIController:GetComponentByClass(UE.URocoMultiposFlowComponent)
+  if not FlowComp then
+    return
+  end
+  FlowComp:AbortFollowing()
+  local targetPos = SceneUtils.ServerPos2ClientPos(action.to_pos)
+  FlowComp:ClearRoutes()
+  FlowComp:AddMovePoint(targetPos, 0)
+end
+
 function ServerAIComponent:TryInteractNpc(action)
   local targetNpc = _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.GetNpcByServerID, action.interact_actor_id)
   local interactionComp = targetNpc and targetNpc.InteractionComponent
@@ -764,6 +787,8 @@ function ServerAIComponent:WorldAttack(action, time_over)
     param.HitStrength = action.hit_strength
     param.PlayerHitType = action.hit_perform_type
     param.TargetPos = action.use_specific_pos and action.specific_pos and SceneUtils.ServerPos2ClientPos(action.specific_pos)
+    param.AbnormalStatus = action.abnormal_type
+    param.AbnormalDuration = action.abnormal_duration
     AttackComp:StartAttack(param)
   end
   return true
@@ -840,6 +865,31 @@ end
 
 function ServerAIComponent:PerceivePlayer(action)
   self.owner.AIComponent:PerceiveLocalPlayer(action.is_perceive)
+end
+
+function ServerAIComponent:PlayChatBubble(action)
+  if string.IsNilOrEmpty(action.message_str) then
+    return true
+  end
+  if self.locked then
+    return false
+  end
+  local npc = self.owner
+  if npc:IsHidden() and not npc:IsHidden(NPCModuleEnum.NpcReasonFlags.HIDDEN) then
+    return self:Finish(true)
+  end
+  local view = npc.viewObj
+  if view then
+    local FriendModule = _G.NRCModuleManager:GetModule("FriendModule")
+    if FriendModule then
+      if FriendModule:IsEmo(action.message_str) then
+        local Path = FriendModule:OnCmdGetEmoPathByEsc(action.message_str)
+        FriendModule.chatBubbleController:AddEmojiBubble(Path, view, action.play_time)
+      else
+        FriendModule.chatBubbleController:AddTextBubble(action.message_str, UE4.UNRCStatics.HexToSlateColor("#ffffff"), _G.NRCBigWorldPreloader:Get("Font_Obj_FangZhengLanTing_ZhongChu"), false, view, action.play_time)
+      end
+    end
+  end
 end
 
 function ServerAIComponent:ServerAttach(action)
@@ -933,35 +983,50 @@ function ServerAIComponent:PlaySkill(action, over_time)
     self:CacheSkill(action)
     return false
   end
-  self.skill_id = action.skill_id
+  local skillPath = action.skill_path
+  if not skillPath or "" == skillPath then
+    Log.PrintScreenMsg("[ServerAIComponent:PlaySkill] skill_path is empty, skill_id=%s", tostring(action.skill_id))
+    return false
+  end
   local view = self.owner.viewObj
   local targetView, targetPos
   if action.target_id and 0 ~= action.target_id then
     local targetCharacter, isPlayer = SceneUtils.GetActorByServerId(action.target_id)
     targetView = targetCharacter and targetCharacter.viewObj
     if not targetView or not targetView:IsValid() then
-      self:OnSkillEnd()
+      self:OnSkillEnd(skillPath)
       return true
     end
   elseif action.use_specific_pos and action.specific_pos then
     targetPos = SceneUtils.ServerPos2ClientPos(action.specific_pos)
   end
   if view and UE.UObject.IsValid(view) then
-    local skillPath = action.skill_path
     local skillConf = _G.DataConfigManager:GetNrcAiPerformSkillConf(action.skill_id or 0, true)
     local passive = skillConf and skillConf.parallel_playback or false
+    local interrupt_when_stop_ai = skillConf and skillConf.interrupt_when_stop_ai or false
     local skillComp = view:GetComponentByClass(UE.URocoSkillComponent)
     if skillComp then
-      skillComp:StopCurrentSkill()
+      local existingProxy = self.skillProxyMap[skillPath]
+      if existingProxy then
+        self.skillProxyMap[skillPath] = nil
+        existingProxy:CancelSkill(UE.ESkillActionResult.SkillActionResultInterrupted)
+        existingProxy:Destroy()
+      end
       local skillProxy = RocoSkillProxy.Create(skillPath, skillComp, _G.PriorityEnum.Passive_World_AI_Server_SkillRes)
       if skillProxy then
         skillProxy:SetCaster(view)
         if targetView then
           skillProxy:SetTargets({targetView})
         end
-        skillProxy:RegisterEventCallback("End", self, self.OnSkillEnd):RegisterEventCallback("PreEnd", self, self.OnSkillEnd):RegisterEventCallback("Interrupt", self, self.OnSkillEnd)
+        skillProxy:RegisterEventCallback("End", self, function(this, name, skillObj)
+          this:OnSkillEnd(skillPath)
+        end):RegisterEventCallback("PreEnd", self, function(this, name, skillObj)
+          this:OnSkillEnd(skillPath)
+        end):RegisterEventCallback("Interrupt", self, function(this, name, skillObj)
+          this:OnSkillEnd(skillPath)
+        end)
         if not targetView and targetPos then
-          local function SetupSkillTarget(this, Name, skillObj)
+          local function SetupSkillTarget(this, name, skillObj)
             LocalSpawnTransformObj.Translation = targetPos
             
             local TargetObj = view:GetWorld():Abs_SpawnActor(LocalTargetClass, LocalSpawnTransformObj, UE4.ESpawnActorCollisionHandlingMethod.AlwaysSpawn)
@@ -973,40 +1038,108 @@ function ServerAIComponent:PlaySkill(action, over_time)
         end
         skillProxy:SetPassive(passive)
         skillProxy:PlaySkill()
-        self.currentSkillProxy = skillProxy
+        self.skillProxyMap[skillPath] = skillProxy
+        self.skillInterruptFlagMap[skillPath] = interrupt_when_stop_ai
+        if interrupt_when_stop_ai and self.AIComp and not self._forceLockRegistered then
+          self._forceLockRegistered = true
+          self.AIComp:RegisterForceLockChanged(self, self.OnAILockChanged)
+        end
         return true
       end
     end
   end
-  self:OnSkillEnd()
+  self:OnSkillEnd(skillPath)
   return true
 end
 
-function ServerAIComponent:OnSkillEnd()
-  self.skill_id = nil
-  self.currentSkillProxy = nil
-  if self.reportPositionAfterNextSkill and self.owner then
+function ServerAIComponent:OnAILockChanged(lock)
+  if lock then
+    local toInterrupt = {}
+    for path, flag in pairs(self.skillInterruptFlagMap) do
+      if flag then
+        toInterrupt[#toInterrupt + 1] = path
+      end
+    end
+    for _, path in ipairs(toInterrupt) do
+      local proxy = self.skillProxyMap[path]
+      if proxy then
+        self.skillProxyMap[path] = nil
+        self.skillInterruptFlagMap[path] = nil
+        proxy:CancelSkill(UE.ESkillActionResult.SkillActionResultInterrupted)
+        proxy:Destroy()
+      end
+    end
+    self:_TryUnregisterForceLock()
+  end
+end
+
+function ServerAIComponent:OnSkillEnd(skillPath)
+  if skillPath then
+    self.skillProxyMap[skillPath] = nil
+    self.skillInterruptFlagMap[skillPath] = nil
+  end
+  self:_TryUnregisterForceLock()
+  if self.reportPositionAfterNextSkill and self.owner and not next(self.skillProxyMap) then
     self.owner:ReportPosition(_G.ProtoEnum.SetNpcPosType.SNPT_AI_MOVE)
     self.reportPositionAfterNextSkill = false
   end
+end
+
+function ServerAIComponent:_TryUnregisterForceLock()
+  if not self._forceLockRegistered then
+    return
+  end
+  for _, flag in pairs(self.skillInterruptFlagMap) do
+    if flag then
+      return
+    end
+  end
+  self._forceLockRegistered = false
+  if self.AIComp then
+    self.AIComp:UnRegisterForceLockChanged(self, self.OnAILockChanged)
+  end
+end
+
+function ServerAIComponent:_CleanAllSkillProxies(destroyProxy)
+  if self._forceLockRegistered and self.AIComp then
+    self._forceLockRegistered = false
+    self.AIComp:UnRegisterForceLockChanged(self, self.OnAILockChanged)
+  end
+  for path, proxy in pairs(self.skillProxyMap) do
+    self.skillProxyMap[path] = nil
+    proxy:CancelSkill(UE.ESkillActionResult.SkillActionResultInterrupted)
+    if destroyProxy then
+      proxy:Destroy()
+    end
+  end
+  self.skillInterruptFlagMap = {}
 end
 
 function ServerAIComponent:StopSkill(action)
   self:CacheSkill(nil)
-  if self.skill_id ~= action.skill_id then
+  local skillPath = action.skill_path
+  if not skillPath or "" == skillPath then
+    self:_CleanAllSkillProxies(true)
+    if self.reportPositionAfterNextSkill and self.owner then
+      self.owner:ReportPosition(_G.ProtoEnum.SetNpcPosType.SNPT_AI_MOVE)
+      self.reportPositionAfterNextSkill = false
+    end
+    return true
+  end
+  local proxy = self.skillProxyMap[skillPath]
+  if not proxy then
     return false
   end
-  if self.reportPositionAfterNextSkill then
+  self.skillProxyMap[skillPath] = nil
+  self.skillInterruptFlagMap[skillPath] = nil
+  self:_TryUnregisterForceLock()
+  if self.reportPositionAfterNextSkill and not next(self.skillProxyMap) and self.owner then
     self.owner:ReportPosition(_G.ProtoEnum.SetNpcPosType.SNPT_AI_MOVE)
     self.reportPositionAfterNextSkill = false
   end
-  if self.currentSkillProxy then
-    self.currentSkillProxy:CancelSkill(UE.ESkillActionResult.SkillActionResultInterrupted)
-    if self.currentSkillProxy then
-      self.currentSkillProxy:Destroy()
-      self.currentSkillProxy = nil
-    end
-  end
+  proxy:CancelSkill(UE.ESkillActionResult.SkillActionResultInterrupted)
+  proxy:Destroy()
+  return true
 end
 
 function ServerAIComponent:CollisionCancelRecover(action)
@@ -1278,6 +1411,8 @@ function ServerAIComponent:ResumeMove()
   end
 end
 
+local VecCached = UE.FVector()
+
 function ServerAIComponent:ServerFly(action, time_over)
   if time_over and time_over > 1000 then
     return false
@@ -1322,6 +1457,11 @@ function ServerAIComponent:ServerFly(action, time_over)
       local FlowComp = AIController:GetComponentByClass(UE.URocoMultiposFlowComponent)
       if not FlowComp then
         Log.DebugFormat("[ServerAIComponent:ServerFly] FlowComp is nil, npc:%s", self.owner and self.owner.config.name or "unknown")
+        return false
+      end
+      if self.locked then
+        SceneUtils.ServerPos2ClientPosInPlace(action.to_pos_list[#action.to_pos_list], 1.0, VecCached)
+        FlowComp:AddMovePoint(VecCached, action.to_timestamp_list[#action.to_timestamp_list])
         return false
       end
       FlowComp:AbortFollowing()

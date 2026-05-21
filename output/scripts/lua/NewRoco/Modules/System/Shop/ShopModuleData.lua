@@ -247,7 +247,7 @@ function ShopModuleData:GetClientMonthCardConf()
     local MallGoods = _G.DataConfigManager:GetAllByName("NORMAL_SHOP_CONF")
     if MallGoods then
       for _, v in pairs(MallGoods) do
-        if v.shop_id == ShopID then
+        if v.shop_id == ShopID and v.enable then
           local goodsSevData = _G.NRCModuleManager:DoCmd(NPCShopUIModuleCmd.OnCmdGetGoodsSeverData, v.shop_id, v.id)
           if goodsSevData then
             _clientMonthCardConf.Price = goodsSevData.real_price.num

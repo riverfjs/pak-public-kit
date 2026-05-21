@@ -22,6 +22,7 @@ local DefaultSkillNum = 4
 local SkillState = UMG_Battle_Skill_List_C.State
 
 function UMG_Battle_Skill_List_C:OnConstruct()
+  self.bindActionSucceed = false
   self.FullyConstructedDelegate = Delegate()
   self.isFullyConstructed = false
   au.Launch(self:ConstructAsync(), function(ok, errorMessage)
@@ -245,6 +246,9 @@ function UMG_Battle_Skill_List_C:BindInputAction()
 end
 
 function UMG_Battle_Skill_List_C:UnBindInputAction()
+  if not self.bindActionSucceed then
+    return
+  end
   local mappingContext = self:GetInputMappingContext("IMC_Battle")
   if mappingContext then
     local actions = {
@@ -261,6 +265,7 @@ function UMG_Battle_Skill_List_C:UnBindInputAction()
     for _, action in ipairs(actions) do
       mappingContext:UnBindAction(action.name)
     end
+    self.bindActionSucceed = false
   end
   if "IA_BattleGlobalSkillStart" == self.triggerInputActionName then
     _G.BattleEventCenter:Dispatch(BattleEvent.INPUT_ACTION_TRIGGER)
@@ -465,7 +470,7 @@ function UMG_Battle_Skill_List_C:SetCurrentPet(pet, stateName)
       if oneSkill then
         if self:IsNewSkill(oneSkill, skillItem.newSkill, pet, skillItem.CastPet) then
           self:CloseMagicAnimDelay()
-          self.MagicAnimId = _G.DelayManager:DelaySeconds(i * 0.2, self.PlayMagic, self, skillItem)
+          self.MagicAnimId = self:DelaySeconds(i * 0.2, self.PlayMagic, self, skillItem)
         end
         if tempSkillMap[i] then
           if oneSkill == tempSkillMap[i] or self.hasChangeSkillPet[self.pet.guid] then
@@ -476,7 +481,16 @@ function UMG_Battle_Skill_List_C:SetCurrentPet(pet, stateName)
             skillItem:SetData(oneSkill, stateName, pet, self, IsShowSkillEmpty)
           end
         else
-          skillItem:SetData(oneSkill, stateName, pet, self, IsShowSkillEmpty, 1 == oneSkill.skillData.perform_flag)
+          local fantasticBackgroundPath = ""
+          local skillData = oneSkill and oneSkill.skillData
+          local skillId = skillData and skillData.skill_id
+          local seasonId = skillData and skillData.season_id
+          local performFlag = skillData and skillData.perform_flag
+          if performFlag == ProtoEnum.PET_SKILL_PERFORM_FLAG.PET_SKILL_PERFORM_FLAG_FANTASTIC then
+            local paths = BattleUtils.GetFantasticBackgroundPathWithSkillAndSeason(skillId, seasonId)
+            fantasticBackgroundPath = paths and paths.squareNm3 or fantasticBackgroundPath
+          end
+          skillItem:SetData(oneSkill, stateName, pet, self, IsShowSkillEmpty, fantasticBackgroundPath)
         end
       else
         skillItem:SetData(nil, stateName, pet, self, IsShowSkillEmpty)
@@ -515,7 +529,7 @@ end
 
 function UMG_Battle_Skill_List_C:CloseMagicAnimDelay()
   if self.MagicAnimId then
-    _G.DelayManager:CancelDelayById(self.MagicAnimId)
+    self:CancelDelayByID(self.MagicAnimId)
   end
   self.MagicAnimId = nil
 end
@@ -792,6 +806,7 @@ function UMG_Battle_Skill_List_C:Hide(playAnim, callback)
   end
   self:HideCurTipSkill()
   self:SetShowState(false, nil)
+  self:UnBindInputAction()
 end
 
 function UMG_Battle_Skill_List_C:OnAnimationFinished(Animation)

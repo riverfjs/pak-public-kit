@@ -174,21 +174,35 @@ function UMG_TopHUD_C:OnTipDisplayStatusChangeHandler(pause)
         tipUmg = self.UMG_PetCertificationTips
       end
       if tipUmg then
-        if self.tipDisplayExecutor:IsPausedExcept("Tips_Show") then
-          tipUmg:StopAllAnimations()
-        else
-          tipUmg:SetVisibility(UE4.ESlateVisibility.Collapsed)
+        local desireRecoverable = not self.tipDisplayExecutor:IsPausedExcept("Tips_Show")
+        local handled = false
+        if tipUmg.SetPaused then
+          handled = tipUmg:SetPaused(true, desireRecoverable)
           self.curCollapsedTipUmg = tipUmg
+        end
+        if not handled then
+          if not desireRecoverable then
+            tipUmg:StopAllAnimations()
+          else
+            tipUmg:SetVisibility(UE4.ESlateVisibility.Collapsed)
+            self.curCollapsedTipUmg = tipUmg
+          end
         end
       end
     end
   else
     local curCollapsedTipUmg = self.curCollapsedTipUmg
     if curCollapsedTipUmg then
-      if curCollapsedTipUmg:IsPlayingAnimation() then
-        curCollapsedTipUmg:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-      else
-        self.tipDisplayExecutor:ConsumeNextTip()
+      local handled = false
+      if curCollapsedTipUmg.SetPaused then
+        handled = curCollapsedTipUmg:SetPaused(false)
+      end
+      if not handled then
+        if curCollapsedTipUmg:IsPlayingAnimation() then
+          curCollapsedTipUmg:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+        else
+          self.tipDisplayExecutor:ConsumeNextTip()
+        end
       end
       self.curCollapsedTipUmg = nil
     end
@@ -296,7 +310,7 @@ end
 
 function UMG_TopHUD_C:LoaderCatchTips(name, arg)
   self.CatchPetTipsLoader:UnLoadPanel(true)
-  local widgetClass = string.format("WidgetBlueprint'/Game/NewRoco/Modules/System/TipsModule/Res/Tips/%s.%s'", name, string.format("%s_C", name))
+  local widgetClass = string.format("WidgetBlueprint'/Game/NewRoco/Modules/System/TipsModule/Res/Tips/Season_BonusCatch/%s.%s'", name, string.format("%s_C", name))
   local softClassPath = UE4.UKismetSystemLibrary.MakeSoftClassPath(widgetClass)
   self.CatchPetTipsLoader:SetWidgetClass(softClassPath)
   self.CatchPetTipsLoader:LoadPanel(self, arg)

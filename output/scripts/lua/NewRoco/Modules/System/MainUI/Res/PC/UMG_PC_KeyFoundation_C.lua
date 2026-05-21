@@ -475,7 +475,7 @@ function UMG_PC_KeyFoundation_C:OnPcAbilitySlotUnHand()
 end
 
 function UMG_PC_KeyFoundation_C:OnPcAbilitySlotSecondMainStart()
-  if self.playerAbilityImcName == "IMC_PlayerAbilityOnPet" then
+  if self.playerAbilityImcName == "IMC_PlayerAbilityOnPet" or self.playerAbilityImcName == "IMC_PlayerAbilityTransform" then
     self.AbilitySlot_RideJump.UMG_Ability_Main_RideJump:OnPCKey(0)
   end
 end
@@ -973,8 +973,18 @@ end
 function UMG_PC_KeyFoundation_C:OnSceneLoaded()
   Log.Debug("UMG_PC_KeyFoundation_C:OnSceneLoaded")
   self:InitInfo()
+  self:OnSceneLoadedResetActivated()
   self:OnBeforeOpen()
   self.localPlayer:AddEventListener(self, PlayerModuleEvent.ON_STATUS_CHANGED, self.OnPlayerStatusChanged)
+end
+
+function UMG_PC_KeyFoundation_C:OnSceneLoadedResetActivated()
+  if self.AbilitySlot_Main then
+    self.AbilitySlot_Main.UMG_Ability_Main_Slot._activated = false
+  end
+  if self.AbilitySlot_RideAbility then
+    self.AbilitySlot_RideAbility.UMG_Ability_Main_RideAbility._activated = false
+  end
 end
 
 function UMG_PC_KeyFoundation_C:SetThrowItemVisibility(itemType, item)

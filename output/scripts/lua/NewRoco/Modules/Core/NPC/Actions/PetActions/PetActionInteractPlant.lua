@@ -2,6 +2,8 @@ local Base = require("NewRoco.Modules.Core.NPC.Actions.PetActionBase")
 local RocoSkillProxy = require("NewRoco.Utils.RocoSkillProxy")
 local FarmUtils = require("NewRoco.Modules.System.Farm.FarmUtils")
 local FarmModuleEnum = require("NewRoco.Modules.System.Farm.FarmModuleEnum")
+local a = require("Common.Coroutine.async")
+local au = require("Common.Coroutine.async_util")
 local PetTypeSkillMap = {
   [Enum.SkillDamType.SDT_WATER] = "G6_Home_Pet_JiaoShui",
   [Enum.SkillDamType.SDT_GRASS] = "G6_Home_Pet_ShiFei"
@@ -44,7 +46,6 @@ end
 function PetActionInteractPlant:Execute(Runner)
   if self:PreExecuteCheck(Runner) then
     Base.Execute(self, Runner)
-    self:LockAI(Runner)
   else
     self:ForceFreeAI(Runner)
     self.Runner = Runner
@@ -61,6 +62,7 @@ function PetActionInteractPlant:OnExecute()
   local Skill = RocoSkillProxy.Create(SkillPath, SkillComp)
   if not (PetView and TargetView and SkillComp) or not SkillPath then
     Log.Warning("\230\137\167\232\161\140Action\229\164\177\232\180\165\239\188\140\232\175\183\230\163\128\230\159\165\230\149\176\230\141\174\239\188\129")
+    self:Finish(false)
     return
   end
   Skill:SetCaster(PetView)
@@ -90,7 +92,8 @@ function PetActionInteractPlant:OnSubmit(rsp)
 end
 
 function PetActionInteractPlant:PreExecuteCheck(Runner)
-  local PetBaseConf = _G.DataConfigManager:GetPetbaseConf(Runner.serverData.pet_info.pet_base_conf_id)
+  local PetBaseId = Runner:GetPetbaseId()
+  local PetBaseConf = _G.DataConfigManager:GetPetbaseConf(PetBaseId, true)
   if not PetBaseConf then
     Log.Warning("[PetAction WaterPlant] need pet to execute!")
     return false
@@ -141,22 +144,24 @@ end
 function PetActionInteractPlant:FailedExecute()
   Log.Warning("\230\137\167\232\161\140Action\229\164\177\232\180\165\239\188\140\229\143\175\232\131\189\230\152\175AI\229\143\136\229\176\157\232\175\149\229\164\154\230\172\161\228\186\164\228\186\146\228\186\134\239\188\140\233\171\152\229\134\183\230\139\146\231\187\157")
   self:FreeAI()
-  Base.Finish(self, false)
+  self:Finish(false)
 end
 
 function PetActionInteractPlant:OnSkillStart(_, Result)
   if Result ~= UE.ESkillStartResult.Success then
     self:FailedExecute()
   end
+  self:LockAI(Runner)
 end
 
 function PetActionInteractPlant:SkillComplete(_, _)
   self:FreeAI()
-  Base.Finish(self, true)
+  self:Finish(false)
 end
 
 function PetActionInteractPlant:OnInteracted(_, _)
   Base.Submit(self)
+  self:Finish(true)
 end
 
 function PetActionInteractPlant:ContinueWhenSuccess()
@@ -186,6 +191,9 @@ function PetActionInteractPlant:LockAI(Pet)
   if LockTarget then
     LockTarget.AIComponent:ForceLockForReason(true, false, _G.AIDefines.LockReason.INTERACT)
     self.LockedAI = LockTarget
+    if LockTarget.ThrowSession then
+      LockTarget.ThrowSession:SetStatus()
+    end
     Log.Debug("\229\188\128\229\167\139\228\186\164\228\186\146, \230\136\145\228\187\172\233\148\129\228\184\128\228\184\139AI")
   else
     Log.Warning("LockAI\230\151\182\239\188\140\231\178\190\231\129\181\230\182\136\229\164\177\228\186\134\239\188\129")
@@ -203,9 +211,10 @@ function PetActionInteractPlant:TryAddFloatingText()
   local ReduceTime = self.ReduceTime
   self.ReduceTime = nil
   self.InteractSuccess = nil
-  _G.DelayManager:DelaySeconds(0.3, function()
+  a.task(function()
+    a.wait(au.DelaySeconds(0.3))
     FarmUtils.AddFloatingText(LandID, ReduceTime)
-  end)
+  end)()
 end
 
 return PetActionInteractPlant

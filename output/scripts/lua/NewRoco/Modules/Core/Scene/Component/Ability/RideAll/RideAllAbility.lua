@@ -15,7 +15,10 @@ function RideAllAbility:Start(onFinished, customParams, ScenePet, RideMoveType, 
   local isReConnect = false
   local rideComponent = self.caster.viewObj.BP_RideComponent
   if customParams and customParams.ride_param.double_ride_2p_id == self.caster.serverData.base.actor_id then
-    _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.SendSenseEvent, self.caster:GetActorLocation(), Enum.DotsAIWorldEventType.DAWET_RIDE_UPDATE)
+    if self.caster.IsMagicReplayActor and self.caster:IsMagicReplayActor() then
+    else
+      _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.SendSenseEvent, self.caster:GetActorLocation(), Enum.DotsAIWorldEventType.DAWET_RIDE_UPDATE)
+    end
     self.caster.buffComponent:AddBuff(self._buffName, require("NewRoco.Modules.Core.Scene.Component.Buff.ScenePlayerRideAllBuff"), self.caster)
     local buff = self.caster.buffComponent:GetBuff(self._buffName)
     buff.waitDoubleRide = true
@@ -93,7 +96,10 @@ function RideAllAbility:Start(onFinished, customParams, ScenePet, RideMoveType, 
         Log.Error("BP_RideComponent_C:SetRelativeTransform \230\178\161\230\156\137\230\137\190\229\136\176\231\178\190\231\129\181Base ID = " .. PetID)
       end
     end
-    _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.SendSenseEvent, self.caster:GetActorLocation(), Enum.DotsAIWorldEventType.DAWET_RIDE_UPDATE)
+    if self.caster.IsMagicReplayActor and self.caster:IsMagicReplayActor() then
+    else
+      _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.SendSenseEvent, self.caster:GetActorLocation(), Enum.DotsAIWorldEventType.DAWET_RIDE_UPDATE)
+    end
     ScenePet:SetRideParam(customParams.ride_param)
     ScenePet:SetStatus(ProtoEnum.WorldPlayerPetStatusType.WPPST_IN_RIDE, isReConnect)
     self.caster.buffComponent:AddBuff(self._buffName, require("NewRoco.Modules.Core.Scene.Component.Buff.ScenePlayerRideAllBuff"), self.caster, nil, nil, nil, self.isRecover)

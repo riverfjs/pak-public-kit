@@ -39,7 +39,9 @@ function UMG_DamageNumberBase_C:SetType(type)
     local outColor = self.OutLineColor:Get(type)
     for i, v in pairs(self.Nums) do
       v:SetColorAndOpacity(color)
-      v.Font.OutlineSettings.OutlineColor = outColor
+      local font = v.Font
+      font.OutlineSettings.OutlineColor = outColor
+      v:SetFont(font)
     end
   end
 end

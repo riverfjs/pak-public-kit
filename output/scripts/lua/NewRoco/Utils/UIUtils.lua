@@ -1,3 +1,5 @@
+local AppearanceUtils = require("NewRoco.Modules.System.Appearance.AppearanceUtils")
+local ActivityUtils = require("NewRoco.Modules.System.Activity.ActivityUtils")
 local UIUtils = {}
 local EmojiRanges = {
   {128512, 128591},
@@ -259,11 +261,13 @@ function UIUtils.RemoveInvalidCharsByFont(_string, _fontObject)
   return resultString
 end
 
-function UIUtils:RemoveInvalidCharsHandle(_UEditableText)
+function UIUtils.RemoveInvalidCharsHandle(_UEditableText)
   if _UEditableText then
     local text = _UEditableText:GetText()
     local resultString = UIUtils.RemoveInvalidCharsByFont(text, _UEditableText.WidgetStyle.Font.FontObject)
-    _UEditableText:SetText(resultString)
+    if resultString ~= text then
+      _UEditableText:SetText(resultString)
+    end
   end
 end
 
@@ -340,6 +344,10 @@ function UIUtils.GetNpcSceneResIdByPosXY(posX, posY)
 end
 
 function UIUtils.SetAvatarSuit(avatarActor, fashionIds, salonIds, gender)
+  if not avatarActor then
+    Log.Error("UIUtils.SetAvatarSuit: avatarActor is nil")
+    return
+  end
   local defaultSuitClass
   if nil == gender then
     local localPlayer = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
@@ -681,6 +689,18 @@ function UIUtils.GetConfigEnumByAvatarEnum(avatarEnum, Base)
   elseif avatarEnum == UE4.EAvatarBodyType.Bags then
     bFashion = true
     configEnum = Enum.FashionLabelType.FLT_PENDANTA
+  elseif avatarEnum == UE4.EAvatarBodyType.Hg then
+    bFashion = true
+    configEnum = Enum.FashionLabelType.FLT_HATS
+  elseif avatarEnum == UE4.EAvatarBodyType.Hp then
+    bFashion = true
+    configEnum = Enum.FashionLabelType.FLT_HATS
+  elseif avatarEnum == UE4.EAvatarBodyType.Wh then
+    bFashion = true
+    configEnum = Enum.FashionLabelType.FLT_DRESSES
+  elseif avatarEnum == UE4.EAvatarBodyType.Wa then
+    bFashion = true
+    configEnum = Enum.FashionLabelType.FLT_DRESSES
   end
   return bFashion, configEnum
 end
@@ -1111,16 +1131,164 @@ function UIUtils.GetMedalLevelInfo(medalId, count)
   return levelData
 end
 
-function UIUtils.CheckIsHighValuePet(serverData)
-  if serverData and serverData.npc_base then
-    local mutationType = serverData.npc_base.mutation_type
-    return UIUtils.DoCheckIsHighValuePet(mutationType)
+function UIUtils.GetIconAndQualityByItemIDAndItemType(ItemID, ItemType)
+  local iconPath
+  local quality = 0
+  local name
+  if ItemType == _G.Enum.GoodsType.GT_BAGITEM then
+    local bagitemconf = _G.DataConfigManager:GetBagItemConf(ItemID)
+    if bagitemconf then
+      iconPath = bagitemconf.big_icon
+      quality = bagitemconf.item_quality
+      name = bagitemconf.name
+      if bagitemconf and bagitemconf.item_behavior and bagitemconf.item_behavior[1] and bagitemconf.is_auto_use then
+        local itemBehavior = bagitemconf.item_behavior[1]
+        if itemBehavior and itemBehavior.use_action and itemBehavior.use_action == Enum.ItemBehavior.IB_GET_AWARD and itemBehavior.ratio and itemBehavior.ratio[1] then
+          local awardConf = _G.DataConfigManager:GetRewardConf(itemBehavior.ratio[1])
+          if awardConf and awardConf.RewardItem and awardConf.RewardItem[1] then
+            local awardItem = awardConf.RewardItem[1]
+            if awardItem.Type == Enum.GoodsType.GT_CARD_SKIN then
+              local cardSkinConf = _G.DataConfigManager:GetCardSkinConf(awardItem.Id)
+              quality = cardSkinConf.card_quality
+            end
+          end
+        end
+      end
+    end
+  elseif ItemType == _G.Enum.GoodsType.GT_VITEM then
+    local Vitemconf = _G.DataConfigManager:GetVisualItemConf(ItemID)
+    if Vitemconf then
+      iconPath = Vitemconf.bigIcon
+      quality = Vitemconf.item_quality
+      name = Vitemconf.displayName
+    end
+  elseif ItemType == _G.Enum.GoodsType.GT_CARD_SKIN then
+    local cardSkinConf = _G.DataConfigManager:GetCardSkinConf(ItemID)
+    if cardSkinConf then
+      quality = cardSkinConf.card_quality
+      iconPath = string.format(UEPath.CARD_SKIN_PATH, cardSkinConf.skin_resource_path, cardSkinConf.skin_resource_path)
+      name = cardSkinConf.skin_resource_name
+    end
+  elseif ItemType == _G.Enum.GoodsType.GT_CARD_ICON then
+    local GetCardIconConf = _G.DataConfigManager:GetCardIconConf(ItemID)
+    if GetCardIconConf then
+      quality = GetCardIconConf.card_quality
+      iconPath = string.format("%s%s.%s'", UEPath.CARD_HEAD_PATH, GetCardIconConf.icon_resource_path, GetCardIconConf.icon_resource_path)
+      name = GetCardIconConf.icon_resource_name
+    end
+  elseif ItemType == _G.Enum.GoodsType.GT_CARD_LABEL then
+    local CardLabelConf = _G.DataConfigManager:GetCardLabelConf(ItemID)
+    if CardLabelConf then
+      quality = CardLabelConf.card_quality
+      iconPath = CardLabelConf.label_icon or UEPath.CARD_LABEL_PATH
+      name = CardLabelConf.label_name
+    end
+  elseif ItemType == _G.Enum.GoodsType.GT_FASHION_SUITS then
+    local fashionConf = _G.DataConfigManager:GetFashionSuitsConf(ItemID)
+    if fashionConf then
+      local grade = AppearanceUtils.GetSuitQuality(fashionConf.suit_grade)
+      quality = grade
+      iconPath = fashionConf.suits_icon
+      name = fashionConf.name
+    end
+  elseif ItemType == _G.Enum.GoodsType.GT_FASHION then
+    local fashionConf = _G.DataConfigManager:GetFashionItemConf(ItemID)
+    if fashionConf then
+      quality = fashionConf.item_quality
+      iconPath = fashionConf.icon
+      name = fashionConf.name
+    end
+  elseif ItemType == _G.Enum.GoodsType.GT_SALON then
+    local salonConf = _G.DataConfigManager:GetSalonItemConf(ItemID)
+    if salonConf then
+      quality = salonConf.item_quality
+      iconPath = salonConf.icon
+      name = salonConf.name
+    end
+  elseif ItemType == _G.Enum.GoodsType.GT_SHARE_FORM then
+    local shareConf = _G.DataConfigManager:GetPetShareItemConf(ItemID)
+    if shareConf then
+      quality = shareConf.item_quality
+      iconPath = shareConf.item_icon
+      name = shareConf.item_name
+    end
+  elseif ItemType == _G.Enum.GoodsType.GT_RP_BEHAVIOR then
+    local itemConf = _G.DataConfigManager:GetRoleplayBehaviorConf(ItemID)
+    if itemConf then
+      quality = 5
+      iconPath = itemConf.icon_path
+      name = itemConf.name_text
+    end
+  elseif ItemType == _G.Enum.GoodsType.GT_EMOJI then
+    local ChatEmojiConf = _G.DataConfigManager:GetChatEmojiConf(ItemID)
+    if ChatEmojiConf then
+      quality = ChatEmojiConf.card_quality
+      iconPath = ChatEmojiConf.emoji_goods_icon
+      name = ChatEmojiConf.emoji_resource_name
+    end
+  elseif ItemType == _G.Enum.GoodsType.GT_FASHION_PACKAGE then
+    local fashionPackageConf = _G.DataConfigManager:GetFashionPackageConf(ItemID)
+    if fashionPackageConf then
+      quality = 5
+      iconPath = nil
+      name = fashionPackageConf.name
+    end
+  elseif ItemType == _G.Enum.GoodsType.GT_FASHION_BOND then
+    local FashionBondConf = _G.DataConfigManager:GetFashionBondConf(ItemID)
+    if FashionBondConf then
+      quality = 5
+      iconPath = FashionBondConf.fashion_bond_icon
+      name = FashionBondConf.name
+    end
+  end
+  return iconPath, quality, name
+end
+
+function UIUtils.CheckIsHighValuePet(sceneNpc)
+  local isHighValue = false
+  local serverData = sceneNpc.serverData
+  if sceneNpc.config then
+    local bWildPet = sceneNpc.config.throwing_interact_type == Enum.THROWING_INTERACT_TYPE.TIT_WILD_PET
+    if bWildPet and serverData and serverData.npc_base then
+      local mutationType = serverData.npc_base.mutation_type
+      isHighValue = UIUtils.DoCheckIsHighValuePet(mutationType)
+      if false == isHighValue then
+        isHighValue = UIUtils.CheckHasHighValuePetLogic(mutationType)
+      end
+    end
+  end
+  if false == isHighValue then
+    isHighValue = UIUtils.CheckHasHighLogicStatus(serverData)
+  end
+  return isHighValue
+end
+
+function UIUtils.DoCheckIsHighValuePet(mutationType)
+  if mutationType and (mutationType == Enum.MutationDiffType.MDT_SHINING or mutationType == Enum.MutationDiffType.MDT_GLASS) then
+    return true
   end
   return false
 end
 
-function UIUtils.DoCheckIsHighValuePet(mutationType)
+function UIUtils.CheckHasHighValuePetLogic(mutationType)
   if mutationType and mutationType ~= Enum.MutationDiffType.MDT_NONE then
+    return true
+  end
+  return false
+end
+
+function UIUtils.CheckHasHighLogicStatus(serverData)
+  if not serverData then
+    return false
+  end
+  if serverData.status_info and #serverData.status_info > 0 then
+    for _, Status in ipairs(serverData.status_info) do
+      if Status.status == Enum.SpaceActorLogicStatus.SALS_HIGH_VALUE_NPC then
+        return true
+      end
+    end
+  end
+  if serverData.npc_base and serverData.npc_base.refresh_src == _G.ProtoEnum.SpaceEnum_NpcRefreshSource.ENUM.ContinousCatchBonus then
     return true
   end
   return false
@@ -1148,6 +1316,31 @@ function UIUtils.GetHighValuePetTipsAndOwnerName(serverData)
     tipText = string.format(tip, tipName)
   end
   return tipText, tipName
+end
+
+function UIUtils.OpenItemTipsByItemIDAndItemType(itemId, itemType, bagItemGid, bagItem, showDefaultIconWhenConfigError)
+  if not itemId or not itemType then
+    Log.Error("UIUtils.OpenItemTipsByItemIDAndItemType: itemId or itemType is nil")
+    return
+  end
+  if itemType == _G.Enum.GoodsType.GT_FASHION_SUITS then
+    _G.NRCModuleManager:DoCmd(AppearanceModuleCmd.OpenAppearanceSuitDetailsPanel, itemId)
+  elseif itemType == _G.Enum.GoodsType.GT_REWARD then
+    ActivityUtils.ShowRewardPreview(itemId)
+  elseif bagItemGid then
+    local bagItemInfo = _G.NRCModuleManager:DoCmd(_G.BagModuleCmd.GetBagItemByGid, bagItemGid)
+    bagItemInfo = bagItemInfo or bagItem
+    if not bagItemInfo then
+      Log.Error("UIUtils.OpenItemTipsByItemIDAndItemType: bagItemGid\229\175\185\229\186\148\231\154\132\231\137\169\229\147\129\228\184\141\229\173\152\229\156\168", bagItemGid)
+      return
+    end
+    _G.NRCModeManager:DoCmd(_G.TipsModuleCmd.OpenItemTipsBrief, itemId, itemType, {
+      eggData = bagItemInfo.egg_data,
+      quality = 5
+    })
+  else
+    _G.NRCModeManager:DoCmd(TipsModuleCmd.Tips_OpenItemTips, itemId, itemType)
+  end
 end
 
 function UIUtils:RefreshWaterMaskImmediate()
@@ -1196,6 +1389,18 @@ function UIUtils:RefreshWaterMaskImmediate()
       RefreshMaskItems()
     end
   end
+end
+
+function UIUtils.ScreenPositionToViewport(screenPosition)
+  local viewportPos = UE4.FVector2D()
+  local world = _G.UE4Helper.GetCurrentWorld()
+  if world then
+    local geometry = UE4.UWidgetLayoutLibrary.GetViewportWidgetGeometry(world)
+    if geometry then
+      viewportPos = UE4.USlateBlueprintLibrary.AbsoluteToLocal(geometry, screenPosition)
+    end
+  end
+  return viewportPos
 end
 
 return UIUtils

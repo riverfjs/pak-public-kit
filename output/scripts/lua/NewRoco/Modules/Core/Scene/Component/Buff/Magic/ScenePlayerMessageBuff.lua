@@ -160,7 +160,7 @@ function ScenePlayerMessageBuff:GetNpcValidType(npc)
     return MagicMessageUtils.NpcValidType.Overlap
   end
   if MagicMessageUtils.CheckOnIllegal(npc.viewObj:K2_GetActorLocation()) then
-    return MagicMessageUtils.NpcValidType.Overlap
+    return MagicMessageUtils.NpcValidType.OnIllegal
   end
   local topKNpcs = _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.GetTopKNpcInCpp, TopKFinderNum, TopKDistance)
   for _, topNpc in ipairs(topKNpcs) do

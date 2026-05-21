@@ -79,6 +79,7 @@ function BattlePerformNode:Play()
     BattlePerformDebug.DebugNodeDoPerform(self)
     self.isPerforming = true
     self.isWaitTrigger = false
+    self.performPlayer.FrameStartNodeNum = self.performPlayer.FrameStartNodeNum + 1
     self.performPlayer.CurTriggerNumber = self.performPlayer.CurTriggerNumber + 1
     if _G.GlobalConfig.FastPlay then
       self.IsFastPlay = true

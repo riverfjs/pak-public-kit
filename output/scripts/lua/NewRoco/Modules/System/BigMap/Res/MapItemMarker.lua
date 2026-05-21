@@ -66,6 +66,12 @@ function MapItemMarker:Refresh(itemData)
     itemWidget:UpdateMapShowLevel(iconData.curMapSliderScale)
     itemWidget:SetPath(markerInfo.world_map_cfg_id)
     itemWidget:SetMapLayerIconVisible(BigMapModuleEnum.CreatorPriority.MarkerIcons)
+    local curShowLayerId = NRCModuleManager:DoCmd(BigMapModuleCmd.GetCurShowLayerId)
+    if itemWidget.mapLayerId == curShowLayerId then
+      itemWidget:SetLayerMapIcon(true)
+    else
+      itemWidget:SetLayerMapIcon(false)
+    end
     if iconData.bTracing and iconData.bTracing == true then
       itemWidget:PlayTraceEffect(true)
     else

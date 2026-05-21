@@ -247,6 +247,10 @@ function ConditionRewardItemObject:GetRewardItemDesc()
   return self.conf.part_desc
 end
 
+function ConditionRewardItemObject:GetRewardItemBg()
+  return self.conf.part_img, self.conf.part_img_success
+end
+
 function ConditionRewardItemObject:NeedTobeLastIfRewardReceived()
   return self.conf.is_realign_end
 end

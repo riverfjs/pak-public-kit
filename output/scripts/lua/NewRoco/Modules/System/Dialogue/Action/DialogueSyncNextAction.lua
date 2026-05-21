@@ -5,15 +5,7 @@ local DialogueActionBase = require("NewRoco.Modules.System.Dialogue.Action.Dialo
 local Base = DialogueActionBase
 local DialogueSyncNextAction = Base:Extend("DialogueSyncNextAction")
 FsmUtils.MergeMembers(Base, DialogueSyncNextAction, {
-  {
-    name = "DialogueConf",
-    type = "var"
-  },
   {name = "ConfID", type = "var"},
-  {
-    name = "FirstConfID",
-    type = "var"
-  },
   {name = "TargetNPC", type = "var"},
   {name = "Action", type = "var"},
   {name = "NPCOption", type = "var"}
@@ -44,7 +36,7 @@ function DialogueSyncNextAction:OnEnter()
       req.operation.cinematic_info = nil
       req.operation.dialogue_info.target_npc_id = other_player_id
       req.operation.dialogue_info.dialogue_id = self.ConfID
-      req.operation.dialogue_info.sync_type = self.FirstConfID == self.ConfID and ProtoEnum.PlayerOperationSyncType.POST_START or ProtoEnum.PlayerOperationSyncType.POST_NEXT
+      req.operation.dialogue_info.sync_type = DialogueUtils.IsEntryDialogue(self.fsm) and ProtoEnum.PlayerOperationSyncType.POST_START or ProtoEnum.PlayerOperationSyncType.POST_NEXT
       req.operation.dialogue_info.dialogue_npc_id = self.TargetNPC and self.TargetNPC.serverData and self.TargetNPC.serverData.npc_base.npc_content_cfg_id or 0
       req.operation.dialogue_info.select_ids = self:GetSelections()
       req.operation.dialogue_info.last_select_id = self:GetLastSelectID()

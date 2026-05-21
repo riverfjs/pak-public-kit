@@ -33,6 +33,7 @@ end
 
 function UMG_Friend_Chitchat_ChatItem_C:OnReportBtn()
   local ReportData = {}
+  ReportData.uin = self.uiData.uin
   ReportData.business_data = {}
   ReportData.business_data.report_scene = ProtoEnum.SafetyBusinessInfo.ReportScense.RPTSS_CONVERSATION_SPEAKING_SCENE
   ReportData.business_data.report_content = self:EscapeString(self.uiData.chat_message)

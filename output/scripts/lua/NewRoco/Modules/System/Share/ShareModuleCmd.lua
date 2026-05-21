@@ -16,4 +16,6 @@ ShareModuleCmd.DecodeFilledBase64 = "ShareModuleCmd.DecodeFilledBase64"
 ShareModuleCmd.ShareMiniApp = "ShareModuleCmd.ShareMiniApp"
 ShareModuleCmd.ShareH5WechatAndQQ = "ShareModuleCmd.ShareH5WechatAndQQ"
 ShareModuleCmd.CheckAppInstall = "ShareModuleCmd.CheckAppInstall"
+ShareModuleCmd.ForceClearRecordedVideo = "ShareModuleCmd.ForceClearRecordedVideo"
+ShareModuleCmd.ShareCosVideo = "ShareModuleCmd.ShareCosVideo"
 return ShareModuleCmd

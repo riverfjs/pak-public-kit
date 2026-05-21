@@ -300,7 +300,7 @@ function BP_NPCItemStar_C:OnSphereOverlap(selfComp, OtherActor, otherComp, other
     if result and result.ImpactPoint and result.ImpactPoint:IsNearlyZero(0.1) then
       self:K2_SetActorLocation(result.ImpactPoint, false, nil, false)
     end
-    self:StarBounceEnd(self:K2_GetActorLocation())
+    self:StarBounceEnd(self:K2_GetActorLocation(), OtherActor)
     if self:ShouldTriggerAttacked(AttackedPlayer) then
       local local_player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
       if local_player == AttackedPlayer then
@@ -442,11 +442,7 @@ function BP_NPCItemStar_C:BreakItself(HitLocation)
   self:ToggleCollision(false)
   self:K2_SetActorLocation(HitLocation, false, nil, false)
   if self.ThrowSession.is_local then
-    if self.isCritical then
-      self.ThrowSession:OnEndThrow(self.hitActor, self.criticalBone)
-    else
-      self.ThrowSession:OnEndThrow()
-    end
+    self.ThrowSession:OnEndThrow(self.hitActor, self.criticalBone)
   end
   local bInWorldCombat = _G.NRCModuleManager:DoCmd(_G.WorldCombatModuleCmd.IsSelfInWorldCombat)
   local NiagaraSystemPath, SoundId

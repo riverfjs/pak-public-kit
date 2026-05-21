@@ -1,3 +1,4 @@
+local HomeNpcInfoComponent = require("NewRoco.Modules.System.Home.Components.HomeNpcInfoComponent")
 local HomeUtils = {}
 HomeUtils.EnableDebugDraw = ENABLE_HOME_DEBUG_DRAW
 HomeUtils.EnableDebugCreationScale = _G.RocoEnv.IS_EDITOR
@@ -502,7 +503,7 @@ function HomeUtils.BuildFloorGraphByData(HomePlane)
   end
 end
 
-function HomeUtils.DeepEquals(a, b, visited)
+function HomeUtils.DeepEquals(a, b, visited, comparator, ignoreNil)
   if nil == a then
     a = {}
   end
@@ -514,6 +515,9 @@ function HomeUtils.DeepEquals(a, b, visited)
     return false
   end
   if type(a) ~= "table" then
+    if comparator and type(comparator) == "function" then
+      return comparator(a, b)
+    end
     return a == b
   end
   if visited[a] and visited[a] == b then
@@ -521,12 +525,12 @@ function HomeUtils.DeepEquals(a, b, visited)
   end
   visited[a] = b
   for k, v in pairs(a) do
-    if not HomeUtils.DeepEquals(v, b[k], visited) then
+    if (not ignoreNil or not ignoreNil[k]) and not HomeUtils.DeepEquals(v, b[k], visited, comparator and type(comparator) == "table" and comparator[k] or comparator, ignoreNil) then
       return false
     end
   end
   for k, v in pairs(b) do
-    if nil == a[k] then
+    if (not ignoreNil or not ignoreNil[k]) and nil == a[k] then
       return false
     end
   end
@@ -1000,6 +1004,22 @@ function HomeUtils.IsPetHasBeenSteal(petGid)
     end
   end
   return false
+end
+
+function HomeUtils.EnsureHomeNpcComponents(SceneNpc, Furniture)
+  if not SceneNpc then
+    return
+  end
+  if not HomeIndoorSandbox then
+    return
+  end
+  local actorId = SceneNpc.serverData.base.actor_id
+  local furniture = Furniture or HomeIndoorSandbox.Server.WorldData:GetFurnitureByNpcId(actorId)
+  if not furniture then
+    return
+  end
+  Log.Debug("EnsureHomeNpcComponents", actorId, furniture.RoomId, furniture.Id)
+  SceneNpc:EnsureComponent(HomeNpcInfoComponent, actorId, furniture.Id)
 end
 
 return HomeUtils

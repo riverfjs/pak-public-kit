@@ -1,7 +1,8 @@
 local TipEnum = require("NewRoco.Modules.System.TipsModule.Utils.TipEnum")
 local GuideConfigTypes = require("NewRoco.Modules.System.Guidance.Types.GuideConfigTypes")
 local Base = require("Core.NRCModule.NRCPanelBase")
-local listItemOutOfBoundTolerance = 0.2
+local listItemOutOfBoundTolerance = 0.35
+local GuidanceFocusControlActionsType = {ScrollLock = 1}
 local UMG_Guidance_Main_C = Base:Extend("UMG_Guidance_Main_C")
 
 function UMG_Guidance_Main_C:OnConstruct()
@@ -11,6 +12,7 @@ function UMG_Guidance_Main_C:OnConstruct()
   self.bStrongGuide = false
   self.bOnTop = false
   self.bTargetVisible = false
+  self.controlActions = {}
 end
 
 function UMG_Guidance_Main_C:OnActive(config, style, targetWidget, panelData, pathWidgets, isInBattle)
@@ -29,9 +31,11 @@ function UMG_Guidance_Main_C:OnActive(config, style, targetWidget, panelData, pa
     table.insert(self.pathWidgets, targetWidget)
   end
   self:CheckIsInBattle()
-  self:InitIgnoreAnimations()
+  self:InitFromFocusConfigs()
   if _G.UE4Helper.IsPCMode() then
     self.resX, self.resY = UE4.UNRCQualityLibrary.GetPCResolution()
+    self.windowsPositionInScreen = UE4.UNRCTUIStatics.GetSizeInScreen()
+    self.windowsSizeInScreen = UE4.UNRCTUIStatics.GetPositionInScreen()
   else
   end
   self.OnPcCloseHandler = self.OnPcEscClose
@@ -39,10 +43,11 @@ function UMG_Guidance_Main_C:OnActive(config, style, targetWidget, panelData, pa
   self:SetRenderOpacity(0)
   self:CheckPanelOnTop()
   self:CheckWidgetVisible()
-  if self:GetShouldDisplay() then
+  if self.isInBattle then
+    self:DoHide()
+  elseif self:GetShouldDisplay() then
     self:DoDisplay()
     self:DoStart()
-    self.bHasStarted = true
   else
     self:DoHide()
   end
@@ -51,6 +56,13 @@ function UMG_Guidance_Main_C:OnActive(config, style, targetWidget, panelData, pa
 end
 
 function UMG_Guidance_Main_C:Destruct()
+  if self.bUsedWeakFunctionBan then
+    if not self.isInBattle then
+      Log.Debug("UMG_Guidance_Main_C:Destruct self.bUsedWeakFunctionBan")
+      _G.NRCModuleManager:DoCmd(_G.GuidanceModuleCmd.RemoveTargetStatus, ProtoEnum.PlayerConditionType.PCT_NEWPLAYER_GUIDE)
+    end
+    self.bUsedWeakFunctionBan = nil
+  end
   if self.delayInitHandle then
     _G.DelayManager:CancelDelayById(self.delayInitHandle)
     self.delayInitHandle = nil
@@ -70,17 +82,17 @@ end
 
 function UMG_Guidance_Main_C:OnDisplayMetricsChanged()
   Log.Debug("UMG_Guidance_Main_C:OnDisplayMetricsChanged")
-  self.resolutionChanged = true
+  self.displayMetricsChanged = true
 end
 
 function UMG_Guidance_Main_C:CheckIsInBattle()
   if self.isInBattle then
     self.bOnTop = true
-    self.bTargetVisible = true
+    self.bTargetVisible = false
   end
 end
 
-function UMG_Guidance_Main_C:InitIgnoreAnimations()
+function UMG_Guidance_Main_C:InitFromFocusConfigs()
   self.ignoreAnimations = {}
   if not self.style then
     return
@@ -99,6 +111,11 @@ function UMG_Guidance_Main_C:InitIgnoreAnimations()
       if ignore_conf then
         self.ignoreAnimations[ignore_conf.panel_name] = ignore_conf.anim_names
       end
+    end
+  end
+  if focusConf.ban_action and table.len(focusConf.ban_action) > 0 then
+    for _, action in pairs(focusConf.ban_action) do
+      self.controlActions[action] = true
     end
   end
 end
@@ -134,7 +151,9 @@ function UMG_Guidance_Main_C:ReadyToStart()
 end
 
 function UMG_Guidance_Main_C:DoStart()
+  self.bHasStarted = true
   self:InitStyle()
+  self:InitGuidanceWidgetControlInfo()
   self:SetRenderOpacity(1)
   if self.openAnim then
     self:PlayAnimation(self.openAnim)
@@ -210,11 +229,15 @@ function UMG_Guidance_Main_C:CustomizeTargetWidgets(bEnabled, bOnDestroy)
   for _, widget in ipairs(self.pathWidgets) do
     if widget and UE4.UObject.IsValid(widget) then
       if bEnabled then
+        self:TryCustomizeTargetWidgetsInGuide(widget)
         if widget.OnBeginGuideTarget then
           widget:OnBeginGuideTarget(self.config)
         end
-      elseif widget.OnEndGuideTarget then
-        widget:OnEndGuideTarget(self.config, bOnDestroy)
+      else
+        self:TryCustomizeTargetWidgetsOutGuide(widget)
+        if widget.OnEndGuideTarget then
+          widget:OnEndGuideTarget(self.config, bOnDestroy)
+        end
       end
     end
   end
@@ -259,7 +282,6 @@ function UMG_Guidance_Main_C:CheckWidgetVisible()
     if not self:CheckWidgetIsPlayingAnimation() then
       return
     end
-    self:UpdatePosition()
     if not self.outOfScreen then
       self.bTargetVisible = true
     end
@@ -279,18 +301,15 @@ function UMG_Guidance_Main_C:CheckWidgetVisible()
       local widgetClassName = widget.className
       widgetClassName = widgetClassName:gsub("_C$", "")
       local ignoreAnims = self.ignoreAnimations[widgetClassName]
-      if ignoreAnims and table.len(ignoreAnims) > 0 and widget and widget.ActiveSequencePlayers then
-        for _, player in tpairs(widget.ActiveSequencePlayers) do
-          if player.Animation then
-            local animaName = player.Animation:GetName()
-            animaName = animaName:gsub("_INST$", "")
-            if table.contains(ignoreAnims, animaName) then
-              if self.bEnabledDebug then
-                Log.Debug("UMG_Guidance_Main_C:CheckWidgetVisible widget is playing animation", widget:GetName(), widgetClassName, animaName)
-              end
-              self.bTargetVisible = false
-              return
+      if ignoreAnims and table.len(ignoreAnims) > 0 then
+        for _, ignoreAnim in ipairs(ignoreAnims) do
+          local anim = widget[ignoreAnim]
+          if anim and UE4.UObject.IsValid(anim) and widget:IsAnimationPlaying(anim) then
+            if self.bEnabledDebug then
+              Log.Debug("UMG_Guidance_Main_C:CheckWidgetVisible widget is playing animation", widget:GetName(), widgetClassName, ignoreAnim)
             end
+            self.bTargetVisible = false
+            return
           end
         end
       end
@@ -350,8 +369,13 @@ function UMG_Guidance_Main_C:CheckWidgetVisible()
   end
   local positionUpdated = self:CheckWindowStateChanged()
   if self.bTargetHasList and not positionUpdated then
-    self:UpdatePosition()
     positionUpdated = true
+  end
+  if positionUpdated then
+    if not self.bTargetHasList and UE4.UObject.IsValid(self.targetWidget) then
+      self.targetWidget:InvalidateLayoutAndVolatility()
+    end
+    self:UpdatePosition()
   end
   if not self.outOfScreen then
     self.bTargetVisible = true
@@ -359,9 +383,6 @@ function UMG_Guidance_Main_C:CheckWidgetVisible()
 end
 
 function UMG_Guidance_Main_C:CheckPanelOnTop()
-  if self.isInBattle then
-    return
-  end
   if not self.targetPanelData then
     return
   end
@@ -396,7 +417,6 @@ end
 
 function UMG_Guidance_Main_C:CheckWindowStateChanged()
   if _G.UE4Helper.IsPCMode() then
-    local sizeInScreen = UE4.UNRCTUIStatics.GetSizeInScreen()
     local positionInScreen = UE4.UNRCTUIStatics.GetPositionInScreen()
     if self.windowsPositionInScreen == nil then
       if self.bEnabledDebug then
@@ -409,10 +429,10 @@ function UMG_Guidance_Main_C:CheckWindowStateChanged()
       end
       self.windowsPositionInScreen = positionInScreen
       if not self.bHasStarted then
-        self:UpdatePosition()
         return true
       end
     end
+    local sizeInScreen = UE4.UNRCTUIStatics.GetSizeInScreen()
     if nil == self.windowsSizeInScreen then
       if self.bEnabledDebug then
         Log.Debug("UMG_Guidance_Main_C:CheckWindowStateChanged window size is nil", sizeInScreen)
@@ -423,7 +443,6 @@ function UMG_Guidance_Main_C:CheckWindowStateChanged()
         Log.Debug("UMG_Guidance_Main_C:CheckWindowStateChanged window size changed", self.windowsSizeInScreen, sizeInScreen)
       end
       self.windowsSizeInScreen = sizeInScreen
-      self:UpdatePosition()
       return true
     end
   end
@@ -471,7 +490,22 @@ function UMG_Guidance_Main_C:OnTick(deltaTime)
       self.resY = resY
       self.resolutionChanged = true
     end
-  else
+  elseif self.displayMetricsChanged then
+    self.targetWidget:InvalidateLayoutAndVolatility()
+    local position = UE4.UNRCStatics.GetWidgetViewportPosition(self.targetWidget)
+    if not self.positionCached then
+      self.positionCached = position
+      Log.Debug("UMG_Guidance_Main_C:OnTick displayMetricsChanged", self.positionCached)
+    else
+      local delta = position - self.positionCached
+      if delta:Size() <= 0.5 then
+        self.displayMetricsChanged = false
+        self.positionCached = nil
+        self.resolutionChanged = true
+      else
+        self.positionCached = position
+      end
+    end
   end
   self:TryUpdateListItem()
   self:UpdateDisplayOrHide()
@@ -543,6 +577,9 @@ function UMG_Guidance_Main_C:InitStyle()
     self:SetAnimationToPlay(self.Rect_Animation, self.Rect_Loop)
   end
   self.Hint:Init(self.config, focusConf, self.isInBattle)
+  if UE4.UObject.IsValid(self.targetWidget) then
+    self.targetWidget:InvalidateLayoutAndVolatility()
+  end
   self:UpdatePosition()
   if self.bStrongGuide then
     self.Background:SetVisibility(UE4.ESlateVisibility.Visible)
@@ -556,6 +593,9 @@ end
 
 function UMG_Guidance_Main_C:UpdatePosition()
   if not self.targetWidget or not UE4.UObject.IsValid(self.targetWidget) then
+    return
+  end
+  if not self.bHasStarted then
     return
   end
   self:UpdatePositionInternal()
@@ -676,8 +716,20 @@ end
 function UMG_Guidance_Main_C:ClearListItemRecord()
   if self.pathWidgets then
     for _, widget in ipairs(self.pathWidgets) do
-      if widget and widget.GuidanceListRecord then
-        widget.GuidanceListRecord = nil
+      if widget then
+        if widget.GuidanceListRecord then
+          widget.GuidanceListRecord = nil
+        end
+        local guideControlTargetWidget = widget.guideControlTargetWidget
+        if guideControlTargetWidget then
+          local scrollRecord = guideControlTargetWidget.scroll
+          if scrollRecord then
+            local scrollBox = scrollRecord.scroll
+            if scrollBox and UE4.UObject.IsValid(scrollBox) and scrollRecord.callback then
+              scrollBox.OnUserScrolled:Remove(scrollBox, scrollRecord.callback)
+            end
+          end
+        end
       end
     end
   end
@@ -687,8 +739,39 @@ end
 function UMG_Guidance_Main_C:CheckHasList()
   if self.pathWidgets then
     for _, widget in ipairs(self.pathWidgets) do
-      if widget and widget.GuidanceListRecord then
-        self.bTargetHasList = true
+      local child = widget
+      if widget then
+        local record = widget.GuidanceListRecord
+        if record then
+          self.bTargetHasList = true
+          if record.grid and UE4.UObject.IsValid(record.grid) then
+            child = record.grid
+          end
+        end
+      end
+      local parent = child:GetParent()
+      if parent and UE4.UObject.IsValid(parent) and parent:IsA(UE4.UScrollBox) then
+        local scrollInfo = {scroll = parent}
+        widget.guidanceWidgetControlInfo = {scroll = scrollInfo}
+        
+        local function callback()
+          if not widget or not UE4.UObject.IsValid(widget) then
+            return
+          end
+          if not widget.bGuideLockScroll then
+            return
+          end
+          if not parent or not UE4.UObject.IsValid(parent) then
+            return
+          end
+          local offset = scrollInfo.offset
+          if not offset then
+            return
+          end
+          parent:SetScrollOffset(offset)
+        end
+        
+        parent.OnUserScrolled:Add(parent, callback)
       end
     end
   else
@@ -777,7 +860,7 @@ function UMG_Guidance_Main_C:CheckGridOrListOutOfBound(list, widget)
   
   local parent = list:GetParent()
   if parent and UE4.UObject.IsValid(parent) and parent:IsA(UE4.UScrollBox) then
-    if UE4.UNRCTUIStatics.GetScrollBoxHandleScrollingState(parent) then
+    if not widget.bGuideLockScroll and UE4.UNRCTUIStatics.GetScrollBoxHandleScrollingState(parent) then
       if self.bEnabledDebug then
         Log.Debug("UMG_Guidance_Main_C:CheckGridOrListOutOfBound parent is scrolling", widget:GetName(), parent:GetName())
       end
@@ -821,6 +904,76 @@ function UMG_Guidance_Main_C:OnGuideEventPanelClosed(panelData)
         end
       end)
       return
+    end
+  end
+end
+
+function UMG_Guidance_Main_C:InitGuidanceWidgetControlInfo()
+  if not self.pathWidgets then
+    return
+  end
+  for _, widget in ipairs(self.pathWidgets) do
+    local controlInfo = widget.guidanceWidgetControlInfo
+    if not controlInfo then
+    else
+      local scrollInfo = controlInfo.scroll
+      if scrollInfo then
+        local scrollBox = scrollInfo.scroll
+        if scrollBox and UE4.UObject.IsValid(scrollBox) then
+          scrollInfo.offset = scrollBox:GetScrollOffset()
+          scrollInfo.bOverScroll = scrollBox.AllowOverscroll
+          scrollInfo.wheelMultiplier = scrollBox.WheelScrollMultiplier
+          Log.Debug("UMG_Guidance_Main_C:InitGuidanceWidgetControlInfo", UE4.UKismetSystemLibrary.GetDisplayName(scrollBox), scrollInfo.offset, scrollInfo.bOverScroll, scrollInfo.wheelMultiplier)
+        end
+      end
+    end
+  end
+end
+
+function UMG_Guidance_Main_C:GetNeedDoCustomControl(actionType)
+  if not self.controlActions or not actionType then
+    return false
+  end
+  if self.controlActions[actionType] then
+    return true
+  end
+  return false
+end
+
+function UMG_Guidance_Main_C:TryCustomizeTargetWidgetsInGuide(widget)
+  if not widget then
+    return
+  end
+  local controlInfo = widget.guidanceWidgetControlInfo
+  if not controlInfo then
+    return
+  end
+  local scrollInfo = controlInfo.scroll
+  if scrollInfo and self:GetNeedDoCustomControl(GuidanceFocusControlActionsType.ScrollLock) then
+    local scrollBox = scrollInfo.scroll
+    if scrollBox and UE4.UObject.IsValid(scrollBox) then
+      widget.bGuideLockScroll = true
+      scrollBox:SetAllowOverscroll(false)
+      scrollBox:SetWheelScrollMultiplier(0)
+    end
+  end
+end
+
+function UMG_Guidance_Main_C:TryCustomizeTargetWidgetsOutGuide(widget)
+  if not widget then
+    return
+  end
+  local controlInfo = widget.guidanceWidgetControlInfo
+  if not controlInfo then
+    return
+  end
+  local scrollInfo = controlInfo.scroll
+  if scrollInfo and self:GetNeedDoCustomControl(GuidanceFocusControlActionsType.ScrollLock) then
+    local scrollBox = scrollInfo.scroll
+    if scrollBox and UE4.UObject.IsValid(scrollBox) then
+      widget.bGuideLockScroll = nil
+      scrollBox:SetAllowOverscroll(scrollInfo.bOverScroll or false)
+      scrollBox:SetWheelScrollMultiplier(scrollInfo.wheelMultiplier or 1)
     end
   end
 end

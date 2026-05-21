@@ -382,11 +382,9 @@ function UpdateUIModule:CheckInternetConnection(Callback, Caller, SizeNeedToDown
         return
       end
     end
-    _G.NRCBackgroundDownloadMgr:SetIsUpdating(false)
     local Context = DialogContext()
     Context:SetTitle(LuaText.updateuimodule_24):SetContent(LuaText.updateuimodule_25):SetIfHideCloseBtn(true):SetMode(DialogContext.Mode.OK_CANCEL):SetCallback(self, function(this, result)
       if result then
-        _G.NRCBackgroundDownloadMgr:SetIsUpdating(true)
         Callback(self)
       else
         Log.Warning("Cancel Update")
@@ -399,7 +397,7 @@ function UpdateUIModule:CheckInternetConnection(Callback, Caller, SizeNeedToDown
     end):SetButtonText(LuaText.YES, LuaText.NO):SetCloseOnCancel(true)
     NRCModuleManager:DoCmd(TipsModuleCmd.Dialog_OpenDialog, Context)
   else
-    self.CurrentNetworkStatus = 2
+    self.CurrentNetworkStatus = NetworkType
     Callback(self)
   end
 end
@@ -426,13 +424,11 @@ function UpdateUIModule:CheckInternetConnectionPuffer(Callback, Caller, SizeNeed
         return
       end
     end
-    _G.NRCBackgroundDownloadMgr:SetIsUpdating(false)
     _G.NRCEventCenter:DispatchEvent(UpdateUIModuleEvent.PopWindow)
     local Context = DialogContext()
     Context:SetTitle(LuaText.updateuimodule_24):SetContent(LuaText.updateuimodule_25):SetMode(DialogContext.Mode.OK_CANCEL):SetIfHideCloseBtn(true):SetCallback(self, function(this, result)
       _G.NRCEventCenter:DispatchEvent(UpdateUIModuleEvent.CloseWindow)
       if result then
-        _G.NRCBackgroundDownloadMgr:SetIsUpdating(true)
         Callback(self)
       else
         Log.Warning("Cancel Update")
@@ -445,7 +441,7 @@ function UpdateUIModule:CheckInternetConnectionPuffer(Callback, Caller, SizeNeed
     end):SetButtonText(LuaText.YES, LuaText.NO):SetCloseOnCancel(true)
     NRCModuleManager:DoCmd(TipsModuleCmd.Dialog_OpenDialog, Context)
   else
-    self.CurrentNetworkStatus = 2
+    self.CurrentNetworkStatus = NetworkType
     Callback(self)
   end
 end
@@ -962,6 +958,15 @@ function UpdateUIModule:OnNewResVersion(UpdateTask, NewVersion)
   end
 end
 
+function UpdateUIModule:CheckLocalPreDownloadConfig()
+  _G.NRCPreDownloadManager:Init()
+  _G.NRCPreDownloadManager:CheckLocalPreDownloadConfig()
+end
+
+function UpdateUIModule:DownloadPreDownloadConfig()
+  _G.NRCPreDownloadManager:DownloadPreDownloadConfig()
+end
+
 function UpdateUIModule:DownloadNecessaryPatch()
   self:SetPufferDownloadTaskType(EPufferTaskType.Patch)
   self.NeedToMountPatchList = {}
@@ -991,26 +996,13 @@ function UpdateUIModule:DownloadNecessaryPatch()
         end
       end
     end
-    local EarlyContentPatchList = _G.PufferDownloadInfo:GetEarlyContentPatchList()
-    if EarlyContentPatchList then
-      for _, Path in ipairs(EarlyContentPatchList) do
-        table.insert(NeedToCheckPatchList, Path)
-        Log.Debug("[UpdateUIModule:DownloadNecessaryPatch] add early content patch:", Path)
-      end
-    end
-    local BasePatchList = _G.PufferDownloadInfo:GetBasePatchList()
-    if BasePatchList then
-      for _, Path in ipairs(BasePatchList) do
-        table.insert(NeedToCheckPatchList, Path)
-        Log.Debug("[UpdateUIModule:DownloadNecessaryPatch] add base patch:", Path)
-      end
-    end
     for _, FilePath in ipairs(NeedToCheckPatchList) do
       Log.Debug("[UpdateUIModule:DownloadNecessaryPatch] Check File: ", FilePath)
       local Extension = GetLastNameFromDotPath(FilePath)
       local FileId = _G.PufferUpdateResTask:GetFileId(FilePath)
       if FileId then
-        if not _G.PufferUpdateResTask:IsFileReady(FileId) then
+        local FullPath = _G.PufferUpdateResTask:GetRelativePathToPuffer(FilePath)
+        if not _G.PufferUpdateResTask:IsFileReadyByFullPath(FullPath) then
           Log.Debug("[UpdateUIModule:DownloadNecessaryPatch] File Need To Download: ", FilePath)
           if "upipelinecache" == Extension then
             Log.Debug("[UpdateUIModule:DownloadNecessaryPatch] Found PSOPatch, skip downloading because dolphin has been downloaded")
@@ -1046,6 +1038,7 @@ function UpdateUIModule:DownloadNecessaryPatch()
       self:CheckInternetConnectionPuffer(function(this)
         local PatchTaskId = _G.PufferUpdateResTask:DownloadBatchListByPakList(NeedToDownloadPatchList)
         if PatchTaskId then
+          _G.NRCBackgroundDownloadMgr:SetIsUpdating(true)
           _G.NRCBackgroundDownloadMgr:SetBackgroundDownloadInfo(UE4.EBackgroundDownloadType.Patch, PatchTaskId)
           _G.NRCEventCenter:DispatchEvent(UpdateUIModuleEvent.ReportDownloadBegin, LoginEnum.DownloadReportType.PatchDownloadBegin, PatchTaskId)
         else
@@ -1114,7 +1107,8 @@ function UpdateUIModule:StartPreDownloadBasePaks()
       Log.Debug("[UpdateUIModule:StartPreDownloadBasePaks] Check File: ", FilePath)
       local FileId = _G.PufferUpdateResTask:GetFileId(FilePath)
       if FileId then
-        if not _G.PufferUpdateResTask:IsFileReady(FileId) then
+        local FullPath = _G.PufferUpdateResTask:GetRelativePathToPuffer(FilePath)
+        if not _G.PufferUpdateResTask:IsFileReadyByFullPath(FullPath) then
           Log.Debug("[UpdateUIModule:StartPreDownloadBasePaks] File Need To Download: ", FilePath)
           local FileSize = _G.PufferUpdateResTask:GetFileSizeCompressed(FileId)
           Log.Debug("[UpdateUIModule:StartPreDownloadBasePaks] get file size: ", FileSize)
@@ -1178,7 +1172,23 @@ end
 function UpdateUIModule:CheckIfEarlyContentDownloadIsNeeded()
   self:SetPufferDownloadTaskType(EPufferTaskType.EarlyContent)
   self:InitPSOIfNeed()
-  local ResList = _G.PufferDownloadInfo:GetEarlyContentPakList()
+  local EarlyContentPakListWithPatch = _G.PufferDownloadInfo:GetEarlyContentPakListWithPatch()
+  local bIsNewPlayer = _G.PufferUpdateResTask:IsNeedDownloadBasePaks()
+  local ResList
+  if bIsNewPlayer then
+    ResList = EarlyContentPakListWithPatch
+  else
+    ResList = {}
+    for _, Path in ipairs(EarlyContentPakListWithPatch) do
+      table.insert(ResList, Path)
+      Log.Debug("[UpdateUIModule:CheckIfEarlyContentDownloadIsNeeded] add early content pak:", Path)
+    end
+    local BasePakPatch = _G.PufferDownloadInfo:GetBasePatchList()
+    for _, Path in ipairs(BasePakPatch) do
+      table.insert(ResList, Path)
+      Log.Debug("[UpdateUIModule:CheckIfEarlyContentDownloadIsNeeded] add base pak:", Path)
+    end
+  end
   if ResList and #ResList > 0 then
     local NeedToDownloadList = {}
     local LargestSize = 0
@@ -1187,7 +1197,8 @@ function UpdateUIModule:CheckIfEarlyContentDownloadIsNeeded()
       Log.Debug("[UpdateUIModule:CheckIfEarlyContentDownloadIsNeeded] Check File: ", FilePath)
       local FileId = _G.PufferUpdateResTask:GetFileId(FilePath)
       if FileId then
-        if not _G.PufferUpdateResTask:IsFileReady(FileId) then
+        local FullPath = _G.PufferUpdateResTask:GetRelativePathToPuffer(FilePath)
+        if not _G.PufferUpdateResTask:IsFileReadyByFullPath(FullPath) then
           Log.Debug("[UpdateUIModule:CheckIfEarlyContentDownloadIsNeeded] File Need To Download: ", FilePath)
           local FileSize = _G.PufferUpdateResTask:GetFileSizeCompressed(FileId)
           Log.Debug("[UpdateUIModule:CheckIfEarlyContentDownloadIsNeeded] get file size: ", FileSize)
@@ -1215,6 +1226,7 @@ function UpdateUIModule:CheckIfEarlyContentDownloadIsNeeded()
       self:CheckInternetConnectionPuffer(function(this)
         local EarlyContentTaskId = _G.PufferUpdateResTask:DownloadBatchListByPakList(NeedToDownloadList)
         if EarlyContentTaskId then
+          _G.NRCBackgroundDownloadMgr:SetIsUpdating(true)
           _G.NRCBackgroundDownloadMgr:SetBackgroundDownloadInfo(UE4.EBackgroundDownloadType.EarlyContent, EarlyContentTaskId)
           _G.NRCEventCenter:DispatchEvent(UpdateUIModuleEvent.ReportDownloadBegin, LoginEnum.DownloadReportType.EarlyContentDownloadBegin, EarlyContentTaskId)
         else
@@ -1280,9 +1292,12 @@ function UpdateUIModule:OnPufferInitProgress(Stage, NowSize, TotalSize)
   _G.NRCEventCenter:DispatchEvent(UpdateUIModuleEvent.PufferInitProgress, Percent, UpdateStageLocalText.PufferInit)
 end
 
-function UpdateUIModule:OnInitReturn(IsSuccess, ErrorCode)
+function UpdateUIModule:OnInitReturn(TaskInstance, IsSuccess, ErrorCode)
+  if TaskInstance ~= _G.PufferUpdateResTask then
+    Log.Error("[UpdateUIModule:OnInitReturn] TaskInstance is not equal to _G.PufferUpdateResTask")
+    return
+  end
   if IsSuccess then
-    _G.NRCBackgroundDownloadMgr:SetIsUpdating(true)
     self:DownloadNecessaryPatch()
   else
     self:OnPufferInitFailed(ErrorCode)
@@ -1344,7 +1359,7 @@ function UpdateUIModule:PostPufferResAllUpdateDoneEvent()
   LoginUtils.SendEventToLoginFsm(LoginModuleEvent.BaseResDownloadDone)
 end
 
-function UpdateUIModule:OnPufferDownloadBatchReturn(BatchTaskId, FiledId, IsSuccess, ErrorCode, BatchType, StrRet, SingleFileErrorCode)
+function UpdateUIModule:OnPufferDownloadBatchReturn(BatchTaskId, FiledId, IsSuccess, ErrorCode, BatchType, SingleFileErrorCode)
   _G.NRCBackgroundDownloadMgr:SetIsUpdating(false)
   local TaskType = self.data:GetDownloadingPufferTaskType()
   if IsSuccess then
@@ -1458,6 +1473,7 @@ function UpdateUIModule:WaitForAllProgressEnd()
   _G.NRCBackgroundDownloadMgr:SetIsUpdating(false)
   self:InitPSOIfNeed()
   _G.NRCEventCenter:DispatchEvent(UpdateUIModuleEvent.PufferDownloadFinish)
+  _G.DataConfigManager:PreLoadBinData()
 end
 
 function UpdateUIModule:CheckIfNeedRestratApp()
@@ -1466,6 +1482,10 @@ function UpdateUIModule:CheckIfNeedRestratApp()
   else
     _G.NRCEventCenter:DispatchEvent(UpdateUIModuleEvent.NoNeedToRestartApp)
   end
+end
+
+function UpdateUIModule:InitPreDownloadPufferTask()
+  _G.NRCPreDownloadManager:InitPuffer()
 end
 
 function UpdateUIModule:DownloadPatchConfig()
@@ -1940,48 +1960,6 @@ function UpdateUIModule:IsPatchHasLoadedAsset(PakPathList, bReloadLuaNeedToResta
   return bHasLoadedAsset, bHasError
 end
 
-function UpdateUIModule:CheckHasBuildLoadedUPackageMap()
-  if not self.bHasLoadedUPackageMap then
-    self.bHasLoadedUPackageMap = true
-    self.LoadedUPackagesPath = {}
-    local LoadedPackagesPath = UE4.UNRCStatics.GetAllLoadedPackagesPath()
-    if LoadedPackagesPath then
-      local PreloadAssetsWhiteListMap = require("NewRoco/Modules/System/UpdateUIModule/PreloadAssetsWhiteList")
-      for path, _ in pairs(PreloadAssetsWhiteListMap) do
-        Log.Debug("[UpdateUIModule][CheckHasBuildLoadedUPackageMap] PreloadAssetsWhiteList: path = ", path)
-      end
-      for i = 1, LoadedPackagesPath:Length() do
-        local Path = LoadedPackagesPath:GetRef(i)
-        if not string.IsNilOrEmpty(Path) and not PreloadAssetsWhiteListMap[Path] then
-          self.LoadedUPackagesPath[Path] = 1
-          Log.Debug(string.format("[UpdateUIModule][CheckHasBuildLoadedUPackageMap] %s has been Loaded", Path))
-        end
-      end
-    end
-  end
-end
-
-function UpdateUIModule:IsAssetLoaded(AssetPath)
-  if not string.IsNilOrEmpty(AssetPath) then
-    if self.LoadedUPackagesPath and self.LoadedUPackagesPath[AssetPath] then
-      Log.Warning(string.format("[UpdateUIModule][IsAssetLoaded] %s has been Loaded", AssetPath))
-      return true
-    else
-      Log.Warning(string.format("[UpdateUIModule][IsAssetLoaded] %s hasn't yet been loaded", AssetPath))
-    end
-  end
-  return false
-end
-
-function UpdateUIModule:WriteLoadedPackagesJson()
-  self:CheckHasBuildLoadedUPackageMap()
-  local AllPackageList = {}
-  for path, _ in pairs(self.LoadedUPackagesPath) do
-    table.insert(AllPackageList, path)
-  end
-  JsonUtils.Dump("LoadedUPackages.json", AllPackageList)
-end
-
 function UpdateUIModule:CheckHasBuildLoadedLuaMap()
   if not self.bHasLoadedLuaTable then
     self.bHasLoadedLuaTable = true
@@ -2109,7 +2087,6 @@ function UpdateUIModule:CheckPufferFreeDiskSpace(SizeNeedToDownload, LargestSize
   local RealLimitSpace = BytesRequired / 1024 / 1024
   Log.Debug("[UpdateUIModule:CheckPufferFreeDiskSpace] RealLimitSpace:", RealLimitSpace)
   if FreeDiskSpace >= 0 and FreeDiskSpace < RealLimitSpace then
-    _G.NRCBackgroundDownloadMgr:SetIsUpdating(false)
     local ReportType = self:GetReportFailTypeByDownloadType()
     if ReportType then
       _G.NRCEventCenter:DispatchEvent(UpdateUIModuleEvent.ReportDownloadFail, ReportType, "No Free Disk Space")
@@ -2342,26 +2319,7 @@ function UpdateUIModule:StartUpdate()
   end
 end
 
-function UpdateUIModule:TryWriteCleanSavedVersionMark()
-  Log.Debug("[UpdateUIModule:TryWriteCleanSavedVersionMark]")
-  if RocoEnv.PLATFORM_WINDOWS then
-    return
-  end
-  local FilePath = UE.UBlueprintPathsLibrary.Combine({
-    UE.UBlueprintPathsLibrary.ProjectSavedDir(),
-    "CleanSavedVersionMark.txt"
-  })
-  if not UE.UNRCStatics.FileExists(FilePath) then
-    local ExpectedVersion = "1"
-    local bWriteResult = UE.UNRCStatics.WriteToFile(FilePath, ExpectedVersion)
-    Log.Debug("[UpdateUIModule:ShowBlackBackground] Write CleanSavedVersionMark.txt", bWriteResult)
-  else
-    Log.Debug("[UpdateUIModule:ShowBlackBackground] CleanSavedVersionMark.txt already exists")
-  end
-end
-
 function UpdateUIModule:ShowBlackBackground(InAlpha)
-  self:TryWriteCleanSavedVersionMark()
   local Panel = self:GetPanel(LoginEnum.PanelNames.VideoBackground)
   if not Panel then
     Log.Error("Panel Not Opened Yet")
@@ -2699,6 +2657,7 @@ function UpdateUIModule:CheckIfDeviceBlockedAfterDownloadWhiteList(bTimeOut)
   end
   Log.Debug("[UpdateUIModule:CheckIfDeviceBlockedAfterDownloadWhiteList]")
   DeviceUtils.RunCDNOperate()
+  DeviceUtils.RunEnvConfig()
   self.bIsDeviceInWhiteListCDN = DeviceUtils.IsDeviceInWhiteListCDN()
   self.bIsDeviceInBlackListCDN = DeviceUtils.IsDeviceInBlackListCDN()
   if self.bIsDeviceInWhiteListCDN and not self.bIsDeviceInBlackListCDN then

@@ -44,8 +44,9 @@ function FsmDialogueTimelineState:OnEnter(fsm)
       if action_class and action_class:SubclassOf(FsmAction) then
         if string.find(action_config.ClassPath, "NPCActorAnim") then
           local owner_actor_id = action_config.OwnerActorID
+          local npc_content_id = action_config.NPCContentID
           local anim_name = action_config.Action
-          local Actor = DialogueUtils.GrabActor(owner_actor_id, fsm)
+          local Actor = DialogueUtils.GrabActor(owner_actor_id, fsm, npc_content_id)
           if Actor and not string.IsNilOrEmpty(anim_name) then
             local AnimComp = Actor.GetAnimComponent and Actor:GetAnimComponent()
             if AnimComp then

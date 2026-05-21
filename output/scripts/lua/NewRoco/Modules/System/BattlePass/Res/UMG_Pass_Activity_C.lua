@@ -151,6 +151,9 @@ function UMG_Pass_Activity_C:SelectWeekTable(index, data)
   for i = 1, #repeatTasks do
     table.insert(listData, repeatTasks[i])
   end
+  if listData and repeatTasks then
+    Log.Info("UMG_Pass_Activity_C:SelectWeekTable list count:", #listData, #repeatTasks)
+  end
   self.curListData = listData
   self:UpdateActivityList(listData, true)
   local AnimListData = self:GetAnimListData(listData, self.module.data:GetLastTaskListInfo())
@@ -184,6 +187,7 @@ function UMG_Pass_Activity_C:PlayListAnimation(listData, isIn)
   end
   for i = 0, count - 1 do
     local Item = self.List:GetItemByIndex(i)
+    Log.Info("UMG_Pass_AwardItem_C:PlayListAnimation SetRenderOpacity:", i, Item:GetName(), isIn)
     Item:SetRenderOpacity(isIn and 0 or 1)
     self:DelaySeconds(0.1 * (i + 1), function()
       if isIn then

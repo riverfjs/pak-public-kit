@@ -11,7 +11,7 @@ local MagicSeqFileExt = ".seq"
 local MAGIC_SIZE = 4
 local MAGIC_NUM = string.char(82, 79, 67, 79)
 local MAJOR_VER = 1
-local MINOR_VER = 1
+local MINOR_VER = 2
 local BASE_INFO_PB_NAME = ".Next.FeedVideoBaseInfo"
 local MagicSequence = Base:Extend("MagicSequence")
 

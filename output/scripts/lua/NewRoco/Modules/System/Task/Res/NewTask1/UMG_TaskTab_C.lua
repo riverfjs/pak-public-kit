@@ -40,6 +40,7 @@ function UMG_TaskTab_C:SetInfo()
   if CurSelectTabIndex == TaskEnum.TaskTab.All then
     self:HideUnit(true)
     self.List = self:HideFinishParagraph()
+    self:InitRedPoint()
     self.MainPlotList:InitGridView(self.List)
     self:NotUnitPlayAnim()
   elseif self.Unit.IsHasUnit then
@@ -47,15 +48,38 @@ function UMG_TaskTab_C:SetInfo()
     for i, Paragraph in ipairs(self.Unit.ParagraphList) do
       table.insert(self.List, Paragraph.ParagraphInfo)
     end
+    self:InitRedPoint()
     self.MainPlotList:InitGridView(self.List)
     self:HideChildItem()
     self:HideUnit(false)
     self:SetUnitInfo()
   else
     table.insert(self.List, self.Unit.ParagraphInfo)
+    self:InitRedPoint()
     self.MainPlotList:InitGridView(self.List)
     self:HideUnit(true)
     self:NotUnitPlayAnim()
+  end
+end
+
+function UMG_TaskTab_C:InitRedPoint()
+  local TaskRedPointList = _G.NRCModeManager:DoCmd(TaskModuleCmd.GetTaskRedPointList)
+  if not TaskRedPointList or #TaskRedPointList <= 0 then
+    return
+  end
+  for i, TaskRedPoint in ipairs(TaskRedPointList) do
+    local TaskConf = _G.DataConfigManager:GetTaskConf(tonumber(TaskRedPoint))
+    if not TaskConf then
+      break
+    end
+    for i, Task in ipairs(self.List) do
+      if TaskConf.paragraph_id == Task.paragraph then
+        if not Task.TaskRedList then
+          Task.TaskRedList = {}
+        end
+        table.insert(Task.TaskRedList, TaskConf.id)
+      end
+    end
   end
 end
 

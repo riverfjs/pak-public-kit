@@ -13,6 +13,7 @@ function BattleWeeklyChallengePlaySequence:OnEnter()
     self:Finish()
     return
   end
+  BattleUtils.ImmediateChangeWeatherForBattle(BattleManager.battleRuntimeData.curWeatherID)
   self:LoadSequence()
 end
 

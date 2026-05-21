@@ -9,11 +9,8 @@ function LocalPlayerHUDComponent:PreCtor()
 end
 
 function LocalPlayerHUDComponent:Attach(owner)
+  Log.Debug("LocalPlayerHUDComponent:Attach")
   Base.Attach(self, owner)
-end
-
-function LocalPlayerHUDComponent:OnSetViewObj()
-  Base.OnSetViewObj(self)
   local viewObj = self.owner.viewObj
   if viewObj then
     local headWidget = viewObj.LocalHeadWidget
@@ -33,16 +30,20 @@ function LocalPlayerHUDComponent:AdjustHudAfterDoubleRiding(addOffset)
 end
 
 function LocalPlayerHUDComponent:RestoreHudAfterDoubleRiding()
+  Log.Debug("LocalPlayerHUDComponent:RestoreHudAfterDoubleRiding")
   self._debugHeadPos = nil
   if not self._headWidgetTrans then
+    Log.Error("LocalPlayerHUDComponent:RestoreHudAfterDoubleRiding _headWidgetTrans is nil")
     return
   end
   local viewObj = self.owner.viewObj
   if not viewObj or not UE.UObject.IsValid(viewObj) then
+    Log.Error("LocalPlayerHUDComponent:RestoreHudAfterDoubleRiding viewObj is nil")
     return
   end
   local playerHeadWidget = viewObj.LocalHeadWidget
   if not playerHeadWidget or not UE.UObject.IsValid(playerHeadWidget) then
+    Log.Error("LocalPlayerHUDComponent:RestoreHudAfterDoubleRiding playerHeadWidget is nil")
     return
   end
   playerHeadWidget:AdjustTransform(self._headWidgetTrans, UE.EAdjustTransformType.Relative_Transform)

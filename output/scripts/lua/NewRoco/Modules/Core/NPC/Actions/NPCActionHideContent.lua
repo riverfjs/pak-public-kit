@@ -89,4 +89,47 @@ function NPCActionHideContent:OnDieFinish(npc)
   self:ToggleShowHide(npc)
 end
 
+function NPCActionHideContent:ExecuteWhenSkipping()
+  if not self.Contents then
+    local NumberStrings = string.Split(self.Config.action_param1, ";")
+    NumberStrings = NumberStrings or {
+      self.Config.action_param1
+    }
+    for Index, Str in ipairs(NumberStrings) do
+      NumberStrings[Index] = tonumber(Str)
+    end
+    self.Contents = NumberStrings
+  end
+  if self.Contents then
+    for _, ContentID in ipairs(self.Contents) do
+      local NPC = _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.GetNpcByRefreshID, ContentID)
+      if NPC then
+        self:HideNpcWhenSkipping(NPC)
+      end
+    end
+  end
+end
+
+function NPCActionHideContent:HideNpcWhenSkipping(npc)
+  if not npc then
+    return
+  end
+  local View = npc.viewObj
+  if not View or not UE.UObject.IsValid(View) then
+    self:ToggleShowHide(npc)
+    return
+  end
+  local DisappearSkill = npc.config.disappear_skill
+  local DisappearAni = npc.config.disappear_ani
+  local HasSkill = not string.IsNilOrEmpty(DisappearSkill)
+  local HasAnim = not string.IsNilOrEmpty(DisappearAni)
+  if not HasSkill and not HasAnim then
+    self:ToggleShowHide(npc)
+    return
+  end
+  local BornDieComp = npc:EnsureComponent(BornDieComponent)
+  BornDieComp:OnDieWhenSkipping()
+  self:ToggleShowHide(npc)
+end
+
 return NPCActionHideContent

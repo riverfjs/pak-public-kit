@@ -29,7 +29,7 @@ function BattleSeamlessNpcOverAction:OnEnter()
       callback = self.OnBlackShown
     }
     NRCModuleManager:DoCmdAsync(asyncData, BattleUIModuleCmd.OpenLoading)
-  elseif BattleUtils.IsPve() then
+  elseif BattleUtils.IsPve() or BattleUtils.EndBattleByNpc() then
     self.needShowSceneTrees = true
     if self.result then
       if BattleUtils.ContainTaskPerformControl(Enum.TaskBattlePerformanceControl.TBPC_EXIT_SKIP) then

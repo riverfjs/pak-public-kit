@@ -12,12 +12,17 @@ function UMG_Activity_PetPeer_Selection_C:OnConstruct()
   self.CoCreationActivityText:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
   self.Btn6:SetBtnText(LuaText.PET_Partner_9)
   self:OnAddEventListener()
+  self.delayTimer = nil
 end
 
 function UMG_Activity_PetPeer_Selection_C:OnDestruct()
   self.previewWorld:OnDestruct()
   self.HeadItem.ParentView = nil
   self:RemoveAllButtonListener()
+  if self.delayTimer then
+    _G.DelayManager:CancelDelayById(self.delayTimer)
+    self.delayTimer = nil
+  end
   _G.NRCEventCenter:UnRegisterEvent(self, PetUIModuleEvent.FilterPetPartner, self.OnBtnFilerApplyClick)
 end
 
@@ -103,8 +108,13 @@ function UMG_Activity_PetPeer_Selection_C:SetPetList(petList)
   end
   self.GridView:Clear()
   self.GridView:InitList(petListData, true)
-  _G.DelayManager:DelayFrames(1, function()
+  if self.delayTimer then
+    _G.DelayManager:CancelDelay(self.delayTimer)
+    self.delayTimer = nil
+  end
+  self.delayTimer = _G.DelayManager:DelayFrames(1, function()
     self.GridView:PreCreatePanel()
+    self.delayTimer = nil
   end)
   return petListData
 end
@@ -290,6 +300,7 @@ function UMG_Activity_PetPeer_Selection_C:OnConfirmCommit()
     self.activityInst:ChoosePartnerPetReq(self.currentPetData.base_conf_id, self.isPartnerPet, isOK)
   end)
   Context:SetForceEnableFullScreenBtn()
+  Context:SetContentTextJustify(UE4.ETextJustify.Left)
   NRCModuleManager:DoCmd(TipsModuleCmd.Dialog_OpenDialog, Context)
 end
 
@@ -336,15 +347,7 @@ function UMG_Activity_PetPeer_Selection_C:RefreshRightShow()
     end
   end
   self.Name_1:SetText(name)
-  if petId == self.prePetInfo.petId and self.prePetInfo.glass_info and self.prePetInfo.glass_info.glass_value == self.currentPetData.glass_info.glass_value then
-  else
-    self.previewWorld:SetVisibility(UE4.ESlateVisibility.Collapsed)
-    self.previewWorld:SetPreviewByPetBaseId(self, petId, self.currentPetData.mutation_type, self.currentPetData.glass_info, self.currentPetData.nature, self.OnPetShowSuccess)
-    self.prePetInfo = {
-      petId = petId,
-      glass_info = self.currentPetData.glass_info
-    }
-  end
+  self.previewWorld:SetPreviewByPetBaseId(self, petId, self.currentPetData.mutation_type, self.currentPetData.glass_info, self.currentPetData.nature, self.OnPetShowSuccess)
   local petConf = _G.DataConfigManager:GetPetbaseConf(petId)
   if petConf and petConf.unit_type then
     for _, _type in ipairs(petConf.unit_type) do
@@ -489,12 +492,6 @@ function UMG_Activity_PetPeer_Selection_C:SetItemGainWay(petData)
     end
   end
   Text = ""
-  if petData.key_experience and petData.key_experience.pvp_first_win_info then
-    AddTime = os.date(LuaText.medal_text_5, petData.key_experience.pvp_first_win_info.win_time)
-    local msg = _G.DataConfigManager:GetLocalizationConf("pet_partner_experience_form_2").msg
-    local Text_Info = string.format(msg, AddTime, petData.key_experience.pvp_first_win_info.enemy_name, petData.key_experience.pvp_first_win_info.last_killed_pet_name)
-    Text = string.format("%s%s", Text, Text_Info)
-  end
   if petData.key_experience and petData.key_experience.legend_first_win_alone_info then
     AddTime = os.date(LuaText.medal_text_5, petData.key_experience.legend_first_win_alone_info.win_time)
     local msg = _G.DataConfigManager:GetLocalizationConf("pet_partner_experience_form_3").msg

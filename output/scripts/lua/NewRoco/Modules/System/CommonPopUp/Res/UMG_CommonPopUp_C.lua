@@ -1,4 +1,5 @@
 local UMG_CommonPopUp_C = _G.NRCViewBase:Extend("UMG_CommonPopUp_C")
+local CLICK_INTERVAL = 1
 
 function UMG_CommonPopUp_C:OnConstruct()
   self.Mask = {}
@@ -13,6 +14,7 @@ function UMG_CommonPopUp_C:OnConstruct()
   end
   self.IsLock = false
   self.HasPlaySoundIn = false
+  self.LastClickTime = {}
   self:OnAddEventListener()
   if self:GetAnimByIndex(0) then
     self:LoadAnimation(0)
@@ -72,6 +74,9 @@ function UMG_CommonPopUp_C:OnAddEventListener()
   end
   if self.Btn_Right_GrayState then
     self:AddButtonListener(self.Btn_Right_GrayState.btnLevelUp, self.OnBtn_Right_GrayState)
+  end
+  if self.Btn_Right_GrayState2 then
+    self:AddButtonListener(self.Btn_Right_GrayState2.btnLevelUp, self.OnBtn_Right_GrayState2)
   end
   self:AddButtonListener(self.btnClose.btnClose, self.OnBtnClose)
 end
@@ -148,18 +153,47 @@ function UMG_CommonPopUp_C:SetPanelInfo(CommonPopUpData)
   if self.Btn_Right_GrayState and self.CommonPopUpData.Btn_Right_GrayState_Text then
     self:SetBtnRightGrayStateText(self.CommonPopUpData.Btn_Right_GrayState_Text)
   end
+  if self.Btn_Right_GrayState2 and self.CommonPopUpData.Btn_Right_GrayState2_Text then
+    self.Btn_Right_GrayState2:SetBtnText(self.CommonPopUpData.Btn_Right_GrayState2_Text)
+  end
   if not self.HasPlaySoundIn then
     self.HasPlaySoundIn = true
     self:PlaySoundIn()
   end
 end
 
-function UMG_CommonPopUp_C:SetRightBtnTitleTextAndIconShow(bIsShow)
+function UMG_CommonPopUp_C:SetRightBtnTitleTextAndIconShow(bIsShow, TitleInfo)
   if self.Btn_Right and self.Btn_Right.TitleCanvas then
     if bIsShow then
       self.Btn_Right.TitleCanvas:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+      if TitleInfo then
+        self.Btn_Right:SetTitleTextAndIcon(TitleInfo.MoneyIcon, TitleInfo.QuantityText, TitleInfo.SystemIcon, TitleInfo.ShowTime, TitleInfo.TitleText, TitleInfo.DescText, TitleInfo.MoneyIcon1, TitleInfo.Color)
+      end
     else
       self.Btn_Right.TitleCanvas:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    end
+  end
+end
+
+function UMG_CommonPopUp_C:SetRightGrayState2TitleTextAndIconShow(bIsShow, TitleInfo)
+  if self.Btn_Right_GrayState2 and self.Btn_Right_GrayState2.TitleCanvas then
+    if bIsShow then
+      self.Btn_Right_GrayState2.TitleCanvas:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+      if TitleInfo then
+        self.Btn_Right_GrayState2:SetTitleTextAndIcon(TitleInfo.MoneyIcon, TitleInfo.QuantityText, TitleInfo.SystemIcon, TitleInfo.ShowTime, TitleInfo.TitleText, TitleInfo.DescText, TitleInfo.Color)
+      end
+    else
+      self.Btn_Right_GrayState2.TitleCanvas:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    end
+  end
+end
+
+function UMG_CommonPopUp_C:ShowOrHideRightGrayState2(_IsShow)
+  if self.Btn_Right_GrayState2 then
+    if _IsShow then
+      self.Btn_Right_GrayState2:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    else
+      self.Btn_Right_GrayState2:SetVisibility(UE4.ESlateVisibility.Collapsed)
     end
   end
 end
@@ -309,6 +343,9 @@ function UMG_CommonPopUp_C:SetBtnRightGrayStatHandler(BtnRightGrayStatHandler)
 end
 
 function UMG_CommonPopUp_C:OnFullScreen_Close()
+  if not self:CheckAndRecordClick("FullScreen_Close") then
+    return
+  end
   if self.CommonPopUpData and self.CommonPopUpData.Call and self.CommonPopUpData.ClosePanelHandler and not self.IsLock then
     self:SetLock(true)
     self:PlaySoundOut()
@@ -317,12 +354,18 @@ function UMG_CommonPopUp_C:OnFullScreen_Close()
 end
 
 function UMG_CommonPopUp_C:OnBtn_Left()
+  if not self:CheckAndRecordClick("Btn_Left") then
+    return
+  end
   if self.CommonPopUpData and self.CommonPopUpData.Call and self.CommonPopUpData.Btn_LeftHandler then
     self.CommonPopUpData.Btn_LeftHandler(self.CommonPopUpData.Call)
   end
 end
 
 function UMG_CommonPopUp_C:OnBtn_Right()
+  if not self:CheckAndRecordClick("Btn_Right") then
+    return
+  end
   if self.CommonPopUpData and self.CommonPopUpData.Call and self.CommonPopUpData.Btn_RightHandler then
     BattleProfiler:CheckPoint(BattleProfilerCheckPoint.CommonPopUpRightBtn)
     self.CommonPopUpData.Btn_RightHandler(self.CommonPopUpData.Call)
@@ -330,8 +373,20 @@ function UMG_CommonPopUp_C:OnBtn_Right()
 end
 
 function UMG_CommonPopUp_C:OnBtn_Right_GrayState()
+  if not self:CheckAndRecordClick("Btn_Right_GrayState") then
+    return
+  end
   if self.CommonPopUpData and self.CommonPopUpData.Call and self.CommonPopUpData.Btn_RightGrayStatHandler then
     self.CommonPopUpData.Btn_RightGrayStatHandler(self.CommonPopUpData.Call)
+  end
+end
+
+function UMG_CommonPopUp_C:OnBtn_Right_GrayState2()
+  if not self:CheckAndRecordClick("Btn_Right_GrayState2") then
+    return
+  end
+  if self.CommonPopUpData and self.CommonPopUpData.Call and self.CommonPopUpData.Btn_RightGrayState2Handler then
+    self.CommonPopUpData.Btn_RightGrayState2Handler(self.CommonPopUpData.Call)
   end
 end
 
@@ -365,6 +420,9 @@ function UMG_CommonPopUp_C:SetBtnRightEnableStateNew(Enable)
 end
 
 function UMG_CommonPopUp_C:OnBtnClose()
+  if not self:CheckAndRecordClick("BtnClose") then
+    return
+  end
   if self:GetAnimByIndex(2) and not self.CommonPopUpData.SkipCloseAnim then
     self:LoadAnimation(2)
   end
@@ -386,6 +444,15 @@ end
 function UMG_CommonPopUp_C:SetDecColor(Desc)
   local Text = string.format("<span color=\"#d56c1f\">%s</>", Desc)
   self:SetDescInfo(Text)
+end
+
+function UMG_CommonPopUp_C:CheckAndRecordClick(btnName)
+  local currentTime = _G.UpdateManager.Timestamp
+  if self.LastClickTime[btnName] and currentTime - self.LastClickTime[btnName] < CLICK_INTERVAL then
+    return false
+  end
+  self.LastClickTime[btnName] = currentTime
+  return true
 end
 
 return UMG_CommonPopUp_C

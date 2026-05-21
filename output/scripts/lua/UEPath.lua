@@ -9,7 +9,7 @@ local UEPath = {
   BP_GRASS_TRIGGER = "/Game/NewRoco/Modules/Core/Scene/Map/BP_GrassRegionTrigger.BP_GrassRegionTrigger_C",
   DEFAULT_ANIM_BP = "/Game/ArtRes/AnimSequence/Human/PC1/ABP_CharacterBase.ABP_CharacterBase",
   BP_BattlePetComponents = "Blueprint'/Game/NewRoco/Modules/Core/Battle/BP_BattlePetComponents.BP_BattlePetComponents_C'",
-  BP_BattlePlayerComponents = "Blueprint'/Game/NewRoco/Modules/Core/Battle/BP_BattlePlayerComponents.BP_BattlePlayerComponents'",
+  BP_BattlePlayerComponents = "Blueprint'/Game/NewRoco/Modules/Core/Battle/BP_BattlePlayerComponents.BP_BattlePlayerComponents_C'",
   BP_SkyPlatform = "Blueprint'/Game/NewRoco/Modules/Core/Battle/BP_SkyPlatform.BP_SkyPlatform_C'",
   UMG_Battle_Buff = "/Game/NewRoco/Modules/System/BattleUI/Res/HUD/UMG_Battle_Buff.UMG_Battle_Buff_C",
   UMG_TransformLoading = "/Game/NewRoco/Modules/System/BattleUI/Res/BattleLoading/UMG_TransformLoading.UMG_TransformLoading_C",
@@ -263,6 +263,24 @@ local UEPath = {
   MapIconNpcPetBg1 = "PaperSprite'/Game/NewRoco/Modules/System/BigMap/Raw/Atlas/BigMap/Frames/bigmap_img_map_bg4_png.bigmap_img_map_bg4_png'",
   MapIconNpcPetBg2 = "PaperSprite'/Game/NewRoco/Modules/System/BigMap/Raw/Atlas/BigMap/Frames/bigmap_img_map_bg6_png.bigmap_img_map_bg6_png'",
   unSelectPath = "PaperSprite'/Game/NewRoco/Modules/System/BigMap/Raw/Atlas/WorldMapNpc/Frames/img_EntrancePlot1_png.img_EntrancePlot1_png'",
-  selectPath = "PaperSprite'/Game/NewRoco/Modules/System/BigMap/Raw/Atlas/WorldMapNpc/Frames/img_EntrancePlot2_png.img_EntrancePlot2_png'"
+  selectPath = "PaperSprite'/Game/NewRoco/Modules/System/BigMap/Raw/Atlas/WorldMapNpc/Frames/img_EntrancePlot2_png.img_EntrancePlot2_png'",
+  ActivityPeriodImagePath = {
+    [1] = "PaperSprite'/Game/NewRoco/Modules/System/Activity/Raw/ActivityTakePhotoCompetition/Frames/img_1_png.img_1_png'",
+    [2] = "PaperSprite'/Game/NewRoco/Modules/System/Activity/Raw/ActivityTakePhotoCompetition/Frames/img_2_png.img_2_png'",
+    [3] = "PaperSprite'/Game/NewRoco/Modules/System/Activity/Raw/ActivityTakePhotoCompetition/Frames/img_3_png.img_3_png'",
+    [4] = "PaperSprite'/Game/NewRoco/Modules/System/Activity/Raw/ActivityTakePhotoCompetition/Frames/img_4_png.img_4_png'",
+    [5] = "PaperSprite'/Game/NewRoco/Modules/System/Activity/Raw/ActivityTakePhotoCompetition/Frames/img_5_png.img_5_png'",
+    [6] = "PaperSprite'/Game/NewRoco/Modules/System/Activity/Raw/ActivityTakePhotoCompetition/Frames/img_6_png.img_6_png'",
+    [7] = "PaperSprite'/Game/NewRoco/Modules/System/Activity/Raw/ActivityTakePhotoCompetition/Frames/img_7_png.img_7_png'"
+  },
+  AICoachEmotionPath = {
+    Idle = "Texture2D'/Game/NewRoco/Modules/System/PetUI/Raw/PetTeam/Textures/img_AICoach.img_AICoach",
+    Think = "Texture2D'/Game/NewRoco/Modules/System/PetUI/Raw/PetTeam/Textures/img_AICoachThinking.img_AICoachThinking",
+    Answer = "Texture2D'/Game/NewRoco/Modules/System/PetUI/Raw/PetTeam/Textures/img_AICoachKnow.img_AICoachKnow"
+  },
+  FASHION_MALL_REWARD_QUALITY_PET_BG = {
+    [5] = "PaperSprite'/Game/NewRoco/Modules/System/Appearance/Raw/Monthly/Frames/img_Monthly_PetBg_png.img_Monthly_PetBg_png'",
+    [4] = "PaperSprite'/Game/NewRoco/Modules/System/Appearance/Raw/Monthly/Frames/img_Monthly_PetBg_zi_png.img_Monthly_PetBg_zi_png'"
+  }
 }
 return UEPath

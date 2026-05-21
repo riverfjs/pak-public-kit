@@ -356,6 +356,13 @@ function UMG_Battle_ChangePetConfirm_C:SetPetInfo(petData, hasPetGid, isAdjust)
     if self.PetAdjustTip then
       self.PetAdjustTip:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     end
+  else
+    if not self.petData then
+      self.petData = petData
+    end
+    if self.PetAdjustTip then
+      self.PetAdjustTip:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    end
   end
   if petData and petData.PetData and petData.PetData.score then
     self.PetAdjustTip:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
@@ -391,6 +398,9 @@ function UMG_Battle_ChangePetConfirm_C:SetPetInfo(petData, hasPetGid, isAdjust)
     self:SetHP(1)
   end
   self.CurIcon:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  if not self.petData then
+    return
+  end
   self:updatePetGender(self.petData.gender)
   self.NameTxt:SetText(self.petData.name)
   local Pass = _G.DataConfigManager:GetLocalizationConf("umg_pass_awarditem1_1").msg
@@ -757,7 +767,9 @@ function UMG_Battle_ChangePetConfirm_C:ShowPetFeatureTips(infoData)
       self.HPBar:SetVisibility(UE4.ESlateVisibility.Collapsed)
     end
   end
-  self.NRCImage_BG:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  if self.NRCImage_BG then
+    self.NRCImage_BG:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  end
   local petBaseConf = _G.DataConfigManager:GetPetbaseConf(infoData.petBaseId)
   if petBaseConf then
     local modelConf = _G.DataConfigManager:GetModelConf(petBaseConf.model_conf)

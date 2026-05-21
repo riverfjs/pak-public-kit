@@ -26,6 +26,8 @@ function UMG_Aim_Joystick_C:OnConstruct()
   self.CurPos = nil
   self.TouchListenList = {}
   self.IsGetTouchIndex = false
+  self.IsGetPointerIndex = false
+  self.JoystickArea:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
 end
 
 function UMG_Aim_Joystick_C:OnDestruct()
@@ -110,16 +112,15 @@ end
 
 function UMG_Aim_Joystick_C:SetAimJoystickMode(mode, abilityID)
   if mode then
+    Log.Debug("UMG_Aim_Joystick_C:SetAimJoystickMode", mode, abilityID)
     if abilityID then
       self._abilityHelper = AbilityHelperManager.GetHelper(abilityID)
     end
-    if mode ~= self.AimJoystickMode then
-      local pos = UE4.FVector2D(-500.0, -260.0)
-      if mode == MainUIModuleEnum.ShowAimJoystick.Ability then
-        pos = UE4.FVector2D(-319, -157)
-      end
-      self.Joystick.Slot:SetPosition(pos)
+    local pos = UE4.FVector2D(-500.0, -260.0)
+    if mode == MainUIModuleEnum.ShowAimJoystick.Ability then
+      pos = UE4.FVector2D(-319, -157)
     end
+    self.Joystick.Slot:SetPosition(pos)
     self.AimJoystickMode = mode
   end
 end
@@ -201,15 +202,15 @@ function UMG_Aim_Joystick_C:OnJoystickRocoTouchMove(touchIndex, pos)
 end
 
 function UMG_Aim_Joystick_C:OnJoystickRocoTouchEnd(touchIndex, inputLimitFlag)
-  if inputLimitFlag then
-    return
-  end
   self:InitTouchIndex()
   for i = 1, #self.TouchListenList do
     if self.TouchListenList[i].touchIndex == touchIndex then
       table.remove(self.TouchListenList, i)
       break
     end
+  end
+  if not self.IsGetPointerIndex and inputLimitFlag then
+    return
   end
   if self.TouchIndex ~= touchIndex then
     return
@@ -305,8 +306,8 @@ end
 
 function UMG_Aim_Joystick_C:ShowAimJoystickPanel(enable)
   if enable then
-    if self.Visibility ~= UE.ESlateVisibility.Visible then
-      self:SetVisibility(UE4.ESlateVisibility.Visible)
+    if self.Visibility == UE.ESlateVisibility.Collapsed then
+      self:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
       self:SetRenderOpacity(0)
       if not self:IsPCMode() then
         self.IsGetTouchIndex = true
@@ -330,21 +331,35 @@ end
 function UMG_Aim_Joystick_C:InitTouchIndex()
   self:InitJoystickViewPos()
   if not self.TouchIndex and self.IsGetTouchIndex then
-    local minDist, resultTouchIndex, resultTouchPos
-    for _, touchData in ipairs(self.TouchListenList) do
-      local targetPos
-      if self.JoystickViewPos then
-        targetPos = UE4.FVector2D(self.JoystickViewPos.X, self.JoystickViewPos.Y)
-      else
-        local Size = UE4.UWidgetLayoutLibrary.GetViewportSize(UE4Helper.GetCurrentWorld())
-        targetPos = UE4.FVector2D(Size.X, Size.Y)
+    self.IsGetPointerIndex = false
+    local PointerIndex = _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.GetAimJoystickPointerIndex, self.AimJoystickMode)
+    local resultTouchIndex, resultTouchPos
+    if -1 == PointerIndex then
+      local minDist
+      for _, touchData in ipairs(self.TouchListenList) do
+        local targetPos
+        if self.JoystickViewPos then
+          targetPos = UE4.FVector2D(self.JoystickViewPos.X, self.JoystickViewPos.Y)
+        else
+          local Size = UE4.UWidgetLayoutLibrary.GetViewportSize(UE4Helper.GetCurrentWorld())
+          targetPos = UE4.FVector2D(Size.X, Size.Y)
+        end
+        local dist = UE4.FVector.DistSquared2D(touchData.touchPos, targetPos)
+        if not minDist or minDist > dist then
+          resultTouchIndex = touchData.touchIndex
+          resultTouchPos = UE4.FVector2D(touchData.touchPos.X, touchData.touchPos.Y)
+          minDist = dist
+        end
       end
-      local dist = UE4.FVector.DistSquared2D(touchData.touchPos, targetPos)
-      if not minDist or minDist > dist then
-        resultTouchIndex = touchData.touchIndex
-        resultTouchPos = UE4.FVector2D(touchData.touchPos.X, touchData.touchPos.Y)
-        minDist = dist
+    else
+      for _, touchData in ipairs(self.TouchListenList) do
+        if touchData.touchIndex == PointerIndex then
+          resultTouchPos = UE4.FVector2D(touchData.touchPos.X, touchData.touchPos.Y)
+          break
+        end
       end
+      resultTouchIndex = PointerIndex
+      self.IsGetPointerIndex = true
     end
     if resultTouchIndex and resultTouchPos then
       self.TouchIndex = resultTouchIndex
@@ -385,7 +400,7 @@ function UMG_Aim_Joystick_C:OnMouseLeftKey(action_type, lostFocus)
     pos.y = -136.68103
     self.Joystick.Slot:SetPosition(pos)
   end
-  if self.Visibility == UE.ESlateVisibility.Hidden or self.Visibility == UE.ESlateVisibility.Collapsed or self.Visibility == UE.ESlateVisibility.HitTestInvisible then
+  if self.Visibility == UE.ESlateVisibility.Hidden or self.Visibility == UE.ESlateVisibility.Collapsed then
     return
   end
   if NRCModuleManager:DoCmd(PlayerModuleCmd.GET_LOCAL_PLAYER):GetUEController().bShowMouseCursor and not lostFocus then
@@ -401,7 +416,7 @@ function UMG_Aim_Joystick_C:OnMouseLeftKey(action_type, lostFocus)
 end
 
 function UMG_Aim_Joystick_C:OnMouseRightKey(action_type, lostFocus)
-  if self.Visibility == UE.ESlateVisibility.Hidden or self.Visibility == UE.ESlateVisibility.Collapsed or self.Visibility == UE.ESlateVisibility.HitTestInvisible then
+  if self.Visibility == UE.ESlateVisibility.Hidden or self.Visibility == UE.ESlateVisibility.Collapsed then
     return
   end
   if NRCModuleManager:DoCmd(PlayerModuleCmd.GET_LOCAL_PLAYER):GetUEController().bShowMouseCursor and not lostFocus then

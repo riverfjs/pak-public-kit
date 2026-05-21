@@ -9,8 +9,22 @@ function UMG_Activity_PetCatch_RewardItem_C:SetItemData(_itemData)
   self.ListItemIcon:OnItemUpdate(_itemData, nil, self.index)
 end
 
-function UMG_Activity_PetCatch_RewardItem_C:SelectItem()
-  self.ListItemIcon:OnItemSelected(true)
+function UMG_Activity_PetCatch_RewardItem_C:SelectItem(_bScroll)
+  if not _bScroll then
+    self.ListItemIcon:OnItemSelected(true)
+  end
+end
+
+function UMG_Activity_PetCatch_RewardItem_C:SetNormalState1()
+  self.NRCImage_0:SetColorAndOpacity(UE4.UNRCStatics.HexToLinearColor("#F4EEE1FF"))
+  self.ParticleSystemWidget2_53:SetActivate(false)
+  self.ParticleSystemWidget2_53:SetVisibility(UE4.ESlateVisibility.Collapsed)
+end
+
+function UMG_Activity_PetCatch_RewardItem_C:SetNormalState()
+  self:TryStopAnimation(self.select, true)
+  self:TryStopAnimation(self.Available, true)
+  self:TryPlayAnimation(self.Get, false, 10)
 end
 
 function UMG_Activity_PetCatch_RewardItem_C:SetRewardAvailable()
@@ -29,10 +43,16 @@ function UMG_Activity_PetCatch_RewardItem_C:SetupRedPoint(_key, _extraKey)
   self.redPointNew:SetupKey(_key, _extraKey)
 end
 
-function UMG_Activity_PetCatch_RewardItem_C:BroadcastOnClicked()
-  if not self.ParentView then
-    self:SelectItem()
+function UMG_Activity_PetCatch_RewardItem_C:OnTouchEnded(MyGeometry, InTouchEvent)
+  if self.ParentView then
+    Base.OnTouchEnded(self, MyGeometry, InTouchEvent)
+  else
+    self:OnItemSelected(true)
   end
+  return UE4.UWidgetBlueprintLibrary.Unhandled()
+end
+
+function UMG_Activity_PetCatch_RewardItem_C:BroadcastOnClicked()
 end
 
 function UMG_Activity_PetCatch_RewardItem_C:SetAlreadyReceived(_received, _playGetAnim, _SeasonItem)

@@ -190,6 +190,7 @@ function PlayerCompassComponent:OnShowResReady(Queue, Success)
       self.StartSkill:RegisterEventCallback("PreEnd", self, self.StartEnd)
       self.StartSkill:RegisterEventCallback("End", self, self.StartEnd)
       self.StartSkill:RegisterEventCallback("Interrupt", self, self.StartInterrupt)
+      self.StartSkill:RegisterEventCallback("StartFailed", self, self.StartInterrupt)
       self.StartSkill:SetPassive(false)
       skillComponent:PlaySkill(self.StartSkill)
     end
@@ -252,6 +253,7 @@ function PlayerCompassComponent:OnHideResReady(Queue, Success)
       self.EndSkill:RegisterEventCallback("PreEnd", self, self.EndSkillFinish)
       self.EndSkill:RegisterEventCallback("End", self, self.EndSkillFinish)
       self.EndSkill:RegisterEventCallback("Interrupt", self, self.EndSkillFinish)
+      self.EndSkill:RegisterEventCallback("StartFailed", self, self.EndSkillFinish)
       skillComponent:PlaySkill(self.EndSkill)
     end
   end

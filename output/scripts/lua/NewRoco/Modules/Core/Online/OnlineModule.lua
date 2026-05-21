@@ -12,6 +12,7 @@ function OnlineModule:OnConstruct()
   self.isConnected = false
   self.getLocationCountdown = 0
   self.preLoginRspCode = 0
+  self.delayCallIds = {}
   NRCEventCenter:RegisterEvent(self.moduleName, self, _G.NRCGlobalEvent.ON_CONNECTED, self.OnConnected)
   NRCEventCenter:RegisterEvent(self.moduleName, self, _G.NRCGlobalEvent.ON_DISCONNECT, self.OnDisconnectProc)
   NRCEventCenter:RegisterEvent(self.moduleName, self, _G.NRCGlobalEvent.ON_STATECHANGED, self.OnStateChangedProc)
@@ -19,6 +20,10 @@ function OnlineModule:OnConstruct()
 end
 
 function OnlineModule:OnDestruct()
+  for id, _ in pairs(self.delayCallIds) do
+    _G.DelayManager:CancelDelayByIdEx(id)
+  end
+  self.delayCallIds = {}
 end
 
 function OnlineModule:OnActive()
@@ -85,7 +90,16 @@ function OnlineModule:SetUserAccountInfo(openid, accessToken, loginChannel, reg_
     end
     self:Log("SetUserAccountInfo extraInfo", extraInfo)
     for k, v in pairs(extraInfo) do
-      self.data.extraAccountInfo[k] = v
+      if "ctt" == k then
+        if RocoEnv.PLATFORM_WINDOWS and self.data.cli_info ~= nil then
+          if nil == self.data.cli_info.token_info then
+            self.data.cli_info.token_info = ProtoMessage:newClientTokenInfo()
+          end
+          self.data.cli_info.token_info.wg_login_info = v
+        end
+      else
+        self.data.extraAccountInfo[k] = v
+      end
     end
   end
   self.data:SetLoginChannel(loginChannel)
@@ -231,7 +245,10 @@ function OnlineModule:OnLoginRsp(rsp)
       Log.Debug("OnLoginRsp ret_code=ProtoEnum.MOBA_RET.ErrorCode.ERR_COMMON_BAN")
     elseif rsp.ret_info.ret_code == ProtoEnum.MOBA_RET.ZoneErr.ERR_ZONE_CLIENT_VERSION_TOO_HIGH then
       self:Log("\232\181\132\230\186\144\231\137\136\230\156\172\232\191\135\233\171\152", tostring(rsp.ret_info.ret_code))
-      _G.DelayManager:DelayFrames(1, self.Logout, self)
+      local delayId = _G.DelayManager:DelayFrames(1, self.Logout, self)
+      if delayId then
+        self.delayCallIds[delayId] = true
+      end
       local DialogContext = require("NewRoco.Modules.System.TipsModule.DialogContext")
       local Context = DialogContext()
       Context:SetTitle(LuaText.TIPS):SetContent(LuaText.onlinemodule_14):SetMode(DialogContext.Mode.OK):SetCallback(self, function()
@@ -240,23 +257,47 @@ function OnlineModule:OnLoginRsp(rsp)
       NRCModuleManager:DoCmd(TipsModuleCmd.Dialog_OpenDialog, Context)
     elseif rsp.ret_info.ret_code == ProtoEnum.MOBA_RET.ErrorCode.ERR_COMMON_DATA_VERSION_ERR then
       self:Log("\232\181\132\230\186\144\231\137\136\230\156\172\232\191\135\228\189\142", tostring(rsp.ret_info.ret_code))
-      _G.DelayManager:DelayFrames(1, self.Logout, self)
+      local delayId = _G.DelayManager:DelayFrames(1, self.Logout, self)
+      if delayId then
+        self.delayCallIds[delayId] = true
+      end
       local DialogContext = require("NewRoco.Modules.System.TipsModule.DialogContext")
       local Context = DialogContext()
       Context:SetTitle(LuaText.TIPS):SetContent(LuaText.onlinemodule_7):SetMode(DialogContext.Mode.OK):SetCallback(self, self.OnVersionErrorDialogResult):SetCloseOnOK(true):SetButtonText(LuaText.onlinemodule_11):SetDebugInfo(ProtoCMD:GetMessageName(ProtoCMD.ZoneSvrCmd.ZONE_LOGIN_RSP) .. rsp.ret_info.ret_code)
       NRCModuleManager:DoCmd(TipsModuleCmd.Dialog_OpenDialog, Context)
     elseif rsp.ret_info.ret_code == ProtoEnum.MOBA_RET.ZoneErr.ERR_ZONE_LOGIN_RATE_LIMITED then
       self.preLoginRspCode = rsp.ret_info.ret_code
+      local TipsText = LuaText["Error_Code_" .. rsp.ret_info.ret_code]
+      _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, TipsText)
       _G.ZoneServer:OpenWaitingUI("ServerRateLimit", LuaText["Error_Code_" .. rsp.ret_info.ret_code])
-      _G.DelayManager:DelaySeconds(5, function()
+      local delayId = _G.DelayManager:DelaySeconds(5, function()
         self.preLoginRspCode = 0
         _G.ZoneServer:CloseWaitingUI("ServerRateLimit")
-        _G.ZoneServer:DisConnect(true, false)
-        _G.AppMain.BackToLogin()
+        _G.ZoneServer:DisConnect(false, false)
       end)
+      if delayId then
+        self.delayCallIds[delayId] = true
+      end
+    elseif ProtoEnum.MOBA_RET.ZoneErr.ERR_ZONE_WEGAME_LOGIN_AUTH_FAILED and rsp.ret_info.ret_code == ProtoEnum.MOBA_RET.ZoneErr.ERR_ZONE_WEGAME_LOGIN_AUTH_FAILED then
+      if RocoEnv.PLATFORM_WINDOWS then
+        self:Log("windows ctt auth fail")
+        local failAuthInfo = rsp.wg_auth_result
+        local displayErrCode = -1
+        if failAuthInfo then
+          displayErrCode = failAuthInfo.error_code or -1
+          self:Log("error_message in wegameAuthResult is ", failAuthInfo.error_message or "nil")
+        end
+        local DialogContext = require("NewRoco.Modules.System.TipsModule.DialogContext")
+        local Context = DialogContext()
+        Context:SetTitle(LuaText.TIPS):SetContent(LuaText.wg_login_tips and string.format(LuaText.wg_login_tips, displayErrCode) or "Error_code_" .. displayErrCode):SetMode(DialogContext.Mode.OK):SetCallback(self, self.OnWindowsVerifyCTTFailed):SetCloseOnOK(true):SetButtonText(LuaText.onlinemodule_11):SetDebugInfo(ProtoCMD:GetMessageName(ProtoCMD.ZoneSvrCmd.ZONE_LOGIN_RSP) .. rsp.ret_info.ret_code)
+        NRCModuleManager:DoCmd(TipsModuleCmd.Dialog_OpenDialog, Context)
+      end
     else
       self:Log("\231\153\187\229\189\149\229\164\177\232\180\165", tostring(rsp.ret_info.ret_code))
-      _G.DelayManager:DelayFrames(1, self.Logout, self)
+      local delayId = _G.DelayManager:DelayFrames(1, self.Logout, self)
+      if delayId then
+        self.delayCallIds[delayId] = true
+      end
       local DialogContext = require("NewRoco.Modules.System.TipsModule.DialogContext")
       local Context = DialogContext()
       Context:SetTitle(LuaText.TIPS):SetContent(LuaText["Error_Code_" .. rsp.ret_info.ret_code]):SetMode(DialogContext.Mode.OK_CANCEL):SetCallback(self, self.OnDialogResult):SetCloseOnCancel(true):SetButtonText(LuaText.RETRY, LuaText.BACK):SetDebugInfo(ProtoCMD:GetMessageName(ProtoCMD.ZoneSvrCmd.ZONE_LOGIN_RSP) .. rsp.ret_info.ret_code)
@@ -300,6 +341,15 @@ function OnlineModule:OnVersionErrorDialogResult(result)
   _G.AppMain.BackToLogin(BackToUpdate)
 end
 
+function OnlineModule:OnWindowsVerifyCTTFailed(result)
+  local delayId = _G.DelayManager:DelayFrames(1, function()
+    UE4.UNRCStatics.QuitGame()
+  end)
+  if delayId then
+    self.delayCallIds[delayId] = true
+  end
+end
+
 function OnlineModule:ConnectAndLogin(serverName, typeid, zoneid, ip, port, name, encryptMethod, keyMakingMethod, authType, authChannel, clbIpStrArr)
   self:Connect(serverName, typeid, zoneid, ip, port, encryptMethod or 0, keyMakingMethod or 0, authType, authChannel, clbIpStrArr)
   self.autoLogin = true
@@ -339,7 +389,21 @@ function OnlineModule:OnRegisterRsp(rsp)
     self.isLoginFromUI = true
     self:Login(self.data.userName)
   else
+    self:LogError("OnRegisterRsp failed", rsp.ret_info.ret_code)
+    local DialogContext = require("NewRoco.Modules.System.TipsModule.DialogContext")
+    local Context = DialogContext()
+    Context:SetTitle(LuaText.TIPS):SetContent(LuaText.Error_Code_13021):SetMode(DialogContext.Mode.OK):SetCallback(self, self.OnRegisterDialogResult):SetCloseOnCancel(true):SetIfHideCloseBtn(true)
+    NRCModuleManager:DoCmd(TipsModuleCmd.Dialog_OpenDialog, Context)
   end
+end
+
+function OnlineModule:OnRegisterDialogResult()
+  _G.ZoneServer:SetOnlineState(OnlineState.Logouted)
+  local delayId = _G.DelayManager:DelayFrames(1, self.Logout, self)
+  if delayId then
+    self.delayCallIds[delayId] = true
+  end
+  _G.AppMain.BackToLogin()
 end
 
 function OnlineModule:OnTick(deltaTime)

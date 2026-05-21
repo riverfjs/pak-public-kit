@@ -155,7 +155,7 @@ function UMG_Sanctuary_TipsItem1_C:OnItemSelected(_bSelected)
       _G.NRCModuleManager:DoCmd(BigMapModuleCmd.SetMapCenterByNPC, self.data.conf.id, 0.5, true)
     end
   else
-    if not self.isSelect or not UE4.UObject.IsValid(self) then
+    if not UE4.UObject.IsValid(self) then
       return
     end
     self:RemoveNpcIcon()

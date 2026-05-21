@@ -250,8 +250,8 @@ end
 function UMG_TaskTrackItemTemplate_C:ShowTargetList()
   for _, Widget in wpairs(self.Targets) do
     Widget:OnDespawn()
+    Widget:SetVisibility(UE.ESlateVisibility.Collapsed)
   end
-  self.Targets:ClearChildren()
   if self.data:InstanceOf(DisplayTaskObject) then
     self:SetupWidgetByIndex(1, 1)
     return

@@ -169,7 +169,7 @@ function UMG_FreeCaptivePet_C:SetAttributeAward(_PetAttributeData, Type)
   local PetAttributeData = _PetAttributeData or 0
   local PetEffortsList = _G.DataConfigManager:GetTable(_G.DataConfigManager.ConfigTableId.PET_EFFORTS_LEVEL):GetAllDatas()
   for i, PetEfforts in pairs(PetEffortsList) do
-    if type(PetAttributeData) == "table" and PetEfforts.attribute_type == Type and PetEfforts.efforts_level == PetAttributeData.effort_lv and PetEfforts.free_item_id and 0 ~= PetEfforts.free_item_id then
+    if type(PetAttributeData) == "table" and PetEfforts.attribute_type == Type and PetEfforts.free_item_id and 0 ~= PetEfforts.free_item_id then
       table.insert(self.uiData.PetFreeAward, {
         Count = PetEfforts.free_item_data,
         Id = PetEfforts.free_item_id

@@ -20,6 +20,7 @@ function NRCCommonItemIconData:Ctor()
   self.extraKey = nil
   self.reward_reason = nil
   self.IsBPlaySound = false
+  self.openTipsSoundId = nil
   self.IsCanClick = true
   self.checkIsEnough = nil
   self.IsShowPetbase = false

@@ -1,6 +1,7 @@
 local BagModuleEvent = reload("NewRoco.Modules.System.Bag.BagModuleEvent")
 local PetUIModuleEvent = reload("NewRoco.Modules.System.PetUI.PetUIModuleEvent")
 local PetUIModuleEnum = require("NewRoco.Modules.System.PetUI.PetUIModuleEnum")
+local PetUtils = require("NewRoco.Utils.PetUtils")
 local UMG_PetWarehouseScreening_C = _G.NRCPanelBase:Extend("UMG_PetWarehouseScreening_C")
 
 function UMG_PetWarehouseScreening_C:OnDeactive()
@@ -17,6 +18,7 @@ function UMG_PetWarehouseScreening_C:OnAddEventListener()
   self:AddButtonListener(self.Btn_Reset.btnLevelUp, self.OnBtnResetClick)
   self:AddButtonListener(self.Btn_Confirm.btnLevelUp, self.OnBtnConfirmClick)
   self:AddButtonListener(self.NRCButton_82, self.OnBtnConfirmClick)
+  self:AddButtonListener(self.TimeRewindTipsBtn.btnLevelUp, self.OnTimeRewindTipsBtnClick)
 end
 
 function UMG_PetWarehouseScreening_C:OnConstruct()
@@ -28,7 +30,8 @@ function UMG_PetWarehouseScreening_C:OnConstruct()
     FilterAttributeCondition = {},
     FilterPetMarkCondition = {},
     FilterStrongCondition = {},
-    FilterTimeCondition = {}
+    FilterTimeCondition = {},
+    FilterTraceBackCondition = {}
   }
   self.TalentConfigs = {}
   self.DepartConfigs = {}
@@ -37,6 +40,7 @@ function UMG_PetWarehouseScreening_C:OnConstruct()
   self.PetMarkConfigs = {}
   self.StrongConfigs = {}
   self.TimeConfigs = {}
+  self.TraceBackConfigs = {}
   local fileters = DataConfigManager:GetTable(DataConfigManager.ConfigTableId.PET_FILTER_CONF)
   if fileters then
     self.PetFilterConfs = fileters:GetAllDatas()
@@ -62,6 +66,9 @@ function UMG_PetWarehouseScreening_C:OnConstruct()
     end
     if conf.filter_type == _G.Enum.FilterRule.FIL_CATCH_TIME then
       table.insert(self.TimeConfigs, conf)
+    end
+    if conf.filter_type == _G.Enum.FilterRule.FIL_ROLLBACK_TYPE then
+      table.insert(self.TraceBackConfigs, conf)
     end
   end
   self.NRCText_2:SetText(LuaText.filter_attribute_list)
@@ -104,6 +111,15 @@ function UMG_PetWarehouseScreening_C:OnActive()
     table.insert(timeDatas, data)
   end
   self.GainTheTime:InitGridView(timeDatas)
+  self.TimeRewindList:InitGridView(self.TraceBackConfigs)
+  if #self.TraceBackConfigs > 0 and PetUtils.CheckCurIsInTraceBackTime() then
+    self.TimeRewind:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  else
+    self.TimeRewind:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    if self.FilterCondition and self.FilterCondition.FilterTraceBackCondition and #self.FilterCondition.FilterTraceBackCondition > 0 then
+      self.FilterCondition.FilterTraceBackCondition = {}
+    end
+  end
   self:SetFilterCondition(self.FilterCondition)
   self.module:SetNewPetBagWarehouseScreeningPanelOpenState(true)
   self:DispatchEvent(PetUIModuleEvent.OnUpdatePetBagEmptyView)
@@ -213,6 +229,25 @@ function UMG_PetWarehouseScreening_C:OnChangePetBagFilterToggle(type, data, togg
         end
       end
     end
+  elseif type == _G.Enum.FilterRule.FIL_ROLLBACK_TYPE then
+    for i = 1, #self.TraceBackConfigs do
+      local conf = self.TraceBackConfigs[i]
+      local enum = _G.Enum[conf.filter_enum_name][conf.filter_enum_value]
+      if enum == data then
+        local isHave = false
+        for j = 1, #self.FilterCondition.FilterTraceBackCondition do
+          if self.FilterCondition.FilterTraceBackCondition[j] == enum then
+            isHave = true
+            if false == toggle then
+              table.remove(self.FilterCondition.FilterTraceBackCondition, j)
+            end
+          end
+        end
+        if toggle and not isHave then
+          table.insert(self.FilterCondition.FilterTraceBackCondition, enum)
+        end
+      end
+    end
   end
   self:ConfirmResult()
 end
@@ -265,6 +300,10 @@ function UMG_PetWarehouseScreening_C:SetFilterCondition(condition)
     if condition.FilterTimeCondition then
       self.FilterCondition.FilterTimeCondition = condition.FilterTimeCondition
       self:UpdateTimeList(self.FilterCondition.FilterTimeCondition)
+    end
+    if condition.FilterTraceBackCondition then
+      self.FilterCondition.FilterTraceBackCondition = condition.FilterTraceBackCondition
+      self:UpdateTraceBackList(self.FilterCondition.FilterTraceBackCondition)
     end
   end
 end
@@ -378,7 +417,22 @@ function UMG_PetWarehouseScreening_C:UpdateTimeList(condition)
   end
 end
 
+function UMG_PetWarehouseScreening_C:UpdateTraceBackList(condition)
+  for j = 1, self.TimeRewindList:GetItemCount() do
+    local item = self.TimeRewindList:GetItemByIndex(j - 1)
+    for i = 1, #condition do
+      local conditionEnum = condition[i]
+      if item and item.enum == conditionEnum then
+        self.TimeRewindList:SelectItemByIndex(j - 1)
+      end
+    end
+  end
+end
+
 function UMG_PetWarehouseScreening_C:OnBackBtnClick()
+  if self:IsAnimationPlaying(self.In) then
+    return
+  end
   local isSelectBtn = _G.NRCModuleManager:DoCmd(MultiTouchModuleCmd.GetIsSelectBtn, "PetUIModule", "PetBox")
   if isSelectBtn then
     return
@@ -451,7 +505,8 @@ function UMG_PetWarehouseScreening_C:OnBtnResetClick()
     FilterAttributeCondition = {},
     FilterPetMarkCondition = {},
     FilterStrongCondition = {},
-    FilterTimeCondition = {}
+    FilterTimeCondition = {},
+    FilterTraceBackCondition = {}
   }
   self.petList:InitGridView({})
   self.FilterList:InitGridView({})
@@ -461,6 +516,7 @@ function UMG_PetWarehouseScreening_C:OnBtnResetClick()
   self.StrongPoint:InitGridView({})
   self.GainTheTime:ClearSelection()
   self:UnSelectListItems(self.GiftList)
+  self:UnSelectListItems(self.TimeRewindList)
   self:ConfirmResult()
 end
 
@@ -471,6 +527,15 @@ function UMG_PetWarehouseScreening_C:UnSelectListItems(list)
       item:OnUnSelect()
     end
   end
+end
+
+function UMG_PetWarehouseScreening_C:OnTimeRewindTipsBtnClick()
+  local DialogContext = require("NewRoco.Modules.System.TipsModule.DialogContext")
+  local Context = DialogContext()
+  local ContentText = _G.DataConfigManager:GetLocalizationConf("pet_return_filter_tip").msg
+  local ContentTitle = _G.DataConfigManager:GetLocalizationConf("pet_return_filter_title").msg
+  Context:SetTitle(ContentTitle):SetContent(ContentText):SetMode(DialogContext.Mode.NotBtn):SetCloseOnCancel(true):SetCloseOnOK(true):SetClickAnywhereClose(true):SetButtonText(LuaText.umg_shop_tips_9, LuaText.umg_shop_tips_10)
+  _G.NRCModuleManager:DoCmd(TipsModuleCmd.Dialog_OpenLongDialog, Context)
 end
 
 function UMG_PetWarehouseScreening_C:OnBtnConfirmClick()

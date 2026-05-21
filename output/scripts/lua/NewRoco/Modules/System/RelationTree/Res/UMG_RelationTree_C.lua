@@ -3,6 +3,7 @@ local PlayerModuleEvent = require("NewRoco.Modules.Core.PlayerModule.PlayerModul
 local UMG_RelationTree_C = _G.NRCPanelBase:Extend("UMG_RelationTree_C")
 local FriendModuleEvent = require("NewRoco.Modules.System.Friend.FriendModuleEvent")
 local ENUM_PLAYER_DATA_EVENT = require("Data.Global.PlayerDataEvent")
+local JsonUtils = require("Common.JsonUtils")
 local CoinType = _G.Enum.VisualItem.VI_DIAMOND
 local FloorItemSizeY_1 = 389
 local FloorItemSizeY_2 = 223
@@ -272,8 +273,46 @@ function UMG_RelationTree_C:UpdateRelationTreeScrollUI()
     if RelationTreeData then
       self.MaxItemNum = #RelationTreeData.RelationTree
       table.reverse(RelationTreeData.RelationTree)
+      local activityObject = _G.NRCModuleManager:DoCmd(_G.ActivityModuleCmd.GetActivityInstByType, _G.Enum.ActivityType.ATP_ACTIVITY_RECALL_STARLIGHT)[1]
+      if activityObject then
+        local local_uin = _G.DataModelMgr.PlayerDataModel:GetPlayerUin()
+        self:InitNodeRecallData(RelationTreeData, local_uin)
+      else
+        local playerInfo = _G.NRCModuleManager:DoCmd(_G.RelationTreeCmd.GetOpenPlayerInfo)
+        if playerInfo and playerInfo.tags then
+          for _, tag in ipairs(playerInfo.tags) do
+            if tag == _G.ProtoEnum.PlayerTag.PT_RECALL then
+              self:InitNodeRecallData(RelationTreeData, self.PlayerUid)
+            end
+          end
+        end
+      end
       self.Branch:InitGridView(RelationTreeData.RelationTree)
       self.Branch:RefreshGridViewLayout()
+    end
+  end
+end
+
+function UMG_RelationTree_C:InitNodeRecallData(RelationTreeData, targetUin)
+  local bPlayRecallAnim = true
+  local recordTable = JsonUtils.LoadSaved("RecallFriendsRecord", {})
+  if #recordTable > 0 then
+    for _, uin in ipairs(recordTable) do
+      if uin == targetUin then
+        bPlayRecallAnim = false
+        break
+      end
+    end
+  end
+  for _, nodeList in ipairs(RelationTreeData.RelationTree) do
+    for _, node in ipairs(nodeList) do
+      if node.RelationTreeTypeDefault == _G.Enum.RelationTreeTypeDefault.RLTTD_INVITE_TOGETHER or node.RelationTreeTypeDefault == _G.Enum.RelationTreeTypeDefault.RLTTD_REQUEST_TOGETHER then
+        node.bShowRecall = true
+        node.bPlayRecallAnim = bPlayRecallAnim
+        if bPlayRecallAnim and node.Unlock then
+          self.bNeedJsonRecord = true
+        end
+      end
     end
   end
 end
@@ -489,6 +528,16 @@ function UMG_RelationTree_C:OnCloseClick(isNotSound, isNotPlayOut)
     self:PlayAnimation(self.Out)
   else
     _G.NRCModeManager:DoCmd(_G.RelationTreeCmd.CloseRelationCover, self.PlayerUid)
+  end
+  if self.bNeedJsonRecord then
+    local recordTable = JsonUtils.LoadSaved("RecallFriendsRecord", {})
+    local activityObject = _G.NRCModuleManager:DoCmd(_G.ActivityModuleCmd.GetActivityInstByType, _G.Enum.ActivityType.ATP_ACTIVITY_RECALL_STARLIGHT)[1]
+    if activityObject then
+      table.insert(recordTable, _G.DataModelMgr.PlayerDataModel:GetPlayerUin())
+    else
+      table.insert(recordTable, self.PlayerUid)
+    end
+    JsonUtils.DumpSaved("RecallFriendsRecord", recordTable)
   end
 end
 

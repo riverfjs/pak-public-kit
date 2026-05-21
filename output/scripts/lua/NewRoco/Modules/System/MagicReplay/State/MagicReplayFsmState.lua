@@ -29,12 +29,18 @@ function MagicReplayFsmState:OnEnter(fsm)
     MagicReplayUtils.ModifyPlayerConditionType(Enum.PlayerConditionType.PCT_MARK_VIDEO_REC, false)
     MagicReplayUtils.ModifyPlayerConditionType(Enum.PlayerConditionType.PCT_MARK_VIDEO_REPLAY, false)
     MagicReplayUtils.ModifyPlayerConditionType(Enum.PlayerConditionType.PCT_MARK_VIDEO_WATCH, false)
-  elseif "ReplayPrepareState" == stateName then
+  elseif "ReplayPrepareState" == stateName or "ReplayIdleState" == stateName then
     _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.ResumeTip, TipEnum.TipsPauseReason.MagicReplay)
     MagicReplayUtils.ModifyPlayerConditionType(Enum.PlayerConditionType.PCT_MARK_VIDEO_WATCH, true)
     MagicReplayUtils.ModifyPlayerConditionType(Enum.PlayerConditionType.PCT_MARK_VIDEO_REC, false)
     MagicReplayUtils.ModifyPlayerConditionType(Enum.PlayerConditionType.PCT_MARK_VIDEO_REPLAY, false)
     MagicReplayUtils.ModifyPlayerConditionType(Enum.PlayerConditionType.PCT_MARK_VIDEO_SHARE, false)
+  elseif "ShareVideoState" == stateName then
+    _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.PauseTip, TipEnum.TipsPauseReason.MagicReplay)
+    MagicReplayUtils.ModifyPlayerConditionType(Enum.PlayerConditionType.PCT_MARK_VIDEO_REC, false)
+    MagicReplayUtils.ModifyPlayerConditionType(Enum.PlayerConditionType.PCT_MARK_VIDEO_SHARE, false)
+    MagicReplayUtils.ModifyPlayerConditionType(Enum.PlayerConditionType.PCT_MARK_VIDEO_WATCH, false)
+    MagicReplayUtils.ModifyPlayerConditionType(Enum.PlayerConditionType.PCT_MARK_VIDEO_REPLAY, true)
   end
 end
 

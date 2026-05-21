@@ -57,6 +57,7 @@ function BattleThrowBallEnterFocusPet:releaseFocus()
   self.canPlayFocus = false
   if self.skillProxy then
     self.skillProxy:CancelSkill(UE4.ESkillActionResult.SkillActionResultInterrupted)
+    self.skillProxy:Destroy()
     self:ReleaseRef()
   end
   _G.UpdateManager:UnRegister(self)
@@ -145,7 +146,8 @@ function BattleThrowBallEnterFocusPet:LoadSkillOver(skill, Result)
       self:ApplyCacheBlackboardValue(self.cachedValueTable, self.skillObj:GetBlackboard())
     end
     if not self.canPlayFocus then
-      self.skillObj:CancelSkill()
+      self.skillProxy:CancelSkill(UE4.ESkillActionResult.SkillActionResultSuccessful)
+      self.skillProxy:Destroy()
       self:ReleaseRef()
     end
   end

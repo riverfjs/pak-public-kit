@@ -102,9 +102,9 @@ function UMG_MusicToolbar_C:OnClickStopBtn()
   end
 end
 
-function UMG_MusicToolbar_C:StopMusic()
+function UMG_MusicToolbar_C:StopMusic(fadeOutTime)
   self.NRCSwitcher_Play:SetActiveWidgetIndex(0)
-  _G.NRCAudioManager:ReleaseSession(self.SoundSession, true, "UMG_MusicToolbar_C")
+  _G.NRCAudioManager:ReleaseSession(self.SoundSession, true, "UMG_MusicToolbar_C", false, fadeOutTime)
   self.SoundSession = -1
   if self.playingTimer then
     _G.TimerManager:RemoveTimer(self.playingTimer)
@@ -170,7 +170,7 @@ function UMG_MusicToolbar_C:ExitMusicMessage()
     messageNpc.viewObj:SetTickStart(false)
   end
   if -1 ~= self.SoundSession then
-    self:StopMusic()
+    self:StopMusic(0.4)
   end
   self:DoClose()
 end

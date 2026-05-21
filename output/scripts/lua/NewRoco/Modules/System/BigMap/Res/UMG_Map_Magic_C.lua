@@ -223,12 +223,6 @@ function UMG_Map_Magic_C:OnShowPetList(npcInfo, IsOwlSanctuary)
         if owlFruitNpcInfo.npc_id then
           for j = 1, #owlFruitNpcInfo.NpcInfo do
             table.insert(self.fruitNpcIds, owlFruitNpcInfo.NpcInfo[j])
-            if not IsOwlSanctuary and 0 ~= owlFruitNpcInfo.npc_id[j] then
-              self.fruitNpcIds.playerIndex = self.fruitNpcIds.playerIndex or {}
-              if owlFruitNpcInfo.playerIndex[j] then
-                table.insert(self.fruitNpcIds.playerIndex, owlFruitNpcInfo.playerIndex[j])
-              end
-            end
           end
         end
       end
@@ -243,6 +237,8 @@ function UMG_Map_Magic_C:CreatPetItemData(petBaseId, npcID, isFruit, bOwlSanctua
       bOwlSanctuary = bOwlSanctuary,
       isFruit = isFruit,
       petBaseId = 0,
+      fruit_active_timestamp = fruitActiveTimestamp,
+      slot_active_timestamp = slotActiveTimestamp,
       fruit_uin = FruitUin
     }
   end
@@ -324,38 +320,94 @@ function UMG_Map_Magic_C:GetPetInfo(_npcInfo, IsOwlSanctuary)
     end
   end
   self:SetFruitNpcDatas(mapShowPetList, IsOwlSanctuary)
-  for _, Info in pairs(mapShowPetList) do
-    Info.IsOwlSanctuary = IsOwlSanctuary
-  end
   if #mapShowPetList > 0 then
     self.CanvasPanel_36:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
   else
     self.CanvasPanel_36:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
+  if _G.DataModelMgr.PlayerDataModel:IsVisitState() then
+    for _, v in ipairs(mapShowPetList) do
+      local visIndex = _G.NRCModuleManager:DoCmd(_G.FriendModuleCmd.GetOnlineVisitorIndex, v.fruit_uin) or 0
+      v.visIndex = visIndex
+    end
+  end
+  self:SortData(mapShowPetList, function(a, b)
+    if 1 == a.isFruit and 1 ~= b.isFruit then
+      return true
+    end
+    if 1 == b.isFruit and 1 ~= a.isFruit then
+      return false
+    end
+    if a.visIndex ~= b.visIndex then
+      return a.visIndex < b.visIndex
+    end
+    local a_id = a.petBaseConfId or a.petBaseId
+    local b_id = b.petBaseConfId or b.petBaseId
+    if 0 == b_id then
+      return true
+    end
+    if 0 == a_id then
+      return false
+    end
+    return a_id < b_id
+  end, 1, #mapShowPetList)
   self.PetList:InitGridView(mapShowPetList)
   self.PetList:SetVisibility(UE4.ESlateVisibility.Visible)
   self.mapShowPetList = mapShowPetList
 end
 
+function UMG_Map_Magic_C:SortData(data, func, start, stop)
+  if stop <= start then
+    return
+  end
+  local baseItem = data[start]
+  local left = start
+  local right = stop
+  local bRight = true
+  while left < right do
+    if bRight then
+      if not func(baseItem, data[right]) then
+        data[left] = data[right]
+        left = left + 1
+        bRight = false
+      else
+        right = right - 1
+      end
+    elseif not func(data[left], baseItem) then
+      data[right] = data[left]
+      right = right - 1
+      bRight = true
+    else
+      left = left + 1
+    end
+  end
+  data[left] = baseItem
+  self:SortData(data, func, start, left - 1)
+  self:SortData(data, func, left + 1, stop)
+end
+
 function UMG_Map_Magic_C:SetFruitNpcDatas(mapShowPetList, IsOwlSanctuary)
   local fruitNpcCount = 0
-  local IsVisit = _G.DataModelMgr.PlayerDataModel:IsVisitState()
   local newFruitItems = {}
   if self.fruitNpcIds and #self.fruitNpcIds > 0 then
-    local tempindex
-    if not IsOwlSanctuary then
-      tempindex = self.fruitNpcIds.playerIndex and self.fruitNpcIds.playerIndex[1]
-    end
     for i, NpcInfo in pairs(self.fruitNpcIds) do
       if type(i) == "number" then
         local FruitUin = NpcInfo.uin
-        if 0 ~= NpcInfo.npc_id then
-          local npcId = NpcInfo.npc_id
+        local npcid = NpcInfo.npc_id
+        if type(npcid) == "table" then
+          if next(npcid) then
+            npcid = npcid[1]
+          else
+            npcid = 0
+          end
+        end
+        if 0 ~= npcid then
+          local npcId = npcid
           local npcInfoDatas = _G.DataConfigManager:GetNpcConf(npcId)
-          if npcInfoDatas.traverse_data_type == _G.Enum.Traverse_Data_Type.TDT_PETBASE then
+          if npcInfoDatas and npcInfoDatas.traverse_data_type == _G.Enum.Traverse_Data_Type.TDT_PETBASE then
             local baseId = npcInfoDatas.traverse_data_param[1]
             local petBaseId = self:GetFirstStageBaseId(baseId)
-            local bNotHasPetBaseId = self.bOwlSanctuary or not self:HasPetBaseId(petBaseId, mapShowPetList) or IsVisit
+            local bNotHasPetBaseId = self.bOwlSanctuary or not self:HasPetBaseId(petBaseId, mapShowPetList)
             local fruitActiveTimestamp = NpcInfo.fruit_active_timestamp
             local slotActiveTimestamp = NpcInfo.slot_active_timestamp
             if bNotHasPetBaseId then
@@ -366,39 +418,12 @@ function UMG_Map_Magic_C:SetFruitNpcDatas(mapShowPetList, IsOwlSanctuary)
                   table.insert(mapShowPetList, itemData)
                 end
               else
-                local visit = _G.DataModelMgr.PlayerDataModel:IsVisitState()
-                if visit then
-                  local playerIndex = self.fruitNpcIds.playerIndex and self.fruitNpcIds.playerIndex[i]
-                  if playerIndex then
-                    if tempindex and tempindex == playerIndex then
-                      newFruitItems[tempindex] = newFruitItems[tempindex] or {}
-                      HasFruit = self:HasFruitInfo(petBaseId, newFruitItems, FruitUin)
-                      if not HasFruit then
-                        local itemData = self:CreatPetItemData(petBaseId, npcId, 1, nil, tempindex, fruitActiveTimestamp, slotActiveTimestamp, FruitUin)
-                        if itemData then
-                          table.insert(newFruitItems[tempindex], itemData)
-                        end
-                      end
-                    else
-                      tempindex = playerIndex
-                      newFruitItems[tempindex] = newFruitItems[tempindex] or {}
-                      HasFruit = self:HasFruitInfo(petBaseId, newFruitItems, FruitUin)
-                      if not HasFruit then
-                        local itemData = self:CreatPetItemData(petBaseId, npcId, 1, nil, tempindex, fruitActiveTimestamp, slotActiveTimestamp, FruitUin)
-                        if itemData then
-                          table.insert(newFruitItems[tempindex], itemData)
-                        end
-                      end
-                    end
-                  end
-                else
-                  newFruitItems[i] = newFruitItems[i] or {}
-                  HasFruit = self:HasFruitInfo(petBaseId, newFruitItems, FruitUin)
-                  if not HasFruit then
-                    local itemData = self:CreatPetItemData(petBaseId, npcId, 1, nil, nil, fruitActiveTimestamp, slotActiveTimestamp, FruitUin)
-                    if itemData then
-                      table.insert(newFruitItems[i], itemData)
-                    end
+                newFruitItems[i] = newFruitItems[i] or {}
+                HasFruit = self:HasFruitInfo(petBaseId, newFruitItems, FruitUin)
+                if not HasFruit then
+                  local itemData = self:CreatPetItemData(petBaseId, npcId, 1, nil, nil, fruitActiveTimestamp, slotActiveTimestamp, FruitUin)
+                  if itemData then
+                    table.insert(newFruitItems[i], itemData)
                   end
                 end
               end
@@ -410,6 +435,9 @@ function UMG_Map_Magic_C:SetFruitNpcDatas(mapShowPetList, IsOwlSanctuary)
                 if self:GetFirstStageBaseId(mapShowPetList[j].petBaseConfId) == petBaseId then
                   mapShowPetList[j].isFruit = 1
                   local item = table.remove(mapShowPetList, j)
+                  item.fruit_active_timestamp = fruitActiveTimestamp
+                  item.slot_active_timestamp = slotActiveTimestamp
+                  item.fruit_uin = FruitUin
                   table.insert(mapShowPetList, 1, item)
                   fruitNpcCount = fruitNpcCount + 1
                 end
@@ -417,7 +445,7 @@ function UMG_Map_Magic_C:SetFruitNpcDatas(mapShowPetList, IsOwlSanctuary)
             end
           end
         elseif 0 == NpcInfo.npc_id and IsOwlSanctuary then
-          local itemData = self:CreatPetItemData(nil, nil, 1, true, nil, nil, nil, FruitUin)
+          local itemData = self:CreatPetItemData(nil, nil, 1, true, nil, NpcInfo.fruit_active_timestamp, NpcInfo.slot_active_timestamp, FruitUin)
           if itemData then
             table.insert(mapShowPetList, itemData)
           end
@@ -470,12 +498,17 @@ function UMG_Map_Magic_C:HasFruitInfo(petBaseId, newFruitItems, FruitUin)
   if next(newFruitItems) == nil then
     return false
   end
-  for i = 1, #newFruitItems do
-    local item = newFruitItems[i]
-    for j = 1, #item do
-      local evoDatas = item[j].evoDatas or {}
-      if evoDatas[j].petBaseConfId == petBaseId and item[j].fruit_uin == FruitUin then
-        return true
+  for _, item in pairs(newFruitItems) do
+    if type(item) == "table" then
+      for _, entry in pairs(item) do
+        local evoDatas = entry and entry.evoDatas
+        if evoDatas and entry.fruit_uin == FruitUin then
+          for _, evoDataK in pairs(evoDatas) do
+            if evoDataK and evoDataK.petBaseConfId == petBaseId then
+              return true
+            end
+          end
+        end
       end
     end
   end

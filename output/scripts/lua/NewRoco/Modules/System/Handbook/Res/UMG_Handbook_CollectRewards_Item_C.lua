@@ -8,6 +8,7 @@ function UMG_Handbook_CollectRewards_Item_C:OnActive(_data, _index)
   self.uiData = _data
   self.index = _index
   self:InitRedData(_index)
+  self.Number:SetVisibility(UE4.ESlateVisibility.Visible)
   self.Button:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.CanvasPanel_27:SetVisibility(UE4.ESlateVisibility.Collapsed)
   self.Number:SetColorAndOpacity(UE4.UNRCStatics.HexToSlateColor("FFC860FF"))
@@ -47,11 +48,18 @@ function UMG_Handbook_CollectRewards_Item_C:ChangStyle()
 end
 
 function UMG_Handbook_CollectRewards_Item_C:CloseTips()
+  if not self.IsPlayPopUpIn then
+    return
+  end
   self:PlayAnimation(self.PopUps_Out)
+  self.IsPlayPopUpIn = false
 end
 
 function UMG_Handbook_CollectRewards_Item_C:ShowTips(dataList)
-  self:PlayAnimation(self.PopUps_In)
+  if not self.IsPlayPopUpIn then
+    self:PlayAnimation(self.PopUps_In)
+  end
+  self.IsPlayPopUpIn = true
   UE4.UNRCAudioManager.Get():PlaySound2DAuto(1004, "UMG_LevelUpRewards_C:OnAwardListItemSelected")
   self.CanvasPanel_27:SetVisibility(UE4.ESlateVisibility.Visible)
   self.List:InitGridView(dataList)
@@ -60,6 +68,33 @@ end
 function UMG_Handbook_CollectRewards_Item_C:OnTouchEnded(MyGeometry, InTouchEvent)
   self:OnClick()
   return UE.UWidgetBlueprintLibrary.Unhandled()
+end
+
+function UMG_Handbook_CollectRewards_Item_C:ClickTips()
+  local dataList = {}
+  local rewardType
+  for i = 1, #self.uiData.Data.handbook_reward do
+    local reward = self.uiData.Data.handbook_reward[i]
+    if reward.handbook_reward_type == _G.Enum.GoodsType.GT_BAGITEM then
+      rewardType = _G.Enum.PetHandbookAward.AWARD_ITEM
+    elseif reward.handbook_reward_type == _G.Enum.GoodsType.GT_VITEM then
+      rewardType = _G.Enum.PetHandbookAward.AWARD_VITEM
+    end
+    table.insert(dataList, {
+      id = reward.handbook_reward_id,
+      type = rewardType,
+      num = reward.handbook_reward_number,
+      itemType = reward.handbook_reward_type,
+      bMask = self.uiData.State
+    })
+  end
+  if self.CanvasPanel_27:GetVisibility() == UE4.ESlateVisibility.Visible then
+    self:CloseTips()
+  else
+    self:ShowTips(dataList)
+  end
+  self.IsClickReceive = false
+  _G.NRCModuleManager:GetModule("HandbookModule"):DispatchEvent(HandbookModuleEvent.OnCollectRewardsClickIndex, self.index)
 end
 
 function UMG_Handbook_CollectRewards_Item_C:OnClick()
@@ -73,30 +108,7 @@ function UMG_Handbook_CollectRewards_Item_C:OnClick()
     self:PlayAnimation(self.Receive)
     _G.NRCModuleManager:DoCmd(HandbookModuleCmd.SetDisableRewardAnimationState, true)
   else
-    local dataList = {}
-    local rewardType
-    for i = 1, #self.uiData.Data.handbook_reward do
-      local reward = self.uiData.Data.handbook_reward[i]
-      if reward.handbook_reward_type == _G.Enum.GoodsType.GT_BAGITEM then
-        rewardType = _G.Enum.PetHandbookAward.AWARD_ITEM
-      elseif reward.handbook_reward_type == _G.Enum.GoodsType.GT_VITEM then
-        rewardType = _G.Enum.PetHandbookAward.AWARD_VITEM
-      end
-      table.insert(dataList, {
-        id = reward.handbook_reward_id,
-        type = rewardType,
-        num = reward.handbook_reward_number,
-        itemType = reward.handbook_reward_type,
-        bMask = self.uiData.State
-      })
-    end
-    if self.CanvasPanel_27:GetVisibility() == UE4.ESlateVisibility.Visible then
-      self:CloseTips()
-    else
-      self:ShowTips(dataList)
-    end
-    self.IsClickReceive = false
-    _G.NRCModuleManager:GetModule("HandbookModule"):DispatchEvent(HandbookModuleEvent.OnCollectRewardsClickIndex, self.index)
+    self:ClickTips()
   end
 end
 

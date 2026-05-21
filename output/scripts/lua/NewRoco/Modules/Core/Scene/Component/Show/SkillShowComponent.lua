@@ -93,6 +93,9 @@ function SkillShowComponent:GetSkillDisplayName(skill_path)
 end
 
 function SkillShowComponent:PlayPerformInter()
+  if not self.performConf then
+    return
+  end
   if self.performConf.skill_path == "" then
     self:Clear()
     return
@@ -154,6 +157,9 @@ function SkillShowComponent:PlayCallback(skillProxy, result)
 end
 
 function SkillShowComponent:PreStart(EventName, SkillObj)
+  if not self.performConf then
+    return
+  end
   local SkillDisplayName = self:removeSuffix(SkillObj:GetDisplayName())
   local targets = {}
   local characters = {}
@@ -216,6 +222,9 @@ function SkillShowComponent:OnSkillEvent(EventName, SkillObj)
 end
 
 function SkillShowComponent:PlayPerformEnd(Event, Skill)
+  if not self.performConf then
+    return
+  end
   if not Skill then
     Log.Error("SkillShowComponent:PlayPerformEnd Skill is nil")
     return
@@ -263,6 +272,9 @@ function SkillShowComponent:PlayPerformEnd(Event, Skill)
 end
 
 function SkillShowComponent:AutoFillPetMap()
+  if not self.performConf then
+    return
+  end
   for _, modelInfo in ipairs(self.performConf.performer) do
     local item = self:GetItemByIdAndKey(modelInfo.npc_id, modelInfo.key)
     if not self.petMap[modelInfo.key] and item then
@@ -272,6 +284,9 @@ function SkillShowComponent:AutoFillPetMap()
 end
 
 function SkillShowComponent:IsAllItemPrepared(performConf)
+  if not performConf then
+    return true
+  end
   for _, modelInfo in ipairs(performConf.performer) do
     if not self.petMap[modelInfo.key] then
       return false
@@ -291,13 +306,15 @@ function SkillShowComponent:Clear()
 end
 
 function SkillShowComponent:StopAll()
-  if self.SkillProxy then
-    self.SkillProxy:CancelSkill(UE4.ESkillActionResult.SkillActionResultInterrupted)
+  if self.owner.HoldingItemComponent then
+    self.owner.HoldingItemComponent:CancelAllOrder()
   end
   if self.SkillProxy then
+    self.SkillProxy:CancelSkill(UE4.ESkillActionResult.SkillActionResultInterrupted)
     self.SkillProxy:Destroy()
   end
   self.SkillProxy = nil
+  self.performConf = nil
 end
 
 return SkillShowComponent

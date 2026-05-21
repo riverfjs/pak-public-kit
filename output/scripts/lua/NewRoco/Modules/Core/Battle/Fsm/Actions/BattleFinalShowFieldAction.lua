@@ -60,6 +60,8 @@ function BattleFinalShowFieldAction:PlaySkill()
   skillObj:RegisterEventCallback("Start", self, self.CloseLoading)
   skillObj:RegisterEventCallback("End", self, self.OnSkillEnd)
   skillObj:RegisterEventCallback("PreEnd", self, self.OnSkillEnd)
+  skillObj:RegisterEventCallback("Interrupt", self, self.OnSkillEnd)
+  skillObj:RegisterEventCallback("StartFailed", self, self.OnSkillEnd)
   skillComponent:PlaySkill(skillObj)
 end
 

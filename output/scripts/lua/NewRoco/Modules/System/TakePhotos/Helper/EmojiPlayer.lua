@@ -2,6 +2,13 @@ local TakePhotosUtils = require("NewRoco.Modules.System.TakePhotos.TakePhotosUti
 local Super = require("NewRoco.Modules.System.TakePhotos.Helper.ActionPosePlayer")
 local EmojiPlayer = Super:Extend("EmojiPlayer")
 
+function EmojiPlayer:PlayAnim(Conf, bMirror)
+  if Conf == self.Conf and bMirror == self.bMirror then
+    return
+  end
+  self:InternalPlayerByConf(Conf, bMirror)
+end
+
 function EmojiPlayer:ParseAnimationPath(Conf)
   local ResourcePath
   if 1 == self.Player.gender then

@@ -14,11 +14,18 @@ function UMG_Handbook_Subject_List_C:OnItemUpdate(_data, datalist, index)
   local max_cnt = _data.max_cnt
   local finish_cnt = _data.finish_cnt
   local is_getaward = _data.is_getaward
-  local redId = _G.NRCModuleManager:DoCmd(_G.HandbookModuleCmd.OnCmdGetCurAreaHandBookRedId, 1, 4)
-  self.Btn6.RedDot:SetupKey(redId, {
-    _data.handbook_id,
-    _data.id
-  })
+  if _data.season_id and _data.pet_type then
+    self.Btn6.RedDot:SetupKey(480, {
+      _data.season_id,
+      _data.pet_type
+    })
+  else
+    local redId = _G.NRCModuleManager:DoCmd(_G.HandbookModuleCmd.OnCmdGetCurAreaHandBookRedId, 1, 4)
+    self.Btn6.RedDot:SetupKey(redId, {
+      _data.handbook_id,
+      _data.id
+    })
+  end
   self.NRCText_1:SetText(string.format("%s/%s", finish_cnt, max_cnt))
   self.Mask:SetVisibility(UE4.ESlateVisibility.Collapsed)
   if max_cnt > finish_cnt then
@@ -62,7 +69,11 @@ function UMG_Handbook_Subject_List_C:OnGetAwardBtn()
   UE4.UNRCAudioManager.Get():PlaySound2DAuto(41401001, "UMG_Handbook_Subject_List_C:OnGetAwardBtn")
   local isClick = _G.NRCModeManager:DoCmd(_G.HandbookModuleCmd.SetClickTime)
   if self.data and isClick then
-    _G.NRCModeManager:DoCmd(_G.HandbookModuleCmd.GetHandbookTopicAward, self.data.handbook_id, self.data.id)
+    if self.data.season_id and self.data.pet_type then
+      _G.NRCModeManager:DoCmd(_G.HandbookModuleCmd.SendGetHandbookSeasonAwardReq, self.data.season_id, self.data.pet_type)
+    else
+      _G.NRCModeManager:DoCmd(_G.HandbookModuleCmd.GetHandbookTopicAward, self.data.handbook_id, self.data.id)
+    end
   end
 end
 

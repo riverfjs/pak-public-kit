@@ -616,10 +616,14 @@ function RocoSkillAction:GetRocoBallActor(ActorInfo)
     return Actor
   end
   local BallPath = self:GetBallPath(ActorInfo, SkillObject)
+  local BallResGroup = self:GetBallResGroup(ActorInfo, SkillObject)
   if not string.IsNilOrEmpty(BallPath) then
     Actor = self:EnsureGetObjectByPath(BallPath)
   end
   if UE.UObject.IsValid(Actor) then
+    if BallResGroup then
+      Actor:SetResGroup(BallResGroup)
+    end
     self:InitBpBall(Actor, ActorInfo, SkillObject)
     Log.Debug("\229\146\149\229\153\156\231\144\131\231\148\159\229\145\189\229\145\168\230\156\159: \231\148\177\230\138\128\232\131\189\229\136\155\229\187\186", SkillObject.GetDisplayName and SkillObject:GetDisplayName(), Actor:GetFullName())
   end
@@ -637,6 +641,14 @@ function RocoSkillAction:GetBallPath(ActorInfo, SkillObject)
     BallPath = BattleConst.BallPaths.Default
   end
   return BallPath
+end
+
+function RocoSkillAction:GetBallResGroup(ActorInfo, SkillObject)
+  local BallResGroup = SkillObject.DynamicData.BallResGroup
+  if ActorInfo.BallAttachIndex > 0 and SkillObject.DynamicData.BallAdditionalResGroup and #SkillObject.DynamicData.BallAdditionalResGroup >= ActorInfo.BallAttachIndex then
+    BallResGroup = SkillObject.DynamicData.BallAdditionalResGroup[ActorInfo.BallAttachIndex]
+  end
+  return BallResGroup
 end
 
 function RocoSkillAction:GetActorLinkWithBall(BallAttachIndex)

@@ -247,6 +247,7 @@ function UMG_MagicManual_Main_C:OnDestruct()
   self.module.data.PreTaskInfo = nil
   self.module.TaskOpenCmd = false
   self.module.cacheChapterBeginData = nil
+  self.module.OpenTeachBattleId = nil
   self:UnRegisterEvent(self, MagicManualModuleEvent.UpdateTableView, self.OnSelectTabIndexChangeHandler)
   self:UnRegisterEvent(self, MagicManualModuleEvent.OnRecallCheckTaskFinished, self.OnRecallCheckTaskFinished)
   if self.functionBanUIController then
@@ -314,15 +315,12 @@ function UMG_MagicManual_Main_C:CloseMagicManual()
     mappingContext:UnBindAction("IA_CloseMagicManualQuick")
   end
   _G.NRCAudioManager:PlaySound2DAuto(40004005, "UMG_MagicManual_Main_C:OnClickBtnClose")
-  self:PlayAnimation(self.Out)
+  self:OnClose()
+  self:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
 end
 
-function UMG_MagicManual_Main_C:OnAnimationFinished(Anim)
-  if Anim == self.Out then
-    self:DelaySeconds(0.05, function()
-      self:DoClose()
-    end)
-  end
+function UMG_MagicManual_Main_C:IsInOutAnim()
+  return self:IsAnimationPlaying(self.Out)
 end
 
 function UMG_MagicManual_Main_C:SetVisibility(_ESlateVisibility)
@@ -364,7 +362,7 @@ function UMG_MagicManual_Main_C:OnUnDoFoldCollapsed()
     return
   end
   if self.MagicManual and self.MagicManual.TableIndex == SubPanel.MagicManualSubPanel and self.module.ManaulChildIndex == self.data.ManualTaskType.SeasonManual then
-    self.module:OnCmdOpenSeasonManual()
+    self.module:OnCmdOpenSeasonManual(nil, true)
   end
 end
 
@@ -392,6 +390,11 @@ function UMG_MagicManual_Main_C:OnBlockBtnClicked()
   if not isBan then
     Log.Error("UMG_MagicManual_Main_C:OnBlockBtnClicked: isBan is false")
   end
+end
+
+function UMG_MagicManual_Main_C:OnTouchEnded(_MyGeometry, _InTouchEvent)
+  _G.NRCEventCenter:DispatchEvent(MagicManualModuleEvent.OnMagicManualMainPanelTouchEnded)
+  return UE4.UWidgetBlueprintLibrary.Unhandled()
 end
 
 return UMG_MagicManual_Main_C

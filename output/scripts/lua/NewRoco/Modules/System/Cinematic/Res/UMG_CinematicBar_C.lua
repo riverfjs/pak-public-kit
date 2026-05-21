@@ -72,10 +72,6 @@ function UMG_CinematicBar_C:OnButtonSkip()
   if self.SkipMessageOn then
     return
   end
-  if self.module.SeqConf and self.module.SeqConf.not_skip_check then
-    self:OnConfirmSkipClick(true)
-    return
-  end
   self.SkipMessageOn = true
   OpenMessageBoxWthCaller(LuaText.Title_CinematicSkip, LuaText.Msg_CinematicSkip, LuaText.CONFIRM, LuaText.CANCEL, DialogContext.Mode.OK_CANCEL, self.OnConfirmSkipClick, self, nil, true)
 end

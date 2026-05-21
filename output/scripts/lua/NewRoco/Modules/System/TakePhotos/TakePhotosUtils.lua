@@ -1,4 +1,5 @@
 local TakePhotosUtils = {}
+TakePhotosUtils.SYNC_REQ = _G.ProtoMessage:newZoneClientOperationReq()
 
 function TakePhotosUtils.ToggleCameraFromWorldToTripod(TripodActor)
   Log.Info("[TakePhoto] ToggleCameraFromWorldToTripod:", TripodActor)
@@ -6,6 +7,7 @@ function TakePhotosUtils.ToggleCameraFromWorldToTripod(TripodActor)
   local controller = player:GetUEController()
   controller:ChangeToCustomCamera(TripodActor)
   TakePhotosUtils.ResetTripodCameraView(TripodActor)
+  player:GetUEController():SetFadeEnable(false)
 end
 
 function TakePhotosUtils.ToggleTripodStatus(bClear)
@@ -97,7 +99,16 @@ function TakePhotosUtils.ToggleCameraFromWorldToSelfie(CameraActor)
   local controller = player:GetUEController()
   controller:ChangeToCustomCamera(CameraActor)
   TakePhotosUtils.ResetSelfieCameraView(CameraActor)
-  player.statusComponent:ApplyStatus(ProtoEnum.WorldPlayerStatusType.WPST_TAKE_PHOTO_SELF)
+  player:GetUEController():SetFadeEnable(false)
+end
+
+function TakePhotosUtils.ToggleSelfieStatus(bEnable)
+  local player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
+  if bEnable then
+    player.statusComponent:ApplyStatus(ProtoEnum.WorldPlayerStatusType.WPST_TAKE_PHOTO_SELF)
+  else
+    player.statusComponent:ClearStatus(ProtoEnum.WorldPlayerStatusType.WPST_TAKE_PHOTO_SELF)
+  end
 end
 
 function TakePhotosUtils.ResetSelfieCameraView(CameraActor, InitTransform)
@@ -117,7 +128,7 @@ function TakePhotosUtils.ExistCameraFromSelfieToWorld()
     return
   end
   controller:ReleaseRocoCamera(0, 0, 0, true)
-  player.statusComponent:ClearStatus(ProtoEnum.WorldPlayerStatusType.WPST_TAKE_PHOTO_SELF)
+  player:GetUEController():SetFadeEnable(true)
 end
 
 function TakePhotosUtils.ExistCameraFrom1PToWorld(bExitTakePhoto)
@@ -168,6 +179,7 @@ function TakePhotosUtils.ExistCameraFromTripodToWorld()
   local player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
   local controller = player:GetUEController()
   controller:ReleaseRocoCamera(0, 0, 0, true)
+  player:GetUEController():SetFadeEnable(true)
 end
 
 function TakePhotosUtils.Reset1PCameraView()
@@ -225,12 +237,37 @@ end
 function TakePhotosUtils.EnablePlayerEmoji(Player, EmojiConf, DesiredAnimResource)
   Log.Debug("[TakePhoto] EnablePlayerEmoji", EmojiConf.name, DesiredAnimResource)
   local Success = TakePhotosUtils.PlayAnim(Player, DesiredAnimResource, true)
+  if Player.isLocal and Success then
+    _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.ApplyTPEmojiBehavior, EmojiConf, UE.EDotsStatusType.Start, Player)
+    local req = TakePhotosUtils.SYNC_REQ
+    req.operation.operator_type = ProtoEnum.ClientOperationType.COT_PLAYER_PERFORM
+    req.operation.player_perform_info.perform_type = ProtoEnum.PlayerPerformType.PPT_PHOTO_ANIM
+    req.operation.operator_id = Player:GetServerId()
+    if UE.UObject.IsValid(Player.viewObj) then
+      req.operation.photo_info.is_mirror = Player.viewObj.LeftHandCamera
+    end
+    req.operation.photo_info.is_end = false
+    req.operation.photo_info.photo_emoji_id = EmojiConf.id
+    req.operation.photo_info.photo_pose_id = nil
+    _G.ZoneServer:Send(_G.ProtoCMD.ZoneSvrCmd.ZONE_CLIENT_OPERATION_REQ, req)
+  end
   return Success
 end
 
 function TakePhotosUtils.DisablePlayerEmoji(Player, EmojiConf, CurrentAnimResource)
   Log.Debug("[TakePhoto] DisablePlayerEmoji", EmojiConf.name)
   TakePhotosUtils.StopAnim(Player, CurrentAnimResource, true)
+  if Player.isLocal then
+    _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.ApplyTPEmojiBehavior, EmojiConf, UE.EDotsStatusType.Abort, Player)
+    local req = TakePhotosUtils.SYNC_REQ
+    req.operation.operator_type = ProtoEnum.ClientOperationType.COT_PLAYER_PERFORM
+    req.operation.player_perform_info.perform_type = ProtoEnum.PlayerPerformType.PPT_PHOTO_ANIM
+    req.operation.operator_id = Player:GetServerId()
+    req.operation.photo_info.is_end = true
+    req.operation.photo_info.photo_emoji_id = EmojiConf.id
+    req.operation.photo_info.photo_pose_id = nil
+    _G.ZoneServer:Send(_G.ProtoCMD.ZoneSvrCmd.ZONE_CLIENT_OPERATION_REQ, req)
+  end
 end
 
 function TakePhotosUtils.PlayAnim(Player, Anim, bAdditive)
@@ -323,13 +360,35 @@ end
 
 function TakePhotosUtils.EnablePlayerPoseAction(Player, PoseConf, DesiredAnimResource)
   Log.Debug("[TakePhoto] EnablePlayerPoseAction", PoseConf.name, DesiredAnimResource)
-  local Success = TakePhotosUtils.PlaySelfPhotoAnim(Player, DesiredAnimResource)
-  return Success
+  TakePhotosUtils.PlaySelfPhotoAnim(Player, DesiredAnimResource)
+  if Player.isLocal then
+    local req = TakePhotosUtils.SYNC_REQ
+    req.operation.operator_type = ProtoEnum.ClientOperationType.COT_PLAYER_PERFORM
+    req.operation.player_perform_info.perform_type = ProtoEnum.PlayerPerformType.PPT_PHOTO_ANIM
+    req.operation.operator_id = Player:GetServerId()
+    if UE.UObject.IsValid(Player.viewObj) then
+      req.operation.photo_info.is_mirror = Player.viewObj.LeftHandCamera
+    end
+    req.operation.photo_info.is_end = false
+    req.operation.photo_info.photo_emoji_id = nil
+    req.operation.photo_info.photo_pose_id = PoseConf.id
+    _G.ZoneServer:Send(_G.ProtoCMD.ZoneSvrCmd.ZONE_CLIENT_OPERATION_REQ, req)
+  end
 end
 
 function TakePhotosUtils.DisablePlayerPoseAction(Player, PoseConf, CurrentAnimResource)
   Log.Debug("[TakePhoto] DisablePlayerPoseAction", PoseConf.name, CurrentAnimResource)
   TakePhotosUtils.StopSelfPhotoAnim(Player, CurrentAnimResource)
+  if Player.isLocal then
+    local req = TakePhotosUtils.SYNC_REQ
+    req.operation.operator_type = ProtoEnum.ClientOperationType.COT_PLAYER_PERFORM
+    req.operation.player_perform_info.perform_type = ProtoEnum.PlayerPerformType.PPT_PHOTO_ANIM
+    req.operation.operator_id = Player:GetServerId()
+    req.operation.photo_info.is_end = true
+    req.operation.photo_info.photo_emoji_id = nil
+    req.operation.photo_info.photo_pose_id = PoseConf.id
+    _G.ZoneServer:Send(_G.ProtoCMD.ZoneSvrCmd.ZONE_CLIENT_OPERATION_REQ, req)
+  end
 end
 
 function TakePhotosUtils.ChangeFashionWardrobe(Index, Mode)
@@ -402,6 +461,193 @@ function TakePhotosUtils.ResetPostProgressFocalRegion()
     EnvActor.PostProcess.Settings.bOverride_DepthOfFieldScale = false
     EnvActor.PostProcess.Settings.DepthOfFieldScale = 0
   end
+end
+
+function TakePhotosUtils.ReportPhoto(uin, mini_photo_url, photo_url, activity_id)
+  Log.Debug("ReportPhoto", uin, mini_photo_url, photo_url, activity_id)
+  if not uin or string.IsNilOrEmpty(mini_photo_url) or string.IsNilOrEmpty(photo_url) then
+    return
+  end
+  activity_id = activity_id or 0
+  local seasonInfo = _G.NRCModuleManager:DoCmd(_G.SeasonIntegrationModuleCmd.GetSeasonInfo)
+  local season_id = seasonInfo and seasonInfo.season_id or 0
+  local PhotoDisplayUtils = require("NewRoco.Modules.System.TakePhotos.Common.PhotoDisplayUtils")
+  local miniPicName = PhotoDisplayUtils.ParseActivityPhotoParams(mini_photo_url)
+  local picName = PhotoDisplayUtils.ParseActivityPhotoParams(photo_url)
+  local reportData = {}
+  reportData.uin = uin
+  reportData.business_data = {}
+  reportData.business_data.report_scene = ProtoEnum.SafetyBusinessInfo.ReportScense.RPTSS_ORGANIZATION_INFORMATION_SCENE
+  reportData.business_data.report_entrance = 2
+  reportData.business_data.pic_url_array = {mini_photo_url, photo_url}
+  reportData.business_data.callback = "{\"image_thumbnail\":\"" .. miniPicName .. "\",\"image_FS\":\"" .. picName .. "\",\"event_id\":" .. activity_id .. ",\"season_id\":" .. season_id .. "}"
+  _G.NRCModuleManager:DoCmd(_G.FriendModuleCmd.OpenFriendReport, reportData)
+end
+
+function TakePhotosUtils.LoadResources(Caller, ResourcePaths, OnSuccess)
+  local Sessions = {}
+  local Resources = {}
+  for i, Path in ipairs(ResourcePaths) do
+    local function _OnSuc(_, Req, Res)
+      Sessions[i] = nil
+      
+      Resources[i] = Res
+      Log.Debug("TakePhotosUtils LoadResource Finish", i, Path)
+      if not next(Sessions) then
+        OnSuccess(Caller, Resources)
+      end
+    end
+    
+    local function _OnFailed()
+      Sessions[i] = nil
+    end
+    
+    Log.Debug("TakePhotosUtils LoadResource", i, Path)
+    Sessions[i] = _G.NRCResourceManager:LoadResAsync(Caller, Path, 255, 0, _OnSuc, _OnFailed, nil, _OnFailed)
+  end
+  
+  local function OnRecycle()
+    for i, Session in pairs(Sessions) do
+      _G.NRCResourceManager:UnLoadRes(Session)
+    end
+  end
+  
+  return OnRecycle
+end
+
+function TakePhotosUtils.ReplaceCameraTexture(SkeletalMesh, ScenePlayer)
+  local MeshPath = ""
+  local MaterialPath = ""
+  local ResourcePaths = {}
+  local Resources = {}
+  local ConfigId = TakePhotosUtils.GetPlayerCameraAppearanceId(ScenePlayer)
+  local Config = _G.DataConfigManager:GetCameraSkinConf(ConfigId, true)
+  if Config then
+    MeshPath = Config.skin_model_path or ""
+    MaterialPath = Config.skin_path or "MaterialInstanceConstant'/Game/ArtRes/Asset/Environment/SAnimation/SM_Game_Camera_01/MI_Game_Camera_01.MI_Game_Camera_01'"
+    if "" ~= MeshPath then
+      table.insert(ResourcePaths, MeshPath)
+      Resources.Mesh = #ResourcePaths
+    end
+    if "" ~= MaterialPath then
+      table.insert(ResourcePaths, MaterialPath)
+      Resources.Material = #ResourcePaths
+    end
+  end
+  
+  local function OnLoadSuccess(_, Assets)
+    local Mesh = Assets[Resources.Mesh]
+    local Material = Assets[Resources.Material]
+    if not UE.UObject.IsValid(SkeletalMesh) then
+      Log.Error("[TakePhoto] Invalid SkeletalMesh", SkeletalMesh)
+      return
+    end
+    if Mesh and UE.UObject.IsValid(Mesh) then
+      SkeletalMesh:SetSkeletalMesh(Mesh, false)
+    elseif "" ~= MeshPath then
+      Log.Error("[TakePhoto] Invalid Mesh", Mesh, MeshPath)
+    end
+    if Material and UE.UObject.IsValid(Material) then
+      SkeletalMesh:SetMaterial(0, Material)
+    elseif "" ~= MaterialPath then
+      Log.Error("[TakePhoto] Invalid Material", Material, MaterialPath)
+    end
+  end
+  
+  local OnRecycle = TakePhotosUtils.LoadResources(ScenePlayer, ResourcePaths, OnLoadSuccess)
+  return OnRecycle
+end
+
+function TakePhotosUtils.GetPlayerCameraAppearanceId(ScenePlayer)
+  local CameraInfo = ScenePlayer and ScenePlayer.serverData and ScenePlayer.serverData.camera_info
+  return CameraInfo and CameraInfo.skin_id or 1
+end
+
+function AddPathToTable(inTable, path)
+  if string.IsNilOrEmpty(path) or "" == path or type(inTable) ~= "table" then
+    return
+  end
+  table.insert(inTable, path)
+end
+
+function TakePhotosUtils.LoadCameraAppearance(contextObj, cameraAppearanceId, CameraBpPath, OnLoadSuccess, OnLoadFail)
+  local assetPaths = {}
+  AddPathToTable(assetPaths, CameraBpPath)
+  if cameraAppearanceId > 0 then
+    local meshPath, materialPath, texturePath = TakePhotosUtils.GetCustomCameraAppearancePathsById(cameraAppearanceId)
+    AddPathToTable(assetPaths, meshPath)
+    AddPathToTable(assetPaths, materialPath)
+    AddPathToTable(assetPaths, texturePath)
+  end
+  local sessionId = _G.PlayerResourceManager:LoadResources_PlayerPerform_List(contextObj, assetPaths, false, OnLoadSuccess, OnLoadFail)
+  Log.Debug("[TakePhoto] LoadCameraAppearance", cameraAppearanceId, CameraBpPath, sessionId)
+  return sessionId
+end
+
+function TakePhotosUtils.GetCustomCameraAppearancePathsById(cameraAppearanceId)
+  if not cameraAppearanceId then
+    Log.Error("[TakePhoto] GetCustomCameraAppearancePathsById invalid cameraAppearanceId", cameraAppearanceId)
+    return nil, nil, nil
+  end
+  local meshPath = "SkeletalMesh'/Game/ArtRes/Asset/Environment/SAnimation/SM_Game_Camera_01/SM_Game_Camera_01_Skin.SM_Game_Camera_01_Skin'"
+  local materialPath = "MaterialInstanceConstant'/Game/ArtRes/Asset/Environment/SAnimation/SM_Game_Camera_01/MI_Game_Camera_01.MI_Game_Camera_01'"
+  local texturePath
+  local Config = _G.DataConfigManager:GetCameraSkinConf(cameraAppearanceId, true)
+  if Config then
+    meshPath = Config.skin_model_path or meshPath
+    materialPath = Config.skin_path or materialPath
+  end
+  Log.Debug("[TakePhoto] GetCustomCameraAppearancePathsById", cameraAppearanceId, tostring(meshPath), tostring(materialPath), tostring(texturePath))
+  return meshPath, materialPath, texturePath
+end
+
+function TakePhotosUtils.SetCameraAppearance(inCameraActor, inSkeletalMeshComponent, loadedAssets)
+  if nil == loadedAssets or 0 == #loadedAssets then
+    Log.Error("[TakePhoto] SetCameraAppearance invalid loadedAssets")
+    return
+  end
+  Log.Debug("[TakePhoto] assets count: ", #loadedAssets)
+  for _, v in ipairs(loadedAssets) do
+    Log.Debug("[TakePhoto] SetCameraAppearance assets type: ", v:GetName())
+  end
+  local bpActor, material, texture, mesh
+  for _, asset in ipairs(loadedAssets) do
+    if asset:IsA(UE4.UBlueprintGeneratedClass) then
+      bpActor = asset
+      Log.Debug("[TakePhoto] SetCameraAppearance bpActor is ", bpActor)
+    elseif asset:IsA(UE4.UMaterialInstanceConstant) then
+      material = asset
+      Log.Debug("[TakePhoto] SetCameraAppearance material is ", material)
+    elseif asset:IsA(UE4.UTexture2D) then
+      texture = asset
+      Log.Debug("[TakePhoto] SetCameraAppearance texture is ", texture)
+    elseif asset:IsA(UE4.USkeletalMesh) then
+      mesh = asset
+      Log.Debug("[TakePhoto] SetCameraAppearance mesh is ", mesh)
+    end
+  end
+  local cameraActor = inCameraActor or _G.UE4Helper.GetCurrentWorld():Abs_SpawnActor(bpActor, UE.FTransform(), UE.ESpawnActorCollisionHandlingMethod.AlwaysSpawn)
+  if nil == cameraActor then
+    Log.Error("[TakePhoto] SetCameraAppearance failed to spawn camera actor")
+    return
+  end
+  local skeletalMeshComponent = inSkeletalMeshComponent or cameraActor.SkeletalMesh
+  if nil == skeletalMeshComponent then
+    Log.Error("[TakePhoto] SetCameraAppearance skeletalMeshComponent is nil")
+    return
+  end
+  if nil ~= mesh then
+    skeletalMeshComponent:SetSkeletalMesh(mesh)
+  end
+  if nil ~= material then
+    skeletalMeshComponent:SetMaterial(0, material)
+  else
+    material = skeletalMeshComponent:GetMaterial(0)
+  end
+  if nil ~= texture then
+    material:SetTextureParameterValue("Texture", texture)
+  end
+  return cameraActor
 end
 
 return TakePhotosUtils

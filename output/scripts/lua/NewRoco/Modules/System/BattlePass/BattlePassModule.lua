@@ -1,5 +1,7 @@
+local ActivityUtils = require("NewRoco.Modules.System.Activity.ActivityUtils")
 local BattleEvent = require("NewRoco.Modules.Core.Battle.Common.BattleEvent")
 local SceneEvent = require("NewRoco.Modules.Core.Scene.Common.SceneEvent")
+local MusicCollectionUtils = require("NewRoco.Modules.System.MusicCollection.MusicCollectionUtils")
 local LoadingUIModuleEvent = require("NewRoco.Modules.System.LoadingUIModule.LoadingUIModuleEvent")
 local NPCShopUIModuleEvent = reload("NewRoco.Modules.System.NPCShopUI.NPCShopUIModuleEvent")
 local BattlePassModuleEvent = require("NewRoco.Modules.System.BattlePass.BattlePassModuleEvent")
@@ -75,6 +77,7 @@ function BattlePassModule:OnActive()
   self:RegisterCmd(_G.BattlePassModuleCmd.OnCmdSetActivityPassBgmState, self.SetActivityPassBgmState)
   self:RegisterCmd(_G.BattlePassModuleCmd.IsLobbyMainInnerOpenPass, self.IsLobbyMainInnerOpenPass)
   self:RegisterCmd(_G.BattlePassModuleCmd.ChangeThemeAndUnlockGift, self.ChangeThemeAndUnlockGift)
+  self:RegisterCmd(_G.BattlePassModuleCmd.IsThemeA, self.IsThemeA)
   self:RegisterCmd(_G.BattlePassModuleCmd.ChangeThemeColor, self.OnCmdChangeThemeColor)
   self:RegisterCmd(_G.BattlePassModuleCmd.ReceiveBattlePassReward, self.OnCmdReceiveBattlePassReward)
   self:RegisterCmd(_G.BattlePassModuleCmd.ZoneSelectBattlePassThemeReq, self.ZoneSelectBattlePassThemeReq)
@@ -90,6 +93,10 @@ function BattlePassModule:OnActive()
   self:RegisterCmd(_G.BattlePassModuleCmd.OpenPurchaseSuccessfulTips, self.OnCmdOpenPurchaseSuccessfulTips)
   self:RegisterCmd(_G.BattlePassModuleCmd.ClosePurchaseSuccessfulTips, self.OnCmdClosePurchaseSuccessfulTips)
   self:RegisterCmd(_G.BattlePassModuleCmd.CloseBattlePassPurchasePanel, self.OnCloseBattlePassPurchasePanel)
+  self:RegisterCmd(_G.BattlePassModuleCmd.ReqGetAnotherThemeFriends, self.OnCmdReqGetAnotherThemeFriends)
+  self:RegisterCmd(_G.BattlePassModuleCmd.OpenSelectFriendPanel, self.OnCmdOpenSelectFriendPanel)
+  self:RegisterCmd(_G.BattlePassModuleCmd.CloseSelectFriendPanel, self.OnCmdCloseSelectFriendPanel)
+  self:RegisterCmd(_G.BattlePassModuleCmd.ReqBattlePassShopData, self.OnCmdReqBattlePassShopData)
   self:RegPanel("BattlePassUpgrade", "UMG_Pass_Upgrade", _G.Enum.UILayerType.UI_LAYER_POPUP)
   self:RegPanel("BattlePassAwardMain", "UMG_Pass_AwardMain", _G.Enum.UILayerType.UI_LAYER_FULLSCREEN, nil, "Page_Out")
   self:RegPanel("BattlePassLevelUpShow", "UMG_Pass_levelUp", _G.Enum.UILayerType.UI_LAYER_POPUP)
@@ -102,6 +109,7 @@ function BattlePassModule:OnActive()
   self:RegPanel("BattlePassGift", "Umg_Pass_PresentAGift", _G.Enum.UILayerType.UI_LAYER_POPUP, "Kuili_In", "Kuili_Out", true)
   self:RegPanel("EvolutionaryChainPanel", "UMG_EvolutionaryChainPanel", _G.Enum.UILayerType.UI_LAYER_POPUP)
   self:RegPanel("BattlePurchaseSuccessfulTips", "UMG_PurchaseSuccessfulTips", _G.Enum.UILayerType.UI_LAYER_POPUP, "Finish", true)
+  self:RegPanel("BattlePassSelectFriend", "UMG_Pass_SelectFriend", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, false)
   self:RegisterRevealPopUpPanel()
   _G.NRCModuleManager:GetModule("NPCShopUIModule"):RegisterEvent(self, NPCShopUIModuleEvent.NPCSHOP_ITEM_REWARS_CLOSE, self.Test)
   _G.NRCEventCenter:RegisterEvent("BattlePassModule", self, SceneEvent.OnRelogin, self.OnRest)
@@ -114,6 +122,18 @@ function BattlePassModule:OnActive()
   self.descText = {}
   _G.ZoneServer:AddProtocolListener(self, _G.ProtoCMD.ZoneSvrCmd.ZONE_GOODS_REWARD_NOTIFY, self.ZoneGoodsRewardNotify)
   _G.ZoneServer:AddProtocolListener(self, _G.ProtoCMD.ZoneSvrCmd.ZONE_BATTLE_PASS_TASK_UPDATE_NOTIFY, self.ZoneBattlePassTaskUpdateNotify)
+  _G.ZoneServer:AddProtocolListener(self, _G.ProtoCMD.ZoneSvrCmd.ZONE_PLAYER_BATTLE_PASS_EXP_NOTIFY, self.OnZonePlayerBattlePassExpNotify)
+  _G.ZoneServer:AddProtocolListener(self, _G.ProtoCMD.ZoneSvrCmd.ZONE_GET_SELECT_ANOTHER_BATTLE_PASS_THEME_FRIENDS_RSP, self.OnGetAnotherThemeFriendsRsp)
+  self.ShowDeactivePassTips = false
+  self.preLoadThemeResMap = {}
+  Log.Info("[BattlePassSpine] PreLoadThemeRes start")
+  self:PreLoadThemeRes()
+end
+
+function BattlePassModule:GetBattlePassShopDataRspHandler(ShopRsp)
+end
+
+function BattlePassModule:OnCmdReqBattlePassShopData()
   local allBattlePassGiftConf = _G.DataConfigManager:GetAllByTableID(_G.DataConfigManager.ConfigTableId.BATTLE_PASS_GIFT_CONF)
   local ShopID = 9001
   for _, giftConf in ipairs(allBattlePassGiftConf) do
@@ -131,13 +151,9 @@ function BattlePassModule:OnActive()
     rspHandler = self.GetBattlePassShopDataRspHandler,
     needModal = false,
     ignoreErrorTip = true,
-    reqTag = "BattlePassModule:GetBattlePassShopDataReq"
+    reqTag = "BattlePassModule:OnCmdReqBattlePassShopData"
   }
   _G.NRCModuleManager:DoCmd(_G.NPCShopUIModuleCmd.OnCmdReqGetShopData, reqShopData)
-  self.ShowDeactivePassTips = false
-end
-
-function BattlePassModule:GetBattlePassShopDataRspHandler(ShopRsp)
 end
 
 function BattlePassModule:RegPanel(name, path, layer, openAnimName, closeAnimName, disablePcEsc)
@@ -321,6 +337,22 @@ function BattlePassModule:OnCmdOpenBattlePass(Tips, isLobbyOpen, tabIndex, isCom
       return
     end
   end
+  if not self:IsActivitePass() then
+    _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.bp_umg_close)
+    return
+  end
+  if self.data.PlayerBattlePassInfo and self.data.PlayerBattlePassInfo.battle_pass_id then
+    local battlePassConf = _G.DataConfigManager:GetBattlePassConf(self.data.PlayerBattlePassInfo.battle_pass_id)
+    local close_time = battlePassConf.close_time
+    local open_time = battlePassConf.open_time
+    if ActivityUtils.ToTimestamp(close_time) < ActivityUtils.GetSvrTimestamp() or ActivityUtils.ToTimestamp(open_time) > ActivityUtils.GetSvrTimestamp() then
+      _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, _G.LuaText.bagitem_BP_upgrade_tips6)
+      return
+    end
+  else
+    _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, _G.LuaText.bagitem_BP_upgrade_tips6)
+    return
+  end
   if _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GetPlayerIsAiming) then
     if _G.DataModelMgr.PlayerDataModel:GetIsTraceByBag() then
       _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.item_source_worng_tip2)
@@ -376,6 +408,34 @@ function BattlePassModule:EnableBattlePass()
   end
 end
 
+function BattlePassModule:PreLoadThemeRes(resList)
+  if not resList then
+    local resListData = self:GetCurrentActivePassThemeResList()
+    resList = resListData.PreLoadResList
+  end
+  if nil == resList or 0 == #resList then
+    Log.Info("[BattlePassSpine] PreLoadThemeRes: resList is nil or empty")
+    return
+  end
+  Log.Info("[BattlePassSpine] PreLoadThemeRes: total resources:", #resList)
+  for i = 1, #resList do
+    local cachedAsset = self.preLoadThemeResMap[resList[i]]
+    if cachedAsset and UE4.UObject.IsValid(cachedAsset) then
+    else
+      _G.NRCResourceManager:LoadResAsync(self, resList[i], 255, 0, function(caller, resRequest, asset)
+        if asset then
+          self.preLoadThemeResMap[resRequest.assetPath] = asset
+          Log.Info("[BattlePassSpine] PreLoadThemeRes: loaded OK", resRequest.assetPath)
+        else
+          Log.Warning("[BattlePassSpine] PreLoadThemeRes: loaded but asset is nil", resRequest.assetPath)
+        end
+      end, function(caller, resRequest, errorMsg)
+        Log.Error("[BattlePassSpine] PreLoadThemeRes: FAILED", resRequest.assetPath, errorMsg)
+      end)
+    end
+  end
+end
+
 function BattlePassModule:PreLoadBattlePass()
   self:PreLoadPanel("BattlePassSelectPanel", 10)
   self:PreLoadPanel("BattlePassAwardMain", 10)
@@ -384,8 +444,7 @@ end
 function BattlePassModule:OpenBattlePassPanel(tabIndex)
   local bpInfo = self.data:GetPlayerBattlePassInfo()
   _G.DataModelMgr.PlayerDataModel:AddPanelMusic(Enum.MusicApplyType.MAT_UI, Enum.InterfaceType.IT_BP)
-  _G.NRCAudioManager:SetStateByName("UI_Type", "ShanYaoDaSai")
-  _G.NRCAudioManager:SetStateByName("UI_Music", "UI_Music")
+  MusicCollectionUtils.GetBgmStateGroupByApplyType(Enum.MusicApplyType.MAT_UI, Enum.InterfaceType.IT_BP)
   if bpInfo then
     if 0 == bpInfo.theme_id or bpInfo.theme_id == nil then
       _G.NRCModuleManager:DoCmd(_G.BattlePassModuleCmd.OpenPassSelectPanel)
@@ -409,8 +468,7 @@ function BattlePassModule:OnZoneGetBattlePassInfoRsp(_rsp)
     if _rsp.battle_pass_info and 0 ~= _rsp.battle_pass_info.battle_pass_id then
       self.data:SetPlayerBattlePassInfo(_rsp)
       _G.DataModelMgr.PlayerDataModel:AddPanelMusic(Enum.MusicApplyType.MAT_UI, Enum.InterfaceType.IT_BP)
-      _G.NRCAudioManager:SetStateByName("UI_Type", "ShanYaoDaSai")
-      _G.NRCAudioManager:SetStateByName("UI_Music", "UI_Music")
+      MusicCollectionUtils.GetBgmStateGroupByApplyType(Enum.MusicApplyType.MAT_UI, Enum.InterfaceType.IT_BP)
       if 0 == _rsp.battle_pass_info.theme_id or _rsp.battle_pass_info.theme_id == nil then
         _G.NRCModuleManager:DoCmd(_G.BattlePassModuleCmd.OpenPassSelectPanel)
       else
@@ -492,7 +550,9 @@ function BattlePassModule:OnCmdChangeRegisterPopUpReveal(isEnable)
 end
 
 function BattlePassModule:OnCmdOpenPassAwardMainPanel(arg1, arg2, tabIndex)
-  self:OpenPanel("BattlePassAwardMain", arg1, arg2, tabIndex)
+  local resListData = self:GetCurrentActivePassThemeResList()
+  self:PreLoadThemeRes(resListData.PreLoadResList)
+  self:OpenPanel("BattlePassAwardMain", arg1, arg2, tabIndex, resListData)
 end
 
 function BattlePassModule:OnCmdClosePassAwardMainPanel()
@@ -519,15 +579,40 @@ end
 
 function BattlePassModule:OnCmdOpenPassPurchasePanel()
   _G.DataModelMgr.PlayerDataModel:AddPanelMusic(Enum.MusicApplyType.MAT_UI, Enum.InterfaceType.IT_BP)
-  _G.NRCAudioManager:SetStateByName("UI_Type", "ShanYaoDaSai")
-  _G.NRCAudioManager:SetStateByName("UI_Music", "UI_Music")
+  MusicCollectionUtils.GetBgmStateGroupByApplyType(Enum.MusicApplyType.MAT_UI, Enum.InterfaceType.IT_BP)
   self.IsOpenBattlePurchasePanel = true
-  self:OpenPanel("BattlePurchasePanel")
+  local resListData = self:GetCurrentActivePassThemeResList()
+  self:PreLoadThemeRes(resListData.PreLoadResList)
+  self:OpenPanel("BattlePurchasePanel", resListData)
+end
+
+function BattlePassModule:GetCurrentActivePassThemeResList()
+  local resListData = _G.NRCPanelResLoadData()
+  resListData.PreLoadResList = {}
+  resListData.PreparingResList = {}
+  local currentActivePassCfg = self:GetCurrentActivePass()
+  if currentActivePassCfg then
+    local themeIds = currentActivePassCfg.theme_id
+    for key, value in ipairs(themeIds) do
+      local themeUIConf = _G.DataConfigManager:GetBattlePassUiTheme(value)
+      if themeUIConf then
+        if themeUIConf.spine_atlas then
+          table.insert(resListData.PreLoadResList, themeUIConf.spine_atlas)
+        end
+        if themeUIConf.spine_skeletondata then
+          table.insert(resListData.PreLoadResList, themeUIConf.spine_skeletondata)
+        end
+      end
+    end
+  end
+  return resListData
 end
 
 function BattlePassModule:OnCmdOpenPassSelectPanel()
   if not self.IsOpenBattlePurchasePanel then
-    self:OpenPanel("BattlePassSelectPanel")
+    local resListData = self:GetCurrentActivePassThemeResList()
+    self:PreLoadThemeRes(resListData.PreLoadResList)
+    self:OpenPanel("BattlePassSelectPanel", resListData)
   end
 end
 
@@ -1177,6 +1262,15 @@ function BattlePassModule:OnGetNewBattlePassInfo(_rsp)
   end
 end
 
+function BattlePassModule:OnZonePlayerBattlePassExpNotify(notify)
+  local battlePassInfo = self.data:GetPlayerBattlePassInfo()
+  if battlePassInfo and battlePassInfo.exp_info then
+    battlePassInfo.exp_info.level = notify.level
+    battlePassInfo.exp_info.exp = notify.exp
+    _G.NRCEventCenter:DispatchEvent(BattlePassModuleEvent.UpdateBattlePassInfo)
+  end
+end
+
 function BattlePassModule:GetCurrentThemeImagePath(filename)
   local bpInfo = self.data:GetPlayerBattlePassInfo()
   local themeId = bpInfo.theme_id
@@ -1217,7 +1311,7 @@ function BattlePassModule:IsActivitePass()
   for _, cfg in pairs(bpCfgs) do
     local open_time = self:ConvertToTimeSeconds(cfg.open_time)
     local close_time = self:ConvertToTimeSeconds(cfg.close_time)
-    if curTime <= open_time or curTime <= close_time then
+    if curTime >= open_time and curTime <= close_time then
       t[#t + 1] = {
         id = cfg.id,
         open_time = open_time,
@@ -1234,6 +1328,27 @@ function BattlePassModule:IsActivitePass()
     end
   end
   return false
+end
+
+function BattlePassModule:GetCurrentActivePass()
+  local bpTable = _G.DataConfigManager:GetTable(_G.DataConfigManager.ConfigTableId.BATTLE_PASS_CONF)
+  local bpCfgs = bpTable:GetAllDatas()
+  local curTime = _G.ZoneServer:GetServerTime() / 1000
+  local activePasses = {}
+  for _, cfg in pairs(bpCfgs) do
+    local open_time = self:ConvertToTimeSeconds(cfg.open_time)
+    local close_time = self:ConvertToTimeSeconds(cfg.close_time)
+    if curTime >= open_time and curTime <= close_time then
+      activePasses[#activePasses + 1] = cfg
+    end
+  end
+  if #activePasses > 0 then
+    table.sort(activePasses, function(a, b)
+      return a.id < b.id
+    end)
+    return activePasses[1]
+  end
+  return nil
 end
 
 function BattlePassModule:ZoneTaskInfoNotify(notify)
@@ -1478,13 +1593,260 @@ function BattlePassModule:OnChangeThemeRsp(rsp)
   end
 end
 
-function BattlePassModule:OnCmdChangeThemeColor(PanelName, PanelInstane)
-  self.data:ChangeThemeColor(PanelName, PanelInstane)
+function BattlePassModule:InitSpineWidgetForPanel(panel, panelName, umgName)
+  Log.Info("[BattlePassSpine] InitSpineWidgetForPanel: panelName:", panelName, "umgName:", umgName)
+  if not panel then
+    Log.Warning("[BattlePassModule] InitSpineWidgetForPanel: panel is nil")
+    return
+  end
+  local currentActivePassCfg = self:GetCurrentActivePass()
+  if not currentActivePassCfg then
+    Log.Warning("[BattlePassModule] InitSpineWidgetForPanel: currentActivePassCfg is nil")
+    return
+  end
+  local themeIds = currentActivePassCfg.theme_id
+  if not themeIds then
+    Log.Warning("[BattlePassModule] InitSpineWidgetForPanel: themeIds is nil")
+    return
+  end
+  Log.Info("[BattlePassSpine] InitSpineWidgetForPanel: themeIds count:", #themeIds)
+  self:DoInitSpineWidgetForPanel(panel, themeIds, panelName, umgName)
+end
+
+function BattlePassModule:DoInitSpineWidgetForPanel(panel, themeIds, panelName, umgName)
+  for index, themeId in ipairs(themeIds) do
+    local themeUIConf = _G.DataConfigManager:GetBattlePassUiTheme(themeId)
+    if not themeUIConf then
+      Log.Warning("[BattlePassModule] DoInitSpineWidgetForPanel: themeUIConf is nil for themeId:", themeId)
+    elseif not themeUIConf.spine_atlas or not themeUIConf.spine_skeletondata then
+      Log.Warning("[BattlePassModule] DoInitSpineWidgetForPanel: spine_atlas or spine_skeletondata is nil for themeId:", themeId)
+    else
+      local atlas = self.preLoadThemeResMap[themeUIConf.spine_atlas]
+      local skeletonData = self.preLoadThemeResMap[themeUIConf.spine_skeletondata]
+      if atlas and not UE4.UObject.IsValid(atlas) then
+        Log.Warning("[BattlePassModule] DoInitSpineWidgetForPanel: PreLoaded atlas is invalid(GC), clearing. path:", themeUIConf.spine_atlas)
+        self.preLoadThemeResMap[themeUIConf.spine_atlas] = nil
+        atlas = nil
+      end
+      if skeletonData and not UE4.UObject.IsValid(skeletonData) then
+        Log.Warning("[BattlePassModule] DoInitSpineWidgetForPanel: PreLoaded skeletonData is invalid(GC), clearing. path:", themeUIConf.spine_skeletondata)
+        self.preLoadThemeResMap[themeUIConf.spine_skeletondata] = nil
+        skeletonData = nil
+      end
+      if not atlas or not skeletonData then
+        Log.Warning("[BattlePassModule] DoInitSpineWidgetForPanel: PreLoadRes not found or invalid, using async load. atlas:", nil ~= atlas, "skeletonData:", nil ~= skeletonData, "path:", themeUIConf.spine_atlas)
+        self:LoadSpineWidgetAsyncForPanel(panel, themeUIConf, panelName, umgName)
+      elseif themeUIConf.widget_group then
+        for _, widgetGroup in ipairs(themeUIConf.widget_group) do
+          if widgetGroup.umgname == umgName then
+            local spineWidgetName = widgetGroup.spinewigetname
+            if spineWidgetName then
+              local spineWidget = panel[spineWidgetName]
+              if spineWidget then
+                self:SetupSpineWidget(spineWidget, atlas, skeletonData, spineWidgetName)
+              else
+                Log.Warning("[BattlePassModule] DoInitSpineWidgetForPanel: SpineWidget not found:", spineWidgetName, "for themeId:", themeId)
+              end
+            end
+          end
+        end
+      else
+        Log.Warning("[BattlePassModule] DoInitSpineWidgetForPanel: widget_group is nil for themeId:", themeId)
+      end
+    end
+  end
+end
+
+function BattlePassModule:SetupSpineWidget(spineWidget, atlas, skeletonData, widgetName)
+  if not spineWidget or not UE4.UObject.IsValid(spineWidget) then
+    Log.Warning("[BattlePassModule] SetupSpineWidget: spineWidget is nil or invalid for", widgetName)
+    return false
+  end
+  if not atlas or not UE4.UObject.IsValid(atlas) then
+    Log.Warning("[BattlePassModule] SetupSpineWidget: atlas is nil or invalid for", widgetName)
+    return false
+  end
+  if not skeletonData or not UE4.UObject.IsValid(skeletonData) then
+    Log.Warning("[BattlePassModule] SetupSpineWidget: skeletonData is nil or invalid for", widgetName)
+    return false
+  end
+  spineWidget:ClearTrack(0)
+  spineWidget.skeletondata = skeletonData
+  spineWidget.atlas = atlas
+  spineWidget:LuaSynchronizeProperties()
+  spineWidget:SetRenderOpacity(1.0)
+  spineWidget:SetAnimation(0, "Idle", true)
+  Log.Debug("[BattlePassModule] SetupSpineWidget: Successfully initialized", widgetName, "SpineWidget")
+  return true
+end
+
+function BattlePassModule:LoadSpineWidgetAsyncForPanel(panel, themeUIConf, panelName, umgName)
+  Log.Info("[BattlePassSpine] LoadSpineWidgetAsyncForPanel: panelName:", panelName, "umgName:", umgName)
+  if not panel then
+    Log.Warning("[BattlePassModule] LoadSpineWidgetAsyncForPanel: panel is nil")
+    return
+  end
+  if not themeUIConf or not themeUIConf.widget_group then
+    Log.Warning("[BattlePassModule] LoadSpineWidgetAsyncForPanel: themeUIConf or widget_group is nil")
+    return
+  end
+  for _, widgetGroup in ipairs(themeUIConf.widget_group) do
+    if widgetGroup.umgname == umgName then
+      local spineWidgetName = widgetGroup.spinewigetname
+      if spineWidgetName then
+        local spineWidget = panel[spineWidgetName]
+        if spineWidget and UE4.UObject.IsValid(spineWidget) then
+          spineWidget:SetRenderOpacity(0.0)
+        end
+      end
+    end
+  end
+  for _, widgetGroup in ipairs(themeUIConf.widget_group) do
+    if widgetGroup.umgname == umgName then
+      local spineWidgetName = widgetGroup.spinewigetname
+      if spineWidgetName then
+        local spineWidget = panel[spineWidgetName]
+        if spineWidget then
+          self:LoadSingleSpineWidgetAsync(panel, spineWidget, themeUIConf, spineWidgetName)
+        else
+          Log.Warning("[BattlePassModule] LoadSpineWidgetAsyncForPanel: SpineWidget not found:", spineWidgetName)
+        end
+      end
+    end
+  end
+end
+
+function BattlePassModule:LoadSingleSpineWidgetAsync(panel, spineWidget, themeUIConf, widgetName)
+  if not panel then
+    Log.Warning("[BattlePassModule] LoadSingleSpineWidgetAsync: panel is nil for", widgetName)
+    return
+  end
+  if not spineWidget then
+    Log.Warning("[BattlePassModule] LoadSingleSpineWidgetAsync: spineWidget is nil for", widgetName)
+    return
+  end
+  local atlasLoaded = false
+  local skeletonLoaded = false
+  local loadedAtlas, loadedSkeletonData
+  local module = self
+  
+  local function CheckSpineReady()
+    Log.Info("[BattlePassSpine] LoadSingleAsync CheckSpineReady: atlasLoaded:", atlasLoaded, "skeletonLoaded:", skeletonLoaded, "for", widgetName)
+    if atlasLoaded and skeletonLoaded then
+      if not UE4.UObject.IsValid(panel) then
+        Log.Warning("[BattlePassModule] LoadSingleSpineWidgetAsync: panel already destroyed for", widgetName)
+        return
+      end
+      if not UE4.UObject.IsValid(spineWidget) then
+        Log.Warning("[BattlePassModule] LoadSingleSpineWidgetAsync: spineWidget already destroyed for", widgetName)
+        return
+      end
+      if loadedAtlas and loadedSkeletonData then
+        local success = module:SetupSpineWidget(spineWidget, loadedAtlas, loadedSkeletonData, widgetName)
+        if success then
+          Log.Info("[BattlePassSpine] LoadSingleAsync: success for", widgetName)
+        else
+          Log.Warning("[BattlePassModule] LoadSingleSpineWidgetAsync: SetupSpineWidget failed for", widgetName)
+        end
+      else
+        Log.Warning("[BattlePassModule] LoadSingleSpineWidgetAsync: Resources not loaded for", widgetName)
+      end
+    end
+  end
+  
+  panel:LoadPanelRes(themeUIConf.spine_skeletondata, 255, function(caller, resRequest, asset)
+    Log.Info("[BattlePassSpine] LoadSingleAsync: skeletonData callback, asset:", nil ~= asset, "for", widgetName)
+    if asset then
+      loadedSkeletonData = asset
+      skeletonLoaded = true
+      CheckSpineReady()
+    else
+      Log.Warning("[BattlePassModule] LoadSingleSpineWidgetAsync: Failed to load skeletonData for", widgetName)
+    end
+  end, nil, nil)
+  panel:LoadPanelRes(themeUIConf.spine_atlas, 255, function(caller, resRequest, asset)
+    Log.Info("[BattlePassSpine] LoadSingleAsync: atlas callback, asset:", nil ~= asset, "for", widgetName)
+    if asset then
+      loadedAtlas = asset
+      atlasLoaded = true
+      CheckSpineReady()
+    else
+      Log.Warning("[BattlePassModule] LoadSingleSpineWidgetAsync: Failed to load atlas for", widgetName)
+    end
+  end, nil, nil)
+end
+
+function BattlePassModule:IsThemeA(theme_id)
+  if nil == theme_id then
+    Log.Warning("IsThemeA: theme_id is nil")
+    return false
+  end
+  local themeCfg = _G.DataConfigManager:GetBattlePassUiTheme(theme_id)
+  if nil ~= themeCfg then
+    return themeCfg.is_theme_a
+  else
+    Log.Warning("IsThemeA: themeCfg is nil")
+    return false
+  end
+end
+
+function BattlePassModule:OnCmdChangeThemeColor(PanelName, PanelInstane, theme_id)
+  self.data:ChangeThemeColor(PanelName, PanelInstane, theme_id)
 end
 
 function BattlePassModule:OnCloseBattlePassPurchasePanel()
   if self:HasPanel("BattlePurchasePanel") then
     self:ClosePanel("BattlePurchasePanel")
+  end
+end
+
+function BattlePassModule:OnCmdReqGetAnotherThemeFriends(isGetDetail)
+  if isGetDetail and not self.data:CanReqFriendTheme() then
+    Log.Debug("BattlePassModule:OnCmdReqGetAnotherThemeFriends CD\228\184\173\239\188\140\228\189\191\231\148\168\231\188\147\229\173\152\230\149\176\230\141\174")
+    return
+  end
+  local battlePassInfo = self.data:GetPlayerBattlePassInfo()
+  if not battlePassInfo or battlePassInfo.battle_pass_brief_info.gift_grade == _G.ProtoEnum.BattlePassGiftGrade.BPGG_FREE then
+    Log.Warning("BattlePassModule:OnCmdReqGetAnotherThemeFriends \230\156\170\233\148\129\229\174\154\228\184\187\233\162\152")
+    return
+  end
+  local req = _G.ProtoMessage:newZoneGetSelectAnotherBattlePassThemeFriendsReq()
+  req.is_get_detail = isGetDetail or false
+  _G.ZoneServer:Send(_G.ProtoCMD.ZoneSvrCmd.ZONE_GET_SELECT_ANOTHER_BATTLE_PASS_THEME_FRIENDS_REQ, req)
+end
+
+function BattlePassModule:OnGetAnotherThemeFriendsRsp(rsp)
+  if rsp.ret_info and 0 ~= rsp.ret_info.ret_code then
+    Log.Warning("OnGetAnotherThemeFriendsRsp error:", rsp.ret_info.ret_code)
+    return
+  end
+  local friendList = rsp.friend_role_list or {}
+  local isFirst = 1 == rsp.pack_index
+  local isEnd = rsp.is_end
+  if isFirst then
+    self.data:ClearAnotherThemeFriendTempList()
+    self.data:SetAnotherThemeFriendCount(rsp.friend_info.friend_num)
+  end
+  self.data:AppendAnotherThemeFriendTempList(friendList)
+  if isEnd then
+    local isOnlyGetNum = rsp.friend_info.friend_num > 0 and 0 == #friendList
+    if not isOnlyGetNum then
+      local fullList = self.data:GetAnotherThemeFriendTempList()
+      local sortedList = self.data:SortFriendList(fullList)
+      self.data:SetAnotherThemeFriendList(sortedList)
+    end
+    self.data:ClearAnotherThemeFriendTempList()
+    _G.NRCEventCenter:DispatchEvent(BattlePassModuleEvent.RefreshAnotherThemeFriendUI)
+  end
+end
+
+function BattlePassModule:OnCmdOpenSelectFriendPanel()
+  self:OpenPanel("BattlePassSelectFriend")
+end
+
+function BattlePassModule:OnCmdCloseSelectFriendPanel()
+  if self:HasPanel("BattlePassSelectFriend") then
+    self:ClosePanel("BattlePassSelectFriend")
   end
 end
 

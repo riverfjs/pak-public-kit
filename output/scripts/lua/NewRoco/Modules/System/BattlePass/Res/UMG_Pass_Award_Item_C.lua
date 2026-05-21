@@ -5,6 +5,8 @@ local UMG_Pass_Award_Item_C = Base:Extend("UMG_Pass_Award_Item_C")
 function UMG_Pass_Award_Item_C:OnItemUpdate(_data, datalist, index)
   self.data = _data.ItemData
   local id = _data.ItemID - 1
+  self.bpLevel = _data.ItemID
+  self.isPremiumReward = _data.isPremiumReward or false
   local state = self.data.state
   self.ReceiveAward:SetVisibility(UE4.ESlateVisibility.Collapsed)
   if 1 == state then
@@ -27,7 +29,7 @@ function UMG_Pass_Award_Item_C:OnItemSelected(_bSelected)
     end
     local touchReasonType = _G.NRCModuleManager:DoCmd(MultiTouchModuleCmd.GetPanelSelectBtnReason, panelName).TIPS
     _G.NRCModuleManager:DoCmd(MultiTouchModuleCmd.LockIsSelectBtn, moduleName, panelName, touchReasonType)
-    if 1 == self.data.state then
+    if 1 == self.data.state and self.bpLevel and self.curLevel and self.bpLevel <= self.curLevel then
       _G.NRCModuleManager:DoCmd(_G.BattlePassModuleCmd.ReceiveBattlePassReward, false, self.data.awardInfo.index)
       return
     end
@@ -216,18 +218,22 @@ end
 function UMG_Pass_Award_Item_C:SetState(state)
   self.BlackMask:SetVisibility(UE4.ESlateVisibility.Collapsed)
   if 0 == state then
-    self.lock:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
   elseif 1 == state then
-    self.lock:SetVisibility(UE4.ESlateVisibility.Collapsed)
     if 1 ~= self.preState then
       self:PlayAwardEffect(true)
     end
   elseif 2 == state then
-    self.lock:SetVisibility(UE4.ESlateVisibility.Collapsed)
     if 1 == self.preState then
       self:PlayAwardEffect(false)
     end
     self.BlackMask:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+  end
+  local battlePassInfo = _G.NRCModuleManager:DoCmd(_G.BattlePassModuleCmd.GetCurrentBattlePassInfo)
+  self.curLevel = battlePassInfo.exp_info and battlePassInfo.exp_info.level or 0
+  if self.bpLevel > self.curLevel or self.isPremiumReward and 0 == state then
+    self.lock:SetVisibility(UE4.ESlateVisibility.HitTestInvisible)
+  else
+    self.lock:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
   self.preState = state
 end

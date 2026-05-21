@@ -59,8 +59,14 @@ function PetMutationUtils.GetShineColor(rgba)
   color.R = rgba[1]
   color.G = rgba[2]
   color.B = rgba[3]
+  if rgba[4] then
+    color.A = rgba[4]
+  end
   return color
 end
+
+local PerLoadPathToKeyMap = {}
+local PreLoadKeyHelper = {}
 
 function PetMutationUtils.GetPreloadList()
   local list = {}
@@ -77,30 +83,73 @@ function PetMutationUtils.GetPreloadList()
     return longPath
   end
   
+  local function setPreLoadList(key, path)
+    if not key or "" == key then
+      return
+    end
+    if not path or "" == path then
+      return
+    end
+    local exitedKey = PerLoadPathToKeyMap[path]
+    if exitedKey then
+      PreLoadKeyHelper[key] = exitedKey
+      return
+    end
+    PerLoadPathToKeyMap[path] = key
+    list[key] = path
+  end
+  
   local particleRandomConfigs = _G.DataConfigManager:GetTable(_G.DataConfigManager.ConfigTableId.PARTICLE_RANDOM_CONF)
   if particleRandomConfigs then
     for _, conf in pairs(particleRandomConfigs) do
-      list[PetMutationUtils.GetGeneralParticleKey(conf.id)] = getAssetPath(conf.particle_res)
+      local assetPath = getAssetPath(conf.particle_res)
+      setPreLoadList(PetMutationUtils.GetGeneralParticleKey(conf.id), assetPath)
+      if conf.egg_particle_res and conf.egg_particle_res ~= "" then
+        local EggAssetPath = getAssetPath(conf.egg_particle_res)
+        setPreLoadList(PetMutationUtils.GetGeneralEggParticleKey(conf.id), EggAssetPath)
+      end
     end
   end
   local hiddenGlassConfigs = _G.DataConfigManager:GetTable(_G.DataConfigManager.ConfigTableId.HIDDEN_GLASS_CONF)
   if hiddenGlassConfigs then
     for _, conf in pairs(hiddenGlassConfigs) do
-      if conf.main_tex and conf.main_tex ~= "" then
-        list[PetMutationUtils.GetHiddenParticleKey(conf.id, "MainTex")] = getAssetPath(conf.main_tex)
-      end
-      if conf.particle and "" ~= conf.particle then
-        list[PetMutationUtils.GetHiddenParticleKey(conf.id, "Star")] = getAssetPath(conf.particle)
+      local texturePaths = conf.tex_param
+      if texturePaths then
+        for _, texturePath in pairs(texturePaths) do
+          local assetPath = getAssetPath(texturePath.tex_param_path)
+          setPreLoadList(PetMutationUtils.GetHiddenParticleKey(conf.id, texturePath.tex_param_name), assetPath)
+        end
       end
     end
   end
-  list[PetMutationUtils.GetNormalEggKeyStarStickTex()] = "Texture2D'/Game/ArtRes/BP/Texture/PetGlassyStar/Tex_EggGlassyStar_001.Tex_EggGlassyStar_001'"
-  list[PetMutationUtils.GetNormalEggKeyAdditionalMat()] = "MaterialInstanceConstant'/Game/ArtRes/Material/Characters/PetBase/MaterialInstance/Special/MI_P_EggGlassy_Outline.MI_P_EggGlassy_Outline'"
+  setPreLoadList(PetMutationUtils.GetNormalEggKeyStarStickTex(), "Texture2D'/Game/ArtRes/BP/Texture/PetGlassyStar/Tex_EggGlassyStar_001.Tex_EggGlassyStar_001'")
+  setPreLoadList(PetMutationUtils.GetNormalEggKeyAdditionalMat(), "MaterialInstanceConstant'/Game/ArtRes/Material/Characters/PetBase/MaterialInstance/Special/MI_P_EggGlassy_Outline.MI_P_EggGlassy_Outline'")
+  local eggTypeConfigs = _G.DataConfigManager:GetTable(_G.DataConfigManager.ConfigTableId.EGG_TYPE_CONF)
+  if eggTypeConfigs then
+    for _, conf in pairs(eggTypeConfigs) do
+      local assetPath = conf.model_tex
+      if assetPath then
+        setPreLoadList(PetMutationUtils.GetNormalEggKeyModelMat(conf.precious_egg_type), assetPath)
+      end
+    end
+  end
+  local petRandomEggConfigs = _G.DataConfigManager:GetTable(_G.DataConfigManager.ConfigTableId.PET_RANDOM_EGG_CONF)
+  if petRandomEggConfigs then
+    for _, conf in pairs(petRandomEggConfigs) do
+      local assetPath = conf.model_mark_tex
+      setPreLoadList(PetMutationUtils.GetRandomEggKeyModelMarkTex(conf.id), assetPath)
+    end
+  end
+  setPreLoadList(PetMutationUtils.GetRandomEggKeyOutline(), "Texture2D'/Game/ArtRes/AnimSequence/Pets/EggRandom/T_EggRandom_Fx.T_EggRandom_Fx'")
   return list
 end
 
 function PetMutationUtils.GetGeneralParticleKey(id)
   return string.format("PetMutationParticleGeneral-%d", id)
+end
+
+function PetMutationUtils.GetGeneralEggParticleKey(id)
+  return string.format("PetEggMutationParticleGeneral-%d", id)
 end
 
 function PetMutationUtils.GetHiddenParticleKey(id, property)
@@ -115,16 +164,65 @@ function PetMutationUtils.GetNormalEggKeyAdditionalMat()
   return string.format("PetMutationShine-NormalEgg-AdditionalMat")
 end
 
+function PetMutationUtils.GetRandomEggKeyModelMarkTex(id)
+  return string.format("PetMutationShine-RandomEgg-%d-MarkTex", id)
+end
+
+function PetMutationUtils.GetRandomEggKeyOutline()
+  return string.format("PetMutationShine-RandomEgg-Outline")
+end
+
+function PetMutationUtils.GetNormalEggKeyModelMat(precious_egg_type)
+  return string.format("PetMutation-NormalEgg-%d-ModelMat", precious_egg_type)
+end
+
 function PetMutationUtils.GetShineParticle(key)
   if not key then
-    Log.Warning("PetMutationUtils.GetShineParticle key is nil", key)
+    Log.Warning("PetMutationUtils.GetShineParticle key is nil")
     return
   end
-  local particle = _G.NRCBigWorldPreloader:Get(key)
+  local realKey = key
+  local existedKey = PreLoadKeyHelper[key]
+  if existedKey then
+    realKey = existedKey
+  end
+  local particle = _G.NRCBigWorldPreloader:Get(realKey)
   if not particle then
-    Log.Warning("PetMutationUtils.GetShineParticle particle is nil", key)
+    Log.Warning("PetMutationUtils.GetShineParticle particle is nil", key, realKey)
   end
   return particle
+end
+
+PetMutationUtils.GlassActorType = {
+  NormalPet = 0,
+  NormalEgg = 1,
+  RandomEgg = 2
+}
+
+function PetMutationUtils.SetPetDataGlassActorType(petData, value)
+  if petData then
+    petData.glassyActorType = value
+  end
+end
+
+function PetMutationUtils.GetPetDataGlassActorType(petData)
+  if not petData then
+    return nil
+  end
+  return petData.glassyActorType
+end
+
+function PetMutationUtils.IsGlassyNormalPet(petData)
+  local actorType = PetMutationUtils.GetPetDataGlassActorType(petData)
+  return nil == actorType or actorType == PetMutationUtils.GlassActorType.NormalPet
+end
+
+function PetMutationUtils.IsGlassyNormalEgg(petData)
+  return PetMutationUtils.GetPetDataGlassActorType(petData) == PetMutationUtils.GlassActorType.NormalEgg
+end
+
+function PetMutationUtils.IsGlassyRandomEgg(petData)
+  return PetMutationUtils.GetPetDataGlassActorType(petData) == PetMutationUtils.GlassActorType.RandomEgg
 end
 
 function PetMutationUtils.GetNpcColorMutatationModelCfg(npcCfg)
@@ -220,7 +318,7 @@ function PetMutationUtils.GetDisplayMutationData(card, is_show_shining)
     mutation_type = card.petInfo.battle_common_pet_info.mutation_type,
     nature = card.petInfo.battle_common_pet_info.nature,
     glass_info = card.petInfo.battle_common_pet_info.glass_info,
-    base_conf_id = card.petInfo.battle_common_pet_info.base_conf_id
+    base_conf_id = card.petInfo.battle_inside_pet_info.base_conf_id or card.petInfo.battle_common_pet_info.base_conf_id
   }
   if card.petState:GetNightmare() or card.petState:GetNightmareOne() then
     mutationPetData.mutation_type = mutationPetData.mutation_type & ~_G.Enum.MutationDiffType.MDT_CHAOS
@@ -234,7 +332,7 @@ function PetMutationUtils.GetDisplayMutationData(card, is_show_shining)
 end
 
 function PetMutationUtils.GetMutationValue(mutation_type, type)
-  return (mutation_type or 0) & type > 0
+  return (mutation_type or 0) & (type or 0) > 0
 end
 
 function PetMutationUtils.DoMutation(character, petData)
@@ -573,7 +671,7 @@ function PetMutationUtils.ApplyColorDiffMaterial(character, originMaterialsSuffi
   end
 end
 
-function PetMutationUtils.SetGlassyDiffMutation(character, petData, isEgg)
+function PetMutationUtils.SetGlassyDiffMutation(character, petData)
   if not UE4.UObject.IsValid(character) then
     return
   end
@@ -581,7 +679,7 @@ function PetMutationUtils.SetGlassyDiffMutation(character, petData, isEgg)
     return
   end
   local glass_info = petData.glass_info
-  if petData.isNormalEgg then
+  if PetMutationUtils.IsGlassyNormalEgg(petData) then
     local bNotExplicitGlassyEgg = false
     if not glass_info then
       bNotExplicitGlassyEgg = true
@@ -602,8 +700,8 @@ function PetMutationUtils.SetGlassyDiffMutation(character, petData, isEgg)
     return
   end
   
-  local function processMaterial(mat, mesh, idx, colorA, colorB, strength, particle)
-    if not isEgg then
+  local function processMaterial(mat, mesh, idx, colorA, colorB, strength, particle, starStickTiling)
+    if not PetMutationUtils.IsGlassyRandomEgg(petData) then
       mat:SetSwitchParameterValue("GlassySwitch", true, mesh, false)
       if nil ~= colorA then
         mat:SetVectorParameterValue("RedChannel", colorA)
@@ -636,6 +734,10 @@ function PetMutationUtils.SetGlassyDiffMutation(character, petData, isEgg)
         GlassInfo.Name = "StarIntensity"
         mat:SetScalarParameterValueByInfo(GlassInfo, strength)
       end
+      if nil ~= starStickTiling then
+        GlassInfo.Name = "StarStickTiling"
+        mat:SetScalarParameterValueByInfo(GlassInfo, starStickTiling)
+      end
       if nil ~= particle then
         GlassInfo.Name = "StarStickTex"
         mat:SetTextureParameterValueByInfo(GlassInfo, particle)
@@ -644,7 +746,9 @@ function PetMutationUtils.SetGlassyDiffMutation(character, petData, isEgg)
   end
   
   local function processAdditionalMaterial(additionalMat, mesh, idx, colorA, colorB)
-    additionalMat:SetSwitchParameterValue("GlassySwitch", true, mesh, false)
+    if colorA and colorB then
+      additionalMat:SetSwitchParameterValue("GlassySwitch", true, mesh, false)
+    end
     if nil ~= colorA then
       additionalMat:SetVectorParameterValue("RedChannel", colorA)
     end
@@ -662,7 +766,7 @@ function PetMutationUtils.SetGlassyDiffMutation(character, petData, isEgg)
       local bSeasonButNotCustomPet = false
       if conf.type == _G.ProtoEnum.HiddenGlassType.HGT_SEASON then
         if petData.base_conf_id and petData.base_conf_id == conf.season_pet then
-          if not isEgg then
+          if not PetMutationUtils.IsGlassyRandomEgg(petData) then
             local seasonSwitchName = "MutationSwitch"
             local seasonSwitchLayer = UE4.EMaterialParameterAssociation.LayerParameter
             
@@ -687,50 +791,42 @@ function PetMutationUtils.SetGlassyDiffMutation(character, petData, isEgg)
         end
       end
       if bSeasonButNotCustomPet or conf.type == _G.ProtoEnum.HiddenGlassType.HGT_RESIDENT then
-        local strength = conf.star_intensity
-        local particle
-        if conf.particle then
-          particle = PetMutationUtils.GetShineParticle(PetMutationUtils.GetHiddenParticleKey(conf.id, "Star"))
-        end
-        local mainTex
-        if conf.main_tex then
-          mainTex = PetMutationUtils.GetShineParticle(PetMutationUtils.GetHiddenParticleKey(conf.id, "MainTex"))
+        local textureParams = {}
+        if conf.tex_param then
+          for _, texturePath in ipairs(conf.tex_param) do
+            local paramName = texturePath.tex_param_name
+            if paramName then
+              local texture = PetMutationUtils.GetShineParticle(PetMutationUtils.GetHiddenParticleKey(conf.id, paramName))
+              if texture then
+                textureParams[paramName] = texture
+              end
+            end
+          end
         end
         local scalarParams = {}
-        if conf.Effect_Amount then
-          scalarParams.NormalEffectAmount = conf.Effect_Amount
-        end
-        if conf.global_refraction then
-          scalarParams.GlobalRefraction = conf.global_refraction
-        end
-        if conf.tex_flow_speed_x then
-          scalarParams.MainTexFlowSpeedX = conf.tex_flow_speed_x
-        end
-        if conf.tex_flow_speed_y then
-          scalarParams.MainTexFlowSpeedY = conf.tex_flow_speed_y
-        end
-        if conf.global_depth then
-          scalarParams.GlobalDepth = conf.global_depth
+        if conf.num_param then
+          for _, scalarParam in ipairs(conf.num_param) do
+            local paramName = scalarParam.num_param_name
+            local scalarValue = scalarParam.num_param_value
+            if paramName and scalarValue then
+              scalarParams[paramName] = scalarValue
+            end
+          end
         end
         local vectorParams = {}
-        if conf.particle_color_1 then
-          vectorParams.StickRandomColor01 = PetMutationUtils.GetShineColor(conf.particle_color_1)
-        end
-        if conf.particle_color_2 then
-          vectorParams.StickRandomColor02 = PetMutationUtils.GetShineColor(conf.particle_color_2)
-        end
-        if conf.particle_color_3 then
-          vectorParams.StickRandomColor03 = PetMutationUtils.GetShineColor(conf.particle_color_3)
-        end
-        if conf.particle_color_4 then
-          vectorParams.StickRandomColor04 = PetMutationUtils.GetShineColor(conf.particle_color_4)
+        if conf.color_param then
+          for _, colorParam in ipairs(conf.color_param) do
+            local paramName = colorParam.color_param_name
+            local colorArray = colorParam.color_param_value
+            vectorParams[paramName] = PetMutationUtils.GetShineColor(colorArray)
+          end
         end
         
         function materialFunc(mat, mesh, idx)
-          processMaterial(mat, mesh, idx, colorA, colorB, strength, particle)
+          processMaterial(mat, mesh, idx, colorA, colorB, nil, nil)
           for name, value in pairs(scalarParams) do
             if value then
-              if not isEgg then
+              if not PetMutationUtils.IsGlassyRandomEgg(petData) then
                 mat:SetScalarParameterValue(name, value)
               else
                 local GlassInfo = UE4.FMaterialParameterInfo()
@@ -743,7 +839,7 @@ function PetMutationUtils.SetGlassyDiffMutation(character, petData, isEgg)
           end
           for name, color in pairs(vectorParams) do
             if color then
-              if not isEgg then
+              if not PetMutationUtils.IsGlassyRandomEgg(petData) then
                 mat:SetVectorParameterValue(name, color)
               else
                 local GlassInfo = UE4.FMaterialParameterInfo()
@@ -754,15 +850,17 @@ function PetMutationUtils.SetGlassyDiffMutation(character, petData, isEgg)
               end
             end
           end
-          if nil ~= mainTex then
-            if not isEgg then
-              mat:SetTextureParameterValue("MainTex", mainTex)
-            else
-              local GlassInfo = UE4.FMaterialParameterInfo()
-              GlassInfo.Name = "MainTex"
-              GlassInfo.Association = UE4.EMaterialParameterAssociation.LayerParameter
-              GlassInfo.Index = 1
-              mat:SetTextureParameterValueByInfo(GlassInfo, mainTex)
+          for name, texture in pairs(textureParams) do
+            if texture then
+              if not PetMutationUtils.IsGlassyRandomEgg(petData) then
+                mat:SetTextureParameterValue(name, texture)
+              else
+                local GlassInfo = UE4.FMaterialParameterInfo()
+                GlassInfo.Name = name
+                GlassInfo.Association = UE4.EMaterialParameterAssociation.LayerParameter
+                GlassInfo.Index = 1
+                mat:SetTextureParameterValueByInfo(GlassInfo, texture)
+              end
             end
           end
         end
@@ -776,7 +874,7 @@ function PetMutationUtils.SetGlassyDiffMutation(character, petData, isEgg)
     end
   elseif glass_info.glass_type == _G.ProtoEnum.GlassType.GT_COMMON then
     local glassInfoDetails = PetMutationUtils.DecodeShineColorId(glass_info)
-    local colorA, colorB, strength, particle
+    local colorA, colorB, strength, particle, starStickTiling
     if glassInfoDetails and glassInfoDetails.glassType == ProtoEnum.GlassType.GT_COMMON and glassInfoDetails.colorInfo then
       local conf = _G.DataConfigManager:GetColorRandomConf(glassInfoDetails.colorInfo.colorId)
       if nil ~= conf then
@@ -785,11 +883,18 @@ function PetMutationUtils.SetGlassyDiffMutation(character, petData, isEgg)
         strength = conf.shine_strength
       end
       local particleId = glassInfoDetails.colorInfo.particle
+      local particleConf = _G.DataConfigManager:GetParticleRandomConf(particleId)
+      if particleConf and PetMutationUtils.IsGlassyRandomEgg(petData) then
+        starStickTiling = particleConf.StarStickTiling
+      end
       particle = PetMutationUtils.GetShineParticle(PetMutationUtils.GetGeneralParticleKey(particleId))
+      if PetMutationUtils.IsGlassyRandomEgg(petData) and 4 == particleId then
+        particle = PetMutationUtils.GetShineParticle(PetMutationUtils.GetGeneralEggParticleKey(particleId))
+      end
     end
     
     function materialFunc(mat, mesh, idx)
-      processMaterial(mat, mesh, idx, colorA, colorB, strength, particle)
+      processMaterial(mat, mesh, idx, colorA, colorB, strength, particle, starStickTiling)
     end
     
     function additionalFunc(additionalMat, mesh, idx)
@@ -800,14 +905,27 @@ function PetMutationUtils.SetGlassyDiffMutation(character, petData, isEgg)
     Log.Debug("PetMutationUtils.SetGlassyDiffMutation materialFunc or additionalFunc is nil")
     return
   end
+  local normalMaterial = true
   local suffixes = {"by"}
   for idx = 0, 9 do
     table.insert(suffixes, string.format("by%d", idx))
   end
-  if isEgg then
+  if PetMutationUtils.IsGlassyRandomEgg(petData) then
     suffixes = {
-      "RandomEgg_003"
+      "MI_UI_RandomEgg_003"
     }
+    if petData.random_egg_conf then
+      local randomEggConf = _G.DataConfigManager:GetPetRandomEggConf(petData.random_egg_conf)
+      if randomEggConf then
+        local materialName = PetMutationUtils.GetRandomEggMaterialName(randomEggConf.model_mutation_mat)
+        if materialName then
+          if materialName ~= suffixes[1] then
+            normalMaterial = false
+          end
+          suffixes = {materialName}
+        end
+      end
+    end
   end
   local mesh = character.mesh
   local rocoMaterial = character.RocoMaterial
@@ -816,7 +934,7 @@ function PetMutationUtils.SetGlassyDiffMutation(character, petData, isEgg)
     return
   end
   local materials
-  if not petData.isNormalEgg then
+  if not PetMutationUtils.IsGlassyNormalEgg(petData) then
     materials = rocoMaterial:GetMaterialsBySuffixesAsMID(mesh, suffixes)
   else
     materials = rocoMaterial:GetCurrentMaterialsAsMID(mesh)
@@ -826,7 +944,9 @@ function PetMutationUtils.SetGlassyDiffMutation(character, petData, isEgg)
   end
   for idx, mat in tpairs(materials) do
     if UE4.UObject.IsValid(mat) then
-      materialFunc(mat, mesh, idx)
+      if normalMaterial then
+        materialFunc(mat, mesh, idx)
+      end
       for _, additionalMat in tpairs(mat.AdditionalMaterials) do
         if UE4.UObject.IsValid(additionalMat) then
           additionalFunc(additionalMat, mesh, idx)
@@ -847,8 +967,17 @@ function PetMutationUtils.SetGlassyDiffMutationForNormalEgg(character, petData)
   if not materials then
     return
   end
-  Log.Debug("PetMutationUtils.SetGlassyDiffMutationForNormalEgg", UE4.UKismetSystemLibrary.GetDisplayName(character))
-  for idx, mat in tpairs(materials) do
+  local curPreciousEggType
+  if petData and petData.precious_egg_type then
+    curPreciousEggType = petData.precious_egg_type
+  end
+  if nil == curPreciousEggType and petData and petData.conf_id then
+    local PetEggConf = _G.DataConfigManager:GetPetEggConf(petData.conf_id)
+    if PetEggConf then
+      curPreciousEggType = PetEggConf.precious_egg_type
+    end
+  end
+  for idx, mat in pairs(materials) do
     if UE4.UObject.IsValid(mat) then
       mat:SetSwitchParameterValue("GlassySwitch", true, mesh, false)
       mat:SetScalarParameterValue("GlassyMainColorOpacity", 1.0)
@@ -857,12 +986,14 @@ function PetMutationUtils.SetGlassyDiffMutationForNormalEgg(character, petData)
       if starStickTex then
         mat:SetTextureParameterValue("StarStickTex", starStickTex)
       end
-      local additionalMat = PetMutationUtils.GetShineParticle(PetMutationUtils.GetNormalEggKeyAdditionalMat())
-      if additionalMat then
-        local matInstance = UE4.UKismetMaterialLibrary.CreateDynamicMaterialInstance(character, additionalMat)
-        if matInstance then
-          mat.AdditionalMaterials:Clear()
-          mat.AdditionalMaterials:Add(matInstance)
+      if curPreciousEggType then
+        local additionalMat = PetMutationUtils.GetShineParticle(PetMutationUtils.GetNormalEggKeyModelMat(curPreciousEggType))
+        if additionalMat then
+          local matInstance = UE4.UKismetMaterialLibrary.CreateDynamicMaterialInstance(character, additionalMat)
+          if matInstance then
+            mat.AdditionalMaterials:Clear()
+            mat.AdditionalMaterials:Add(matInstance)
+          end
         end
       end
     end
@@ -872,6 +1003,14 @@ end
 function PetMutationUtils.GetNightmareParameterInfo()
   local nightmareParameterInfo = UE4.FMaterialParameterInfo()
   nightmareParameterInfo.Name = "\229\188\128\229\144\175\233\187\145\233\173\148\230\179\149\230\149\136\230\158\156"
+  nightmareParameterInfo.Association = UE4.EMaterialParameterAssociation.LayerParameter
+  nightmareParameterInfo.Index = 0
+  return nightmareParameterInfo
+end
+
+function PetMutationUtils.GetNightmareOneParameterInfo()
+  local nightmareParameterInfo = UE4.FMaterialParameterInfo()
+  nightmareParameterInfo.Name = "\229\188\128\229\144\175\229\153\169\230\162\166\230\174\139\231\149\153\230\149\136\230\158\156"
   nightmareParameterInfo.Association = UE4.EMaterialParameterAssociation.LayerParameter
   nightmareParameterInfo.Index = 0
   return nightmareParameterInfo
@@ -916,10 +1055,13 @@ function PetMutationUtils.SetNightmareByIDMask(character)
     if UE4.UObject.IsValid(mat) then
       mat:SetSwitchParameterValue("\229\188\128\229\144\175\233\187\145\233\173\148\230\179\149\230\149\136\230\158\156", true, mesh, false)
       mat:SetScalarParameterValueByInfo(PetMutationUtils.GetNightmareParameterInfo(), 1.0)
+      mat:SetSwitchParameterValue("\229\188\128\229\144\175\229\153\169\230\162\166\230\174\139\231\149\153\230\149\136\230\158\156", true, mesh, false)
+      mat:SetScalarParameterValueByInfo(PetMutationUtils.GetNightmareOneParameterInfo(), 1.0)
       mat:SetScalarParameterValue("OpenBlackMagicByIDMask", 1)
       for _, additionalMat in tpairs(mat.AdditionalMaterials) do
         if UE4.UObject.IsValid(additionalMat) then
           additionalMat:SetSwitchParameterValue("\229\188\128\229\144\175\233\187\145\233\173\148\230\179\149\230\149\136\230\158\156", true, mesh, false)
+          additionalMat:SetSwitchParameterValue("\229\188\128\229\144\175\229\153\169\230\162\166\230\174\139\231\149\153\230\149\136\230\158\156", true, mesh, false)
           additionalMat:SetScalarParameterValue("OpenBlackMagicByIDMask", 1)
         end
       end
@@ -950,6 +1092,9 @@ function PetMutationUtils.SetNightmareSecondMutation(character)
 end
 
 function PetMutationUtils.RemoveNightmareFirstMutation(character)
+  if not character or not UE4.UObject.IsValid(character) then
+    return
+  end
   local rocoMaterial = character.RocoMaterial
   local mesh = character.mesh
   if not UE4.UObject.IsValid(rocoMaterial) or not UE4.UObject.IsValid(mesh) then
@@ -959,6 +1104,9 @@ function PetMutationUtils.RemoveNightmareFirstMutation(character)
 end
 
 function PetMutationUtils.RemoveNightmareSecondMutation(character)
+  if not character or not UE4.UObject.IsValid(character) then
+    return
+  end
   local rocoMaterial = character.RocoMaterial
   local mesh = character.mesh
   if not UE4.UObject.IsValid(rocoMaterial) or not UE4.UObject.IsValid(mesh) then
@@ -980,6 +1128,9 @@ function PetMutationUtils.RemoveNightmareSecondMutation(character)
 end
 
 function PetMutationUtils.RemoveNightmareByIDMask(character)
+  if not character or not UE4.UObject.IsValid(character) then
+    return
+  end
   local rocoMaterial = character.RocoMaterial
   local mesh = character.mesh
   if not UE4.UObject.IsValid(rocoMaterial) or not UE4.UObject.IsValid(mesh) then
@@ -1022,73 +1173,160 @@ end
 function PetMutationUtils.DoPetEggMutation(egg, eggData)
   if egg and eggData then
     local mutation_type = eggData.mutation_type
-    local glass_info = eggData.glass_info
-    local normalEgg = false
     if eggData.random_egg_conf then
       local randomEggConf = _G.DataConfigManager:GetPetRandomEggConf(eggData.random_egg_conf)
-      if randomEggConf then
-        local materials
-        if randomEggConf.model_mutation_mat then
+      if randomEggConf and randomEggConf.model_mutation_mat then
+        if egg.MaterialMap:Find(randomEggConf.model_mutation_mat) then
           egg:ChangeMaterial(randomEggConf.model_mutation_mat)
-          normalEgg = not egg:IsGlassyEgg(randomEggConf.model_mutation_mat)
-          if not normalEgg then
-            local suffixes = {
-              "RandomEgg_003"
-            }
-            materials = egg.RocoMaterial:GetMaterialsBySuffixesAsMID(egg.mesh, suffixes)
-          end
-        end
-        if mutation_type and glass_info then
-          if PetMutationUtils.GetMutationValue(mutation_type, _G.Enum.MutationDiffType.MDT_GLASS) then
-            PetMutationUtils.SetGlassyDiffMutation(egg, eggData, true)
-          elseif PetMutationUtils.GetMutationValue(mutation_type, _G.Enum.MutationDiffType.MDT_CHAOS_THREE) and egg then
-            egg:ChangeMaterial(randomEggConf.model_mutation_mat)
-            normalEgg = true
-            PetMutationUtils.SetNightmareByIDMask(egg)
-          end
-        end
-        local markTexPath = randomEggConf.model_mark_tex
-        if markTexPath and "" ~= markTexPath then
-          local function onLoadGlassyParticleSucceed(caller, req, asset)
-            if asset then
-              local material = egg.mesh:GetMaterial(0)
-              
-              if UE4.UObject.IsValid(material) and not normalEgg then
-                local GlassInfo = UE4.FMaterialParameterInfo()
-                GlassInfo.Name = "RampTex"
-                GlassInfo.Association = UE4.EMaterialParameterAssociation.LayerParameter
-                GlassInfo.Index = 2
-                material:SetTextureParameterValueByInfo(GlassInfo, asset)
-              end
-              if materials and not glass_info and not mutation_type then
-                for _, mat in tpairs(materials) do
-                  if UE4.UObject.IsValid(mat) then
-                    for _, additionalMat in tpairs(mat.AdditionalMaterials) do
-                      if UE4.UObject.IsValid(additionalMat) then
-                        local GlassInfo = UE4.FMaterialParameterInfo()
-                        GlassInfo.Name = "RampTex"
-                        GlassInfo.Association = UE4.EMaterialParameterAssociation.LayerParameter
-                        GlassInfo.Index = 1
-                        additionalMat:SetTextureParameterValueByInfo(GlassInfo, asset)
-                        GlassInfo.Name = "OpenFlowColor"
-                        additionalMat:SetScalarParameterValueByInfo(GlassInfo, 1)
-                      end
-                    end
-                  end
-                end
-              end
-            end
-          end
-          
-          _G.NRCResourceManager:LoadResAsync(egg, markTexPath, PriorityEnum.Active_World_NPC_Mutation, 10, onLoadGlassyParticleSucceed)
+          PetMutationUtils.SetRandomEggExtraEffect(egg, eggData, randomEggConf)
+        else
+          PetMutationUtils.DoSpecialPetEggMutation(egg, eggData, randomEggConf)
         end
       end
     elseif PetMutationUtils.CheckIsCustomGlassEgg(eggData) then
-      eggData.isNormalEgg = true
-      PetMutationUtils.SetGlassyDiffMutation(egg, eggData, false)
+      PetMutationUtils.SetPetDataGlassActorType(eggData, PetMutationUtils.GlassActorType.NormalEgg)
+      PetMutationUtils.SetGlassyDiffMutation(egg, eggData)
     elseif PetMutationUtils.GetMutationValue(mutation_type, _G.Enum.MutationDiffType.MDT_GLASS) then
-      eggData.isNormalEgg = true
-      PetMutationUtils.SetGlassyDiffMutation(egg, eggData, false)
+      PetMutationUtils.SetPetDataGlassActorType(eggData, PetMutationUtils.GlassActorType.NormalEgg)
+      PetMutationUtils.SetGlassyDiffMutation(egg, eggData)
+    elseif eggData then
+      local CurPreciousEggType
+      if nil == CurPreciousEggType then
+        CurPreciousEggType = eggData.precious_egg_type
+      end
+      if nil == CurPreciousEggType and eggData.conf_id then
+        local PetEggConf = _G.DataConfigManager:GetPetEggConf(eggData.conf_id)
+        if PetEggConf then
+          CurPreciousEggType = PetEggConf.precious_egg_type
+        end
+      end
+      if CurPreciousEggType then
+        local PetEggTypeConf = _G.DataConfigManager:GetEggTypeConf(CurPreciousEggType + 1)
+        if PetEggTypeConf and PetEggTypeConf.icon_tex then
+          PetMutationUtils.SetPetDataGlassActorType(eggData, PetMutationUtils.GlassActorType.NormalEgg)
+          PetMutationUtils.SetGlassyDiffMutation(egg, eggData)
+        end
+      end
+    end
+  end
+end
+
+function PetMutationUtils.GetRandomEggMaterialName(assetPath)
+  if not assetPath or "" == assetPath then
+    return nil
+  end
+  local fileName = assetPath:match("[^/]+$")
+  if not fileName then
+    return nil
+  end
+  return fileName:match("^([^%.]+)")
+end
+
+function PetMutationUtils.SetRandomEggExtraEffect(egg, eggData, randomEggConf)
+  if egg and eggData and randomEggConf then
+    local normalEgg = randomEggConf.mutation_type ~= _G.Enum.MutationDiffType.MDT_GLASS
+    local mutation_type = eggData.mutation_type
+    local glass_info = eggData.glass_info
+    if mutation_type then
+      if glass_info and PetMutationUtils.GetMutationValue(mutation_type, _G.Enum.MutationDiffType.MDT_GLASS) then
+        PetMutationUtils.SetPetDataGlassActorType(eggData, PetMutationUtils.GlassActorType.RandomEgg)
+        PetMutationUtils.SetGlassyDiffMutation(egg, eggData)
+      elseif PetMutationUtils.GetMutationValue(mutation_type, _G.Enum.MutationDiffType.MDT_CHAOS_THREE) and egg then
+        PetMutationUtils.SetNightmareByIDMask(egg)
+      end
+    end
+    local materials
+    if not normalEgg then
+      local materialName = PetMutationUtils.GetRandomEggMaterialName(randomEggConf.model_mutation_mat)
+      if materialName then
+        local suffixes = {materialName}
+        materials = egg.RocoMaterial:GetMaterialsBySuffixesAsMID(egg.mesh, suffixes)
+      end
+    end
+    
+    local function OnSetOutline(asset)
+      if materials then
+        for _, mat in tpairs(materials) do
+          if UE4.UObject.IsValid(mat) then
+            for _, additionalMat in tpairs(mat.AdditionalMaterials) do
+              if UE4.UObject.IsValid(additionalMat) then
+                local GlassInfo = UE4.FMaterialParameterInfo()
+                GlassInfo.Name = "RampTex"
+                GlassInfo.Association = UE4.EMaterialParameterAssociation.LayerParameter
+                GlassInfo.Index = 1
+                additionalMat:SetTextureParameterValueByInfo(GlassInfo, asset)
+                GlassInfo.Name = "OpenFlowColor"
+                additionalMat:SetScalarParameterValueByInfo(GlassInfo, 1)
+              end
+            end
+          end
+        end
+      end
+    end
+    
+    local markTexPath = randomEggConf.model_mark_tex
+    if markTexPath and "" ~= markTexPath then
+      local texture = PetMutationUtils.GetShineParticle(PetMutationUtils.GetRandomEggKeyModelMarkTex(randomEggConf.id))
+      if texture and UE4.UObject.IsValid(texture) then
+        local material = egg.mesh:GetMaterial(0)
+        if UE4.UObject.IsValid(material) and not normalEgg then
+          local GlassInfo = UE4.FMaterialParameterInfo()
+          GlassInfo.Name = "RampTex"
+          GlassInfo.Association = UE4.EMaterialParameterAssociation.LayerParameter
+          GlassInfo.Index = 2
+          material:SetTextureParameterValueByInfo(GlassInfo, texture)
+        end
+        if not glass_info and not mutation_type then
+          OnSetOutline(texture)
+        end
+      end
+    end
+    if mutation_type and PetMutationUtils.GetMutationValue(mutation_type, _G.Enum.MutationDiffType.MDT_GLASS) and glass_info and glass_info.glass_value then
+      local value = glass_info.glass_value
+      value = value & 1048575
+      value = value >> 0
+      if 0 == value then
+        local texture = PetMutationUtils.GetShineParticle(PetMutationUtils.GetRandomEggKeyOutline())
+        if texture and UE4.UObject.IsValid(texture) then
+          OnSetOutline(texture)
+        end
+      end
+    end
+  end
+end
+
+function PetMutationUtils.DoSpecialPetEggMutation(egg, eggData, randomEggConf)
+  if egg and eggData and randomEggConf then
+    local function onLoadMaterialSucceed(caller, req, asset)
+      if asset then
+        egg.Mesh:SetMaterial(0, asset)
+        
+        PetMutationUtils.SetPetDataGlassActorType(eggData, PetMutationUtils.GlassActorType.RandomEgg)
+        PetMutationUtils.SetGlassyDiffMutation(egg, eggData)
+        PetMutationUtils.SetRandomEggExtraEffect(egg, eggData, randomEggConf)
+      elseif eggData then
+        local CurPreciousEggType
+        if nil == CurPreciousEggType then
+          CurPreciousEggType = eggData.precious_egg_type
+        end
+        if nil == CurPreciousEggType and eggData.conf_id then
+          local PetEggConf = _G.DataConfigManager:GetPetEggConf(eggData.conf_id)
+          if PetEggConf then
+            CurPreciousEggType = PetEggConf.precious_egg_type
+          end
+        end
+        if CurPreciousEggType then
+          local PetEggTypeConf = _G.DataConfigManager:GetEggTypeConf(CurPreciousEggType + 1)
+          if PetEggTypeConf and PetEggTypeConf.icon_tex then
+            PetMutationUtils.SetPetDataGlassActorType(eggData, PetMutationUtils.GlassActorType.NormalEgg)
+            PetMutationUtils.SetGlassyDiffMutation(egg, eggData)
+          end
+        end
+      end
+    end
+    
+    if randomEggConf.model_mutation_mat then
+      _G.NRCResourceManager:LoadResAsync(egg, randomEggConf.model_mutation_mat, PriorityEnum.Active_World_NPC_Mutation, 10, onLoadMaterialSucceed)
     end
   end
 end

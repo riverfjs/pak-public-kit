@@ -90,11 +90,6 @@ function UMG_QualificationInterpretation_C:SetPanelInfo(OpenType)
     self.Title_4:SetText(Text)
     Text = _G.DataConfigManager:GetLocalizationConf("umg_qualificationinterpretation_5").msg
     Text = string.format("\229\189\147\229\137\141%s%s", data.conf.attribute_name, Text)
-    local StriveLevel = data[1].attrInfo.effort_lv or 0
-    local StriveExp = data[1].attrInfo.effort_exp or 0
-    local attrType = data.conf.attribute
-    local Percent, CurExp, MaxExp = PetUtils.GetStrivePercent(attrType, StriveLevel, StriveExp)
-    self:SetLvAndExpText(StriveLevel, CurExp, MaxExp)
   end
 end
 

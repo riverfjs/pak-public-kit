@@ -65,8 +65,8 @@ function UMG_Modify_C:SetChangeNatureInfo(ChangeType, openType)
     IsNagEnough = true
   else
     NagItemSynthesisInfoList = _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.GetLineupShareAlchemyByItemId, 100421)
-    local exchangeConf = _G.DataConfigManager:GetExchangeConf(NagItemSynthesisInfoList[1].exchangeId)
-    local exchangeLimitId = exchangeConf.exchange_time_limit_group
+    local exchangeConf = _G.DataConfigManager:GetExchangeConf(NagItemSynthesisInfoList[1] and NagItemSynthesisInfoList[1].exchangeId)
+    local exchangeLimitId = exchangeConf and exchangeConf.exchange_time_limit_group
     if exchangeLimitId and 0 ~= exchangeLimitId then
       local exchangeLimitConf = _G.DataConfigManager:GetExchangeTimeLimitConf(exchangeLimitId)
       if exchangeLimitConf then
@@ -374,10 +374,20 @@ function UMG_Modify_C:OnChangeApply()
       elseif self.bloodUIDataList[self.selectBloodIndex].NeedItemList then
         local useItemList = {}
         local UseItemInfo = {}
+        local bloodItemID = self.bloodUIDataList[self.selectBloodIndex].BloodItemID
+        local bagItem = _G.NRCModuleManager:DoCmd(_G.BagModuleCmd.GetBagItemByID, bloodItemID)
         UseItemInfo.gid = 0
-        UseItemInfo.item_conf_id = self.bloodUIDataList[self.selectBloodIndex].BloodItemID
+        UseItemInfo.item_conf_id = bloodItemID
+        if not bagItem then
+          local wannengBagItem = _G.NRCModuleManager:DoCmd(_G.BagModuleCmd.GetBagItemByID, 102022)
+          if wannengBagItem then
+            UseItemInfo.gid = wannengBagItem.gid
+            UseItemInfo.item_conf_id = 102022
+          end
+        end
         UseItemInfo.num = 1
         UseItemInfo.para = self.bloodUIDataList[self.selectBloodIndex].petGid
+        UseItemInfo.para2 = self.bloodUIDataList[self.selectBloodIndex].tarBloodID
         table.insert(useItemList, UseItemInfo)
         _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.PetTeamShareQuickAdjust, nil, useItemList, {
           ItemConfId = self.bloodUIDataList[self.selectBloodIndex].BloodItemID,
@@ -599,8 +609,8 @@ function UMG_Modify_C:SetChangeTalentInfo(ChangeType, openType)
     IsEnough = true
   else
     ItemSynthesisInfoList = _G.NRCModuleManager:DoCmd(_G.PetUIModuleCmd.GetLineupShareAlchemyByItemId, 100422)
-    local exchangeConf = _G.DataConfigManager:GetExchangeConf(ItemSynthesisInfoList[1].exchangeId)
-    local exchangeLimitId = exchangeConf.exchange_time_limit_group
+    local exchangeConf = _G.DataConfigManager:GetExchangeConf(ItemSynthesisInfoList[1] and ItemSynthesisInfoList[1].exchangeId)
+    local exchangeLimitId = exchangeConf and exchangeConf.exchange_time_limit_group
     if exchangeLimitId and 0 ~= exchangeLimitId then
       local exchangeLimitConf = _G.DataConfigManager:GetExchangeTimeLimitConf(exchangeLimitId)
       if exchangeLimitConf then

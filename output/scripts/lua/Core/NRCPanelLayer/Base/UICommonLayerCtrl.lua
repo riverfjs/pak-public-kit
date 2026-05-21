@@ -15,22 +15,34 @@ function UICommonLayerCtrl:Free()
   self._showWins:Clear()
 end
 
-function UICommonLayerCtrl:CalcWindowDepth()
+function UICommonLayerCtrl:GetWindowDepthOffset()
+  return self._windowDepthOffset or 50
+end
+
+function UICommonLayerCtrl:CalcWindowDepth(specifiedDepthStart)
   local depth = self.depth
-  local topWindowData = self._showWins:Last()
-  if topWindowData then
-    depth = (topWindowData.depth or 0) + (self._windowDepthOffset or 50)
+  local depthOffset = self:GetWindowDepthOffset()
+  if specifiedDepthStart and specifiedDepthStart > 0 then
+    depth = specifiedDepthStart + depthOffset
   else
-    depth = depth + (self._windowDepthOffset or 50)
+    local topWindowData = self._showWins:Last()
+    if topWindowData then
+      depth = (topWindowData.depth or 0) + depthOffset
+    else
+      depth = depth + depthOffset
+    end
   end
   return depth
 end
 
-function UICommonLayerCtrl:AddWindowData(windowId, module, dependentPanelName)
+function UICommonLayerCtrl:AddWindowData(windowId, module, panelData)
   local windowData = {}
+  windowData.layerCtrl = self
   windowData.windowId = windowId
   windowData.module = module
-  windowData.depth = self:CalcWindowDepth(dependentPanelName)
+  windowData.panelData = panelData
+  windowData.depth = self:CalcWindowDepth()
+  windowData.status = NRCPanelEnum.PanelStatus.Init
   self._showWins:Add(windowData)
   return windowData
 end
@@ -45,9 +57,12 @@ function UICommonLayerCtrl:RemoveWindowData(windowId)
 end
 
 function UICommonLayerCtrl:GetWindowData(windowId)
-  for _, winData in ipairs(self._showWins:Items()) do
+  if not windowId then
+    return
+  end
+  for index, winData in ipairs(self._showWins:Items()) do
     if winData.windowId == windowId then
-      return winData
+      return winData, index
     end
   end
 end
@@ -56,6 +71,74 @@ function UICommonLayerCtrl:OnAddToLayerViewport(windowData)
 end
 
 function UICommonLayerCtrl:OnRemoveFromLayerViewport(windowData)
+end
+
+function UICommonLayerCtrl:SafeInvokeWindowFunction(windowData, funcName, ...)
+  if string.IsNilOrEmpty(funcName) then
+    return
+  end
+  local panel = windowData and windowData.panel
+  if panel and panel[funcName] then
+    local ok, msg = pcall(panel[funcName], panel, ...)
+    if not ok then
+      Log.Error(msg)
+    end
+  end
+end
+
+function UICommonLayerCtrl:AdjustWindowDepth(windowData, depth, inBatching)
+  if windowData and depth then
+    windowData.depth = depth
+    local panel = windowData.panel
+    if panel then
+      panel.depth = depth
+      panel:SetWidgetOrderInViewport(depth, inBatching)
+      self:SafeInvokeWindowFunction(windowData, "OnDepthChanged", depth)
+    end
+  end
+end
+
+function UICommonLayerCtrl:FloatingWindowByData(wins, windowData, dstIndex)
+  local srcIndex = wins and wins:IndexOf(windowData)
+  return self:FloatingWindowByIndex(wins, srcIndex, dstIndex)
+end
+
+function UICommonLayerCtrl:FloatingWindowByIndex(wins, srcIndex, dstIndex)
+  if not (wins and srcIndex) or not dstIndex then
+    return false
+  end
+  local size = wins:Size()
+  dstIndex = math.min(dstIndex, size)
+  if srcIndex <= 0 or srcIndex > size or dstIndex <= 0 or size < dstIndex then
+    return false
+  end
+  if srcIndex ~= dstIndex then
+    local windowData = wins:Get(srcIndex)
+    local adjustDepth = windowData.depth
+    local step = srcIndex < dstIndex and 1 or -1
+    for i = srcIndex + step, dstIndex, step do
+      local curData = wins:Get(i)
+      local curDepth = adjustDepth
+      adjustDepth = curData.depth
+      self:AdjustWindowDepth(curData, curDepth, true)
+    end
+    self:AdjustWindowDepth(windowData, adjustDepth, false)
+    wins:RemoveAt(srcIndex)
+    wins:Insert(dstIndex, windowData)
+  end
+  return true
+end
+
+function UICommonLayerCtrl:BringToFrontImpl(windowId)
+  local winData, winIndex = self:GetWindowData(windowId)
+  local success = self:FloatingWindowByIndex(self._showWins, winIndex, self._showWins:Size())
+  return success, winData
+end
+
+function UICommonLayerCtrl:SendToBackImpl(windowId)
+  local winData, winIndex = self:GetWindowData(windowId)
+  local success = self:FloatingWindowByIndex(self._showWins, winIndex, 1)
+  return success, winData
 end
 
 function UICommonLayerCtrl:GetWindow(windowId)
@@ -90,6 +173,20 @@ function UICommonLayerCtrl:GetLayerWindowCount()
   return self._showWins:Size()
 end
 
+function UICommonLayerCtrl:BringToFront(windowId, ...)
+  local success, winData = self:BringToFrontImpl(windowId)
+  if success then
+    self:SafeInvokeWindowFunction(winData, "OnBringToFront", ...)
+  end
+end
+
+function UICommonLayerCtrl:SendToBack(windowId, ...)
+  local success, winData = self:SendToBackImpl(windowId)
+  if success then
+    self:SafeInvokeWindowFunction(winData, "OnSendToBack", ...)
+  end
+end
+
 function UICommonLayerCtrl:GetDebugData()
   local ret = {}
   for _, winData in ipairs(self._showWins:Items()) do
@@ -120,10 +217,24 @@ function UICommonLayerCtrl:RemoveFromLayerViewport(panelOrWindowId)
   return true
 end
 
-function UICommonLayerCtrl:SetPanelReadyToOpen(windowId, module, dependentPanelName)
-  local windowData = self:PreAssignedPanelDepth(windowId, module, dependentPanelName)
+function UICommonLayerCtrl:SetPanelReadyToOpen(windowId, module, panelData)
+  local windowData = self:PreAssignedPanelDepth(windowId, module, panelData)
   if windowData then
-    windowData.isPreAssigned = nil
+    windowData.status = NRCPanelEnum.PanelStatus.ReadyToOpen
+  end
+end
+
+function UICommonLayerCtrl:SetPanelAlreadyVisible(windowId, panel)
+  local windowData = self:GetWindowData(windowId)
+  if windowData then
+    windowData.status = NRCPanelEnum.PanelStatus.Visible
+  end
+end
+
+function UICommonLayerCtrl:SetPanelReadyToClosed(windowId)
+  local windowData = self:GetWindowData(windowId)
+  if windowData then
+    windowData.status = NRCPanelEnum.PanelStatus.ReadyToClose
   end
 end
 
@@ -131,18 +242,15 @@ function UICommonLayerCtrl:SetPanelAlreadyClosed(windowId)
   self:RemoveWindowData(windowId)
 end
 
-function UICommonLayerCtrl:PreAssignedPanelDepth(windowId, module, dependentPanelName)
+function UICommonLayerCtrl:PreAssignedPanelDepth(windowId, module, panelData)
   local windowData = self:GetWindowData(windowId)
-  windowData = windowData or self:AddWindowData(windowId, module, dependentPanelName)
-  if windowData then
-    windowData.isPreAssigned = true
-  end
+  windowData = windowData or self:AddWindowData(windowId, module, panelData)
   return windowData
 end
 
 function UICommonLayerCtrl:UndoPreAssignedPanelDepth(windowId)
   local windowData = self:GetWindowData(windowId)
-  if windowData and windowData.isPreAssigned then
+  if windowData and windowData.status == NRCPanelEnum.PanelStatus.Init then
     self:RemoveWindowData(windowId)
   end
 end

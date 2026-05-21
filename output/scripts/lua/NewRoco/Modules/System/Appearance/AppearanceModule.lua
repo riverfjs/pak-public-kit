@@ -9,6 +9,7 @@ local ResQueue = require("NewRoco.Utils.ResQueue")
 local MainUIModuleEnum = require("NewRoco.Modules.System.MainUI.MainUIModuleEnum")
 local FriendModuleEvent = require("NewRoco.Modules.System.Friend.FriendModuleEvent")
 local AppearanceAnimationManager = require("NewRoco.Modules.System.Appearance.AppearanceAnimationManager")
+local BattleEvent = require("NewRoco.Modules.Core.Battle.Common.BattleEvent")
 local MAX_SEARCH_DEPTH = 64
 local AppearanceModule = NRCModuleBase:Extend("AppearanceModule")
 local UIUtils = require("NewRoco.Modules.System.TipsModule.Utils.UIUtils")
@@ -42,7 +43,7 @@ function AppearanceModule:OnConstruct()
   self:RegPanel("GorgeousMagic", "UMG_GorgeousMagic", _G.Enum.UILayerType.UI_LAYER_POPUP)
   self:RegPanel("MagicVideoDetails", "UMG_MagnificentMagic", _G.Enum.UILayerType.UI_LAYER_POPUP, nil)
   self:RegPanel("ShopCollectProgress", "UMG_Shop_CollectProgress", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, false)
-  self:RegPanel("GorgeousMedal", "UMG_GorgeousMedal", _G.Enum.UILayerType.UI_LAYER_POPUP, true)
+  self:RegPanel("GorgeousMedal", "UMG_GorgeousMedal", _G.Enum.UILayerType.UI_LAYER_POPUP, true, nil, nil, "AppearanceCloset")
   self:RegPanel("MagicWandPopUp", "UMG_MagnificentMagic1", _G.Enum.UILayerType.UI_LAYER_POPUP)
   self:RegPanel("PigmentAcquire", "UMG_PigmentAcquire", _G.Enum.UILayerType.UI_LAYER_POPUP)
   self.AvatarPlayer = nil
@@ -102,6 +103,7 @@ function AppearanceModule:OnConstruct()
   _G.NRCEventCenter:RegisterEvent("AppearanceModule", self, FriendModuleEvent.OnLeaveVisit, self.OnLeaveVisit)
   _G.NRCEventCenter:RegisterEvent("AppearanceModule", self, AppearanceModuleEvent.OnUpgradeSuitLevelPanelClose, self.OnUpgradeSuitLevelPanelClose)
   _G.NRCEventCenter:RegisterEvent("AppearanceModule", self, SceneEvent.OnEnterSceneFinishNtyAck, self.OnEnterSceneFinishNtyAck)
+  _G.NRCEventCenter:RegisterEvent("AppearanceModule", self, BattleEvent.EnterBattle, self.OnEnterBattle)
 end
 
 function AppearanceModule:OnActive()
@@ -147,6 +149,7 @@ function AppearanceModule:OnDestruct()
   _G.NRCEventCenter:UnRegisterEvent(self, FriendModuleEvent.OnEnterVisit, self.OnEnterVisit)
   _G.NRCEventCenter:UnRegisterEvent(self, FriendModuleEvent.OnLeaveVisit, self.OnLeaveVisit)
   _G.NRCEventCenter:UnRegisterEvent(self, SceneEvent.OnEnterSceneFinishNtyAck, self.OnEnterSceneFinishNtyAck)
+  _G.NRCEventCenter:UnRegisterEvent(self, BattleEvent.EnterBattle, self.OnEnterBattle)
   self:ReleaseFashionShowSequenceResource()
   if self.checkPurchasableDelayId then
     _G.DelayManager:CancelDelayById(self.checkPurchasableDelayId)
@@ -161,6 +164,14 @@ function AppearanceModule:OnDestruct()
   if self.loadClosetAvatarDelayId then
     _G.DelayManager:CancelDelayById(self.loadClosetAvatarDelayId)
   end
+  if self.fashionMallPopUpDelayId then
+    _G.DelayManager:CancelDelayById(self.fashionMallPopUpDelayId)
+    self.fashionMallPopUpDelayId = nil
+  end
+end
+
+function AppearanceModule:OnEnterBattle()
+  self:CloseAllPanel()
 end
 
 function AppearanceModule:OnDialogueEnded(bIsConnected)
@@ -257,7 +268,7 @@ function AppearanceModule:CompareTablesIgnoreZeroAndOrder(a, b)
 end
 
 function AppearanceModule:OnNewFashionItemNotify(notify)
-  _G.DataModelMgr.PlayerDataModel:AddPlayerOwnedFashionInfo(notify.fashion_item_ids)
+  _G.DataModelMgr.PlayerDataModel:AddPlayerOwnedFashionInfo(notify.fashion_item_ids, notify.is_deduct)
   self.data:SetHasItemList()
   if self:HasPanel("AppearanceCloset") then
     local panel = self:GetPanel("AppearanceCloset")
@@ -268,7 +279,7 @@ function AppearanceModule:OnNewFashionItemNotify(notify)
 end
 
 function AppearanceModule:OnNewSalonItemNotify(notify)
-  _G.DataModelMgr.PlayerDataModel:AddPlayerOwnedSalonInfo(notify.salon_item_ids)
+  _G.DataModelMgr.PlayerDataModel:AddPlayerOwnedSalonInfo(notify.salon_item_ids, notify.is_deduct)
   self.data:SetHasSalonList()
   if self:HasPanel("AppearanceCloset") then
     local panel = self:GetPanel("AppearanceCloset")
@@ -382,8 +393,76 @@ function AppearanceModule:OnCmdOpenLoginBeautyPanel()
   end
 end
 
-function AppearanceModule:OnCmdOpenFashionUpgradePanel(suitId, parentPanel, defaultSelectIndex)
-  parentPanel = parentPanel or self:GetPanel("AppearanceCloset")
+function AppearanceModule:CollectSuitUpgradeResourcePaths(suitId)
+  local paths = {}
+  local pathSet = {}
+  
+  local function addPath(p)
+    if p and "" ~= p and not pathSet[p] then
+      pathSet[p] = true
+      table.insert(paths, p)
+    end
+  end
+  
+  local suitConf = _G.DataConfigManager:GetFashionSuitsConf(suitId)
+  if not suitConf or not suitConf.lv_up_closet then
+    return paths
+  end
+  local UE4 = _G.UE4
+  local BT = UE4.EAvatarBodyType
+  local bHasHat = false
+  if suitConf.item_id then
+    for _, fashionId in ipairs(suitConf.item_id) do
+      local _, _, avatarEnum = self:GetConfigEnumFromFashionId(fashionId)
+      if avatarEnum == BT.Hat then
+        bHasHat = true
+        break
+      end
+    end
+  end
+  
+  local function applyHatHairVariant(path)
+    if not path or "" == path then
+      return path
+    end
+    if string.find(path, "_Hr_Ht", 1, true) then
+      return path
+    end
+    local replaced = string.gsub(path, "_Hr", "_Hr_Ht")
+    return replaced
+  end
+  
+  for _, closetItem in ipairs(suitConf.lv_up_closet) do
+    local itemType = closetItem.lv_item_type
+    local itemId = closetItem.lv_item_id
+    if itemId and itemId > 0 then
+      if itemType == _G.Enum.GoodsType.GT_FASHION then
+        local meshPath, matPath = self:GetFashionResourcePath(itemId)
+        local _, _, avatarEnum = self:GetConfigEnumFromFashionId(itemId)
+        if bHasHat and avatarEnum == BT.Hair then
+          meshPath = applyHatHairVariant(meshPath)
+        end
+        addPath(meshPath)
+        addPath(matPath)
+      elseif itemType == _G.Enum.GoodsType.GT_SALON then
+        local salonItemConf = _G.DataConfigManager:GetSalonItemConf(itemId)
+        if salonItemConf and salonItemConf.avatar_id then
+          local bpPath, meshPath, matPath = self:GetSalonResourcePathByItem(salonItemConf.avatar_id, salonItemConf.texture_id or 0)
+          local salonBodyEnum = self:GetConfigEnumFromSalonId(salonItemConf.avatar_id)
+          if bHasHat and salonBodyEnum == BT.Hair then
+            meshPath = applyHatHairVariant(meshPath)
+          end
+          addPath(bpPath)
+          addPath(meshPath)
+          addPath(matPath)
+        end
+      end
+    end
+  end
+  return paths
+end
+
+function AppearanceModule:_DoOpenFashionUpgradePanel(suitId, parentPanel, defaultSelectIndex)
   local isOpening, _ = self:HasPanel("AppearanceUpgrade")
   local shopItemsList, suitInfo = self:GetFashionUpgradePanelInfo(suitId)
   if isOpening then
@@ -394,6 +473,26 @@ function AppearanceModule:OnCmdOpenFashionUpgradePanel(suitId, parentPanel, defa
   else
     self:OpenPanel("AppearanceUpgrade", shopItemsList, parentPanel, suitInfo, defaultSelectIndex)
   end
+end
+
+function AppearanceModule:OnCmdOpenFashionUpgradePanel(suitId, parentPanel, defaultSelectIndex)
+  parentPanel = parentPanel or self:GetPanel("AppearanceCloset")
+  local paths = self:CollectSuitUpgradeResourcePaths(suitId)
+  if not paths or 0 == #paths then
+    self:_DoOpenFashionUpgradePanel(suitId, parentPanel, defaultSelectIndex)
+    return
+  end
+  
+  local function onLoadSuc(caller, _assets, _sessionId)
+    caller:_DoOpenFashionUpgradePanel(suitId, parentPanel, defaultSelectIndex)
+  end
+  
+  local function onLoadFail(caller, _assets, _sessionId)
+    Log.Warning("AppearanceModule:OnCmdOpenFashionUpgradePanel \229\141\135\231\186\167\233\131\168\228\187\182\232\181\132\230\186\144\229\138\160\232\189\189\229\164\177\232\180\165 suitId=", suitId)
+    caller:_DoOpenFashionUpgradePanel(suitId, parentPanel, defaultSelectIndex)
+  end
+  
+  _G.PlayerResourceManager:LoadResources_PlayerLogic_List(self, paths, true, onLoadSuc, onLoadFail)
 end
 
 function AppearanceModule:GetFashionUpgradePanelInfo(suitId)
@@ -493,7 +592,7 @@ function AppearanceModule:OnCmdAppearanceUpgradeSuccPanelClose()
   end
 end
 
-function AppearanceModule:OnCmdOpenAppearanceClosetPanel(action, bFastDressUp, bDirectToUpgrade, suitId, defaultUpgradeSelectIndex, defaultTabIndex, defaultSubTabIndex)
+function AppearanceModule:OnCmdOpenAppearanceClosetPanel(action, bFastDressUp, bDirectToUpgrade, suitId, defaultUpgradeSelectIndex, defaultTabIndex, defaultSubTabIndex, bSkipSaveOnExit)
   local isOpening, _ = self:HasPanel("AppearanceCloset")
   if not isOpening then
     local resListData = _G.NRCPanelResLoadData()
@@ -503,9 +602,10 @@ function AppearanceModule:OnCmdOpenAppearanceClosetPanel(action, bFastDressUp, b
     table.insert(resListData.PreLoadResList, "Texture2D'/Game/NewRoco/Modules/System/Appearance/Raw/Textures/T_UI_black.T_UI_black'")
     table.insert(resListData.PreLoadResList, "SkillBlueprint'/Game/ArtRes/Effects/G6Skill/Cosplay/G6_CosPlay_YiGui_MeiRong.G6_CosPlay_YiGui_MeiRong_C'")
     table.insert(resListData.PreLoadResList, "SkillBlueprint'/Game/ArtRes/Effects/G6Skill/Cosplay/G6_CosPlay_YiGui_MeiRong_End.G6_CosPlay_YiGui_MeiRong_End_C'")
-    self:OpenPanel("AppearanceCloset", action, bFastDressUp, bDirectToUpgrade, suitId, defaultUpgradeSelectIndex, defaultTabIndex, defaultSubTabIndex, resListData)
+    self:OpenPanel("AppearanceCloset", action, bFastDressUp, bDirectToUpgrade, suitId, defaultUpgradeSelectIndex, defaultTabIndex, defaultSubTabIndex, bSkipSaveOnExit, resListData)
   end
   _G.NRCModeManager:DoCmd(_G.NPCModuleCmd.RecycleAllThrowPets)
+  UE.UKismetSystemLibrary.ExecuteConsoleCommand(nil, "n.NRCAvatarWaitForStreamInWhenLoadSuit 1")
 end
 
 function AppearanceModule:OnCmdCloseAppearanceClosetPanel()
@@ -516,6 +616,7 @@ function AppearanceModule:OnCmdCloseAppearanceClosetPanel()
       panel:ConfirmClose(true)
     end
   end
+  UE.UKismetSystemLibrary.ExecuteConsoleCommand(nil, "n.NRCAvatarWaitForStreamInWhenLoadSuit 0")
 end
 
 function AppearanceModule:OnCmdGetColorBGResByColorType(colorType)
@@ -541,7 +642,7 @@ function AppearanceModule:OnCmdOpenFashionMallPopup()
   if not _G.DataModelMgr.PlayerDataModel:HasStoryFlag(_G.Enum.PlayerStoryFlagEnum.PSF_FUNC_PIKA) then
     return
   end
-  DelayManager:DelayFrames(1, function()
+  self.fashionMallPopUpDelayId = DelayManager:DelayFrames(1, function()
     if SceneUtils.IsInPikaShop() and self.pikaActivityList and #self.pikaActivityList > 0 then
       local isOpening = self:IsPanelInOpening("FashionMallPopup")
       if not isOpening then
@@ -555,6 +656,37 @@ end
 
 function AppearanceModule:OnCmdClearFashionMallPopup()
   self.pikaActivityList = {}
+end
+
+function AppearanceModule:OnCmdOpenFashionMallPopupByPackageId(packageId, closeCallback)
+  if not packageId then
+    Log.Error("AppearanceModule:OnCmdOpenFashionMallPopupByPackageId", "packageId is nil")
+    return
+  end
+  local player = _G.NRCModuleManager:DoCmd(PlayerModuleCmd.GET_LOCAL_PLAYER)
+  if not player then
+    Log.Error("AppearanceModule:OnCmdOpenFashionMallPopupByPackageId", "player is nil")
+    return
+  end
+  local fashionPackageConf = _G.DataConfigManager:GetFashionPackageConf(packageId)
+  if not fashionPackageConf then
+    Log.Error("AppearanceModule:OnCmdOpenFashionMallPopupByPackageId", "FASHION_PACKAGE_CONF not found for packageId:", packageId)
+    return
+  end
+  local isOpening = self:IsPanelInOpening("FashionMallPopup")
+  if not isOpening then
+    self:OpenPanel("FashionMallPopup", {
+      kvBg = fashionPackageConf.kv_pop,
+      pkgId = packageId,
+      leftTime = 0,
+      hideBtn2 = true,
+      closeCallback = closeCallback
+    })
+  end
+end
+
+function AppearanceModule:OnCmdGetPackageIdByGoodsId(goodsId)
+  return self.data:GetPackageIdByGoodsId(goodsId)
 end
 
 function AppearanceModule:OnCmdRefreshAppearancePanel(itemListInfo, isRefreshNewIcon)
@@ -620,20 +752,28 @@ function AppearanceModule:OnCmdOpenAppearanceTryOn(itemList, vItemType, price, g
   if not player then
     return
   end
-  if self:HasPanel("AppearanceTryOn") then
-    local tryOnPanel = self:GetPanel("AppearanceTryOn")
-    if tryOnPanel then
-      tryOnPanel:Enable()
-      tryOnPanel:SetPanelAlreadyVisible()
-    end
-    return
-  end
   local resListData = _G.NRCPanelResLoadData()
   resListData.PreLoadResList = {}
   table.insert(resListData.PreLoadResList, self:GetAvatarResPath(player.gender))
   table.insert(resListData.PreLoadResList, "Texture2D'/Game/NewRoco/Modules/System/Appearance/Raw/Textures/T_UI_Closet_Color2.T_UI_Closet_Color2'")
   table.insert(resListData.PreLoadResList, "Texture2D'/Game/NewRoco/Modules/System/Appearance/Raw/Textures/T_UI_Closet_Color1.T_UI_Closet_Color1'")
   table.insert(resListData.PreLoadResList, "Texture2D'/Game/NewRoco/Modules/System/Appearance/Raw/Textures/T_UI_black.T_UI_black'")
+  if self:HasPanel("AppearanceTryOn") then
+    local tryOnPanel = self:GetPanel("AppearanceTryOn")
+    if tryOnPanel and tryOnPanel.bPanelHiddenByUpgradeBtn then
+      tryOnPanel:Enable()
+      tryOnPanel:SetPanelAlreadyVisible()
+      tryOnPanel.bPanelHiddenByUpgradeBtn = false
+      return
+    end
+    if tryOnPanel then
+      tryOnPanel:DoClose()
+    end
+    _G.DelayManager:DelayFrames(1, function()
+      self:OpenPanel("AppearanceTryOn", itemList, vItemType, price, goodsExpireTime, resListData, directWearSuitId)
+    end)
+    return
+  end
   self:OpenPanel("AppearanceTryOn", itemList, vItemType, price, goodsExpireTime, resListData, directWearSuitId)
 end
 
@@ -711,10 +851,10 @@ function AppearanceModule:OnCmdChangeAppearanceChooseType(chooseType)
 end
 
 function AppearanceModule:OnCmdSetClosetAvatarAngle(chooseType)
-  self:SetPlayerAngle(chooseType, self.closetAvatarPlayer)
+  self:SetPlayerAngle(chooseType, self.closetAvatarPlayer, "Closet")
 end
 
-function AppearanceModule:SetPlayerAngle(chooseType, avatarPlayer)
+function AppearanceModule:SetPlayerAngle(chooseType, avatarPlayer, contextKey)
   if nil == avatarPlayer or not UE4.UObject.IsValid(avatarPlayer) then
     return
   end
@@ -723,52 +863,90 @@ function AppearanceModule:SetPlayerAngle(chooseType, avatarPlayer)
     Log.Debug("AppearanceModule:SetPlayerAngle avatarRotation is nil")
     return
   end
+  local d = self.data
+  local ctx
+  if contextKey and d.rotationContexts[contextKey] then
+    ctx = d.rotationContexts[contextKey]
+  end
   local CCWAngle = 0
   local CWAngle = 0
+  local initYaw = ctx and ctx.avatarPlayerRotation_InitializeYaw or d.AvatarPlayerRotation_InitializeYaw
+  local rotRef = ctx and ctx.avatarPlayerRotation or d.AvatarPlayerRotation
   if chooseType == _G.Enum.FashionLabelType.FLT_BAGS or chooseType == _G.Enum.FashionLabelType.FLT_PENDANTA then
-    self.data.AvatarPlayerRotation.Yaw = (self.data.AvatarPlayerRotation_InitializeYaw or 0) - 180
-    self.data.FrontAndBackRotation_Yaw = self.data.AvatarPlayerRotation.Yaw
-    self.data.AvatarPlayerRotation_Yaw = self.data.AvatarPlayerRotation.Yaw
+    rotRef.Yaw = (initYaw or 0) - 180
+    if ctx then
+      ctx.frontAndBackRotation_Yaw = rotRef.Yaw
+      ctx.avatarPlayerRotation_Yaw = rotRef.Yaw
+    else
+      d.FrontAndBackRotation_Yaw = rotRef.Yaw
+      d.AvatarPlayerRotation_Yaw = rotRef.Yaw
+    end
     if avatarRotation.Yaw > 0 then
-      CCWAngle = avatarRotation.Yaw - self.data.AvatarPlayerRotation.Yaw
+      CCWAngle = avatarRotation.Yaw - rotRef.Yaw
       CWAngle = 360 - CCWAngle
-    elseif avatarRotation.Yaw > self.data.AvatarPlayerRotation.Yaw then
-      CCWAngle = avatarRotation.Yaw - self.data.AvatarPlayerRotation.Yaw
+    elseif avatarRotation.Yaw > rotRef.Yaw then
+      CCWAngle = avatarRotation.Yaw - rotRef.Yaw
       CWAngle = 360 - CCWAngle
     else
-      CWAngle = self.data.AvatarPlayerRotation.Yaw - avatarRotation.Yaw
+      CWAngle = rotRef.Yaw - avatarRotation.Yaw
       CCWAngle = 360 - CWAngle
     end
   else
-    self.data.AvatarPlayerRotation.Yaw = self.data.AvatarPlayerRotation_InitializeYaw
-    self.data.FrontAndBackRotation_Yaw = self.data.AvatarPlayerRotation.Yaw
-    self.data.AvatarPlayerRotation_Yaw = self.data.AvatarPlayerRotation.Yaw
+    rotRef.Yaw = initYaw
+    if ctx then
+      ctx.frontAndBackRotation_Yaw = rotRef.Yaw
+      ctx.avatarPlayerRotation_Yaw = rotRef.Yaw
+    else
+      d.FrontAndBackRotation_Yaw = rotRef.Yaw
+      d.AvatarPlayerRotation_Yaw = rotRef.Yaw
+    end
     if avatarRotation.Yaw > 0 then
-      if avatarRotation.Yaw > self.data.AvatarPlayerRotation.Yaw then
-        CCWAngle = avatarRotation.Yaw - self.data.AvatarPlayerRotation.Yaw
+      if avatarRotation.Yaw > rotRef.Yaw then
+        CCWAngle = avatarRotation.Yaw - rotRef.Yaw
         CWAngle = 360 - CCWAngle
       else
-        CWAngle = self.data.AvatarPlayerRotation.Yaw - avatarRotation.Yaw
+        CWAngle = rotRef.Yaw - avatarRotation.Yaw
         CCWAngle = 360 - CWAngle
       end
     else
-      CWAngle = -avatarRotation.Yaw + self.data.AvatarPlayerRotation.Yaw
+      CWAngle = -avatarRotation.Yaw + rotRef.Yaw
       CCWAngle = 360 - CWAngle
     end
   end
   Log.Debug(CWAngle, CCWAngle, chooseType, "AppearanceModule:SetPlayerAngle")
   if CWAngle <= CCWAngle then
-    self.data.AvatarPlayerRotationAngle = CWAngle
-    self.data.IsClockwiseRotation = true
+    if ctx then
+      ctx.avatarPlayerRotationAngle = CWAngle
+      ctx.isClockwiseRotation = true
+    else
+      d.AvatarPlayerRotationAngle = CWAngle
+      d.IsClockwiseRotation = true
+    end
+  elseif ctx then
+    ctx.avatarPlayerRotationAngle = CCWAngle
+    ctx.isClockwiseRotation = false
   else
-    self.data.AvatarPlayerRotationAngle = CCWAngle
-    self.data.IsClockwiseRotation = false
+    d.AvatarPlayerRotationAngle = CCWAngle
+    d.IsClockwiseRotation = false
   end
-  if 0 == self.data.AvatarPlayerRotationAngle then
-    self.data.AvatarPlayerRotationAngle = 180
+  local angle = ctx and ctx.avatarPlayerRotationAngle or d.AvatarPlayerRotationAngle
+  if 0 == angle then
+    if chooseType == _G.Enum.FashionLabelType.FLT_BAGS or chooseType == _G.Enum.FashionLabelType.FLT_PENDANTA then
+      return
+    end
+    if ctx then
+      ctx.avatarPlayerRotationAngle = 180
+    else
+      d.AvatarPlayerRotationAngle = 180
+    end
   end
-  Log.Debug(avatarRotation, self.data.AvatarPlayerRotation, self.data.FrontAndBackRotation_Yaw, self.data.IsClockwiseRotation, "AppearanceModule:SetPlayerAngle")
-  self.IsRotation = true
+  Log.Debug(avatarRotation, rotRef, ctx and ctx.frontAndBackRotation_Yaw or d.FrontAndBackRotation_Yaw, ctx and ctx.isClockwiseRotation or d.IsClockwiseRotation, "AppearanceModule:SetPlayerAngle")
+  if ctx then
+    ctx.isRotation = true
+    ctx.startTime = 0
+  else
+    self.IsRotation = true
+  end
 end
 
 function AppearanceModule:OnCmdChangeBeautyChooseType(chooseType)
@@ -975,18 +1153,179 @@ function AppearanceModule:GetFullSalonId(configId, colorIndex)
   return fullSalonId
 end
 
+local function _GetAvatarBodyShortStr(avatarEnum)
+  local UE4 = _G.UE4
+  local BT = UE4.EAvatarBodyType
+  local map = {
+    [BT.Hair] = "Hr",
+    [BT.Face] = "Fe",
+    [BT.Brown] = "Br",
+    [BT.EyeSocket] = "Et",
+    [BT.Eye] = "Es",
+    [BT.Ear] = "Er",
+    [BT.Body] = "Cup",
+    [BT.Hands] = "Ge",
+    [BT.Pants] = "Ps",
+    [BT.Socks] = "So",
+    [BT.Shoes] = "Se",
+    [BT.Bag] = "Bg",
+    [BT.Hat] = "Ht",
+    [BT.Wh] = "Wh",
+    [BT.Wa] = "Wa",
+    [BT.Heads] = "Hi",
+    [BT.Faces] = "Fi",
+    [BT.Earrings] = "Ei",
+    [BT.Bags] = "Bi",
+    [BT.Wand] = "Mw",
+    [BT.Masks] = "Ms",
+    [BT.Hg] = "Hg",
+    [BT.Hp] = "Hp"
+  }
+  return map[avatarEnum] or "None"
+end
+
+local function _GetModelItemPathPrefix(avatarEnum, modelId)
+  local UE4 = _G.UE4
+  local BT = UE4.EAvatarBodyType
+  if avatarEnum <= BT.DECORATOR then
+    return "SKM_"
+  end
+  if avatarEnum == BT.Bags or avatarEnum == BT.Wand or avatarEnum == BT.Masks or avatarEnum == BT.Hg or avatarEnum == BT.Hp then
+    return "SKM_"
+  end
+  local fashionItemConf = _G.DataConfigManager:GetFashionItemConf(modelId)
+  if fashionItemConf and fashionItemConf.is_skm and tonumber(fashionItemConf.is_skm) and 0 ~= tonumber(fashionItemConf.is_skm) then
+    return "SKM_"
+  end
+  return "SM_"
+end
+
+local function _ParseAvatarModelID(modelId)
+  local SHORT_BASE = 10000000
+  local LONG_BASE = 1000000000
+  local Base = modelId >= LONG_BASE and LONG_BASE or SHORT_BASE
+  local gender = math.floor(modelId / Base)
+  local bodyType = math.floor(modelId / (Base / 100)) % 100
+  local bodyIndex = math.floor(modelId / (Base / 100000)) % 1000
+  local matIndex, combineType
+  if Base == SHORT_BASE then
+    matIndex = modelId % 100
+    combineType = 0
+  else
+    matIndex = math.floor(modelId / (Base / 100000000)) % 100
+    combineType = modelId % 100
+  end
+  return gender, bodyType, bodyIndex, matIndex, combineType
+end
+
+local function _ParseAvatarSalonID(fullSalonId)
+  local SHORT_BASE = 10000000
+  local LONG_BASE = 1000000000
+  if fullSalonId < SHORT_BASE then
+    return nil
+  end
+  local Base = fullSalonId >= LONG_BASE and LONG_BASE or SHORT_BASE
+  local gender = math.floor(fullSalonId / Base)
+  local salonType = math.floor(fullSalonId / (Base / 10)) % 10
+  local partIndex = math.floor(fullSalonId / (Base / 10000)) % 1000
+  local bpIndex, selectIndex
+  if Base == SHORT_BASE then
+    bpIndex = fullSalonId % 1000
+    selectIndex = 0
+  else
+    bpIndex = math.floor(fullSalonId / (Base / SHORT_BASE)) % 1000
+    selectIndex = fullSalonId % 100
+  end
+  return gender, salonType, partIndex, bpIndex, selectIndex
+end
+
+function AppearanceModule:GetFashionResourcePath(fashionId)
+  if not fashionId or fashionId < 10000000 then
+    Log.Warning("AppearanceModule:GetFashionResourcePath invalid fashionId:", fashionId)
+    return nil, nil
+  end
+  local gender, bodyType, bodyIndex, matIndex, combineType = _ParseAvatarModelID(fashionId)
+  local UE4 = _G.UE4
+  local avatarEnum = bodyType
+  local bodyStr = _GetAvatarBodyShortStr(avatarEnum)
+  if "None" == bodyStr then
+    Log.Warning("AppearanceModule:GetFashionResourcePath invalid bodyType:", bodyType, "fashionId:", fashionId)
+    return nil, nil
+  end
+  local modelMeshId = gender * 10000000 + bodyType * 100000 + bodyIndex * 100 + 1
+  local folderPath = string.format("/Game/ArtRes/AnimSequence/Human/PC/PC%d/Avatar/%s/%d/", gender, bodyStr, modelMeshId)
+  local prefix = _GetModelItemPathPrefix(avatarEnum, fashionId)
+  local meshName = string.format("%sPC%d_%s_%d", prefix, gender, bodyStr, modelMeshId)
+  local meshPath = string.format("%s%s.%s", folderPath, meshName, meshName)
+  local materialPath
+  if matIndex > 0 then
+    local matName = string.format("MI_PC%d_%s_%d", gender, bodyStr, fashionId)
+    materialPath = string.format("%sMat/%s.%s", folderPath, matName, matName)
+  end
+  return meshPath, materialPath
+end
+
+function AppearanceModule:GetSalonResourcePath(fullSalonId)
+  if not fullSalonId then
+    return nil, nil, nil
+  end
+  local gender, salonType, partIndex, bpIndex, selectIndex = _ParseAvatarSalonID(fullSalonId)
+  if not gender then
+    Log.Warning("AppearanceModule:GetSalonResourcePath invalid fullSalonId:", fullSalonId)
+    return nil, nil, nil
+  end
+  local bpPath
+  if bpIndex and bpIndex > 0 then
+    local salonTypeStrArr = {
+      "None",
+      "Skin",
+      "Hair",
+      "EyeBrows",
+      "EyeLash",
+      "Eyes",
+      "MakeUp"
+    }
+    local salonTypeStr = salonTypeStrArr[salonType + 2]
+    if not salonTypeStr then
+      Log.Warning("AppearanceModule:GetSalonResourcePath invalid salonType:", salonType)
+      return nil, nil, nil
+    end
+    local bpIdStr = string.format("%d%d%03d", gender, salonType, bpIndex)
+    bpPath = string.format("/Game/NewRoco/Modules/Core/Character/Avatar/%s/%s.%s_C", salonTypeStr, bpIdStr, bpIdStr)
+  end
+  local UE4 = _G.UE4
+  local BT = UE4.EAvatarBodyType
+  local salonTypeToBody = {
+    [1] = BT.Hair,
+    [2] = BT.Brown,
+    [3] = BT.EyeSocket
+  }
+  local meshPath, materialPath
+  local bodyTypeForMesh = salonTypeToBody[salonType]
+  if bodyTypeForMesh and partIndex and partIndex > 0 then
+    local matSuffix = selectIndex and selectIndex > 0 and selectIndex + 1 or 1
+    local linkedModelId = gender * 10000000 + bodyTypeForMesh * 100000 + partIndex * 100 + matSuffix
+    meshPath, materialPath = self:GetFashionResourcePath(linkedModelId)
+  end
+  return bpPath, meshPath, materialPath
+end
+
+function AppearanceModule:GetSalonResourcePathByItem(salonItemConfId, colorIndex)
+  local fullSalonId = self:GetFullSalonId(salonItemConfId, colorIndex or 0)
+  return self:GetSalonResourcePath(fullSalonId)
+end
+
 function AppearanceModule:OnCmdSetAppearance(fashionId, fashionGoodsId, bChoosed, glassInfo)
   local fashionItemConf = _G.DataConfigManager:GetFashionItemConf(fashionId)
-  self:ChangeSkeletalMesh(_G.Enum.GoodsType.GT_FASHION, fashionId, bChoosed, glassInfo)
+  self:ChangeSkeletalMesh(_G.Enum.GoodsType.GT_FASHION, fashionId, bChoosed, nil, glassInfo)
   local fashionGoodsId = self.data.FashionIdToGoodsIdMap[fashionId].id
-  local tag
-  if fashionItemConf.type == _G.Enum.FashionLabelType.FLT_RINGS then
-    tag = fashionItemConf.fashion_rings_tag
+  if fashionItemConf then
+    local AppearanceUtils = require("NewRoco.Modules.System.Appearance.AppearanceUtils")
+    local tag = AppearanceUtils.BuildTagArrayFromConf(fashionItemConf)
+    self.data:TempCurAppearChooseInfo(fashionItemConf.type, fashionId, fashionGoodsId, bChoosed, tag, glassInfo)
+  else
+    Log.Error("FashionItem\228\184\141\229\173\152\229\156\168\239\188\140id\228\184\186\239\188\154", fashionId)
   end
-  if fashionItemConf.type == _G.Enum.FashionLabelType.FLT_TOPS or fashionItemConf.type == _G.Enum.FashionLabelType.FLT_DRESSES then
-    tag = fashionItemConf.fashion_tops_tag
-  end
-  self.data:TempCurAppearChooseInfo(fashionItemConf.type, fashionId, fashionGoodsId, bChoosed, tag, glassInfo)
   if self:HasPanel("AppearanceMain") then
     local panel = self:GetPanel("AppearanceMain")
     panel:UpdateCostMoney()
@@ -1288,10 +1627,14 @@ function AppearanceModule:OnCmdBuyAndWearSuitReq(index, fashionIds, salonIds, ig
     }
     table.insert(wearing_item, temp)
   end
+  if not self:CheckWearingItemListProperly(wearing_item) then
+    Log.Warning("AppearanceModule:OnCmdBuyAndWearSuitReq \229\165\151\232\163\133\229\144\136\230\179\149\230\128\167\230\163\128\230\159\165\228\184\141\233\128\154\232\191\135")
+    return
+  end
   req.wearing_item = wearing_item
   req.salon_item_wear_id = salonIds
   req.wardrobe_index = index
-  req.wardrobe_name = self.data:GetWardrobeDataByIndex(index, true)
+  req.wardrobe_name = self.data:GetWardrobeDataByIndex(index + 1, true)
   req.use_wardrobe = true
   req.trig_by_interact = true
   self.bIgnoreTips = ignoreTips
@@ -1310,13 +1653,13 @@ function AppearanceModule:OnCmdBuyAndWearSuitRsp(rsp)
   for k, v in ipairs(initSalon) do
     table.insert(salonList, {item_wear_id = v})
   end
+  local curWardrobeIndex = rsp.fashion_info.current_wardrobe_index + 1
+  _G.DataModelMgr.PlayerDataModel:SetPlayerFashionWardrobeInfo(curWardrobeIndex, rsp.fashion_info.wardrobe_data[curWardrobeIndex])
   if self.bChangeSuitWorld then
     self:SetDefaultSuit(initSuit, salonList, function()
       self:PlayReloadingSkill(localPlayer.viewObj)
     end, not self.bIgnoreTips)
   else
-    local curWardrobeIndex = rsp.fashion_info.current_wardrobe_index + 1
-    _G.DataModelMgr.PlayerDataModel:SetPlayerFashionWardrobeInfo(curWardrobeIndex, rsp.fashion_info.wardrobe_data[curWardrobeIndex])
     self:PlayReloadingSkill(self.closetAvatarPlayer)
     local itemsToRemove = {}
     if self.data.TempAppearData then
@@ -1332,7 +1675,7 @@ function AppearanceModule:OnCmdBuyAndWearSuitRsp(rsp)
         end
       end
     end
-    self:SetDefaultSuitAvatar(true, initSuit, salonList, self.closetAvatarPlayer, self.bIgnoreTips)
+    self:SetDefaultSuitAvatar(true, initSuit, salonList, self.closetAvatarPlayer, nil, self.bIgnoreTips)
     local isPanelOpen = self:HasPanel("AppearanceCloset")
     if isPanelOpen then
       local panel = self:GetPanel("AppearanceCloset")
@@ -1407,6 +1750,21 @@ function AppearanceModule:OnCmdSetFashionDataReq(_index, fashionIds, nameString,
     fashionData = fashionList
     salonData = salonList
   end
+  if not self:CheckWearingItemListProperly(fashionData) then
+    Log.Warning("AppearanceModule:OnCmdSetFashionDataReq \229\165\151\232\163\133\229\144\136\230\179\149\230\128\167\230\163\128\230\159\165\228\184\141\233\128\154\232\191\135")
+    return
+  end
+  if fashionData and #fashionData > 0 then
+    for _, v in ipairs(fashionData) do
+      if v and v.wearing_item_id and 0 ~= v.wearing_item_id then
+        local bHasOwned = self:OnCmdCheckHasOwned(_G.Enum.GoodsType.GT_FASHION, v.wearing_item_id)
+        if not bHasOwned then
+          Log.Error(string.format("AppearanceModule:OnCmdSetFashionDataReq \230\151\182\232\163\133\233\131\168\228\187\182 %s \230\156\170\230\139\165\230\156\137\239\188\140\232\183\179\232\191\135\228\191\157\229\173\152\232\175\183\230\177\130", tostring(v.wearing_item_id)))
+          return
+        end
+      end
+    end
+  end
   req.wearing_item = fashionData
   req.wardrobe_index = index - 1
   req.wardrobe_name = nameString
@@ -1450,32 +1808,42 @@ function AppearanceModule:SetFashionDataRsp(_rsp)
   else
     local curWardrobeIndex = _rsp.fashion_info.current_wardrobe_index + 1
     _G.DataModelMgr.PlayerDataModel:SetPlayerFashionWardrobeInfo(curWardrobeIndex, _rsp.fashion_info.wardrobe_data[curWardrobeIndex])
-    self:PlayReloadingSkill(self.closetAvatarPlayer)
-    local itemsToRemove = {}
-    if self.data.TempAppearData then
-      for k, v in ipairs(self.data.TempAppearData) do
-        table.insert(itemsToRemove, {
-          FashionType = v.FashionType,
-          FashionId = v.FashionId
-        })
-      end
-      for k, v in ipairs(itemsToRemove) do
-        if v.FashionType ~= _G.Enum.FashionLabelType.FLT_WAND then
-          self:OnCmdSetClosetAvatar(true, v.FashionType, v.FashionId, nil, false)
-        end
-      end
+    local bSameAsAvatar = self:IsClosetAvatarSameAsSaved(initSuit, initSalon)
+    if bSameAsAvatar then
+      self:PlayReloadingSkill(self.closetAvatarPlayer)
+      self:BakeToCharacter()
+    else
+      self:PlayReloadingSkill(self.closetAvatarPlayer)
+      self:SetDefaultSuitAvatar(true, initSuit, initSalon, self.closetAvatarPlayer, function()
+        self.closetAvatarPlayer.OnLoadAvatarActorComplete:Unbind()
+        self:BakeToCharacter()
+      end)
     end
-    self:SetDefaultSuitAvatar(true, initSuit, initSalon, self.closetAvatarPlayer)
     local isPanelOpen = self:HasPanel("AppearanceCloset")
     if isPanelOpen then
       local panel = self:GetPanel("AppearanceCloset")
       if panel then
-        panel:UpdateCurClosetTab(initSuit)
+        panel:UpdateTabBtnPromptByCurrentSuit(initSuit)
         panel:OnSaveFashionDataCallback(initSuit, initSalon)
         panel:SetConfirmBtnState()
+        panel:UpdateListSelectionAfterSave()
+        local curTabType = panel.data.closetChooseTabType
+        local curWandId
+        if initSuit then
+          for _, v in ipairs(initSuit) do
+            if v and v.wearing_item_id and v.wearing_item_id > 0 then
+              local fashionItemConf = _G.DataConfigManager:GetFashionItemConf(v.wearing_item_id)
+              if fashionItemConf and fashionItemConf.type == _G.Enum.FashionLabelType.FLT_WAND then
+                curWandId = v.wearing_item_id
+                break
+              end
+            end
+          end
+        end
+        curWandId = curWandId or self:OnCmdGetCurSuitWandId()
+        self:HideOrShowAppearanceById(true, curWandId, curTabType == _G.Enum.FashionLabelType.FLT_WAND)
       end
     end
-    self:BakeToCharacter()
   end
   local isSelectNew = true
   self:UpdateSuitList(false, isSelectNew)
@@ -1483,6 +1851,83 @@ function AppearanceModule:SetFashionDataRsp(_rsp)
   if not self.quickDressAllCollect then
     self.data.lastSelectedWardrobeIndex = _rsp.fashion_info.current_wardrobe_index + 1
   end
+end
+
+function AppearanceModule:IsClosetAvatarSameAsSaved(savedFashionItems, savedSalonItems)
+  if not self.closetAvatarPlayer or not UE4.UObject.IsValid(self.closetAvatarPlayer) then
+    return false
+  end
+  local suitObj = self.closetAvatarPlayer:GetAvatarSuit()
+  if not suitObj then
+    return false
+  end
+  local curBodies = suitObj:GetBodies():ToTable()
+  local curGlasses = suitObj:GetBodyGlasses():ToTable()
+  local curFashionMap = {}
+  for i, bodyId in ipairs(curBodies) do
+    if bodyId and bodyId > 0 and not self:Is000Model(bodyId) then
+      local fashionItemConf = _G.DataConfigManager:GetFashionItemConf(bodyId)
+      if not fashionItemConf or fashionItemConf.type ~= _G.Enum.FashionLabelType.FLT_WAND then
+        local glassId = curGlasses and curGlasses[i] or 0
+        curFashionMap[bodyId] = glassId
+      end
+    end
+  end
+  local savedFashionMap = {}
+  if savedFashionItems then
+    for _, v in ipairs(savedFashionItems) do
+      if v and v.wearing_item_id and v.wearing_item_id > 0 then
+        local fashionItemConf = _G.DataConfigManager:GetFashionItemConf(v.wearing_item_id)
+        if not fashionItemConf or fashionItemConf.type ~= _G.Enum.FashionLabelType.FLT_WAND then
+          local glassId = 0
+          if v.wearing_glass and v.wearing_glass.glass_type ~= _G.Enum.GlassType.GT_NULL and 0 ~= v.wearing_glass.glass_value then
+            glassId = CommonUIUtils.GetGlassInfoId(v.wearing_glass)
+          end
+          savedFashionMap[v.wearing_item_id] = glassId
+        end
+      end
+    end
+  end
+  for id, glass in pairs(curFashionMap) do
+    if nil == savedFashionMap[id] or savedFashionMap[id] ~= glass then
+      return false
+    end
+  end
+  for id, glass in pairs(savedFashionMap) do
+    if nil == curFashionMap[id] or curFashionMap[id] ~= glass then
+      return false
+    end
+  end
+  local curSalons = suitObj:GetSalons():ToTable()
+  local curSalonSet = {}
+  for _, fullId in ipairs(curSalons) do
+    if fullId and fullId > 0 then
+      curSalonSet[fullId] = true
+    end
+  end
+  local savedSalonSet = {}
+  if savedSalonItems then
+    for _, v in ipairs(savedSalonItems) do
+      if v.item_wear_id and 0 ~= v.item_wear_id then
+        local salonItemConf = _G.DataConfigManager:GetSalonItemConf(v.item_wear_id)
+        if salonItemConf then
+          local fullSalonId = self:GetFullSalonId(salonItemConf.avatar_id, salonItemConf.texture_id)
+          savedSalonSet[fullSalonId] = true
+        end
+      end
+    end
+  end
+  for id, _ in pairs(curSalonSet) do
+    if not savedSalonSet[id] then
+      return false
+    end
+  end
+  for id, _ in pairs(savedSalonSet) do
+    if not curSalonSet[id] then
+      return false
+    end
+  end
+  return true
 end
 
 function AppearanceModule:OnCmdSuitChangeWoreComponentReq(suitId, wornComponents)
@@ -1693,6 +2138,7 @@ function AppearanceModule:OnWardrobeIndexChanged(index, bWorld, quickDress, fash
     if bHasData then
       self.data.canChangeWardrobeIndex = true
       self:OnCmdSetFashionDataReq(index)
+      self.data.lastSelectedWardrobeIndex = index
       self.data.lastValidSelectedWardrobeIndex = index
       if closetPanel and closetPanel.bFastDressUp then
         local fashionIds = self:GetFashionIds(currentWardrobeData)
@@ -1773,6 +2219,21 @@ function AppearanceModule:SetDefaultSuit(fashionItems, salonIds, callback, bShou
       end
     end
   end
+  if not self:CheckWearingItemListProperly(fashionItems) then
+    Log.Warning("AppearanceModule:SetDefaultSuit \229\165\151\232\163\133\229\144\136\230\179\149\230\128\167\230\163\128\230\159\165\228\184\141\233\128\154\232\191\135\239\188\140\232\183\179\232\191\135\229\136\135\230\141\162")
+    return
+  end
+  if fashionItems and #fashionItems > 0 then
+    for _, v in ipairs(fashionItems) do
+      if v and v.wearing_item_id and 0 ~= v.wearing_item_id then
+        local bHasOwned = self:OnCmdCheckHasOwned(_G.Enum.GoodsType.GT_FASHION, v.wearing_item_id)
+        if not bHasOwned then
+          Log.Error(string.format("AppearanceModule:SetDefaultSuit \230\151\182\232\163\133\233\131\168\228\187\182 %s \230\156\170\230\139\165\230\156\137\239\188\140\232\183\179\232\191\135\229\136\135\230\141\162", tostring(v.wearing_item_id)))
+          return
+        end
+      end
+    end
+  end
   local avatarSystem = UE.USubsystemBlueprintLibrary.GetGameInstanceSubsystem(UE4Helper.GetCurrentWorld(), UE.UAvatarSubsystem)
   avatarSystem:StopSwitchAvatarSuit(self.taskId)
   if self.SetDefaultSuitTaskId then
@@ -1843,6 +2304,7 @@ function AppearanceModule:SetDefaultSuitAvatar(bFashion, fashionItems, salonIds,
   end
   if fashionItems and #fashionItems > 0 then
     self.data.TempAppearData = nil
+    self.data._suitWearIdCache = nil
     for k, v in pairs(fashionItems) do
       if v and 0 ~= v.wearing_item_id then
         local fashionItemConf = _G.DataConfigManager:GetFashionItemConf(v.wearing_item_id)
@@ -1952,7 +2414,7 @@ end
 
 function AppearanceModule:OnNewFashionBondNotify(notify)
   if notify.fashion_bond_item and #notify.fashion_bond_item > 0 then
-    _G.DataModelMgr.PlayerDataModel:UpdatePlayerBondInfo(notify.fashion_bond_item)
+    _G.DataModelMgr.PlayerDataModel:UpdatePlayerBondInfo(notify.fashion_bond_item, notify.is_deduct)
   end
 end
 
@@ -2047,6 +2509,10 @@ function AppearanceModule:CheckSuitAtShopGiftOrMonthlyShop_Old(suitId)
   return self.data:CheckSuitAtShopGiftOrMonthlyShop_Old(suitId)
 end
 
+function AppearanceModule:OnCmdCheckSuitTime(suitId, count)
+  return self.data:CheckSuitTime(suitId, count)
+end
+
 function AppearanceModule:OnCmdGetSuitState(suitId)
   return self.data:GetSuitState(suitId)
 end
@@ -2088,7 +2554,11 @@ function AppearanceModule:PlayOpenFashionPanelSkill(resRequest, Asset)
   end
   skillObj:RegisterEventCallback("OpenPanel", self, self.SkillOpenFashion)
   skillObj:RegisterEventCallback("CameraBlur", self, self.SetCameraDOFFashion)
-  self.AvatarPlayer.RocoSkill:PlaySkill(skillObj)
+  local result = self.AvatarPlayer.RocoSkill:PlaySkill(skillObj)
+  if result ~= UE4.ESkillStartResult.Success then
+    self:SkillOpenFashion()
+    return
+  end
 end
 
 function AppearanceModule:SetPosAndLockOnGround(Model, Position, Rotation)
@@ -2125,12 +2595,24 @@ function AppearanceModule:SkillOpenFashion(Event, Skill)
   end
 end
 
-function AppearanceModule:InitAvatarRotationData(avatarPlayer, Yaw, InitialYaw)
+function AppearanceModule:InitAvatarRotationData(avatarPlayer, Yaw, InitialYaw, contextKey)
   if avatarPlayer then
     self.RotAvatarPlayer = avatarPlayer
     self.data.AvatarPlayerRotation = avatarPlayer:K2_GetActorRotation()
     self.data.AvatarPlayerRotation_Yaw = Yaw or avatarPlayer:K2_GetActorRotation().Yaw
     self.data.AvatarPlayerRotation_InitializeYaw = InitialYaw or avatarPlayer:K2_GetActorRotation().Yaw
+    if contextKey then
+      local rot = avatarPlayer:K2_GetActorRotation()
+      self.data.rotationContexts[contextKey] = self.data.rotationContexts[contextKey] or {}
+      local ctx = self.data.rotationContexts[contextKey]
+      ctx.avatarPlayer = avatarPlayer
+      ctx.avatarPlayerRotation = rot
+      ctx.avatarPlayerRotation_Yaw = Yaw or rot.Yaw
+      ctx.avatarPlayerRotation_InitializeYaw = InitialYaw or rot.Yaw
+      ctx.frontAndBackRotation_Yaw = ctx.avatarPlayerRotation_Yaw
+      ctx.startTime = 0
+      ctx.endTime = 1
+    end
   end
 end
 
@@ -2243,7 +2725,11 @@ function AppearanceModule:PlayOpenBeautyPanelSkill(resRequest, Asset)
     skillObj:RegisterEventCallback("OpenPanel", self, self.SkillOpenBeauty)
     skillObj:RegisterEventCallback("CameraBlur", self, self.SetCameraDOFBeauty)
     skillObj:RegisterEventCallback("HidePlayer", self, self.DelayHidePlayer)
-    self.AvatarPlayer.RocoSkill:PlaySkill(skillObj)
+    local result = self.AvatarPlayer.RocoSkill:PlaySkill(skillObj)
+    if result ~= UE4.ESkillStartResult.Success then
+      self:SkillOpenBeauty()
+      return
+    end
   end
 end
 
@@ -2336,33 +2822,47 @@ function AppearanceModule:InitDefaultSuitConf()
 end
 
 function AppearanceModule:OnTick(deltaTime)
-  if self.IsRotation and self.RotAvatarPlayer and (self:HasPanel("AppearanceCloset") or self:HasPanel("AppearanceTryOn")) then
-    self.data.StartTime = self.data.StartTime + deltaTime
-    local curRot = self.RotAvatarPlayer:K2_GetActorRotation()
-    local toRotator = UE4.FRotator()
-    if not self.data.IsClockwiseRotation then
-      if curRot.Yaw < 0 then
-        curRot.Yaw = curRot.Yaw + 360
-      end
-      if self.data.AvatarPlayerRotation_Yaw < 0 then
-        self.data.AvatarPlayerRotation_Yaw = self.data.AvatarPlayerRotation_Yaw + 360
-      end
-      if curRot.Yaw < self.data.AvatarPlayerRotation_Yaw and math.abs(self.data.AvatarPlayerRotation_Yaw - curRot.Yaw) >= 0.01 then
-        curRot.Yaw = curRot.Yaw + 360
-      end
-    elseif curRot.Yaw > self.data.AvatarPlayerRotation_Yaw and math.abs(curRot.Yaw - self.data.AvatarPlayerRotation_Yaw) >= 0.01 then
-      curRot.Yaw = curRot.Yaw - 360
+  for ctxKey, ctx in pairs(self.data.rotationContexts) do
+    if ctx.isRotation and ctx.avatarPlayer and UE4.UObject.IsValid(ctx.avatarPlayer) then
+      self:_TickRotationContext(ctx, deltaTime)
     end
-    toRotator.Yaw = self.data.AvatarPlayerRotation_Yaw
-    curRot.Yaw = self:Lerp(curRot, toRotator, self.data.StartTime * self.data.EndTime / (self.data.AvatarPlayerRotationAngle / 360))
-    self.RotAvatarPlayer:K2_SetActorRotation(curRot, false)
-    if math.abs(curRot.Yaw - self.data.AvatarPlayerRotation_Yaw) <= 0.01 then
-      curRot.Yaw = self.data.FrontAndBackRotation_Yaw
-      self.data.AvatarPlayerRotation_Yaw = self.data.AvatarPlayerRotation_InitializeYaw
-      self.data.FrontAndBackRotation_Yaw = self.data.AvatarPlayerRotation_InitializeYaw
+  end
+  if self.IsRotation and self.RotAvatarPlayer and UE4.UObject.IsValid(self.RotAvatarPlayer) and (self:HasPanel("AppearanceCloset") or self:HasPanel("AppearanceTryOn")) then
+    local managedByCtx = false
+    for _, ctx in pairs(self.data.rotationContexts) do
+      if ctx.avatarPlayer == self.RotAvatarPlayer then
+        managedByCtx = true
+        break
+      end
+    end
+    if not managedByCtx then
+      self.data.StartTime = self.data.StartTime + deltaTime
+      local curRot = self.RotAvatarPlayer:K2_GetActorRotation()
+      local toRotator = UE4.FRotator()
+      if not self.data.IsClockwiseRotation then
+        if curRot.Yaw < 0 then
+          curRot.Yaw = curRot.Yaw + 360
+        end
+        if self.data.AvatarPlayerRotation_Yaw < 0 then
+          self.data.AvatarPlayerRotation_Yaw = self.data.AvatarPlayerRotation_Yaw + 360
+        end
+        if curRot.Yaw < self.data.AvatarPlayerRotation_Yaw and math.abs(self.data.AvatarPlayerRotation_Yaw - curRot.Yaw) >= 0.01 then
+          curRot.Yaw = curRot.Yaw + 360
+        end
+      elseif curRot.Yaw > self.data.AvatarPlayerRotation_Yaw and math.abs(curRot.Yaw - self.data.AvatarPlayerRotation_Yaw) >= 0.01 then
+        curRot.Yaw = curRot.Yaw - 360
+      end
+      toRotator.Yaw = self.data.AvatarPlayerRotation_Yaw
+      curRot.Yaw = self:Lerp(curRot, toRotator, self.data.StartTime * self.data.EndTime / (self.data.AvatarPlayerRotationAngle / 360))
       self.RotAvatarPlayer:K2_SetActorRotation(curRot, false)
-      self.data.StartTime = 0
-      self.IsRotation = false
+      if math.abs(curRot.Yaw - self.data.AvatarPlayerRotation_Yaw) <= 0.01 then
+        curRot.Yaw = self.data.FrontAndBackRotation_Yaw
+        self.data.AvatarPlayerRotation_Yaw = self.data.AvatarPlayerRotation_InitializeYaw
+        self.data.FrontAndBackRotation_Yaw = self.data.AvatarPlayerRotation_InitializeYaw
+        self.RotAvatarPlayer:K2_SetActorRotation(curRot, false)
+        self.data.StartTime = 0
+        self.IsRotation = false
+      end
     end
   end
   if self:HasPanel("AppearanceMain") and self.AvatarPlayer and self.NpcAction and self.NpcAction.Config.action_type ~= _G.Enum.ActionType.ACT_CAMP_OPENPIKA then
@@ -2500,6 +3000,7 @@ function AppearanceModule:GetTempDataFromAvatar(avatarPlayer)
   local TempIDs = defaultSuitObj:GetBodies():ToTable()
   local TempSalons = defaultSuitObj:GetSalons():ToTable()
   self.data.TempAppearData = nil
+  self.data._suitWearIdCache = nil
   for k, v in pairs(defaultSuitObj.SalonParams:ToTable()) do
   end
   for k, v in ipairs(TempIDs) do
@@ -2512,12 +3013,8 @@ function AppearanceModule:GetTempDataFromAvatar(avatarPlayer)
           fashionGoodsId = fashionGoodsMap.id
         end
         local fashionItemConf = _G.DataConfigManager:GetFashionItemConf(v)
-        local tag
-        if fashionItemConf and (fashionItemConf.type == _G.Enum.FashionLabelType.FLT_TOPS or fashionItemConf.type == _G.Enum.FashionLabelType.FLT_DRESSES) then
-          tag = fashionItemConf.fashion_tops_tag
-        elseif fashionItemConf and fashionItemConf.type == _G.Enum.FashionLabelType.FLT_RINGS then
-          tag = fashionItemConf.fashion_rings_tag
-        end
+        local AppearanceUtils = require("NewRoco.Modules.System.Appearance.AppearanceUtils")
+        local tag = fashionItemConf and AppearanceUtils.BuildTagArrayFromConf(fashionItemConf) or nil
         local glassInfo
         if TempBodyGlasses and nil ~= TempBodyGlasses[k] then
           glassInfo = CommonUIUtils.GetGlassInfoFromId(TempBodyGlasses[k])
@@ -2777,6 +3274,7 @@ function AppearanceModule:OnCmdCalcFashionPackagePrice(fashionPackageId, package
   local PackageFreePrice = 0
   local bHadOwnEntirePackage = true
   local AvailablePikaPointInPackageContent = 0
+  local bInvalidServerData = false
   local packageGoodsData = _G.NRCModuleManager:DoCmd(_G.NPCShopUIModuleCmd.OnCmdGetGoodsSeverData, shopId, packageGoodsId)
   if packageGoodsData and packageGoodsData.sub_goods then
     for idx, subGoodsData in ipairs(packageGoodsData.sub_goods) do
@@ -2801,8 +3299,11 @@ function AppearanceModule:OnCmdCalcFashionPackagePrice(fashionPackageId, package
         AvailablePikaPointInPackageContent = AvailablePikaPointInPackageContent + self:OnCmdCalcPikaPoint(shopId, subGoodsData.goods_id, 1)
       end
     end
+  else
+    bInvalidServerData = true
+    Log.Debug("AppearanceModule:OnCmdCalcFashionPackagePrice, \229\149\134\229\147\129\230\156\141\229\138\161\229\153\168\230\149\176\230\141\174\228\184\141\229\173\152\229\156\168", shopId, packageGoodsId)
   end
-  return PackageTotalPrice, PackageFreePrice, bHadOwnEntirePackage, AvailablePikaPointInPackageContent
+  return PackageTotalPrice, PackageFreePrice, bHadOwnEntirePackage, AvailablePikaPointInPackageContent, bInvalidServerData
 end
 
 function AppearanceModule:OnCmdCalcFashionSuitPrice(suitId)
@@ -2846,7 +3347,7 @@ function AppearanceModule:OnCmdRefreshTryOnUnlockShop(shopItemList, shopId)
   end
 end
 
-function AppearanceModule:OnCmdSetCurTryOnItemInfo(type, id, goodsId, colorIndex, bChoosed, bInTryOn, bRefreshBrand, glassInfo)
+function AppearanceModule:OnCmdSetCurTryOnItemInfo(type, id, goodsId, colorIndex, bChoosed, bInTryOn, bRefreshBrand, glassInfo, bFashionType)
   self.data.curTryOnItemInfo.type = type
   self.data.curTryOnItemInfo.id = id
   if bInTryOn then
@@ -2863,7 +3364,7 @@ function AppearanceModule:OnCmdSetCurTryOnItemInfo(type, id, goodsId, colorIndex
     if hasPanel1 then
       local panel = self:GetPanel("AppearanceCloset")
       if panel then
-        panel:SetCurSelectItem(type, id, colorIndex, bChoosed, nil, bRefreshBrand, glassInfo)
+        panel:SetCurSelectItem(type, id, colorIndex, bChoosed, nil, bRefreshBrand, glassInfo, bFashionType)
       end
     end
   end
@@ -2911,8 +3412,42 @@ function AppearanceModule:OnCmdBuyFashions(shopId, goodsTable)
   _G.NRCModuleManager:DoCmd(_G.NPCShopUIModuleCmd.MallBuyItemReq, shopId, buyItemTable)
 end
 
-function AppearanceModule:ClearRotAvatarPlayer()
-  self.RotAvatarPlayer = nil
+function AppearanceModule:ClearRotAvatarPlayer(contextKey)
+  if contextKey then
+    self.data.rotationContexts[contextKey] = nil
+  else
+    self.RotAvatarPlayer = nil
+  end
+end
+
+function AppearanceModule:_TickRotationContext(ctx, deltaTime)
+  ctx.startTime = ctx.startTime + deltaTime
+  local curRot = ctx.avatarPlayer:K2_GetActorRotation()
+  local toRotator = UE4.FRotator()
+  if not ctx.isClockwiseRotation then
+    if curRot.Yaw < 0 then
+      curRot.Yaw = curRot.Yaw + 360
+    end
+    if ctx.avatarPlayerRotation_Yaw < 0 then
+      ctx.avatarPlayerRotation_Yaw = ctx.avatarPlayerRotation_Yaw + 360
+    end
+    if curRot.Yaw < ctx.avatarPlayerRotation_Yaw and math.abs(ctx.avatarPlayerRotation_Yaw - curRot.Yaw) >= 0.01 then
+      curRot.Yaw = curRot.Yaw + 360
+    end
+  elseif curRot.Yaw > ctx.avatarPlayerRotation_Yaw and math.abs(curRot.Yaw - ctx.avatarPlayerRotation_Yaw) >= 0.01 then
+    curRot.Yaw = curRot.Yaw - 360
+  end
+  toRotator.Yaw = ctx.avatarPlayerRotation_Yaw
+  curRot.Yaw = self:Lerp(curRot, toRotator, ctx.startTime * ctx.endTime / (ctx.avatarPlayerRotationAngle / 360))
+  ctx.avatarPlayer:K2_SetActorRotation(curRot, false)
+  if math.abs(curRot.Yaw - ctx.avatarPlayerRotation_Yaw) <= 0.01 then
+    curRot.Yaw = ctx.frontAndBackRotation_Yaw
+    ctx.avatarPlayerRotation_Yaw = ctx.avatarPlayerRotation_InitializeYaw
+    ctx.frontAndBackRotation_Yaw = ctx.avatarPlayerRotation_InitializeYaw
+    ctx.avatarPlayer:K2_SetActorRotation(curRot, false)
+    ctx.startTime = 0
+    ctx.isRotation = false
+  end
 end
 
 function AppearanceModule:CreateClosetAvatarPlayer(npcAction)
@@ -2939,7 +3474,7 @@ function AppearanceModule:CreateClosetAvatarPlayer(npcAction)
   end)
 end
 
-function AppearanceModule:SetFastDressUpAvatarPlayer(fastDressUpAvatarPlayer, fastDressUpAvatarWardrobe, bIgnoreTips)
+function AppearanceModule:SetFastDressUpAvatarPlayer(fastDressUpAvatarPlayer, fastDressUpAvatarWardrobe, bIgnoreTips, overrideFashionIds, overrideSalonIds)
   if not fastDressUpAvatarPlayer or not UE4.UObject.IsValid(fastDressUpAvatarPlayer) then
     return
   end
@@ -2947,10 +3482,15 @@ function AppearanceModule:SetFastDressUpAvatarPlayer(fastDressUpAvatarPlayer, fa
   self.closetAvatarPlayer_Ref = UnLua.Ref(self.closetAvatarPlayer)
   self.closetAvatarPlayer.AnimComponent:InitAnimInstance()
   self.fastDressUpAvatarWardrobe = fastDressUpAvatarWardrobe
-  self:InitAvatarRotationData(self.closetAvatarPlayer)
+  self:InitAvatarRotationData(self.closetAvatarPlayer, nil, nil, "Closet")
   self.animManager:TryPlayBeginLoopAnimByName(fastDressUpAvatarPlayer, "HZIdle", "HZIdle")
   if self:HasPanel("AppearanceCloset") then
-    self:ChangeSuitConfig(true, bIgnoreTips)
+    if overrideFashionIds and overrideSalonIds then
+      self:SetDefaultSuitAvatar(true, overrideFashionIds, overrideSalonIds, self.closetAvatarPlayer, function()
+      end, bIgnoreTips)
+    else
+      self:ChangeSuitConfig(true, bIgnoreTips)
+    end
     self:UpdateClosetPanelInfo()
     _G.NRCModuleManager:GetModule("AppearanceModule"):DispatchEvent(AppearanceModuleEvent.OnClosetPlayerInitOver)
     self:OnOpenClosetPanelSkillEnded()
@@ -2979,6 +3519,7 @@ function AppearanceModule:CloseFastDressUpPanelHandle(subPanelUWorld)
     self.closetAvatarPlayer = nil
     self.closetAvatarPlayer_Ref = nil
   end
+  self.data.rotationContexts.Closet = nil
 end
 
 function AppearanceModule:HideClosetLocalPlayer()
@@ -3037,6 +3578,7 @@ function AppearanceModule:ShowClosetLocalPlayer()
     self.closetAvatarPlayer = nil
     self.closetAvatarPlayer_Ref = nil
   end
+  self.data.rotationContexts.Closet = nil
 end
 
 function AppearanceModule:OpenClosetPanelSkill(npcAction)
@@ -3089,12 +3631,12 @@ function AppearanceModule:ShowClosetPanel()
   if hasPanel then
     local panel = self:GetPanel("AppearanceCloset")
     if panel then
-      self:InitAvatarRotationData(self.closetAvatarPlayer)
+      self:InitAvatarRotationData(self.closetAvatarPlayer, nil, nil, "Closet")
       panel:SkillEndShowPanel()
       local player = _G.NRCModuleManager:DoCmd(PlayerModuleCmd.GET_LOCAL_PLAYER)
       local playerLocation = player.viewObj:Abs_K2_GetActorLocation()
       player.movementComponent:OnPause(true)
-      player.viewObj:Abs_K2_SetActorLocation_WithoutHit(playerLocation - UE4.FVector(650, 0, -650))
+      player.viewObj:SetForceHidden(true)
     end
   end
 end
@@ -3292,10 +3834,7 @@ end
 function AppearanceModule:StartEndSkillHZIdle()
   local avatarPlayer = self.closetAvatarPlayer
   if avatarPlayer then
-    local param = self.animManager:CreateAnimPlayParamInstance()
-    param.blendInTime = 0.3
-    param.blendOutTime = 0.3
-    self.animManager:TryPlayAnimByNameWithParam(avatarPlayer, "HZIdle", false, param)
+    self.animManager:TryPlayBeginLoopAnimByName(avatarPlayer, "HZIdle", "HZIdle", false)
   end
 end
 
@@ -3390,12 +3929,8 @@ function AppearanceModule:OnCmdSetClosetAppearance(fashionId, bChoosed, bShow, g
       if fashionGoods then
         fashionGoodsId = fashionGoods.id
       end
-      local tag
-      if fashionItemConf and (fashionItemConf.type == _G.Enum.FashionLabelType.FLT_TOPS or fashionItemConf.type == _G.Enum.FashionLabelType.FLT_DRESSES) then
-        tag = fashionItemConf.fashion_tops_tag
-      elseif fashionItemConf and fashionItemConf.type == _G.Enum.FashionLabelType.FLT_RINGS then
-        tag = fashionItemConf.fashion_rings_tag
-      end
+      local AppearanceUtils = require("NewRoco.Modules.System.Appearance.AppearanceUtils")
+      local tag = fashionItemConf and AppearanceUtils.BuildTagArrayFromConf(fashionItemConf) or nil
       self.data:TempCurAppearChooseInfo(fashionItemConf.type, fashionId, fashionGoodsId, bChoosed, tag, glassInfo)
       if fashionItemConf and fashionItemConf.type == _G.Enum.FashionLabelType.FLT_BOTTOMS and bChoosed then
         local player = _G.NRCModuleManager:DoCmd(PlayerModuleCmd.GET_LOCAL_PLAYER)
@@ -3462,6 +3997,11 @@ function AppearanceModule:ChangeClosetSkeletalMesh(itemType, itemId, bChoosed, g
       else
         local bFashion, configEnum, Enum = self:GetConfigEnumFromFashionId(itemId)
         self.closetAvatarPlayer:SetAvatarModelID(Enum, true, 0)
+        local AppearanceUtils = require("NewRoco.Modules.System.Appearance.AppearanceUtils")
+        local cacheBodyTypes = AppearanceUtils.GetCacheBodyTypes(Enum)
+        if cacheBodyTypes and #cacheBodyTypes > 0 then
+          self:RestoreHairSalonAfterHelmetRemoval()
+        end
         local avatarPlayer = self.closetAvatarPlayer
         local avatarAnimConp = avatarPlayer:GetComponentByClass(UE4.URocoAnimComponent)
         local animName = avatarAnimConp:GetCurAnimName()
@@ -3507,8 +4047,12 @@ function AppearanceModule:OnCmdSetClosetBeauty(SalonId, colorIndex, glassInfo)
     salonGoodsId = salonGoodsData.id
   end
   local fullSalonId = self:GetFullSalonId(salonItemConf.avatar_id, colorIndex)
-  self.closetAvatarPlayer:SetAvatarMaterialID(fullSalonId)
   self.data:TempCurBeautyChooseInfo(salonItemConf.type, salonItemConf.id, salonGoodsId, colorIndex)
+  local bHasUpgradePanel = self:HasPanel("AppearanceUpgrade")
+  if self:IsClosetAvatarWearingHelmet() and salonItemConf.type == _G.Enum.SalonLabelType.SLT_HAIR and not bHasUpgradePanel then
+    self:AutoRemoveHelmetForHair()
+  end
+  self.closetAvatarPlayer:SetAvatarMaterialID(fullSalonId)
 end
 
 function AppearanceModule:HideOrShowAppearanceById(bFashion, itemId, bShow)
@@ -3542,7 +4086,7 @@ function AppearanceModule:OnCmdSetTryOnAppearance(bFashion, ids, bFromCloset, bI
         self:OnCmdSetClosetAppearance(v, true)
         local fashionItemConf = _G.DataConfigManager:GetFashionItemConf(v)
         if not bIgnoreRotate then
-          self:SetPlayerAngle(fashionItemConf.type, self.closetAvatarPlayer)
+          self:SetPlayerAngle(fashionItemConf.type, self.closetAvatarPlayer, "Closet")
         end
       end
     else
@@ -3550,7 +4094,7 @@ function AppearanceModule:OnCmdSetTryOnAppearance(bFashion, ids, bFromCloset, bI
         local salonItemConf = _G.DataConfigManager:GetSalonItemConf(v)
         self:OnCmdSetClosetBeauty(v, salonItemConf.texture_id)
         if not bIgnoreRotate then
-          self:SetPlayerAngle(0, self.closetAvatarPlayer)
+          self:SetPlayerAngle(0, self.closetAvatarPlayer, "Closet")
         end
       end
     end
@@ -3709,8 +4253,8 @@ function AppearanceModule:OnCmdFashionBuySuccess(_rsp)
       panel:OnBuySuccess()
     end
   end
-  if not bConfirmIsAvailable then
-    self:OnCmdOpenFashionBuyResultPopUp(_rsp)
+  if not bConfirmIsAvailable and self:ShouldPopUpEvenConfirmUIDisabled(_rsp) then
+    _G.NRCModuleManager:DoCmd(_G.AppearanceModuleCmd.OpenFashionBuyResultPopUp, _rsp)
   end
 end
 
@@ -3764,15 +4308,15 @@ function AppearanceModule:OnCmdOnNameCardPopupAvatarSuitComplete()
   end
 end
 
-function AppearanceModule:OnCmdOpenGorgeousMedalPanel(medalId)
+function AppearanceModule:OnCmdOpenGorgeousMedalPanel(medalId, bUpgradeSkip)
   local _isOpening, _ = self:HasPanel("GorgeousMedal")
   if _isOpening then
     local panel = self:GetPanel("GorgeousMedal")
     if panel then
-      panel:Active(medalId)
+      panel:Active(medalId, bUpgradeSkip)
     end
   else
-    self:OpenPanel("GorgeousMedal", medalId)
+    self:OpenPanel("GorgeousMedal", medalId, bUpgradeSkip)
   end
 end
 
@@ -3783,6 +4327,11 @@ end
 
 function AppearanceModule:FashionUpgradePanelIsOpen()
   local _isOpening, _ = self:HasPanel("AppearanceUpgrade")
+  return _isOpening
+end
+
+function AppearanceModule:AppearanceTryOnPanelIsOpen()
+  local _isOpening, _ = self:HasPanel("AppearanceTryOn")
   return _isOpening
 end
 
@@ -4090,7 +4639,15 @@ function AppearanceModule:OnFashionShowBaseResLoadComplete(InQueue, bSuccess)
   end
   if bSuccess then
     local mannequinActor = self:CreateFashionMannequinActor()
+    if not mannequinActor then
+      Log.Error("AppearanceModule:OnFashionShowBaseResLoadComplete Actor\231\148\159\230\136\144\229\164\177\232\180\165")
+      return
+    end
     self:UpdateFashionShowSequenceLength(mannequinActor)
+    if not self.data.fashionShowSequenceTotalTime then
+      Log.Error("AppearanceModule:OnFashionShowBaseResLoadComplete \232\161\168\230\188\148\229\186\143\229\136\151\230\128\187\230\151\182\233\149\191\232\174\161\231\174\151\229\164\177\232\180\165")
+      return
+    end
     if self.DelayIdStartFirstFashionShow then
       DelayManager:CancelDelay(self.DelayIdStartFirstFashionShow)
       self.DelayIdStartFirstFashionShow = nil
@@ -4258,7 +4815,7 @@ function AppearanceModule:OnFashionShowFinish(bOk, debugDelayCallPath)
 end
 
 function AppearanceModule:DoStartFashionShow(indexInSequence)
-  if not self.data.fashionShowSequence then
+  if not self.data.fashionShowSequence or not self.data.fashionShowSequenceTotalTime then
     return
   end
   local showInfo = self.data.fashionShowSequence[indexInSequence]
@@ -5128,6 +5685,7 @@ function AppearanceModule:PlayClosetShiningMedalSkillStart()
   if avatarPlayer then
     self.animManager:TryPlayBeginLoopAnimByName(avatarPlayer, "ShiningMedalOpen", "ShiningMedalLoop", true)
   end
+  self._bIsPlayingShiningMedalSkill = true
 end
 
 function AppearanceModule:PlayClosetShiningMedalSkillEnd()
@@ -5135,6 +5693,7 @@ function AppearanceModule:PlayClosetShiningMedalSkillEnd()
   if avatarPlayer then
     self.animManager:TryPlayBeginLoopAnimByNameWithParam(avatarPlayer, "ShiningMedalEnd", "HZIdle", true)
   end
+  self._bIsPlayingShiningMedalSkill = false
 end
 
 function AppearanceModule:OpenMagicWandPopUp(context)
@@ -5543,6 +6102,34 @@ function AppearanceModule:IsFashionHeterochrome(itemId)
   return true
 end
 
+function AppearanceModule:CheckWearingItemListProperly(wearingItemList)
+  if not wearingItemList or 0 == #wearingItemList then
+    return false
+  end
+  local bHasDress = false
+  local bHasTop = false
+  local bHasBottom = false
+  local bHasShoes = false
+  for _, v in ipairs(wearingItemList) do
+    if v.wearing_item_id and v.wearing_item_id > 0 then
+      local fashionItemConf = _G.DataConfigManager:GetFashionItemConf(v.wearing_item_id)
+      if fashionItemConf then
+        local fashionType = fashionItemConf.type
+        if fashionType == _G.Enum.FashionLabelType.FLT_DRESSES then
+          bHasDress = true
+        elseif fashionType == _G.Enum.FashionLabelType.FLT_TOPS then
+          bHasTop = true
+        elseif fashionType == _G.Enum.FashionLabelType.FLT_BOTTOMS then
+          bHasBottom = true
+        elseif fashionType == _G.Enum.FashionLabelType.FLT_SHOES then
+          bHasShoes = true
+        end
+      end
+    end
+  end
+  return (bHasDress or bHasTop and bHasBottom) and bHasShoes
+end
+
 function AppearanceModule:CheckOutfitProperly()
   if not self.data.TempAppearData or 0 == #self.data.TempAppearData then
     return false
@@ -5551,7 +6138,6 @@ function AppearanceModule:CheckOutfitProperly()
   local bHasTop = false
   local bHasBottom = false
   local bHasShoes = false
-  local bHasBag = false
   for k, v in ipairs(self.data.TempAppearData) do
     if v.FashionType == _G.Enum.FashionLabelType.FLT_DRESSES then
       bHasDress = true
@@ -5561,12 +6147,10 @@ function AppearanceModule:CheckOutfitProperly()
       bHasBottom = true
     elseif v.FashionType == _G.Enum.FashionLabelType.FLT_SHOES then
       bHasShoes = true
-    elseif v.FashionType == _G.Enum.FashionLabelType.FLT_BAGS then
-      bHasBag = true
     end
   end
   if bHasDress or bHasTop and bHasBottom then
-    return bHasShoes and bHasBag
+    return bHasShoes
   end
   return false
 end
@@ -5763,15 +6347,17 @@ function AppearanceModule:GetNextLockedItemIconPath(suit_id)
   return ""
 end
 
-function AppearanceModule:SendClaimGlassTintReq(fashion_bond_id, is_shining, glass, fashion_item_id)
+function AppearanceModule:SendClaimGlassTintReq(fashion_bond_id, is_shining, glass, fashion_item_id, pet_data)
   local req = _G.ProtoMessage:newZoneClaimGlassTintReq()
   req.fashion_bond_id = fashion_bond_id
   req.is_shining = is_shining
   req.glass = glass
   req.fashion_item_id = fashion_item_id
   self.bFromRelationTree = false
-  if not fashion_item_id then
+  self.claimGlassPetData = nil
+  if not fashion_item_id and pet_data then
     self.bFromRelationTree = true
+    self.claimGlassPetData = pet_data
   end
   _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_CLAIM_GLASS_TINT_REQ, req, self, self.ZoneClaimGlassTintRsp, false, false)
 end
@@ -5906,9 +6492,6 @@ end
 
 function AppearanceModule:CheckPetGlassTintIsClaimableByItemID(item_id)
   local fashionInfo = _G.DataModelMgr.PlayerDataModel:GetPlayerFashionInfo()
-  if not fashionInfo then
-    return false
-  end
   if fashionInfo.owned_item_info then
     for _, item in pairs(fashionInfo.owned_item_info or {}) do
       if item and item.item_id == item_id and item.claimable_glass and #item.claimable_glass > 0 then
@@ -5973,7 +6556,7 @@ function AppearanceModule:OpenPigmentAcquirePanel(change_to_owned, bHiddenBtn)
     end
   end
   local tabIndex, subTabIndex = self:GetDefaultTabIndexAndDefaultSubTabIndex(change_to_owned)
-  self:OpenPanel("PigmentAcquire", glassTintList, bHiddenBtn, tabIndex, subTabIndex)
+  self:OpenPanel("PigmentAcquire", glassTintList, bHiddenBtn, tabIndex, subTabIndex, self.claimGlassPetData)
 end
 
 function AppearanceModule:GetDefaultTabIndexAndDefaultSubTabIndex(change_to_owned)
@@ -6037,6 +6620,9 @@ function AppearanceModule:GetFashionItemGlassInfo(item_id)
           break
         end
       end
+    end
+    if not self.data.savedItemGlassMap then
+      self:InitSavedItemGlassMap()
     end
     if self.data.savedItemGlassMap[item_id] then
       wearingGlassInfo = self.data.savedItemGlassMap[item_id]
@@ -6136,6 +6722,9 @@ end
 function AppearanceModule:UpdateSavedItemGlassMap(wearing_item)
   for _, wearingItem in pairs(wearing_item or {}) do
     local wearingGlassInfo = wearingItem.wearing_glass
+    if not self.data.savedItemGlassMap then
+      self:InitSavedItemGlassMap()
+    end
     self.data.savedItemGlassMap[wearingItem.wearing_item_id] = wearingGlassInfo
   end
 end
@@ -6366,8 +6955,93 @@ function AppearanceModule:OnEnterSceneFinishNtyAck(notify, isReconnecting, isEnt
   end
 end
 
+function AppearanceModule:AutoRemoveHelmetForHair()
+  local AppearanceUtils = require("NewRoco.Modules.System.Appearance.AppearanceUtils")
+  local hairConflicts = AppearanceUtils.GetConflictBodyTypes(UE4.EAvatarBodyType.Hair)
+  if not hairConflicts or 0 == #hairConflicts then
+    return
+  end
+  if self.data.TempAppearData then
+    for k, v in ipairs(self.data.TempAppearData) do
+      local existAvatarEnum = AppearanceUtils.GetAvatarEnumFromFashionId(v.FashionId)
+      if existAvatarEnum then
+        for _, conflictType in ipairs(hairConflicts) do
+          if existAvatarEnum == conflictType then
+            self:OnCmdSetClosetAppearance(v.FashionId, false)
+            local hasCloset = self:HasPanel("AppearanceCloset")
+            if hasCloset then
+              local closetPanel = self:GetPanel("AppearanceCloset")
+              if closetPanel then
+                closetPanel:OnHelmetAutoRemoved()
+              end
+            end
+            return
+          end
+        end
+      end
+    end
+  end
+end
+
+function AppearanceModule:IsClosetAvatarWearingHelmet()
+  local AppearanceUtils = require("NewRoco.Modules.System.Appearance.AppearanceUtils")
+  local hairConflicts = AppearanceUtils.GetConflictBodyTypes(UE4.EAvatarBodyType.Hair)
+  if not hairConflicts or 0 == #hairConflicts then
+    return false
+  end
+  if self.data.TempAppearData then
+    for k, v in ipairs(self.data.TempAppearData) do
+      local existAvatarEnum = AppearanceUtils.GetAvatarEnumFromFashionId(v.FashionId)
+      if existAvatarEnum then
+        for _, conflictType in ipairs(hairConflicts) do
+          if existAvatarEnum == conflictType then
+            return true
+          end
+        end
+      end
+    end
+  end
+  return false
+end
+
+function AppearanceModule:RestoreHairSalonAfterHelmetRemoval()
+  if not self.closetAvatarPlayer or not UE4.UObject.IsValid(self.closetAvatarPlayer) then
+    return
+  end
+  if self.data.TempBeautyData then
+  end
+end
+
 function AppearanceModule:GetExchangeVoucherIdBySuitId(suitId)
   return self.data:GetExchangeVoucherIdBySuitId(suitId)
+end
+
+function AppearanceModule:GetSuitIdByExchangeVoucherId(voucherId)
+  return self.data:GetSuitIdByExchangeVoucherId(voucherId)
+end
+
+function AppearanceModule:OnCmdSetCurTopExclusionPanel(panelType)
+  self.data:SetCurTopExclusionPanel(panelType)
+end
+
+function AppearanceModule:OnCmdGetCurTopExclusionPanel()
+  return self.data:GetCurTopExclusionPanel()
+end
+
+function AppearanceModule:ShouldPopUpEvenConfirmUIDisabled(rsp)
+  if not rsp or not rsp.shop_id then
+    return false
+  end
+  local shopId = rsp.shop_id
+  local shopConf = _G.DataConfigManager:GetShopConf(shopId)
+  local shopType = shopConf and shopConf.shop_type
+  if not shopType then
+    return false
+  end
+  if shopType == Enum.ShopType.ST_FASHION_TAILOR then
+    return false
+  end
+  return true
 end
 
 return AppearanceModule

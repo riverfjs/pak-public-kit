@@ -200,6 +200,7 @@ function UMG_Control_Joystick_C:LuaOnTouchMoved(finger, dir)
 end
 
 function UMG_Control_Joystick_C:LuaOnTouchEnded(finger)
+  self.TouchIndex = -1
   self.isJoystickTouch = false
   NRCModuleManager:DoCmd(MultiTouchModuleCmd.JoystickEndTouch)
   self:TryCallPlayerModule(PlayerModuleEvent.ON_INPUT_TOUCH_END, true)
@@ -216,6 +217,11 @@ function UMG_Control_Joystick_C:LuaOnTouchEnded(finger)
     self.isJoystickThumbNoMoveShow = false
     self:SetShow(false)
   end
+end
+
+function UMG_Control_Joystick_C:OnMouseCaptureLost()
+  Log.Debug("[OnMouseCaptureLost] UMG_Control_Joystick_C")
+  self:LuaOnTouchEnded(self.joystickPointIdx)
 end
 
 function UMG_Control_Joystick_C:OnTick(InDeltaTime)

@@ -91,6 +91,8 @@ if (args.Length > 0 && args[0] == "--extract-lua")
     string? luaDecompilerPath = null;
     string? luaUnluacLibraryPath = null;
     int luaJobs = Math.Max(1, Environment.ProcessorCount);
+    int luaDecompilerTimeoutMs = 30_000;
+    List<string> luaContains = [];
 
     for (var i = 1; i < args.Length; i++)
     {
@@ -125,6 +127,17 @@ if (args.Length > 0 && args[0] == "--extract-lua")
                     Environment.Exit(1);
                 }
                 break;
+            case "--timeout-ms":
+                if (!int.TryParse(RequireValue(args, ref i, args[i]), out luaDecompilerTimeoutMs) || luaDecompilerTimeoutMs < 1)
+                {
+                    Console.Error.WriteLine("ERROR: --timeout-ms must be a positive integer");
+                    Environment.Exit(1);
+                }
+                break;
+            case "--contains":
+            case "--only":
+                luaContains.Add(RequireValue(args, ref i, args[i]));
+                break;
             default:
                 if (args[i].StartsWith("@", StringComparison.Ordinal))
                 {
@@ -145,8 +158,8 @@ if (args.Length > 0 && args[0] == "--extract-lua")
 
     if (string.IsNullOrWhiteSpace(luaAesKeyHex))
     {
-        Console.Error.WriteLine("Usage: dotnet run /p:SkipNatives=true -- --extract-lua <aes-key|@key-file> [--paks path] [--output path] [--jobs n] --decompiler path");
-        Console.Error.WriteLine("       dotnet run /p:SkipNatives=true -- --extract-lua --aes-file <path> [--paks path] [--output path] [--jobs n] --unluac-lib path");
+        Console.Error.WriteLine("Usage: dotnet run /p:SkipNatives=true -- --extract-lua <aes-key|@key-file> [--paks path] [--output path] [--jobs n] [--timeout-ms n] [--contains text] --decompiler path");
+        Console.Error.WriteLine("       dotnet run /p:SkipNatives=true -- --extract-lua --aes-file <path> [--paks path] [--output path] [--jobs n] [--timeout-ms n] [--contains text] --unluac-lib path");
         Environment.Exit(1);
     }
 
@@ -170,6 +183,9 @@ if (args.Length > 0 && args[0] == "--extract-lua")
     var luacFiles = luaProvider.Files.Values
         .Where(f => Path.GetExtension(f.Path).Equals(".luac", StringComparison.OrdinalIgnoreCase))
         .Select(f => new { File = f, CleanPath = CleanLuaSourcePath(f.Path) })
+        .Where(item => luaContains.Count == 0 || luaContains.Any(term =>
+            item.CleanPath.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+            item.File.Path.Contains(term, StringComparison.OrdinalIgnoreCase)))
         .GroupBy(item => item.CleanPath, StringComparer.OrdinalIgnoreCase)
         .Select(group => group.First())
         .OrderBy(item => item.CleanPath, StringComparer.OrdinalIgnoreCase)
@@ -179,8 +195,14 @@ if (args.Length > 0 && args[0] == "--extract-lua")
     Console.WriteLine($"Lua output : {luaOutRoot}");
     Console.WriteLine($"Candidates : {luacFiles.Count}");
     Console.WriteLine($"Jobs       : {luaJobs}");
+    Console.WriteLine($"Timeout ms : {luaDecompilerTimeoutMs}");
+    if (luaContains.Count > 0)
+        Console.WriteLine($"Contains   : {string.Join(", ", luaContains)}");
 
-    CleanLuaSourceOutput(luaOutRoot, luaSourceDir);
+    if (luaContains.Count == 0)
+        CleanLuaSourceOutput(luaOutRoot, luaSourceDir);
+    else
+        Directory.CreateDirectory(luaSourceDir);
 
     var sourceIndex = new List<string>();
     int sourceWritten = 0, luacErrors = 0, sourceErrors = 0;
@@ -198,7 +220,7 @@ if (args.Length > 0 && args[0] == "--extract-lua")
             {
                 var dest = Path.Combine(luaSourceDir, ToLuaSourceRelativePath(file.CleanPath));
                 Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
-                File.WriteAllText(dest, DecompileLuaSource(data, file.CleanPath, luaDecompilerPath), new UTF8Encoding(false));
+                File.WriteAllText(dest, DecompileLuaSource(data, file.CleanPath, luaDecompilerPath, luaDecompilerTimeoutMs), new UTF8Encoding(false));
                 lock (sourceIndex)
                 {
                     sourceIndex.Add(Path.GetRelativePath(luaSourceDir, dest).Replace('\\', '/'));
@@ -220,7 +242,7 @@ if (args.Length > 0 && args[0] == "--extract-lua")
         }
     });
 
-    WriteJsonIndex(luaSourceDir, sourceIndex);
+    WriteJsonIndex(luaSourceDir, luaContains.Count == 0 ? sourceIndex : EnumerateLuaSourceFiles(luaSourceDir));
     Console.WriteLine($"Lua source  : {sourceWritten} exported, {sourceErrors} decompile errors, {luacErrors} read errors");
     Console.WriteLine($"Source index: {Path.Combine(luaSourceDir, "index.json")}");
     Environment.Exit(sourceWritten > 0 ? 0 : 4);
@@ -231,7 +253,7 @@ if (args.Length < 1)
     Console.Error.WriteLine("Usage: dotnet run /p:SkipNatives=true -- <aes-key-hex> [pak-dir] [out-dir]");
     Console.Error.WriteLine("       dotnet run /p:SkipNatives=true -- --aes-file <path> [pak-dir] [out-dir]");
     Console.Error.WriteLine("       dotnet run /p:SkipNatives=true -- --probe-icons [pak-dir] [--aes-file path]");
-    Console.Error.WriteLine("       dotnet run /p:SkipNatives=true -- --extract-lua <aes-key|@key-file> [--paks path] [--output path] [--jobs n] --decompiler path");
+    Console.Error.WriteLine("       dotnet run /p:SkipNatives=true -- --extract-lua <aes-key|@key-file> [--paks path] [--output path] [--jobs n] [--timeout-ms n] [--contains text] --decompiler path");
     Console.Error.WriteLine("  aes-key-hex: 64-character hex AES key");
     Console.Error.WriteLine("  pak-dir:     directory containing .pak files (default: ../../paks)");
     Console.Error.WriteLine("  out-dir:     output directory (default: ../../temp)");
@@ -663,6 +685,15 @@ static void WriteJsonIndex(string dir, IEnumerable<string> paths)
         new JsonSerializerOptions { WriteIndented = true }));
 }
 
+static IEnumerable<string> EnumerateLuaSourceFiles(string dir)
+{
+    if (!Directory.Exists(dir))
+        return [];
+
+    return Directory.EnumerateFiles(dir, "*.lua", SearchOption.AllDirectories)
+        .Select(path => Path.GetRelativePath(dir, path).Replace('\\', '/'));
+}
+
 static string ToLuaSourceRelativePath(string luacPath)
 {
     var path = luacPath.Replace('\\', '/');
@@ -671,7 +702,7 @@ static string ToLuaSourceRelativePath(string luacPath)
         : $"{path}.lua";
 }
 
-static string DecompileLuaSource(byte[] data, string sourcePath, string? decompilerPath)
+static string DecompileLuaSource(byte[] data, string sourcePath, string? decompilerPath, int timeoutMs)
 {
     if (UnluacHelper.Instance is not null)
     {
@@ -686,10 +717,10 @@ static string DecompileLuaSource(byte[] data, string sourcePath, string? decompi
     if (string.IsNullOrWhiteSpace(decompilerPath))
         throw new InvalidOperationException("Lua source decompiler is not configured");
 
-    return DecompileLuaSourceWithExternalTool(data, sourcePath, decompilerPath);
+    return DecompileLuaSourceWithExternalTool(data, sourcePath, decompilerPath, timeoutMs);
 }
 
-static string DecompileLuaSourceWithExternalTool(byte[] data, string sourcePath, string decompilerPath)
+static string DecompileLuaSourceWithExternalTool(byte[] data, string sourcePath, string decompilerPath, int timeoutMs)
 {
     var tempDir = Path.Combine(Path.GetTempPath(), "nrc-extract-lua");
     Directory.CreateDirectory(tempDir);
@@ -709,10 +740,7 @@ static string DecompileLuaSourceWithExternalTool(byte[] data, string sourcePath,
 
         if (decompilerPath.EndsWith(".jar", StringComparison.OrdinalIgnoreCase))
         {
-            psi.FileName = FindExecutable("java") ?? "java";
-            psi.ArgumentList.Add("-jar");
-            psi.ArgumentList.Add(decompilerPath);
-            psi.ArgumentList.Add(inputPath);
+            AddJavaDecompilerArguments(psi, decompilerPath, inputPath);
         }
         else
         {
@@ -728,10 +756,12 @@ static string DecompileLuaSourceWithExternalTool(byte[] data, string sourcePath,
         using var process = Process.Start(psi) ?? throw new InvalidOperationException($"failed to start decompiler: {decompilerPath}");
         var stdoutTask = process.StandardOutput.ReadToEndAsync();
         var stderrTask = process.StandardError.ReadToEndAsync();
-        if (!process.WaitForExit(30_000))
+        if (!process.WaitForExit(timeoutMs))
         {
             try { process.Kill(entireProcessTree: true); } catch { /* best effort */ }
             try { process.WaitForExit(); } catch { /* best effort */ }
+            if (decompilerPath.EndsWith(".jar", StringComparison.OrdinalIgnoreCase))
+                return DecompileLuaSourceWithJarFallbacks(inputPath, sourcePath, decompilerPath, timeoutMs, "default decompile timed out");
             throw new TimeoutException($"decompiler timed out for {sourcePath}");
         }
 
@@ -744,6 +774,9 @@ static string DecompileLuaSourceWithExternalTool(byte[] data, string sourcePath,
         if (process.ExitCode == 0)
             return stdout;
 
+        if (decompilerPath.EndsWith(".jar", StringComparison.OrdinalIgnoreCase))
+            return DecompileLuaSourceWithJarFallbacks(inputPath, sourcePath, decompilerPath, timeoutMs, stderr.Trim());
+
         throw new InvalidOperationException($"decompiler failed for {sourcePath}: {stderr.Trim()}".Trim());
     }
     finally
@@ -751,6 +784,63 @@ static string DecompileLuaSourceWithExternalTool(byte[] data, string sourcePath,
         TryDeleteFile(inputPath);
         TryDeleteFile(outputPath);
     }
+}
+
+static string DecompileLuaSourceWithJarFallbacks(string inputPath, string sourcePath, string decompilerPath, int timeoutMs, string firstError)
+{
+    var attempts = new[]
+    {
+        new[] { "--nodebug" },
+        new[] { "--luaj" },
+        new[] { "--nodebug", "--luaj" },
+    };
+    var errors = new List<string>();
+    if (!string.IsNullOrWhiteSpace(firstError))
+        errors.Add(firstError);
+
+    foreach (var extraArgs in attempts)
+    {
+        var psi = new ProcessStartInfo
+        {
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false
+        };
+        AddJavaDecompilerArguments(psi, decompilerPath, inputPath, extraArgs);
+
+        using var process = Process.Start(psi) ?? throw new InvalidOperationException($"failed to start decompiler: {decompilerPath}");
+        var stdoutTask = process.StandardOutput.ReadToEndAsync();
+        var stderrTask = process.StandardError.ReadToEndAsync();
+        if (!process.WaitForExit(timeoutMs))
+        {
+            try { process.Kill(entireProcessTree: true); } catch { /* best effort */ }
+            try { process.WaitForExit(); } catch { /* best effort */ }
+            errors.Add($"{string.Join(" ", extraArgs)} timed out");
+            continue;
+        }
+
+        var stdout = stdoutTask.GetAwaiter().GetResult();
+        var stderr = stderrTask.GetAwaiter().GetResult();
+        if (process.ExitCode == 0 && !string.IsNullOrWhiteSpace(stdout))
+            return stdout;
+        if (!string.IsNullOrWhiteSpace(stderr))
+            errors.Add($"{string.Join(" ", extraArgs)}: {stderr.Trim()}");
+    }
+
+    throw new InvalidOperationException($"decompiler failed for {sourcePath}: {string.Join("\n---\n", errors)}".Trim());
+}
+
+static void AddJavaDecompilerArguments(ProcessStartInfo psi, string decompilerPath, string inputPath, IEnumerable<string>? extraArgs = null)
+{
+    psi.FileName = FindExecutable("java") ?? "java";
+    psi.ArgumentList.Add("-jar");
+    psi.ArgumentList.Add(decompilerPath);
+    if (extraArgs is not null)
+    {
+        foreach (var arg in extraArgs)
+            psi.ArgumentList.Add(arg);
+    }
+    psi.ArgumentList.Add(inputPath);
 }
 
 static string ResolvePath(string value, string baseDir)

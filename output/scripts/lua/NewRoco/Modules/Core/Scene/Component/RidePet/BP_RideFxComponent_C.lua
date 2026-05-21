@@ -6,6 +6,7 @@ local FxPathMap = {
   [Enum.SceneRideAllType.SRAT_SWIM] = "/Game/ArtRes/Effects/Particle/Scene/Pet/Ride/Swim/",
   [Enum.SceneRideAllType.SRAT_FLY] = "/Game/ArtRes/Effects/Particle/Scene/Pet/Ride/Fly/",
   [Enum.SceneRideAllType.SRAT_CLIMB_WATER] = "/Game/ArtRes/Effects/Particle/Scene/Pet/Ride/Waterfall/",
+  [Enum.SceneRideAllType.SRAT_KEEP_BALANCE] = "/Game/ArtRes/Effects/Particle/Scene/Pet/Ride/DuLunChe/",
   [99] = "/Game/ArtRes/Effects/Particle/Scene/Pet/Ride/Buff/"
 }
 local CacheTime = 5

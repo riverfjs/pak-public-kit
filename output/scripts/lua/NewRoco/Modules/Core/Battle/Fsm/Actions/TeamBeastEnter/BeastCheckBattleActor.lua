@@ -8,7 +8,6 @@ function BeastCheckBattleActor:Ctor(name, properties)
 end
 
 function BeastCheckBattleActor:OnEnter()
-  BattleUtils.ForceUpdateIndexMap()
   self.resList = BattleConst.TeamBeastEnterSkill
   self:OnTick(0)
 end

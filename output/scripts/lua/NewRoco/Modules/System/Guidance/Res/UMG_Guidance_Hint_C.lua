@@ -1,5 +1,12 @@
 local OutOfScreenPadding = 5
+local GuideConfigTypes = require("NewRoco.Modules.System.Guidance.Types.GuideConfigTypes")
 local Base = require("Core.NRCModule.NRCPanelBase")
+local GuidanceHintTextDirection = {
+  Down = 0,
+  Up = 1,
+  Left = 2,
+  Right = 3
+}
 local UMG_Guidance_Hint_C = Base:Extend("UMG_Guidance_Hint_C")
 
 function UMG_Guidance_Hint_C:Destruct()
@@ -58,6 +65,9 @@ function UMG_Guidance_Hint_C:TrySkipInBattle()
 end
 
 function UMG_Guidance_Hint_C:UpdatePosition(style, focusConf, focusSize, centerPosition)
+  if not self.bHasInited then
+    return
+  end
   local offsetValue
   if _G.UE4Helper.IsPCMode() then
     offsetValue = focusConf.pc_edior_pos
@@ -123,55 +133,68 @@ function UMG_Guidance_Hint_C:UpdateSlotPosition(focusConf, offsetValue, focusSiz
   if not slot or not UE4.UObject.IsValid(slot) then
     return
   end
-  if not offsetValue then
-    return
-  end
+  offsetValue = offsetValue or 0
   focusSize = focusSize or UE4.FVector2D(0, 0)
   local align = UE4.FVector2D(0.5, 0.5)
   local offset = UE4.FVector2D(0, 0)
+  local direction = GuidanceHintTextDirection.Down
   if focusConf.text_pos == nil or focusConf.text_pos == "down" then
     align = UE4.FVector2D(0.5, 0)
     offset.Y = offsetValue + focusSize.Y / 2.0
   elseif focusConf.text_pos == "up" then
     align = UE4.FVector2D(0.5, 1)
     offset.Y = -(offsetValue + focusSize.Y / 2.0)
+    direction = GuidanceHintTextDirection.Up
   elseif focusConf.text_pos == "right" then
     align = UE4.FVector2D(0, 0.5)
     offset.X = offsetValue + focusSize.X / 2.0 + offsetLeft
+    direction = GuidanceHintTextDirection.Right
   elseif focusConf.text_pos == "left" then
     align = UE4.FVector2D(1, 0.5)
     offset.X = -(offsetValue + focusSize.X / 2.0 + offsetRight)
+    direction = GuidanceHintTextDirection.Left
   end
   Log.Debug("UMG_Guidance_Hint_C set alignment and position", focusConf.text_pos, offsetValue, focusSize, align, offset)
   slot:SetAlignment(align)
   slot:SetPosition(offset)
   if not self.bIsBattleGuide then
-    self:SetColorAndOpacity(UE4.FLinearColor(1, 1, 1, 0))
+    self:SetRenderOpacity(0)
   end
   if self.outOfScreenHandle then
     _G.DelayManager:CancelDelayById(self.outOfScreenHandle)
     self.outOfScreenHandle = nil
   end
+  self:InvalidateLayoutAndVolatility()
   self.outOfScreenHandle = _G.DelayManager:DelayFrames(1, function()
     if not self or not UE4.UObject.IsValid(self) then
       return
     end
-    self:CheckOutOfScreen(slot, offset, centerPosition)
+    self:CheckOutOfScreen(slot, offset, centerPosition, direction)
   end)
 end
 
-function UMG_Guidance_Hint_C:CheckOutOfScreen(slot, offset, centerPosition)
+function UMG_Guidance_Hint_C:CheckOutOfScreen(slot, offset, centerPosition, direction)
   if not slot or not UE4.UObject.IsValid(slot) then
     return
   end
   local viewportSize = UE4.UWidgetLayoutLibrary.GetViewportSize(self)
   local viewportScale = UE4.UWidgetLayoutLibrary.GetViewportScale(self)
-  local realViewportSize = viewportSize / viewportScale
+  local blackBorder = GuideConfigTypes.GetBlackBorderSize()
+  local realViewportSize = (viewportSize - blackBorder * 2.0) / viewportScale
   local geometry = self.NRCImage_28:GetCachedGeometry()
   local localSize = UE4.USlateBlueprintLibrary.GetLocalSize(geometry)
   local absoluteSize = UE4.USlateBlueprintLibrary.GetAbsoluteSize(geometry)
   local realSize = UE4.FVector2D(absoluteSize.X, absoluteSize.Y) / viewportScale
   local screenPosition = UE4.FVector2D(centerPosition.X + offset.X, centerPosition.Y + offset.Y)
+  if direction == GuidanceHintTextDirection.Up then
+    screenPosition.Y = screenPosition.Y - realSize.Y / 2.0
+  elseif direction == GuidanceHintTextDirection.Down then
+    screenPosition.Y = screenPosition.Y + realSize.Y / 2.0
+  elseif direction == GuidanceHintTextDirection.Left then
+    screenPosition.X = screenPosition.X - realSize.X / 2.0
+  elseif direction == GuidanceHintTextDirection.Right then
+    screenPosition.X = screenPosition.X + realSize.X / 2.0
+  end
   if absoluteSize.X <= 0 and absoluteSize.Y <= 0 then
     Log.Debug("UMG_Guidance_Hint_C CheckOutOfScreen self hidden", viewportSize, viewportScale, realViewportSize, centerPosition, offset, screenPosition, localSize, absoluteSize, realSize)
     if self.outOfScreenHandle then
@@ -182,37 +205,49 @@ function UMG_Guidance_Hint_C:CheckOutOfScreen(slot, offset, centerPosition)
       if not self or not UE4.UObject.IsValid(self) then
         return
       end
-      self:CheckOutOfScreen(slot, offset, centerPosition)
+      self:CheckOutOfScreen(slot, offset, centerPosition, direction)
     end)
     return
   end
   local bOutOfScreen = false
   local topLeft = UE4.FVector2D(screenPosition.X - realSize.X / 2.0, screenPosition.Y - realSize.Y / 2.0)
   local downRight = UE4.FVector2D(screenPosition.X + realSize.X / 2.0, screenPosition.Y + realSize.Y / 2.0)
-  Log.Debug("UMG_Guidance_Hint_C CheckOutOfScreen base", viewportSize, viewportScale, realViewportSize, centerPosition, offset, screenPosition, localSize, absoluteSize, realSize, topLeft, downRight)
+  Log.Debug("UMG_Guidance_Hint_C CheckOutOfScreen base", viewportSize, viewportScale, blackBorder, realViewportSize, centerPosition, offset, screenPosition, localSize, absoluteSize, realSize, topLeft, downRight)
   local realOutOfScreenPadding = OutOfScreenPadding / viewportScale
-  if topLeft.X < 0 then
-    offset.X = offset.X - topLeft.X + realOutOfScreenPadding
+  local realScreenTopLeft = UE4.FVector2D(0, 0)
+  local realScreenDownRight = realViewportSize
+  local safePadding, safePaddingScale, spillOverPadding = UE4.UWidgetBlueprintLibrary.GetSafeZonePadding(self)
+  local orientation = UE4.UBlueprintPlatformLibrary.GetDeviceOrientation()
+  Log.Debug("UMG_Guidance_Hint_C CheckOutOfScreen margin", safePadding, safePaddingScale, spillOverPadding, orientation)
+  if safePadding then
+    local paddingHorizontal = math.max(safePadding.X, safePadding.Z) / viewportScale
+    realScreenTopLeft.X = paddingHorizontal
+    realScreenTopLeft.Y = safePadding.Y / viewportScale
+    realScreenDownRight.X = realViewportSize.X - paddingHorizontal
+    realScreenDownRight.Y = realViewportSize.Y - safePadding.W / viewportScale
+  end
+  if topLeft.X < realScreenTopLeft.X then
+    offset.X = offset.X - (topLeft.X - realScreenTopLeft.X) + realOutOfScreenPadding
     bOutOfScreen = true
-  elseif downRight.X > realViewportSize.X then
-    offset.X = offset.X - (downRight.X - realViewportSize.X) - realOutOfScreenPadding
+  elseif downRight.X > realScreenDownRight.X then
+    offset.X = offset.X - (downRight.X - realScreenDownRight.X) - realOutOfScreenPadding
     bOutOfScreen = true
   end
-  if topLeft.Y < 0 then
-    offset.Y = offset.Y - topLeft.Y + realOutOfScreenPadding
+  if topLeft.Y < realScreenTopLeft.Y then
+    offset.Y = offset.Y - (topLeft.Y - realScreenTopLeft.Y) + realOutOfScreenPadding
     bOutOfScreen = true
-  elseif downRight.Y > realViewportSize.Y then
-    offset.Y = offset.Y - (downRight.Y - realViewportSize.Y) - realOutOfScreenPadding
+  elseif downRight.Y > realScreenDownRight.Y then
+    offset.Y = offset.Y - (downRight.Y - realScreenDownRight.Y) - realOutOfScreenPadding
     bOutOfScreen = true
   end
   if not bOutOfScreen then
-    Log.Debug("UMG_Guidance_Hint_C CheckOutOfScreen not", viewportSize, viewportScale, realViewportSize, centerPosition, offset, screenPosition, localSize, absoluteSize, realSize)
-    self:SetColorAndOpacity(UE4.FLinearColor(1, 1, 1, 1))
+    Log.Debug("UMG_Guidance_Hint_C CheckOutOfScreen not", viewportSize, viewportScale, blackBorder, realViewportSize, "margin", realScreenTopLeft, realScreenDownRight, "pos", centerPosition, offset, screenPosition, "size", localSize, absoluteSize, realSize)
+    self:SetRenderOpacity(1)
     return
   end
-  Log.Debug("UMG_Guidance_Hint_C CheckOutOfScreen", viewportSize, viewportScale, realViewportSize, centerPosition, offset, screenPosition, localSize, absoluteSize, realSize)
+  Log.Debug("UMG_Guidance_Hint_C CheckOutOfScreen", viewportSize, viewportScale, blackBorder, realViewportSize, "margin", realScreenTopLeft, realScreenDownRight, "pos", centerPosition, offset, screenPosition, "size", localSize, absoluteSize, realSize)
   slot:SetPosition(offset)
-  self:SetColorAndOpacity(UE4.FLinearColor(1, 1, 1, 1))
+  self:SetRenderOpacity(1)
 end
 
 return UMG_Guidance_Hint_C

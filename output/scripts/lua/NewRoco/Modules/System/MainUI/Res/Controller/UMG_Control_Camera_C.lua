@@ -85,8 +85,14 @@ function UMG_Control_Camera_C:LuaOnTouchMoved(finger, dir)
 end
 
 function UMG_Control_Camera_C:LuaOnTouchEnded(finger)
+  self.TouchIndex = -1
   self:TryCallPlayerModule(PlayerModuleEvent.ON_INPUT_TOUCH_END, false)
   self:OnTouchEndRolePlayHandle()
+end
+
+function UMG_Control_Camera_C:OnMouseCaptureLost()
+  Log.Debug("[OnMouseCaptureLost] UMG_Control_Camera_C")
+  self:LuaOnTouchEnded()
 end
 
 function UMG_Control_Camera_C:LongPressDataInitialize(isEnter)
@@ -109,6 +115,7 @@ end
 
 function UMG_Control_Camera_C:SetEnableEnterRolePlayer(isNotEnterRolePlay)
   self.isNotEnterRolePlay = isNotEnterRolePlay
+  Log.Debug("SetEnableEnterRolePlayer", isNotEnterRolePlay)
 end
 
 function UMG_Control_Camera_C:OnTick(InDeltaTime)
@@ -169,6 +176,7 @@ function UMG_Control_Camera_C:OnTouchStartRolePlayHandle(_touchScreenPos)
   end
   if self:CheckCanOpenPanel() then
     if _G.NRCModuleManager:DoCmd(MultiTouchModuleCmd.GetIsSelectBtn, "MainUIModule", "LobbyMain") then
+      Log.Debug("OnTouchStartRolePlayHandle: IsSelectBtn")
       return
     end
     local touchReasonType = _G.NRCModuleManager:DoCmd(MultiTouchModuleCmd.GetPanelSelectBtnReason, "LobbyMain").ROLEPLAYER

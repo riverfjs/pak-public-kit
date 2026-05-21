@@ -11,6 +11,16 @@ function ExplodeActorComponent:Ctor()
   rawset(self, "phyTime", 0.8)
   rawset(self, "startPos", _G.FVectorZero)
   rawset(self, "modules", {})
+  self.DelayHandlerMap = {}
+end
+
+function ExplodeActorComponent:__Dctor()
+  for item, handler in pairs(self.DelayHandlerMap) do
+    if handler then
+      _G.DelayManager:CancelDelay(handler)
+      self.DelayHandlerMap[item] = nil
+    end
+  end
 end
 
 function ExplodeActorComponent:AddForceModule(module)
@@ -28,20 +38,26 @@ function ExplodeActorComponent:Explode(actors)
   Log.Debug("ExplodeActorComponent:Explode", #actors)
   for i, actor in pairs(actors) do
     if not actor or not UE.UObject.IsValid(actor) then
-    elseif not actor.K2_SetActorLocation then
-      Log.Error("ExplodeActorComponent:Explode, actor\230\178\161\230\156\137K2_SetActorLocation\230\150\185\230\179\149\239\188\159")
-    elseif not actor.bEmptyNPC then
-      actor:Abs_K2_SetActorLocation_WithoutHit(self.startPos)
-      actor.forbidFixCoord = true
-      local rotator = self.targetForwardRotator or UE4.UKismetMathLibrary.RandomRotator()
-      actor:K2_SetActorRotation(rotator, true)
-      local rootComponent = actor:K2_GetRootComponent()
-      if rootComponent then
-        rootComponent:SetCollisionProfileName("CreatingNPC")
-        Log.Debug("ExplodeActorComponent:Explode before delay")
-        _G.DelayManager:DelayFrames(2, self.ExplodeSingle, self, actor, rootComponent)
-      else
-        Log.Warning("\229\166\130\230\158\156rootCompnent\228\184\186\231\169\186\239\188\140\232\166\129\228\185\136\230\152\175\232\191\153\228\184\170actor\232\162\171\233\148\128\230\175\129\228\186\134\239\188\140\232\166\129\228\185\136\230\152\175\229\135\186\231\142\176\228\186\134\232\175\161\229\188\130\231\154\132\233\151\174\233\162\152")
+    else
+      local sceneCharacter = actor.sceneCharacter
+      if sceneCharacter and sceneCharacter.SetVisibleForExplodeReason then
+        sceneCharacter:SetVisibleForExplodeReason(false)
+      end
+      if not actor.K2_SetActorLocation then
+        Log.Error("ExplodeActorComponent:Explode, actor\230\178\161\230\156\137K2_SetActorLocation\230\150\185\230\179\149\239\188\159")
+      elseif not actor.bEmptyNPC then
+        actor:Abs_K2_SetActorLocation_WithoutHit(self.startPos)
+        actor.forbidFixCoord = true
+        local rotator = self.targetForwardRotator or UE4.UKismetMathLibrary.RandomRotator()
+        actor:K2_SetActorRotation(rotator, true)
+        local rootComponent = actor:K2_GetRootComponent()
+        if rootComponent then
+          rootComponent:SetCollisionProfileName("CreatingNPC")
+          Log.Debug("ExplodeActorComponent:Explode before delay")
+          self.DelayId = _G.DelayManager:DelayFrames(2, self.ExplodeSingle, self, actor, rootComponent)
+        else
+          Log.Warning("\229\166\130\230\158\156rootCompnent\228\184\186\231\169\186\239\188\140\232\166\129\228\185\136\230\152\175\232\191\153\228\184\170actor\232\162\171\233\148\128\230\175\129\228\186\134\239\188\140\232\166\129\228\185\136\230\152\175\229\135\186\231\142\176\228\186\134\232\175\161\229\188\130\231\154\132\233\151\174\233\162\152")
+        end
       end
     end
   end
@@ -84,6 +100,10 @@ function ExplodeActorComponent:ExplodeSingle(Actor, Root)
     return
   end
   UE.UNRCStatics.SetupExplodeComponent(Root)
+  local sceneCharacter = Actor.sceneCharacter
+  if sceneCharacter and sceneCharacter.SetVisibleForExplodeReason then
+    sceneCharacter:SetVisibleForExplodeReason(true)
+  end
   self:AddForce(Root)
   if Actor.OnDropStart then
     Actor:OnDropStart()
@@ -206,7 +226,8 @@ function ExplodeActorComponent:DoLater(item)
     rootComponent:SetCollisionProfileName("CreatingNPC")
     rootComponent:SetVisibility(true)
   end
-  _G.DelayManager:DelayFrames(5, function()
+  self.DelayHandlerMap[item] = _G.DelayManager:DelayFrames(5, function()
+    self.DelayHandlerMap[item] = nil
     self:ExplodeSingleAround(item)
   end)
 end
@@ -256,6 +277,10 @@ function ExplodeActorComponent:TryDoCallBack(item)
   local callback = self.callback
   self.caller = nil
   self.callback = nil
+  if self.DelayId then
+    _G.DelayManager:CancelDelayById(self.DelayId)
+    self.DelayId = nil
+  end
   if caller and callback then
     callback(caller)
   end

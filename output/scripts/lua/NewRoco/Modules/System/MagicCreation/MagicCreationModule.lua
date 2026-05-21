@@ -3,7 +3,6 @@ local MagicCreationUtils = require("NewRoco.Modules.System.MagicCreation.MagicCr
 local LuaMathUtils = require("NewRoco.Utils.LuaMathUtils")
 local SceneUtils = require("NewRoco.Modules.Core.Scene.Common.SceneUtils")
 local NPCModuleEnum = require("NewRoco.Modules.Core.NPC.NPCModuleEnum")
-local BossRegionMoreCheckHeight = 200
 local MagicCreateEnumType = ProtoEnum.SceneMagicType.SMT_CREATE
 local MagicCreationModule = NRCModuleBase:Extend("MagicCreationModule")
 
@@ -26,7 +25,6 @@ function MagicCreationModule:OnConstruct()
   self.EavesCheckExtraHeightBottom = MagicCreationUtils.TryGetGlobalConfig(_G.DataConfigManager.ConfigTableId.NPC_GLOBAL_CONFIG, "nexus_overlap_interactive_topcheck_start", "num", 200)
   self.EavesCheckExtraHeightTop = MagicCreationUtils.TryGetGlobalConfig(_G.DataConfigManager.ConfigTableId.NPC_GLOBAL_CONFIG, "nexus_overlap_interactive_topcheck_end", "num", 600)
   self.EavesCheckExtent = (self.EavesCheckExtraHeightTop - self.EavesCheckExtraHeightBottom) / 2.0
-  self:InitBossRegions()
 end
 
 function MagicCreationModule:OnActive()
@@ -44,78 +42,6 @@ function MagicCreationModule:OnDeactive()
     end
   end
   _G.NRCEventCenter:UnRegisterEvent(self, _G.NRCGlobalEvent.ON_RECONNECT_FINISH, self.OnReconnect)
-end
-
-function MagicCreationModule:InitBossRegions()
-  local blockIdsFound = {}
-  self.WorldCombatRegionInfos = {}
-  local worldCombatConfigs = _G.DataConfigManager:GetAllByTableID(_G.DataConfigManager.ConfigTableId.WORLD_COMBAT_CONF)
-  for _, combatConf in pairs(worldCombatConfigs) do
-    if combatConf.whether_nightmare then
-    else
-      local bDeprecated = string.find(combatConf.editor_name, "\229\186\159\229\188\131")
-      if bDeprecated then
-      else
-        local sceneId = combatConf.scene_id
-        local blockId = combatConf.block_id
-        if blockIdsFound[blockId] then
-        else
-          blockIdsFound[blockId] = true
-          local bossRefreshId = combatConf.refresh_content_id
-          local npcRefreshContentConf = _G.DataConfigManager:GetNpcRefreshContentConf(bossRefreshId, true)
-          if not npcRefreshContentConf then
-          elseif npcRefreshContentConf.disable then
-          else
-            local npcId = combatConf.npc_id
-            local npcConf = _G.DataConfigManager:GetNpcConf(npcId, true)
-            if not npcConf then
-            elseif npcConf.genre ~= _G.Enum.ClientNpcType.CNT_PETBOSS then
-            else
-              local blockConf = _G.DataConfigManager:GetBlockConf(blockId)
-              if not blockConf then
-              elseif not blockConf.position or #blockConf.position < 3 then
-              elseif #blockConf.spline_point <= 2 then
-              else
-                local regionInfo = {
-                  scene_id = sceneId,
-                  upHeight = 0,
-                  downHeight = 0,
-                  center = UE4.FVector(0, 0, blockConf.position[3]),
-                  radius = 0,
-                  debugName = string.format("%d-%s", combatConf.id, combatConf.editor_name)
-                }
-                local blockPolygon = UE4.TArray(UE4.FVector2D)
-                for _, splineData in pairs(blockConf.spline_point) do
-                  local point = UE4.FVector2D(splineData.Position[1] + blockConf.position[1], splineData.Position[2] + blockConf.position[2])
-                  regionInfo.center.X = regionInfo.center.X + point.X
-                  regionInfo.center.Y = regionInfo.center.Y + point.Y
-                  blockPolygon:Add(point)
-                  regionInfo.upHeight = math.max(regionInfo.upHeight, splineData.Position[3])
-                  regionInfo.downHeight = math.min(regionInfo.downHeight, splineData.Position[3])
-                end
-                regionInfo.center.X = regionInfo.center.X / #blockConf.spline_point
-                regionInfo.center.Y = regionInfo.center.Y / #blockConf.spline_point
-                regionInfo.upHeight = regionInfo.upHeight + BossRegionMoreCheckHeight
-                regionInfo.downHeight = math.abs(regionInfo.downHeight) + BossRegionMoreCheckHeight
-                local radiusSquare = 0
-                for _, polygonPoint in tpairs(blockPolygon) do
-                  local offsetX = polygonPoint.X - regionInfo.center.X
-                  local offsetY = polygonPoint.Y - regionInfo.center.Y
-                  radiusSquare = math.max(radiusSquare, offsetX * offsetX + offsetY * offsetY)
-                end
-                regionInfo.radius = math.sqrt(radiusSquare)
-                if not self.WorldCombatRegionInfos[sceneId] then
-                  self.WorldCombatRegionInfos[sceneId] = {}
-                end
-                table.insert(self.WorldCombatRegionInfos[sceneId], regionInfo)
-                Log.Debug("MagicCreationModule:InitBossRegions: ", combatConf.id, combatConf.editor_name, sceneId, blockId)
-              end
-            end
-          end
-        end
-      end
-    end
-  end
 end
 
 function MagicCreationModule:RegPanel(name, path, layer, openAnimName, closeAnimName)
@@ -163,11 +89,6 @@ function MagicCreationModule:RegisterCreation(npc)
       status.networkNpc = npc
       break
     end
-  end
-  local BornDieComponent = npc.BornDieComponent
-  if BornDieComponent then
-    BornDieComponent:UnlockVisibilityAndAI()
-    npc:RemoveComponent(BornDieComponent)
   end
   npc:AddEventListener(self, NPCModuleEvent.VIEW_SHELL_LOADED, self.OnNetworkViewObjLoaded)
 end
@@ -219,7 +140,7 @@ function MagicCreationModule:UnregisterPreperform(npc)
     end
   end
   MagicCreationUtils.StopNpcSkill(npc)
-  npc:SetVisible(false)
+  npc:SetHidden(true, NPCModuleEnum.NpcReasonFlags.MagicCreationPerform)
   npc:Destroy()
   npc = nil
 end
@@ -275,7 +196,7 @@ function MagicCreationModule:OnNetworkViewObjLoaded(npc)
     if status.networkNpc == npc then
       status.networkReady = true
       if not self:TryCompleteLocalPrePerformance(status) then
-        self:JustOnlyInvisible(npc)
+        npc:SetHidden(true, NPCModuleEnum.NpcReasonFlags.MagicCreationPerform)
       end
       return
     end
@@ -290,9 +211,14 @@ function MagicCreationModule:TryCompleteLocalPrePerformance(status)
   if status.localReady == false or false == status.networkReady then
     return false
   end
-  if status.localNpc then
-    status.localNpc:SetVisible(false)
-    status.localNpc:Destroy()
+  local localNpc = status.localNpc
+  if localNpc then
+    local blockActor = localNpc.tempBlockActor
+    if blockActor then
+      blockActor:K2_DestroyActor()
+    end
+    localNpc:SetHidden(true, NPCModuleEnum.NpcReasonFlags.MagicCreationPerform)
+    localNpc:Destroy()
   end
   if status.networkNpc then
     self:CompleteNetworkNpc(status.networkNpc)
@@ -305,7 +231,6 @@ function MagicCreationModule:CompleteNetworkNpc(npc)
   if nil == npc then
     return
   end
-  self:MakeSureNpcVisible(npc)
   if not npc.viewObj then
     return
   end
@@ -333,8 +258,10 @@ function MagicCreationModule:CompleteNetworkNpc(npc)
         npc:SetHidden(false, NPCModuleEnum.NpcReasonFlags.MagicCreationPerform)
         npc.magicCreationDelayHandle = nil
       end)
+      return
     end
   end
+  npc:SetHidden(false, NPCModuleEnum.NpcReasonFlags.MagicCreationPerform)
 end
 
 function MagicCreationModule:SetNpcAppearance(npc, validType)
@@ -370,45 +297,59 @@ function MagicCreationModule:ApplySuitEffect(npc)
   self:ApplySuitEffectInternal(npc)
 end
 
-function MagicCreationModule:ApplySuitEffectInternal(npc)
-  local magicConfig, wandId
-  if npc:IsLocal() then
-    local player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
-    if player then
-      wandId = player:GetCurWandId()
-      local wandData = player:GetCurWandDataByMagicType(MagicCreateEnumType)
-      magicConfig = wandData.CreateMagicResource
-    end
-  else
-    local player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
-    if player then
-      wandId = self:GetNpcWandId(player, npc)
-      local magicId
-      if wandId then
-        local wandConf = _G.DataConfigManager:GetFashionWandConf(wandId, true)
-        if wandConf then
-          magicId = wandConf.magic_list[MagicCreateEnumType]
-        end
-      end
-      if nil == magicId or 0 == magicId then
-        magicId = 1
-      end
-      local avatarSystem = UE4.USubsystemBlueprintLibrary.GetGameInstanceSubsystem(_G.UE4Helper.GetCurrentWorld(), UE4.UAvatarSubsystem)
-      local AvatarConfig = avatarSystem:GetAvatarConfig()
-      local RowKey = AvatarConfig:GetWandDataRowKeyByMagic(magicId, MagicCreateEnumType)
-      local wandData = UE4.FAvatarWandInfo_Create()
-      UE.UDataTableFunctionLibrary.GetTableDataRowFromName(AvatarConfig.AvatarWandDataMap:Find(MagicCreateEnumType), RowKey, wandData)
-      magicConfig = wandData.CreateMagicResource
-      Log.Debug("MagicCreationModule:ApplySuitEffectInternal network", npc:DebugNPCNameAndID(), wandData.MagicName)
+function MagicCreationModule:GetMagicResource(wandId)
+  local magicId
+  if wandId then
+    local wandConf = _G.DataConfigManager:GetFashionWandConf(wandId, true)
+    if wandConf then
+      magicId = wandConf.magic_list[MagicCreateEnumType]
     end
   end
+  if nil == magicId or 0 == magicId then
+    magicId = 1
+  end
+  if not magicId then
+    return nil
+  end
+  local avatarSystem = UE4.USubsystemBlueprintLibrary.GetGameInstanceSubsystem(_G.UE4Helper.GetCurrentWorld(), UE4.UAvatarSubsystem)
+  local AvatarConfig = avatarSystem:GetAvatarConfig()
+  if not AvatarConfig then
+    return nil
+  end
+  local RowKey = AvatarConfig:GetWandDataRowKeyByMagic(magicId, MagicCreateEnumType)
+  if not RowKey then
+    return nil
+  end
+  local wandData = UE4.FAvatarWandInfo_Create()
+  UE.UDataTableFunctionLibrary.GetTableDataRowFromName(AvatarConfig.AvatarWandDataMap:Find(MagicCreateEnumType), RowKey, wandData)
+  return wandData.CreateMagicResource
+end
+
+function MagicCreationModule:ApplySuitEffectInternal(npc)
+  local wandId
+  if npc.WandId then
+    wandId = npc.WandId
+  else
+    if npc:IsLocal() then
+      local player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
+      if player then
+        wandId = player:GetCurWandId()
+      end
+    else
+      local player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
+      if player then
+        wandId = self:GetNpcWandId(player, npc)
+      end
+    end
+    npc.WandId = wandId
+  end
+  local magicConfig = self:GetMagicResource(wandId)
   if not magicConfig then
     Log.Warning("MagicCreationModule:ApplySuitEffectInternal: magicConfig is nil", npc:DebugNPCNameAndID(), npc:IsLocal())
     return
   end
   local viewObj = npc.viewObj
   if UE4.UObject.IsValid(viewObj) and viewObj.ApplySuitEffect then
-    viewObj.wandId = wandId
     if wandId then
       local wandConf = _G.DataConfigManager:GetFashionWandConf(wandId, true)
       if wandConf then
@@ -472,24 +413,6 @@ function MagicCreationModule:OnCreationDieInVisitMode(npc, action)
   npc:RemoveEventListener(self, NPCModuleEvent.On_NPC_Die, self.OnCreationDieInVisitMode)
 end
 
-function MagicCreationModule:JustOnlyInvisible(npc)
-  if nil == npc then
-    return
-  end
-  npc:SetVisibleForBornDieReason(false)
-end
-
-function MagicCreationModule:MakeSureNpcVisible(npc)
-  if nil == npc then
-    return
-  end
-  npc:SetVisibleForBornDieReason(true)
-  npc:SetVisibleForOverlapReason(true)
-  if npc.AIComponent then
-    npc:ScheduleNextTick(0)
-  end
-end
-
 function MagicCreationModule:OnReconnect()
   for _, status in pairs(self.preperformStatus) do
     MagicCreationUtils.StopNpcSkill(status.localNpc)
@@ -501,7 +424,7 @@ function MagicCreationModule:OnReconnect()
   table.clear(self.preperformStatus)
 end
 
-function MagicCreationModule:CheckLandValid(center, extent)
+function MagicCreationModule:CheckLandValid(center, extent, centerInfo)
   local totalCheckPoints = self.PlanenessCheckCircleNum * self.PlanenessCheckPointEachCircle + 1
   local invalidTolerance = math.round(totalCheckPoints * self.PlanenessInvalidTolerance)
   local currentInvalidPoints = 0
@@ -573,23 +496,18 @@ function MagicCreationModule:CheckLandValid(center, extent)
     return MagicCreationUtils.NpcValidType.Valid
   end
   
-  local function checkIsOnWater(landInfo, waterHeight)
-    if nil == waterHeight then
+  local function checkIsOnWater(landInfo)
+    if nil == landInfo then
       return false
     end
-    if nil == landInfo then
-      return true
-    end
-    if waterHeight >= landInfo.position.Z then
-      self:DrawDebugValidCheck(MagicCreationUtils.NpcValidType.Water, center, landInfo, waterHeight)
+    if landInfo.bIsWater then
+      self:DrawDebugValidCheck(MagicCreationUtils.NpcValidType.Water, center, landInfo)
       return true
     end
     return false
   end
   
-  local centerWaterHeight = MagicCreationUtils.GetWaterHeight(center)
-  local centerInfo = MagicCreationUtils.GetLandInfo(center)
-  if checkIsOnWater(centerInfo, centerWaterHeight) then
+  if checkIsOnWater(centerInfo) then
     return MagicCreationUtils.NpcValidType.Water
   end
   local centerCheckResult = checkPlaneness(center, centerInfo)
@@ -603,10 +521,9 @@ function MagicCreationModule:CheckLandValid(center, extent)
       local angle = pointIdx * self.PlanenessCheckAngleEachPoint
       local radian = angle * math.pi / 180
       local checkPosition = UE4.FVector(center.X + checkRadius * math.cos(radian), center.Y + checkRadius * math.sin(radian), center.Z)
-      local positionInfo = MagicCreationUtils.GetLandInfo(checkPosition)
+      local positionInfo = MagicCreationUtils.GetSurfaceInfo(checkPosition)
       local checkResult = checkPlaneness(checkPosition, positionInfo)
-      local positionWaterHeight = MagicCreationUtils.GetWaterHeight(checkPosition)
-      if checkIsOnWater(positionInfo, positionWaterHeight) then
+      if checkIsOnWater(positionInfo) then
         return MagicCreationUtils.NpcValidType.Water
       end
       if checkResult ~= MagicCreationUtils.NpcValidType.Valid then
@@ -618,12 +535,11 @@ function MagicCreationModule:CheckLandValid(center, extent)
   return MagicCreationUtils.NpcValidType.Valid
 end
 
-function MagicCreationModule:CheckNpcHeightDifferenceWithPlayer(center)
+function MagicCreationModule:CheckNpcHeightDifferenceWithPlayer(center, centerInfo)
   local player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
   if nil == player then
     return MagicCreationUtils.NpcValidType.Invalid
   end
-  local centerInfo = MagicCreationUtils.GetLandInfo(center)
   if nil == centerInfo then
     if self:GetCanDrawDebug() then
       Log.Debug("MagicCreationModule:CheckNpcHeightDifferenceWithPlayer no land info", center.X, center.Y, center.Z)
@@ -653,51 +569,11 @@ function MagicCreationModule:CheckNpcHeightDifferenceWithPlayer(center)
   return MagicCreationUtils.NpcValidType.Valid
 end
 
-function MagicCreationModule:CheckBossAreaOverlap(center, radius, bNeedConvertPos)
-  if not center then
-    return false
-  end
-  if not self.WorldCombatRegionInfos then
-    return false
-  end
-  local sceneID = SceneUtils.GetSceneID()
-  local regions = self.WorldCombatRegionInfos[sceneID]
-  if not regions then
-    return false
-  end
-  radius = radius or 0
-  
-  local function drawDebugForBossArea(region, distanceSquare)
-    if not region then
-      return
-    end
-    if self:GetCanDrawDebug() then
-      local world = _G.UE4Helper.GetCurrentWorld()
-      local duration = 0.03333333333333333
-      local info = string.format("%s. \232\183\157\231\166\187%f < (\233\162\157\229\164\150%f + \229\141\138\229\190\132%f)", region.debugName, math.sqrt(distanceSquare), radius, region.radius)
-      UE4.UKismetSystemLibrary.Abs_DrawDebugCylinder(world, region.center - UE4.FVector(0, 0, region.downHeight), region.center + UE4.FVector(0, 0, region.upHeight), region.radius, 50, UE4.FLinearColor(0, 0.2, 1, 1), duration, 20)
-      UE4.UKismetSystemLibrary.DrawDebugString(world, center + UE4.FVector(0, 0, 50), info, nil, UE4.FLinearColor(0, 0.4, 1, 1), duration)
-    end
-  end
-  
-  local absCenter = bNeedConvertPos and SceneUtils.ConvertRelativeToAbsolute(center) or center
-  for _, region in pairs(regions) do
-    if absCenter.Z < region.center.Z - region.downHeight then
-    elseif absCenter.Z > region.center.Z + region.upHeight then
-    else
-      local offset = absCenter - region.center
-      local distanceSquare = offset.X * offset.X + offset.Y * offset.Y
-      local compareRadius = region.radius + radius
-      if distanceSquare <= compareRadius * compareRadius then
-        drawDebugForBossArea(region, distanceSquare)
-        return true
-      end
-    end
-  end
-  return false
-end
-
-function MagicCreationModule:CheckEavesExisted(center, extent, actorsToIgnore, duration)
+function MagicCreationModule:CheckEavesExisted(center, extent, rotation, actorsToIgnore, duration)
+  local world = _G.UE4Helper.GetCurrentWorld()
+  local checkCenterHeight = center.Z + self.EavesCheckExtraHeightBottom + self.EavesCheckExtent
+  local checkCenter = UE4.FVector(center.X, center.Y, checkCenterHeight)
+  local checkExtent = UE4.FVector(extent.X, extent.Y, self.EavesCheckExtent)
   local traceObjectTypes = {
     UE4.EObjectTypeQuery.WorldDynamic,
     UE4.EObjectTypeQuery.WorldStatic
@@ -706,62 +582,47 @@ function MagicCreationModule:CheckEavesExisted(center, extent, actorsToIgnore, d
   local traceColor, traceHitColor, drawTime
   if self:GetCanDrawDebug() then
     drawDebugType = UE4.EDrawDebugTrace.ForDuration
-    traceColor = UE4.FLinearColor(0.6, 0.2, 0, 1)
-    traceHitColor = UE4.FLinearColor(0.1, 0.6, 0.3, 1)
+    traceColor = UE4.FLinearColor(0.2, 0.8, 0.2, 1)
+    traceHitColor = UE4.FLinearColor(0.9, 0.6, 0.3, 1)
     drawTime = duration or 0.1
   end
   if nil == actorsToIgnore then
     actorsToIgnore = {}
   end
-  local checkCenterHeight = center.Z + self.EavesCheckExtraHeightBottom + self.EavesCheckExtent
-  local checkCenter = UE4.FVector(center.X, center.Y, checkCenterHeight)
-  local checkExtent = UE4.FVector(extent.X, extent.Y, self.EavesCheckExtent)
-  local delta = UE4.FVector(0.1, 0.1, 0.1)
-  local world = _G.UE4Helper.GetCurrentWorld()
-  local boxHitResults, _ = UE4.UKismetSystemLibrary.BoxTraceMultiForObjects(world, checkCenter - delta, checkCenter + delta, checkExtent, UE4.FRotator(0, 0, 0), traceObjectTypes, true, actorsToIgnore, drawDebugType, nil, false, traceColor, traceHitColor, drawTime)
-  local ignoreComponentClass = {
-    UE4.UShapeComponent,
-    UE4.UWidgetComponent
-  }
+  local queryParams = UE4.FNRCollisionQueryParams()
+  queryParams.OwnerTag = "MagicCreationModule"
+  queryParams.TraceTag = "Eaves"
+  local components = UE4.UNRCTraceLibrary.BoxOverlapComponents(_G.UE4Helper.GetCurrentWorld(), checkCenter, checkExtent, rotation, traceObjectTypes, UE4.UStaticMeshComponent, queryParams, nil, drawDebugType, traceColor, traceHitColor, drawTime)
   local ignoreActorClass = {
     UE4.ARocoVehicleCharacter,
     UE4.ANPCBaseActor,
     UE4.ARocoCharacter
   }
   
-  local function judgeHitResult(hitResult)
-    if not hitResult then
+  local function judgeComponent(component)
+    if not UE4.UObject.IsValid(component) then
       return false
     end
-    local comp = hitResult.Component
-    if not UE4.UObject.IsValid(comp) then
-      return false
-    end
-    local actor = hitResult.Actor
+    local actor = component:GetOwner()
     if not UE4.UObject.IsValid(actor) then
       return false
-    end
-    for _, class in pairs(ignoreComponentClass) do
-      if comp:IsA(class) then
-        return false
-      end
     end
     for _, class in pairs(ignoreActorClass) do
       if actor:IsA(class) then
         return false
       end
     end
-    local collisionEnabled = comp:GetCollisionEnabled()
+    local collisionEnabled = component:GetCollisionEnabled()
     if collisionEnabled == UE4.ECollisionEnabled.QueryOnly then
       return false
     end
     return true
   end
   
-  for _, hitResult in pairs(boxHitResults) do
-    if judgeHitResult(hitResult) then
+  for _, component in tpairs(components) do
+    if judgeComponent(component) then
       if self:GetCanDrawDebug() then
-        UE4.UKismetSystemLibrary.DrawDebugString(world, hitResult.ImpactPoint, UE4.UKismetSystemLibrary.GetDisplayName(hitResult.Component), nil, UE4.FLinearColor(0.2, 0.4, 0.8, 1), duration)
+        UE4.UKismetSystemLibrary.DrawDebugString(world, checkCenter + UE4.FVector(0, 0, 50), UE4.UKismetSystemLibrary.GetDisplayName(component), nil, UE4.FLinearColor(0.2, 0.4, 0.8, 1), duration)
       end
       return true
     end
@@ -776,7 +637,7 @@ function MagicCreationModule:GetCanDrawDebug()
   return self.bDrawDebugFlag == true
 end
 
-function MagicCreationModule:DrawDebugValidCheck(type, center, landInfo, waterHeight, isTolerated)
+function MagicCreationModule:DrawDebugValidCheck(type, center, landInfo, isTolerated)
   if self:GetCanDrawDebug() ~= true then
     return
   end
@@ -800,9 +661,8 @@ function MagicCreationModule:DrawDebugValidCheck(type, center, landInfo, waterHe
     UE4.UKismetSystemLibrary.DrawDebugString(world, landInfo.position, landInfo.position.Z, nil, color, duration)
   elseif type == MagicCreationUtils.NpcValidType.Valid then
     UE4.UKismetSystemLibrary.DrawDebugString(world, landInfo.position, landInfo.position.Z, nil, UE4.FLinearColor(0.2, 1, 0, 1), duration)
-  elseif type == MagicCreationUtils.NpcValidType.Water and nil ~= landInfo and nil ~= waterHeight then
+  elseif type == MagicCreationUtils.NpcValidType.Water and nil ~= landInfo then
     local point = UE4.FVector(landInfo.position.X, landInfo.position.Y, landInfo.position.Z)
-    point.Z = waterHeight
     UE4.UKismetSystemLibrary.DrawDebugSphere(world, point, 20, 8, UE4.FLinearColor(0, 0, 1, 1), duration, 2)
   end
 end

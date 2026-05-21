@@ -49,7 +49,9 @@ function UMG_RolePlayMainPanel_C:HideRolePlayPoseLevelPanel()
     _G.NRCAudioManager:PlaySound2DAuto(40008004, "UMG_RolePlayMainPanel_C:HideRolePlayPoseLevelPanel")
     self.RolePlayPoseLevel:Hide()
     self.ScrollPageController:SetCanScroll(true)
-    self:PlayAnimation(self.Tabs_Show)
+    if not self:IsAnimationPlaying(self.Tabs_Show) then
+      self:PlayAnimation(self.Tabs_Show)
+    end
   end
 end
 
@@ -406,7 +408,7 @@ function UMG_RolePlayMainPanel_C:CheckBtnIsVisible(_rolePlayType)
   if _rolePlayType == RolePlayModuleDef.RolePlayType.Interactive then
     return false
   elseif _rolePlayType == RolePlayModuleDef.RolePlayType.Suit then
-    local isHide = _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.CheckUIFunctionHide, Enum.FunctionEntrance.FE_FAST_DRESSUP)
+    local isHide = _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.CheckUIFunctionHide, Enum.FunctionEntrance.FE_RP_DRESSUP)
     return not isHide
   elseif _rolePlayType == RolePlayModuleDef.RolePlayType.PutProp then
     local rolePlayItems = _G.NRCModuleManager:DoCmd(_G.RolePlayModuleCmd.GetRolePlayData, _rolePlayType)
@@ -652,7 +654,7 @@ function UMG_RolePlayMainPanel_C:OnBtnShowSounds()
 end
 
 function UMG_RolePlayMainPanel_C:OnBtnShowSuits()
-  local isBan = _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.CheckUIFunctionBan, _G.Enum.FunctionEntrance.FE_FAST_DRESSUP, true)
+  local isBan = _G.NRCModuleManager:DoCmd(_G.FunctionBanModuleCmd.CheckUIFunctionBan, _G.Enum.FunctionEntrance.FE_RP_DRESSUP, true)
   if isBan then
     return
   end

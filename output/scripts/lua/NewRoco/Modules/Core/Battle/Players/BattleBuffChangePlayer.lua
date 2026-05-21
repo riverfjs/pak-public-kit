@@ -185,6 +185,7 @@ function BattleBuffChangePlayer:OnPlay()
       self.performNode:AddTimeoutDuration(self.SkillObject:GetLength())
       rocoSkillComponent:CancelSkill(self.SkillObject, UE4.ESkillActionResult.SkillActionResultSuccessful)
       rocoSkillComponent:PlaySkill(self.SkillObject)
+      self.performNode.performPlayer:BuffSkillPlay(self.Target, self.SkillObject, self.buff_change.buff_id)
     else
       self:OnSkillComplete()
     end
@@ -253,6 +254,11 @@ function BattleBuffChangePlayer:OnTriggerMutationChange()
   local card = self.Target.card
   if card then
     local mutationPetData = PetMutationUtils.GetDisplayMutationData(card, true)
+    local target = self.Target
+    local model = target and target.model
+    if UE.UObject.IsValid(model) and model.ClearMaterials then
+      model:ClearMaterials()
+    end
     PetMutationUtils.DoMutation(self.Target.model, mutationPetData)
     _G.BattleEventCenter:Dispatch(BattleEvent.MutationChange, card.petInfo.battle_inside_pet_info.base_conf_id)
   end

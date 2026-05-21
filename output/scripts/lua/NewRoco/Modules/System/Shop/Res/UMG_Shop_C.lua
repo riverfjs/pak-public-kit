@@ -429,7 +429,7 @@ function UMG_Shop_C:OnAddEventListener()
   self:RegisterEvent(self, ShopModuleEvent.CloseRefreshBtn, self.CloseRefreshBtn)
   self:RegisterEvent(self, ShopModuleEvent.SetItemPlayAnimUp, self.ItemPlayAnimUp)
   self:RegisterEvent(self, PayModuleEvent.OnChargeBackgroundSuccess, self.RefreshMoneyInfo)
-  _G.BattleEventCenter:Bind(self, BattleEvent.ROUND_START)
+  _G.BattleEventCenter:Bind(self, BattleEvent.ROUND_START, BattlePerformEvent.TurnPlayStart)
   _G.NRCEventCenter:RegisterEvent("UMG_Shop_C", self, BattleEvent.LeaveBattle, self.OnLeaveBattle)
 end
 
@@ -438,7 +438,7 @@ function UMG_Shop_C:OnLeaveBattle()
 end
 
 function UMG_Shop_C:OnBattleEvent(eventName, ...)
-  if eventName == BattleEvent.ROUND_START then
+  if eventName == BattleEvent.ROUND_START or eventName == BattlePerformEvent.TurnPlayStart then
     self:DoClose()
   end
 end
@@ -547,9 +547,11 @@ function UMG_Shop_C:OnTOPUPInShop(specificMallType)
   else
     local ShopList = self.data:GetShopList()
     if ShopList then
-      for i = 1, #ShopList do
-        if ShopList[i].shopConf[1].mall_type == specificMallType then
+      for i = 1, self.TabGridView:GetItemCount() do
+        local item = self.TabGridView:GetItemByIndex(i - 1)
+        if item and item.uiData and item.uiData and item.uiData.shopConf and item.uiData.shopConf[1] and item.uiData.shopConf[1].mall_type == specificMallType then
           self.TabGridView:SelectItemByIndex(i - 1)
+          break
         end
       end
     end

@@ -337,6 +337,15 @@ function UMG_CommonPetDetails_C:_UpdateCheerUpPointDisplay()
       totalCheerUpPoint = totalCheerUpPoint + v.cheer_point
     end
   end
+  local fontSize = totalCheerUpPoint >= 10 and totalCheerUpPoint <= 99 and 26 or 30
+  local fontInfo = UE4.FSlateFontInfo()
+  fontInfo.Size = fontSize
+  fontInfo.FontMaterial = self.textPetNature_1.Font.FontMaterial
+  fontInfo.FontObject = self.textPetNature_1.Font.FontObject
+  fontInfo.LetterSpacing = self.textPetNature_1.Font.LetterSpacing
+  fontInfo.OutlineSettings = self.textPetNature_1.Font.OutlineSettings
+  fontInfo.TypefaceFontName = self.textPetNature_1.Font.TypefaceFontName
+  self.textPetNature_1:SetFont(fontInfo)
   self.textPetNature_1:SetText(_G.LuaText.weekly_challenge_text_20 .. string.format("x%s", totalCheerUpPoint))
 end
 

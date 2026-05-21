@@ -16,8 +16,10 @@ function PayModule:OnConstruct()
 end
 
 function PayModule:OnActive()
+  self.limitPayMap = {}
+  self.goodsId = nil
   _G.NRCSDKManager:AddEventListener(self, NRCSDKManagerEvent.OnWebViewOptNotify, self.OnWebViewOptNotify)
-  _G.NRCEventCenter:RegisterEvent(self.name, self, _G.NRCGlobalEvent.ON_LOGIN, self.OnLogin)
+  _G.NRCEventCenter:RegisterEvent(self.name, self, _G.NRCGlobalEvent.ON_LOGIN, self.OnPlayerLogin)
   _G.NRCEventCenter:RegisterEvent(self.name, self, _G.NRCGlobalEvent.ON_CONNECTED_KICK_OUT_TYPE, self.SetIsKickOutNeedReconnect)
   _G.NRCEventCenter:RegisterEvent(self.name, self, PayModuleEvent.MidasPayFailed, self.CallRelogin)
   _G.ZoneServer:AddProtocolListener(self, ProtoCMD.ZoneSvrCmd.ZONE_MONEY_INFO_CHANGE_NOTITY, self.OnMoneyInfoChanged)
@@ -39,6 +41,7 @@ function PayModule:OnWebViewOptNotify(webViewRet)
     return
   end
   self.payStatus = PayEnum.PayStatus.None
+  local payingGoodsId = self.goodsId
   local extraData = jsMessage.extraData
   if nil == extraData then
     Log.Error("extraData nil")
@@ -47,6 +50,12 @@ function PayModule:OnWebViewOptNotify(webViewRet)
   extraData = JsonUtils.StringToJson(self:UrlDecode(extraData))
   if 0 == jsMessage.code or jsMessage.code == "0" then
     Log.Dump(extraData, 3, "extraData from H5", false, Log.LOG_LEVEL.ELogInfo)
+    self:ReportPayStatus(payingGoodsId, PayEnum.PayOpType.FinishPay, 0)
+    if self.goodsId ~= nil and self:CheckIfLimitGoodsPurchase(self.goodsId) then
+      Log.Error("CheckIfLimitGoodsPurchase return true")
+      self:StartLimitGoodsPurchase(self.goodsId)
+    end
+    self.goodsId = nil
     if extraData.goods_type and extraData.goods_type == PayEnum.PayType.DirectPurchase or extraData.goods_type == "1" then
       NRCEventCenter:DispatchEvent(PayModuleEvent.MidasPaySuccess, PayEnum.PayType.DirectPurchase, extraData.shop_id)
       return
@@ -55,12 +64,16 @@ function PayModule:OnWebViewOptNotify(webViewRet)
       return
     end
   elseif 1 == jsMessage.code or jsMessage.code == "1" then
+    self:ReportPayStatus(payingGoodsId, PayEnum.PayOpType.FinishPay, 1)
     NRCEventCenter:DispatchEvent(PayModuleEvent.MidasPayFailed, PayEnum.PayType.DirectPurchase, PayEnum.FailType.USER_CANCEL, extraData.shop_id)
-    _G.GEMPostManager:SendPayFailEvent(PayEnum.FailType.USER_CANCEL, webViewRet.msgJsonData or "")
+    _G.GEMPostManager:SendPayFailEvent(PayEnum.FailType.USER_CANCEL, tostring(webViewRet.msgJsonData) or "")
     self:ShowFailTips(PayEnum.MidasCodePC.USER_CANCELED)
+    self.goodsId = nil
     return
   end
-  _G.GEMPostManager.SendPayFailEvent(PayEnum.FailType.OTHER, webViewRet.msgJsonData or "")
+  self.goodsId = nil
+  self:ReportPayStatus(payingGoodsId, PayEnum.PayOpType.FinishPay, 1)
+  _G.GEMPostManager.SendPayFailEvent(PayEnum.FailType.OTHER, tostring(webViewRet.msgJsonData) or "")
   NRCEventCenter:DispatchEvent(PayModuleEvent.MidasPayFailed, jsMessage.goods_type, PayEnum.FailType.OTHER, extraData.shop_id)
   self:ShowFailTips(PayEnum.MidasCodePC.PAGE_ERROR)
 end
@@ -147,15 +160,12 @@ function PayModule:UpdateBalanceWithHandler(actionAfterQuery)
 end
 
 function PayModule:LaunchMidasPage(goodsTokenUrl, goodsType, shopID)
-  if RocoEnv.PLATFORM_ANDROID then
-    local bIsH5GameCloudEnv = CommonUtils.IsH5GameCloudEnv()
-    if bIsH5GameCloudEnv then
-      Log.Warning("[PayModule:LaunchMidasPage] IsH5GameCloudEnv")
-      local Context = DialogContext()
-      Context:SetTitle(LuaText.game_matrix_pay_title):SetContent(LuaText.game_matrix_pay_tips):SetMode(DialogContext.Mode.OK):SetCloseOnOK(true):SetCloseOnCancel(true):SetButtonText(LuaText.YES)
-      NRCModuleManager:DoCmd(TipsModuleCmd.Dialog_OpenDialog2, Context)
-      return
-    end
+  if RocoEnv.PLATFORM_ANDROID and (CommonUtils.IsH5GameCloudEnv() or CommonUtils.CheckIOSMiniApp()) then
+    Log.Warning("[PayModule:LaunchMidasPage] IsH5GameCloudEnv")
+    local Context = DialogContext()
+    Context:SetTitle(LuaText.game_matrix_pay_title):SetContent(LuaText.game_matrix_pay_tips):SetMode(DialogContext.Mode.OK):SetCloseOnOK(true):SetCloseOnCancel(true):SetButtonText(LuaText.YES)
+    NRCModuleManager:DoCmd(TipsModuleCmd.Dialog_OpenDialog2, Context)
+    return
   end
   _G.ZoneServer:OpenWaitingUI("Pay", LuaText.charge_tips_23)
   _G.DelayManager:DelaySeconds(4, function()
@@ -196,8 +206,10 @@ function PayModule:LaunchMidasPage(goodsTokenUrl, goodsType, shopID)
       midasReqWrapper.Extras = extraStr
       Log.Debug(string.format("openid:%s, openKey:%s, pf:%s, goodsTokenUrl:%s, pfKey:%s, extra:%s", midasReqWrapper.OpenId, midasReqWrapper.OpenKey, midasReqWrapper.Pf, midasReqWrapper.GoodsTokenUrl, midasReqWrapper.PfKey, midasReqWrapper.Extras))
       UE.UMidasStatics.Pay(midasReqWrapper, midasObserver)
+      self:ReportPayStatus(self.goodsId, PayEnum.PayOpType.LaunchPay, 0)
     else
       Log.Error("Invalid MidasObserver")
+      self:ReportPayStatus(self.goodsId, PayEnum.PayOpType.LaunchPay, -1)
       NRCEventCenter:DispatchEvent(PayModuleEvent.MidasPayFailed, goodsType, PayEnum.FailType.OTHER)
     end
   elseif RocoEnv.PLATFORM_WINDOWS then
@@ -227,6 +239,7 @@ function PayModule:LaunchMidasPage(goodsTokenUrl, goodsType, shopID)
     end
     
     self:UpdateBalanceWithHandler(openPageAfterQuery)
+    self:ReportPayStatus(self.goodsId, PayEnum.PayOpType.LaunchPay, 0)
   end
 end
 
@@ -282,6 +295,12 @@ function PayModule:OnCmdPayForItemReq(itemId, shopId)
     Log.Error("shopId is nil")
     return
   end
+  local bLimited = self:IfGoodsInLimitProcess(itemId)
+  Log.Error("bLimited now is ", bLimited and "true" or "false")
+  if self:IfGoodsInLimitProcess(itemId) then
+    _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.pay_cd_tips or "")
+    return
+  end
   if os.time() <= self.lastCallTime + self.delay then
     return
   else
@@ -299,26 +318,31 @@ function PayModule:OnCmdPayForItemReq(itemId, shopId)
   Log.Debug("OnCmdPayForItemReq with access_token:", req.token_info.access_token, ", pay_token:", req.token_info.pay_token, ", pf:", req.token_info.pf, "goods_id:", req.goods_id, ", shop_id:", req.shop_id, ", version:", req.version, ", type:", req.type)
   self.payStatus = PayEnum.PayStatus.PayForItemSvrReq
   _G.ZoneServer:SendWithHandler(ProtoCMD.ZoneSvrCmd.ZONE_BUY_GOODS_BY_MIDAS_REQ, req, self, self.QueryForItemURLRsp, true, true)
+  self.goodsId = itemId
+  self:ReportPayStatus(itemId, PayEnum.PayOpType.QueryGoods, 0)
 end
 
 function PayModule:QueryForItemURLRsp(rsp)
   Log.Dump(rsp, 3, "QueryForItemURLRsp")
   Log.Debug(string.format("QueryForItemURLRsp ret_code:%s, url_param:%s", rsp.ret_info.ret_code, rsp.url_param))
+  if not (rsp and rsp.ret_info) or not rsp.ret_info.ret_code then
+    self:ReportPayStatus(self.goodsId, PayEnum.PayOpType.QueryGoodsFinish, -999)
+    return
+  end
+  self:ReportPayStatus(self.goodsId, PayEnum.PayOpType.QueryGoodsFinish, rsp.ret_info.ret_code)
   if 0 ~= rsp.ret_info.ret_code then
     Log.Warning("ZoneQueryBalanceRsp return ERR_ZONE_PAY_TOKEN_INVALID")
     NRCEventCenter:DispatchEvent(PayModuleEvent.MidasPayFailed, rsp.type ~= nil and rsp.type or -1, PayEnum.FailType.BACKGROUND_ERROR)
     self.payStatus = PayEnum.PayStatus.None
-    if rsp.ret_info.ret_code == ProtoEnum.MOBA_RET.ZoneErr.ERR_ZONE_PAY_TOKEN_INVALID then
-    else
-      self:ShowBackGroundErr(rsp.ret_info.ret_code)
-      if rsp.ret_info and rsp.ret_info.ret_code == ProtoEnum.MOBA_RET.ZoneErr.ERR_ZONE_SHOP_VERSION_NOT_MATCH then
-        Log.Warning("QueryForItemURLRsp ERR_ZONE_SHOP_VERSION_NOT_MATCH")
-        if nil ~= rsp.shop_id then
-          Log.Debug("QueryForItemURLRsp ERR_ZONE_SHOP_VERSION_NOT_MATCH, shop_id:", rsp.shop_id)
-          _G.NRCModuleManager:DoCmd(NPCShopUIModuleCmd.GetStoreListReq, rsp.shop_id)
-        else
-          Log.Warning("QueryForItemURLRsp ERR_ZONE_SHOP_VERSION_NOT_MATCH, shop_id is nil")
-        end
+    self.goodsId = nil
+    self:ShowBackGroundErr(rsp.ret_info.ret_code)
+    if rsp.ret_info and rsp.ret_info.ret_code == ProtoEnum.MOBA_RET.ZoneErr.ERR_ZONE_SHOP_VERSION_NOT_MATCH then
+      Log.Warning("QueryForItemURLRsp ERR_ZONE_SHOP_VERSION_NOT_MATCH")
+      if nil ~= rsp.shop_id then
+        Log.Debug("QueryForItemURLRsp ERR_ZONE_SHOP_VERSION_NOT_MATCH, shop_id:", rsp.shop_id)
+        _G.NRCModuleManager:DoCmd(NPCShopUIModuleCmd.GetStoreListReq, rsp.shop_id)
+      else
+        Log.Warning("QueryForItemURLRsp ERR_ZONE_SHOP_VERSION_NOT_MATCH, shop_id is nil")
       end
     end
     return
@@ -326,6 +350,7 @@ function PayModule:QueryForItemURLRsp(rsp)
   self.payStatus = PayEnum.PayStatus.PayForItemMidasReq
   local shopID = rsp.shop_id
   self:LaunchMidasPage(rsp.url_param, rsp.type, shopID)
+  self:ReportPayStatus(self.goodsId, PayEnum.PayOpType.QueryGoodsFinish, 0)
   NRCEventCenter:DispatchEvent(PayModuleEvent.ReceiveGoodsTokenUrl)
 end
 
@@ -342,7 +367,7 @@ function PayModule:SetIsKickOutNeedReconnect(bIsKickOutNeedReconnect)
   self.bIsKickOutNeedReconnect = bIsKickOutNeedReconnect
 end
 
-function PayModule:OnLogin()
+function PayModule:OnPlayerLogin()
   if self.bIsKickOutNeedReconnect then
     Log.Debug("[PayModule:OnLogin] server restart, no need to update balance")
     return
@@ -432,6 +457,7 @@ function PayModule:CallRelogin(goodsType, errorCode)
   if errorCode ~= PayEnum.FailType.NEED_LOGIN and errorCode ~= ProtoEnum.MOBA_RET.ZoneErr.ERR_ZONE_PAY_TOKEN_INVALID then
     return
   end
+  self:ReportPayStatus(self.goodsType, PayEnum.PayOpType.RequestReLogin, 0)
   local content = string.format(LuaText.charge_tips_19, tostring(errorCode))
   Log.PrintScreenMsg("CallRelogin invoked")
   
@@ -506,6 +532,184 @@ function PayModule:OnMoneyInfoChanged(rsp)
     NRCModuleManager:DoCmd(_G.TipsModuleCmd.Dialog_OpenDialog, Context)
     self.payData:UpdateBalanceData(rsp.data.midas_balance)
   end
+end
+
+function PayModule:IsLimitPay(goodId)
+  if self.limitPayMap[goodId] ~= nil then
+    Log.Error("PayModule IfGoodsInLimitProcess with goodsId " .. goodId .. " is in limit process")
+    _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.pay_cd_tips or "")
+    return true
+  end
+  return false
+end
+
+function PayModule:IfGoodsInLimitProcess(goodsId)
+  if not self:CheckIfLimitGoodsPurchase(goodsId) then
+    return false
+  end
+  if not self.limitPayMap then
+    return false
+  end
+  if self.limitPayMap[goodsId] ~= nil then
+    return true
+  end
+  local curGoodConf = _G.DataConfigManager:GetNormalShopConf(goodsId)
+  if not curGoodConf then
+    return false
+  end
+  local curGoodsType = curGoodConf.MidasPay_type
+  if curGoodsType ~= _G.Enum.MidasPay.MP_BattlePass_a and curGoodsType ~= _G.Enum.MidasPay.MP_Card then
+    return false
+  end
+  for _, info in pairs(self.limitPayMap) do
+    if info.midasPayType == curGoodsType then
+      return true
+    end
+  end
+  return false
+end
+
+function PayModule:CheckIfLimitGoodsPurchase(goodsId)
+  if not goodsId then
+    return false
+  end
+  local goodConf = _G.DataConfigManager:GetNormalShopConf(goodsId)
+  if not goodConf then
+    return false
+  end
+  local midasPayType = goodConf.MidasPay_type
+  if midasPayType == _G.Enum.MidasPay.MP_Reward or midasPayType == _G.Enum.MidasPay.MP_BattlePass_a or midasPayType == _G.Enum.MidasPay.MP_Card then
+    return true
+  end
+  return false
+end
+
+function PayModule:StartLimitGoodsPurchase(itemId)
+  if not itemId then
+    Log.Error("PayModule StartLimitGoodsPurchase with invalid params")
+    return
+  end
+  self.limitPayMap = self.limitPayMap or {}
+  local old = self.limitPayMap[itemId]
+  if old and old.timer then
+    old.timer:Stop()
+    old.timer = nil
+  end
+  local goodConf = _G.DataConfigManager:GetNormalShopConf(itemId)
+  local midasPayType = goodConf and goodConf.MidasPay_type or nil
+  Log.Error("PayModule StartLimitGoodsPurchase " .. itemId)
+  local duration = _G.DataConfigManager:GetGlobalConfig("pay_cd") and _G.DataConfigManager:GetGlobalConfig("pay_cd").num or 900
+  _G.ZoneServer:AddProtocolListener(self, _G.ProtoCMD.ZoneSvrCmd.ZONE_DISTRIBUTE_BILL_NOTIFY, self.OnDistributeBillNotify)
+  local timerName = string.format("limitPayTimer_%s", tostring(itemId))
+  local timer = _G.TimerManager:CreateTimer(self, timerName, duration, function()
+    self:QueryDistributeBill()
+  end, function()
+    self:EndLimitGoodsPurchase(itemId)
+  end, 15)
+  self.limitPayMap[itemId] = {
+    itemId = itemId,
+    midasPayType = midasPayType,
+    timer = timer
+  }
+end
+
+function PayModule:EndLimitGoodsPurchase(itemId)
+  if not self.limitPayMap then
+    return
+  end
+  if nil == itemId then
+    itemId = self.goodsId
+  end
+  Log.Trace("PayModule EndLimitGoodsPurchase " .. tostring(itemId))
+  if nil == itemId then
+    for id, info in pairs(self.limitPayMap) do
+      if info.timer then
+        info.timer:Stop()
+      end
+      self.limitPayMap[id] = nil
+    end
+    return
+  end
+  local info = self.limitPayMap[itemId]
+  if info then
+    if info.timer then
+      info.timer:Stop()
+    end
+    self.limitPayMap[itemId] = nil
+  end
+end
+
+function PayModule:OnDistributeBillNotify(rsp)
+  if not rsp or not rsp.goods_id then
+    Log.Error("PayModule OnDistributeBillNotify goods_id is nil")
+    return
+  end
+  if self.limitPayMap and self.limitPayMap[rsp.goods_id] then
+    Log.Debug("PayModule unlock pay limit " .. tostring(rsp.goods_id))
+    self:EndLimitGoodsPurchase(rsp.goods_id)
+  end
+end
+
+function PayModule:ReportPayStatus(goodsId, op_type, ret_code)
+  local req = _G.ProtoMessage:newZoneReportDistributeReq()
+  req.goods_id = goodsId or 0
+  req.create_time = _G.ZoneServer:GetServerTime()
+  req.op_type = op_type or 0
+  req.ret = ret_code or 0
+  _G.ZoneServer:SendWithHandler(ProtoCMD.ZoneSvrCmd.ZONE_REPORT_DISTRIBUTE_REQ, req, self, self.OnReportPayStatusRsp, true, true, nil, nil)
+end
+
+function PayModule:SetGoodsId(goodsId)
+  self.goodsId = goodsId
+end
+
+function PayModule:GetGoodsId()
+  return self.goodsId
+end
+
+function PayModule:OnReportPayStatusRsp(rsp)
+  if rsp and rsp.ret_info and rsp.ret_info.ret_code then
+    Log.Debug("PayModule OnReportPayStatusRsp " .. rsp.ret_info.ret_code)
+  end
+end
+
+function PayModule:QueryDistributeBill()
+  local req = _G.ProtoMessage:newZoneGetDistributeBillReq()
+  _G.ZoneServer:SendWithHandler(ProtoCMD.ZoneSvrCmd.ZONE_GET_DISTRIBUTE_BILL_REQ, req, self, self.OnQueryDistributeBillRsp, true, true, nil, nil)
+end
+
+function PayModule:OnQueryDistributeBillRsp(rsp)
+  if not (rsp and rsp.ret_info) or 0 ~= rsp.ret_info.ret_code then
+    return
+  end
+  local billList = rsp.bill_list
+  if not (billList and billList.billnos) or not self.limitPayMap then
+    return
+  end
+  for _, bill in ipairs(billList.billnos) do
+    if bill and bill.goods_id and self.limitPayMap[bill.goods_id] then
+      Log.Debug("PayModule OnQueryDistributeBillRsp unlock pay limit " .. tostring(bill.goods_id))
+      self:EndLimitGoodsPurchase(bill.goods_id)
+    end
+  end
+end
+
+function PayModule:OnDeactive()
+  if self.limitPayMap then
+    for id, info in pairs(self.limitPayMap) do
+      if info and info.timer then
+        info.timer:Stop()
+      end
+      self.limitPayMap[id] = nil
+    end
+  end
+  self.limitPayMap = nil
+  self.goodsId = nil
+  _G.NRCSDKManager:RemoveEventListener(self, NRCSDKManagerEvent.OnWebViewOptNotify, self.OnWebViewOptNotify)
+  _G.NRCEventCenter:UnRegisterEvent(self, _G.NRCGlobalEvent.ON_LOGIN, self.OnPlayerLogin)
+  _G.NRCEventCenter:UnRegisterEvent(self, _G.NRCGlobalEvent.ON_CONNECTED_KICK_OUT_TYPE, self.SetIsKickOutNeedReconnect)
+  _G.NRCEventCenter:UnRegisterEvent(self, PayModuleEvent.MidasPayFailed, self.CallRelogin)
+  _G.ZoneServer:RemoveProtocolListener(self, ProtoCMD.ZoneSvrCmd.ZONE_MONEY_INFO_CHANGE_NOTITY, self.OnMoneyInfoChanged)
 end
 
 return PayModule

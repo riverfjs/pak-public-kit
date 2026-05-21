@@ -33,13 +33,15 @@ Enum.HABITAT_FLAG = setmetatable({
   HAB_LAND = 0,
   HAB_FLY = 1,
   HAB_WATER = 2,
-  HAB_AQUA = 3
+  HAB_AQUA = 3,
+  HAB_FLY_WATER = 4
 }, EnumMeta)
 Enum.PetCircadian = setmetatable({
   PC_ALLDAY = 0,
   PC_NIGHT = 1,
   PC_DAY = 2
 }, EnumMeta)
+Enum.ActivityContentRefresh = setmetatable({ACR_NOTRESET = 0, ACR_DAILY = 1}, EnumMeta)
 Enum.EquipEffectType = setmetatable({EET_ATTR = 1, EET_PASSIVE_SKILL = 2}, EnumMeta)
 Enum.THROWING_INTERACT_TYPE = setmetatable({
   TIT_NORMAL = 0,
@@ -172,7 +174,29 @@ Enum.RPBehaviorType = setmetatable({
   RPBT_GOT = 85,
   RPBT_GOT_2 = 86,
   RPBT_HI = 87,
-  RPBT_HI_2 = 88
+  RPBT_HI_2 = 88,
+  RPBT_RELAX_HUANYINGLINGGU = 89,
+  RPBT_RELAX_BUKUGU = 90,
+  RPBT_RELAX_LIULANGSHU = 91,
+  RPBT_SEEK = 92,
+  RPBT_SHH = 93,
+  RPBT_NO = 94,
+  RPBT_CLAP = 95,
+  RPBT_SEEK_2 = 96,
+  RPBT_SHH_2 = 97,
+  RPBT_NO_2 = 98,
+  RPBT_CLAP_2 = 99,
+  RPBT_RELAX_HAIBAOCHUANZHANG = 100,
+  RPBT_RELAX_QIANJIKUI = 101,
+  RPBT_RELAX_MIMIXIANGGUAI = 102,
+  RPBT_RELAX_SHUOYEYIFU = 103,
+  RPBT_RELAX_WULATA = 104,
+  RPBT_PROP_BLINDBOX = 105,
+  RPBT_PROP_STARPILLOW = 106,
+  RPBT_PROP_PUMPKINCHAIR = 107,
+  RPBT_RELAX_QIUKA = 108,
+  RPBT_THANKS = 109,
+  RPBT_THANKS_2 = 110
 }, EnumMeta)
 Enum.SceneEffect = setmetatable({
   SE_NONE = 0,
@@ -226,7 +250,14 @@ Enum.BattleType = setmetatable({
   BT_FINAL_BATTLE_B1_STATE3 = 31,
   BT_PVE_NO_PC = 32,
   BT_TERRITORY_TRIAL = 33,
-  BT_TRAIN_BATTLE = 34
+  BT_TRAIN_BATTLE = 34,
+  BT_PVP_SCARE = 35,
+  BT_TEST_PVP_AUTO_SKILL_PERFORMANCE = 36
+}, EnumMeta)
+Enum.VictoryCondition = setmetatable({
+  VC_NONE = 0,
+  VC_BUFF_TIME = 1,
+  VC_SKILL_DAMAGE_TYPE_TIME = 2
 }, EnumMeta)
 Enum.SkillDamType = setmetatable({
   SDT_INVALID = 0,
@@ -274,7 +305,11 @@ Enum.OptionVisibleCondition = setmetatable({
   DISABLE_CONDITION_WEATHER = 3,
   ENABLE_CONDITION_OPTION_TYPE = 4
 }, EnumMeta)
-Enum.InteractConditionType = setmetatable({INTERACT_COND_NONE = 0, INTERACT_COND_COMMON_DEMANDS = 1}, EnumMeta)
+Enum.InteractConditionType = setmetatable({
+  INTERACT_COND_NONE = 0,
+  INTERACT_COND_COMMON_DEMANDS = 1,
+  INTERACT_COND_NPC_CREATOR_AND_TOGETHER = 2
+}, EnumMeta)
 Enum.InteractType = setmetatable({
   IT_NONE = 0,
   IT_AUTO = 1,
@@ -385,6 +420,7 @@ Enum.ActionType = setmetatable({
   ACT_PETEVO = 86,
   ACT_LEGENDARY_ENTRY_SHOW = 87,
   ACT_LEGENDARY_ENTRY_UI = 88,
+  ACT_PETHATCH = 89,
   ACT_MIRACLE_CHANGE_ANIME = 90,
   ACT_STELE_DOCUMENT = 91,
   ACT_STELE_KNOWLEDGE = 92,
@@ -443,12 +479,23 @@ Enum.ActionType = setmetatable({
   ACT_SLIDE = 148,
   ACT_OPEN_COLLEGE_CARD = 150,
   ACT_MAGIC_VIDEO_PLAY = 151,
+  ACT_RECALL_GIFT_PACKAGE = 152,
+  ACT_RECALL_PETGIFT = 153,
+  ACT_RECALL_ACTIVITY_OPEN = 154,
   ACT_NPC_MAGIC_TRANSFER = 201,
   ACT_RETRIEVE_MAGIC_CREATURE = 202,
   ACT_MAGIC_SUBMIT_ITEM = 203,
   ACT_STAR_DESTROY_NIGHTMARE_BIGWORLD = 204,
   ACT_NPC_MAGIC_TRANSFER_BY_SUBMIT_ITEM = 205,
   ACT_OPEN_PET_CERTIFICATION_UI = 206,
+  ACT_KNOCK_SCAREDBOX = 207,
+  ACT_BLINDBOX_IN = 208,
+  ACT_BLINDBOX_OUT = 209,
+  ACT_BATTLE_WATCH_LITE = 210,
+  ACT_CANNON_FIRE = 211,
+  ACT_SIT_WORLD = 212,
+  ACT_TEMP_RIDING = 213,
+  ACT_TELEPORT_SE = 214,
   ACT_HOME_PET_CHECK_IN = 301,
   ACT_HOME_PET_GET_BACK = 302,
   ACT_HOME_PET_FEED = 303,
@@ -479,11 +526,16 @@ Enum.ActionType = setmetatable({
   ACT_HOME_TELEPORT_TO_PLAYER = 331,
   ACT_HOME_OWNER_PLANT = 351,
   ACT_NPC_BATTLE_UI = 371,
+  ACT_DRAW_A_LOTTERY = 372,
+  ACT_FURNITURE_PLAY_ANIMATION = 400,
+  ACT_FURNITURE_CHANGE_BGM = 401,
+  ACT_VIEW_WALL_ART = 402,
   ACT_BATTLE = 10001,
   ACT_AI_TRIGGER = 10002,
   ACT_ITEM_GET_RELY_BATTLE = 10003,
   ACT_TOUCHBATTLE = 10004,
   ACT_SKILL = 10005,
+  ACT_BOX_BATTLE = 10006,
   ACT_PETCOLLECT = 10010,
   ACT_OPENCHEST = 10011,
   ACT_TOUCHLIGHT = 10012,
@@ -606,6 +658,10 @@ Enum.ActionType = setmetatable({
   ACT_CHECK_PLAYERSKILL = 10158,
   ACT_CHECK_PLAYER_OWL_LEVEL = 10159,
   ACT_SET_NPC_EXHAUSTED = 10160,
+  ACT_CHANGE_CONTENT_SIZE = 10161,
+  ACT_CHANGE_CONTENT_SIZE_EFFECT = 10162,
+  ACT_GRASS_TRIAL_NODE = 10163,
+  ACT_AUTO_OPENBOX = 10164,
   ACT_BOND_NONE = 10301,
   ACT_BOND_GIFT = 10302,
   ACT_BOND_FIND = 10303,
@@ -802,6 +858,7 @@ Enum.TaskKeyType = setmetatable({
   TKT_CHECK_SCENE_RES = 239,
   TKT_CHECK_TASK_DAY_PASS = 240,
   TKT_CHECK_BOX_EMPTY = 241,
+  TKT_CHECK_VERSION_NUMBER = 242,
   TKT_CHECK_MAX = 300,
   TKT_OTHER_MIN = 301,
   TKT_BUY_REC_GOODS = 302,
@@ -877,12 +934,14 @@ Enum.TaskKeyType = setmetatable({
   TKT_PET_CHANGE_TALENT = 374,
   TKT_PET_PERFORMANCE = 375,
   TKT_CARD_CHANGE = 376,
+  TKT_LOTTERY = 378,
   TKT_TEAM_SHARE = 379,
   TKT_GIVE_MEDAL = 380,
   TKT_CHANGE_PET_NAME = 381,
   TKT_PVP_WATCH = 382,
   TKT_PHOTO_SHARE = 383,
   TKT_TASK_DAY_PASS = 384,
+  TKT_RECALL_SUB_ACTIVITY_CTRL = 385,
   TKT_OTHER_MAX = 400
 }, EnumMeta)
 Enum.TaskClassType = setmetatable({
@@ -909,7 +968,8 @@ Enum.TaskClassType = setmetatable({
   TCT_HOME = 20,
   TCT_SADV_NORMAL = 21,
   TCT_SADV_CHALLENGE = 22,
-  TCT_CAMPAIGN_REPEAT = 23
+  TCT_CAMPAIGN_REPEAT = 23,
+  TCT_RECALL_BP = 24
 }, EnumMeta)
 Enum.TaskStructureType = setmetatable({
   TSTT_NONE = 0,
@@ -944,6 +1004,11 @@ Enum.TaskImageType = setmetatable({
   TIT_LEFTSMALL = 2,
   TIT_RIGHTBIG = 3,
   TIT_RIGHTSMALL = 4
+}, EnumMeta)
+Enum.TaskGoRetentionType = setmetatable({
+  TGRT_TONE = 0,
+  TGRT_SCENE_RES = 1,
+  TGRT_AREA_FUNC = 2
 }, EnumMeta)
 Enum.TaskGoActionType = setmetatable({
   TGAT_NONE = 0,
@@ -1136,7 +1201,8 @@ Enum.WorldBuffEffect = setmetatable({
   WBE_GAIN_EXPOSE = 11,
   WBE_SHIELD_CHANGE = 12,
   WBE_CAST_SKILL = 13,
-  WBE_RECOVER_STAMINA = 14
+  WBE_RECOVER_STAMINA = 14,
+  WBE_HP_REDUCE_EXCEPT_RIDING = 15
 }, EnumMeta)
 Enum.WorldcombatDoubleBuff = setmetatable({
   WDB_HP = 1,
@@ -1183,6 +1249,11 @@ Enum.DlgSelectEnableCond = setmetatable({
   DLG_SEL_ENABLE_COND_DISABLE_HAS_ALL_STORY_FLAGS = 3,
   DLG_SEL_ENABLE_COND_DISABLE_HAS_ONE_OF_STORY_FLAGS = 4
 }, EnumMeta)
+Enum.DlgSelectDisableCond = setmetatable({
+  DLG_SEL_DISABLE_COND_ON = 0,
+  DLG_SEL_DISABLE_COND_HAS_ALL_STORY_FLAGS = 1,
+  DLG_SEL_DISABLE_COND_HAS_ONE_OF_STORY_FLAGS = 2
+}, EnumMeta)
 Enum.OptionEnableCond = setmetatable({
   OEC_NONE = 0,
   OEC_HAS_ALL_STORY_FLAGS = 1,
@@ -1207,6 +1278,7 @@ Enum.PlayerStoryFlagEnum = setmetatable({
   PSF_FRIEND_TELEBAN_XIANGZHONGYANJIUSHI = 1531,
   PSF_FRIEND_TELEBAN_ZHENTANSHE = 1532,
   PSF_FRIEND_TELEBAN_ZHENTANSHELVGUAN = 1533,
+  PSF_FRIEND_TELEBAN_JIMUFANGZHOUMAXITUAN = 1534,
   PSF_DIA_TIEMIAN_A = 7000,
   PSF_DIA_TIEMIAN_B = 7001,
   PSF_DIA_LEIDE_A = 7002,
@@ -1373,6 +1445,12 @@ Enum.PlayerStoryFlagEnum = setmetatable({
   PSF_DIA_A2_LUTIAN41 = 8239,
   PSF_DIA_A2_LUTIAN42 = 8240,
   PSF_DIA_A2_LUTIAN43 = 8241,
+  PSF_DIA_PETLEADER_FARR_MEMENTO = 5000,
+  PSF_DIA_PETLEADER_ATLAN_MEMENTO = 5001,
+  PSF_DIA_PETLEADER_FUMORGAN_MEMENTO = 5002,
+  PSF_DIA_PETLEADER_ARYA_MEMENTO = 5003,
+  PSF_DIA_PETLEADER_BLACK_MEMENTO = 5004,
+  PSF_DIA_PETLEADER_DOCT_MEMENTO = 5007,
   PSF_FUNC_TRAVEL = 8601,
   PSF_REFRESH_BONUS = 9881,
   PSF_FUNC_BOOK_A = 9883,
@@ -1410,6 +1488,7 @@ Enum.PlayerStoryFlagEnum = setmetatable({
   PSF_FUNC_MAGICMANUAL_CHALLENGE = 9916,
   PSF_FUNC_MAGICMANUAL_PVP = 9917,
   PSF_FUNC_SEASON01_TELEPORT = 9918,
+  PSF_FUNC_SEASON02_TELEPORT = 9919,
   PSF_FUNC_WISH_STAR = 9920,
   PSF_FUNC_TELEPORT_ROLE = 9921,
   PSF_FUNC_MOVE_ROLE = 9922,
@@ -1430,7 +1509,11 @@ Enum.PlayerStoryFlagEnum = setmetatable({
   PSF_OPT_TRANSFORM_PAERSASI1 = 100008,
   PSF_OPT_TRANSFORM_PAERSASI2 = 100009,
   PSF_OPT_TRANSFORM_PAERSASI3 = 100010,
-  PSF_OPT_PETCERTI = 100011
+  PSF_OPT_PETCERTI = 100011,
+  PSF_OPT_GRASSTRIAL = 100012,
+  PSF_OPT_TRANSFORM_KRITHIA = 100021,
+  PSF_OPT_TRANSFORM_FURTH = 100022,
+  PSF_OPT_TRANSFORM_DREAM = 100023
 }, EnumMeta)
 Enum.TimeResetType = setmetatable({
   TRE_NONE = 0,
@@ -1470,6 +1553,12 @@ Enum.SelectResetType = setmetatable({
   SRT_DAILY = 2,
   SRT_WEEKLY = 3
 }, EnumMeta)
+Enum.NpcOptionCooldownType = setmetatable({
+  NOCT_NONE = 0,
+  NOCT_HOURLY = 1,
+  NOCT_DAILY = 2,
+  NOCT_WEEKLY = 3
+}, EnumMeta)
 Enum.BagItemType = setmetatable({
   BI_ITEM = 0,
   BI_PET_BALL = 1,
@@ -1494,7 +1583,8 @@ Enum.BagItemType = setmetatable({
   BI_LOTTERY_REWARD = 20,
   BI_ACTIVITY_ITEM = 21,
   BI_BOSS_EVO = 22,
-  BI_GLASS_EGG_PIECE = 23
+  BI_GLASS_EGG_PIECE = 23,
+  BI_CAMERA_SKIN = 24
 }, EnumMeta)
 Enum.ItemLableType = setmetatable({
   ILT_USEFUL_ITEM = 0,
@@ -1553,8 +1643,8 @@ Enum.VisualItem = setmetatable({
   VI_DISTRIBUTE = 8,
   VI_ENERGY = 9,
   VI_ROLE_LEVEL = 10,
-  VI_ROLE_HP_MAX = 13,
   VI_SPRING_FESTIVAL_COIN = 12,
+  VI_ROLE_HP_MAX = 13,
   VI_BOTTLE_VOLUME = 14,
   VI_BOTTLE_TIMES = 15,
   VI_STAR = 16,
@@ -1592,6 +1682,8 @@ Enum.VisualItem = setmetatable({
   VI_ROGUE_COIN = 48,
   VI_HOME_PENDING_EXP = 49,
   VI_ACTIVITY_HONOR_POINTS = 50,
+  VI_ACTIVITY_LEGENDARY_POINTS = 51,
+  VI_RECALLBP_EXP = 53,
   VI_ACTIVITY_RESERVE_POINTS = 59,
   VI_ACTIVITY_COCO_INTERGRAL = 60,
   VI_ACTIVITY_QUESTION_INTERGRAL = 61,
@@ -1607,6 +1699,7 @@ Enum.VisualItem = setmetatable({
   VI_KINGDOM_COIN = 71,
   VI_MAGIC_ACADEMY_COIN = 72,
   VI_YAJIJI_COIN = 73,
+  VI_S2_COIN = 74,
   VI_MAX = 99
 }, EnumMeta)
 Enum.GoodsType = setmetatable({
@@ -1665,7 +1758,9 @@ Enum.RewardTag = setmetatable({
   RTA_QQGAME = 4,
   RTA_SUPERQQVIP = 5,
   RTA_ADDITIONAL = 6,
-  RTA_SHINYDOUBLE = 7
+  RTA_SHINYDOUBLE = 7,
+  RTA_ACTIVITY_FLOWER_MEDAL = 8,
+  RTA_ACTIVITY_FLOWER_FIRST = 9
 }, EnumMeta)
 Enum.AccountType = setmetatable({
   ACCOUNT_TYPE_QQ = 1,
@@ -1806,7 +1901,9 @@ Enum.AttributeType = setmetatable({
   AT_NIGHTMARE_SHIELD = 91,
   AT_NIGHTMARE_SHIELD_MAX = 92,
   AT_TYPE_SHARPEN = 93,
-  AT_TYPE_BLUNT = 94
+  AT_TYPE_BLUNT = 94,
+  AI_BOX_SHIELD = 95,
+  AI_BOX_SHIELD_MAX = 96
 }, EnumMeta)
 Enum.CommandPriority = setmetatable({
   CP_CMD_NONE = 1,
@@ -2112,9 +2209,10 @@ Enum.EffectType = setmetatable({
   ET_CHARGE_UNLIMITED = 84,
   ET_CHANGE_TPYE = 85,
   ET_IRIS = 86,
-  ET_COMPETITION = 87,
-  ET_TRIGGER = 88,
-  ET_PHANTOM_POINT = 89
+  ET_CROSS_TRANSFER = 87,
+  ET_COPY = 88,
+  ET_PHANTOM_POINT = 89,
+  ET_INSERT_SKILL = 90
 }, EnumMeta)
 Enum.BuffType = setmetatable({
   BFT_ATTR_CHANGE = 1,
@@ -2253,7 +2351,16 @@ Enum.BuffType = setmetatable({
   BFT_O_FORTY = 140,
   BFT_O_FORTYONE = 141,
   BFT_O_FORTYTWO = 142,
-  BFT_O_FORTYTHREE = 143
+  BFT_O_FORTYTHREE = 143,
+  BFT_O_FORTYFOUR = 144,
+  BFT_O_FORTYFIVE = 145,
+  BFT_O_FORTYSIX = 146,
+  BFT_O_FORTYSEVEN = 147,
+  BFT_O_FORTYEIGHT = 148,
+  BFT_O_FIFTYONE = 151,
+  BFT_O_FIFTYTHREE = 153,
+  BFT_O_FIFTYFOUR = 154,
+  BFT_O_FIFTYFIVE = 155
 }, EnumMeta)
 Enum.BuffGroupType = setmetatable({
   BGT_NONE = 0,
@@ -2293,7 +2400,9 @@ Enum.BuffGroupSign = setmetatable({
   BGS_AREA = 26,
   BGS_RIVERSOUL_PARTICLES = 27,
   BGS_POISON = 28,
-  BGS_CATCHSTUN = 29
+  BGS_CATCHSTUN = 29,
+  BGS_FANTASTIC_BOX = 30,
+  BGS_STATS = 31
 }, EnumMeta)
 Enum.EffectGroupType = setmetatable({
   EGT_BUFF = 1,
@@ -2376,7 +2485,9 @@ Enum.BattleEvent = setmetatable({
   BEVT_FIGHT_AFTER_CAST_PASSIVE_SKILL = 67,
   BEVT_AFTER_ROUND_SKILL_UPDATE_ALL = 68,
   BEVT_BEFORE_SKILL_ENERGY_CALC = 69,
-  BEVT_BEFORE_ADD_BUFF_OR_EFFECT = 70
+  BEVT_BEFORE_ADD_BUFF_OR_EFFECT = 70,
+  BEVT_BEFORE_TRANS = 71,
+  BEVT_AFTER_EVOLUTE = 72
 }, EnumMeta)
 Enum.BUFF_106_TYPE = setmetatable({INFINITE_CHANGE = 1, STATIC_RACE = 2}, EnumMeta)
 Enum.BattleFinishReason = setmetatable({
@@ -2538,6 +2649,11 @@ Enum.ShopType = setmetatable({
   ST_EXCHANGE = 7
 }, EnumMeta)
 Enum.MallRecommendType = setmetatable({MRT_NULL = 0, MRT_RECOMMEND = 1}, EnumMeta)
+Enum.SpecialGoodsType = setmetatable({
+  SGT_NORMAL = 0,
+  SGT_HOTSALES = 1,
+  SGT_TARGET = 2
+}, EnumMeta)
 Enum.CycleResetType = setmetatable({CST_DAY = 0, CST_WEEK = 1}, EnumMeta)
 Enum.ItemBehavior = setmetatable({
   IB_JUMP = 1,
@@ -2584,7 +2700,9 @@ Enum.ItemBehavior = setmetatable({
   IB_LOTTERY_REWARD = 42,
   IB_UNLOCK_EXCHANGE = 43,
   IB_ACTIVITY_FACTION = 44,
-  IB_GLASS_EGG_HATCH = 47
+  IB_PET_HATCH_PROCESS_ADD = 46,
+  IB_GLASS_EGG_HATCH = 47,
+  IB_UNLOCK_CAMERA_SKIN = 48
 }, EnumMeta)
 Enum.PetQuality = setmetatable({
   PQ_BLUE = 1,
@@ -2627,7 +2745,11 @@ Enum.MapIconShowType = setmetatable({
   MAP_ONLINE_TEAM = 14,
   MAP_JOURNEYQUEST = 15,
   MAP_MAINQUEST = 16,
-  MAP_SUBQUEST = 17
+  MAP_SUBQUEST = 17,
+  MAP_NPC_SHINING = 18,
+  MAP_NPC_SHINING_DAZZLING = 19,
+  MAP_SHINING_SEASON_DAZZLING = 20,
+  MAP_SHINING_CHAOS = 21
 }, EnumMeta)
 Enum.MapTipsShowType = setmetatable({
   MAP_TIPS_NONE = 0,
@@ -2742,6 +2864,7 @@ Enum.MailCondition = setmetatable({
   MC_VIPLOGIN = 3,
   MC_NETLOGIN = 4
 }, EnumMeta)
+Enum.MailSubType = setmetatable({MST_DEFAULT = 0, MST_QUESTIONNAIRE = 1}, EnumMeta)
 Enum.MailLevelType = setmetatable({MLT_MULTI = 0, MLT_SECTION = 1}, EnumMeta)
 Enum.NpcInteractOption = setmetatable({NIO_START = 1, NIO_COMMIT = 2}, EnumMeta)
 Enum.PetLocation = setmetatable({
@@ -2768,7 +2891,9 @@ Enum.SkillActiveType = setmetatable({
 Enum.AreaType = setmetatable({
   AREAT_POLYGON = 0,
   AREAT_POINTSET = 1,
-  AREAT_POINT = 2
+  AREAT_POINT = 2,
+  AREAT_CIRCLE = 3,
+  AREAT_RECTANGLE = 4
 }, EnumMeta)
 Enum.ResponseBlockType = setmetatable({RBT_OPEN = 0, RBT_BLOCK = 1}, EnumMeta)
 Enum.RefresherType = setmetatable({
@@ -2987,7 +3112,8 @@ Enum.WorldPlayerStatusType = setmetatable({
   WPST_TAKE_PHOTO_TRIPOD = 40,
   WPST_IDLE_RELAX = 41,
   WPST_RIDEALL_JUMP = 42,
-  WPST_HOME_PET_CALL = 43
+  WPST_HOME_PET_CALL = 43,
+  WPST_FALLOFF = 44
 }, EnumMeta)
 Enum.WPST_OpCode = setmetatable({
   WPST_OPCODE_NONE = 1,
@@ -3011,6 +3137,11 @@ Enum.WorldPlayerPetStatusType = setmetatable({
   WPPST_IN_INTERACT = 5,
   WPPST_IN_FRIENDRIDING = 6
 }, EnumMeta)
+Enum.AbnormalStatusType = setmetatable({
+  ABST_MAGICPERFORM = 1,
+  ABST_TEMPERATURE = 2,
+  ABST_AIPERFORM = 3
+}, EnumMeta)
 Enum.ScenePlayerRideSocketType = setmetatable({
   G0 = 0,
   G1 = 1,
@@ -3033,7 +3164,8 @@ Enum.ScenePlayerRideSocketType = setmetatable({
   D1 = 18,
   C3 = 19,
   C4 = 20,
-  C5 = 21
+  C5 = 21,
+  G5 = 22
 }, EnumMeta)
 Enum.SceneThrowAbilityType = setmetatable({
   STAT_NORMAL = 1,
@@ -3054,14 +3186,16 @@ Enum.SceneRideAllCustomGid = setmetatable({
   SRCG_Pressure = 3,
   SRCG_LocalTest = 4,
   SRCG_Wild = 5,
-  SRCG_Friend = 6
+  SRCG_Friend = 6,
+  SRCG_Interact = 7
 }, EnumMeta)
 Enum.SceneRideAllType = setmetatable({
   SRAT_GROUND = 1,
   SRAT_FLY = 6,
   SRAT_SWIM = 4,
   SRAT_CLIMB = 8,
-  SRAT_CLIMB_WATER = 14
+  SRAT_CLIMB_WATER = 14,
+  SRAT_KEEP_BALANCE = 15
 }, EnumMeta)
 Enum.SceneRideAllActiveType = setmetatable({
   SRAA_DASH = 1,
@@ -3077,7 +3211,12 @@ Enum.SceneRideAllActiveType = setmetatable({
   SRAA_SWIMJUMP = 11,
   SRAA_DOUBLERIDE = 12,
   SRAA_CLIMB_WATER_JUMP = 13,
-  SRAA_EMPTY = 14
+  SRAA_EMPTY = 14,
+  SRAA_KEEP_BALANCE = 15,
+  SRAA_DASH_WITHOUT_VITALITY = 16,
+  SRAA_DASH_DASHFORWARD = 17,
+  SRAA_VERTICAL_FLY = 18,
+  SRAA_SMASH = 19
 }, EnumMeta)
 Enum.SceneMoveType = setmetatable({
   SMT_NONE = 0,
@@ -3145,7 +3284,8 @@ Enum.UIsourceType = setmetatable({
   UIT_PVP_TEAM = 11,
   UIT_NIGHTMARE = 12,
   UIT_TITLE = 13,
-  UIT_NIGHTMAREGLOW = 14
+  UIT_NIGHTMAREGLOW = 14,
+  UIT_SCAREDBOX = 15
 }, EnumMeta)
 Enum.DamageType = setmetatable({
   DT_NONE = 1,
@@ -3243,7 +3383,9 @@ Enum.NpcSceneCommandType = setmetatable({
   NSC_FIND_ACT_GIFT = 12,
   NSC_FIND_REFRESH_CONTENT = 13,
   NSC_BOSS_SWITCH_SERVER_AI = 14,
-  NSC_BOSS_SWITCH_CLIENT_AI = 15
+  NSC_BOSS_SWITCH_CLIENT_AI = 15,
+  NSC_LLM_OVERWRITE_BT = 16,
+  NSC_LLM_OVERWRITE_BT_START = 17
 }, EnumMeta)
 Enum.BattleEnterType = setmetatable({
   BET_NONE = 0,
@@ -3416,14 +3558,16 @@ Enum.Traverse_Data_Type = setmetatable({
   TDT_None = 0,
   TDT_PETBASE = 1,
   TDT_BAGITEM = 2,
-  TDT_EGGTOPETBASE = 3
+  TDT_EGGTOPETBASE = 3,
+  TDT_FAKE_MUTATION = 4
 }, EnumMeta)
 Enum.InnerBattleInfoType = setmetatable({BIT_WEATHER = 0, BIT_SCENE_TAG = 1}, EnumMeta)
 Enum.HideTagType = setmetatable({
   HD_NONE = 0,
   HD_MAIN = 1,
   HD_PANEL = 2,
-  HD_ALL = 3
+  HD_ALL = 3,
+  HD_SPEC_TASK = 4
 }, EnumMeta)
 Enum.EnterTaskRequire = setmetatable({TASKREQUIRE = 0, TASKNONE = 1}, EnumMeta)
 Enum.DungeonType = setmetatable({DGT_NONE = 0, DGT_TEST = 1}, EnumMeta)
@@ -3701,6 +3845,20 @@ Enum.PetRoleTypeInNPCConf = setmetatable({
   PRTINC_HOME = 2
 }, EnumMeta)
 Enum.AiPoolRandomMethod = setmetatable({APRM_FIXED_INITIAL_VALUES = 0}, EnumMeta)
+Enum.GameplayAiState = setmetatable({
+  GAS_PLAY_ANIMATION = 1001,
+  GAS_PLAY_SKILL = 1002,
+  GAS_LOOK_AT = 1004,
+  GAS_LOOK_AT_CAMERA = 1005,
+  GAS_STUN = 2002,
+  GAS_HIDDEN_BEGIN = 3001,
+  GAS_HIDDEN_LOOP = 3002,
+  GAS_HIDDEN_END = 3003,
+  GAS_DISABLE_COLLISION = 3004,
+  GAS_CONTEXT_HIDDEN = 9001,
+  GAS_CONTEXT_PAUSE_BT = 9002,
+  GAS_CONTEXT_DISABLE_COLLISION = 9003
+}, EnumMeta)
 Enum.HandbookSequenceDefault = setmetatable({HSD_SEQUENCE_LEVEL_DOWN = 1, HSD_SEQUENCE_NUMBER_UP = 2}, EnumMeta)
 Enum.HandbookSequenceSwitch = setmetatable({HSS_SEQUENCE_LEVEL_UP = 1, HSS_SEQUENCE_NUMBER_DOWN = 2}, EnumMeta)
 Enum.SpaceActorLogicStatus = setmetatable({
@@ -3768,6 +3926,10 @@ Enum.SpaceActorLogicStatus = setmetatable({
   SALS_LEGENDARY_BATTLE_MATCHING = 64,
   SALS_PLAYER_NPC = 65,
   SALS_NIGHT_MODE = 66,
+  SALS_BLINDBOX_OCCUPIED = 67,
+  SALS_PLAYER_IN_BLINDBOX = 68,
+  SALS_ABNORMALSTATUS = 69,
+  SALS_DOUBLE_RIDE_LEADER = 73,
   SALS_LOCKED = 1001,
   SALS_GROUWUP = 1002,
   SALS_PET_WALL = 1003,
@@ -3813,6 +3975,12 @@ Enum.SpaceActorLogicStatus = setmetatable({
   SALS_NIGHTMARE_OVERRIDE_AI = 1044,
   SALS_PET_TREE_INTERACT = 1045,
   SALS_PLAYER_HOLD = 1046,
+  SALS_HIGHBOX_ELITE = 1047,
+  SALS_MIDBOX_ELITE = 1048,
+  SALS_LOWBOX_ELITE = 1049,
+  SALS_HOME_PET_WAIT_CHECK_IN = 1050,
+  SALS_GRASSTRIAL = 1051,
+  SALS_HIGH_VALUE_NPC = 1052,
   SALS_DRILL = 1100,
   SALS_STATIC = 1101,
   SALS_MIMIC = 1102,
@@ -3864,13 +4032,14 @@ Enum.SelectMarkYellow = setmetatable({
   SMY_SHOP_CONSUMPTION_REWARD = 10,
   SMY_HOME_LEVEL_REWARD = 11,
   SMY_HOME_ROOM_EXPEND = 12,
-  SMY_HOME_ROOM_EXPEND_SUCCEED = 13
+  SMY_HOME_ROOM_EXPEND_SUCCEED = 13,
+  SMY_UNCLICKED = 14
 }, EnumMeta)
 Enum.SceneAbilityDisableCode = setmetatable({
   SADC_NORMAL = 0,
   SADC_DUNGEON = 1,
   SADC_SAFEEREA = 2,
-  SADC_HOME = 3,
+  SADC_HOME = 8,
   SADC_INDOOR = 4
 }, EnumMeta)
 Enum.BattleAIStatus = setmetatable({
@@ -3902,7 +4071,9 @@ Enum.BattleAIStatus = setmetatable({
   BAS_DRILL_IMME = 25,
   BAS_HANGING = 26,
   BAS_ATTACK_BUFF = 27,
-  BAS_NIGHTMARE_KEEP = 28
+  BAS_NIGHTMARE_KEEP = 28,
+  BAS_BOX = 29,
+  BAS_BACK_OF_HEAD_TALENT = 30
 }, EnumMeta)
 Enum.SceneAiControlFlags = setmetatable({
   SACF_NORMAL = 0,
@@ -4378,6 +4549,14 @@ Enum.RefreshRuleConf = setmetatable({
   RRC_ACTIVITY_DAY_ALLWEATHER_1d_RESET = 448,
   RRC_ACTIVITY_ALLDAY_RAINY_1d_RESET = 449,
   RRC_ACTIVITY_DAY_1d_RESET = 450,
+  RRC_ACTIVITY_KELIJI_4m_RESET = 451,
+  RRC_ACTIVITY_ZILINGYING_6m_RESET = 452,
+  RRC_ACTIVITY_GUODONG_2m_RESET = 453,
+  RRC_REWARD_1H_RESET_AI_COLLECT = 454,
+  RRC_ACTIVITY_5s_RESET = 455,
+  RRC_ACTIVITY_1d_RESET_NEW = 456,
+  RRC_COLLECTED_22h_RESEST = 800,
+  RRC_COLLECTED_30m_ALLWEATHER_NIGHT_RESEST = 801,
   RRC_TEMPLATE_RULE_MAX = 1000,
   RRC_FLOWER_SEED = 1001010,
   RRC_FLOWER_SEED_A2 = 1001011,
@@ -4499,7 +4678,12 @@ Enum.PlayerConditionType = setmetatable({
   PCT_MARK_VIDEO_WATCH = 118,
   PCT_LEGENDARY_BATTLE_MATCHING = 120,
   PCT_NIGHT_MODE = 121,
-  PCT_PET_CLOSE_INTERACT = 122
+  PCT_PET_CLOSE_INTERACT = 122,
+  PCT_MARK_MESSAGE_SHARE = 123,
+  PCT_PROP_BLINDBOX = 124,
+  PCT_ROLEPLAY_EMOTE = 127,
+  PCT_DOUBLE_RIDE_LEADER = 128,
+  PCT_MARK_VIDEO_SOCIAL_SHARE = 129
 }, EnumMeta)
 Enum.PlayerFunctionBanType = setmetatable({
   PFBT_BEGIN = -1,
@@ -4626,7 +4810,9 @@ Enum.PlayerFunctionBanType = setmetatable({
   PFBT_BAN_TOD_CHANGE = 120,
   PFBT_TIME_READ_NORAML_SPEED = 121,
   PFBT_UI_DUNGEON_EXIT = 122,
-  PFBT_END = 123
+  PFBT_RIDE_OFF = 123,
+  PFBT_RP_DRESSUP = 124,
+  PFBT_END = 125
 }, EnumMeta)
 Enum.FashionLabelType = setmetatable({
   FLT_BEGIN = -1,
@@ -4698,7 +4884,8 @@ Enum.TimerEffectType = setmetatable({TIM_FINISHGAME = 1, TIM_NIGHTMARE_EXIT = 2}
 Enum.MiniGameType = setmetatable({
   MINIGAME_STAR_COLLECTION = 1,
   MINIGAME_NIGHTMARE_SPACE = 2,
-  MINIGAME_NIGHTMARE_SPACE_SP = 3
+  MINIGAME_NIGHTMARE_SPACE_SP = 3,
+  MINIGAME_BOSS_BATTLE = 4
 }, EnumMeta)
 Enum.MiniGameEndType = setmetatable({NM_INTERACT = 1, NM_TASK = 2}, EnumMeta)
 Enum.MiniGameGuideType = setmetatable({STAR_GUIDE = 1, TEXT_GUIDE = 2}, EnumMeta)
@@ -4709,7 +4896,8 @@ Enum.MagicEffect = setmetatable({
   ME_TRIG_MAGIC_INTERACT = 2,
   ME_TRANSFORM = 3,
   ME_MAGIC_REVEAL = 4,
-  ME_CREATE_NPC = 5
+  ME_CREATE_NPC = 5,
+  ME_HYPNOTIZE = 6
 }, EnumMeta)
 Enum.ClientEvent = setmetatable({
   CE_NONE = 0,
@@ -4993,7 +5181,9 @@ Enum.SceneEventType = setmetatable({
   SET_NONE = 0,
   SET_CONTINUOUS_CATCH = 1,
   SET_WORLD_CATCH = 2,
-  SET_BATTLE_DEFEAT_NPC = 3
+  SET_BATTLE_DEFEAT_NPC = 3,
+  SET_CONTINUOUS_CATCH_BOX = 4,
+  SET_CONTINUOUS_CATCH_BOXEVENT = 5
 }, EnumMeta)
 Enum.SceneEventCountType = setmetatable({
   SECT_NONE = 0,
@@ -5127,6 +5317,15 @@ Enum.FunctionEntrance = setmetatable({
   FE_FRIEND_ADD_CHAT = 78,
   FE_TRAVE_MERCHANT = 79,
   FE_CDK = 80,
+  FE_AI_COACH = 81,
+  FE_TAPTAP_RATING = 82,
+  FE_PRE_DOWNLOAD = 83,
+  FE_RP_DRESSUP = 84,
+  FE_IOS_RATING = 85,
+  FE_S1_HANDBOOK = 86,
+  FE_S2_HANDBOOK = 87,
+  FE_PHOTO_CONTEST = 88,
+  FE_RANKBOARD = 89,
   FE_PET_ADD_PET_EXP = 1010000,
   FE_PET_GROW = 1020000,
   FE_PET_FREE = 1030000,
@@ -5240,6 +5439,13 @@ Enum.FunctionEntrance = setmetatable({
   FE_TELEPORT_ROLE = 80000001,
   FE_RECOR_CREATE = 73010000,
   FE_RECOR_COMMENT = 73020000,
+  FE_AI_COACH_PREPARE = 81010000,
+  FE_AI_COACH_BATTLE = 81020000,
+  FE_AI_COACH_FRIEND = 81030000,
+  FE_AI_COACH_CHAT = 81040000,
+  FE_AI_COACH_ACTIVITY = 81050000,
+  FE_AI_COACH_TEAM = 81060000,
+  FE_RANKBOARD_FETCH_DB = 89010000,
   FE_BATTLE_GET_BALL = 90000001
 }, EnumMeta)
 Enum.EntranceUnlockCondition = setmetatable({
@@ -5473,7 +5679,6 @@ Enum.RedPointReason = setmetatable({
   RPR_HOME_PET_EGG = 157,
   RPR_GET_NEW_BAGITEM = 175,
   RPR_COMBAT_BATTLE_TRAIN = 176,
-  RPR_ACTIVITY_CERTIFICATION_NOTIFY = 177,
   RPR_LEGEND_COLLECTED_HB_NUM = 100,
   RPR_LEGEND_HB_TOPIC_FINISH = 101,
   RPR_A1_COLLECTED_HB_NUM = 102,
@@ -5483,6 +5688,8 @@ Enum.RedPointReason = setmetatable({
   RPR_ALL_FINISH_TOPIC = 106,
   RPR_A1_ALL_FINISH_TOPIC = 107,
   RPR_A2_ALL_FINISH_TOPIC = 108,
+  RPR_LEGEND_ALL_FINISH_TOPIC = 109,
+  RPR_LEGEND_SEASON_PHOTO_FINISH = 110,
   RPR_PVP_RANK_TRIAL_PET = 141,
   RPR_SEASON_TIPS_NOTIFY = 142,
   RPR_ACTIVITY_SEASON_CHECKIN_REWARD = 143,
@@ -5512,7 +5719,20 @@ Enum.RedPointReason = setmetatable({
   RPR_NEW_GLASS_TINT = 171,
   RPR_TYPE_BATTLE_TRAIN_REWARD = 172,
   RPR_TERRITORY_TRIAL_REWARD = 173,
-  RPR_SUITS_CLAIMABLE = 174
+  RPR_SUITS_CLAIMABLE = 174,
+  RPR_ACTIVITY_CERTIFICATION_NOTIFY = 177,
+  RPR_TAKEPHOTO_COMPETITION_JUDGE = 178,
+  RPR_ACTIVITY_RECALL_BP_TASK_REWARD = 179,
+  RPR_ACTIVITY_RECALL_TAB_NOTIFY = 180,
+  RPR_PET_TRIP_NONE = 181,
+  RPR_PET_TRIP_AWARD = 182,
+  RPR_PET_TRIP_GIFT = 183,
+  RPR_SEASON_TALENT_ENABLE = 184,
+  RPR_ACTIVITY_RECALL_TAB_REWARD = 185,
+  RPR_AICOACH_FIRST_OPEN = 186,
+  RPR_UNLOCK_CAMERA_SKIN = 187,
+  RPR_PRE_DOWNLOAD_REWARD = 188,
+  RPR_PRE_DOWNLOAD_START = 191
 }, EnumMeta)
 Enum.RedPointType = setmetatable({
   RPT_COMMON = 1,
@@ -5643,6 +5863,7 @@ Enum.PetEvolutionCondition = setmetatable({
   PEC_ADD_INTERACT_TIMES = 19,
   PEC_ADD_ALL_INTERACT_TIMES = 20,
   PEC_ADD_STAR = 21,
+  PEC_NEED_CAMP = 22,
   PEC_BATTLE_SKILL_ID = 101,
   PEC_BATTLE_SKILL_TYPE = 102,
   PEC_BATTLE_SKILL_SORT = 103,
@@ -5868,7 +6089,8 @@ Enum.RidePetPassiveSkillType = setmetatable({
   RPPST_Perception = 2,
   RPPST_Terrain = 3,
   RPPST_Weather = 4,
-  RPPST_AutoCollect = 5
+  RPPST_AutoCollect = 5,
+  RPPST_Resonance = 6
 }, EnumMeta)
 Enum.BallCatchPetSituationType = setmetatable({BCPS_SCENE = 1, BCPS_BATTLE = 2}, EnumMeta)
 Enum.PetBloodTipsType = setmetatable({PBTT_SKILL = 1, PBTT_BOSS = 2}, EnumMeta)
@@ -5910,7 +6132,9 @@ Enum.FilterRule = setmetatable({
   FIL_PET_TALENT = 10,
   FIL_SKILL_SOURCE = 11,
   FIL_CATCH_TIME = 12,
-  FIL_SHINING = 13
+  FIL_SHINING = 13,
+  FIL_SEASON = 14,
+  FIL_ROLLBACK_TYPE = 15
 }, EnumMeta)
 Enum.ReleaseBattleReason = setmetatable({
   RBR_NONE = 0,
@@ -5919,7 +6143,8 @@ Enum.ReleaseBattleReason = setmetatable({
   RBR_IDIP_FORCE_EXIT = 3,
   RBR_NPC_UNLOAD = 4,
   RBR_INTERACT_CANCEL = 5,
-  RBR_GUIDE_BATTLE = 6
+  RBR_GUIDE_BATTLE = 6,
+  RBR_CREATE_BATTLE_FAILED = 7
 }, EnumMeta)
 Enum.GroupIDLimit = setmetatable({
   GIL_NORMAL = 0,
@@ -6017,8 +6242,15 @@ Enum.ActivityType = setmetatable({
   ATP_TERRITORY_TRIAL = 42,
   ATP_PET_CERTIFICATION = 43,
   ATP_PET_PHOTO = 44,
-  ATP_BOSS_CHALLENGE = 45,
-  ATP_COMMEN_OPTION = 47
+  ATP_LEGENDARY_CHALLENGE = 45,
+  ATP_TAKEPHOTO_COMPETITION = 46,
+  ATP_SIGN_REWARD = 47,
+  ATP_PET_TRIP = 48,
+  ATP_GLOBAL_CHALLENGE = 49,
+  ATP_ACTIVITY_RECALL_STARLIGHT = 50,
+  ATP_ACTIVITY_RECALL_BP = 51,
+  ATP_ACTIVITY_RECALL = 52,
+  ATP_PRE_DOWNLOAD = 53
 }, EnumMeta)
 Enum.ActivityLoginRequired = setmetatable({
   ALR_LOGIN_QQ = 1,
@@ -6039,7 +6271,30 @@ Enum.ActivityIconChangeRequired = setmetatable({
 Enum.ActiviyMixSlotFunciton = setmetatable({
   AMSF_NONE = 0,
   AMSF_CHECK_VITEM = 1,
-  AMSF_ACTIVITY = 2
+  AMSF_ACTIVITY = 2,
+  AMSF_TASK = 3,
+  AMSF_CHECK_BAGITEM = 4,
+  AMSF_SHOW_BAGITEM = 5,
+  AMSF_PET_INFORMATION = 6,
+  AMSF_TASK_REAWAD = 7
+}, EnumMeta)
+Enum.PETStoryPageType = setmetatable({PSPT_NORMAL = 1, PSPT_TASK = 2}, EnumMeta)
+Enum.RarityLevelEnumeration = setmetatable({
+  RLE_EX = 1,
+  RLE_EW = 2,
+  RLE_CR = 3,
+  RLE_EN = 4,
+  RLE_VU = 5,
+  RLE_NT = 6,
+  RLE_LC = 7,
+  RLE_DD = 8,
+  RLE_NE = 9
+}, EnumMeta)
+Enum.PetSotryDecorationImage = setmetatable({PSDI_FRONT = 1, PSDI_BACK = 2}, EnumMeta)
+Enum.PetSotryDecorationImageTxt = setmetatable({
+  PSDIT_NONE = 0,
+  PSDI_LEFT = 1,
+  PSDI_RIGHT = 2
 }, EnumMeta)
 Enum.AvailableHpRule = setmetatable({AHR_NONE = 0, AHR_BLACK_MAN = 1}, EnumMeta)
 Enum.ReacallUnlockTriggerType = setmetatable({
@@ -6086,8 +6341,9 @@ Enum.GuideActionType = setmetatable({
   GAT_SCROLL_UP = 3,
   GAT_SCROLL_DOWN = 4,
   GAT_SCROLL_LEFT = 5,
-  GAT_SCROLL_RIGT = 6
+  GAT_SCROLL_RIGHT = 6
 }, EnumMeta)
+Enum.GuideActionBanType = setmetatable({GAT_BAN_SCROLL = 1}, EnumMeta)
 Enum.TeachClientTrigger = setmetatable({
   CT_HIDE_UI = 1,
   CT_CLOSE_PET = 2,
@@ -6124,7 +6380,8 @@ Enum.AdventureRecord = setmetatable({
   AR_REGISTRATION_TIME = 1,
   AR_PETHANDBOOK_NUM = 2,
   AR_FASHION_BOND_NUM = 3,
-  AR_COLLECTED_VISUAL_ITEM = 4
+  AR_COLLECTED_VISUAL_ITEM = 4,
+  AR_COLLECTED_MUTATION_PET_NUM = 5
 }, EnumMeta)
 Enum.FaceToFaceType = setmetatable({
   FTFT_NONE = 0,
@@ -6196,7 +6453,9 @@ Enum.MonsterDifficultyType = setmetatable({
   MODT_LONGXIPAER_BOSS = 24,
   MODT_WEEKLY_CHALLENGE = 25,
   MODT_TERRITORY_TRIAL = 26,
-  MODT_NIGHTMARE_CATCH = 27
+  MODT_NIGHTMARE_CATCH = 27,
+  MODT_FANYING_BOSS = 28,
+  MODT_JIMUFANGZHOU_BOSS = 31
 }, EnumMeta)
 Enum.CampPetReportType = setmetatable({
   REPORT_PET_UNIT_TYPE = 1,
@@ -6541,7 +6800,8 @@ Enum.InterfaceType = setmetatable({
   IT_QUICK_FASHION = 16,
   IT_PIKO_FASHION = 17,
   IT_BP = 18,
-  IT_SEASON = 19
+  IT_SEASON = 19,
+  IT_PET_TRIP = 20
 }, EnumMeta)
 Enum.TaskPetType = setmetatable({TPT_PET_ACTIVITY_SELF_SELECTED = 1, TPT_PET_ACTIVITY_THEME_TYPE = 2}, EnumMeta)
 Enum.TaskBehaviorType = setmetatable({
@@ -6611,21 +6871,8 @@ Enum.ActivityDisplayRewardType = setmetatable({ADRT_BP_NORMAL_GIFT = 1}, EnumMet
 Enum.TconndEvHandlerType = setmetatable({
   TECT_LOG_METRICS_COMP = 1,
   TECT_ZONE_TASK_COMP = 2,
-  TECT_CMD_COMP = 3
-}, EnumMeta)
-Enum.GmBitFlag = setmetatable({
-  GBF_ALL_CATCH_SUCC = 1,
-  GBF_ALL_CATCH_FAIL = 2,
-  GBF_SIDE_A_POOR_HP = 4,
-  GBF_SIDE_B_POOR_HP = 8,
-  GBF_AI_STATUS_TEST = 16,
-  GBF_EVOLUTE_SUCC = 32,
-  GBF_SIDE_A_POOR_HP_0 = 64,
-  GBF_SIDE_A_LOCK_HP = 128,
-  GBF_SIDE_B_LOCK_HP = 256,
-  GBF_PVP_WELFARE_100 = 512,
-  GBF_PVP_WELFARE_0 = 1024,
-  GBF_AI_TRAINING = 2048
+  TECT_CMD_COMP = 3,
+  TECT_CHANNEL_DIS_INFO_COMP = 4
 }, EnumMeta)
 Enum.PetStatType = setmetatable({PST_BIGWORLD_TEAM = 1, PST_BATTLE_TEAM = 2}, EnumMeta)
 Enum.CloseExpActionType = setmetatable({
@@ -6642,7 +6889,10 @@ Enum.CloseExpActionType = setmetatable({
   CEA_PET_COMBAT_PVP = 10,
   CEA_PET_WORLD_ACTION = 11,
   CEA_PET_RECEIVE_GIFT = 12,
-  CEA_HOME_PET_FEED = 13
+  CEA_HOME_PET_FEED = 13,
+  CEA_LLM_ACTION = 14,
+  CEA_LLM_EMOJI = 15,
+  CEA_LLM_TEXT = 16
 }, EnumMeta)
 Enum.PetLikeElementType = setmetatable({
   PLE_NONE = 0,
@@ -6706,12 +6956,37 @@ Enum.SuitAiEffect = setmetatable({
   SAE_MOCAOWULING = 17,
   SAE_QILIHUA = 18,
   SAE_GAOJIAOYU = 19,
-  SAE_MOJUANNIAO = 20
+  SAE_MOJUANNIAO = 20,
+  SAE_JUESHILU = 21,
+  SAE_RUOYANBUDING = 22,
+  SAE_BENGBENGHUA = 23,
+  SAE_MENGYOUYOU = 24,
+  SAE_DIANMIEMIE = 25,
+  SAE_XUEYINGWAWA = 26,
+  SAE_YOUMINGYAN = 27,
+  SAE_DUDUGUO = 28,
+  SAE_LIULISHUIMU = 29,
+  SAE_JIUYOUGU = 30,
+  SAE_HAIBAOCHUANZHANG = 31,
+  SAE_QIANJIKUI = 32,
+  SAE_MIMIXIANGGUAI = 33,
+  SAE_GUDEMAOMAO = 34,
+  SAE_JUGUXIANG = 35,
+  SAE_YANHUABOJUE = 36,
+  SAE_XIAOCHOUGONGJUE = 37,
+  SAE_HUANYINGLINGGU = 38,
+  SAE_BUKUGU = 39,
+  SAE_LIULANGSHU = 40,
+  SAE_YUANHAOYU = 41,
+  SAE_BENGCHUANGSONGSHU = 42,
+  SAE_KAWACHONG = 43,
+  SAE_LILAYAO = 44
 }, EnumMeta)
 Enum.SuitPrivilegeEffect = setmetatable({
   SPE_ZHIYUTONGHUA = 1,
   SPE_BILUBIANHUOBAN = 2,
-  SPE_LIANJINSHUSHI = 3
+  SPE_LIANJINSHUSHI = 3,
+  SPE_MENGJINGLIULANGZHE = 4
 }, EnumMeta)
 Enum.FashionBondBand = setmetatable({
   FBB_OPERA = 1,
@@ -6737,17 +7012,61 @@ Enum.BagCharmPrivilegeEffect = setmetatable({
   BGCPE_BENGBENGHUA = 6,
   BGCPE_DUDUGUO = 7,
   BGCPE_LIULISHUIMU = 8,
-  BGCPE_JIUYOUGU = 9
+  BGCPE_JIUYOUGU = 9,
+  BGCPE_XIAOLINGGU = 10,
+  BGCPE_KUKUGU = 11,
+  BGCPE_BENBOSHU = 12,
+  BGCPE_HAIBAOZHANSHI = 13,
+  BGCPE_HAIKUICHONG = 14,
+  BGCPE_XIAOXIANGGUAI = 15,
+  BGCPE_XIAOYE = 16,
+  BGCPE_WUDA = 17,
+  BGCPE_QIULUO = 18
 }, EnumMeta)
-Enum.FashionTopsTag = setmetatable({FTT_SHORTTOPS = 1, FTT_LONGTOPS = 2}, EnumMeta)
-Enum.FashionRingsTag = setmetatable({FRT_SHORTRINGS = 1, FRT_LONGRINGS = 2}, EnumMeta)
+Enum.FashionTopsTag = setmetatable({
+  FTT_NONETAG = 0,
+  FTT_SHORTTOPS = 1,
+  FTT_LONGTOPS = 2
+}, EnumMeta)
+Enum.FashionRingsTag = setmetatable({
+  FRT_NONETAG = 0,
+  FRT_SHORTRINGS = 1,
+  FRT_LONGRINGS = 2
+}, EnumMeta)
+Enum.FashionBottomsTag = setmetatable({
+  FBT_NONETAG = 0,
+  FBT_SHORTBOTTOMS = 1,
+  FBT_MIDBOTTOMS = 2,
+  FBT_LONGFATBOTTOMS = 3,
+  FBT_LONGTHINBOTTOMS = 4,
+  FBT_LONGBOTTOMS = 5
+}, EnumMeta)
+Enum.FashionShoesTag = setmetatable({
+  FST_NONETAG = 0,
+  FST_SHORTSHOES = 1,
+  FST_MIDFATSHOES = 2,
+  FST_MIDTHINSHOES = 3,
+  FST_LONGSHOES = 4
+}, EnumMeta)
+Enum.FashionSocksTag = setmetatable({
+  FOT_NONETAG = 0,
+  FOT_SHORTSOCKS = 1,
+  FOT_LONGSOCKS = 2
+}, EnumMeta)
+Enum.FashionWandSource = setmetatable({
+  FWSO_BP = 1,
+  FWSO_STORY = 2,
+  FWSO_PACKAGE = 3
+}, EnumMeta)
 Enum.AutoIncrementType = setmetatable({
   AIIT_ACTIVITY = 1,
   AIIT_AREA_MAIL = 4,
   AIIT_MARQUEE = 5,
   AIIT_SUBSCRIPTION_DAY_LIMIT = 6,
   AIIT_SCENE_INST = 7,
-  AIIT_FACTION_RANK = 8
+  AIIT_FACTION_RANK = 8,
+  AIIT_HAPPY_VALUE = 9,
+  AIIT_WISH_CHOICE = 10
 }, EnumMeta)
 Enum.AreaMailAITType = setmetatable({AMAT_MAXUID = 1, AMAT_MINUID = 2}, EnumMeta)
 Enum.OpponentType = setmetatable({OT_NPC = 1, OT_PLAYER = 2}, EnumMeta)
@@ -6805,7 +7124,9 @@ Enum.ActivityMonitorEvent = setmetatable({
   AME_CATCH_PET = 20,
   AME_LEGENDARY_BATTLE = 21,
   AME_REFRESH_BONUS = 22,
-  AME_PLAYER_ONLINE_TIME = 23
+  AME_PLAYER_ONLINE_TIME = 23,
+  AME_PLAYER_TRANSFORM_ONLINE_TIME = 24,
+  AME_PLAYER_TRANSFORM_EAGLE_CAPTURE = 25
 }, EnumMeta)
 Enum.ActivityDropShowArea = setmetatable({
   ADSA_NONE = 0,
@@ -6813,13 +7134,13 @@ Enum.ActivityDropShowArea = setmetatable({
   ADSA_BOSS = 2,
   ADSA_LEGENDARY = 3
 }, EnumMeta)
+Enum.AcitivityDropAreaShow = setmetatable({ADAS_NONE = 0, ADAS_STAR = 1}, EnumMeta)
 Enum.ActivityResetType = setmetatable({
   ACTIVITY_RESET_NONE = 0,
   ACTIVITY_RESET_DAILY = 1,
   ACTIVITY_RESET_WEEKLY = 2,
   ACTIVITY_RESET_MONTHLY = 3
 }, EnumMeta)
-Enum.AcitivityDropAreaShow = setmetatable({ADAS_NONE = 0, ADAS_STAR = 1}, EnumMeta)
 Enum.BloodMagicTempType = setmetatable({BMT_NONE = 0, BMT_BLACK_MAGIC = 1}, EnumMeta)
 Enum.ShareType = setmetatable({
   STP_IMAGE = 1,
@@ -6851,6 +7172,8 @@ Enum.ShareButtonType = setmetatable({
   SBT_ROLE_CARD_BADGE = 502,
   SBT_PVP_RECORD = 6,
   SBT_PET_REPORT = 7,
+  SBT_HB_PHOTO = 8,
+  SBT_RECORD_VIDEO = 9,
   SBT_ACTIVITY_SIM = 10,
   SBT_ACTIVITY_INVITE_FRIEND = 11
 }, EnumMeta)
@@ -7007,6 +7330,11 @@ Enum.MarkGameplay = setmetatable({
   MK_FAKE_MAGIC_MESSAGE = 3,
   MK_MAGIC_VIDEO = 4
 }, EnumMeta)
+Enum.ChildMessageMagic = setmetatable({
+  CMM_DEFAULT = 0,
+  CMM_SHENHAI = 1,
+  CMM_MIMIQIANRU = 2
+}, EnumMeta)
 Enum.IncidentType = setmetatable({
   IT_MONSTER_1 = 0,
   IT_MONSTER_2 = 1,
@@ -7140,7 +7468,8 @@ Enum.SeasonItemAdditionalShow = setmetatable({
 Enum.BelongSystem = setmetatable({
   BS_ACTIVITY = 1,
   BS_SEASON = 2,
-  BS_ACTIVITY_AND_SEASON = 3
+  BS_ACTIVITY_AND_SEASON = 3,
+  BS_RECALL_ACTIVITY = 4
 }, EnumMeta)
 Enum.SeasonKVType = setmetatable({SKVT_COMMON = 1, SKVT_GENDER = 2}, EnumMeta)
 Enum.PetType = setmetatable({PT_NONE = 0, PT_HALF_BLOOD = 1}, EnumMeta)
@@ -7227,7 +7556,8 @@ Enum.ReportCoinRatio = setmetatable({
   RCR_MEDAL = 2,
   RCR_MUTATION = 3,
   RCR_GLASS_COMMON = 4,
-  RCR_GLASS_HIDDEN = 5
+  RCR_GLASS_HIDDEN = 5,
+  RCR_BLOOD = 6
 }, EnumMeta)
 Enum.MagicManualTab = setmetatable({
   MMT_MAGIC_ASSIGNMENT = 0,
@@ -7270,7 +7600,9 @@ Enum.FurniturelnteractType = setmetatable({
   FIT_NONE = 0,
   FIT_SEAT = 1,
   FIT_UI = 2,
-  FIT_REFRESH_PET = 3
+  FIT_REFRESH_PET = 3,
+  FIT_PLAY_ANIMATION = 4,
+  FIT_PCT_UI = 5
 }, EnumMeta)
 Enum.InteractiontreeTypeDefault = setmetatable({
   ITTD_NONE = 0,
@@ -7299,7 +7631,8 @@ Enum.BonusVariableType = setmetatable({
   BVT_IN_BATTLE_CATCH = 3,
   BVT_OUT_BATTLE_CATCH = 4,
   BVT_PETBASE_PARAM = 5,
-  BVT_EVENT_TRIG_TIME = 6
+  BVT_EVENT_TRIG_TIME = 6,
+  BVT_ACCU_NUM = 7
 }, EnumMeta)
 Enum.BonusBelongFactorType = setmetatable({
   BBFT_NONE = 0,
@@ -7312,6 +7645,16 @@ Enum.BonusEventResultType = setmetatable({
   BOERT_NONE = 0,
   BOERT_NPC_CONTENT = 1,
   BOERT_TRIG = 2
+}, EnumMeta)
+Enum.BonusRefreshType = setmetatable({BRT_RAND_RANGE = 0, BRT_REFRESH_RULE = 1}, EnumMeta)
+Enum.BonusBoxIconType = setmetatable({
+  BBIT_NONE = 0,
+  BBIT_PETBASE = 1,
+  BBIT_NIGHTMARE = 2,
+  BBIT_SHINING = 3,
+  BBIT_FANTASTIC = 4,
+  BBIT_MIXBLOOD = 5,
+  BBIT_PETTALENT = 6
 }, EnumMeta)
 Enum.VisibleType = setmetatable({
   VT_NONE = 0,
@@ -7328,7 +7671,8 @@ Enum.BonusPetFieldMatchType = setmetatable({
   FIELD_MATCH_TYPE_SMALLER = 1,
   FIELD_MATCH_TYPE_LARGER = 2,
   FIELD_MATCH_TYPE_INCLUDE = 3,
-  FIELD_MATCH_TYPE_IDENTICAL = 4
+  FIELD_MATCH_TYPE_IDENTICAL = 4,
+  FIELD_MATCH_FIRST = 5
 }, EnumMeta)
 Enum.SeasonTipsPageType = setmetatable({
   SEASON_TPT_NEW_PET = 1,
@@ -7378,6 +7722,16 @@ Enum.FriendType = setmetatable({
   FRIEND_TYPE_ALL = 3,
   FRIEND_TYPE_WEGAME = 1024
 }, EnumMeta)
+Enum.FriendRecommendSource = setmetatable({
+  FRS_NONE = 0,
+  FRS_VISIT = 1,
+  FRS_PVP = 2,
+  FRS_PVP_COMBAT = 4,
+  FRS_TOGETHER = 5,
+  FRS_TEAM_COMBAT = 6,
+  FRS_TOY_INTERACTION = 7,
+  FRS_VISIT_HOME = 8
+}, EnumMeta)
 Enum.TaskExpireTimeType = setmetatable({
   TETT_NONE = 0,
   TETT_BAGITEM = 1,
@@ -7410,12 +7764,14 @@ Enum.FixRandomType = setmetatable({
 Enum.RandomMutexType = setmetatable({RANDOM_MUTEX_TYPE_NONE = 0, RANDOM_MUTEX_TYPE_DAILY = 1}, EnumMeta)
 Enum.EmojiTopic = setmetatable({EMOJI_TOPIC_DEFAULT = 1}, EnumMeta)
 Enum.PetCatchTime = setmetatable({PCT_TODAY = 0, PCT_THISWEEK = 1}, EnumMeta)
+Enum.RollBack = setmetatable({RB_CANROLL = 1}, EnumMeta)
 Enum.ActivityMixSlot = setmetatable({
   AMSLOT_1 = 1,
   AMSLOT_2 = 2,
   AMSLOT_3 = 3,
   AMSLOT_4 = 4,
-  AMSLOT_5 = 5
+  AMSLOT_5 = 5,
+  AMSLOT_6 = 6
 }, EnumMeta)
 Enum.ActivitySLotFuctionType = setmetatable({
   ASFT_JUMP_INSTRUCTION = 1,
@@ -7471,7 +7827,8 @@ Enum.InteractInviteType = setmetatable({
 Enum.WarehouseUnlockCondition = setmetatable({
   WUC_DEFAULT = 0,
   WUC_EXPEND_MONEY = 1,
-  WUC_RECORD_PET = 2
+  WUC_RECORD_PET = 2,
+  WUC_USE_BAGITEM = 3
 }, EnumMeta)
 Enum.WarehouseMarkType = setmetatable({
   WMT_DEFAULT = 0,
@@ -7490,7 +7847,8 @@ Enum.PreciousEggType = setmetatable({
   PET_PARTNER = 4,
   PET_ONLY = 5,
   PET_GLASS = 6,
-  PET_CUSTOM_GLASS = 7
+  PET_CUSTOM_GLASS = 7,
+  PET_CHAOS = 8
 }, EnumMeta)
 Enum.TypeAdvantageUnlockType = setmetatable({TAUT_AUTO_UNLOCKED = 0, TAUT_SKILL_DAM = 1}, EnumMeta)
 Enum.TypeAdvantageTrainType = setmetatable({TATT_BATTLE = 1}, EnumMeta)
@@ -7552,7 +7910,8 @@ Enum.PetguardRequireWay = setmetatable({
   PETGUARD_REGULAR_REFRESH = 2,
   PETGUARD_REGULAR_OUTSHOW_PET_EGG = 3,
   PETGUARD_REGULAR_PET_EGG = 4,
-  PETGUARD_REGULAR_PET = 5
+  PETGUARD_REGULAR_PET = 5,
+  PETGUARD_INFO_CHANGE = 6
 }, EnumMeta)
 Enum.PetguardBanFunc = setmetatable({
   PETGUARD_BAN_NONE = 0,
@@ -7563,7 +7922,8 @@ Enum.PetguardBanFunc = setmetatable({
   PETGUARD_BAN_EGG_GLASS = 5,
   PETGUARD_BAN_OUTSHOW_EGG_SHINING = 6,
   PETGUARD_BAN_OUTSHOW_EGG_GLASS = 7,
-  PETGUARD_BAN_TEAMBATTLE_SHINING = 8
+  PETGUARD_BAN_TEAMBATTLE_SHINING = 8,
+  PETGUARD_BAN_INFO_CHANGE = 9
 }, EnumMeta)
 Enum.HabitatRestrainType = setmetatable({
   HABITAT_RESTRAIN_TYPE_NORESTRAIN = 0,
@@ -7584,10 +7944,30 @@ Enum.SeaseonTipsShowType = setmetatable({
   SEASON_TIPS_PETS_SHOW = 4
 }, EnumMeta)
 Enum.FakeFeedDecryptCondition = setmetatable({FAKE_FEED_DEFAULT = 0, FAKE_FEED_DUNGEON_FINISH = 1}, EnumMeta)
+Enum.LotteryPoolType = setmetatable({
+  LOTTERY_POOL_1 = 1,
+  LOTTERY_POOL_2 = 2,
+  LOTTERY_POOL_3 = 3
+}, EnumMeta)
+Enum.LotteryMoniterEvent = setmetatable({
+  LME_INTERACT_PET_PROPERTY_TYPE = 1,
+  LME_PET_LEVEL = 2,
+  LME_FOLLOW_PET_PROPERTY_TYPE = 3,
+  LME_FOLLOW_PET_LEVEL = 4,
+  LME_RIDE_PET_PROPERTY_TYPE = 5,
+  LME_TOGTHER = 6
+}, EnumMeta)
 Enum.FakeFeedValidity = setmetatable({
   FAKE_FEED_VALIDITY_DEFAULT = 0,
   FAKE_FEED_VALIDITY_BLOCK = 1,
   FAKE_FEED_VALIDITY_DELETE = 2
+}, EnumMeta)
+Enum.RankListType = setmetatable({
+  RANK_LIST_TYPE_INVALID = 0,
+  RANK_LIST_TYPE_MASTER = 1,
+  RANK_LIST_TYPE_TOP_MASTER = 2,
+  RANK_LIST_TYPE_PET_DAMAGE = 3,
+  RANK_LIST_TYPE_PHOTO_CONTEST = 4
 }, EnumMeta)
 Enum.BattleSettlementPetType = setmetatable({
   BSPT_INVALID = 0,
@@ -7604,16 +7984,133 @@ Enum.BattleSettlementPetType = setmetatable({
   BSPT_FANTASTIC_GLASS_SHINING = 11
 }, EnumMeta)
 Enum.SeasonFocusImgOptionType = setmetatable({SFIOT_NEXT_PAGE = 1, SFIOT_SKIP_CMD = 2}, EnumMeta)
-Enum.RankListType = setmetatable({
-  RANK_LIST_TYPE_INVALID = 0,
-  RANK_LIST_TYPE_MASTER = 1,
-  RANK_LIST_TYPE_TOP_MASTER = 2,
-  RANK_LIST_TYPE_PET_DAMAGE = 3
+Enum.GlobalCountType = setmetatable({
+  GCT_GET_BAGITEM = 1,
+  GCT_STATE_OPTION = 2,
+  GCT_BATTLE_PLAYER_DAMAGE = 3,
+  GCT_BATTLE_BFT_O_TWO = 4,
+  GCT_BATTLE_TIME = 5
 }, EnumMeta)
 Enum.PetNameSource = setmetatable({
   PNS_PET_BASE = 0,
   PNS_PET_CONF = 1,
   PNS_MONSTER_CONF = 2,
   PNS_PLAYER_MODIFY = 3
+}, EnumMeta)
+Enum.LotteryPoolValidationCheck = setmetatable({LPVC_NONE = 0, LPVC_ACTIVITY = 1}, EnumMeta)
+Enum.FilterSeasonPet = setmetatable({
+  FSP_NONE = 0,
+  FSP_S1 = 1,
+  FSP_S2 = 2
+}, EnumMeta)
+Enum.WeightFixType = setmetatable({
+  WEIGHTFIX_NONE = 0,
+  WEIGHTFIX_GOLDEN_BOX = 1,
+  WEIGHTFIX_RED_BOX = 2,
+  WEIGHTFIX_GREEN_BOX = 3
+}, EnumMeta)
+Enum.BonusPoolType = setmetatable({
+  BONUSPOOL_NONE = 0,
+  BONUSPOOL_NIGHTMARE = 1,
+  BONUSPOOL_SHINING = 2,
+  BONUSPOOL_NIGHTMARE_SHINING = 3
+}, EnumMeta)
+Enum.BonusGiftConditionType = setmetatable({BONUSGFIT_COND_NONE = 0, BONUSGFIT_COND_ACTIVEDAY_SHINING = 1}, EnumMeta)
+Enum.RecallPetEggType = setmetatable({
+  RPET_USE_TOP = 0,
+  RPET_SP = 1,
+  RPET_PVP_TOP = 2
+}, EnumMeta)
+Enum.EventType = setmetatable({
+  ET_MONSTER_NORMAL = 0,
+  ET_MONSTER_LEADER = 1,
+  ET_NPC_FIGHT = 2,
+  ET_BOSS_FIGHT = 3
+}, EnumMeta)
+Enum.GrassTrialState = setmetatable({
+  GTS_NONE = 0,
+  GTS_CHALLENGE_LOBBY = 1,
+  GTS_CHALLENGE_BATTLE = 2,
+  GTS_PAUSE = 3
+}, EnumMeta)
+Enum.GrassTrialFusionType = setmetatable({
+  GTFT_TYPE1_0 = 0,
+  GTFT_TYPE1_1 = 1,
+  GTFT_TYPE1_2 = 2,
+  GTFT_TYPE2_0 = 3,
+  GTFT_TYPE2_1 = 4,
+  GTFT_TYPE2_2 = 5
+}, EnumMeta)
+Enum.GrassTrialEffectType = setmetatable({GTET_TRIAL_EFFECT = 0, GTET_SHRED_EFFECT = 1}, EnumMeta)
+Enum.GrassTrialEffect = setmetatable({
+  GTE_HP_RECOVER_NODE = 0,
+  GTE_HP_RECOVER_CHAPTER = 1,
+  GTE_ENERGY_CEILING = 2,
+  GTE_FUSION_TIMES = 3
+}, EnumMeta)
+Enum.PutPropType = setmetatable({
+  PPT_NONE = 0,
+  PPT_SEAT = 1,
+  PPT_BLINDBOX = 2,
+  PPT_HANDHELD = 3
+}, EnumMeta)
+Enum.SceneSitBlurType = setmetatable({
+  SSBT_CLOSED = 0,
+  SSBT_FRONT = 1,
+  SSBT_UNDER = 2,
+  SSBT_FRONTANDUNDER = 3
+}, EnumMeta)
+Enum.PlayerTransformType = setmetatable({
+  PTT_OTHER = 0,
+  PTT_BUDING = 1,
+  PTT_EAGLE = 2,
+  PTT_CHICKEN = 3
+}, EnumMeta)
+Enum.NpcSizeChangeType = setmetatable({
+  NSCT_TO_TARGET = 0,
+  NSCT_ADD = 1,
+  NSCT_MULTIPLY = 2
+}, EnumMeta)
+Enum.NpcInfoChangeSuccessCostType = setmetatable({INFO_CHANGE_COST_TYPE_NONE = 0, INFO_CHANGE_COST_TYPE_MUTATION_CHANGE = 1}, EnumMeta)
+Enum.NpcInfoChangeFixNpcType = setmetatable({
+  FIX_NPC_NONE = 0,
+  FIX_NPC_NO_MUTATION_PET_EVO = 1,
+  FIX_NPC_BAG_CHECK_NO_MUTATION_WILD_MONSTER = 2
+}, EnumMeta)
+Enum.NpcInfoChangeFixType = setmetatable({
+  FIX_TYPE_NONE = 0,
+  FIX_TYPE_MUTATION_TYPE = 1,
+  FIX_TYPE_SET_RESET_TIME = 2
+}, EnumMeta)
+Enum.AIcoachSceneType = setmetatable({
+  AST_Match_Prepare = 1,
+  AST_Match_Battle = 2,
+  AST_Friend_Interface = 3,
+  AST_Friend_Chat = 4,
+  AST_Shinning_Weekend = 5,
+  AST_Group_Recommend = 6,
+  AST_Group_Detail = 7
+}, EnumMeta)
+Enum.EnumHeadWearType = setmetatable({
+  EHWT_HeadWear = 0,
+  EHWT_SideWear = 1,
+  EHWT_FrontWear = 2,
+  EHWT_BackWear = 3,
+  EHWT_SideWearLeft = 4
+}, EnumMeta)
+Enum.PetBoxTidyRuleType = setmetatable({
+  PBTR_NONE = 0,
+  PBTR_PET_ADD_TIME = 1,
+  PBTR_HANDBOOK_ID = 2,
+  PBTR_PET_LEVEL = 3,
+  PBTR_PET_TALENT_RANK = 4,
+  PBTR_PET_INSPIRE_AND_GROW = 5
+}, EnumMeta)
+Enum.DefaultTrackType = setmetatable({
+  DTT_NONE = 0,
+  DTT_GLASS = 1,
+  DTT_NIGHTMARE = 2,
+  DTT_SURPRISEBOX = 3,
+  DTT_SHINE = 4
 }, EnumMeta)
 return setmetatable(Enum, EnumMeta)

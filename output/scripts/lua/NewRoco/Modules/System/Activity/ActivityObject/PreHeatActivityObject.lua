@@ -73,7 +73,9 @@ end
 
 function PreHeatCollectItemObject:OnClick()
   local status = self:GetStatus()
-  if status == ActivityEnum.ItemStatus.UnLocked then
+  if status == ActivityEnum.ItemStatus.Locked then
+    _G.NRCModeManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, _G.LuaText.activity_preheat__unlock_tips)
+  elseif status == ActivityEnum.ItemStatus.UnLocked then
     local optionId = self:GetOptionId()
     if optionId and optionId > 0 then
       ActivityUtils.DoActivityOptionCmd(optionId)

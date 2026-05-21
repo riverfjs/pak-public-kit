@@ -2,6 +2,7 @@ local UMG_ReplacementSkills_C = _G.NRCPanelBase:Extend("UMG_ReplacementSkills_C"
 local enum = reload("Data.Config.Enum")
 local PetUIModuleEvent = reload("NewRoco.Modules.System.PetUI.PetUIModuleEvent")
 local PetUIModuleEnum = require("NewRoco.Modules.System.PetUI.PetUIModuleEnum")
+local WeeklyChallengeBattleModuleEvent = require("NewRoco.Modules.System.WeeklyChallengeBattle.WeeklyChallengeBattleModuleEvent")
 
 function UMG_ReplacementSkills_C:OnConstruct()
   self:SetChildViews(self.PopUp4)
@@ -113,6 +114,8 @@ end
 function UMG_ReplacementSkills_C:OnDeactive()
   self:RemoveAllButtonListener()
   self:UnRegisterAllEvent()
+  _G.NRCEventCenter:UnRegisterEvent(self, PetUIModuleEvent.PvpPetTeamEquipPetSkills, self.OnOperationSuccessStar)
+  _G.NRCEventCenter:UnRegisterEvent(self, WeeklyChallengeBattleModuleEvent.OnPetSkillChanged, self.OnOperationSuccessStar)
 end
 
 function UMG_ReplacementSkills_C:OnAddEventListener()
@@ -121,6 +124,7 @@ function UMG_ReplacementSkills_C:OnAddEventListener()
   self:RegisterEvent(self, PetUIModuleEvent.EQUIP_SKILL_SUCCESS, self.OnOperationSuccessStar)
   self:RegisterEvent(self, PetUIModuleEvent.PvpPetTeamEquipPetSkills, self.OnOperationSuccessStar)
   _G.NRCEventCenter:RegisterEvent("UMG_ReplacementSkills_C", self, PetUIModuleEvent.PvpPetTeamEquipPetSkills, self.OnOperationSuccessStar)
+  _G.NRCEventCenter:RegisterEvent("UMG_ReplacementSkills_C", self, WeeklyChallengeBattleModuleEvent.OnPetSkillChanged, self.OnOperationSuccessStar)
 end
 
 function UMG_ReplacementSkills_C:SetCommonPopUpInfo()

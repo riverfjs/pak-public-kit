@@ -10,6 +10,8 @@ function BeastPlaySequence:Ctor(name, properties)
 end
 
 function BeastPlaySequence:OnEnter()
+  BattleUtils.ForceUpdateIndexMap()
+  BattleUtils.ImmediateChangeWeatherForBattle(BattleManager.battleRuntimeData.curWeatherID)
   _G.BattleEventCenter:Bind(self, BattleEvent.PET_LOAD_MODE_LOVER, BattleEvent.PLAYER_LOAD_MODEL_OVER)
   if BattleUtils.IsEnterCatchInTeamBattle() then
     self:Finish()

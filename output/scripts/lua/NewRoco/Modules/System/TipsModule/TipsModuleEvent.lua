@@ -25,4 +25,5 @@ TipsModuleEvent.TopHud_StartPlayMapTips = "TipsModuleEvent.TopHud_StartPlayMapTi
 TipsModuleEvent.TopHud_EndPlayMapTips = "TipsModuleEvent.TopHud_EndPlayMapTips"
 TipsModuleEvent.FinishFruitTreeTips = "TipsModuleEvent.FinishFruitTreeTips"
 TipsModuleEvent.FinishAntiAddictionTips = "TipsModuleEvent.FinishAntiAddictionTips"
+TipsModuleEvent.CheckMainPetTips = "TipsModuleEvent.CheckMainPetTips"
 return TipsModuleEvent

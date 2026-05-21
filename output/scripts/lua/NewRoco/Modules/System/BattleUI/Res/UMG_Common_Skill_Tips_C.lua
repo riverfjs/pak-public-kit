@@ -128,11 +128,13 @@ function UMG_Common_Skill_Tips_C:UpdateInfo(skillData, skillEntity)
     self.SkillIcon:SetPath(NRCUtils:FormatConfIconPath(newSkillConfig.icon, _G.UIIconPath.SkillIconPath))
     self.TxtSkillName:SetText(newSkillConfig.name)
     local skillType = newSkillConfig.skill_dam_type
-    local typeDic = _G.DataConfigManager:GetTypeDictionary(skillType)
-    if typeDic then
-      table.insert(commonAttrData, {
-        Path = typeDic.tips_res
-      })
+    if Enum.SkillDamType.SDT_RELAX ~= skillType then
+      local typeDic = _G.DataConfigManager:GetTypeDictionary(skillType)
+      if typeDic then
+        table.insert(commonAttrData, {
+          Path = typeDic.tips_res
+        })
+      end
     end
     local damageType = skillData.damage_type or newSkillConfig.damage_type
     local text, iconpath = BattleUtils.GetSkillTypePath(newSkillConfig.Skill_Type, damageType)

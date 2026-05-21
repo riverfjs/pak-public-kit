@@ -15,11 +15,17 @@ function NPCActionFinalBattleConfirmPet:Execute()
   req.name = pet.name
   req.confirmed = 1
   req.pet = pet
+  self.p2SummonReq = req
   _G.ZoneServer:SendWithHandler(ProtoCMD.ZoneSvrCmd.ZONE_BATTLE_FINAL_BATTLE_P2_SUMMON_REQ, req, self, self.OnFinalBattle2Rsp)
   self.delayID = _G.DelayManager:DelayFrames(1, self.Finish, self, true)
 end
 
 function NPCActionFinalBattleConfirmPet:OnFinalBattle2Rsp(rsp)
+  if rsp.ret_info.ret_code == ProtoEnum.MOBA_RET.ZoneErr.ERR_COMMON_CORO_TIMEOUT then
+    Log.Warning("NPCActionFinalBattleConfirmPet:OnFinalBattle2Rsp: \230\163\128\230\181\139\229\136\176\232\182\133\230\151\182\239\188\140\233\135\141\230\150\176\229\143\145\233\128\129\232\175\183\230\177\130")
+    _G.ZoneServer:SendWithHandler(ProtoCMD.ZoneSvrCmd.ZONE_BATTLE_FINAL_BATTLE_P2_SUMMON_REQ, self.p2SummonReq, self, self.OnFinalBattle2Rsp)
+    return
+  end
   _G.BattleEventCenter:Dispatch(BattleEvent.OnFinalBattleSummer, rsp)
 end
 

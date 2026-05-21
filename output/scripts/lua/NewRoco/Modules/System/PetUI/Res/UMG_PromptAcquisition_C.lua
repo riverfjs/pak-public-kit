@@ -55,7 +55,7 @@ function UMG_PromptAcquisition_C:OnItemUpdate(_data, datalist, index)
     local needLevel = 0
     local petCurLevel = 0
     local petData
-    local levelSkillConf = _G.DataConfigManager:GetLevelSkillConf(self.data.petBaseId)
+    local levelSkillConf = _G.NRCModeManager:DoCmd(_G.PetUIModuleCmd.GetLevelSkillConfByPetBaseId, self.data.petBaseId)
     if levelSkillConf then
       needLevel = levelSkillConf.blood_skill_level_point
     end

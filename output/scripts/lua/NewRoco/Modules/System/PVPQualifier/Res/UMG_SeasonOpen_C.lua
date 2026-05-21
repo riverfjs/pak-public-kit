@@ -21,6 +21,14 @@ function UMG_SeasonOpen_C:OnActive()
   if not bSucceed then
     self.bNeedLatentClose = true
   end
+  self:SwitchSeasonText()
+end
+
+function UMG_SeasonOpen_C:SwitchSeasonText()
+  local currentSeasonId = self.module.data:GetCurSeasonId() or 0
+  local firstSeasonId = self.module.data:GetFirstSeasonId() or 0
+  local index = math.max(0, currentSeasonId - firstSeasonId)
+  self.Switcher_Text:SetActiveWidgetIndex(index)
 end
 
 function UMG_SeasonOpen_C:OnDeactive()

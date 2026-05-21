@@ -51,7 +51,7 @@ function UMG_SecondaryPasswordSet_C:OnSecondaryPasswordGetAuthInfoRsp(rsp)
       if passwordInfo.status == ProtoEnum.SecondaryPasswordStatus.SPS_Unset and rsp.status == ProtoEnum.SecondaryPasswordStatus.SPS_Set then
         Log.Info("UMG_SecondaryPasswordSet_C:OnSecondaryPasswordGetAuthInfoRsp status not same")
         _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.Error_Code_2535)
-        _G.NRCModuleManager:DoCmd(_G.SystemSettingModuleCmd.OnSecondaryPasswordStatusChange, ProtoEnum.SecondaryPasswordStatus.SPS_Set)
+        _G.NRCModuleManager:DoCmd(_G.SystemSettingModuleCmd.OnSecondaryPasswordStatusChange, rsp.status, rsp.status_timestamp, rsp.default_free)
         self:DoClose()
       else
         self.authInfo = rsp
@@ -66,6 +66,10 @@ function UMG_SecondaryPasswordSet_C:OnClickCloseBtn()
 end
 
 function UMG_SecondaryPasswordSet_C:OnClickConfirm()
+  if self.authInfo == nil then
+    return
+  end
+  
   local function is_valid_format(str)
     if #str >= 4 and #str <= 8 and string.match(str, "^%d+$") then
       return true
@@ -97,8 +101,7 @@ end
 function UMG_SecondaryPasswordSet_C:OnSecondaryPasswordCheckRsp(rsp)
   if 0 == rsp.ret_info.ret_code then
     _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.secondary_pwd_toast_setup_success)
-    _G.NRCModuleManager:DoCmd(_G.SystemSettingModuleCmd.OnSecondaryPasswordStatusChange, ProtoEnum.SecondaryPasswordStatus.SPS_Set)
-    _G.NRCModuleManager:DoCmd(_G.SystemSettingModuleCmd.OnSecondaryDefaultFreeChange, 0)
+    _G.NRCModuleManager:DoCmd(_G.SystemSettingModuleCmd.OnSecondaryPasswordStatusChange, rsp.status, rsp.status_timestamp, rsp.default_free)
     self:DoClose()
   end
 end

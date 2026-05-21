@@ -7,7 +7,7 @@ function FurnitureCreationEditor:Ctor(Panel)
 end
 
 function FurnitureCreationEditor:Init()
-  self.bEnabled = RocoEnv.IS_EDITOR or false
+  self.bEnabled = false
   if self.bEnabled then
     local Panel = self.FurnitureCreationPanel
     Panel.Slider_72.OnValueChanged:Add(Panel, function()

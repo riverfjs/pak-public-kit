@@ -30,6 +30,9 @@ function UMG_ChapterBegins_C:SetShowInfo()
     if self.BookmarkColor and self.uiData.themeColor then
       self.BookmarkColor:SetColorAndOpacity(UE4.UNRCStatics.HexToLinearColor(self.uiData.themeColor))
     end
+    if self.NRCText_1 then
+      self.NRCText_1:SetText(LuaText.season_manual_new_chapter)
+    end
   end
 end
 
@@ -39,7 +42,11 @@ function UMG_ChapterBegins_C:OnAnimationFinished(anim)
   elseif anim == self.Loop then
     self:PlayAnimation(self.Out)
   elseif anim == self.Out then
-    self:DoClose()
+    if self.uiData and self.uiData.widgetLoader then
+      self.uiData.widgetLoader:DoClose()
+    else
+      self:DoClose()
+    end
   end
 end
 

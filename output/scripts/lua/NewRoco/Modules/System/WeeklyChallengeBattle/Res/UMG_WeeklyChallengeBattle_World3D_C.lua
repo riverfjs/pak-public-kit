@@ -26,6 +26,9 @@ function UMG_WeeklyChallengeBattle_World3D_C:OnConstruct()
   self.isMoving = false
   self._waitingAnimReady = false
   self._animReadyFrameCount = 0
+  self.npcHeightOffsetMap = {}
+  self.npcHeightOffsetMap[12010] = 10
+  self._currentModelId = nil
   if not self.previewWorld and self.PreviewWorld then
     self.previewWorld = self.PreviewWorld
   end
@@ -143,6 +146,8 @@ function UMG_WeeklyChallengeBattle_World3D_C:GetDefaultAvatarResPath(gender)
 end
 
 function UMG_WeeklyChallengeBattle_World3D_C:SetModule(id, appearanceInfo, bDefaultCenter, onLoadFinishCallback, callbackOwner)
+  self._currentModelId = id
+  self.Offset = self:_GetNpcHeightOffset()
   self.bDefaultCenter = bDefaultCenter
   self.onLoadFinishCallback = onLoadFinishCallback
   self.callbackOwner = callbackOwner
@@ -365,9 +370,17 @@ function UMG_WeeklyChallengeBattle_World3D_C:OnPetLoaded(actor)
   end
   self.SkeletalMesh = mesh
   actor:SetActorScale3D(UE4.FVector(scale, scale, scale))
+  location = UE4.FVector(location.X, location.Y, location.Z + self.Offset)
   actor:Abs_K2_SetActorLocation_WithoutHit(location)
   self._refActorIsolateWorld = actor
   self:BeginWaitAnimReady()
+end
+
+function UMG_WeeklyChallengeBattle_World3D_C:_GetNpcHeightOffset()
+  if self._currentModelId and self.npcHeightOffsetMap[self._currentModelId] then
+    return self.npcHeightOffsetMap[self._currentModelId]
+  end
+  return 0
 end
 
 function UMG_WeeklyChallengeBattle_World3D_C:BeginWaitAnimReady()

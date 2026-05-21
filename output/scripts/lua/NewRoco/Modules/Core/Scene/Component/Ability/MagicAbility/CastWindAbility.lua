@@ -140,6 +140,7 @@ function CastWindAbility:CancelThrow()
   else
     self.caster.viewObj:SetAimMode(false, 0)
   end
+  self.caster:SendEvent(PlayerModuleEvent.ON_INTERRUPT_THROW)
   self.caster:SendEvent(PlayerModuleEvent.ON_CHARGE_VITALITY_END, false)
 end
 

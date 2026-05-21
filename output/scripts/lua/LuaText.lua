@@ -6,7 +6,7 @@ end
 function LuaText:GetErrorDesc(Code)
   local Key = string.format("Error_Code_%d", Code)
   local Desc = self[Key]
-  if RocoEnv.IS_EDITOR then
+  if not RocoEnv.IS_SHIPPING then
     if string.IsNilOrEmpty(Desc) then
       local ErrorCodeDesc = require("Data.PB.ErrorCodeDesc")
       Desc = ErrorCodeDesc[Code]

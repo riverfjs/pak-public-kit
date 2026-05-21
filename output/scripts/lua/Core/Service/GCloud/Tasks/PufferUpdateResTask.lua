@@ -24,7 +24,7 @@ function PufferUpdateResTask:Init(bForce)
     return self:InitInternal()
   else
     Log.Warning("[PufferUpdateResTask:Init] Repeat initialization")
-    _G.NRCEventCenter:DispatchEvent(NRCGlobalEvent.OnPufferInitReturn, true, 0)
+    _G.NRCEventCenter:DispatchEvent(NRCGlobalEvent.OnPufferInitReturn, self, true, 0)
     return true
   end
 end
@@ -70,12 +70,40 @@ end
 
 function PufferUpdateResTask:RestoreSettings()
   if not self.bInited then
-    Log.Error("[PufferUpdateResTask:ResetSettings] Puffer is not inited")
+    Log.Error("[PufferUpdateResTask:RestoreSettings] Puffer is not inited")
     return
   end
+  self.bIsSetSpeedLimitMode = false
   self:SetDownloadMaxSpeed(self.MaxDownloadSpeed)
   self:SetDLMaxTask(self.MaxDownTask)
   self:SetImmDLMaxDownloadsPerTask(self.MaxDownloadsPerTask)
+  Log.Debug("[PufferUpdateResTask:RestoreSettings] RestoreSettings")
+end
+
+function PufferUpdateResTask:IsSpeedLimitMode()
+  return self.bIsSetSpeedLimitMode
+end
+
+function PufferUpdateResTask:SetSpeedLimitMode()
+  if not self.bInited then
+    Log.Error("[PufferUpdateResTask:SetSpeedLimitMode] Puffer is not inited")
+    return
+  end
+  self.bIsSetSpeedLimitMode = true
+  local AutoDownloadConfig = require("NewRoco.Modules.System.Download.AutoDownloadConfig")
+  self:SetDLMaxTask(AutoDownloadConfig.MaxDownloadTaskCount)
+  self:SetImmDLMaxDownloadsPerTask(AutoDownloadConfig.MaxDownloadsPerTask)
+  local DeviceLevel = UE4.UNRCQualityLibrary.GetDeviceLevel()
+  local DownloadMaxSpeed
+  if DeviceLevel <= 2 then
+    DownloadMaxSpeed = AutoDownloadConfig.MaxDownloadSpeedLowLevel
+  elseif 3 == DeviceLevel then
+    DownloadMaxSpeed = AutoDownloadConfig.MaxDownloadSpeedMediumLevel
+  else
+    DownloadMaxSpeed = AutoDownloadConfig.MaxDownloadSpeedHighLevel
+  end
+  Log.Debug("[PufferUpdateResTask:SetSpeedLimitMode] set DownloadMaxSpeed:", DownloadMaxSpeed)
+  self:SetDownloadMaxSpeed(DownloadMaxSpeed)
 end
 
 function PufferUpdateResTask:RegisterEvents()
@@ -114,7 +142,8 @@ function PufferUpdateResTask:InitInternal()
   end
   self:RegisterEvents()
   self:CreateNetworkObserver()
-  local bSuccess = _G.PufferDownloadInfo:Init(self.PufferInstance, PufferConfigPath)
+  local ResVerifyPath = self:MakeSavedPath("ResVerifyConfig.json")
+  local bSuccess = _G.PufferDownloadInfo:Init(self.PufferInstance, PufferConfigPath, ResVerifyPath)
   if not bSuccess then
     Log.Error("[PufferUpdateResTask:InitInternal] Init PufferDownloadInfo failed")
     self:Uninit()
@@ -203,7 +232,7 @@ function PufferUpdateResTask:OnInitReturn(IsSuccess, ErrorCode)
   elseif self.PufferInstance then
     self.PufferInstance:EnableHighSpeedCDN()
   end
-  _G.NRCEventCenter:DispatchEvent(NRCGlobalEvent.OnPufferInitReturn, IsSuccess, ErrorCode)
+  _G.NRCEventCenter:DispatchEvent(NRCGlobalEvent.OnPufferInitReturn, self, IsSuccess, ErrorCode)
 end
 
 function PufferUpdateResTask:OnInitProgress(Stage, NowSize, TotalSize)
@@ -244,7 +273,7 @@ function PufferUpdateResTask:OnDownloadBatchReturn(BatchTaskId, FiledId, IsSucce
     Log.Debug("[PufferUpdateResTask:OnDownloadBatchReturn] File download failed, ErrorCode:" .. ErrorCode)
     return
   end
-  _G.NRCEventCenter:DispatchEvent(NRCGlobalEvent.OnPufferDownloadBatchReturn, BatchTaskId, FiledId, IsSuccess, ErrorCode, BatchType, StrRet, SingleFileErrorCode)
+  _G.NRCEventCenter:DispatchEvent(NRCGlobalEvent.OnPufferDownloadBatchReturn, BatchTaskId, FiledId, IsSuccess, ErrorCode, BatchType, SingleFileErrorCode)
 end
 
 function PufferUpdateResTask:OnDownloadBatchProgress(BatchTaskId, NowSize, TotalSize)
@@ -296,6 +325,17 @@ function PufferUpdateResTask:IsNeedDownloadBasePaks()
   return false
 end
 
+function PufferUpdateResTask:IsNeedDownloadBasePaksWithPatch()
+  if not self:IsNeedDownloadRes() then
+    return false
+  end
+  local NeedToDownloadPakList, SizeNeedToDownload, LargestSize = _G.PufferUpdateResTask:GetBasePakListWithPatchNeedToDownload()
+  if NeedToDownloadPakList and #NeedToDownloadPakList > 0 then
+    return true
+  end
+  return false
+end
+
 function PufferUpdateResTask:IsNeedDownloadRes()
   if RocoEnv.IS_EDITOR or AppMain.IsFullPackage() or AppMain.IsLocalSavedHasBasePaks() then
     return false
@@ -311,13 +351,27 @@ function PufferUpdateResTask:GetFileId(FilePath)
 end
 
 function PufferUpdateResTask:IsFileReady(FileId)
+  Log.Error("[PufferUpdateResTask:IsFileReady] deprecated")
   if not self.PufferInstance then
     return false
   end
   return self.PufferInstance:IsFileReady(FileId)
 end
 
+function PufferUpdateResTask:IsFileReadyByFullPath(FullFilePath)
+  if not self.PufferInstance then
+    return false
+  end
+  if string.IsNilOrEmpty(FullFilePath) then
+    return false
+  end
+  local bExists = UE.UNRCStatics.FileExists(FullFilePath)
+  Log.Debug(string.format("[PufferUpdateResTask:IsFileReadyByFullPath] FullFilePath:%s, bExists:%s", FullFilePath, bExists))
+  return bExists
+end
+
 function PufferUpdateResTask:IsFileReadyByFilePath(FilePath)
+  Log.Error("[PufferUpdateResTask:IsFileReadyByFilePath] deprecated")
   if not self.PufferInstance then
     return false
   end
@@ -432,7 +486,8 @@ function PufferUpdateResTask:GetLocalDownloadedSizeByTaskID(TaskID)
           local DownloadedSize = self:GetFileSizeDownloaded(FileId)
           Log.Debug("[PufferUpdateResTask:GetLocalDownloadedSizeByTaskID] get downloaded size: ", DownloadedSize)
           local FileSize = self:GetFileSizeCompressed(FileId)
-          if not self:IsFileReady(FileId) and DownloadedSize == FileSize then
+          local FullPath = self:GetRelativePathToPuffer(FilePath)
+          if not self:IsFileReadyByFullPath(FullPath) and DownloadedSize == FileSize then
             Log.Error("[PufferUpdateResTask:GetLocalDownloadedSizeByTaskID] DownloadedSize is equal to FileSize")
             DownloadedSize = 0
           end
@@ -453,8 +508,17 @@ function PufferUpdateResTask:GetLocalDownloadedSizeByTaskID(TaskID)
   end
 end
 
+function PufferUpdateResTask:GetBasePakListWithPatchNeedToDownload()
+  local PakList = _G.PufferDownloadInfo:GetBasePakListWithPatch()
+  return self:GetPakListNeedToDownload(PakList)
+end
+
 function PufferUpdateResTask:GetBasePakListNeedToDownload()
   local PakList = _G.PufferDownloadInfo:GetBasePakList()
+  return self:GetPakListNeedToDownload(PakList)
+end
+
+function PufferUpdateResTask:GetPakListNeedToDownload(PakList)
   local NeedToDownloadBasePakList = {}
   local SizeNeedToDownload = 0
   local SizeLocalDownloaded = 0
@@ -464,7 +528,8 @@ function PufferUpdateResTask:GetBasePakListNeedToDownload()
       Log.Debug("[PufferUpdateResTask:GetBasePakListNeedToDownload] Check File: ", FilePath)
       local FileId = self:GetFileId(FilePath)
       if FileId then
-        if not self:IsFileReady(FileId) then
+        local FullPath = self:GetRelativePathToPuffer(FilePath)
+        if not self:IsFileReadyByFullPath(FullPath) then
           Log.Debug("[PufferUpdateResTask:GetBasePakListNeedToDownload] File Need To Download: ", FilePath)
           local FileSize = self:GetFileSizeCompressed(FileId)
           Log.Debug("[PufferUpdateResTask:GetBasePakListNeedToDownload] get file size: ", FileSize)
@@ -582,7 +647,7 @@ end
 
 function PufferUpdateResTask:GetCurrentSpeed()
   if not self.PufferInstance then
-    return "0/S"
+    return "0B/S"
   end
   return string.format("%s/S", self:FormatBytes(self.PufferInstance:GetCurrentPufferSpeed()))
 end
@@ -692,14 +757,14 @@ end
 function PufferUpdateResTask:CompareVersion(One, Two)
   local O1, O2, O3, O4 = self:SplitVersion(One)
   local T1, T2, T3, T4 = self:SplitVersion(Two)
-  if O1 > T1 then
-    return true
+  if O1 ~= T1 then
+    return O1 > T1
   end
-  if O2 > T2 then
-    return true
+  if O2 ~= T2 then
+    return O2 > T2
   end
-  if O3 > T3 then
-    return true
+  if O3 ~= T3 then
+    return O3 > T3
   end
   return O4 >= T4
 end

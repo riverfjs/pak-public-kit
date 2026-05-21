@@ -13,7 +13,7 @@ function BattleB1P2EnterSequenceAction:DoEnter()
 end
 
 function BattleB1P2EnterSequenceAction:OnEnter()
-  self:Play(BattleConst.B1P2EnterSequence, function(levelSequenceActor)
+  self:PlayWithSubtitle(BattleConst.B1P2EnterSequence, function(levelSequenceActor)
     _G.NRCEventCenter:DispatchEvent(NRCGlobalEvent.CLOSE_BLACK_SCREEN)
     self:SetBpUsePlayer(levelSequenceActor)
   end, true)

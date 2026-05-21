@@ -5,6 +5,8 @@ local RocoSkillProxy = require("NewRoco.Utils.RocoSkillProxy")
 local TeamBattleModuleEnum = require("NewRoco.Modules.System.TeamBattle.TeamBattleModuleEnum")
 local BattleEvent = require("NewRoco.Modules.Core.Battle.Common.BattleEvent")
 local BattleUtils = require("NewRoco.Modules.Core.Battle.Common.BattleUtils")
+local SceneUtils = require("NewRoco.Modules.Core.Scene.Common.SceneUtils")
+local BigMapUtils = require("NewRoco/Modules/System/BigMap/BigMapUtils")
 local LegendaryBattleModule = NRCModuleBase:Extend("LegendaryBattleModule")
 
 function LegendaryBattleModule:OnConstruct()
@@ -773,7 +775,12 @@ function LegendaryBattleModule:PlayOpenMatchPanelSkill()
     local caster = player.viewObj
     local skillComponent = caster.RocoSkill
     if skillComponent then
-      local skillProxy = RocoSkillProxy.Create("/Game/ArtRes/Effects/G6Skill/ShenShou/G6_ShenShou_Transmit_Start.G6_ShenShou_Transmit_Start", skillComponent)
+      local skillProxy
+      if BigMapUtils.IsBigWorldMap(SceneUtils.GetSceneResId()) then
+        skillProxy = RocoSkillProxy.Create("/Game/ArtRes/Effects/G6Skill/ShenShou/G6_ShenShou_Transmit_Start.G6_ShenShou_Transmit_Start", skillComponent)
+      else
+        skillProxy = RocoSkillProxy.Create("/Game/ArtRes/Effects/G6Skill/ShenShou/G6_ShenShou_Transmit_Start_ShiNei.G6_ShenShou_Transmit_Start_ShiNei", skillComponent)
+      end
       if skillProxy then
         local targets = {}
         table.insert(targets, self.npcAction.OwnerNpc.viewObj)
@@ -970,6 +977,7 @@ end
 
 function LegendaryBattleModule:OnEnterBattle()
   self.data:Reset()
+  self.npcAction = nil
 end
 
 function LegendaryBattleModule:GetSeasonLegendaryID(npc_content_cfg_id)
@@ -989,7 +997,24 @@ function LegendaryBattleModule:GetSeasonLegendaryID(npc_content_cfg_id)
   return nil
 end
 
-function LegendaryBattleModule:GetLegendaryTicketIDAndNum(npc_content_cfg_id)
+function LegendaryBattleModule:TryGetLegendaryBattleEventID(npc_content_cfg_id)
+  if not npc_content_cfg_id and self.npcAction and self.npcAction.OwnerNpc and self.npcAction.OwnerNpc.serverData and self.npcAction.OwnerNpc.serverData.npc_base then
+    npc_content_cfg_id = self.npcAction.OwnerNpc.serverData.npc_base.npc_content_cfg_id
+  end
+  if npc_content_cfg_id then
+    local legendaryBattleEventCfg = _G.DataConfigManager:GetTable(_G.DataConfigManager.ConfigTableId.LEGENDARY_BATTLE_EVENT):GetAllDatas()
+    for _, v in pairs(legendaryBattleEventCfg or {}) do
+      if v.refresh_content_id_2 == npc_content_cfg_id then
+        return v.id
+      end
+    end
+  else
+    return BattleUtils.GetLegendaryBattleID()
+  end
+  return nil
+end
+
+function LegendaryBattleModule:GetLegendaryTicketIDAndNum(npc_content_cfg_id, bIgnoreSpecialTicket)
   local seasonLegendaryID = self:GetSeasonLegendaryID(npc_content_cfg_id)
   if seasonLegendaryID then
     local seasonPveBaseConf = _G.DataConfigManager:GetTable(_G.DataConfigManager.ConfigTableId.SEASON_PVE_BASE_CONF):GetAllDatas()
@@ -999,6 +1024,20 @@ function LegendaryBattleModule:GetLegendaryTicketIDAndNum(npc_content_cfg_id)
       end
     end
   else
+    if not bIgnoreSpecialTicket then
+      local ticket, ticketCost
+      local legendaryBattleEventId = self:TryGetLegendaryBattleEventID(npc_content_cfg_id)
+      if legendaryBattleEventId then
+        local legendaryBattleEventConf = _G.DataConfigManager:GetLegendaryBattleEvent(legendaryBattleEventId)
+        if legendaryBattleEventConf and legendaryBattleEventConf.token_id and legendaryBattleEventConf.ticket_cost then
+          ticket = legendaryBattleEventConf.token_id
+          ticketCost = legendaryBattleEventConf.ticket_cost
+        end
+      end
+      if ticket and 0 ~= ticket and ticketCost and 0 ~= ticketCost then
+        return ticket, ticketCost
+      end
+    end
     return _G.DataConfigManager:GetLegendaryGlobalConfig("beast_challenge_ticket_id").num, _G.DataConfigManager:GetLegendaryGlobalConfig("ticket_cost").num
   end
   return 0, 0

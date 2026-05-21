@@ -162,9 +162,15 @@ function BattlePet:SetModel(model)
   self:InitPetRTPC()
 end
 
+function BattlePet:ActiveSwimComponent(bActive)
+  if self.model and self.model.RocoBattleSwim then
+    self.model.RocoBattleSwim:ActiveSwimComponent(bActive)
+  end
+end
+
 function BattlePet:InitPlatForm(platForm)
   if platForm and self.model and self.model.RocoBattleSwim then
-    self.model.RocoBattleSwim:SetComponentTickEnabled(true)
+    self:ActiveSwimComponent(true)
     if self:GetCanSwimming() then
       self.model.RocoBattleSwim.BoneName = "locator_body"
     else
@@ -172,6 +178,13 @@ function BattlePet:InitPlatForm(platForm)
       self:SetPlatFormPos(self.PlatFormPos)
       local platChange = SimpleDelegateFactory:CreateCallback(self, self.PlatFormStateChange)
       self.model.RocoBattleSwim.PlatFormStateChange:Add(self.model, platChange)
+    end
+    local capuseRadius = self.model.CapsuleComponent:GetScaledCapsuleRadius()
+    if capuseRadius > _G.BattleManager.vBattleField.WaterPlatformRadius then
+      local scale = capuseRadius / _G.BattleManager.vBattleField.WaterPlatformRadius
+      platForm:SetActorScale3D(UE4.FVector(scale, scale, scale))
+    else
+      platForm:SetActorScale3D(UE4.FVector(1, 1, 1))
     end
     self.model.RocoBattleSwim.WaterHeight = _G.BattleManager.vBattleField.WaterHeight
     self.model.RocoBattleSwim.PlatFormFloat = platForm.RocoPlatFormFloat
@@ -605,7 +618,7 @@ function BattlePet:OnEnterBattleSettlementState()
 end
 
 function BattlePet:AddListener()
-  _G.BattleEventCenter:Bind(self, BattlePerformEvent.ObtainType, BattleEvent.BATTLE_STATE_SETTLEMENT, BattleEvent.PlayClickEffect)
+  _G.BattleEventCenter:Bind(self, BattlePerformEvent.ObtainType, BattleEvent.BATTLE_STATE_SETTLEMENT, BattleEvent.PlayClickEffect, BattlePerformEvent.TurnPlayComplete)
 end
 
 function BattlePet:RemoveListener()
@@ -627,6 +640,9 @@ function BattlePet:OnBattleEvent(eventName, ...)
     return true
   elseif eventName == BattleEvent.PlayClickEffect then
     self:PlayerClickEffect(...)
+    return true
+  elseif eventName == BattlePerformEvent.TurnPlayComplete then
+    self:DedupBuffPopupQueue()
     return true
   end
 end
@@ -703,9 +719,9 @@ end
 
 function BattlePet:Die(deadInfo)
   if not self.card.petState:GetDead() then
+    self:ChangeBuffVisibility(false)
     self.card:Die(deadInfo)
     self.buffComponent:OnPetDie()
-    self:ChangeBuffVisibility(false)
     Log.Debug("\229\174\160\231\137\169\230\173\187\228\186\161 ", self.guid)
     _G.BattleEventCenter:Dispatch(BattleEvent.BATTLE_PET_DIE, self)
   end
@@ -724,6 +740,9 @@ function BattlePet:GotHealing(healing)
 end
 
 function BattlePet:ChangeBuffVisibility(flag)
+  if self:IsDead() then
+    return
+  end
   if self.battlePetComponents then
     if flag then
       self.battlePetComponents:ShowBuffs()
@@ -1158,7 +1177,7 @@ function BattlePet:CancelSkill(reason)
   local activeSkill = self.model.RocoSkill:GetActiveSkill()
   if activeSkill then
     Log.Error("\230\173\163\229\156\168\233\135\138\230\148\190\230\138\128\232\131\189\239\188\140\232\162\171\229\188\186\232\161\140\230\137\147\230\150\173:", activeSkill:GetName())
-    self.model.RocoSkill:CancelSkill(activeSkill, UE4.ESkillActionResult.SkillActionResultInterrupted)
+    self.model.RocoSkill:CancelSkill(activeSkill, reason)
   end
 end
 
@@ -1184,7 +1203,7 @@ function BattlePet:CancelSkillBySkillObject(skillObject, reason)
   end
   reason = reason or UE4.ESkillActionResult.SkillActionResultInterrupted
   Log.Error("\230\173\163\229\156\168\233\135\138\230\148\190\230\138\128\232\131\189\239\188\140\232\162\171\229\188\186\232\161\140\230\137\147\230\150\173:", skillObject:GetName())
-  self.model.RocoSkill:CancelSkill(skillObject, UE4.ESkillActionResult.SkillActionResultInterrupted)
+  self.model.RocoSkill:CancelSkill(skillObject, reason)
 end
 
 function BattlePet:ShowForInterrupt()
@@ -1305,6 +1324,16 @@ function BattlePet:PlaySkillWithClass(skillClass, caller, finishCb, CastSkill)
         skillObj:RegisterEventCallback("End", CastSkill.CallbackOwner, CastSkill.CompleteCallback)
         skillObj:RegisterEventCallback("PreEnd", CastSkill.CallbackOwner, CastSkill.CompleteCallback)
         skillObj:RegisterEventCallback("Interrupt", CastSkill.CallbackOwner, CastSkill.CompleteCallback)
+      end
+      if CastSkill.OnSkillBreakCallback then
+        skillObj:RegisterEventCallback("Interrupt", CastSkill.CallbackOwner, CastSkill.OnSkillBreakCallback)
+      elseif CastSkill.CompleteCallback then
+        skillObj:RegisterEventCallback("Interrupt", CastSkill.CallbackOwner, CastSkill.CompleteCallback)
+      end
+      if CastSkill.OnStartFailedCallback then
+        skillObj:RegisterEventCallback("StartFailed", CastSkill.CallbackOwner, CastSkill.OnStartFailedCallback)
+      elseif CastSkill.CompleteCallback then
+        skillObj:RegisterEventCallback("StartFailed", CastSkill.CallbackOwner, CastSkill.CompleteCallback)
       end
       if CastSkill.ExtraEvents then
         for name, callBack in pairs(CastSkill.ExtraEvents) do
@@ -1493,6 +1522,30 @@ function BattlePet:ResetRotation(immediately, animName)
   end
 end
 
+function BattlePet:GetTurnToTarget()
+  if not (not self.destroyed and not self.card.petState:GetBackStab() and _G.BattleManager.battlePawnManager.VBattleField) or self.destroying then
+    return nil
+  end
+  local enemyPets = _G.BattleManager.battlePawnManager:GetCanSelectAllPet(BattleUtils.GetEnemyTeamEnum(self.teamEnm))
+  if 1 == #enemyPets and enemyPets[1].model then
+    return enemyPets[1]
+  else
+    for _, v in ipairs(enemyPets) do
+      if BattleUtils.IsFinalBattleP1() then
+        if 2 == v.card.posInField then
+          return v
+        end
+      elseif BattleUtils.IsB1FinalBattleP3() then
+        if 1 == v.card.posInField then
+          return v
+        end
+      elseif self.card.posInField == v.card.posInField then
+        return v
+      end
+    end
+  end
+end
+
 function BattlePet:HeadLookTick(deltaTime)
 end
 
@@ -1503,7 +1556,7 @@ function BattlePet:SetLookAt(target, immediately)
   if not self.model then
     return
   end
-  if self.HeadLookAtComponent then
+  if UE4.UObject.IsValid(self.HeadLookAtComponent) then
     self.HeadLookAtComponent:ResetAutoLookAt()
     if target then
       self.HeadLookAtComponent:SetAutoLookAtParam(UE4.ELookAtParamType.Head, target)
@@ -1748,6 +1801,14 @@ function BattlePet:GetEnergy()
     return curPoint
   end
   return self.card.petInfo.battle_common_pet_info.energy
+end
+
+function BattlePet:GetMaxEnergy()
+  local card = self.card
+  local petInfo = card and card.petInfo
+  local insideInfo = petInfo and petInfo.battle_inside_pet_info
+  local maxEnergy = insideInfo and insideInfo.max_energy or 10
+  return maxEnergy
 end
 
 function BattlePet:SetAttachPoint()
@@ -1999,7 +2060,7 @@ end
 function BattlePet:MoveFail(MovementResult)
   self:ClearMove()
   self.MoveTarget = nil
-  if self.model and self.model.CharacterMovement then
+  if self.model and UE.UObject.IsValid(self.model.CharacterMovement) then
     self.model.CharacterMovement.MaxWalkSpeed = 0
     self.model.CharacterMovement:SetComponentTickEnabled(false)
   end
@@ -2027,7 +2088,7 @@ function BattlePet:JumpToLocation(targetPoint, Caller, CallBack)
     self:JumpOver(nil, self.JumpSkillObj)
   end
   local g6SkillClass = BattleResourceManager:GetCacheAssetDirect(BattleConst.AI_BattlePetJumpToLocation_C)
-  local BattlePet2 = _G.BattleManager.battlePawnManager:GetFirstPet(BattleEnum.Team.ENUM_ENEMY)
+  local BattlePet2 = self:GetTurnToTarget()
   local skillObj = skillComponent:AddSkillObjFromClassAndReturn(g6SkillClass)
   skillObj:SetCaster(self.model)
   if BattlePet2 and BattlePet2.model then
@@ -2283,6 +2344,12 @@ function BattlePet:InitPetRTPC()
     _G.NRCAudioManager:SetEmitterRTPC("Pet_Battle_Ruzhan", 2, self.model)
   else
     _G.NRCAudioManager:SetEmitterRTPC("Pet_Battle_Ruzhan", 1, self.model)
+  end
+end
+
+function BattlePet:DedupBuffPopupQueue()
+  if self.buffAEffectPopupComponent then
+    self.buffAEffectPopupComponent:DedupBuffPopupQueue()
   end
 end
 

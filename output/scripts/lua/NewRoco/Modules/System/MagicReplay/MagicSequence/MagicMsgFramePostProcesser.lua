@@ -1,6 +1,9 @@
 local ParentTypeMask = 196608
 
 function MakeFakeActorId(actorId)
+  if nil == actorId or 0 == actorId then
+    return actorId
+  end
   if type(actorId) ~= "number" then
     Log.Error("MakeFakeActorId only for number!")
     return actorId
@@ -119,12 +122,16 @@ local MagicMsgFramePostProcesser = {
             actor.avatar.is_magic_replay = true
             _G.NRCModeManager:DoCmd(_G.MagicReplayModuleCmd.SetMainMagicActorId, actor.avatar.base.actor_id)
             actor.avatar.base.logic_id = MakeFakeUin(actor.avatar.base.logic_id)
-            for _, v in ipairs(actor.avatar.wearing_item) do
-              if not table.contains(seqForReplay.baseInfo.fashion_id, v.wearing_item_id) then
-                return false, "[Validate] Invalid fashion_id " .. v.wearing_item_id
-              else
-                Log.Debug("[MagicSequence][Validate] Valid fashion_id " .. v.wearing_item_id)
+            if actor.avatar.wearing_item then
+              for _, v in ipairs(actor.avatar.wearing_item) do
+                if not table.contains(seqForReplay.baseInfo.fashion_id, v.wearing_item_id) then
+                  return false, "[Validate] Invalid fashion_id " .. v.wearing_item_id
+                else
+                  Log.Debug("[MagicSequence][Validate] Valid fashion_id " .. v.wearing_item_id)
+                end
               end
+            elseif seqForReplay.baseInfo.fashion_id and #seqForReplay.baseInfo.fashion_id > 0 then
+              return false, "[Validate] actor.avatar.wearing_item not equal to baseInfo.fashion_id"
             end
           elseif actor.npc then
             actor.npc.base.actor_id = MakeFakeActorId(actor.npc.base.actor_id)
@@ -535,6 +542,7 @@ local MagicMsgFramePostProcesser = {
         local world_attack = notify.acts[1].world_attack
         if world_attack and world_attack.actor_id then
           world_attack.actor_id = MakeFakeActorId(world_attack.actor_id)
+          world_attack.target_actor_id = MakeFakeActorId(world_attack.target_actor_id)
         end
       end
       return true, nil
@@ -881,6 +889,7 @@ local MagicMsgFramePostProcesser = {
         local stick_to = notify.acts[1].stick_to
         if stick_to and stick_to.actor_id then
           stick_to.actor_id = MakeFakeActorId(stick_to.actor_id)
+          stick_to.target_actor_id = MakeFakeActorId(stick_to.target_actor_id)
         end
       end
       return true, nil
@@ -927,6 +936,7 @@ local MagicMsgFramePostProcesser = {
         local ai_try_interact_npc = notify.acts[1].ai_try_interact_npc
         if ai_try_interact_npc and ai_try_interact_npc.actor_id then
           ai_try_interact_npc.actor_id = MakeFakeActorId(ai_try_interact_npc.actor_id)
+          ai_try_interact_npc.interact_actor_id = MakeFakeActorId(ai_try_interact_npc.interact_actor_id)
         end
       end
       return true, nil

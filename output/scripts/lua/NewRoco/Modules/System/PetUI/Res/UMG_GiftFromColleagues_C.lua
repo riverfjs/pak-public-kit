@@ -37,8 +37,10 @@ end
 function UMG_GiftFromColleagues_C:GetTimeText(deadline)
   local curTimeStamp = _G.ZoneServer:GetServerTime() / 1000
   local leftTime = ""
+  local timeImg = "<img id=\"Time\"></>"
   if deadline <= curTimeStamp then
-    leftTime = string.format(LuaText.peer_pet_give_affirm_time_s, "0")
+    local str = string.format(LuaText.peer_pet_give_affirm_time_s, "0")
+    leftTime = string.format("%s%s", timeImg, str)
   else
     local totalTime = deadline - curTimeStamp
     local day = math.floor(totalTime / 86400)
@@ -51,7 +53,9 @@ function UMG_GiftFromColleagues_C:GetTimeText(deadline)
     local hourText = self:GetTimeTextInner(hour, LuaText.peer_pet_give_affirm_time_h)
     local minuteText = self:GetTimeTextInner(minute, LuaText.peer_pet_give_affirm_time_m)
     local secondText = self:GetTimeTextInner(second, LuaText.peer_pet_give_affirm_time_s)
-    local timeImg = "<img id=\"Time\"></>"
+    if 0 == day and 0 == hour and 0 == minute and 0 == second then
+      secondText = string.format(LuaText.peer_pet_give_affirm_time_s, "0")
+    end
     leftTime = string.format("%s%s%s%s%s", timeImg, dayText, hourText, minuteText, secondText)
   end
   return leftTime

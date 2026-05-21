@@ -51,7 +51,6 @@ end
 
 function EnvVolumeProxy:ApplySystemSetting(EnvSystemSetting, EnvSystemSettingLow)
   EnvSystemSetting = EnvSystemSetting or self.DefaultEnvSystemSetting
-  EnvSystemSettingLow = EnvSystemSettingLow or self.DefaultEnvSystemSettingLow
   self:InternalSetSystemSetting(EnvSystemSetting, EnvSystemSettingLow)
 end
 

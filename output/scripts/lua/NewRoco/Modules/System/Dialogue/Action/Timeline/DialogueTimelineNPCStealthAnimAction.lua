@@ -22,7 +22,7 @@ function DialogueTimelineNPCStealthAnimAction:OnEnter()
   if DialogueUtils.SkipDialogue then
     return
   end
-  local actor = self:GetActor(self.OwnerActorID)
+  local actor = self:GetActor(self.OwnerActorID, self.NPCContentID)
   self:ConsumeActorPerform(actor)
 end
 

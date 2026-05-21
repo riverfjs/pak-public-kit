@@ -75,7 +75,7 @@ function UMG_PetLeader_Attribute_C:SortLeadBeforePetConfigList()
   for _, PetConfigGroup in ipairs(SplitPetConfigList or {}) do
     if PetConfigGroup then
       table.sort(PetConfigGroup, function(a, b)
-        if a.pet_evolution_id ~= nil and b.pet_evolution_id ~= nil then
+        if a.pet_evolution_id ~= nil and b.pet_evolution_id ~= nil and a.pet_evolution_id[1] ~= nil and b.pet_evolution_id[1] ~= nil then
           return a.pet_evolution_id[1] > b.pet_evolution_id[1]
         end
         return false

@@ -49,6 +49,9 @@ function BattleTutorialGuideConfig:GetCtrlConf(id)
     Log.Warning("GetCtrlConf.Func battle_lead_ctrl\228\184\186\231\169\186 BATTLE_GUIDE_CONF\232\161\168\231\154\132battle_lead_ctrl\229\173\151\230\174\181=")
     return nil
   end
+  if 0 == id then
+    return nil
+  end
   local conf = _G.DataConfigManager:GetGuideCtrlConf(id)
   if not conf then
     Log.Warning("GetCtrlConf.Func battle_lead_ctrl\230\178\161\230\156\137\230\137\190\229\136\176\229\156\168GUIDE_CTRL_CONF\233\135\140\231\154\132\233\133\141\231\189\174\239\188\140\232\175\183\230\163\128\230\159\165\232\161\168GUIDE_CTRL_CONF\230\152\175\229\144\166\230\156\137id=", id)
@@ -60,7 +63,8 @@ function BattleTutorialGuideConfig:GetCtrlConf(id)
     finish_button_showtime = conf.finish_button_showtime,
     finish_overtime = conf.finish_overtime,
     strong_guide = conf.strong_guide,
-    type_id = conf.type_id
+    type_id = conf.type_id,
+    active_ia_watch = conf.active_ia_watch
   }
   return answer
 end

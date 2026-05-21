@@ -61,6 +61,12 @@ function BattlePlayerSkill:OnSkillResLoad(isLoadSucceed, skillPath, Caster)
   CastParam:SetIsPassive(true)
   CastParam:SetCaster(Caster.model)
   CastParam:SetTargetPets({Caster})
+  CastParam:SetSkillBreakCallback(function()
+    self:OnFinish()
+  end)
+  CastParam:SetStartFailedCallback(function()
+    self:OnFinish()
+  end)
   if Caster.model then
     local _, skillObj = BattleSkillManager:PrepareSkill(Caster, Caster.model.RocoSkill, CastParam)
     self.skillObj = skillObj

@@ -56,7 +56,7 @@ function UMG_Battle_BuffInfoItem_C:UpdateBuffInoItem(buffInfoBox, buff)
     local timer = buffInfo and buffInfo.buff_left_round or -1
     local roundNumberWhenBuffRemoved = CurRound + timer
     local shouldTimerHide = timer < 0 or battleMaxRound < roundNumberWhenBuffRemoved
-    if not shouldTimerHide and 0 == timer then
+    if not shouldTimerHide then
       local isRoundReduce = false
       for _, group_reduce in ipairs(buffConfig.buff_group_reduce) do
         if group_reduce.reduce_type == Enum.BuffReduceType.BRT_ROUND or group_reduce.reduce_type == Enum.BuffReduceType.BRT_ROUND_SEVENTY_FIVE then

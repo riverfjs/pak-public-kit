@@ -33,15 +33,8 @@ function NPCActionTeleportSuitcase:OnSubmit(Rsp)
   self:PlayJumpBoxAnim()
 end
 
-function NPCActionTeleportSuitcase:PlayJumpBoxAnim()
-  local OwnerView = self:GetOwnerNPCView()
+function NPCActionTeleportSuitcase:GetSkillPath()
   local Player = self:GetPlayer()
-  if not Player or not OwnerView then
-    self:Finish(false)
-    return
-  end
-  OwnerView:SwitchMesh(false)
-  self.PlayerPos = Player:GetActorLocation()
   local SkillPath = "/Game/ArtRes/Effects/G6Skill/ScenePlay/G6_JumpInBox.G6_JumpInBox"
   if self.bIsDoubleJump then
     self.Player2P = Player:GetAnotherTogetherMovePlayer()
@@ -50,6 +43,21 @@ function NPCActionTeleportSuitcase:PlayJumpBoxAnim()
       SkillPath = "/Game/ArtRes/Effects/G6Skill/ScenePlay/G6_JumpInBox_2P.G6_JumpInBox_2P"
     end
   end
+  return SkillPath
+end
+
+function NPCActionTeleportSuitcase:PlayJumpBoxAnim()
+  local OwnerView = self:GetOwnerNPCView()
+  local Player = self:GetPlayer()
+  if not Player or not OwnerView then
+    self:Finish(false)
+    return
+  end
+  if OwnerView.SwitchMesh then
+    OwnerView:SwitchMesh(false)
+  end
+  self.PlayerPos = Player:GetActorLocation()
+  local SkillPath = self:GetSkillPath()
   self.Skill = RocoSkillProxy.Create(SkillPath, OwnerView.RocoSkill, PriorityEnum.Active_Player_Action)
   if not self.Skill then
     self:Finish(false)
@@ -57,6 +65,9 @@ function NPCActionTeleportSuitcase:PlayJumpBoxAnim()
   end
   if Player.inputComponent then
     Player.inputComponent:SetInputEnable(self, false, "ActionTeleportSuitcase")
+  end
+  if Player.playerHomeInteractionComponent then
+    Player.playerHomeInteractionComponent:SetCollisionEnable(false)
   end
   self.Skill:SetCaster(Player.viewObj)
   local Characters = {}
@@ -67,12 +78,20 @@ function NPCActionTeleportSuitcase:PlayJumpBoxAnim()
   end
   self.Skill:SetCharacters(Characters)
   self.Skill:SetTargets({OwnerView})
+  self.Skill:RegisterEventCallback("PreStart", self, self.OnSetupBlackboard)
   self.Skill:RegisterEventCallback("StartTeleport", self, self.OnStartTeleport)
   self.Skill:RegisterEventCallback("FailedTeleport", self, self.OnFailedTeleport)
   self.Skill:RegisterEventCallback("End", self, self.OnSkillFinished)
   self.Skill:PlaySkill()
   self.OwnerNpc.InteractionComponent:TryDisableInteraction()
   self.OwnerNpc:SetNotDestroyFlag(true)
+end
+
+function NPCActionTeleportSuitcase:OnSetupBlackboard(Name, Skill)
+  local Player = self:GetPlayer()
+  if Player and Player.isLocal then
+    Skill.Blackboard:SetValueAsString("Is1P", "Is1P")
+  end
 end
 
 function NPCActionTeleportSuitcase:OnSkillFinished()
@@ -83,6 +102,9 @@ function NPCActionTeleportSuitcase:OnSkillFinished()
     Player:SendEvent(PlayerModuleEvent.ON_SET_LINK_STATE, true, PlayerModuleEvent.LinkReasonFlags.ACT_OPEN_SUITCASE)
     if Player.inputComponent then
       Player.inputComponent:SetInputEnable(self, true, "ActionTeleportSuitcase")
+    end
+    if Player.playerHomeInteractionComponent then
+      Player.playerHomeInteractionComponent:SetCollisionEnable(true)
     end
   end
   if self.TeleportSuccess then
@@ -116,7 +138,6 @@ function NPCActionTeleportSuitcase:OnSkillFinished()
 end
 
 function NPCActionTeleportSuitcase:OnStartTeleport()
-  self.TeleportSuccess = true
   if self:IsLocalAction() then
     self:Finish(true)
   else
@@ -143,6 +164,8 @@ function NPCActionTeleportSuitcase:OnCommit(rsp)
   Base.OnCommit(self, rsp)
   if 0 ~= rsp.ret_info.ret_code then
     _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.S1_prop_teleport_fail)
+  else
+    self.TeleportSuccess = true
   end
 end
 

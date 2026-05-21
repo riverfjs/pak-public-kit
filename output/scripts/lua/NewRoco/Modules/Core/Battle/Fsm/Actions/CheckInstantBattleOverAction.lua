@@ -69,7 +69,7 @@ function CheckInstantBattleOverAction:OnEnter()
         else
           local currentBattleStateName = _G.BattleManager:GetCurrentStateName()
           if currentBattleStateName == BattleEnum.StateNames.RoundSelect then
-            _G.BattleEventCenter:Dispatch(BattleEvent.DIRECT_UPDATE_UI)
+            BattleUtils.DirectUpdateUI()
           end
         end
       end

@@ -142,7 +142,7 @@ function UMG_TeamBattle_Preparation_C:ConfirmCancelPopup(bCancel)
     _G.NRCAudioManager:PlaySound2DAuto(41401002, "UMG_TeamBattle_Preparation_C:OnCancelBtnClicked")
     if self.challengeType ~= _G.ProtoEnum.TeamBattleChallengeType.TBCT_BLOOD_SINGLE then
       self.module:OnZoneTeamBattleCancelReq()
-      _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.OpenOrCloseMainUIDownTips, true)
+      _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.OpenOrCloseMainUIDownTips, true, "OpenTeamBattlePreWarInfo")
     else
       if 1 == self.uiData then
         _G.NRCModeManager:DoCmd(_G.TeamBattleModuleCmd.OpenTeamBattleStartConfirmTips, true)
@@ -185,6 +185,7 @@ end
 
 function UMG_TeamBattle_Preparation_C:StartBattle()
   _G.NRCAudioManager:PlaySound2DAuto(41401001, "UMG_TeamBattle_Preparation_C:OnConfirmBtnClicked")
+  self:ChangeSelectedPet()
   if self.challengeType == _G.ProtoEnum.TeamBattleChallengeType.TBCT_BLOOD_SINGLE then
     self.module:OnZoneTeamBattleStartReq(self.data:GetCurNPCActorId(), self.data.TargetNPCLogicId, _G.ProtoEnum.TeamBattleChallengeType.TBCT_BLOOD_SINGLE)
   elseif self.challengeType == _G.ProtoEnum.TeamBattleChallengeType.TBCT_BEAST_SINGLE then
@@ -216,14 +217,16 @@ function UMG_TeamBattle_Preparation_C:StartBattle()
   end
 end
 
-function UMG_TeamBattle_Preparation_C:ChangeSelectedPet()
+function UMG_TeamBattle_Preparation_C:ChangeSelectedPet(bSendReq)
   _G.NRCModuleManager:DoCmd(TeamBattleModuleCmd.SetSelectedBattlePetInfo, nil, nil, nil)
   local teamIndex, petIndex = self:GetChooseTeamIndexAndPetIndex()
   if teamIndex and petIndex and self.data and self.data.ChangePetPanelChoosePet and self.data.ChangePetPanelChoosePet.gid then
     local gid = self.data.ChangePetPanelChoosePet.gid
     if gid then
       _G.NRCModuleManager:DoCmd(TeamBattleModuleCmd.SetSelectedBattlePetInfo, teamIndex, petIndex, gid)
-      self.module:OnZoneTeamBattleUpdatePetReq(gid, teamIndex)
+      if bSendReq then
+        self.module:OnZoneTeamBattleUpdatePetReq(gid, teamIndex)
+      end
     end
   end
 end
@@ -250,7 +253,7 @@ function UMG_TeamBattle_Preparation_C:InitPanelInfo(data)
   if self.challengeType == _G.ProtoEnum.TeamBattleChallengeType.TBCT_BEAST or self.challengeType == _G.ProtoEnum.TeamBattleChallengeType.TBCT_BEAST_SINGLE then
     curBattleBaseId = _G.NRCModuleManager:DoCmd(_G.LegendaryBattleModuleCmd.GetBattlePetBaseId)
   elseif self.challengeType == _G.ProtoEnum.TeamBattleChallengeType.TBCT_BLOOD_TEAM or self.challengeType == _G.ProtoEnum.TeamBattleChallengeType.TBCT_BLOOD_SINGLE then
-    curBattleBaseId = self.module.teamBattleInfo and self.module.teamBattleInfo.battle_petbase_id
+    curBattleBaseId = self.module:GetOwnerSelectTeamBattlePetBaseId()
   end
   for i = 1, 4 do
     table.insert(prepareInfoList, {
@@ -303,7 +306,7 @@ function UMG_TeamBattle_Preparation_C:InitPanelInfo(data)
       end
     end
     self.JinduProgressBar:SetVisibility(UE4.ESlateVisibility.Collapsed)
-    self:ChangeSelectedPet()
+    self:ChangeSelectedPet(true)
   else
     local visitorList = _G.NRCModuleManager:DoCmd(_G.FriendModuleCmd.GetOnlineVisitorList)
     local TeamMateInfoList = self.data.TeamMateInfoList
@@ -328,7 +331,7 @@ function UMG_TeamBattle_Preparation_C:InitPanelInfo(data)
               _G.NRCModuleManager:DoCmd(_G.TeamBattleModuleCmd.SetChangePetPanelChoosePet, data[i])
             end
           else
-            Log.Error(string.format("\231\172\172%d\228\184\170\231\142\169\229\174\182\231\154\132\230\149\176\230\141\174\230\156\137\232\175\175", i))
+            Log.Error(string.format(LuaText.umg_teambattle_preparation_5, i))
           end
         elseif TeamMateInfoList and TeamMateInfoList.NPCHelperNum and i <= TeamMateInfoList.NPCHelperNum + #visitorList then
           local indexInNPCHelper = i - #visitorList

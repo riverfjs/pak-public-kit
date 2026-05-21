@@ -48,12 +48,14 @@ function UMG_MagicManual_Task_Tads_C:SetInfo()
 end
 
 function UMG_MagicManual_Task_Tads_C:SelectTaskType(_bSelected)
-  self:StopAllAnimations()
-  if _bSelected then
-    self:LoadAnimation(1)
-    _G.NRCModuleManager:GetModule("MagicManualModule"):DispatchEvent(MagicManualModuleEvent.UpdateTableView, self.data.Sort, self.data.TaskTypeName)
-  else
-    self:LoadAnimation(3)
+  if self and UE4.UObject.IsValid(self) then
+    self:StopAllAnimations()
+    if _bSelected then
+      self:LoadAnimation(1)
+      _G.NRCModuleManager:GetModule("MagicManualModule"):DispatchEvent(MagicManualModuleEvent.UpdateTableView, self.data.Sort, self.data.TaskTypeName)
+    else
+      self:LoadAnimation(3)
+    end
   end
 end
 
@@ -67,6 +69,9 @@ function UMG_MagicManual_Task_Tads_C:OnDeactive()
 end
 
 function UMG_MagicManual_Task_Tads_C:StartPlayLoopAnim()
+  if not self or not UE4.UObject.IsValid(self) then
+    return
+  end
   self:LoadAnimation(2)
   self.loopFuncID = nil
 end

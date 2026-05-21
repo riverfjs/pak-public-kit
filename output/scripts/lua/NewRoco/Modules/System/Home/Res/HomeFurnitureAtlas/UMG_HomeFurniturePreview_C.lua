@@ -11,15 +11,6 @@ function UMG_HomeFurniturePreview_2_C:OnConstruct()
   UE4.UNRCStatics.ChangeTextureToCustomSize(self.captureComponent.TextureTarget, 960, 600)
 end
 
-function UMG_HomeFurniturePreview_2_C:OnActive()
-end
-
-function UMG_HomeFurniturePreview_2_C:OnDeactive()
-end
-
-function UMG_HomeFurniturePreview_2_C:OnAddEventListener()
-end
-
 function UMG_HomeFurniturePreview_2_C:SetPetPreview(modelPath, scale, cameraHigh, deltaRotation, bNeedRotate)
   if not modelPath then
     return

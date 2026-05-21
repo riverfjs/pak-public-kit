@@ -8,7 +8,9 @@ local PetMutationUtils = require("NewRoco.Utils.PetMutationUtils")
 local StunComponent = require("NewRoco.Modules.Core.Scene.Component.Boss.StunComponent")
 local PetUtils = require("NewRoco.Utils.PetUtils")
 local UIUtils = require("NewRoco.Utils.UIUtils")
+local ThrowSession = require("NewRoco.Modules.Core.NPC.ThrowSession")
 local NPCModuleEvent = require("NewRoco.Modules.Core.NPC.NPCModuleEvent")
+local ThrowUtils = require("NewRoco.Modules.Core.NPC.ThrowUtils")
 local Base = ActorComponent
 local FakeFailed = false
 local CatchPetComponent = Base:Extend("CatchPetComponent")
@@ -18,6 +20,7 @@ function CatchPetComponent:Ctor()
   Base.Ctor(self)
   self.bIsSending = false
   self.bIsCatching = false
+  self.SeqId = nil
 end
 
 function CatchPetComponent:Attach(owner)
@@ -26,7 +29,6 @@ end
 
 function CatchPetComponent:DeAttach()
   self.d_HudRestore = DelayManager:CancelDelayByIdEx(self.d_HudRestore)
-  self.d_NotifyMainUIModule = DelayManager:CancelDelayByIdEx(self.d_NotifyMainUIModule)
   self.d_FakeFail = DelayManager:CancelDelayByIdEx(self.d_FakeFail)
   self.d_FakeCatchRsp = DelayManager:CancelDelayByIdEx(self.d_FakeCatchRsp)
 end
@@ -74,15 +76,15 @@ function CatchPetComponent:StartCatchPet(CatchTarget)
   end
   local LogicComp = CatchTarget.LogicStatusComponent
   if LogicComp then
-    local IsNightmare, _, _ = LogicComp:GetStatus(Enum.SpaceActorLogicStatus.SALS_NIGHTMARE_ELITE)
+    local IsNightmare, Msg = ThrowUtils.IsDisableByMutation(CatchTarget, BallView and BallView.BallId)
     if IsNightmare then
       BallView:MakeCollectable()
-      _G.NRCModeManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, LuaText.cant_cache_nightmare_elite, -1, nil, 5)
+      _G.NRCModeManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, Msg, -1, nil, 5)
       return
     end
   end
   local HiddenComp = CatchTarget.HiddenComponent
-  if HiddenComp and HiddenComp:IsResistCapture() then
+  if HiddenComp and HiddenComp:IsResistCapture(Session and Session:GetBallId()) then
     BallView:MakeCollectable()
     Log.Debug("\230\141\149\230\141\137\230\151\165\229\191\151: CatchPetComponent:StartCatchPet \231\178\190\231\129\181\229\140\191\232\184\170\228\186\134...\230\138\149\230\142\183\229\164\177\230\149\136", CatchTarget.config.name, CatchTarget.config.id)
     return
@@ -233,7 +235,6 @@ function CatchPetComponent:OnCatchRsp(rsp)
   end
   local CatchSuccess = rsp.catch_result.is_catched
   if CatchSuccess then
-    self.catchTipsObj = rsp.ret_info.goods_reward
   elseif TargetAIComp then
     TargetAIComp:ForceLockForReason(false, false, AIDefines.LockReason.INTERACT)
   end
@@ -260,7 +261,6 @@ function CatchPetComponent:PlayCaughtSkill(Caster, CatchTarget, Success, ShakeTi
   local SkillObj
   SkillObj = RocoSkillProxy.Create(_G.UEPath.CATCH_SKILL_WORLD, SkillComp, _G.PriorityEnum.Active_Player_Action)
   SkillObj:SetPassive(true)
-  SkillObj:SetUseAddForPassiveSkill(true)
   SkillObj:SetCaster(Caster.viewObj)
   SkillObj:SetTargets({
     TargetView,
@@ -291,9 +291,12 @@ function CatchPetComponent:PlayCaughtSkill(Caster, CatchTarget, Success, ShakeTi
   local MoveComp = TargetView.CharacterMovement
   MoveComp:Deactivate()
   TargetView:SetActorEnableCollision(false)
-  if CatchTarget.HiddenComponent and CatchTarget.HiddenComponent:IsDrillType() then
+  if CatchTarget.HiddenComponent and CatchTarget.HiddenComponent:IsHidden() then
     CatchTarget.HiddenComponent:ResetHide(true, false)
   end
+  local Session = self:GetSession()
+  Session.bCatchSuccess = Success
+  self.SeqId = Session.SeqID
 end
 
 function CatchPetComponent:PreStart(Event, SkillObj)
@@ -487,29 +490,6 @@ function CatchPetComponent:OnCatchPetAnimFinishCallback(Event, SkillObj)
   local Session = self:GetSession()
   if CatchSuccess then
     self:RecycleBall(true)
-    if self.d_NotifyMainUIModule then
-      DelayManager:CancelDelayById(self.d_NotifyMainUIModule)
-    end
-    self.d_NotifyMainUIModule = _G.DelayManager:DelayFramesEx(self.d_NotifyMainUIModule, 1, function()
-      self.d_NotifyMainUIModule = nil
-      if self.catchTipsObj then
-        _G.NRCModuleManager:DoCmd(TipsModuleCmd.Tips_ShowGoodsReward, self.catchTipsObj, ProtoCMD.ZoneSvrCmd.ZONE_SCENE_END_THROW_RSP, true)
-        local rewards = self.catchTipsObj and self.catchTipsObj.rewards
-        local getPetReward
-        for i, reward in ipairs(rewards or {}) do
-          if reward.type == _G.Enum.GoodsType.GT_PET then
-            getPetReward = reward
-            break
-          end
-        end
-        if getPetReward then
-          _G.NRCModuleManager:GetModule("MainUIModule"):DispatchEvent(MainUIModuleEvent.UI_Refresh_MainPet, 0, getPetReward)
-        else
-          Log.Error("\230\137\190\228\184\141\229\136\176\230\141\149\230\141\137\230\136\144\229\138\159\228\184\139\229\143\145\231\154\132\231\178\190\231\129\181\229\165\150\229\138\177\228\186\134", table.tostring(rewards))
-        end
-        self.catchTipsObj = nil
-      end
-    end)
     if TargetAIComp then
       self:SendDotsEvent(CatchTarget, nil, Enum.DotsAIWorldEventType.DAWET_THROW_CATCH_SUCCESS)
     end
@@ -540,6 +520,11 @@ function CatchPetComponent:OnCatchPetAnimFinishCallback(Event, SkillObj)
   else
     Log.Error("player\230\178\161\228\186\134\239\188\140\232\191\153\229\190\136\228\184\165\233\135\141\228\186\134...")
   end
+  if Session then
+    Session:SendCatchFinishReq()
+  else
+    Log.Error("Session\228\184\162\228\186\134\239\188\140\229\133\182\229\174\158\232\155\174\228\184\165\233\135\141\231\154\132\239\188\140\233\157\160\229\144\142\229\143\176\232\182\133\230\151\182\233\128\187\232\190\145\228\186\134", self.SeqId)
+  end
 end
 
 local SceneAIManager
@@ -561,12 +546,10 @@ function CatchPetComponent:SendDotsEvent(...)
 end
 
 function CatchPetComponent:CheckCanCatchPet(CatchTarget)
-  local LogicComp = CatchTarget.LogicStatusComponent
-  if LogicComp then
-    local IsNightmare, _, _ = LogicComp:GetStatus(Enum.SpaceActorLogicStatus.SALS_NIGHTMARE_ELITE)
-    if IsNightmare then
-      return false
-    end
+  local equipItem = _G.NRCModeManager:DoCmd(_G.BagModuleCmd.GetCurEquipItemInfo)
+  local IsDisableByMutation = ThrowUtils.IsDisableByMutation(CatchTarget, equipItem and equipItem.id)
+  if IsDisableByMutation then
+    return false
   end
   local HiddenComp = CatchTarget.HiddenComponent
   if HiddenComp and HiddenComp:IsHidden() and HiddenComp.hiddenType then
@@ -575,10 +558,17 @@ function CatchPetComponent:CheckCanCatchPet(CatchTarget)
     local isEmpty = false
     local banExecuteTable = self:GetHideExecuteTable("ban_catch_pet_world_hide_type")
     local emptyExecuteTable = self:GetHideExecuteTable("mimic_aim_dispaly_null")
-    if table.contains(banExecuteTable, hideType) then
+    local allowHideList = {}
+    if equipItem and equipItem.id then
+      local ballActConf = _G.DataConfigManager:GetBallAct(equipItem.id, true)
+      if ballActConf and ballActConf.ball_wh_mimic then
+        allowHideList = ballActConf.ball_wh_mimic
+      end
+    end
+    if table.contains(banExecuteTable, hideType) and not table.contains(allowHideList, hideType) then
       isBan = true
     end
-    if table.contains(emptyExecuteTable, hideType) then
+    if table.contains(emptyExecuteTable, hideType) and not table.contains(allowHideList, hideType) then
       isEmpty = true
     end
     if isEmpty then
@@ -592,7 +582,6 @@ function CatchPetComponent:CheckCanCatchPet(CatchTarget)
   if AIComp and AIComp:IsResistCapture() then
     return false
   end
-  local equipItem = _G.NRCModeManager:DoCmd(_G.BagModuleCmd.GetCurEquipItemInfo)
   local mutationType = CatchTarget.serverData.npc_base.mutation_type
   local isGlass = mutationType and (0 ~= mutationType & _G.Enum.MutationDiffType.MDT_GLASS or PetUtils.CheckIsShiningGlass(mutationType))
   local ForbidBallsConf = _G.DataConfigManager:GetNpcGlobalConfig("catch_pet_world_cant_colorpet_ball")

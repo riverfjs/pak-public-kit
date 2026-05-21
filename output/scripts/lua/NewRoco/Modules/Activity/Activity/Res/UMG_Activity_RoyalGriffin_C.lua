@@ -44,6 +44,7 @@ function UMG_Activity_RoyalGriffin_C:OnConstruct()
   self:AddButtonListener(self.NRCButton_43, self.OnClickShowPetNatureTips)
   self:AddButtonListener(self.OrdinaryRewardBtn, self.OpenRewardPanel)
   self:AddButtonListener(self.ButtonClaim, self.OpenMedalRecord)
+  self:AddButtonListener(self.Intimacy.NRCButton_43, self.OpenCloseLevelPanel)
   self:RegisterEvent(self, ActivityModuleEvent.ActivitySvrStateChanged, self.OnActivitySvrStateChanged)
   self:RegisterEvent(self, ActivityModuleEvent.RefreshRoyalGriffinActivityData, self.InitPanel)
   self:InitPanel(_activityInst:GetActivityData())
@@ -219,6 +220,9 @@ function UMG_Activity_RoyalGriffin_C:OnItemSelected(_itemInst, _index, _flowerDa
       _G.NRCAudioManager:PlaySound2DAuto(40001002, "UMG_Activity_RoyalGriffin_C:OnItemSelected")
     end
     self:OnSelectFlowerDataChanged(_flowerData)
+    local pet_info_id = _G.DataConfigManager:GetActivitySpecFlowerSeedConf(_flowerData.seed_id).pet_info_id
+    local closeLevel = _G.DataConfigManager:GetPetInfoConf(pet_info_id).close_level
+    self.Intimacy:SetBtnText(string.format(_G.LuaText.Activity_FlowerHard_CloseLevel, closeLevel))
   end
 end
 
@@ -244,6 +248,7 @@ function UMG_Activity_RoyalGriffin_C:OnTraceBtnClick()
 end
 
 function UMG_Activity_RoyalGriffin_C:OnClickShowPetNatureTips()
+  self:PlayAnimation(self.click_2)
   _G.NRCAudioManager:PlaySound2DAuto(40008031, "UMG_Activity_RoyalGriffin_C:OnClickShowPetNatureTips")
   local flowerData = self.curSelectFlowerData
   if flowerData then
@@ -255,6 +260,7 @@ function UMG_Activity_RoyalGriffin_C:OnClickShowPetNatureTips()
 end
 
 function UMG_Activity_RoyalGriffin_C:OpenRewardPanel()
+  self:PlayAnimation(self.click_1)
   if self.activityInst:IsInProgress() then
     _G.NRCAudioManager:PlaySound2DAuto(41401004, "UMG_Activity_RoyalGriffin_C:OpenRewardPanel")
     _G.NRCModuleManager:DoCmd(_G.ActivityModuleCmd.OnCmdOpenOrdinaryReward, self.rewardData or {})
@@ -264,6 +270,7 @@ function UMG_Activity_RoyalGriffin_C:OpenRewardPanel()
 end
 
 function UMG_Activity_RoyalGriffin_C:OpenMedalRecord()
+  self:PlayAnimation(self.click_4)
   _G.NRCAudioManager:PlaySound2DAuto(41401003, "UMG_Activity_RoyalGriffin_C:OpenMedalRecord")
   _G.NRCModuleManager:DoCmd(_G.ActivityModuleCmd.OnCmdOpenPredestinedEvidence, self.madelData or {})
 end
@@ -273,6 +280,14 @@ function UMG_Activity_RoyalGriffin_C:refreshRewardShow(index)
   self.hasRewardNum = self.hasRewardNum + 1
   self.RewardProgress:SetText(string.format(_G.LuaText.Activity_PlayerCoCreation_task, self.hasRewardNum, #self.activityInst:GetFlowerDataList()))
   self.List:GetItemByIndex(index - 1):SetRewardMark()
+end
+
+function UMG_Activity_RoyalGriffin_C:OpenCloseLevelPanel()
+  self:PlayAnimation(self.click_3)
+  local DialogContext = require("NewRoco.Modules.System.TipsModule.DialogContext")
+  local Context = DialogContext()
+  Context:SetTitle(_G.LuaText.interactiontree_love_title):SetContent(_G.LuaText.interactiontree_love_tip):SetContentTextJustify(UE4.ETextJustify.Left):SetMode(DialogContext.Mode.NotBtn)
+  _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.Dialog_OpenLongDialog, Context)
 end
 
 return UMG_Activity_RoyalGriffin_C

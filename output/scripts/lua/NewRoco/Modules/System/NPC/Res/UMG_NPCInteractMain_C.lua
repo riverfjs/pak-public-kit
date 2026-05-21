@@ -7,6 +7,24 @@ local RolePlayModuleCmd = require("NewRoco.Modules.System.RolePlay.RolePlayModul
 local RelationTreeEvent = require("NewRoco.Modules.System.RelationTree.RelationTreeEvent")
 local MiniGameModuleEvent = require("NewRoco.Modules.System.MiniGame.MiniGameModuleEvent")
 local UMG_NPCInteractMain_C = NRCPanelBase:Extend("UMG_NPCInteractMain_C")
+local FocusType = {
+  Pet = "Pet",
+  HomePetOption = "HomePetOption",
+  FurnitureOption = "FurnitureOption",
+  Default = "Default"
+}
+local SpecialOptionHandlers = {
+  [FocusType.Pet] = function(option, ...)
+    if option.SetPetBondOptionActive then
+      option:SetPetBondOptionActive(...)
+    end
+  end,
+  [FocusType.HomePetOption] = function(option, ...)
+    if option.SetHomeOptionActive then
+      option:SetHomeOptionActive(...)
+    end
+  end
+}
 local DirtyFlag = {
   None = 0,
   Init = 1,
@@ -14,7 +32,7 @@ local DirtyFlag = {
   Recover = 4,
   Hidden = 8,
   Remove = 16,
-  FocusPet = 32
+  FocusNpc = 32
 }
 local PlaceHolder = {bFake = true}
 
@@ -26,18 +44,24 @@ function UMG_NPCInteractMain_C:OnInitialized()
   self.ShownOptions = {}
   self.RealShownNum = 0
   self.bFunctionBan = false
-  self.focusPet = nil
+  self.focusNpc = nil
   self.MaxSequence = -1
   self.bSequenceChanged = false
+  self.ObjList:SetMsgHandler({
+    OnMobileItemClicked = _G.MakeWeakFunctor(self, self.OnMobileItemClicked),
+    OnOptionResidue = _G.MakeWeakFunctor(self, self.OnOptionResidue)
+  })
 end
 
 function UMG_NPCInteractMain_C:OnActive()
+  self.CurDirtyFlag = self.CurDirtyFlag or DirtyFlag.None
   if self.module and self.module.CacheOptions then
     for _, option in ipairs(self.module.CacheOptions) do
       table.insert(self._options, option)
     end
     self.CurDirtyFlag = self.CurDirtyFlag | DirtyFlag.Init
     self.module.CacheOptions = nil
+    self:TryFocusNpc(self._options, true, 0)
   end
   if self:IsPCMode() then
     local PCScale = UE4.FVector2D(0.8, 0.8)
@@ -49,7 +73,7 @@ function UMG_NPCInteractMain_C:OnActive()
     Padding.Right = 70
     Padding.Bottom = 84
     self.ScrollPCKey.Slot:SetOffsets(Padding)
-    self.ObjList.Slot:SetPosition(UE4.FVector2D(96, 124))
+    self.ObjList.Slot:SetPosition(UE4.FVector2D(80, 124))
   else
     self.ObjList:BindLuaCallback({
       self,
@@ -97,6 +121,7 @@ function UMG_NPCInteractMain_C:OnActive()
   _G.NRCEventCenter:RegisterEvent("UMG_NPCInteractMain_C", self, RelationTreeEvent.RelationInteractionStart, self.InteractionStart)
   _G.NRCEventCenter:RegisterEvent("UMG_NPCInteractMain_C", self, RelationTreeEvent.RelationInteractionEnd, self.InteractionEnd)
   _G.NRCEventCenter:RegisterEvent("UMG_NPCInteractMain_C", self, MiniGameModuleEvent.StartFinishedCamera, self.StartFinishedCamera)
+  _G.FunctionBanManager:AddRawFunctionStateListener(Enum.PlayerFunctionBanType.PFBT_LOAD_HIDE_PLAYER_MANUAL_OPTION_CONF, self, self.OnAddFunctionBanRaw)
   _G.FunctionBanManager:AddFunctionStateListener(Enum.PlayerFunctionBanType.PFBT_LOAD_HIDE_PLAYER_MANUAL_OPTION_CONF, self, self.OnAddFunctionBan)
   _G.NRCEventCenter:DispatchEvent(MainUIModuleEvent.InteractMainReady)
 end
@@ -108,8 +133,7 @@ function UMG_NPCInteractMain_C:OnEnable()
   if _G.NRCModuleManager:IsModuleActive("RolePlayModule") and _G.NRCModuleManager:DoCmd(RolePlayModuleCmd.IsMainPanelOpen) then
     self.uiVisibilityConstraint:AddWidgetDisplayConstraints(self, "RolePlay")
   end
-  local MainPanel = self.module:HasPanel("LobbyMain") and self.module:GetPanel("LobbyMain")
-  if MainPanel and MainPanel.PanelOpen then
+  if self.module:HasAnyMainUIShowing() then
     self.uiVisibilityConstraint:TrySetWidgetVisibility(self, UE4.ESlateVisibility.SelfHitTestInvisible)
     if self.ShouldCollapse then
       Log.Debug("[NPCInteractMainUI] ShouldCollapse changed:", self.ShouldCollapse, "-> false (OnEnable, LobbyMain open)")
@@ -136,6 +160,7 @@ function UMG_NPCInteractMain_C:OnDeactive()
   _G.NRCEventCenter:UnRegisterEvent(self, SceneEvent.PlayerBornFinish, self.OnSceneLoaded)
   _G.NRCEventCenter:UnRegisterEvent(self, RolePlayModuleEvent.RolePlayMainPanelOpen, self.OnRolePlayMainPanelOpen)
   _G.NRCEventCenter:UnRegisterEvent(self, RolePlayModuleEvent.RolePlayMainPanelClosed, self.OnRolePlayMainPanelClosed)
+  _G.FunctionBanManager:RemoveRawFunctionStateListener(Enum.PlayerFunctionBanType.PFBT_LOAD_HIDE_PLAYER_MANUAL_OPTION_CONF, self, self.OnAddFunctionBanRaw)
   _G.FunctionBanManager:RemoveFunctionStateListener(Enum.PlayerFunctionBanType.PFBT_LOAD_HIDE_PLAYER_MANUAL_OPTION_CONF, self, self.OnAddFunctionBan)
   _G.NRCEventCenter:UnRegisterEvent(self, RelationTreeEvent.RelationInteractionStart, self.InteractionStart)
   _G.NRCEventCenter:UnRegisterEvent(self, RelationTreeEvent.RelationInteractionEnd, self.InteractionEnd)
@@ -183,12 +208,6 @@ function UMG_NPCInteractMain_C:UnBindInputAction()
         name = "IA_InteractionEnd"
       },
       {
-        name = "IA_InteractionPrevious"
-      },
-      {
-        name = "IA_InteractionNext"
-      },
-      {
         name = "IA_FondlePet"
       }
     }
@@ -198,13 +217,24 @@ function UMG_NPCInteractMain_C:UnBindInputAction()
   end
 end
 
-function UMG_NPCInteractMain_C:OnAddFunctionBan(newState, _)
-  self.bFunctionBan = newState
+function UMG_NPCInteractMain_C:OnAddFunctionBanRaw(newState, _)
   if newState then
+    self._cachedSelectedOptionBeforeBan = self.CurSelectedOption
+    self._cachedOptionOrderBeforeBan = {}
+    for i, option in ipairs(self.ShownOptions) do
+      if not option.bFake then
+        self._cachedOptionOrderBeforeBan[option] = i
+      end
+    end
     self.CurDirtyFlag = self.CurDirtyFlag | DirtyFlag.Hidden
   else
+    self._shouldRestoreSelection = true
     self.CurDirtyFlag = self.CurDirtyFlag | DirtyFlag.Recover
   end
+end
+
+function UMG_NPCInteractMain_C:OnAddFunctionBan(newState, _)
+  self.bFunctionBan = newState
 end
 
 local BannedList = {}
@@ -358,8 +388,8 @@ function UMG_NPCInteractMain_C:AddNPCInteract(option)
       self._options = {}
     end
     table.insert(self._options, option)
-    if option.IsPetOption and option:IsPetOption() then
-      self:TryFocusPet(self._options, true, 0)
+    if self:IsFocusTypeOption(option) then
+      self:TryFocusNpc(self._options, true, 0)
     end
     self.CurDirtyFlag = self.CurDirtyFlag | DirtyFlag.Add
     return true
@@ -373,17 +403,14 @@ function UMG_NPCInteractMain_C:RemoveNPCInteract(option)
     return false
   end
   Log.Debug("[NPCInteractMainUI] RemoveNPCInteract", option.config.id)
-  if option.IsPetOption and option:IsPetOption() then
-    self:TryFocusPet(self._options, true, 0)
+  option.RawIndex = nil
+  if self:IsFocusTypeOption(option) then
+    self:TryFocusNpc(self._options, true, 0)
   end
-  if option.owner and option.IsPetBond and option:IsPetBond() then
-    option.owner:SetPetBondActive(false)
-  end
-  if option.GetEnableCondition and option:GetEnableCondition() == _G.Enum.OptionVisibleCondition.ENABLE_CONDITION_OPTION_TYPE then
-    option.owner:SetHomeOptionActive(false)
-  end
-  if option == self.CurSelectedOption then
-    self.ObjList:ClearSelection()
+  local type = self:GetOptionType(option)
+  local optionHandler = SpecialOptionHandlers[type]
+  if optionHandler then
+    optionHandler(option, false)
   end
   self.CurDirtyFlag = self.CurDirtyFlag | DirtyFlag.Remove
   return true
@@ -410,35 +437,81 @@ function UMG_NPCInteractMain_C:RefreshOptionList()
     if self:HasDirtyFlag(DirtyFlag.Remove) then
       self.SelectIndex = nil
     end
-    self.ObjList:SetVisibility(UE4.ESlateVisibility.Collapsed)
-    if not self:IsPCMode() then
-      self.Arrow:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    if self.enableView and self:IsVisible() then
+      self:PlayAnimation(self.Out)
+    else
+      self:DoCollapsed()
     end
-    self.ObjListCollapse = true
   else
     self:UpdateSelectIndexByPlatform()
     self.ObjList:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     if not self:IsPCMode() then
       self.Arrow:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     end
-    self.ObjListCollapse = false
+    if self.ObjListCollapse then
+      if self.enableView then
+        self:PlayAnimation(self.In)
+      else
+        self:DoUnCollapsed()
+      end
+      self.ObjListCollapse = false
+    end
   end
   if oldObjListCollapse ~= self.ObjListCollapse then
     Log.Debug("[NPCInteractMainUI] ObjListCollapse changed:", oldObjListCollapse, "->", self.ObjListCollapse, "ShownOptionNum:", self:GetShowOptionNum())
   end
 end
 
+local DummyTable = require("Common.DummyTable")
+
+function UMG_NPCInteractMain_C:OnAnimationFinished(Anim)
+  if Anim == self.In then
+    self:DoUnCollapsed()
+  elseif Anim == self.Out then
+    self:DoCollapsed()
+  end
+end
+
+function UMG_NPCInteractMain_C:DoUnCollapsed()
+  self.Arrow:SetRenderOpacity(1)
+  self.ObjList:SetRenderOpacity(1)
+  self.ScrollPCKey:SetRenderOpacity(1)
+end
+
+function UMG_NPCInteractMain_C:DoCollapsed()
+  self.Arrow:SetRenderOpacity(0)
+  self.ObjList:SetRenderOpacity(0)
+  self.ScrollPCKey:SetRenderOpacity(0)
+  self.ObjList:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  if not self:IsPCMode() then
+    self.Arrow:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  end
+  self.ObjList:InitList(DummyTable)
+  self.ObjListCollapse = true
+end
+
 function UMG_NPCInteractMain_C:InitScrollListModeByPlatform()
+  self.Arrow:SetVisibility(UE4.ESlateVisibility.Collapsed)
   if not self:IsPCMode() then
     self.ObjList.bSnapToItem = true
-    self.ObjList.Owner = self
   else
     self.objList.bSnapToItem = false
-    self.Arrow:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
   if self.ShownOptions and next(self.ShownOptions) then
     self.ObjList:InitList(self.ShownOptions)
   end
+end
+
+function UMG_NPCInteractMain_C:OnMobileItemClicked(Index)
+  if not self:IsPCMode() then
+    self:ClearCurSelectedOption()
+    self:SelectOptionByIndex(Index)
+  end
+end
+
+function UMG_NPCInteractMain_C:OnOptionResidue(Option)
+  Option.bInteractUIAdded = false
+  self:RemoveNPCInteract(Option)
 end
 
 function UMG_NPCInteractMain_C:UpdateScrollListByPlatform()
@@ -451,7 +524,21 @@ function UMG_NPCInteractMain_C:UpdateScrollListByPlatform()
       table.insert(self.ShownOptions, 1, PlaceHolder)
     end
   end
-  self.ObjList:InitList(self.ShownOptions)
+  if #self.ShownOptions < #self.ObjList._itemRef then
+    local StartIndex
+    if self:IsPCMode() then
+      StartIndex = #self.ShownOptions + 1
+    else
+      StartIndex = self.RealShownNum + 2
+    end
+    for i = StartIndex, #self.ObjList._itemRef do
+      self.ObjList._itemRef[i]:ClearData()
+    end
+  end
+  if self:GetShowOptionNum() > 0 then
+    self:StopAllAnimations()
+    self.ObjList:InitList(self.ShownOptions)
+  end
 end
 
 function UMG_NPCInteractMain_C:AutoPlayAction(optionId)
@@ -516,8 +603,7 @@ function UMG_NPCInteractMain_C:MouseWheelDown(action_type, IsFromRelation)
     return
   end
   local CurSelectedItem = self.ObjList:GetSelectedItem()
-  CurSelectedItem:SetHoverBG(false)
-  CurSelectedItem:ReleaseMouseCapture(false)
+  CurSelectedItem:ReleaseTouchMark(true)
   local selected_index = self.ObjList._selectedItemIndex + 1
   while selected_index > self:GetShowOptionNum() do
     selected_index = selected_index - self:GetShowOptionNum()
@@ -536,8 +622,7 @@ function UMG_NPCInteractMain_C:MouseWheelUp(action_type, IsFromRelation)
     return
   end
   local CurSelectedItem = self.ObjList:GetSelectedItem()
-  CurSelectedItem:SetHoverBG(false)
-  CurSelectedItem:ReleaseMouseCapture(false)
+  CurSelectedItem:ReleaseTouchMark(true)
   local selected_index = self.ObjList._selectedItemIndex - 1
   while selected_index < 1 do
     selected_index = selected_index + self:GetShowOptionNum()
@@ -564,6 +649,17 @@ function UMG_NPCInteractMain_C:UpdateSelectIndexByPlatform()
   local itemCount = self.ObjList:GetItemCount()
   if self:GetShowOptionNum() <= 0 or itemCount <= 0 then
     return
+  end
+  if self._shouldRestoreSelection and self._cachedSelectedOptionBeforeBan then
+    self._shouldRestoreSelection = false
+    local cachedOption = self._cachedSelectedOptionBeforeBan
+    self._cachedSelectedOptionBeforeBan = nil
+    local RestoreIndex = self:FindOptionIndexByPlatform(cachedOption)
+    if RestoreIndex then
+      Log.Debug("[NPCInteractMainUI] Restore selection after recover, option:", cachedOption.config and cachedOption.config.id)
+      self:SelectOptionByIndex(RestoreIndex)
+      return
+    end
   end
   if self.CurSelectedOption and not self.bSequenceChanged then
     local NewIndex = self:FindOptionIndexByPlatform(self.CurSelectedOption)
@@ -679,8 +775,8 @@ local AddFlags = DirtyFlag.Add | DirtyFlag.Init | DirtyFlag.Recover
 local RemoveFlags = DirtyFlag.Remove | DirtyFlag.Hidden
 
 function UMG_NPCInteractMain_C:OnTick(deltaTime)
-  if self.focusPet and self:TryFocusPet(self._options, false, deltaTime) then
-    self.CurDirtyFlag = self.CurDirtyFlag | DirtyFlag.FocusPet
+  if self.focusNpc and self:TryFocusNpc(self._options, false, deltaTime) then
+    self.CurDirtyFlag = self.CurDirtyFlag | DirtyFlag.FocusNpc
   end
   if self.CurDirtyFlag ~= DirtyFlag.None then
     Log.Debug("[NPCInteractMainUI] Refresh By DirtyFlag:", self.CurDirtyFlag, #self.ShownOptions)
@@ -736,6 +832,7 @@ function UMG_NPCInteractMain_C:OnTick(deltaTime)
     elseif option.config.npc_interact_type == Enum.InteractType.IT_3DUI then
       self:SetIntimateButtonCollapsed(false)
     elseif option.config.npc_interact_type == Enum.InteractType.IT_PLANT_SEED or option.config.npc_interact_type == Enum.InteractType.IT_PLANT_GET then
+      Log.Debug("[UMG_NPCInteractMain_C] SetFarmBubbleButtonCollapsed: ", npc.serverData and npc.serverData.base.actor_id or "nil")
       self:SetFarmBubbleButtonCollapsed(false)
     end
   else
@@ -848,45 +945,57 @@ end
 function UMG_NPCInteractMain_C:FilterOptions()
   table.clear(self.ShownOptions)
   self:CollectActiveConfigs()
-  local RawIndex = 1
+  local hasExistingRawIndex = false
+  local maxExistingRawIndex = 0
+  for _, option in ipairs(self._options) do
+    if option.RawIndex then
+      hasExistingRawIndex = true
+      if maxExistingRawIndex < option.RawIndex then
+        maxExistingRawIndex = option.RawIndex
+      end
+    end
+  end
+  local nextRawIndex = hasExistingRawIndex and maxExistingRawIndex + 1 or 1
   for _, option in ipairs(self._options) do
     if not self.bFunctionBan then
       table.insert(self.ShownOptions, option)
-      option.RawIndex = RawIndex
-      RawIndex = RawIndex + 1
+      if not option.RawIndex then
+        option.RawIndex = nextRawIndex
+        nextRawIndex = nextRawIndex + 1
+      end
     elseif self.bFunctionBan and not self:CheckOptionIDBanned(option) then
       table.insert(self.ShownOptions, option)
-      option.RawIndex = RawIndex
-      RawIndex = RawIndex + 1
+      if not option.RawIndex then
+        option.RawIndex = nextRawIndex
+        nextRawIndex = nextRawIndex + 1
+      end
     end
   end
-  if self.focusPet then
+  if self.focusNpc then
     for i = #self.ShownOptions, 1, -1 do
       local option = self.ShownOptions[i]
-      if option.IsPetOption and option:IsPetOption() then
-        if option.owner ~= self.focusPet then
-          table.remove(self.ShownOptions, i)
-          option:SetPetBondOptionActive(false)
-        else
-          option:SetPetBondOptionActive(true)
+      if self:IsFocusTypeOption(option) then
+        local type = self:GetOptionType(option)
+        local optionHandler = SpecialOptionHandlers[type]
+        if optionHandler then
+          optionHandler(option, false)
         end
-      end
-      if option.GetEnableCondition and option:GetEnableCondition() == _G.Enum.OptionVisibleCondition.ENABLE_CONDITION_OPTION_TYPE then
-        if option.owner ~= self.focusPet then
+        if option.owner ~= self.focusNpc then
           table.remove(self.ShownOptions, i)
-          option:SetHomeOptionActive(false)
-        else
-          option:SetHomeOptionActive(true)
+          if optionHandler then
+            optionHandler(option, false)
+          end
+        elseif optionHandler then
+          optionHandler(option, true)
         end
       end
     end
   else
     for _, option in ipairs(self.ShownOptions) do
-      if option.IsPetOption and option:IsPetOption() then
-        option:SetPetBondOptionActive(true)
-      end
-      if option.GetEnableCondition and option:GetEnableCondition() == _G.Enum.OptionVisibleCondition.ENABLE_CONDITION_OPTION_TYPE then
-        option:SetHomeOptionActive(true)
+      local type = self:GetOptionType(option)
+      local optionHandler = SpecialOptionHandlers[type]
+      if optionHandler then
+        optionHandler(option, true)
       end
     end
   end
@@ -894,12 +1003,38 @@ function UMG_NPCInteractMain_C:FilterOptions()
 end
 
 function UMG_NPCInteractMain_C:SortOptionsBySequence(Options)
-  table.sort(Options, function(option1, option2)
-    if option1.config.option_sequence == option2.config.option_sequence then
-      return option1.RawIndex < option2.RawIndex
+  if self._cachedOptionOrderBeforeBan and self:HasDirtyFlag(DirtyFlag.Recover) then
+    local cachedOrder = self._cachedOptionOrderBeforeBan
+    table.sort(Options, function(option1, option2)
+      local pos1 = cachedOrder[option1]
+      local pos2 = cachedOrder[option2]
+      if pos1 and pos2 then
+        return pos1 < pos2
+      elseif pos1 and not pos2 then
+        return true
+      elseif not pos1 and pos2 then
+        return false
+      else
+        if option1.config.option_sequence == option2.config.option_sequence then
+          return option1.RawIndex < option2.RawIndex
+        end
+        return (option1.config.option_sequence or 0) > (option2.config.option_sequence or 0)
+      end
+    end)
+    for i, option in ipairs(Options) do
+      if not option.bFake then
+        option.RawIndex = i
+      end
     end
-    return (option1.config.option_sequence or 0) > (option2.config.option_sequence or 0)
-  end)
+    self._cachedOptionOrderBeforeBan = nil
+  else
+    table.sort(Options, function(option1, option2)
+      if option1.config.option_sequence == option2.config.option_sequence then
+        return option1.RawIndex < option2.RawIndex
+      end
+      return (option1.config.option_sequence or 0) > (option2.config.option_sequence or 0)
+    end)
+  end
   if next(self.ShownOptions) then
     local NewMaxSequence = self.ShownOptions[1].config.option_sequence or -1
     if NewMaxSequence > self.MaxSequence then
@@ -911,7 +1046,7 @@ end
 
 local UMathLibrary = UE4.UKismetMathLibrary
 
-function UMG_NPCInteractMain_C:TryFocusPet(options, bForceFocus, deltaTime)
+function UMG_NPCInteractMain_C:TryFocusNpc(options, bForceFocus, deltaTime)
   if bForceFocus then
     self.FocusTimer = self.FocusTimer + deltaTime
   elseif self.FocusTimer < 0.3 then
@@ -923,29 +1058,29 @@ function UMG_NPCInteractMain_C:TryFocusPet(options, bForceFocus, deltaTime)
   if not options or not next(options) then
     return false
   end
-  local petDic = {}
-  local petCount = 0
+  local npcDic = {}
+  local npcCount = 0
   for _, option in ipairs(options) do
-    if option.IsPetOption and option:IsPetOption() then
+    if self:IsFocusTypeOption(option) then
       local owner = option.owner
-      if nil ~= owner and not petDic[owner] then
-        petDic[owner] = true
-        petCount = petCount + 1
+      if nil ~= owner and not npcDic[owner] then
+        npcDic[owner] = true
+        npcCount = npcCount + 1
       end
     end
   end
   local bChanged = false
-  if petCount > 1 then
-    bChanged = self:FocusPet(petDic)
+  if npcCount > 1 then
+    bChanged = self:FocusNpc(npcDic)
   else
-    self.focusPet = nil
+    self.focusNpc = nil
     self.FocusTimer = 0.3
   end
   return bChanged
 end
 
-function UMG_NPCInteractMain_C:FocusPet(petDic)
-  local focusPet
+function UMG_NPCInteractMain_C:FocusNpc(npcDic)
+  local focusNpc
   local maxDotProduct = math.mininteger
   local localPlayer = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
   if not localPlayer then
@@ -954,26 +1089,47 @@ function UMG_NPCInteractMain_C:FocusPet(petDic)
   local playerPos = localPlayer:GetActorLocation()
   local playerForward = localPlayer:GetForwardVector()
   playerForward.Z = 0
-  for petNpc, _ in pairs(petDic) do
-    local pet2PlayerForwardDot = petNpc.PlayerForwardDotCache
-    if not pet2PlayerForwardDot then
-      local petPos = petNpc:GetActorLocation()
-      local directionToPet = UMathLibrary.Subtract_VectorVector(petPos, playerPos)
-      directionToPet.Z = 0
-      directionToPet = UMathLibrary.Normal(directionToPet)
-      pet2PlayerForwardDot = UMathLibrary.Dot_VectorVector(playerForward, directionToPet)
+  for npc, _ in pairs(npcDic) do
+    local npc2PlayerForwardDot = npc.PlayerForwardDotCache
+    if not npc2PlayerForwardDot then
+      local npcPos = npc:GetActorLocation()
+      local directionToNpc = UMathLibrary.Subtract_VectorVector(npcPos, playerPos)
+      directionToNpc.Z = 0
+      directionToNpc = UMathLibrary.Normal(directionToNpc)
+      npc2PlayerForwardDot = UMathLibrary.Dot_VectorVector(playerForward, directionToNpc)
     end
-    if maxDotProduct < pet2PlayerForwardDot then
-      maxDotProduct = pet2PlayerForwardDot
-      focusPet = petNpc
+    if maxDotProduct < npc2PlayerForwardDot then
+      maxDotProduct = npc2PlayerForwardDot
+      focusNpc = npc
     end
   end
-  if self.focusPet ~= focusPet then
-    self.focusPet = focusPet
-    Log.Debug("[NPCInteractMainUI] focusPet changed:", focusPet and focusPet:DebugNPCNameAndID())
+  if self.focusNpc ~= focusNpc then
+    self.focusNpc = focusNpc
+    Log.Debug("[NPCInteractMainUI] focusNpc changed:", focusNpc and focusNpc:DebugNPCNameAndID())
     return true
   end
   return false
+end
+
+function UMG_NPCInteractMain_C:IsFocusTypeOption(option)
+  local type = self:GetOptionType(option)
+  if type == FocusType.Pet or type == FocusType.HomePetOption or type == FocusType.FurnitureOption then
+    return true
+  end
+  return false
+end
+
+function UMG_NPCInteractMain_C:GetOptionType(option)
+  if option.GetEnableCondition and option:GetEnableCondition() == _G.Enum.OptionVisibleCondition.ENABLE_CONDITION_OPTION_TYPE then
+    return FocusType.HomePetOption
+  end
+  if option.IsPetOption and option:IsPetOption() then
+    return FocusType.Pet
+  end
+  if option.GetID and (option:GetID() == 720000011 or option:GetID() == 720000012) then
+    return FocusType.FurnitureOption
+  end
+  return FocusType.Default
 end
 
 function UMG_NPCInteractMain_C:OnScrollEnded(Index)

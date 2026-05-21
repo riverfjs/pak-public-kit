@@ -14,14 +14,7 @@ function TaskQueryHandler:Ctor(_taskList)
   EventDispatcher():Attach(self)
   self.taskList = _taskList and table.copy(_taskList) or {}
   self.taskStatusData = {}
-  for _, taskId in ipairs(self.taskList) do
-    local taskObj = _G.TaskModuleCmd and _G.NRCModuleManager:DoCmd(_G.TaskModuleCmd.getTaskByID, taskId)
-    if taskObj then
-      self:SetTaskStatus(taskId, taskObj.state)
-    else
-      self:SetTaskStatus(taskId, ProtoEnum.EMTaskState.EM_TASK_STATE_INIT)
-    end
-  end
+  self:RefreshAllTaskStatusByTaskSystemData(true)
 end
 
 function TaskQueryHandler:GetTaskList()
@@ -103,6 +96,7 @@ function TaskQueryHandler:QueryTaskStatus(caller, callback, ...)
     end
   end
   
+  self:RefreshAllTaskStatusByTaskSystemData(false)
   if not self:CheckAllTaskDone() then
     local req = _G.ProtoMessage:newZoneTaskQueryReq()
     req.task_list = self.taskList
@@ -155,6 +149,22 @@ function TaskQueryHandler:SetTaskStatus(taskId, taskStatus)
   end
   self.taskStatusData[taskId] = taskStatus
   self:SendEvent(TaskQueryHandler.Event.TaskStatusChanged, taskId, taskStatus)
+end
+
+function TaskQueryHandler:RefreshTaskStatusByTaskSystemData(taskId)
+  local taskObj = _G.TaskModuleCmd and _G.NRCModuleManager:DoCmd(_G.TaskModuleCmd.getTaskByID, taskId)
+  if taskObj then
+    self:SetTaskStatus(taskId, taskObj.state)
+    return taskObj.state
+  end
+end
+
+function TaskQueryHandler:RefreshAllTaskStatusByTaskSystemData(initFlag)
+  for _, taskId in ipairs(self.taskList) do
+    if not self:RefreshTaskStatusByTaskSystemData(taskId) and initFlag then
+      self:SetTaskStatus(taskId, ProtoEnum.EMTaskState.EM_TASK_STATE_INIT)
+    end
+  end
 end
 
 return TaskQueryHandler

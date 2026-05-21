@@ -239,7 +239,7 @@ function FadeComponent:SetMeshFade(mesh, alpha)
   elseif mesh.SetMeshAlpha then
     mesh:SetMeshAlpha(1 - alpha)
   else
-    self.PlayerCameraManager.BP_FadeComponent:SetMeshAlpha(1 - alpha, mesh)
+    UE.URocoPlayerBlueprintFunctionLibrary.SetCharacterAlpha(mesh, 1 - alpha)
   end
 end
 

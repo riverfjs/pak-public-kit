@@ -22,8 +22,13 @@ function DialogueUtils.GetHero()
   return player
 end
 
-function DialogueUtils.FindNPC(id)
-  local npc = _G.NRCModeManager:DoCmd(_G.NPCModuleCmd.FindNPCByConfigId, id)
+function DialogueUtils.FindNPC(id, npc_content_id)
+  npc_content_id = npc_content_id or 0
+  local npc = npc_content_id > 0 and _G.NRCModeManager:DoCmd(_G.NPCModuleCmd.GetNpcByRefreshID, npc_content_id) or nil
+  if _G.RocoEnv.IS_EDITOR and npc and npc.config and npc.config.id ~= id then
+    Log.WarningFormat("DialogueUtils.FindNPC: npc id %d \229\146\140 npc refresh content id %d\239\188\136\229\175\185\229\186\148npc id %d) \228\184\141\229\140\185\233\133\141!", id or 0, npc_content_id or 0, npc.config.id or 0)
+  end
+  npc = npc or _G.NRCModeManager:DoCmd(_G.NPCModuleCmd.FindNPCByConfigId, id)
   return npc
 end
 
@@ -179,7 +184,7 @@ function DialogueUtils.RestoreBornTransform(Actor)
   if not View then
     return
   end
-  local Pos = Actor.serverPos
+  local Pos = Actor.landPos
   local Rot = Actor.serverDataRotate
   if Pos and Rot then
     Actor:SetActorRotation(Rot)
@@ -253,10 +258,7 @@ end
 function DialogueUtils.CalcLookAt(FromActor, ToPos)
 end
 
-function DialogueUtils.GetActor(actor, npc, fsm)
-  if fsm then
-    return DialogueUtils.GrabActor(actor, fsm)
-  end
+function DialogueUtils.GetActor(actor, npc)
   if -1 == actor then
     return DialogueUtils.GetHero()
   elseif -2 == actor then
@@ -266,9 +268,12 @@ function DialogueUtils.GetActor(actor, npc, fsm)
   end
 end
 
-function DialogueUtils.GrabActor(ActorID, Fsm)
-  if not ActorID or 0 == ActorID then
+function DialogueUtils.GrabActor(ActorID, Fsm, NPCContentID)
+  if (not ActorID or 0 == ActorID) and (not NPCContentID or 0 == NPCContentID) then
     return nil
+  end
+  if ActorID and ActorID < 0 and NPCContentID and NPCContentID > 0 then
+    Log.WarningFormat("DialogueUtils.GrabActor: ActorID is negative but NPCContentID is positive. NPCContentID will be discarded. ActorID: %d, NPCContentID: %d", ActorID, NPCContentID)
   end
   if Fsm then
     local Extras = Fsm:GetProperty("ExtraActors")
@@ -294,8 +299,8 @@ function DialogueUtils.GrabActor(ActorID, Fsm)
   if -1 == ActorID then
     return DialogueUtils.GetHero()
   end
-  if ActorID > 0 then
-    local Actor = DialogueUtils.FindNPC(ActorID)
+  if ActorID >= 0 then
+    local Actor = DialogueUtils.FindNPC(ActorID, NPCContentID)
     return Actor
   end
   return nil
@@ -325,7 +330,7 @@ function DialogueUtils.ExtraActorView(Actor)
   return nil
 end
 
-function DialogueUtils.GrabActorView(ActorID, Fsm)
+function DialogueUtils.GrabActorView(ActorID, Fsm, NPCContentID)
   if -5 == ActorID then
     local Player = DialogueUtils.GetPlayer()
     local Controller = DialogueUtils.GetController(Player)
@@ -342,7 +347,7 @@ function DialogueUtils.GrabActorView(ActorID, Fsm)
       return ViewTarget, nil
     end
   end
-  local Actor = DialogueUtils.GrabActor(ActorID, Fsm)
+  local Actor = DialogueUtils.GrabActor(ActorID, Fsm, NPCContentID)
   if not Actor then
     return nil, nil
   end
@@ -377,7 +382,7 @@ function DialogueUtils.ActorToString(Actor)
   return ActorName
 end
 
-function DialogueUtils.GrabActorTransform(ActorID, Fsm, Default)
+function DialogueUtils.GrabActorTransform(ActorID, Fsm, NPCContentID)
   local ActorTrans
   if -7 == ActorID then
     ActorTrans = SceneUtils.GetWorldOriginTransform()
@@ -390,8 +395,7 @@ function DialogueUtils.GrabActorTransform(ActorID, Fsm, Default)
     ActorTrans = UE.FTransform(AbsoluteTransform.Rotation, NewLoc, AbsoluteTransform.Scale3D)
     return ActorTrans
   end
-  local View, TargetActor = DialogueUtils.GrabActorView(ActorID, Fsm)
-  View = View or DialogueUtils.ExtraActorView(Default, Fsm)
+  local View, TargetActor = DialogueUtils.GrabActorView(ActorID, Fsm, NPCContentID)
   if not View then
     Log.Error("\230\151\160\230\179\149\230\137\190\229\136\176\230\140\135\229\174\154\231\154\132\232\167\146\232\137\178view object is nil", ActorID)
     return nil, nil, nil
@@ -1156,6 +1160,7 @@ function DialogueUtils.ToggleMovement(Actor, bEnable)
     else
       CharacterMovement.OnDirectGoalMoveFinish:Unbind()
       CharacterMovement:FinishDirectGoalMove(false)
+      CharacterMovement.Velocity = UE4Helper.ZeroVector
       CharacterMovement:DisableMovement()
     end
   end
@@ -1193,6 +1198,37 @@ function DialogueUtils.ToggleHideDialogueBlack()
   DialogueUtils.HideDialogueBlack = not DialogueUtils.HideDialogueBlack
   _G.NRCEventCenter:DispatchEvent(DialogueModuleEvent.OnHideDialogueBlackChange, DialogueUtils.HideDialogueBlack)
   Log.ErrorFormat("DialogueUtils.ToggleHideDialogueBlack to %s", DialogueUtils.HideDialogueBlack and "True" or "False")
+end
+
+function DialogueUtils.IsEntryDialogue(DialogueFSM)
+  if not DialogueFSM then
+    return false
+  end
+  local CurrentOption = DialogueFSM:GetProperty("CurrentOption")
+  local OptionConf = CurrentOption and CurrentOption.config
+  OptionConf = OptionConf or DialogueFSM:GetProperty("OptionConf")
+  if not OptionConf then
+    return false
+  end
+  if OptionConf.action.action_type ~= Enum.ActionType.ACT_DIALOG then
+    return false
+  end
+  local CurConf = DialogueFSM:GetProperty("CurrentDialogue")
+  if not CurConf then
+    return false
+  end
+  local CurConfID = CurConf.id
+  local LastConfID = DialogueFSM:GetProperty("LastConfID", 0)
+  return tonumber(OptionConf.action.action_param1) == CurConfID and 0 == LastConfID
+end
+
+function DialogueUtils.SetAudioGender(InPlayer)
+  local isMale = not InPlayer or not InPlayer.serverData or not InPlayer.serverData.base or 1 == InPlayer.serverData.base.gender
+  if isMale then
+    _G.NRCAudioManager:SetGlobalSwitch("Player_Gender", "Male")
+  else
+    _G.NRCAudioManager:SetGlobalSwitch("Player_Gender", "Female")
+  end
 end
 
 return DialogueUtils

@@ -28,6 +28,10 @@ function UMG_PetSkillItem_C:OnDestruct()
     _G.DelayManager:CancelDelayById(self.DelayHandle)
     self.DelayHandle = nil
   end
+  local loadCloudNor4MaskRequest = self.loadCloudNor4MaskRequest
+  if loadCloudNor4MaskRequest then
+    _G.NRCResourceManager:UnLoadRes(loadCloudNor4MaskRequest)
+  end
 end
 
 function UMG_PetSkillItem_C:OnEnable()
@@ -48,13 +52,13 @@ function UMG_PetSkillItem_C:OnItemUpdate(data, datalist, index)
     self.bFantastic = data.petData.blood_id == Enum.PetBloodType.PBT_FANTASTIC and data.skillData.skill_src == Enum.PetNewSkillSrc.PNSS_PET_BLOOD
   end
   if self.NRCImageNor_3 then
-    self.NRCImageNor_3:SetRenderOpacity(1)
+    self.NRCImageNor_3:SetVisibility(UE4.ESlateVisibility.Visible)
   end
   if 1 == data.mode and not self.data.skillData.is_learned then
     self:SetVisibility(UE4.ESlateVisibility.Visible)
   elseif -1 == data.mode then
     if self.NRCImageNor_3 then
-      self.NRCImageNor_3:SetRenderOpacity(0)
+      self.NRCImageNor_3:SetVisibility(UE4.ESlateVisibility.Collapsed)
     end
   else
     self:SetVisibility(UE4.ESlateVisibility.Visible)
@@ -115,7 +119,14 @@ function UMG_PetSkillItem_C:UpdateItemInfo()
         end
       end
       local pos = self.data.skillData.pos
-      if self.data.skillData.is_equipped and pos >= 1 and pos <= 4 and pos then
+      if self.data.herbologyBadgeLockedSkillId then
+        if self.data.skillData.id == self.data.herbologyBadgeLockedSkillId then
+          self.OrderBox:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+          self.Number:SetText(1)
+        else
+          self.OrderBox:SetVisibility(UE4.ESlateVisibility.Collapsed)
+        end
+      elseif self.data.skillData.is_equipped and pos >= 1 and pos <= 4 and pos then
         self.OrderBox:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
         self.Number:SetText(pos)
         isEquip = true
@@ -149,6 +160,7 @@ function UMG_PetSkillItem_C:UpdateItemInfo()
   self:SetSelectedSate(isEquip)
   self:SetOnNewState()
   self:ShowBeastSkill()
+  self:RefreshFantasticSkillImages()
 end
 
 function UMG_PetSkillItem_C:SetSelectedSate(isSelected)
@@ -161,7 +173,7 @@ function UMG_PetSkillItem_C:SetSelectedSate(isSelected)
     self.NRCImageNor_3:SetColorAndOpacity(bgColor)
   end
   if -1 == self.data.mode and self.NRCImageNor_3 then
-    self.NRCImageNor_3:SetRenderOpacity(0)
+    self.NRCImageNor_3:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
   if self.SkillShuIcon_bg then
     self.SkillShuIcon_bg:SetVisibility(UE4.ESlateVisibility.Collapsed)
@@ -212,6 +224,82 @@ function UMG_PetSkillItem_C:ShowBeastSkill()
   end
 end
 
+function UMG_PetSkillItem_C:RefreshFantasticSkillImages()
+  local data = self.data
+  local skillData = data and data.skillData
+  local isNightmare = data and data.isNightmare
+  local skillSrc = skillData and skillData.skill_src
+  local isPnssPetBlood = skillSrc == Enum.PetNewSkillSrc.PNSS_PET_BLOOD
+  local isFantastic = self.bFantastic or false
+  if isFantastic or isNightmare and isPnssPetBlood then
+    local skillId = skillData and skillData.id
+    local season_id = skillData and skillData.season_id
+    local paths = BattleUtils.GetFantasticBackgroundPathWithSkillAndSeason(skillId, season_id)
+    local cloudNm3 = paths and paths.cloudNm3
+    local cloudNm5 = paths and paths.cloudNm5
+    local cloudNor4 = paths and paths.cloudNor4
+    local cloudNor4Mask = paths and paths.cloudNor4Mask
+    local cloudNor4MaskUTiling = paths and paths.cloudNor4MaskUTiling
+    local cloudNor4MaskVTiling = paths and paths.cloudNor4MaskVTiling
+    local cloudNor4MaskUSpeed = paths and paths.cloudNor4MaskUSpeed
+    local cloudNor4MaskVSpeed = paths and paths.cloudNor4MaskVSpeed
+    local cloudNor5 = paths and paths.cloudNor5
+    if cloudNm3 then
+      self.Select_NM_3:SetPath(cloudNm3)
+    end
+    if cloudNm5 then
+      self.Select_NM_5:SetPath(cloudNm5)
+    end
+    local NRCImageNor_4 = self.NRCImageNor_4
+    if cloudNor4 and UE.UObject.IsValid(NRCImageNor_4) then
+      NRCImageNor_4:SetPath(cloudNor4)
+      local dynamicMaterial = NRCImageNor_4:GetDynamicMaterial()
+      if UE.UObject.IsValid(dynamicMaterial) then
+        if cloudNor4MaskUTiling then
+          dynamicMaterial:SetScalarParameterValue("MaskU_Tiling", cloudNor4MaskUTiling)
+        end
+        if cloudNor4MaskVTiling then
+          dynamicMaterial:SetScalarParameterValue("MaskV_Tiling", cloudNor4MaskVTiling)
+        end
+        if cloudNor4MaskUSpeed then
+          dynamicMaterial:SetScalarParameterValue("MaskU_Speed", cloudNor4MaskUSpeed)
+        end
+        if cloudNor4MaskVSpeed then
+          dynamicMaterial:SetScalarParameterValue("MaskV_Speed", cloudNor4MaskVSpeed)
+        end
+      end
+    end
+    if cloudNor4Mask then
+      local loadCloudNor4MaskRequest = _G.NRCResourceManager:LoadResAsync(self, cloudNor4Mask, 255, -1, function(caller, resRequest, asset)
+        self:OnLoadCloudNor4MaskComplete(true, asset)
+      end, function(caller, resRequest, errorMessage)
+        self:OnLoadCloudNor4MaskComplete(false, errorMessage)
+      end, nil)
+      self.loadCloudNor4MaskRequest = loadCloudNor4MaskRequest
+    end
+    if cloudNor5 then
+      self.NRCImageNor_5:SetPath(cloudNor5)
+    end
+  end
+end
+
+function UMG_PetSkillItem_C:OnLoadCloudNor4MaskComplete(ok, res1)
+  local asset, errorMessage
+  if ok then
+    asset = res1
+  else
+    errorMessage = res1
+    Log.Error("UMG_PetSkillItem_C:OnLoadCloudNor4MaskComplete load failed", errorMessage)
+  end
+  local NRCImageNor_4 = self.NRCImageNor_4
+  if UE.UObject.IsValid(NRCImageNor_4) then
+    local dynamicMaterial = NRCImageNor_4:GetDynamicMaterial()
+    if UE.UObject.IsValid(dynamicMaterial) and UE.UObject.IsValid(asset) then
+      dynamicMaterial:SetTextureParameterValue("Mask_Texture", asset)
+    end
+  end
+end
+
 function UMG_PetSkillItem_C:RemoveSkillNewState(gid, skillid)
   if self.data and self.data.petData and self.data.skillData and self.NRCImage_new.Visibility == UE4.ESlateVisibility.Visible then
     local petgid = self.data.petData.gid
@@ -235,13 +323,17 @@ function UMG_PetSkillItem_C:OnPetAssumptionEquipSkillChange(poToSkillIdDic, skil
     if _skillDic and _skillDic[data.skillData.id] then
       self.data.skillData.is_equipped = true
       self.data.skillData.pos = _skillDic[data.skillData.id]
-      self.OrderBox:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-      self.Number:SetText(_skillDic[data.skillData.id])
+      if not data.herbologyBadgeLockedSkillId then
+        self.OrderBox:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+        self.Number:SetText(_skillDic[data.skillData.id])
+      end
       self:SetSelectedSate(true)
     else
       self.data.skillData.is_equipped = false
       self.data.skillData.pos = 0
-      self.OrderBox:SetVisibility(UE4.ESlateVisibility.Hidden)
+      if not data.herbologyBadgeLockedSkillId then
+        self.OrderBox:SetVisibility(UE4.ESlateVisibility.Hidden)
+      end
       self:SetSelectedSate(false)
     end
   end

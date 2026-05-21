@@ -1,5 +1,6 @@
 local UMG_EntryHud_C = _G.NRCPanelBase:Extend("UMG_EntryHud_C")
 local BattleEvent = require("NewRoco.Modules.Core.Battle.Common.BattleEvent")
+local BeastPlayEnterPerform = require("NewRoco.Modules.Core.Battle.Fsm.Actions.TeamBeastEnter.BeastPlayEnterPerform")
 
 function UMG_EntryHud_C:OnActive(battlePlayerData, ballPath, enemyBallPath, successCallBack)
   UE4.UKismetSystemLibrary.ExecuteConsoleCommand(UE4Helper.GetCurrentWorld(), "r.shadow.csmcaching 0")
@@ -54,9 +55,9 @@ function UMG_EntryHud_C:OnAnimationFinished(anim)
 end
 
 function UMG_EntryHud_C:SetupImage(imageWidget)
-  local size = UE4.UWidgetLayoutLibrary.GetViewportSize(UE4Helper.GetCurrentWorld())
-  local aspectRatio = size.X / size.Y
-  imageWidget.Brush.ImageSize.Y = imageWidget.Brush.ImageSize.X / aspectRatio
+  local factor = BeastPlayEnterPerform.GetViewportAdaptFactor()
+  Log.Debug("[rtSizeX]", "imageWidget.Brush.ImageSize.Y(before)", imageWidget.Brush.ImageSize.Y, "imageWidget.Brush.ImageSize.X", imageWidget.Brush.ImageSize.X)
+  imageWidget.Brush.ImageSize.Y = imageWidget.Brush.ImageSize.Y / factor
   imageWidget:SetRenderScale(UE.FVector2D(1, 1))
 end
 

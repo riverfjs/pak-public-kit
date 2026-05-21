@@ -77,7 +77,10 @@ function BattleFBP2SummerAction:OnSkillLoad(isLoadSucceed, resPath)
     blackBoard:SetValueAsBool("WaitSummerPet", true)
   end
   self.skillObj = skillObj
-  self.RocoSkill:PlaySkill(skillObj)
+  local result = self.RocoSkill:PlaySkill(skillObj)
+  if result ~= UE4.ESkillStartResult.Success then
+    self:OnSkillComplete()
+  end
 end
 
 function BattleFBP2SummerAction:OpenSelectPetPanel()

@@ -28,7 +28,6 @@ function UMG_Ability_Slot_PetCare_C:AddEventListener()
     homeModule:RegisterEvent(self, HomeModuleEvent.OnEnterHomeMap, self.RefreshUI)
     homeModule:RegisterEvent(self, HomeModuleEvent.OnExitHomeMap, self.RefreshUI)
   end
-  self:AddButtonListener(self.Btn_Slot, self.OnSlotPressed)
   FunctionBanManager:AddFunctionStateListener(Enum.PlayerFunctionBanType.PFBT_HOME_PET_CALL, self, self.OnFunctionBan)
   _G.NRCEventCenter:RegisterEvent("UMG_Ability_Slot_PetCare_C", self, _G.NRCGlobalEvent.ON_RECONNECT_FINISH, self.OnReconnectFinish)
 end

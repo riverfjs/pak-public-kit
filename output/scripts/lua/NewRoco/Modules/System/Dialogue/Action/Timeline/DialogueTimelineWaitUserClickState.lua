@@ -35,6 +35,10 @@ function DialogueTimelineWaitUserClickState:OnFinish()
 end
 
 function DialogueTimelineWaitUserClickState:OnTalkFinished(DialogueConfOnPanel)
+  if DialogueConfOnPanel and DialogueConfOnPanel.id ~= self.CurrentDialogue.id then
+    Log.Error("dialogue id mismatch", DialogueConfOnPanel.id, self.CurrentDialogue.id)
+    return
+  end
   Log.DebugFormat("DialogueTimelineWaitUserClickState:OnTalkFinished")
   self:FastforwardState(0.0)
   self.fsm:SetProperty("bClickIntercept", false)

@@ -1,5 +1,6 @@
 local PetUIModuleEvent = require("NewRoco.Modules.System.PetUI.PetUIModuleEvent")
 local BagModuleEnum = reload("NewRoco.Modules.System.Bag.BagModuleEnum")
+local BagModuleUtils = require("NewRoco.Modules.System.Bag.BagModuleUtils")
 local PetUtils = require("NewRoco.Utils.PetUtils")
 local BagModule = NRCModuleBase:Extend("BagModule")
 local BagModuleEvent = reload("NewRoco.Modules.System.Bag.BagModuleEvent")
@@ -9,6 +10,7 @@ local TipObject = require("NewRoco.Modules.System.TipsModule.Utils.TipObject")
 local TipsDisplayController = require("NewRoco.Modules.System.TipsModule.TipsDisplayController")
 local TipsDisplayExecutor = require("NewRoco.Modules.System.TipsModule.TipsDisplayExecutor")
 local SceneEvent = require("NewRoco.Modules.Core.Scene.Common.SceneEvent")
+local PetUIModuleEnum = reload("NewRoco.Modules.System.PetUI.PetUIModuleEnum")
 
 function BagModule:OnConstruct()
   _G.BagModuleCmd = reload("NewRoco.Modules.System.Bag.BagModuleCmd")
@@ -89,8 +91,6 @@ function BagModule:OnConstruct()
   self:RegisterCmd(_G.BagModuleCmd.ShowDescPanel, self.OnCmdShowDescPanel)
   self:RegisterCmd(_G.BagModuleCmd.HideDescPanel, self.OnCmdHideDescPanel)
   self:RegisterCmd(_G.BagModuleCmd.ShowCloseBtnPanel, self.OnCmdShowCloseBtnPanel)
-  self:RegisterCmd(_G.BagModuleCmd.OpenGradePointPanel, self.OnCmdOpenGradePointPanel)
-  self:RegisterCmd(_G.BagModuleCmd.ShowGradePointLabel_1, self.OnCmdShowGradePointLabel_1)
   self:RegisterCmd(_G.BagModuleCmd.FilterPet, self.OnCmdFilterPet)
   self:RegisterCmd(_G.BagModuleCmd.FilterDepart, self.OnCmdFilterDepart)
   self:RegisterCmd(_G.BagModuleCmd.FilterClassify, self.OnCmdFilterClassify)
@@ -105,7 +105,6 @@ function BagModule:OnConstruct()
   self:RegisterCmd(_G.BagModuleCmd.OpenBagUsePopupSuccessPanel, self.OnCmdOpenBagUsePopupSuccessPanel)
   self:RegisterCmd(_G.BagModuleCmd.OpenTalentPopupSuccessPanel, self.OnCmdOpenTalentPopupSuccessPanel)
   self:RegisterCmd(_G.BagModuleCmd.OpenCharacterPopupSuccessPanel, self.OnCmdOpenCharacterPopupSuccessPanel)
-  self:RegisterCmd(_G.BagModuleCmd.ReceiveGpContestRewardReq, self.OnCmdReceiveGpContestRewardReq)
   self:RegisterCmd(_G.BagModuleCmd.OpenGiftVoucherSharing, self.OnCmdOpenGiftVoucherSharing)
   self:RegisterCmd(_G.BagModuleCmd.CloseGiftVoucherSharing, self.OnCmdCloseGiftVoucherSharing)
   self:RegisterCmd(_G.BagModuleCmd.OnCmdGetTypeBagItem, self.OnCmdGetTypeBagItem)
@@ -119,6 +118,8 @@ function BagModule:OnConstruct()
   self:RegisterCmd(_G.BagModuleCmd.GetBallNormalSortList, self.OnCmdGetBallNormalSortList)
   self:RegisterCmd(_G.BagModuleCmd.CheckIsSpeciesMedal, self.OnCmdCheckIsSpeciesMedal)
   self:RegisterCmd(_G.BagModuleCmd.GetOriginalPet, self.OnCmdGetOriginalPet)
+  self:RegisterCmd(_G.BagModuleCmd.OpenBagExpiredItemsConversion, self.OnCmdOpenBagExpiredItemsConversion)
+  self:RegisterCmd(_G.BagModuleCmd.ZoneBagItemExpireCheckReq, self.OnCmdSendZoneCheckBagItemExpireReq)
   self:RegPanel("BagMain", "UMG_Bag", _G.Enum.UILayerType.UI_LAYER_FULLSCREEN, nil, "open", "close", nil)
   self:RegPanel("BagPopUp", "UMG_Bag_PopUp", _G.Enum.UILayerType.UI_LAYER_POPUP)
   self:RegPanel("Bag_CommonPopUp", "UMG_Bag_CommonPopUp", _G.Enum.UILayerType.UI_LAYER_POPUP)
@@ -128,7 +129,6 @@ function BagModule:OnConstruct()
   self:RegPanel("PetCharacterPopUp", "UMG_PetCharacter_PopUp", _G.Enum.UILayerType.UI_LAYER_POPUP)
   self:RegPanel("CharacterPopupSuccessPanel", "UMG_PetCharacter_PopUp", _G.Enum.UILayerType.UI_LAYER_POPUP)
   self:RegPanel("PetAttributePopUp", "UMG_PetAttribute", _G.Enum.UILayerType.UI_LAYER_POPUP)
-  self:RegPanel("GradePointPanel", "GradePoint/UMG_GradePointPanel", _G.Enum.UILayerType.UI_LAYER_POPUP)
   self:RegPanel("BagTips", "UMG_BagTips", _G.Enum.UILayerType.UI_LAYER_POPUP)
   self:RegPanel("Hatch", "UMG_Bag_Hatch", _G.Enum.UILayerType.UI_LAYER_POPUP)
   self:RegPanel("BagSort", "UMG_BagSort", _G.Enum.UILayerType.UI_LAYER_POPUP)
@@ -144,14 +144,15 @@ function BagModule:OnConstruct()
   self:RegPanel("BagBloodChange", "UseBlood/UMG_BagChangeSelect", _G.Enum.UILayerType.UI_LAYER_POPUP)
   self:RegPanel("MagicBook", "MagicBook/UMG_MagicBook", _G.Enum.UILayerType.UI_LAYER_POPUP, nil)
   self:RegPanel("Roster", "MagicBook/UMG_Roster", _G.Enum.UILayerType.UI_LAYER_POPUP, nil)
-  self:RegPanel("NPCRosterTip", "MagicBook/UMG_MagicBookTips", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, "Appear", "Disappear", true, true)
+  self:RegPanel("NPCRosterTip", "MagicBook/UMG_MagicBookTips", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, "Appear", "Disappear", true, true):SetEnableTouchMask(false)
   self:RegPanel("EvolutionaryAgentUse", "Nightmare/UMG_EvolutionaryAgentUse", _G.Enum.UILayerType.UI_LAYER_POPUP)
   self:RegPanel("UMG_FurnitureScreening", "UMG_FurnitureScreening", _G.Enum.UILayerType.UI_LAYER_POPUP)
   self:RegPanel("UMG_FurnitureDisassemblyPanel", "UMG_FurnitureDisassemblyPanel", _G.Enum.UILayerType.UI_LAYER_POPUP)
   self:RegPanel("UMG_GiftVoucherSharing", "UMG_GiftVoucherSharing", _G.Enum.UILayerType.UI_LAYER_POPUP)
-  self:RegPanel("UniversalTips", "UMG_BagGiftTips", _G.Enum.UILayerType.UI_LAYER_POPUP, "Page_Out", true, true)
+  self:RegPanel("UniversalTips", "UMG_BagGiftTips", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, "Page_Out", true, true)
   self:RegPanel("UMG_CulturalActivitiesShaer", "CulturalActivities/UMG_CulturalActivities_Share", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, "In", "Out", true)
   self:RegPanel("UMG_CulturalActivitiesTips", "CulturalActivities/UMG_CulturalActivities_PopUp", _G.Enum.UILayerType.UI_LAYER_POPUP, nil, nil, nil, true)
+  self:RegPanel("BagExpiredItemsConversion", "UMG_Bag_ExpiredItemsConversion", _G.Enum.UILayerType.UI_LAYER_POPUP)
   self.NPCMap = {}
   self.totalNum = {}
   self.MagicId = 100701
@@ -259,6 +260,7 @@ function BagModule:CmdOpenBagMainPanelByTableIndex(Index, BagItemID)
       end
     end
   end
+  Index = Index and tonumber(Index)
   self:OpenPanel("BagMain", nil, nil, Index)
 end
 
@@ -373,10 +375,15 @@ function BagModule:ZoneGetBagItemInfoByPageRsp(rsp)
       for i, BagItem in ipairs(rsp.bag_info.item_list) do
         local IsHasItemList = false
         for j = #self.TotalBagInfo.item_list, 1, -1 do
-          if BagItem.type == self.TotalBagInfo.item_list[j].type then
+          if BagItem and BagItem.type == self.TotalBagInfo.item_list[j].type then
             IsHasItemList = true
-            for k, Item in ipairs(BagItem.items) do
-              table.insert(self.TotalBagInfo.item_list[j].items, Item)
+            if not BagItem.items then
+              Log.Debug("BagModule:ZoneGetBagItemInfoByPageRsp Not_Items", BagItem.type)
+            end
+            if BagItem.items then
+              for k, Item in ipairs(BagItem.items) do
+                table.insert(self.TotalBagInfo.item_list[j].items, Item)
+              end
             end
           end
         end
@@ -510,6 +517,8 @@ function BagModule:OnCmdZoneUseBagItemReq(gid, id, num, para, extraParam)
     end
   end
   self.useBagItemReqExtraParam = extraParam
+  self.num = num
+  self.id = id
   self.para = para
   _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_USE_BAG_ITEM_REQ, req, self, self.ZoneUseBagItemRsp, true)
 end
@@ -625,7 +634,7 @@ function BagModule:ZoneUseBagItemRsp(rsp)
       _G.NRCModuleManager:DoCmd(PetUIModuleCmd.RefreshPetRightPanel)
     end
     if bagItemInfo.lable_type == Enum.ItemLableType.ILT_PET_EGG and self.data.CacheHatchEggItem then
-      if self:HasPanel("BagMain") then
+      if self:HasPanel("BagMain") and _G.NRCPanelManager:CheckFullScreenPanelIsShowTop("BagMain") then
         local info = self.data.CacheHatchEggItem
         if self:HasPanel("Hatch") then
         else
@@ -635,11 +644,33 @@ function BagModule:ZoneUseBagItemRsp(rsp)
         _G.NRCModuleManager:DoCmd(PetUIModuleCmd.UpdateHatchingRightPanel)
         _G.NRCModuleManager:DoCmd(PetUIModuleCmd.OpenPetHatchingPanel, self.data.CacheHatchEggItem.gid, true)
       end
-    elseif bagItemInfo.lable_type == Enum.ItemLableType.ILT_PRECIOUS and bagItemInfo.type == Enum.BagItemType.BI_GLASS_EGG_PIECE and rsp.ret_info.goods_change_info and rsp.ret_info.goods_change_info.changes then
+    elseif bagItemInfo.lable_type == Enum.ItemLableType.ILT_PRECIOUS and bagItemInfo.type == Enum.BagItemType.BI_GLASS_EGG_PIECE then
+      if rsp.ret_info.goods_change_info and rsp.ret_info.goods_change_info.changes then
+        for _, change in ipairs(rsp.ret_info.goods_change_info.changes) do
+          if change.bag_item and change.bag_item.egg_data and change.bag_item.gid then
+            _G.NRCModuleManager:DoCmd(PetUIModuleCmd.UpdateHatchingRightPanel)
+            _G.NRCModuleManager:DoCmd(PetUIModuleCmd.OpenPetHatchingPanel, change.bag_item.gid, true)
+            break
+          end
+        end
+      end
+    elseif bagItemInfo.lable_type == Enum.ItemLableType.ILT_PRECIOUS and bagItemInfo.item_behavior[1].use_action == _G.Enum.ItemBehavior.IB_PET_HATCH_PROCESS_ADD and rsp.ret_info.goods_change_info and rsp.ret_info.goods_change_info.changes then
       for _, change in ipairs(rsp.ret_info.goods_change_info.changes) do
         if change.bag_item and change.bag_item.egg_data and change.bag_item.gid then
-          _G.NRCModuleManager:DoCmd(PetUIModuleCmd.UpdateHatchingRightPanel)
-          _G.NRCModuleManager:DoCmd(PetUIModuleCmd.OpenPetHatchingPanel, change.bag_item.gid, true)
+          _G.NRCModuleManager:DoCmd(PetUIModuleCmd.CloseHatchingRightPanel, PetUIModuleEnum.PetHatchingRightPanelCloseReasonType.UsedIncubationProgressItem)
+          _G.NRCEventCenter:DispatchEvent(PetUIModuleEvent.OnUsedIncubationProgressItemSuccess, change.bag_item.gid, change.bag_item.egg_data.hatched_secs)
+          if self.id and self.num then
+            local BagItemConf = _G.DataConfigManager:GetBagItemConf(self.id)
+            if BagItemConf and BagItemConf.item_behavior[1] and BagItemConf.item_behavior[1].use_action and BagItemConf.item_behavior[1].use_action == _G.Enum.ItemBehavior.IB_PET_HATCH_PROCESS_ADD and BagItemConf.item_behavior[1].ratio and BagItemConf.item_behavior[1].ratio[1] and BagItemConf.item_behavior[1].ratio[1] > 0 then
+              local ItemAddProgressPercent = BagItemConf.item_behavior[1].ratio[1]
+              if ItemAddProgressPercent and 0 ~= ItemAddProgressPercent then
+                local AllPercent = ItemAddProgressPercent * self.num
+                _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, string.format(LuaText.HatchProgressAdd_4, AllPercent))
+              end
+              self.id = nil
+              self.num = nil
+            end
+          end
           break
         end
       end
@@ -1837,6 +1868,7 @@ function BagModule:RegPanel(name, path, layer, customDisableRendering, openAnimN
   registerData.enablePcEsc = not disablePcEsc
   registerData.disableLoadBlock = disableLoadBlock
   self:RegisterPanel(registerData)
+  return registerData
 end
 
 function BagModule:OnCmdClearBattleInfo()
@@ -1941,17 +1973,6 @@ function BagModule:OnCmdShowCloseBtnPanel()
   if self:HasPanel("BagMain") then
     local panel = self:GetPanel("BagMain")
     panel:ResetDescText(true)
-  end
-end
-
-function BagModule:OnCmdOpenGradePointPanel()
-  self:OpenPanel("GradePointPanel")
-end
-
-function BagModule:OnCmdShowGradePointLabel_1()
-  if self:HasPanel("GradePointPanel") then
-    local panel = self:GetPanel("GradePointPanel")
-    panel.Label_1:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
   end
 end
 
@@ -2236,30 +2257,6 @@ function BagModule:OnCmdTestOpenHatchPanel()
   end
 end
 
-function BagModule:OnCmdReceiveGpContestRewardReq(data)
-  local req = _G.ProtoMessage:newZoneReceiveGpContestRewardReq()
-  self.IsGetFinalReward = false
-  if data.final then
-    req.final = data.final
-    self.IsGetFinalReward = true
-  end
-  if data.seq then
-    req.seq = data.seq
-  end
-  _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_RECEIVE_GP_CONTEST_REWARD_REQ, req, self, self.ReceiveGPContestRewardRsp, true, false)
-end
-
-function BagModule:ReceiveGPContestRewardRsp(rsp)
-  if 0 == rsp.ret_info.ret_code then
-    if self:HasPanel("GradePointPanel") then
-      local panel = self:GetPanel("GradePointPanel")
-      panel:GetRewardRefresh(self.IsGetFinalReward)
-    end
-  else
-    Log.Error("\233\162\134\229\143\150\231\187\169\231\130\185\229\164\167\232\181\155\229\165\150\229\138\177\229\164\177\232\180\165\228\186\134\239\188\129\239\188\129\239\188\129")
-  end
-end
-
 function BagModule:OnCmdOpenGiftVoucherSharing(giftVoucherData)
   self:OpenPanel("UMG_GiftVoucherSharing", giftVoucherData)
 end
@@ -2374,7 +2371,86 @@ function BagModule:OnCmdGetOriginalPet(baseConfId)
       return evoConf.evolution_chain[1].petbase_id, evoConf.evolution_chain[1].pet_name
     end
   end
-  return nil, nil
+  return 0, ""
+end
+
+function BagModule:OnCmdOpenBagExpiredItemsConversion()
+  local req = _G.ProtoMessage:newZoneBagItemExpireConvertReq()
+  _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_BAG_ITEM_EXPIRE_CONVERT_REQ, req, self, self.ZoneBagItemExpireConvertRsp)
+end
+
+function BagModule:ZoneBagItemExpireConvertRsp(rsp)
+  if rsp.ret_info and 0 == rsp.ret_info.ret_code then
+    local filteredItems = {}
+    local currentTime = _G.ZoneServer:GetServerTime() / 1000
+    if rsp.bag_item_expire_list and rsp.bag_item_expire_list.items then
+      Log.Debug("BagModule:ZoneBagItemExpireConvertRsp", #rsp.bag_item_expire_list.items)
+      for _, itemInfo in ipairs(rsp.bag_item_expire_list.items) do
+        table.insert(filteredItems, itemInfo)
+      end
+    end
+    if #filteredItems > 0 then
+      Log.Debug("BagModule:filteredItems", #filteredItems)
+      local beforeConvertList = {}
+      local afterConvertList = {}
+      local expireGidList = {}
+      if filteredItems then
+        for _, expireInfo in ipairs(filteredItems) do
+          if expireInfo.gid then
+            table.insert(expireGidList, expireInfo.gid)
+          end
+          local bFound = false
+          for _, existingItem in ipairs(beforeConvertList) do
+            if existingItem.itemId == expireInfo.id then
+              local bagItemConf = _G.DataConfigManager:GetBagItemConf(expireInfo.id)
+              if bagItemConf and bagItemConf.can_stack and 1 == bagItemConf.can_stack then
+                existingItem.itemNum = existingItem.itemNum + (expireInfo.num or 1)
+                bFound = true
+              end
+              break
+            end
+          end
+          if not bFound then
+            local beforeItem = _G.NRCCommonItemIconData()
+            beforeItem.itemType = _G.Enum.GoodsType.GT_BAGITEM
+            beforeItem.itemId = expireInfo.id
+            beforeItem.itemNum = expireInfo.num or 1
+            beforeItem.IsShowExpire = true
+            beforeItem.bShowNum = true
+            beforeItem.bShowTip = true
+            table.insert(beforeConvertList, beforeItem)
+          end
+        end
+        afterConvertList = BagModuleUtils.GetConvertAfterItemsList(filteredItems)
+      end
+      if #afterConvertList > 0 then
+        self:OpenPanel("BagExpiredItemsConversion", beforeConvertList, afterConvertList, expireGidList, rsp.ret_info.goods_reward)
+      elseif expireGidList and #expireGidList > 0 then
+        Log.Debug("BagModule:expireGidList")
+        _G.NRCModuleManager:DoCmd(_G.BagModuleCmd.ZoneBagItemExpireCheckReq, expireGidList)
+      end
+    end
+  else
+    local desc = _G.LuaText:GetErrorDesc(rsp.ret_info.ret_code)
+    _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, desc, nil, nil, 1)
+  end
+end
+
+function BagModule:OnCmdSendZoneCheckBagItemExpireReq(gidList)
+  if not gidList or 0 == #gidList then
+    return
+  end
+  local req = _G.ProtoMessage:newZoneBagItemExpireCheckReq()
+  req.gids = gidList
+  _G.ZoneServer:SendWithHandler(_G.ProtoCMD.ZoneSvrCmd.ZONE_BAG_ITEM_EXPIRE_CHECK_REQ, req, self, self.ZoneCheckBagItemExpireRsp)
+end
+
+function BagModule:ZoneCheckBagItemExpireRsp(rsp)
+  if rsp.ret_info and 0 == rsp.ret_info.ret_code then
+  else
+    local desc = _G.LuaText:GetErrorDesc(rsp.ret_info.ret_code)
+    _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, desc, nil, nil, 1)
+  end
 end
 
 return BagModule

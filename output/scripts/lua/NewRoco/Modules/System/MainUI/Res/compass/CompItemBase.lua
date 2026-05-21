@@ -285,11 +285,13 @@ function CompItemBase:SetMapLayerIconVisibility()
     return
   end
   self.EntranceCave:SetPath(UEPath.MapLayerIcon)
+  local iconLayerId = 0
   if self.uiData.WorldMapConfig.map_tips_show_type == _G.Enum.MapTipsShowType.MAP_TIPS_CUSTOMIZED_POINT then
     local layerId = self.uiData.layer_id
     if layerId and layerId > 0 then
       local layerConf = DataConfigManager:GetLayeredWorldMapConf(layerId)
       if layerConf and 0 ~= layerConf.area_func_id then
+        iconLayerId = layerId
         self.EntranceCave:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
       end
     end
@@ -300,12 +302,12 @@ function CompItemBase:SetMapLayerIconVisibility()
       mapConfLayerId = worldMapConf.layered_id[1]
     end
     if mapConfLayerId > 0 then
+      iconLayerId = mapConfLayerId
+      self.EntranceCave:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    elseif self.uiData and self.uiData.layer_id and self.uiData.layer_id > 0 then
+      iconLayerId = self.uiData.layer_id
       self.EntranceCave:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     else
-      if self.uiData and self.uiData.layer_id and self.uiData.layer_id > 0 then
-        self.EntranceCave:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-        return
-      end
       local npcRefreshId = self.uiData.npc_refresh_id
       if nil == npcRefreshId or npcRefreshId <= 0 then
         return
@@ -322,9 +324,34 @@ function CompItemBase:SetMapLayerIconVisibility()
       if areaFuncId > 0 then
         local layerInfo = _G.NRCModuleManager:DoCmd(_G.BigMapModuleCmd.GetLayerInfoByAreaFuncId, areaFuncId)
         if layerInfo then
+          iconLayerId = layerInfo.id
           self.EntranceCave:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
         end
       end
+    end
+  end
+  if iconLayerId > 0 then
+    self:UpdateLayerIconColor(iconLayerId)
+  end
+end
+
+function CompItemBase:UpdateLayerIconColor(iconLayerId)
+  if not self.EntranceCave then
+    return
+  end
+  local bigMapModule = _G.NRCModuleManager:GetModule("BigMapModule")
+  if bigMapModule and bigMapModule.data then
+    local curLayerId = bigMapModule.data:GetCurMapLayerId()
+    local isSameLayer = curLayerId > 0 and curLayerId == iconLayerId
+    local showHighlight = isSameLayer
+    local isCamp = self.uiData.WorldMapConfig and self.uiData.WorldMapConfig.map_tips_show_type == _G.Enum.MapTipsShowType.MAP_TIPS_CAMP
+    if isCamp and showHighlight then
+      showHighlight = self.uiData.IsUnLock
+    end
+    if showHighlight then
+      self.EntranceCave:SetPath(UEPath.selectPath)
+    else
+      self.EntranceCave:SetPath(UEPath.MapLayerIcon)
     end
   end
 end

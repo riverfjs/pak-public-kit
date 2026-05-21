@@ -46,6 +46,7 @@ function RocoSkillProxy:Ctor(Path, Comp, Priority)
   self.SkillUseCase = UE4.ESkillUseCase.Common
   self._fakeDelay = 0
   self._fakeDelayHandler = -1
+  self.SkillPlayRate = 1
 end
 
 function RocoSkillProxy:GetSkillPath()
@@ -163,6 +164,7 @@ function RocoSkillProxy:OnSuccess(Request, Klass)
   if self.bStartFailedAsEnd then
     self.SkillObject:RegisterEventCallback("ActivateFailed", self, self.OnActivateFailed)
   end
+  self.SkillObject:SetPlayRate(self.SkillPlayRate)
   local Result = UE.ESkillStartResult.SystemsError
   if self.bWithLoadAndPlay then
     Result = self.SkillComp:LoadAndPlaySkill(self.SkillObject)
@@ -259,6 +261,10 @@ end
 
 function RocoSkillProxy:SetForcePlaySkill(bForcePlaySkill)
   self.forcePlaySkill = bForcePlaySkill
+end
+
+function RocoSkillProxy:SetPlayRate(PlayRate)
+  self.SkillPlayRate = PlayRate
 end
 
 function RocoSkillProxy:SendEvent(Name)

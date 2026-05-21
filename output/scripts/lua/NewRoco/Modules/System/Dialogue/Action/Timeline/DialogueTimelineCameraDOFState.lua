@@ -10,6 +10,12 @@ FsmUtils.MergeMembers(Base, DialogueTimelineCameraDOFState, {
     display_name = "\230\137\128\229\177\158\232\167\146\232\137\178ID"
   },
   {
+    name = "NPCContentID",
+    type = "SheetRef.NPC_REFRESH_CONTENT_CONF",
+    default = -1,
+    display_name = "\230\137\128\229\177\158\232\167\146\232\137\178ContentID"
+  },
+  {
     name = "Keys",
     default = {},
     display_name = "\229\133\179\233\148\174\229\184\167"

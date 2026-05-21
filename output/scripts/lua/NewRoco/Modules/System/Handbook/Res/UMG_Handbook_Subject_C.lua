@@ -7,15 +7,25 @@ function UMG_Handbook_Subject_C:OnConstruct()
   self.uiData = {}
   self:SetChildViews(self.PopUp2)
   self:OnAddEventListener()
-  self.CacheLeftHandbookList = {}
-  if self.module and self.module.data.CacheLeftHandbookList then
-    for k, v in pairs(self.module.data.CacheLeftHandbookList) do
-      self.CacheLeftHandbookList[k] = v
+  self:RefreshCacheLeftHandbookList()
+end
+
+function UMG_Handbook_Subject_C:RefreshCacheLeftHandbookList()
+  local sourceList
+  if self.module and self.module.HasPanel and self.module:HasPanel("HandbookMain") then
+    local handbookPanel = self.module:GetPanel("HandbookMain")
+    if handbookPanel and handbookPanel.curListDatas then
+      sourceList = handbookPanel.curListDatas
     end
   end
+  if not sourceList and self.module and self.module.data and self.module.data.CacheLeftHandbookList then
+    sourceList = self.module.data.CacheLeftHandbookList
+  end
+  self.CacheLeftHandbookList = sourceList or {}
 end
 
 function UMG_Handbook_Subject_C:OnActive(petBookInfo, pet_base_id)
+  self:RefreshCacheLeftHandbookList()
   self:SetCommonPopUpInfo()
   self:OnUpdateMoney()
   self:SetBtnArrow()
@@ -125,34 +135,45 @@ function UMG_Handbook_Subject_C:SetBtnArrow()
   self.Btn2:SetBtnInfo(CommonBtnArrowData2)
 end
 
-function UMG_Handbook_Subject_C:OnPreviousBtnClick()
-  local curBookIndex = _G.NRCModuleManager:DoCmd(_G.HandbookModuleCmd.GetCurIndex)
-  local preIndex, isPre = self:ComputeHandbookIndex(curBookIndex, false)
-  if isPre then
-    self:DispatchEvent(HandbookModuleEvent.OnTopicTurnPage, preIndex)
-  end
-  self:SetPageBtnVisible()
-end
-
-function UMG_Handbook_Subject_C:OnNextBtnClick()
-  local curBookIndex = _G.NRCModuleManager:DoCmd(_G.HandbookModuleCmd.GetCurIndex)
-  local nextIndex, isNext = self:ComputeHandbookIndex(curBookIndex, true)
-  if isNext then
-    self:DispatchEvent(HandbookModuleEvent.OnTopicTurnPage, nextIndex)
-  end
-  self:SetPageBtnVisible()
-end
-
-function UMG_Handbook_Subject_C:SetPageBtnVisible()
+function UMG_Handbook_Subject_C:GetCurBookIndexInCacheList()
   local curBookIndex = 0
-  if self.CacheLeftHandbookList then
-    for i, v in pairs(self.CacheLeftHandbookList) do
+  if self.CacheLeftHandbookList and self.uiData and self.uiData.petBookInfo then
+    for i, v in ipairs(self.CacheLeftHandbookList) do
       if v.HandbookId == self.uiData.petBookInfo.HandbookId then
         curBookIndex = i
         break
       end
     end
   end
+  return curBookIndex
+end
+
+function UMG_Handbook_Subject_C:OnPreviousBtnClick()
+  local curBookIndex = self:GetCurBookIndexInCacheList()
+  local preIndex, isPre = self:ComputeHandbookIndex(curBookIndex, false)
+  if isPre then
+    local preBookData = self.CacheLeftHandbookList[preIndex]
+    if preBookData then
+      self:DispatchEvent(HandbookModuleEvent.OnTopicTurnPage, preIndex, preBookData.HandbookId, preBookData.PetBaseId)
+    end
+  end
+  self:SetPageBtnVisible()
+end
+
+function UMG_Handbook_Subject_C:OnNextBtnClick()
+  local curBookIndex = self:GetCurBookIndexInCacheList()
+  local nextIndex, isNext = self:ComputeHandbookIndex(curBookIndex, true)
+  if isNext then
+    local nextBookData = self.CacheLeftHandbookList[nextIndex]
+    if nextBookData then
+      self:DispatchEvent(HandbookModuleEvent.OnTopicTurnPage, nextIndex, nextBookData.HandbookId, nextBookData.PetBaseId)
+    end
+  end
+  self:SetPageBtnVisible()
+end
+
+function UMG_Handbook_Subject_C:SetPageBtnVisible()
+  local curBookIndex = self:GetCurBookIndexInCacheList()
   local curLeftListDatas = self.CacheLeftHandbookList
   local redId = _G.NRCModuleManager:DoCmd(_G.HandbookModuleCmd.OnCmdGetCurAreaHandBookRedId, 1, 2)
   local nextIndex, isNext = self:ComputeHandbookIndex(curBookIndex, true)

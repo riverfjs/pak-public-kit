@@ -123,7 +123,8 @@ function UMG_Battle_ChangePetConfirm_3_C:ShowPetInfoAsCard(card)
   local battle_common_pet_info = card.petInfo.battle_common_pet_info
   local battle_inside_pet_info = card.petInfo.battle_inside_pet_info
   local is_mimic = card.petState:GetMimic()
-  self:ShowPetInfo_Class4(battle_common_pet_info, battle_inside_pet_info, bIsPartialShow, bIsEnemy, bIsMyself, bIsNameVisible, is_mimic)
+  local isSurpriseBox = card.petState:GetSurpriseBox()
+  self:ShowPetInfo_Class4(battle_common_pet_info, battle_inside_pet_info, bIsPartialShow, bIsEnemy, bIsMyself, bIsNameVisible, is_mimic, isSurpriseBox)
   self:UpdateSkillListInCombat(card)
   self:InitResonance()
 end
@@ -138,7 +139,7 @@ function UMG_Battle_ChangePetConfirm_3_C:ShowPetInfoAsInfo(info)
   self:UpdateSkillListInCombat_EnemyReversePet(info)
 end
 
-function UMG_Battle_ChangePetConfirm_3_C:ShowPetInfo_Class4(battle_common_pet_info, battle_inside_pet_info, bIsPartialShow, bIsEnemy, bIsMyself, bIsNameVisible, is_mimic)
+function UMG_Battle_ChangePetConfirm_3_C:ShowPetInfo_Class4(battle_common_pet_info, battle_inside_pet_info, bIsPartialShow, bIsEnemy, bIsMyself, bIsNameVisible, is_mimic, isSurpriseBox)
   is_mimic = is_mimic or false
   local skillId, lock = self:GetPetFeatrueSkillId_Class4(battle_common_pet_info, battle_inside_pet_info)
   self.FeatureSkill = skillId
@@ -156,6 +157,19 @@ function UMG_Battle_ChangePetConfirm_3_C:ShowPetInfo_Class4(battle_common_pet_in
     self.HeadIcon:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self.NameTxt:SetText(LuaText.A1_finalbattle_unknown_pet_name)
     self.CanvasPanel_130:SetVisibility(UE4.ESlateVisibility.Collapsed)
+  elseif isSurpriseBox then
+    self.Attr:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.Unknown:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    self.HeadIcon:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+    self.NameTxt:SetText(LuaText.A1_finalbattle_unknown_pet_name)
+    self.CanvasPanel_130:SetVisibility(UE4.ESlateVisibility.Collapsed)
+    local iconPath = PetUtils.GetPetIconPath({battle_common_pet_info = battle_common_pet_info, battle_inside_pet_info = battle_inside_pet_info})
+    if bIsPartialShow then
+      self.HeadIcon:SetIconPath(iconPath)
+    else
+      local uiParam = self.HeadIcon:PrepareUIParam(battle_inside_pet_info)
+      self.HeadIcon:SetPetIconPathAndMaterial(iconPath, battle_common_pet_info.mutation_type, battle_common_pet_info.glass_info, uiParam)
+    end
   else
     local name = PetUtils.GetPetShowName({battle_common_pet_info = battle_common_pet_info, battle_inside_pet_info = battle_inside_pet_info})
     self.NameTxt:SetText(name)

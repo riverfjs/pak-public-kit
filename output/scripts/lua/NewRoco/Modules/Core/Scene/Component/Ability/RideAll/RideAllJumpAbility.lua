@@ -71,6 +71,7 @@ function RideAllJumpAbility:DoJump()
   RidePet.CharacterMovement:Jump(tonumber(SkillConf.move_param_7), tonumber(SkillConf.move_param_8), JumpZSpeed, JumpXYSpeed, AllJumpXYSpeed - JumpXYSpeed)
   RidePet.BP_RidePetRoleHpComponent:ResetFalling()
   RidePet.BP_RidePetRoleHpComponent.lastMovementMode = UE.EMovementMode.MOVE_Falling
+  self.caster.viewObj:OnJumped()
 end
 
 function RideAllJumpAbility:AnalyPropertyModify(SkillConf)

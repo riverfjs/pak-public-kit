@@ -329,6 +329,7 @@ end
 function DialogueModule:OnOpenPanelCallback(panelName, panelIndex, isSucc)
   NRCModuleBase.OnOpenPanelCallback(self, panelName, panelIndex, isSucc)
   if not isSucc and "DialogueVideo" == panelName then
+    self:SetHasDialogue(false)
     Log.Error("DialogueModule open dialogue video panel failed!!!!!")
     local player = DialogueUtils.GetPlayer()
     if player and player.inputComponent then
@@ -445,9 +446,19 @@ function DialogueModule:GetBattleDialogue()
 end
 
 function DialogueModule:GetCommonDialogue()
-  for i = 1, #self.FsmStack do
+  for i = #self.FsmStack, 1, -1 do
     local Fsm = self.FsmStack[i]
     if not Fsm:GetProperty("bInBattle", false) then
+      return Fsm
+    end
+  end
+  return nil
+end
+
+function DialogueModule:GetLocalDialogue()
+  for i = #self.FsmStack, 1, -1 do
+    local Fsm = self.FsmStack[i]
+    if Fsm:GetProperty("IsLocalDialogue", false) then
       return Fsm
     end
   end
@@ -464,6 +475,7 @@ function DialogueModule:OnOpenMainPanel(EnterCallback, EnterCaller)
   end
   local ContextOption = self.DialogueFsm:GetProperty("CurrentOption")
   local UIType = DialogueConf.ui_source_type
+  UE4.UNRCTUIStatics.ReleaseCursorCapture(0)
   self:_OpenConfiggedPanel(DialogueConf, self.PreUIType, ContextOption, nil, EnterCallback, EnterCaller)
   self.PreUIType = UIType
   if _G.BattleManager.isInBattle then
@@ -580,6 +592,9 @@ function DialogueModule:TryCloseAllPanel(bIncludeBlack)
       self:ClosePanel("DialogueBlack")
     end
   end
+end
+
+function DialogueModule:CloseMessage()
   if self.SkipMessageOn or self.ExitConfirmMsgOn then
     _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.Dialog_CloseDialog)
   end
@@ -608,6 +623,9 @@ function DialogueModule:_OpenConfiggedPanel(DialogueConf, PreUIType, ContextOpti
   if bShowButtonSkip then
     self:ShowButtonSkip(self, self.OnSkipDialogue)
   else
+    if self.SkipMessageOn then
+      self:CloseMessage()
+    end
     self:CloseButtonSkip()
   end
   local bShowButtonExit = SpectatorMode
@@ -642,6 +660,7 @@ end
 
 function DialogueModule:OnCloseMainPanel()
   self:TryCloseAllPanel()
+  self:CloseMessage()
   self:CloseButtonAutoPlay()
   self:CloseButtonSkip()
 end
@@ -752,7 +771,6 @@ function DialogueModule:OnStartDialogueInBattle(TargetNpcBp, DialogueConfId, cal
     self.DialogueFsm:SetProperty("ExtraActors", BattleActors)
     self.DialogueFsm:SetProperty("ParentModule", self)
     self.DialogueFsm:SetProperty("NextConfID", DialogueConfId)
-    self.DialogueFsm:SetProperty("CurrentDialogue", DialogueConf)
     self.DialogueFsm:SetProperty("bInBattle", true)
     self.DialogueFsm:SetProperty("bUseBattleCamera", bUseBattleCamera)
     self.DialogueFsm:SetProperty("BornTransform", BornTransform)
@@ -845,7 +863,6 @@ function DialogueModule:OnStartDialogue(Option, Action, DialogueID, bIsRestore)
   self.DialogueFsm:SetProperty("TargetNPC", Option.owner)
   self.DialogueFsm:SetProperty("CurrentOption", Option)
   self.DialogueFsm:SetProperty("Options", nil)
-  self.DialogueFsm:SetProperty("CurrentDialogue", DialogueConf)
   self.DialogueFsm:SetProperty("bInBattle", false)
   self.DialogueFsm:SetProperty("bIsReconnect", false)
   self.DialogueFsm:SetProperty("CurrentAction", Action)
@@ -853,7 +870,6 @@ function DialogueModule:OnStartDialogue(Option, Action, DialogueID, bIsRestore)
   self.DialogueFsm:SetProperty("NextConfID", DialogueConf.id)
   self.DialogueFsm:SetProperty("Action", Action)
   self.DialogueFsm:SetProperty("ReturnCamera", true)
-  self.DialogueFsm:SetProperty("FirstConfID", DialogueConf.id)
   self.DialogueFsm:SetProperty("bIsRestore", bIsRestore)
   self.DialogueFsm:Play()
   DialogueUtils.ToggleInput(false)
@@ -909,20 +925,20 @@ function DialogueModule:OnStartDialogueLocal(Option, Action, DialogueID, bIsRest
     return
   end
   self:SetHasDialogue(true)
-  local CommonDialogue = self:GetCommonDialogue()
-  if CommonDialogue then
-    CommonDialogue:Stop()
-    self.DialogueFsm = CommonDialogue
+  local LocalDialogue = self:GetLocalDialogue()
+  if LocalDialogue then
+    LocalDialogue:Stop()
+    self.DialogueFsm = LocalDialogue
   else
     self.DialogueFsm = self:CreateNewFsm(DialogueLocalFlowFsm)
   end
   Option:AddEventListener(self, NpcOptionEvent.Destroy, self.OnOptionDestroy)
   local Participants = DialogueUtils.CollectParticipants(DialogueConf.id)
+  self.DialogueFsm:SetProperty("IsLocalDialogue", true)
   self.DialogueFsm:SetProperty("ParentModule", self)
   self.DialogueFsm:SetProperty("TargetNPC", Option.owner)
   self.DialogueFsm:SetProperty("CurrentOption", Option)
   self.DialogueFsm:SetProperty("Options", nil)
-  self.DialogueFsm:SetProperty("CurrentDialogue", DialogueConf)
   self.DialogueFsm:SetProperty("bInBattle", false)
   self.DialogueFsm:SetProperty("bIsReconnect", false)
   self.DialogueFsm:SetProperty("CurrentAction", Action)
@@ -943,6 +959,15 @@ function DialogueModule:PreUnregisterOption(Option)
 end
 
 function DialogueModule:OnOptionInfoChange(option, action)
+  if action and action.is_cancel then
+    local List = self.CachedActions[option]
+    if List then
+      table.clear(List)
+    end
+    self.CachedActions[option] = nil
+    self:OnCloseDialogue()
+    return
+  end
   local List = self.CachedActions[option]
   if not List then
     List = {}
@@ -984,7 +1009,7 @@ function DialogueModule:OnCloseDialogue()
   self.DialogueFsm:Resume()
   self.DialogueFsm:SendEvent(DialogueModuleEvent.EnterEndState, self)
   self:TryCloseAllPanel()
-  self:CleanUpOptions()
+  self:CloseMessage()
   self:RemoveFrontFsm()
   self.DialogueFsm = nil
   if self:CheckHasDialogue() then
@@ -999,6 +1024,7 @@ function DialogueModule:CleanUpBattleFsm()
   end
   self:SetHasDialogue(false)
   self:TryCloseAllPanel()
+  self:CloseMessage()
   self:RemoveFsm(BattleDialogue)
   BattleDialogue:Stop()
   self.HasBattleDialogue = false
@@ -1718,7 +1744,7 @@ function DialogueModule:OnSyncVideo(msg)
           end
         elseif msg.operation.movie_info.sync_type == ProtoEnum.PlayerOperationSyncType.POST_END then
           local DialogueVideo = self:GetPanel("DialogueVideo")
-          if DialogueVideo then
+          if DialogueVideo and DialogueVideo.bIsSync then
             DialogueVideo:MovieDone(true)
           end
         end
@@ -1782,7 +1808,7 @@ function DialogueModule:OnSyncStartDialogue(DialogueID, TargetNPCContentID, Sele
   local Participants = DialogueUtils.CollectParticipants(DialogueID)
   self.DialogueFsm:SetProperty("ParentModule", self)
   self.DialogueFsm:SetProperty("TargetNPC", TargetNPC)
-  self.DialogueFsm:SetProperty("CurrentDialogue", DialogueConf)
+  self.DialogueFsm:SetProperty("NextConfID", DialogueID)
   self.DialogueFsm:SetProperty("bInBattle", false)
   self.DialogueFsm:SetProperty("bIsReconnect", false)
   self.DialogueFsm:SetProperty("Participants", Participants)
@@ -1900,6 +1926,17 @@ end
 
 function DialogueModule:OnSyncReqRsp(rsp)
   Log.Debug("DialogueModule:OnSyncReqRsp, on client operation req rsp", rsp.ret_info.ret_code, rsp.ret_info.ret_msg)
+end
+
+function DialogueModule:GetCurDialogueOption()
+  if not self.HasDialogue then
+    return nil
+  end
+  local fsm = self.DialogueFsm
+  if fsm then
+    return fsm:GetProperty("CurrentOption", nil)
+  end
+  return nil
 end
 
 return DialogueModule

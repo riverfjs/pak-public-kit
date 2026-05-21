@@ -365,7 +365,7 @@ function UMG_MiniGame_C:OnConstruct()
 end
 
 function UMG_MiniGame_C:OnDestruct()
-  _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.OpenOrCloseMainUIDownTips, true)
+  _G.NRCModuleManager:DoCmd(_G.MainUIModuleCmd.OpenOrCloseMainUIDownTips, true, "MiniGameClose")
 end
 
 function UMG_MiniGame_C:OnSwitcherState(SwitcherIndex)

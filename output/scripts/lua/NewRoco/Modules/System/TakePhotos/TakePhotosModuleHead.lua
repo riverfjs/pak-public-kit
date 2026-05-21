@@ -22,7 +22,12 @@ function TakePhotosModuleHead:OnConstruct()
   self:BindCmd(_G.TakePhotosModuleCmd.OnSyncPhotoToken, "OnCmdSyncPhotoToken")
   self:BindCmd(_G.TakePhotosModuleCmd.SetSelfiePlayerLookAtOffset, "SetSelfiePlayerLookAtOffset")
   self:BindCmd(_G.TakePhotosModuleCmd.GetSelfiePlayerLookAtOffset, "GetSelfiePlayerLookAtOffset")
+  self:BindCmd(_G.TakePhotosModuleCmd.GetPhotoActivityManager, "GetPhotoActivityManager")
+  self:BindCmd(_G.TakePhotosModuleCmd.OpenPhotosActivityAlbumPanel, "OpenPhotosActivityAlbumPanel")
+  self:BindCmd(_G.TakePhotosModuleCmd.CheckPhotoInfoImmediately, "CheckPhotoInfoImmediately")
   self:BindCmd(_G.TakePhotosModuleCmd.CheckPhotoFileViewUI, "OnCmdCheckPhotoFileViewUI")
+  self:BindCmd(_G.TakePhotosModuleCmd.OnSyncCameraTextureChanged, "OnSyncCameraTextureChanged")
+  self:BindCmd(_G.TakePhotosModuleCmd.ReqChangeCameraTexture, "ReqChangeCameraTexture")
 end
 
 return TakePhotosModuleHead

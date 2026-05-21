@@ -27,6 +27,8 @@ function UMG_TakePhotos_New_C:OnConstruct()
   self:RegisterEvent(self, TakePhotosModuleEvent.OnPostEnterTakePhotos, self.OnInitializeMode)
   self:RegisterEvent(self, TakePhotosModuleEvent.OnToggleMode, self.OnToggleMode)
   self:RegisterEvent(self, TakePhotosModuleEvent.OnExitMode, self.OnExitMode)
+  self:RegisterEvent(self, TakePhotosModuleEvent.OnPhotosRemoved, self.OnPhotoRemoved)
+  self:RegisterEvent(self, TakePhotosModuleEvent.OnPhotoRemoved, self.OnPhotoRemoved)
   self.Adapter = nil
   if bUsingPCMode then
     self.Adapter = WindowsMainPanelAdapter(self)
@@ -66,11 +68,12 @@ end
 
 function UMG_TakePhotos_New_C:OnReqClose()
   if self.bPendingCloseByUser then
+    self:DoClose()
     return
   end
   self.bPendingCloseByUser = true
   _G.NRCAudioManager:PlaySound2DAuto(41401003, "UMG_TakePhotos_C:OnReqClose")
-  self:DoClose()
+  self:GetPhotoController():Exit(false)
 end
 
 function UMG_TakePhotos_New_C:CloseImmediately()
@@ -265,6 +268,11 @@ function UMG_TakePhotos_New_C:OnInit()
   _G.NRCEventCenter:RegisterEvent(self.panelName, self, _G.NRCPanelEvent.OpenPanelFinish, self.OnOpenPanelFinish)
   _G.NRCEventCenter:RegisterEvent(self.panelName, self, _G.NRCPanelEvent.ClosePanel, self.OnClosePanelFinish)
   self:InitializeOverlapBanConfig()
+  self:InitRedDots()
+end
+
+function UMG_TakePhotos_New_C:InitRedDots()
+  self.Btn_Set.RedDot:SetupKey(496)
 end
 
 function UMG_TakePhotos_New_C:InitModeBtnGroup()
@@ -366,10 +374,12 @@ function UMG_TakePhotos_New_C:OnPlayerStatusChanged(status, value, opCode, ...)
       if self.panelData then
         self:Log("[TakePhoto] player exit take photo state WPST_DEATH", status, value, opCode)
         self:DoClose()
+        return
       end
     elseif self.player.statusComponent:HasStatus(ProtoEnum.WorldPlayerStatusType.WPST_SWIMMING) and self.CurrMode and not self.CurrMode.Mgr:IsTripodAvailableMode() and self.panelData then
       self:Log("[TakePhoto] player exit take photo state WPST_SWIMMING", status, value, opCode)
       self:DoClose()
+      return
     end
     if self.player.statusComponent:HasStatus(ProtoEnum.WorldPlayerStatusType.WPST_ROLEPLAY_BEHAVIOR) then
       self.SettingPanelProxy:ResetEmoji()
@@ -393,6 +403,7 @@ function UMG_TakePhotos_New_C:OnPhotosTaken(PhotoData)
   Log.Debug("[TakePhoto] OnPhotoTaken", PhotoData)
   PhotoData:SetPetIdentifyInfo(self.IdentifyProxy:GetPetIdentifyInfo())
   PhotoData:SetTaskIdentifyInfo(self.IdentifyProxy:GetTaskIdentifyInfo())
+  PhotoData:SetPhotoInfo(_G.NRCModuleManager:DoCmd(_G.TakePhotosModuleCmd.CheckPhotoInfoImmediately))
   self.IdentifyProxy:TryUpload()
 end
 
@@ -539,7 +550,7 @@ function UMG_TakePhotos_New_C:OnInternalReset()
 end
 
 function UMG_TakePhotos_New_C:OnReq1PHand()
-  if self.CurrMode.Mgr:IsWorldMode() then
+  if self.CurrMode.Mgr:IsWorldMode() or self.CurrMode.Mgr:Is1PMode() then
     return
   end
   if not self.Mode_CanvasPanel_29_VisibilityMutex:IsVisible() then
@@ -553,7 +564,7 @@ function UMG_TakePhotos_New_C:OnReq1PHand()
 end
 
 function UMG_TakePhotos_New_C:OnReqTripod()
-  if self:IsTakingPhotos() then
+  if self:IsTakingPhotos() or self.CurrMode.Mgr:IsTripodMode() then
     return
   end
   if not self.Mode_CanvasPanel_29_VisibilityMutex:IsVisible() then
@@ -564,7 +575,7 @@ function UMG_TakePhotos_New_C:OnReqTripod()
 end
 
 function UMG_TakePhotos_New_C:OnReqSelfie()
-  if self.CurrMode.Mgr:IsWorldMode() then
+  if self.CurrMode.Mgr:IsWorldMode() or self.CurrMode.Mgr:IsSelfieMode() then
     return
   end
   if not self.Mode_CanvasPanel_29_VisibilityMutex:IsVisible() then
@@ -723,6 +734,10 @@ function UMG_TakePhotos_New_C:OnClosePanelFinish(panelData)
       self:ToggleBanList(BanConfig, true, panelData.panelName)
     end
   end
+end
+
+function UMG_TakePhotos_New_C:OnPhotoRemoved()
+  self.TakePhotoProxy:RefreshBurstDesc()
 end
 
 return UMG_TakePhotos_New_C

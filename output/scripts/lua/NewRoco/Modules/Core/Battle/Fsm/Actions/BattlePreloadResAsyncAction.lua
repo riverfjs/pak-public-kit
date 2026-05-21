@@ -29,6 +29,8 @@ function BattlePreloadResAsyncAction:Ctor()
   self.preloadSkillLst = {
     BattleConst.CounterSkillPreFx,
     false,
+    BattleConst.CounterSkillPreNpc,
+    false,
     BattleConst.AI_BattlePetJumpToLocation_C,
     false,
     BattleConst.ChangePetEffect,

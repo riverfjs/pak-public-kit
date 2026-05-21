@@ -1154,6 +1154,8 @@ function UMG_PetLevelUp_C:OnAnimationFinished(Animation)
   elseif Animation == self.LevelUp then
     if self.uiData.IsUpGradeSucceed == false then
       self.SetBeforeLevel = true
+      local touchReasonType = _G.NRCModuleManager:DoCmd(MultiTouchModuleCmd.GetPanelSelectBtnReason, "PetInfoMain").PETUPGRADEOPEN
+      _G.NRCModuleManager:DoCmd(MultiTouchModuleCmd.LockIsSelectBtn, "PetUIModule", "PetInfoMain", touchReasonType)
       NRCModuleManager:DoCmd(PetUIModuleCmd.PetUpgradePopout, self.PetbeforeInfo, self.uiData, self.petInfoMainCtrl, self.beforeInfoLevel)
       self.PetbeforeInfo = self.uiData.PetData
       self:SetVisibility(UE4.ESlateVisibility.Hidden)

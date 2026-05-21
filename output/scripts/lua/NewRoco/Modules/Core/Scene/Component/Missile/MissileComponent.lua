@@ -210,13 +210,7 @@ local MaxStepHeight = 25
 
 function MissileComponent:CorrectDirectionWithLandHeight(velocity)
   local nextPos = self.logicPos + velocity
-  local World = _G.UE4Helper.GetCurrentWorld()
-  local excludeTags = {
-    "LayerTag_BuildingsA",
-    "LayerTag_BuildingsB",
-    "LayerTag_BuildingsC"
-  }
-  local landPos = UE4.UNRCStatics.GetPosInLandWithClass(World, nextPos, 0, 500, 500, nil, nil, nil, nil, excludeTags, {}, true, true)
+  local landPos = self:GetLandPos(nextPos)
   landPos = landPos or nextPos + UE.FVector(0, 0, 50)
   if UE.UKismetMathLibrary.Vector_IsNearlyZero(landPos) ~= true then
     nextPos = landPos
@@ -228,10 +222,30 @@ function MissileComponent:ApplyOwnerPos(velocity, deltaTime)
   self.logicPos = self.logicPos + velocity
   if self.data.IsKeepLandHeight then
     self.logicPos.Z = self.nextLandHeight
-    velocity = self.logicPos - self.owner.viewObj:K2_GetActorLocation()
+    local ownerPos = self.owner.viewObj:K2_GetActorLocation()
+    ownerPos = self:GetLandPos(ownerPos)
+    velocity = self.logicPos - ownerPos
     self.logicDir = UE.UKismetMathLibrary.Normal(velocity, 0.01)
   end
   coroutine.resume(coroutine.create(MissileComponent.DelayMoveComponent), self, velocity, deltaTime)
+end
+
+function MissileComponent:GetLandPos(initPos)
+  local World = _G.UE4Helper.GetCurrentWorld()
+  local excludeTags = {
+    "LayerTag_BuildingsA",
+    "LayerTag_BuildingsB",
+    "LayerTag_BuildingsC"
+  }
+  local halfHeight = 0
+  if self.owner.viewObj and self.owner.viewObj.GetHalfHeight and type(self.owner.viewObj.GetHalfHeight) == "function" then
+    halfHeight = self.owner.viewObj:GetHalfHeight() or 0
+  end
+  local landPos = UE4.UNRCStatics.GetPosInLandWithClass(World, initPos, halfHeight, 500, 500, nil, nil, nil, nil, excludeTags, {}, true, true)
+  if not landPos or UE.UKismetMathLibrary.Vector_IsZero(landPos) then
+    return initPos
+  end
+  return landPos
 end
 
 function MissileComponent:DelayMoveComponent(velocity, deltaTime)

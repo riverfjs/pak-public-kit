@@ -25,7 +25,10 @@ ActionUtils.ExpectedErrorCodes = {
   ProtoEnum.MOBA_RET.SceneErr.ERR_SCENE_HOME_PLANT_NPC_NOT_FOUND,
   ProtoEnum.MOBA_RET.SceneErr.ERR_SCENE_CATCH_FORBID,
   ProtoEnum.MOBA_RET.SceneErr.ERR_SCENE_ACTOR_NOT_READY,
-  ProtoEnum.MOBA_RET.SceneErr.ERR_SCENE_HOME_VISITOR_NUM_OVER_LIMIT
+  ProtoEnum.MOBA_RET.SceneErr.ERR_SCENE_HOME_VISITOR_NUM_OVER_LIMIT,
+  ProtoEnum.MOBA_RET.ErrorCode.ERR_COMMON_SYSTEM_MAINTENANCE,
+  ProtoEnum.MOBA_RET.ErrorCode.ERR_COMMON_CLIENT_VERSION_IMCOMPATIBLE,
+  ProtoEnum.MOBA_RET.ErrorCode.ERR_COMMON_SYSTEM_NOT_OPEN
 }
 for k, v in pairs(ProtoEnum.MOBA_RET.ZoneSceneTeleportToPlayerError) do
   table.insert(ActionUtils.ExpectedErrorCodes, v)

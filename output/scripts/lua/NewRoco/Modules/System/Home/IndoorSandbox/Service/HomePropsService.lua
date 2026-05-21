@@ -73,16 +73,11 @@ function HomePropsService:OnRoomLoadFinish(RoomId, bInitialize)
   if not next(self.RoomLoadingFlags) and HomeIndoorSandbox:InLocalMasterIndoor() then
     local NeedResaveRooms = {}
     local Rooms = HomeIndoorSandbox.World.Rooms
-    local UnplacedNpcFurnitureList = {}
     for LoadedRoomId, Room in pairs(Rooms) do
       local FailedProps = self.LoadFailedRoomProps[LoadedRoomId]
       local RoomData = HomeIndoorSandbox.Server.WorldData:GetRoomData(LoadedRoomId)
       if FailedProps and next(FailedProps) then
         for PropsId, PropsData in pairs(FailedProps) do
-          local PetNpc = PropsData:ResolveRelativeNpc()
-          if PetNpc then
-            table.insert(UnplacedNpcFurnitureList, PropsData)
-          end
           RoomData:RemovePropsData(PropsData)
         end
         table.insert(NeedResaveRooms, LoadedRoomId)
@@ -104,11 +99,10 @@ function HomePropsService:OnRoomLoadFinish(RoomId, bInitialize)
       end
     end
     
-    if UnplacedNpcFurnitureList and #UnplacedNpcFurnitureList > 0 then
-      self.OnFailedUploading = self.TaskMgr:EnQueTaskWithFeedback(HomeIndoorSandbox.TaskMgr.TaskModules.ProtoSendTask, DoForceSaved, "ReqUnplacedNpcFromFurniture", UnplacedNpcFurnitureList, true)
-    else
-      DoForceSaved()
-    end
+    DoForceSaved()
+  end
+  if HomeIndoorSandbox:InOtherHomeIndoor() and RoomId == HomeIndoorSandbox.World:GetPlayerRoomId() then
+    HomeIndoorSandbox.Module:LandPos_All3pPlayers(true)
   end
 end
 
@@ -280,7 +274,7 @@ function HomePropsService:UnloadPackUpProps(PropsData)
   end
   local RoomId = PropsData.RoomId
   local WorldRoom = HomeIndoorSandbox.World:GetRoomById(RoomId)
-  local WorldPlane = WorldRoom:GetPlaneByActorId(PropsData.PlaneMasterId)
+  local WorldPlane = WorldRoom:GetPlaneByActorId(PropsData.RealtimePlane.PlaneMasterId)
   WorldPlane:RemoveProps(PropsData)
   HomeIndoorSandbox.Server.WorldData:GetRoomData(RoomId):RemovePropsData(PropsData)
   if HomeIndoorSandbox.HomeEditServ:InEditMode() then

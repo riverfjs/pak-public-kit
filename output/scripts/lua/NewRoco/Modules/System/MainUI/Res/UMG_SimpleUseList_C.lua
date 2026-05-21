@@ -24,12 +24,16 @@ function UMG_SimpleUseList_C:OnDeactive()
   _G.NRCEventCenter:UnRegisterEvent(self, _G.NRCPanelEvent.OpenPanel, self.OnOpenPanel)
   _G.NRCEventCenter:UnRegisterEvent(self, _G.MainUIModuleEvent.SetBagChangeInfoEvent, self.OnBallListChange)
   _G.NRCEventCenter:UnRegisterEvent(self, MagicReplayModuleEvent.UpdateBagItemNumMagicReplayVideo, self.UpdateBagItemNumMagicReplayVideo)
+  _G.NRCEventCenter:UnRegisterEvent(self, _G.MainUIModuleEvent.MagicBanStateChanged, self.OnMagicBanStateChanged)
+  _G.NRCEventCenter:UnRegisterEvent(self, _G.MainUIModuleEvent.UI_RefreshPlayerAbilities, self.OnMagicBanStateChanged)
 end
 
 function UMG_SimpleUseList_C:OnAddEventListener()
   _G.NRCEventCenter:RegisterEvent(self.name, self, _G.NRCPanelEvent.OpenPanel, self.OnOpenPanel)
   _G.NRCEventCenter:RegisterEvent(self.name, self, _G.MainUIModuleEvent.SetBagChangeInfoEvent, self.OnBallListChange)
   _G.NRCEventCenter:RegisterEvent(self.name, self, MagicReplayModuleEvent.UpdateBagItemNumMagicReplayVideo, self.UpdateBagItemNumMagicReplayVideo)
+  _G.NRCEventCenter:RegisterEvent(self.name, self, _G.MainUIModuleEvent.MagicBanStateChanged, self.OnMagicBanStateChanged)
+  _G.NRCEventCenter:RegisterEvent(self.name, self, _G.MainUIModuleEvent.UI_RefreshPlayerAbilities, self.OnMagicBanStateChanged)
 end
 
 function UMG_SimpleUseList_C:OnOpenPanel(PanelData)
@@ -107,7 +111,7 @@ function UMG_SimpleUseList_C:SetListInfo(type)
   local pos = self.CanvasPanel.Slot:GetPosition()
   if type == ProtoEnum.BagItemType.BI_PET_BALL then
     self:RefreshBallList()
-    pos.x = 400
+    pos.x = 440
     pos.y = -508
   else
     self.ScrollBox_69:SetVisibility(UE4.ESlateVisibility.Visible)
@@ -125,7 +129,7 @@ function UMG_SimpleUseList_C:SetListInfo(type)
         })
       end
     end
-    pos.x = 530
+    pos.x = 570
     pos.y = -508
     self.List:InitGridView(itemListFull)
   end
@@ -255,6 +259,12 @@ end
 
 function UMG_SimpleUseList_C:UpdateBagItemNumMagicReplayVideo()
   self:UpdateListItemUI()
+end
+
+function UMG_SimpleUseList_C:OnMagicBanStateChanged()
+  if self.ListType == ProtoEnum.BagItemType.BI_MAGIC then
+    self:UpdateListItemUI()
+  end
 end
 
 return UMG_SimpleUseList_C

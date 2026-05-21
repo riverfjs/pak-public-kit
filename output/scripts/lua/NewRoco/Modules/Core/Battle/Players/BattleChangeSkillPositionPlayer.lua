@@ -199,6 +199,7 @@ function BattleChangeSkillPositionPlayer:Play(performNode)
       return
     end
   end
+  self.performNode.performPlayer.hadChangeSkillPositionPlayer = true
   au.Launch(self:PlayAsync(battlePet), function(ok, resultOrErrorMessage)
     if not ok then
       Log.Error("BattleChangeSkillPositionPlayer:Play error", resultOrErrorMessage)

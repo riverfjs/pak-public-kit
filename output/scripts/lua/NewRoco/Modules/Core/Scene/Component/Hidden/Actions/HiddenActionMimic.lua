@@ -4,6 +4,7 @@ local Delegate = require("Utils.Delegate")
 local SceneUtils = require("NewRoco.Modules.Core.Scene.Common.SceneUtils")
 local Base = require("NewRoco.Modules.Core.Scene.Component.Hidden.HiddenActionBase")
 local NPCModuleEvent = require("NewRoco.Modules.Core.NPC.NPCModuleEvent")
+local PetMutationUtils = require("NewRoco.Utils.PetMutationUtils")
 local SkillSuccessFlag = UE.ESkillStartResult.Success
 local HiddenActionMimic = Base:Extend("HiddenActionMimic")
 local TraceChannel = UE4.UNRCStatics.ConvertToTraceChannel(UE4.ECollisionChannel.ECC_GameTraceChannel5)
@@ -31,8 +32,10 @@ function HiddenActionMimic:Init(comp)
   local model_conf = _G.DataConfigManager:GetModelConf(model_id or 0, true)
   if model_conf then
     self.mimicPath = model_conf.path
+    self.trailMode = model_conf.trampling_lawn_comp or Enum.TramplingLawnComp.TLC_NONE
   else
     self.mimicPath = nil
+    self.trailMode = Enum.TramplingLawnComp.TLC_NONE
   end
   self.owner:AddEventListener(self, NPCModuleEvent.OnViewVisible, self.OnViewVisible)
   self.owner:AddEventListener(self, NPCModuleEvent.OnNpcMeshAdjusted, self.AdjustHeadWidgetOffset)
@@ -52,6 +55,13 @@ end
 
 function HiddenActionMimic:GetConfigurationMimicModelId()
   local model_id
+  local mutType = self.owner.serverData.npc_base.mutation_type
+  if PetMutationUtils.GetMutationValue(mutType, _G.Enum.MutationDiffType.MDT_SHINING) then
+    model_id = self.owner.config.shining_mimic_target
+    if model_id and 0 ~= model_id then
+      return model_id
+    end
+  end
   local RefreshContentConf = _G.DataConfigManager:GetNpcRefreshContentConf(self.owner.serverData.npc_base.npc_content_cfg_id, true)
   if RefreshContentConf then
     model_id = RefreshContentConf.mimic_target
@@ -153,7 +163,13 @@ function HiddenActionMimic:OnMimicObjLoad(req, asset)
 end
 
 function HiddenActionMimic:OnMimicObjReady(view)
-  view:RegisterToTrailSystem(self.config_EnableMimicAttach and UE.ENRCTrailFootstepDetectType.RealTime or UE.ENRCTrailFootstepDetectType.OneTime)
+  if self.trailMode ~= Enum.TramplingLawnComp.TLC_NONE then
+    if self.config_EnableMimicAttach or self.trailMode == Enum.TramplingLawnComp.TLC_DYNAMIC then
+      view:RegisterToTrailSystem(UE.ENRCTrailFootstepDetectType.RealTime)
+    else
+      view:RegisterToTrailSystem(UE.ENRCTrailFootstepDetectType.OneTime)
+    end
+  end
   view:SetActorHiddenInGame(false)
   if self.spawnedMimicTarget ~= view then
     view:UnLoadResource()
@@ -497,7 +513,9 @@ function HiddenActionMimic:CleanupModel()
       end
       self.spawnedMimicTarget = nil
       actor:SetSceneCharacter(nil)
-      actor:UnRegisterFromTrailSystem()
+      if self.trailMode ~= Enum.TramplingLawnComp.TLC_NONE then
+        actor:UnRegisterFromTrailSystem()
+      end
       actor:K2_DestroyActor()
     end
     local request = self.req_model

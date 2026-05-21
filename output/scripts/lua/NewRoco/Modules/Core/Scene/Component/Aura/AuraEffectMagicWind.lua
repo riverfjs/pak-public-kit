@@ -140,9 +140,13 @@ function AuraEffectMagicWind:OnLoadWindAsset(req, asset)
   end
   local bIsAuraFromLocalPlayer = true
   if bIsAuraFromLocalPlayer then
-    _NRCModuleManager:DoCmd(_G.NPCModuleCmd.SendSenseEvent, position, Enum.DotsAIWorldEventType.DAWET_WIND_DROP, nil, level + 1)
+    if player and player.IsMagicReplayActor and player:IsMagicReplayActor() then
+    else
+      _NRCModuleManager:DoCmd(_G.NPCModuleCmd.SendSenseEvent, position, Enum.DotsAIWorldEventType.DAWET_WIND_DROP, nil, level + 1)
+    end
     local SpecificEvent = WindChargeLevelEventMap[level + 1]
-    if SpecificEvent then
+    if not SpecificEvent or player and player.IsMagicReplayActor and player:IsMagicReplayActor() then
+    else
       _NRCModuleManager:DoCmd(_G.NPCModuleCmd.SendSenseEvent, position, SpecificEvent, nil, level + 1)
     end
     self:BlowAwayCharacters(level, percent)

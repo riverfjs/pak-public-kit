@@ -61,6 +61,7 @@ function BeastInitField:TeleportPlayer()
     BattleManager.TeleportBackPos = self.LocalPlayer.viewObj:Abs_K2_GetActorLocation()
     self.LocalPlayer.viewObj:SetActorTickEnabled(false)
     self.LocalPlayer.movementComponent:SetSyncMove(false)
+    BattleManager.vBattleField:UnloadLightingScenarioLevel()
     BattleUtils.TeleportEnvActorInZ(self.npcPos.Z)
     self:FindBattleCenter()
   else

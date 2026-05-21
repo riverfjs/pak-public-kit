@@ -11,6 +11,9 @@ function UMG_Curtain_C:OnActive(Caller, CallBack)
 end
 
 function UMG_Curtain_C:TryClose()
+  if not self:IsVisible() then
+    self:DoClose()
+  end
   if self:IsAnimationPlaying(self.Open) then
     return
   end

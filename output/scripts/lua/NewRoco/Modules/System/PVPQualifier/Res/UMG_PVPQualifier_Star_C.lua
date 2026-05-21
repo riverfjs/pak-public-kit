@@ -83,13 +83,42 @@ function UMG_PVPQualifier_Star_C:OnAnimationFinished(anim)
   end
 end
 
-function UMG_PVPQualifier_Star_C:SwitcherStarIndex(starNum, oldMasterScore, masterScore)
-  if PVPRankedMatchModuleUtils.IsSelfMaxRankStar() then
+function UMG_PVPQualifier_Star_C.GetDefaultStartIndexOption(starNum, prevMasterScore, currMasterScore)
+  local option = {}
+  option.starNum = starNum
+  option.isMaxRankStar = PVPRankedMatchModuleUtils.IsSelfMaxRankStar()
+  option.rankOrder = _G.DataModelMgr.PlayerDataModel:GetVItemCount(_G.Enum.VisualItem.VI_PVP_RANK_ORDER)
+  option.rankMasterScore = _G.DataModelMgr.PlayerDataModel:GetVItemCount(_G.Enum.VisualItem.VI_PVP_RANK_MASTER_SCORE) or 0
+  option.prevMasterScore = prevMasterScore or 0
+  option.currMasterScore = currMasterScore or 0
+  return option
+end
+
+function UMG_PVPQualifier_Star_C.GetSeasonHistoryStartIndexOption(rankSeasonInfo)
+  local option = {}
+  local starNum = rankSeasonInfo and rankSeasonInfo.rank_star
+  option.starNum = starNum
+  option.isMaxRankStar = PVPRankedMatchModuleUtils.IsMaxRankStar(starNum)
+  option.rankOrder = rankSeasonInfo and rankSeasonInfo.rank_order or 0
+  option.rankMasterScore = rankSeasonInfo and rankSeasonInfo.master_score or 0
+  return option
+end
+
+function UMG_PVPQualifier_Star_C:SwitcherStarIndex(option)
+  local starNum = option and option.starNum
+  local isMaxRankStar = option and option.isMaxRankStar
+  local rankOrder = option and option.rankOrder
+  local rankMasterScore = option and option.rankMasterScore
+  local prevMasterScore = option and option.prevMasterScore
+  local currMasterScore = option and option.currMasterScore
+  local TextAdvantage1Text = ""
+  local canvasPanelPlusVisibility = UE4.ESlateVisibility.Collapsed
+  local TextAdvantage_1Visibility = UE4.ESlateVisibility.Collapsed
+  if isMaxRankStar then
     self.Advantage:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-    self.CanvasPanel_Plus:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-    local rankOrder = _G.DataModelMgr.PlayerDataModel:GetVItemCount(_G.Enum.VisualItem.VI_PVP_RANK_ORDER)
+    canvasPanelPlusVisibility = UE4.ESlateVisibility.SelfHitTestInvisible
     local oldRank = rankOrder
-    self.UMG_RollNumber:PlayRollNumberAnim(oldRank, rankOrder)
+    self.UMG_RollNumber:PlayRollNumberAnimForPVPRank(oldRank, rankOrder)
     if rankOrder > oldRank then
       self:PlayRankAnimation(self.Inup_Ranking)
     elseif oldRank == rankOrder then
@@ -97,32 +126,39 @@ function UMG_PVPQualifier_Star_C:SwitcherStarIndex(starNum, oldMasterScore, mast
     else
       self:PlayRankAnimation(self.Indown_Ranking)
     end
-    local rankMasterScore = _G.DataModelMgr.PlayerDataModel:GetVItemCount(_G.Enum.VisualItem.VI_PVP_RANK_MASTER_SCORE) or 0
     self.TextAdvantage:SetText(tostring(rankMasterScore))
-    if oldMasterScore and masterScore and oldMasterScore ~= masterScore then
-      self.TextAdvantage_1:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-      local deltaMasterScore = PVPRankedMatchModuleUtils.GetDeltaMasterScoreText(oldMasterScore, masterScore)
-      self.TextAdvantage_1:SetText(deltaMasterScore)
+    if prevMasterScore and currMasterScore and prevMasterScore ~= currMasterScore then
+      TextAdvantage_1Visibility = UE4.ESlateVisibility.SelfHitTestInvisible
+      local deltaMasterScore = PVPRankedMatchModuleUtils.GetDeltaMasterScoreText(prevMasterScore, currMasterScore)
+      if deltaMasterScore then
+        TextAdvantage1Text = tostring(deltaMasterScore)
+      end
     else
-      self.TextAdvantage_1:SetVisibility(UE4.ESlateVisibility.Collapsed)
+      TextAdvantage_1Visibility = UE4.ESlateVisibility.Collapsed
     end
     local TopMasterInfo = _G.NRCModuleManager:DoCmd(PVPRankedMatchModuleCmd.CmdGetTopMaster)
+    local bTopMasterCurrent = TopMasterInfo.type == _G.ProtoEnum.PVP_RANK_MASTER_TYPE.PVP_RANK_MASTER_TYPE_TOP_MASTER
     local bTopMasterNext = TopMasterInfo.next_type == _G.ProtoEnum.PVP_RANK_MASTER_TYPE.PVP_RANK_MASTER_TYPE_TOP_MASTER
-    if bTopMasterNext or TopMasterInfo.type ~= TopMasterInfo.next_type then
+    if bTopMasterNext then
       self.ArrowSwitcher:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
-      if bTopMasterNext or TopMasterInfo.type < TopMasterInfo.next_type then
-        self.ArrowSwitcher:SetActiveWidgetIndex(0)
-      else
-        self.ArrowSwitcher:SetActiveWidgetIndex(1)
-      end
+      self.ArrowSwitcher:SetActiveWidgetIndex(0)
+    elseif bTopMasterCurrent and not bTopMasterNext then
+      self.ArrowSwitcher:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
+      self.ArrowSwitcher:SetActiveWidgetIndex(1)
     else
       self.ArrowSwitcher:SetVisibility(UE4.ESlateVisibility.Collapsed)
     end
   else
+    canvasPanelPlusVisibility = UE4.ESlateVisibility.Collapsed
     self.Advantage:SetVisibility(UE4.ESlateVisibility.Collapsed)
-    self.CanvasPanel_Plus:SetVisibility(UE4.ESlateVisibility.Collapsed)
     self:ShowStars(starNum, starNum, true)
   end
+  if string.IsNilOrEmpty(TextAdvantage1Text) then
+    canvasPanelPlusVisibility = UE4.ESlateVisibility.Collapsed
+  end
+  self.CanvasPanel_Plus:SetVisibility(canvasPanelPlusVisibility)
+  self.TextAdvantage_1:SetVisibility(TextAdvantage_1Visibility)
+  self.TextAdvantage_1:SetText(TextAdvantage1Text)
 end
 
 function UMG_PVPQualifier_Star_C:ShowStars(oldStarNum, newStarNum, bFastShow, onFinishedCallback)

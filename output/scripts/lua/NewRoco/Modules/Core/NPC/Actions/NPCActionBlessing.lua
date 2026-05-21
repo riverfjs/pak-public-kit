@@ -12,6 +12,7 @@ function NPCActionBlessing:Execute(playerId, needSendReq)
   Base.Execute(self, playerId, false)
   local player = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GetPlayerByServerID, AvatarID)
   if not player then
+    self:Finish()
     return
   end
   local PlayerUin = player.serverData and player.serverData.base and player.serverData.base.logic_id or 0
@@ -29,7 +30,7 @@ function NPCActionBlessing:Execute(playerId, needSendReq)
     return
   end
   local Param = {PetInfo = pet, AvatarID = AvatarID}
-  _G.NRCModuleManager:DoCmd(RelationTreeCmd.OpenPetRelationCover, PlayerUin, Param)
+  _G.NRCModuleManager:DoCmd(RelationTreeCmd.OpenPetRelationCover, PlayerUin, Param, self)
   _G.NRCModuleManager:DoCmd(RelationTreeCmd.RelationTreeSendTLog, 0, nil)
 end
 

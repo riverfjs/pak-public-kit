@@ -18,6 +18,8 @@ local PetUIModuleEvent = reload("NewRoco.Modules.System.PetUI.PetUIModuleEvent")
 local ProtoEnum = require("Data.PB.ProtoEnum")
 local LoadingUIModuleEvent = require("NewRoco.Modules.System.LoadingUIModule.LoadingUIModuleEvent")
 local TaskUtils = require("NewRoco.Modules.Core.Task.TaskUtils")
+local PlayerModuleEvent = require("NewRoco.Modules.Core.PlayerModule.PlayerModuleEvent")
+local BattleEvent = require("NewRoco.Modules.Core.Battle.Common.BattleEvent")
 local ZoneServer
 local TaskModule = NRCModuleBase:Extend("TaskModule")
 
@@ -38,6 +40,9 @@ function TaskModule:OnConstruct()
   self.TeleportingTask = nil
   self.UserSwitchTrackFromActivityToTask_TaskId = 0
   self.IsClickTrackBtn = false
+  self.CatchPetTipID = nil
+  self._CatchPetTipsDelayTimer = nil
+  self._CatchPetFinishDelayTimer = nil
   self.StatusChecker = StatusCheckerGroup({
     StatusCheckerEnum.Scene,
     StatusCheckerEnum.Teleport,
@@ -59,7 +64,7 @@ function TaskModule:OnConstruct()
   self:RegPanel("Envelope", "NewTask/UMG_Envelope", _G.Enum.UILayerType.UI_LAYER_POPUP)
   self:RegPanel("LacquerPrinting_Tips", "NewTask/UMG_LacquerPrinting_Tips", _G.Enum.UILayerType.UI_LAYER_POPUP)
   self:RegPanel("MagicStampPanel", "NewTask1/UMG_MagicStampPanel", Enum.UILayerType.UI_LAYER_POPUP)
-  self:RegPanel("LegendaryTaskUnlockTips", "NewTask1/LegendaryTaskPanel/UMG_LegendaryTaskUnlockTips", Enum.UILayerType.UI_LAYER_POPUP, nil, true, nil, nil, true)
+  self:RegPanel("LegendaryTaskUnlockTips", "NewTask1/LegendaryTaskPanel/UMG_LegendaryTaskUnlockTips", Enum.UILayerType.UI_LAYER_POPUP, nil, true, nil, nil, true):SetEnableTouchMask(false)
   self:RegPanel("NightmarePotionPanel", "NewTask1/LegendaryTaskPanel/UMG_NightmarePotionPanel", Enum.UILayerType.UI_LAYER_POPUP)
   self:RegPanel("MagicExtractPanel", "NewTask1/LegendaryTaskPanel/UMG_MagicExtractPanel", Enum.UILayerType.UI_LAYER_POPUP)
   self:RegPanel("ScrapBookPanel", "NewTask1/LegendaryTaskPanel/UMG_ScrapbookPanel", Enum.UILayerType.UI_LAYER_POPUP)
@@ -70,11 +75,14 @@ function TaskModule:OnConstruct()
   _G.NRCEventCenter:RegisterEvent(self.name, self, SceneEvent.BigWorldPrepared, self.OnBigWorldReload)
   _G.NRCEventCenter:RegisterEvent(self.name, self, FriendModuleEvent.OnLeaveVisit, self.OnLeaveVisit)
   _G.NRCEventCenter:RegisterEvent(self.name, self, _G.NRCGlobalEvent.ON_DISCONNECT, self.OnDisconnect)
+  _G.NRCEventCenter:RegisterEvent(self.name, self, TaskModuleEvent.OnWorldPetCatchFinish, self.OnWorldPetCatchFinish)
+  _G.NRCEventCenter:RegisterEvent(self.name, self, BattleEvent.BattleOver, self.OnBattleOverOther)
   self.getLegendaryTaskTipsController = TipsDisplayController(TipEnum.TipObjectType.LegendaryTaskUnlockTips, self, self.OnPlayTips)
   self.getTaskSummaryTipsController = TipsDisplayController(TipEnum.TipObjectType.TaskSummary, self, self.OnPlayTaskSummaryTips)
   self.getReturnRewardTipsController = TipsDisplayController(TipEnum.TipObjectType.TaskReturnReward, self, self.OnPlayReturnRewardTips)
   self.bIsImageFlowPlaying = false
   self.bCanRefreshEnter = true
+  self.TipsReason = {}
 end
 
 function TaskModule:OnActive()
@@ -99,6 +107,7 @@ function TaskModule:RegPanel(name, path, layer, customDisableRendering, disableP
   Data.disableLoadBlock = disableLoadBlock
   Data.necessaryResList = self:GetDependsRes()
   self:RegisterPanel(Data)
+  return Data
 end
 
 function TaskModule:SetSplineVisible(Visible)
@@ -1578,6 +1587,11 @@ function TaskModule:OnUserTrack(taskID, isTrack)
 end
 
 function TaskModule:OnTaskTrackStatus(rsp)
+  if rsp and rsp.ret_info and 0 ~= rsp.ret_info.ret_code then
+    Log.Debug("OnTaskTrackStatus failed: " .. rsp.ret_info.ret_code)
+    _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.task_track_error4)
+    return
+  end
 end
 
 function TaskModule:GetAllTask()
@@ -1745,14 +1759,20 @@ function TaskModule:CmdTraceOpenActivityPanel(arg)
 end
 
 function TaskModule:OnCmdOpenSeasonTaskPanel(entry_map_id)
+  local isBan = _G.NRCModuleManager:DoCmd(FunctionBanModuleCmd.CheckUIFunctionHide, Enum.FunctionEntrance.FE_TASK, true) or _G.NRCModuleManager:DoCmd(FunctionBanModuleCmd.CheckUIFunctionBan, Enum.FunctionEntrance.FE_TASK_TEXT, true) or _G.NRCModuleManager:DoCmd(FunctionBanModuleCmd.CheckUIFunctionBan, Enum.FunctionEntrance.FE_TASK, true)
+  if isBan then
+    return
+  end
+  
   local function TryOpenWorldMap()
     if entry_map_id then
       local worldMapConf = _G.DataConfigManager:GetWorldMapConf(tonumber(entry_map_id))
-      
       local npc_refresh_id = worldMapConf and worldMapConf.npc_refresh_ids and worldMapConf.npc_refresh_ids[1]
       local npcData = 0 ~= npc_refresh_id and _G.NRCModuleManager:DoCmd(BigMapModuleCmd.GetNpcInfoByRefreshId, npc_refresh_id)
       if npcData then
         _G.NRCModuleManager:DoCmd(BigMapModuleCmd.OpenWorldMap, {centerNPCRefreshId = npc_refresh_id})
+      elseif _G.DataModelMgr.PlayerDataModel:IsVisitState() then
+        _G.NRCModeManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.visitor_state_season_slot_skip_unsuccess_tips)
       end
     end
   end
@@ -1763,20 +1783,26 @@ function TaskModule:OnCmdOpenSeasonTaskPanel(entry_map_id)
   local season_start_task = {}
   if seasonConf then
     season_start_task = seasonConf.season_start_task
-    Log.Debug("TaskModule:OnCmdOpenSeasonTaskPanel_season_start_task", season_start_task[1])
+    Log.Debug("TaskModule:OnCmdOpenSeasonTaskPanel season_start_task", season_start_task[1])
   end
   for _, taskInfo in pairs(self.data.TaskMap) do
     local cfg = taskInfo.Config
     local ParagraphConf = 0 ~= cfg.paragraph_id and _G.DataConfigManager:GetParagraphConf(cfg.paragraph_id) or {}
     if ParagraphConf and ParagraphConf.season_task and cfg.is_para_start and taskInfo.Info.id ~= season_start_task[1] then
+      Log.Debug("TaskModule:OnCmdOpenSeasonTaskPanel TaskMap has season_start_task[1], id = %d state = %d message_id = %d", taskInfo.Info.id, taskInfo.Info.state, cfg.message_id)
       if taskInfo.Info.state == ProtoEnum.EMTaskState.EM_TASK_STATE_DONE then
         if entry_map_id then
           TryOpenWorldMap()
           return
         end
       elseif taskInfo.Info.state == ProtoEnum.EMTaskState.EM_TASK_STATE_OPEN or taskInfo.Info.state == ProtoEnum.EMTaskState.EM_TASK_STATE_WAIT then
-        self:lookLetter(cfg.message_id)
-        return
+        if cfg.message_id and 0 ~= cfg.message_id then
+          self:lookLetter(cfg.message_id)
+          return
+        elseif entry_map_id then
+          TryOpenWorldMap()
+          return
+        end
       end
     end
   end
@@ -1790,14 +1816,17 @@ function TaskModule:OnCmdLookSeasonTaskLetter()
   local season_start_task = {}
   if seasonConf then
     season_start_task = seasonConf.season_start_task
-    Log.Debug("TaskModule:OnCmdOpenSeasonTaskPanel_season_start_task", season_start_task[1])
+    Log.Debug("TaskModule:OnCmdLookSeasonTaskLetter season_start_task", season_start_task[1])
   end
   for _, taskInfo in pairs(self.data.TaskMap) do
     local cfg = taskInfo.Config
     local ParagraphConf = 0 ~= cfg.paragraph_id and _G.DataConfigManager:GetParagraphConf(cfg.paragraph_id) or {}
-    if ParagraphConf and ParagraphConf.season_task and cfg.is_para_start and taskInfo.Info.id == season_start_task[1] and (taskInfo.Info.state == ProtoEnum.EMTaskState.EM_TASK_STATE_OPEN or taskInfo.Info.state == ProtoEnum.EMTaskState.EM_TASK_STATE_WAIT) then
-      self:lookLetter(cfg.message_id)
-      return
+    if ParagraphConf and ParagraphConf.season_task and cfg.is_para_start and taskInfo.Info.id == season_start_task[1] then
+      Log.Debug("TaskModule:OnCmdLookSeasonTaskLetter TaskMap has season_start_task[1], id = %d state = %d message_id = %d", taskInfo.Info.id, taskInfo.Info.state, cfg.message_id)
+      if taskInfo.Info.state == ProtoEnum.EMTaskState.EM_TASK_STATE_OPEN or taskInfo.Info.state == ProtoEnum.EMTaskState.EM_TASK_STATE_WAIT then
+        self:lookLetter(cfg.message_id)
+        return
+      end
     end
   end
 end
@@ -1950,6 +1979,8 @@ function TaskModule:OnDeactive()
   _G.NRCEventCenter:UnRegisterEvent(self, SceneEvent.BigWorldPrepared, self.OnBigWorldReload)
   _G.NRCEventCenter:UnRegisterEvent(self, FriendModuleEvent.OnLeaveVisit, self.OnLeaveVisit)
   _G.NRCEventCenter:UnRegisterEvent(self, _G.NRCGlobalEvent.ON_DISCONNECT, self.OnDisconnect)
+  _G.NRCEventCenter:UnRegisterEvent(self, TaskModuleEvent.OnWorldPetCatchFinish, self.OnWorldPetCatchFinish)
+  _G.NRCEventCenter:UnRegisterEvent(self, PlayerModuleEvent.BattleOver, self.OnBattleOverOther)
   ZoneServer:RemoveProtocolListener(self, ProtoCMD.ZoneSvrCmd.ZONE_BOOK_DATA_CHANGE_NTY, self.OnLegendaryTaskUnlockNotify)
   ZoneServer:RemoveProtocolListener(self, ProtoCMD.ZoneSvrCmd.ZONE_RANDOM_SUB_TASK_NOTIFY, self.OnRandomSubTaskNotify)
   ZoneServer:RemoveProtocolListener(self, ProtoCMD.ZoneSvrCmd.ZONE_TASK_INFO_NOTIFY, self._OnTaskInfoNotify)
@@ -1979,7 +2010,7 @@ function TaskModule:_OnTaskInfoNotify(rsp)
     self.data:CalcSubTrackTasks()
     self.data:MakeDirty()
     _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.Tips_ProcessRetInfo, ProtoCMD.ZoneSvrCmd.ZONE_TASK_INFO_NOTIFY, ProtoMessage:newRetInfo())
-    self:PostTaskUpdate()
+    self:PostTaskUpdate(rsp.task_info_list)
     self:SetTrackTaskInfo(rsp.task_info_list)
   end
   self:OnCheckIsUpdateParagraph(rsp.task_info_list)
@@ -2112,8 +2143,8 @@ function TaskModule:SetTrackTaskFromRsp(task_info_list)
   self.IsClickTrackBtn = false
 end
 
-function TaskModule:PostTaskUpdate()
-  _G.NRCEventCenter:DispatchEvent(_G.TaskModuleEvent.TaskChangeNotify)
+function TaskModule:PostTaskUpdate(task_list)
+  _G.NRCEventCenter:DispatchEvent(_G.TaskModuleEvent.TaskChangeNotify, task_list)
   self:TriggerSequences()
 end
 
@@ -2403,6 +2434,16 @@ function TaskModule:GetFullSalonId(configId, colorIndex)
   return fullSalonId
 end
 
+local WhiteListStatus = {
+  [Enum.SpaceActorLogicStatus.SALS_DUNGEON_FINISH] = true,
+  [Enum.SpaceActorLogicStatus.SALS_FASHION_SUITS] = true,
+  [Enum.SpaceActorLogicStatus.SALS_PLAYER_IDLE] = true,
+  [Enum.SpaceActorLogicStatus.SALS_NIGHT_MODE] = true,
+  [Enum.SpaceActorLogicStatus.SALS_DUNGEON] = true,
+  [Enum.SpaceActorLogicStatus.SALS_NORMAL] = true
+}
+local WhiteListCount = table.len(WhiteListStatus)
+
 function TaskModule:CheckPlayerStatus()
   if not self.PlayerStatusChecker then
     self.PlayerStatusChecker = StatusCheckerGroup({
@@ -2473,24 +2514,15 @@ function TaskModule:CheckPlayerStatus()
     return false
   end
   local StatusCount = #StatusInfo
-  if StatusCount > 3 then
+  if StatusCount > WhiteListCount then
     Log.Error("player logic status invalid")
     return false
   end
-  local NormalStatus = LogicComp:GetStatus(ProtoEnum.SpaceActorLogicStatus.SALS_NORMAL)
-  if not NormalStatus then
-    Log.Error("player does not have normal status")
-    return false
-  end
-  local IdleStatus = LogicComp:GetStatus(ProtoEnum.SpaceActorLogicStatus.SALS_PLAYER_IDLE)
-  if not IdleStatus then
-    Log.Error("player does not have idle status")
-    return false
-  end
-  local DungeonStatus = LogicComp:GetStatus(ProtoEnum.SpaceActorLogicStatus.SALS_DUNGEON)
-  if 3 == StatusCount and not DungeonStatus then
-    Log.Error("player second status is not dungeon")
-    return false
+  for Index, Info in ipairs(StatusInfo) do
+    if not WhiteListStatus[Info.status] then
+      Log.Error("player does not have normal status", Index, table.getKeyName(Enum.SpaceActorLogicStatus, Info.status))
+      return false
+    end
   end
   local PlayerView = Player and Player.viewObj
   if not PlayerView or not UE.UObject.IsValid(PlayerView) then
@@ -2571,65 +2603,72 @@ function TaskModule:ShowDialogue(Callback)
   PopSession:SetContent(LuaText.task_manual_teleport_confirm)
   PopSession:SetButtonText(LuaText.general_confirm, LuaText.general_cancel)
   PopSession:SetMode(DialogContext.Mode.OK_CANCEL)
-  PopSession:SetCallback(self, function(this, OK)
-    this.PopSession = nil
+  PopSession:SetClickAnywhereClose(true)
+  PopSession:SetCallback(self, function(self, OK)
+    self.PopSession = nil
     Callback(OK)
   end)
   self.PopSession = PopSession
   _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.Dialog_OpenDialog, PopSession)
 end
 
-function TaskModule:SafeSwitchScene(TaskID)
-  if not self:CheckTaskStatus(TaskID) then
-    _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.TASK_GUARANTEEDTELENOTE)
-    return
+function TaskModule:HasActionType(ActionList, ActionType)
+  if not ActionList then
+    return false
   end
-  if not self:CheckPlayerStatus() then
-    _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.TASK_GUARANTEEDTELENOTE)
-    return
-  end
-  local PlayerData = _G.DataModelMgr.PlayerDataModel
-  if PlayerData then
-    local Visiting = PlayerData:IsVisitState()
-    if Visiting then
-      local TaskConf = _G.DataConfigManager:GetTaskConf(TaskID)
-      if TaskConf and TaskConf.task_structure_type == Enum.TaskStructureType.TSTT_TELEPORT then
-        local bIsDungeonTask = false
-        for _, Action in ipairs(TaskConf.accept_action) do
-          if Action.type == Enum.TaskStateChangeActionType.TSCAT_ENTER_DUNGEON then
-            bIsDungeonTask = true
-            break
-          end
-        end
-        if not bIsDungeonTask then
-          for _, Action in ipairs(TaskConf.finish_action) do
-            if Action.type == Enum.TaskStateChangeActionType.TSCAT_ENTER_DUNGEON then
-              bIsDungeonTask = true
-              break
-            end
-          end
-        end
-        if bIsDungeonTask then
-          if self.bCanRefreshEnter then
-            self.bCanRefreshEnter = false
-            local CurDialogContext = require("NewRoco.Modules.System.TipsModule.DialogContext")
-            local Context = CurDialogContext()
-            local Content = LuaText.task_enter_dungeon_note or ""
-            Context:SetTitle(LuaText.updateuimodule_26):SetContent(Content):SetMode(CurDialogContext.Mode.OK_CANCEL):SetCallback(self, function(this, result)
-              if result then
-                _G.NRCModuleManager:DoCmd(FriendModuleCmd.CmdZoneDisbandVisitReq)
-              else
-                self.RefreshEnterHandleID = _G.DelayManager:DelaySeconds(10, function()
-                  self.bCanRefreshEnter = true
-                end)
-              end
-            end):SetButtonText(LuaText.worldcombatmodule_1, LuaText.worldcombatmodule_2)
-            NRCModuleManager:DoCmd(TipsModuleCmd.Dialog_OpenDialog, Context)
-          end
-          return
-        end
-      end
+  for _, Action in ipairs(ActionList) do
+    if Action.type == ActionType then
+      return true
     end
+  end
+  return false
+end
+
+function TaskModule:CheckVisitDungeonBlock(TaskID)
+  local PlayerData = _G.DataModelMgr.PlayerDataModel
+  if not PlayerData then
+    return false
+  end
+  if not PlayerData:IsVisitState() then
+    return false
+  end
+  local TaskConf = _G.DataConfigManager:GetTaskConf(TaskID)
+  if not TaskConf then
+    return false
+  end
+  if TaskConf.task_structure_type ~= Enum.TaskStructureType.TSTT_TELEPORT then
+    return false
+  end
+  local DungeonType = Enum.TaskStateChangeActionType.TSCAT_ENTER_DUNGEON
+  if not self:HasActionType(TaskConf.accept_action, DungeonType) and not self:HasActionType(TaskConf.finish_action, DungeonType) then
+    return false
+  end
+  if not self.bCanRefreshEnter then
+    return true
+  end
+  self.bCanRefreshEnter = false
+  local CurDialogContext = require("NewRoco.Modules.System.TipsModule.DialogContext")
+  local Context = CurDialogContext()
+  Context:SetTitle(LuaText.updateuimodule_26):SetContent(LuaText.task_enter_dungeon_note or ""):SetMode(CurDialogContext.Mode.OK_CANCEL):SetCallback(self, function(this, result)
+    if result then
+      _G.NRCModuleManager:DoCmd(FriendModuleCmd.CmdZoneDisbandVisitReq)
+    else
+      self.RefreshEnterHandleID = _G.DelayManager:DelaySeconds(10, function()
+        self.bCanRefreshEnter = true
+      end)
+    end
+  end):SetButtonText(LuaText.worldcombatmodule_1, LuaText.worldcombatmodule_2)
+  NRCModuleManager:DoCmd(TipsModuleCmd.Dialog_OpenDialog, Context)
+  return true
+end
+
+function TaskModule:SafeSwitchScene(TaskID)
+  if not self:CheckTaskStatus(TaskID) or not self:CheckPlayerStatus() then
+    _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.TASK_GUARANTEEDTELENOTE)
+    return
+  end
+  if self:CheckVisitDungeonBlock(TaskID) then
+    return
   end
   self:ShowDialogue(function(OK)
     self:SendSwitchScene(OK, TaskID)
@@ -2640,56 +2679,12 @@ function TaskModule:SendSwitchScene(OK, TaskID)
   if not OK then
     return
   end
-  if not self:CheckTaskStatus(TaskID) then
+  if not self:CheckTaskStatus(TaskID) or not self:CheckPlayerStatus() then
     _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.TASK_GUARANTEEDTELENOTE)
     return
   end
-  if not self:CheckPlayerStatus() then
-    _G.NRCModuleManager:DoCmd(_G.TipsModuleCmd.TopHud_ShowTips, LuaText.TASK_GUARANTEEDTELENOTE)
+  if self:CheckVisitDungeonBlock(TaskID) then
     return
-  end
-  local PlayerData = _G.DataModelMgr.PlayerDataModel
-  if PlayerData then
-    local Visiting = PlayerData:IsVisitState()
-    if Visiting then
-      local TaskConf = _G.DataConfigManager:GetTaskConf(TaskID)
-      if TaskConf and TaskConf.task_structure_type == Enum.TaskStructureType.TSTT_TELEPORT then
-        local bIsDungeonTask = false
-        for _, Action in ipairs(TaskConf.accept_action) do
-          if Action.type == Enum.TaskStateChangeActionType.TSCAT_ENTER_DUNGEON then
-            bIsDungeonTask = true
-            break
-          end
-        end
-        if not bIsDungeonTask then
-          for _, Action in ipairs(TaskConf.finish_action) do
-            if Action.type == Enum.TaskStateChangeActionType.TSCAT_ENTER_DUNGEON then
-              bIsDungeonTask = true
-              break
-            end
-          end
-        end
-        if bIsDungeonTask then
-          if self.bCanRefreshEnter then
-            self.bCanRefreshEnter = false
-            local CurDialogContext = require("NewRoco.Modules.System.TipsModule.DialogContext")
-            local Context = CurDialogContext()
-            local Content = LuaText.task_enter_dungeon_note or ""
-            Context:SetTitle(LuaText.updateuimodule_26):SetContent(Content):SetMode(CurDialogContext.Mode.OK_CANCEL):SetCallback(self, function(this, result)
-              if result then
-                _G.NRCModuleManager:DoCmd(FriendModuleCmd.CmdZoneDisbandVisitReq)
-              else
-                self.RefreshEnterHandleID = _G.DelayManager:DelaySeconds(10, function()
-                  self.bCanRefreshEnter = true
-                end)
-              end
-            end):SetButtonText(LuaText.worldcombatmodule_1, LuaText.worldcombatmodule_2)
-            NRCModuleManager:DoCmd(TipsModuleCmd.Dialog_OpenDialog, Context)
-          end
-          return
-        end
-      end
-    end
   end
   self:TogglePlayerInput(false)
   local Req = _G.ProtoMessage:newZoneTaskTeleportReq()
@@ -2712,7 +2707,8 @@ function TaskModule:TryParseStringArgs(RawArgs)
   return rapidjson.decode(RawArgs)
 end
 
-function TaskModule:OnClientPublicCmd(RawID)
+function TaskModule:OnClientPublicCmd(RawID, ...)
+  local Args = select(1, ...)
   if not RawID then
     Log.Error("TaskModule:OnClientPublicCmd \230\148\182\229\136\176ID\228\184\186nil")
     return
@@ -2731,7 +2727,7 @@ function TaskModule:OnClientPublicCmd(RawID)
   local Arg1 = Conf.param1
   local Arg2 = Conf.param2
   Log.DebugFormat("[TaskFlow]OnClientPublicCmd:%s,%s,%s", Cmd, Arg1, Arg2)
-  _G.NRCModuleManager:DoCmd(Cmd, self:TryParseStringArgs(Arg1), self:TryParseStringArgs(Arg2))
+  _G.NRCModuleManager:DoCmd(Cmd, self:TryParseStringArgs(Arg1), self:TryParseStringArgs(Arg2), ...)
 end
 
 function TaskModule:GetTrackerPosBySceneID(TaskID, SceneID)
@@ -2750,10 +2746,6 @@ function TaskModule:GetTrackerPos(TaskID)
       return TaskObject:GetTrackerPos()
     end
   end
-end
-
-function TaskModule:OnCmdOpenGPContest()
-  _G.NRCModuleManager:DoCmd(BagModuleCmd.OpenGradePointPanel)
 end
 
 function TaskModule:OnCmdTriggerTaskCondition(task_id, task_condition_index, condition_type)
@@ -2858,9 +2850,96 @@ function TaskModule:OnSceneCommonTipsNotify(Notify)
       local tip = LocalizationConf.msg
       Log.Debug("TaskModule:OnSceneCommonTipsNotify tip=", tip)
       _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, tip, nil, nil, 3)
+    elseif Notify.source == ProtoEnum.CommonTipsSource.CTS_PET_REPORT_LIMIT then
+      self.CatchPetTipID = Notify.localization_id
+      local bImmediateShow = true
+      if Notify.param_list then
+        for _, param in ipairs(Notify.param_list) do
+          if not self.TipsReason[param] then
+            if param == _G.ProtoEnum.FlowReason.FLOW_REASON_SCENE_CATCH_PET then
+              bImmediateShow = false
+              self:_CancelCatchPetFinishDelayTimer()
+              self._CatchPetTipsDelayTimer = _G.DelayManager:DelaySeconds(3, function()
+                self._CatchPetTipsDelayTimer = nil
+                self:_DirectShowCatchPetTips()
+              end)
+            end
+            self.TipsReason[param] = true
+          end
+        end
+      end
+      if bImmediateShow then
+        self:ShowCatchPetTips()
+      end
     elseif Notify.source == ProtoEnum.CommonTipsSource.CTS_CCC_CHECKER then
       _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, Notify.localization_id, nil, nil, 3)
     end
+  end
+end
+
+function TaskModule:OnWorldPetCatchFinish(bIsSuccess)
+  Log.Debug("TaskModule:OnWorldPetCatchFinish bIsSuccess=", bIsSuccess)
+  if bIsSuccess and self.CatchPetTipID then
+    self:_CancelCatchPetTipsDelayTimer()
+    local FlowReason = _G.ProtoEnum.FlowReason.FLOW_REASON_SCENE_CATCH_PET
+    if self.TipsReason[FlowReason] then
+      self.TipsReason[FlowReason] = false
+      self._CatchPetFinishDelayTimer = _G.DelayManager:DelaySeconds(3, function()
+        self._CatchPetFinishDelayTimer = nil
+        if self.CatchPetTipID then
+          self:_DirectShowCatchPetTips()
+        end
+      end)
+      return
+    end
+    self:ShowCatchPetTips()
+  end
+end
+
+function TaskModule:OnBattleOverOther()
+  if self.CatchPetTipID then
+    self:ShowCatchPetTips()
+  end
+end
+
+function TaskModule:ShowCatchPetTips()
+  if _G.BattleManager:IsInBattle() then
+    return
+  end
+  local LocalizationConf = DataConfigManager:GetLocalizationConf(self.CatchPetTipID)
+  self.CatchPetTipID = nil
+  if not LocalizationConf then
+    return
+  end
+  local tip = LocalizationConf.msg
+  Log.Debug("TaskModule:ShowCatchPetTips tip=", tip)
+  _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, tip, nil, nil, 3)
+end
+
+function TaskModule:_DirectShowCatchPetTips()
+  local tipID = self.CatchPetTipID
+  self.CatchPetTipID = nil
+  self.TipsReason[_G.ProtoEnum.FlowReason.FLOW_REASON_SCENE_CATCH_PET] = false
+  local LocalizationConf = DataConfigManager:GetLocalizationConf(tipID)
+  if not LocalizationConf then
+    return
+  end
+  local tip = LocalizationConf.msg
+  Log.Debug("TaskModule:_DirectShowCatchPetTips tip=", tip)
+  _G.NRCModuleManager:DoCmd(TipsModuleCmd.TopHud_ShowTips, tip, nil, nil, 3)
+end
+
+function TaskModule:_CancelCatchPetTipsDelayTimer()
+  if self._CatchPetTipsDelayTimer then
+    _G.DelayManager:CancelDelayById(self._CatchPetTipsDelayTimer)
+    self._CatchPetTipsDelayTimer = nil
+  end
+end
+
+function TaskModule:_CancelCatchPetFinishDelayTimer()
+  if self._CatchPetFinishDelayTimer then
+    _G.DelayManager:CancelDelayById(self._CatchPetFinishDelayTimer)
+    self._CatchPetFinishDelayTimer = nil
   end
 end
 
@@ -2875,6 +2954,13 @@ function TaskModule:IsSkipTask(TaskID)
     return false
   end
   return self.data:IsSkipTask(TaskID)
+end
+
+function TaskModule:OnCmdTraceTaskByTaskId(TaskID)
+  local taskInfo = self:GetTaskByID(TaskID)
+  if taskInfo then
+    self:DoTraceTask(taskInfo, true)
+  end
 end
 
 return TaskModule

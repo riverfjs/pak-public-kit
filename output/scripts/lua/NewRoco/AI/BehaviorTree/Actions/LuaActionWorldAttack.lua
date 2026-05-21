@@ -62,6 +62,8 @@ function LuaActionWorldAttack:OnStart(AIController, ...)
   end
   attackParam.HitStrength = hitStrength
   attackParam.PlayerHitType = PlayerHitType
+  attackParam.AbnormalStatus = self.AbnormalType and self.AbnormalType:GetValue(owner) or 0
+  attackParam.AbnormalDuration = self.AbnormalDuration and self.AbnormalDuration:GetValue(owner) or 0
   local specificPos = self.UseSpecificPos and self.UseSpecificPos:GetValue(owner) and self.SpecificPos and self.SpecificPos:GetValue(owner)
   attackParam.TargetPos = specificPos
   owner.Npc.AttackComponent:StartAttack(attackParam, self, self.AttackEnd)

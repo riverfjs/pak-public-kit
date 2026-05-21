@@ -1,9 +1,10 @@
 require("UnLua")
-local Base = require("NewRoco.Modules.System.Home.Res.NRCHomePlacementActor_C")
-local FurnitureNPC = require("NewRoco.Modules.System.Home.HomePetFeed.FurnitureNPC")
+local Base = require("NewRoco.Modules.System.Home.HomeNPC.BP_HomeInteractBase_C")
 local HomeEnum = require("NewRoco.Modules.System.Home.HomeEnum")
-local RocoSkillProxy = require("NewRoco.Utils.RocoSkillProxy")
-local NPCLuaUtils = require("NewRoco.Modules.Core.NPC.NPCLuaUtils")
+local HomeModuleEvent = require("NewRoco/Modules/System/Home/HomeModuleEvent")
+local HomeModuleCmd = require("NewRoco.Modules.System.Home.HomeModuleCmd")
+local HomeUtils = require("NewRoco/Modules/System/Home/IndoorSandbox/HomeUtils")
+local NPCModuleEvent = require("NewRoco.Modules.Core.NPC.NPCModuleEvent")
 local InitialIconHeight
 local DefaultIconHeight = 70
 local IconMoreHeightIfWithEgg = 40
@@ -12,9 +13,13 @@ local BP_NRCFurnitureNPC_C = Base:Extend("BP_NRCFurnitureNPC_C")
 function BP_NRCFurnitureNPC_C:Ctor()
   self.bShouldShowEmptyWidget = false
   self.bShouldShowWidget = false
+  self.bShouldShowEmptyWidget = false
+  self.currentStatus = HomeEnum.FURNITURE_NPC_STATE.Free
+  self:OnAddEventListener()
 end
 
 function BP_NRCFurnitureNPC_C:OnPostLoad(data)
+  Base.OnPostLoad(self, data)
   if self.HighlightCollision then
     local highlightRadius = _G.DataConfigManager:GetHomeGlobalConfig("home_owner_visible_distance").num or 200
     self.HighlightCollision:SetCapsuleRadius(highlightRadius)
@@ -27,16 +32,12 @@ function BP_NRCFurnitureNPC_C:OnPostLoad(data)
     local emptyStatusRadius = _G.DataConfigManager:GetHomeGlobalConfig("home_pet_bed_none_distance").num or 1000
     self.EmptyStatusShowDis:SetCapsuleRadius(emptyStatusRadius)
   end
-  if not self.homeLevelCharacter then
-    local FurnitureNPC = FurnitureNPC(self, NRCModuleManager:GetModule("HomeModule"))
-    self:SetFurnitureNPC(FurnitureNPC)
-  end
   self:LoadWidget()
-  self.homeLevelCharacter:OnHomeLevelStatusChanged(HomeEnum.EnmEditPropsStatus.SPAWN_SUCCESS, data)
+  self:OnHomeLevelStatusChanged(HomeEnum.EnmEditPropsStatus.SPAWN_SUCCESS, data)
 end
 
 function BP_NRCFurnitureNPC_C:LoadWidget()
-  if self.homeLevelCharacter and self.bIsFurnitureInHome and not UE4.UObject.IsValid(self.rocoWidget:GetWidget()) then
+  if self.bIsFurnitureInHome and not UE4.UObject.IsValid(self.rocoWidget:GetWidget()) then
     local hud = _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.GetHudFromPool, "UMG_Home_Pet")
     if not hud then
       local hudCls = _G.NRCBigWorldPreloader:Get("PET_HUD_HOME")
@@ -55,6 +56,44 @@ function BP_NRCFurnitureNPC_C:LoadWidget()
   if rocoWidgetRelativeTransform and rocoWidgetRelativeTransform.Translation and rocoWidgetRelativeTransform.Translation.Z and not InitialIconHeight then
     InitialIconHeight = rocoWidgetRelativeTransform.Translation.Z
   end
+end
+
+function BP_NRCFurnitureNPC_C:OnAddEventListener()
+  _G.NRCModuleManager:GetModule("HomeModule"):RegisterEvent(self, HomeModuleEvent.HomePetStatusChanged, self.OnHomePetChanged)
+  _G.NRCModuleManager:GetModule("HomeModule"):RegisterEvent(self, HomeModuleEvent.SwitchDetailPanelData, self.OnHomePetPreview)
+  _G.NRCModuleManager:GetModule("HomeModule"):RegisterEvent(self, HomeModuleEvent.ClosePetLivePanel, self.OnCloseHomePetPreview)
+  _G.NRCModuleManager:GetModule("HomeModule"):RegisterEvent(self, HomeModuleEvent.OnEnterHomeEditMode, self.OnEnterHomeEditMode)
+  _G.NRCModuleManager:GetModule("HomeModule"):RegisterEvent(self, HomeModuleEvent.OnExitHomeEditMode, self.OnExitHomeEditMode)
+  _G.FunctionBanManager:AddFunctionStateListener(Enum.PlayerFunctionBanType.PFBT_HOME_PET_PROMPTION, self, self.OnFunctionBan)
+  _G.NRCEventCenter:RegisterEvent("BP_NRCFurnitureNPC_C", self, _G.NRCGlobalEvent.ON_RECONNECT_FINISH, self.OnReconnectFinish)
+end
+
+function BP_NRCFurnitureNPC_C:RemoveEventListener()
+  _G.NRCModuleManager:GetModule("HomeModule"):UnRegisterEvent(self, HomeModuleEvent.HomePetStatusChanged)
+  _G.NRCModuleManager:GetModule("HomeModule"):UnRegisterEvent(self, HomeModuleEvent.SwitchDetailPanelData)
+  _G.NRCModuleManager:GetModule("HomeModule"):UnRegisterEvent(self, HomeModuleEvent.ClosePetLivePanel)
+  _G.NRCModuleManager:GetModule("HomeModule"):UnRegisterEvent(self, HomeModuleEvent.OnEnterHomeEditMode)
+  _G.NRCModuleManager:GetModule("HomeModule"):UnRegisterEvent(self, HomeModuleEvent.OnExitHomeEditMode)
+  _G.NRCModuleManager:GetModule("HomeModule"):UnRegisterEvent(self, HomeModuleEvent.OnActiveFurnitureChange)
+  FunctionBanManager:RemoveFunctionStateListener(Enum.PlayerFunctionBanType.PFBT_HOME_PET_PROMPTION, self, self.OnFunctionBan)
+  _G.NRCEventCenter:UnRegisterEvent(self, _G.NRCGlobalEvent.ON_RECONNECT_FINISH, self.OnReconnectFinish)
+end
+
+function BP_NRCFurnitureNPC_C:OnReconnectFinish()
+  self:QueryCurrentStatus()
+  self:MakeWidgetFlashInPreviewPanel(nil)
+end
+
+function BP_NRCFurnitureNPC_C:OnEnterHomeEditMode()
+  if self.currentStatus == HomeEnum.FURNITURE_NPC_STATE.Free then
+    self:RefreshWidgetVisibility(false, true)
+  elseif self.currentStatus == HomeEnum.FURNITURE_NPC_STATE.OccupiedWithPet then
+    self:RefreshWidgetVisibility(true, true)
+  end
+end
+
+function BP_NRCFurnitureNPC_C:OnExitHomeEditMode()
+  self:QueryCurrentStatus()
 end
 
 function BP_NRCFurnitureNPC_C:RefreshWidgetVisibility(enableVisible, bForce)
@@ -101,51 +140,19 @@ function BP_NRCFurnitureNPC_C:UpdateWidgetComponent(bShow, petData)
   end
 end
 
-function BP_NRCFurnitureNPC_C:SetFurnitureNPC(FurnitureNPC)
-  if not FurnitureNPC or self.homeLevelCharacter then
-    return
-  end
-  self.homeLevelCharacter = FurnitureNPC
-end
-
-function BP_NRCFurnitureNPC_C:ReceiveActorBeginOverlap(OtherActor)
-  if not self.petReleaseLocation then
-    local furnitureLoc = self:Abs_K2_GetActorLocation()
-    local furnitureRot = self:K2_GetActorRotation()
-    self.petReleaseLocation = UE4.FVector(furnitureLoc.X, furnitureLoc.Y, furnitureLoc.Z + 50)
-  end
-end
-
-function BP_NRCFurnitureNPC_C:IsPlayerInVisibleLocation()
-end
-
-function BP_NRCFurnitureNPC_C:ReceiveActorEndOverlap(OtherActor)
-  if self.homeLevelCharacter and self.homeLevelCharacter.HomeInteractComponent and self.homeLevelCharacter.HomeInteractComponent.isInOverlapArea then
-    self.homeLevelCharacter.HomeInteractComponent:OnPlayerLeaveActionArea()
-  end
-end
-
 function BP_NRCFurnitureNPC_C:ReceiveBeginPlay()
   Base.ReceiveBeginPlay(self)
-  if self.homeLevelCharacter and self.homeLevelCharacter.QueryCurrentStatus then
-    self.homeLevelCharacter:QueryCurrentStatus()
-  end
+  self:QueryCurrentStatus()
 end
 
 function BP_NRCFurnitureNPC_C:ReceiveEndPlay()
   Log.Debug("BP_NRCFurnitureNPC_C ReceiveEndPlay")
-  if self.otherActor then
-    self:ReceiveActorEndOverlap(self.otherActor)
-  end
-  if self.homeLevelCharacter then
-    self.homeLevelCharacter:OnHomeLevelStatusChanged(HomeEnum.EnmEditPropsStatus.UNLOAD_PACK_UP)
-    self.homeLevelCharacter:Destroy()
-    self.homeLevelCharacter = nil
-  end
+  self:OnHomeLevelStatusChanged(HomeEnum.EnmEditPropsStatus.UNLOAD_PACK_UP)
   if self.flashTimer then
     self.flashTimer:Stop()
     self.flashTimer = nil
   end
+  Base.ReceiveEndPlay(self)
 end
 
 function BP_NRCFurnitureNPC_C:GetComponent(ClassTable)
@@ -187,10 +194,10 @@ function BP_NRCFurnitureNPC_C:OnIconPrepared()
 end
 
 function BP_NRCFurnitureNPC_C:OnIconShowActive(OtherActor, bShow)
-  if bShow and self.homeLevelCharacter then
+  if bShow then
     self.bShouldShowWidget = true
     if self:NeedShowWidget() then
-      self.homeLevelCharacter:QueryCurrentStatus()
+      self:QueryCurrentStatus()
       self:MakeWidgetFlashByPetType(true)
     end
   else
@@ -205,15 +212,158 @@ end
 function BP_NRCFurnitureNPC_C:OnEmptyStatusShowActive(OtherActor, bShow)
   if bShow then
     self.bShouldShowEmptyWidget = true
-    if self:NeedShowWidget() and self.homeLevelCharacter then
-      self.homeLevelCharacter:QueryCurrentStatus()
+    if self:NeedShowWidget() then
+      self:QueryCurrentStatus()
     end
   else
     self.bShouldShowEmptyWidget = false
-    if not self:NeedShowWidget() and self.homeLevelCharacter then
+    if not self:NeedShowWidget() then
       self.rocoWidget:SetVisibility(false)
     end
   end
+end
+
+function BP_NRCFurnitureNPC_C:OnHomeLevelStatusChanged(Status, PropsData)
+  if Status == HomeEnum.EnmEditPropsStatus.SPAWN_SUCCESS then
+    if PropsData and PropsData.Id then
+      self.furnitureId = PropsData.Id
+    end
+    self:QueryCurrentStatus()
+  elseif Status == HomeEnum.EnmEditPropsStatus.UNLOAD_PACK_UP then
+    self:RemoveEventListener()
+    _G.NRCModuleManager:DoCmd(HomeModuleCmd.InteractiveFurnitureLeave, self.furnitureId, self)
+  end
+end
+
+function BP_NRCFurnitureNPC_C:OnHomePetChanged(petInfo, bEnter)
+  Log.Debug("OnHomePetChanged invoked with homePetInfo.furniture_guid" .. petInfo.home_pet.home_pet_info.furniture_guid .. " self.furnitureId " .. self.furnitureId)
+  if petInfo and petInfo.home_pet.home_pet_info.furniture_guid == self.furnitureId then
+    local petData = HomeUtils.GetHomePetAdditionalInfo(petInfo.home_pet.home_pet_info.pet_gid)
+    if bEnter then
+      self.currentStatus = HomeEnum.FURNITURE_NPC_STATE.OccupiedWithPet
+      if petData then
+        self:UpdatePairPetInfo(true, petData)
+      end
+      _G.NRCModuleManager:DoCmd(HomeModuleCmd.UpdatePairNestAndPet, self.furnitureId, petInfo)
+    else
+      self.currentStatus = HomeEnum.FURNITURE_NPC_STATE.Free
+      self:UpdatePairPetInfo(self:NeedShowWidget(), nil)
+      _G.NRCModuleManager:DoCmd(HomeModuleCmd.UpdatePairNestAndPet, self.furnitureId, nil)
+    end
+    self:UpdateEventListerOnPet()
+  end
+end
+
+function BP_NRCFurnitureNPC_C:OnHomePetPreview(petData, furnitureId)
+  if not furnitureId or furnitureId ~= self.furnitureId then
+    return
+  end
+  local preViewPetData = {}
+  if petData then
+    preViewPetData = {
+      name = petData.name or "",
+      base_conf_id = petData.base_conf_id or 0,
+      mutation_type = petData.mutation_type or 0,
+      glass_info = petData.glass_info,
+      gender = petData.gender or 1,
+      actor_id = petData.actor_id or 0
+    }
+  end
+  if preViewPetData and table.len(preViewPetData) > 0 then
+    self:UpdatePairPetInfo(true, preViewPetData)
+    self:MakeWidgetFlashInPreviewPanel(preViewPetData)
+  else
+    Log.Error("invalid petData")
+  end
+end
+
+function BP_NRCFurnitureNPC_C:OnCloseHomePetPreview()
+  self:MakeWidgetFlashInPreviewPanel(nil)
+  self:QueryCurrentStatus()
+end
+
+function BP_NRCFurnitureNPC_C:OnFunctionBan()
+  local isBan = _G.FunctionBanManager:GetFunctionState(Enum.PlayerFunctionBanType.PFBT_HOME_PET_PROMPTION)
+  self:RefreshWidgetVisibility(isBan)
+  local sceneCharacter = self.sceneCharacter
+  if sceneCharacter then
+    sceneCharacter.InteractionComponent:SetMarkShouldShow(isBan)
+  end
+end
+
+function BP_NRCFurnitureNPC_C:QueryCurrentStatus()
+  Log.Debug("current nest status query with self.furnitureId: ", self.furnitureId)
+  if not self.furnitureId then
+    return
+  end
+  local pairPetData = _G.NRCModuleManager:DoCmd(_G.HomeModuleCmd.GetPairNestAndPet, self.furnitureId)
+  if not pairPetData then
+    self.currentStatus = HomeEnum.FURNITURE_NPC_STATE.Free
+  elseif pairPetData.home_pet and pairPetData.home_pet.home_pet_info.furniture_guid == self.furnitureId then
+    self.currentStatus = HomeEnum.FURNITURE_NPC_STATE.OccupiedWithPet
+  else
+    self.currentStatus = HomeEnum.FURNITURE_NPC_STATE.Free
+  end
+  Log.Debug("QueryCurrentStatus with currentStatus: ", self.currentStatus)
+  if self.currentStatus == HomeEnum.FURNITURE_NPC_STATE.OccupiedWithPet then
+    if not pairPetData or not pairPetData.home_pet then
+      return
+    end
+    local petData = HomeUtils.GetHomePetAdditionalInfo(pairPetData.home_pet.home_pet_info.pet_gid)
+    if petData and table.len(petData) > 0 then
+      self:UpdatePairPetInfo(true, petData)
+    end
+  else
+    self:UpdatePairPetInfo(self:NeedShowWidget(), nil)
+  end
+  self:UpdateEventListerOnPet()
+end
+
+function BP_NRCFurnitureNPC_C:UpdateEventListerOnPet()
+  local pairPetData = _G.NRCModuleManager:DoCmd(_G.HomeModuleCmd.GetPairNestAndPet, self.furnitureId)
+  if not pairPetData then
+    self:RemoveEventListenerOnOldPet(self.pairPet)
+    return
+  end
+  local pairPet
+  if pairPetData then
+    pairPet = _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.GetNpcByServerID, pairPetData.base.actor_id)
+  end
+  if not pairPet then
+    self:RemoveEventListenerOnOldPet(self.pairPet)
+    return
+  end
+  if self.pairPet == pairPet then
+    return
+  end
+  self:RemoveEventListenerOnOldPet(self.pairPet)
+  self.pairPet = pairPet
+  self:AddEventListenerOnNewPet(pairPet)
+end
+
+function BP_NRCFurnitureNPC_C:RemoveEventListenerOnOldPet(petNpc)
+  if not petNpc then
+    return
+  end
+  petNpc:RemoveEventListener(self, NPCModuleEvent.OnLogicStatusUpdated, self.OnPetStatusChanged)
+end
+
+function BP_NRCFurnitureNPC_C:AddEventListenerOnNewPet(pairPet)
+  if pairPet then
+    pairPet:AddEventListener(self)
+  end
+end
+
+function BP_NRCFurnitureNPC_C:UpdatePairPetInfo(visibility, petData)
+  self:UpdateWidgetComponent(visibility, petData)
+end
+
+function BP_NRCFurnitureNPC_C:GetCurStatus()
+  return self.currentStatus
+end
+
+function BP_NRCFurnitureNPC_C:SetNewStatus(newStatus)
+  self.currentStatus = newStatus
 end
 
 function BP_NRCFurnitureNPC_C:MakeWidgetFlashByPetType(bFlash)
@@ -228,7 +378,7 @@ function BP_NRCFurnitureNPC_C:MakeWidgetFlashByPetType(bFlash)
   if self.flashTimer then
     return
   end
-  local pairPetData = _G.NRCModuleManager:DoCmd(HomeModuleCmd.GetPairNestAndPet, self.homeLevelCharacter.furnitureId)
+  local pairPetData = _G.NRCModuleManager:DoCmd(HomeModuleCmd.GetPairNestAndPet, self.furnitureId)
   local pairPet
   if pairPetData then
     pairPet = _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.GetNpcByServerID, pairPetData.base.actor_id)
@@ -270,10 +420,7 @@ function BP_NRCFurnitureNPC_C:MakeWidgetFlashInPreviewPanel(previewData)
 end
 
 function BP_NRCFurnitureNPC_C:NeedShowWidget()
-  if not self.homeLevelCharacter then
-    return false
-  end
-  local curStatus = self.homeLevelCharacter:GetCurStatus()
+  local curStatus = self:GetCurStatus()
   if _G.FunctionBanManager:GetConditionCounter(Enum.PlayerConditionType.PCT_EDITING_HOME) then
     if curStatus == HomeEnum.FURNITURE_NPC_STATE.Free then
       return false
@@ -304,7 +451,7 @@ function BP_NRCFurnitureNPC_C:Destroy()
 end
 
 function BP_NRCFurnitureNPC_C:ModifyIconHeightIfWithEgg()
-  local pairPetData = _G.NRCModuleManager:DoCmd(_G.HomeModuleCmd.GetPairNestAndPet, self.homeLevelCharacter.furnitureId)
+  local pairPetData = _G.NRCModuleManager:DoCmd(_G.HomeModuleCmd.GetPairNestAndPet, self.furnitureId)
   local pairPet
   if pairPetData then
     pairPet = _G.NRCModuleManager:DoCmd(_G.NPCModuleCmd.GetNpcByServerID, pairPetData.base.actor_id)

@@ -22,7 +22,9 @@ function NrcRedPoint_C:Register()
   if 0 == self.Key then
     return
   end
-  _G.NRCModuleManager:DoCmd(_G.RedPointModuleCmd.RegRedPointUI, self)
+  if _G.RedPointModuleCmd then
+    _G.NRCModuleManager:DoCmd(_G.RedPointModuleCmd.RegRedPointUI, self)
+  end
 end
 
 function NrcRedPoint_C:UnRegister()
@@ -133,6 +135,54 @@ function NrcRedPoint_C:SetRpNode(rpNode)
   self.rpNode = rpNode
 end
 
+function NrcRedPoint_C:SetIgnoreRedPointDataList(reason, extraKeyTable)
+  if nil == reason then
+    Log.Error("[RedPointTag]NrcRedPoint_C:IgnoreRedPointData reason is nil]")
+    return
+  end
+  if nil == extraKeyTable then
+    Log.Error("[RedPointTag]NrcRedPoint_C:IgnoreRedPointData extraKeyTable is nil]")
+    return
+  end
+  if type(extraKeyTable) ~= "table" then
+    Log.Error("[RedPointTag]NrcRedPoint_C:IgnoreRedPointData extraKeyTable is not table]")
+    return
+  end
+  if nil == self.IgnoreRedPointDataList then
+    self.IgnoreRedPointDataList = {}
+  end
+  self.IgnoreRedPointDataList[reason] = {}
+  for _, extraKey in ipairs(extraKeyTable) do
+    table.insert(self.IgnoreRedPointDataList[reason], extraKey)
+  end
+end
+
+function NrcRedPoint_C:ClearIgnoreRedPointDataList()
+  self.IgnoreRedPointDataList = nil
+end
+
+function NrcRedPoint_C:GetMatchIgnoreRedPointDataNum()
+  local Ret = 0
+  if self.IgnoreRedPointDataList == nil then
+    return Ret
+  end
+  for reason, reasonDic in pairs(self.rpNode.popReasonDic or {}) do
+    if reasonDic and reasonDic.oriPointData and self.IgnoreRedPointDataList[reason] then
+      for i, ori_point_data_item in pairs(reasonDic.oriPointData) do
+        if ori_point_data_item and type(ori_point_data_item) == "string" then
+          for _, ignore_point_data_item in pairs(self.IgnoreRedPointDataList[reason]) do
+            if ignore_point_data_item and RedPointUtils.NumberInDotString(ori_point_data_item, ignore_point_data_item) then
+              Ret = Ret + 1
+              break
+            end
+          end
+        end
+      end
+    end
+  end
+  return Ret
+end
+
 function NrcRedPoint_C:Refresh()
   if self.rpNode == nil then
     self:SetRed(false)
@@ -142,96 +192,20 @@ function NrcRedPoint_C:Refresh()
   local isRed = false
   local numInfo
   if self.ExtraKey and #self.ExtraKey > 0 then
-    isRed, numInfo = RedPointUtils.AdvCheckIsRed(self.rpNode, self.ExtraKey)
+    isRed, numInfo = RedPointUtils.AdvCheckIsRed(self.rpNode, self.ExtraKey, self.IgnoreRedPointDataList)
   elseif self.ExtraKeyTable and #self.ExtraKeyTable > 0 then
-    isRed = RedPointUtils.AdvCheckIsRedByExtraKeyTable(self.rpNode, self.ExtraKeyTable)
+    isRed = RedPointUtils.AdvCheckIsRedByExtraKeyTable(self.rpNode, self.ExtraKeyTable, self.IgnoreRedPointDataList)
   else
-    if self.HideReason then
-      local HideCount = self.rpNode.popReasonDic and self.rpNode.popReasonDic[self.HideReason] and self.rpNode.popReasonDic[self.HideReason].oriPointData and #self.rpNode.popReasonDic[self.HideReason].oriPointData or 0
-      isRed = self.rpNode.redCount - HideCount > 0
-    else
-      isRed = self.rpNode.redCount > 0
-    end
+    local IgnoreNum = self:GetMatchIgnoreRedPointDataNum() or 0
+    isRed = self.rpNode.redCount - IgnoreNum > 0
     if self.rpNode.numInfo then
-      numInfo = self.rpNode.numInfo
+      numInfo = self.rpNode.numInfo - IgnoreNum
     end
   end
   local preIsRead = self.isRed
   self:SetRed(isRed)
   self:ShowRedPoint(isRed)
-  local _SearchSonNodeRedPointType = function(rpNode, redPointTypeTable, rpCfgs, RedPointNodeDic)
-    for _, fromKey in pairs(rpNode.popFromDic) do
-      local cfg = rpCfgs[fromKey]
-      local fromNode = RedPointNodeDic[fromKey]
-      local redpoint_type = tonumber(cfg.redpoint_type[1])
-      local num = 0
-      local isLeafNode = false
-      for _, p in pairs(fromNode.litUpReasonDic) do
-        isLeafNode = true
-        local pCount = p and #p.oriPointData or 0
-        num = num + pCount
-      end
-      if isLeafNode then
-        if 0 ~= num and redpoint_type then
-          table.insert(redPointTypeTable, redpoint_type)
-        end
-      else
-        _SearchSonNodeRedPointType(fromNode, redPointTypeTable, rpCfgs, RedPointNodeDic)
-      end
-    end
-  end
-  local _SearchSonNodeRedPointTypeByExtraKey = function(rpNode, redPointTypeTable, rpCfgs, RedPointNodeDic, extraKey)
-    for _, fromKey in pairs(rpNode.popFromDic) do
-      local cfg = rpCfgs[fromKey]
-      local fromNode = RedPointNodeDic[fromKey]
-      local redpoint_type = tonumber(cfg.redpoint_type[1])
-      local isLeafNode = false
-      local hasMatchPoint = false
-      for _, p in pairs(fromNode.litUpReasonDic) do
-        isLeafNode = true
-        if p.splitPointData == nil then
-          p.splitPointData = {}
-          for i, v in pairs(p.oriPointData) do
-            p.splitPointData[i] = p.splitFunc(v)
-          end
-        end
-        local splitPointData = p.splitPointData
-        for _, exKey in pairs(splitPointData) do
-          local Match = true
-          for i, value in ipairs(extraKey) do
-            if value ~= exKey[i] then
-              Match = false
-              break
-            end
-          end
-          if true == Match then
-            hasMatchPoint = true
-            break
-          end
-        end
-      end
-      if isLeafNode then
-        if hasMatchPoint and redpoint_type then
-          table.insert(redPointTypeTable, redpoint_type)
-        end
-      else
-        _SearchSonNodeRedPointTypeByExtraKey(fromNode, redPointTypeTable, rpCfgs, RedPointNodeDic, extraKey)
-      end
-    end
-  end
   self.module = NRCModuleManager:GetModule("RedPointModule")
-  local RedPointNodeDic = self.module.data:GetRedPointNodeDic()
-  local rpCfgs = NRCModuleManager:DoCmd(RedPointModuleCmd.GetRedPointCfgs)
-  self.rpNode.redPointTypeTable = {}
-  if self.ExtraKey and #self.ExtraKey > 0 then
-    _SearchSonNodeRedPointTypeByExtraKey(self.rpNode, self.rpNode.redPointTypeTable, rpCfgs, RedPointNodeDic, self.ExtraKey)
-  elseif self.ExtraKeyTable and #self.ExtraKeyTable > 0 then
-    for _, extraKey in pairs(self.ExtraKeyTable) do
-      _SearchSonNodeRedPointTypeByExtraKey(self.rpNode, self.rpNode.redPointTypeTable, rpCfgs, RedPointNodeDic, extraKey)
-    end
-  else
-    _SearchSonNodeRedPointType(self.rpNode, self.rpNode.redPointTypeTable, rpCfgs, RedPointNodeDic)
-  end
   self:RefreshUITemplate(isRed, numInfo)
   if #self.rpNode.redPointTypeTable > 0 then
     self.useNewRedPoint = true
@@ -265,13 +239,7 @@ function NrcRedPoint_C:RefreshUITemplate(isRed, numInfo)
     return
   end
   local redPointUIIndex = 0
-  if self.rpNode.redPointTypeTable then
-    for _, val in ipairs(self.rpNode.redPointTypeTable) do
-      if val > redPointUIIndex then
-        redPointUIIndex = val
-      end
-    end
-  end
+  redPointUIIndex = self:GetRedPointUIShowType()
   self.RedPointIndex = redPointUIIndex
   if self.rpNode.cfg.redpoint_type[1] then
     local num = tonumber(self.rpNode.cfg.redpoint_type[1])
@@ -303,6 +271,77 @@ function NrcRedPoint_C:RefreshUITemplate(isRed, numInfo)
     self.RedPointNode:SetVisibility(UE4.ESlateVisibility.SelfHitTestInvisible)
     self.RedPointImage:SetVisibility(UE4.ESlateVisibility.Collapsed)
   end
+end
+
+function NrcRedPoint_C:GetRedPointUIShowType()
+  local RedPointUIShowType = 0
+  if self.ExtraKey and #self.ExtraKey > 0 then
+    local TempShowType = self:IterateRootNodeAndGetShowType(self.ExtraKey)
+    if RedPointUIShowType < TempShowType then
+      RedPointUIShowType = TempShowType
+    end
+  elseif self.ExtraKeyTable and #self.ExtraKeyTable > 0 then
+    for _, extraKey in pairs(self.ExtraKeyTable) do
+      local TempShowType = self:IterateRootNodeAndGetShowType(extraKey)
+      if RedPointUIShowType < TempShowType then
+        RedPointUIShowType = TempShowType
+      end
+    end
+  else
+    local TempShowType = self:IterateRootNodeAndGetShowType(nil)
+    if RedPointUIShowType < TempShowType then
+      RedPointUIShowType = TempShowType
+    end
+  end
+  return RedPointUIShowType
+end
+
+function NrcRedPoint_C:IterateRootNodeAndGetShowType(Key)
+  local RedPointUIShowType = 0
+  local RedPointNodeDic = self.module.data:GetRedPointNodeDic()
+  local RedPointConfigs = NRCModuleManager:DoCmd(RedPointModuleCmd.GetRedPointCfgs)
+  if nil == RedPointNodeDic or nil == RedPointConfigs then
+    Log.Error("NrcRedPoint_C:IterateRootNodeAndGetShowType, RedPointNodeDic or RedPointConfigs is nil")
+    return RedPointUIShowType
+  end
+  for _, litUpRootNodeKey in pairs(self.rpNode.litUpRootDic or {}) do
+    if RedPointNodeDic[litUpRootNodeKey] then
+      local litUpRootNode = RedPointNodeDic[litUpRootNodeKey]
+      if Key then
+        for _, p in pairs(litUpRootNode.litUpReasonDic or {}) do
+          if nil == p.splitPointData then
+            p.splitPointData = {}
+            for i, v in pairs(p.oriPointData) do
+              p.splitPointData[i] = p.splitFunc(v)
+            end
+          end
+          local splitPointData = p.splitPointData
+          for _, exKey in pairs(splitPointData) do
+            local Match = true
+            for i, value in ipairs(Key) do
+              if value ~= exKey[i] then
+                Match = false
+                break
+              end
+            end
+            if true == Match then
+              local litUpRootNodeShowType = litUpRootNode.cfg.redpoint_type[1] or 1
+              if RedPointUIShowType < litUpRootNodeShowType then
+                RedPointUIShowType = litUpRootNodeShowType
+              end
+              break
+            end
+          end
+        end
+      else
+        local litUpRootNodeShowType = litUpRootNode.cfg.redpoint_type[1] or 1
+        if RedPointUIShowType < litUpRootNodeShowType then
+          RedPointUIShowType = litUpRootNodeShowType
+        end
+      end
+    end
+  end
+  return RedPointUIShowType
 end
 
 function NrcRedPoint_C:ShowRedPoint(bShow)

@@ -23,6 +23,9 @@ function UMG_MagicManualSubPanel_C:OnEnable(TaskPanelInfo, module)
     self.module:CheckAndSetSelectRewardChapter()
   else
     local chapterList = self.data:GetSeasonChapterList()
+    if not chapterList then
+      Log.Error("Not SeasonChapterList")
+    end
     for i, v in ipairs(chapterList) do
       local hasRewardRedPoint = _G.NRCModuleManager:DoCmd(_G.RedPointModuleCmd.IsRedPointLightUp, 432, {
         v.chapterConfData.id
@@ -121,13 +124,18 @@ function UMG_MagicManualSubPanel_C:UpdateManualTab(tabIndex, childTabIndex)
 end
 
 function UMG_MagicManualSubPanel_C:UpdateSeasonManualTask()
-  self:ShowSeasonRegion()
+  if self.module.ManaulChildIndex == self.data.ManualTaskType.SeasonManual then
+    self:ShowSeasonRegion()
+  end
   self:SetChapterRewardList()
   self:SetChapterTaskProgress()
   self:SetInfo()
 end
 
 function UMG_MagicManualSubPanel_C:OnPlayEnterAnim()
+  if self:IsAnimationPlaying(self.Change) then
+    return
+  end
   self:PlayAnimation(self.Change)
   local num1 = self.List:GetItemCount()
   for i = 1, num1 do
@@ -148,7 +156,7 @@ function UMG_MagicManualSubPanel_C:SetMagicManualChapterInfo(_TaskPanelInfo, Ski
     return
   end
   self.TaskPanelInfo = _TaskPanelInfo
-  self.ParagraphId = self.TaskPanelInfo.LeftPanelInfo.id
+  self.ParagraphId = self.TaskPanelInfo.LeftPanelInfo and self.TaskPanelInfo.LeftPanelInfo.id
   self:SetChapterRewardState()
   self:SetPetBG()
   self:SetInfo()
@@ -352,7 +360,7 @@ function UMG_MagicManualSubPanel_C:SetPetBG()
   local recall_id = 0
   local isShowShop = false
   local isShowMoneyBtn = false
-  if self.module.ManaulChildIndex == self.data.ManualTaskType.NormalManual then
+  if self.module.ManaulChildIndex == self.data.ManualTaskType.NormalManual and self.TaskPanelInfo.LeftPanelInfo then
     local regionData, curSelect = self.data:GetShowRegion()
     local ShowRegion = regionData[curSelect]
     local RegionConf = _G.DataConfigManager:GetRegionConf(ShowRegion.RegionId)
@@ -640,6 +648,9 @@ function UMG_MagicManualSubPanel_C:SetPretaskShowState(state)
 end
 
 function UMG_MagicManualSubPanel_C:SetRightPanelInfo(_RightPanelInfo)
+  if not _RightPanelInfo then
+    return
+  end
   local RightPanelInfo = _RightPanelInfo
   for i, _dataInfo in ipairs(RightPanelInfo) do
     _dataInfo.parent = self
@@ -747,6 +758,9 @@ function UMG_MagicManualSubPanel_C:SetMagicManualDescBG(DescId)
 end
 
 function UMG_MagicManualSubPanel_C:SetLeftPanelInfo(_LeftPanelInfo)
+  if not _LeftPanelInfo then
+    return
+  end
   local LeftPanelInfo = _LeftPanelInfo
   self:SetChapterTaskProgress()
   if LeftPanelInfo.id == self.data.StartChapter then
@@ -807,7 +821,7 @@ function UMG_MagicManualSubPanel_C:SetChapterTaskProgress()
   local TaskCount = 0
   local isRewarded = false
   local btnText = LuaText.TASK_TAKE
-  if self.module.ManaulChildIndex == self.data.ManualTaskType.NormalManual then
+  if self.module.ManaulChildIndex == self.data.ManualTaskType.NormalManual and self.TaskPanelInfo.RightPanelInfo then
     local CurDoneTaskConf = self.TaskPanelInfo.RightPanelInfo
     local DoneTaskCount = {}
     for i = 1, #CurDoneTaskConf do

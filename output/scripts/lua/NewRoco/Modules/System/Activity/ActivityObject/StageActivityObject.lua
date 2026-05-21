@@ -1,4 +1,4 @@
-local Base = require("NewRoco.Modules.System.Activity.ActivityObject.ActivityObjectBase")
+local Base = require("NewRoco.Modules.System.Activity.ActivityObject.RecallActivityObject")
 local ActivityUtils = require("NewRoco.Modules.System.Activity.ActivityUtils")
 local ActivityModuleEvent = require("NewRoco.Modules.System.Activity.ActivityModuleEvent")
 local ActivityEnum = require("NewRoco.Modules.System.Activity.ActivityEnum")
@@ -104,7 +104,13 @@ end
 
 function StageActivityObject:GetRewardRedPointData(_stage)
   local stageId, stageIndex = self:GetStagePartId(_stage)
-  return ActivityEnum.RedPointKey.DetailReward, {
+  local RedPointKey
+  if self:GetActivityBelongSystem() == _G.Enum.BelongSystem.BS_RECALL_ACTIVITY then
+    RedPointKey = 475
+  else
+    RedPointKey = ActivityEnum.RedPointKey.DetailReward
+  end
+  return RedPointKey, {
     self:GetActivityId(),
     stageId,
     stageIndex
@@ -148,7 +154,7 @@ function StageActivityObject:GetActivityShowStatus()
   local stageCfg = self:GetStageRewardsCfg()
   if stageCfg and stageCfg.bIsRecallActivity then
     if not self.returnActivityData then
-      return Base.GetActivityShowStatus(self)
+      return ActivityEnum.ActivityShowStatus.Disable_AdditionalCond
     elseif self.returnActivityData and not self.returnActivityData.active then
       return ActivityEnum.ActivityShowStatus.Disable_Expired
     else
@@ -207,6 +213,7 @@ function StageActivityObject:OnSvrUpdateActivityData(_cmdId, _updateData, _initU
       end
       if isActive and not isRewardTaken then
         _G.NRCModuleManager:DoCmd(TaskModuleCmd.CreateReturnRewardTips)
+        self.returnActivityData = subStageData
       elseif isActive and isRewardTaken then
         self.returnActivityData = subStageData
       elseif not isActive then
@@ -242,7 +249,7 @@ function StageActivityObject:OnTryGetReward(_stage)
 end
 
 function StageActivityObject:OnReconnectFinish()
-  if self.status == ActivityEnum.ActivityStatus.Available then
+  if self.svrStatus == ActivityEnum.ActivitySvrStatus.Available then
     local stageCfg = self:GetStageRewardsCfg()
     if stageCfg and stageCfg.bIsRecallActivity then
       self:ReqGetPlayerActivityData()

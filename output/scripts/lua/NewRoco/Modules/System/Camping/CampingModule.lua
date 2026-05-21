@@ -93,6 +93,7 @@ function CampingModule:OnConstruct()
   self.firstPetName = nil
   _G.DataModelMgr.PlayerDataModel:AddEventListener(self, ENUM_PLAYER_DATA_EVENT.UPDATE_DATA, self.OnPlayerDataUpdate)
   _G.NRCEventCenter:RegisterEvent("CampingModule", self, DialogueModuleEvent.DialogueEnded, self.OnDialogueEnded)
+  _G.NRCEventCenter:RegisterEvent("CampingModule", self, _G.NRCGlobalEvent.ON_DISCONNECT, self.OnDialogueEnded)
   _G.NRCEventCenter:RegisterEvent("CampingModule", self, SceneEvent.PreLoadMapStart, self.OnDialogueEnded)
 end
 
@@ -228,6 +229,7 @@ end
 function CampingModule:OnDeactive()
   _G.DataModelMgr.PlayerDataModel:RemoveEventListener(self, ENUM_PLAYER_DATA_EVENT.UPDATE_DATA, self.OnPlayerDataUpdate)
   _G.NRCEventCenter:UnRegisterEvent(self, DialogueModuleEvent.DialogueEnded, self.OnDialogueEnded)
+  _G.NRCEventCenter:UnRegisterEvent(self, _G.NRCGlobalEvent.ON_DISCONNECT, self.OnDialogueEnded)
   _G.NRCEventCenter:UnRegisterEvent(self, SceneEvent.PreLoadMapStart, self.OnDialogueEnded)
 end
 
