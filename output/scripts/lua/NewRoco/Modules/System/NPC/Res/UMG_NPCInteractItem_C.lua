@@ -488,9 +488,6 @@ function UMG_NPCInteractItem_C:SetNpcOptionData(option)
   else
     self.content = optionConfig.button_text
   end
-  if option:GetActionType() == _G.Enum.ActionType.ACT_PICKEGG_HOME then
-    self.item_quality = 0
-  end
   local contentSize = 22
   if option:IsFarmOption() then
     local farmOptionType = FarmUtils.GetFarmOptionType(option)

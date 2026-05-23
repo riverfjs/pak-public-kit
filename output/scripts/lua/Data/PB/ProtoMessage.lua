@@ -10847,9 +10847,14 @@ function ProtoMessage:newPedalData()
   }
 end
 
+function ProtoMessage:newOtherBoxNpcInfo()
+  return {other_npc_obj_id = nil, other_npc_logic_id = nil}
+end
+
 function ProtoMessage:newBoxData()
   return {
     other_box_npc_ids = {},
+    other_box_info = {},
     inner_npc_content_id = nil,
     bonus_type = nil,
     box_type = ProtoEnum.BoxType.BOX_TYPE_INVALID,

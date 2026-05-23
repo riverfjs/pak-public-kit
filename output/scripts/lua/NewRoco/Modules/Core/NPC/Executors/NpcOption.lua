@@ -1589,6 +1589,10 @@ function NpcOption:CheckOptionIsBan(showBanMsg)
   return isBan
 end
 
+function NpcOption:IsPetEggOption()
+  return self.owner.IsPetEgg and self.owner:IsPetEgg()
+end
+
 function NpcOption:IsPetOption()
   return self.owner.IsPet and self.owner:IsPet()
 end

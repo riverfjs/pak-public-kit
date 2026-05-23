@@ -371,6 +371,7 @@ function UMG_ClosetPanel_C:FastDressUpModelLoadSucceed(resRequest, modelClass)
   self.fastDressUpAvatarPlayer = self.QuickChangeSubPanel:SpawnActor(modelClass, trans)
   if self.fastDressUpAvatarPlayer then
     self.fastDressUpAvatarPlayer:SetIsPlayerModel(true)
+    self.fastDressUpAvatarPlayer.Hands.BoundsScale = 10
   end
   self.fastDressUpAvatarWardrobe = self.QuickChangeSubPanel:SpawnActor(modelClass, trans2)
   if self.fastDressUpAvatarWardrobe then

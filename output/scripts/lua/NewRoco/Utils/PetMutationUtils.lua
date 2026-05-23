@@ -1008,14 +1008,6 @@ function PetMutationUtils.GetNightmareParameterInfo()
   return nightmareParameterInfo
 end
 
-function PetMutationUtils.GetNightmareOneParameterInfo()
-  local nightmareParameterInfo = UE4.FMaterialParameterInfo()
-  nightmareParameterInfo.Name = "\229\188\128\229\144\175\229\153\169\230\162\166\230\174\139\231\149\153\230\149\136\230\158\156"
-  nightmareParameterInfo.Association = UE4.EMaterialParameterAssociation.LayerParameter
-  nightmareParameterInfo.Index = 0
-  return nightmareParameterInfo
-end
-
 function PetMutationUtils.SetNightmareFirstMutation(character)
   local rocoMaterial = character.RocoMaterial
   local mesh = character.mesh
@@ -1055,13 +1047,10 @@ function PetMutationUtils.SetNightmareByIDMask(character)
     if UE4.UObject.IsValid(mat) then
       mat:SetSwitchParameterValue("\229\188\128\229\144\175\233\187\145\233\173\148\230\179\149\230\149\136\230\158\156", true, mesh, false)
       mat:SetScalarParameterValueByInfo(PetMutationUtils.GetNightmareParameterInfo(), 1.0)
-      mat:SetSwitchParameterValue("\229\188\128\229\144\175\229\153\169\230\162\166\230\174\139\231\149\153\230\149\136\230\158\156", true, mesh, false)
-      mat:SetScalarParameterValueByInfo(PetMutationUtils.GetNightmareOneParameterInfo(), 1.0)
       mat:SetScalarParameterValue("OpenBlackMagicByIDMask", 1)
       for _, additionalMat in tpairs(mat.AdditionalMaterials) do
         if UE4.UObject.IsValid(additionalMat) then
           additionalMat:SetSwitchParameterValue("\229\188\128\229\144\175\233\187\145\233\173\148\230\179\149\230\149\136\230\158\156", true, mesh, false)
-          additionalMat:SetSwitchParameterValue("\229\188\128\229\144\175\229\153\169\230\162\166\230\174\139\231\149\153\230\149\136\230\158\156", true, mesh, false)
           additionalMat:SetScalarParameterValue("OpenBlackMagicByIDMask", 1)
         end
       end

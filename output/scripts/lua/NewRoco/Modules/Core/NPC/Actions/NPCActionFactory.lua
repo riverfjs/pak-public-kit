@@ -4,6 +4,7 @@ NPCActionFactory.Registry = {
   [Enum.ActionType.ACT_DIALOG] = require("NewRoco.Modules.Core.NPC.Actions.NPCActionDialogue"),
   [Enum.ActionType.ACT_DIALOGUE_LOCAL] = require("NewRoco.Modules.Core.NPC.Actions.NPCActionDialogueLocal"),
   [Enum.ActionType.ACT_BATTLE] = require("NewRoco.Modules.Core.NPC.Actions.NPCActionBattle"),
+  [Enum.ActionType.ACT_BOX_BATTLE] = require("NewRoco.Modules.Core.NPC.Actions.NPCActionBattle"),
   [Enum.ActionType.ACT_TOUCHBATTLE] = require("NewRoco.Modules.Core.NPC.Actions.NPCActionTouchBattle"),
   [Enum.ActionType.ACT_OPENSHOP] = require("NewRoco.Modules.Core.NPC.Actions.NPCActionOpenShop"),
   [Enum.ActionType.ACT_SUBMITPET_REWARD] = require("NewRoco.Modules.Core.NPC.Actions.NPCActionOpenPetAltar"),

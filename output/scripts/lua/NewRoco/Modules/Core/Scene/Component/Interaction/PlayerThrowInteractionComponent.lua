@@ -85,6 +85,8 @@ function PlayerThrowInteractionComponent:SendThrowEnd(WeakPointName)
     if req.throw_battle_info.npc_ai_blackboard.ai_status & 1 << ProtoEnum.BattleAIStatus.BAS_SLEEP > 0 then
       isSleeping = 1
     end
+  else
+    req.throw_battle_info.npc_ai_blackboard.ai_status = 0
   end
   req.throw_battle_info.npc_ai_blackboard.sleeping = isSleeping
   local npcModule = self.SceneCharacter.module
@@ -100,7 +102,11 @@ function PlayerThrowInteractionComponent:SendThrowEnd(WeakPointName)
   if req.throw_effect ~= _G.ProtoEnum.ThrowEffect.TE_NONE then
     local actDir = self.SceneCharacter:GetActorLocation() - self.owner:GetActorLocation()
     actDir:Normalize()
-    local isBack, isTalent = SceneUtils.TriggerBackwardBattle(self.SceneCharacter, actDir, 1, Ball.ThrowSession.ScenePet)
+    local isBack = false
+    local isTalent = false
+    if self.SceneCharacter.AIComponent then
+      isBack, isTalent = SceneUtils.TriggerBackwardBattle(self.SceneCharacter, actDir, 1, Ball.ThrowSession.ScenePet)
+    end
     if isBack then
       req.throw_battle_info.npc_ai_blackboard.back_of_head = true
       local alterStatus
@@ -109,10 +115,10 @@ function PlayerThrowInteractionComponent:SendThrowEnd(WeakPointName)
       else
         alterStatus = 1 << Enum.BattleAIStatus.BAS_BACK_OF_HEAD
       end
-      req.throw_battle_info.npc_ai_blackboard.ai_status = req.throw_battle_info.npc_ai_blackboard.ai_status | alterStatus
+      req.throw_battle_info.npc_ai_blackboard.ai_status = (req.throw_battle_info.npc_ai_blackboard.ai_status or 0) | alterStatus
     end
     if self.SceneCharacter.config.genre ~= Enum.ClientNpcType.CNT_PETBOSS then
-      BattleManager:StartFocus(self.SceneCharacter, isBack, req.throw_battle_info.npc_ai_blackboard.ai_status)
+      BattleManager:StartFocus(self.SceneCharacter, isBack, req.throw_battle_info.npc_ai_blackboard.ai_status or 0)
       local stunComp = self.SceneCharacter.StunComponent
       if stunComp and stunComp then
         stunComp:StopStun(true)

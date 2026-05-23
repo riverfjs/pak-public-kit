@@ -978,6 +978,7 @@ function AppearanceModule:HideLocalPlayer()
   if self:HasPanel("BeautyMain") then
     local AvatarSubsystem = UE.USubsystemBlueprintLibrary.GetGameInstanceSubsystem(UE4Helper.GetCurrentWorld(), UE.UAvatarSubsystem)
     self.AvatarPlayer = AvatarSubsystem:RequestAvatarActor(self.player.gender)
+    self.AvatarPlayer.Hands.BoundsScale = 10
     self:Log("[AppearanceModule] Create AvatarPlayer", self.AvatarPlayer)
     local ActivePanelName = "BeautyMain"
     local path = "SkillBlueprint'/Game/ArtRes/Effects/G6Skill/Cosplay/MeiRong_Start_Loop.MeiRong_Start_Loop_C'"
@@ -997,6 +998,7 @@ function AppearanceModule:HideLocalPlayer()
   elseif self:HasPanel("AppearanceMain") then
     local AvatarSubsystem = UE.USubsystemBlueprintLibrary.GetGameInstanceSubsystem(UE4Helper.GetCurrentWorld(), UE.UAvatarSubsystem)
     self.AvatarPlayer = AvatarSubsystem:RequestAvatarActor(self.player.gender)
+    self.AvatarPlayer.Hands.BoundsScale = 10
     self:Log("[AppearanceModule] Create AvatarPlayer", self.AvatarPlayer)
     self.AvatarPlayer:SetActorHiddenInGame(true)
     if self.NpcAction and self.NpcAction.Config.action_type == _G.Enum.ActionType.ACT_CAMP_OPENPIKA then
@@ -3529,6 +3531,7 @@ function AppearanceModule:HideClosetLocalPlayer()
   if self:HasPanel("AppearanceCloset") then
     local AvatarSubsystem = UE.USubsystemBlueprintLibrary.GetGameInstanceSubsystem(UE4Helper.GetCurrentWorld(), UE.UAvatarSubsystem)
     self.closetAvatarPlayer = AvatarSubsystem:RequestAvatarActor(player.gender)
+    self.closetAvatarPlayer.Hands.BoundsScale = 10
     self.closetAvatarPlayer_Ref = UnLua.Ref(self.closetAvatarPlayer)
     self:Log("[AppearanceModule] Create ClosetAvatarPlayer", self.closetAvatarPlayer)
     if self.closetAvatarPlayer and UE4.UObject.IsValid(self.closetAvatarPlayer) then

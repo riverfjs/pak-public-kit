@@ -11,7 +11,6 @@ function RidePetPassiveSkillComponent:Attach(owner)
   self._typed_passive_skill = {}
   self:BuildPassiveSkills()
   self.owner:AddEventListener(self, PlayerModuleEvent.ON_STATUS_CHANGED, self.OnPetStatusChanged)
-  _G.NRCEventCenter:RegisterEvent("RidePetPassiveSkillComponent", self, PetUIModuleEvent.OnRefreshEvoPetModel, self.OnPetEvolution)
 end
 
 function RidePetPassiveSkillComponent:BuildPassiveSkills()
@@ -101,7 +100,6 @@ end
 
 function RidePetPassiveSkillComponent:DeAttach()
   self.owner:RemoveEventListener(self, PlayerModuleEvent.ON_STATUS_CHANGED, self.OnPetStatusChanged)
-  _G.NRCEventCenter:UnRegisterEvent(self, PetUIModuleEvent.OnRefreshEvoPetModel, self.OnPetEvolution)
   if UE.UObject.IsValid(self.viewObj) then
     self.viewObj.MovementModeChangedDelegate:Remove(self.viewObj, self.OnMovementModeUpdate)
   end
@@ -125,34 +123,13 @@ function RidePetPassiveSkillComponent:OnSetDoubleRide2P(isOnPet, player2P)
   end
 end
 
-function RidePetPassiveSkillComponent:OnPetEvolution(petData)
-  if not petData or not self.owner then
-    return
-  end
-  if petData.gid ~= self.owner.gid then
-    return
-  end
-  local newBaseId = petData.base_conf_id
-  if not newBaseId then
-    Log.Warning("RidePetPassiveSkillComponent:OnPetEvolution petData.base_conf_id is nil, gid=" .. tostring(petData.gid))
-    return
-  end
-  Log.Debug(string.format("RidePetPassiveSkillComponent:OnPetEvolution refresh passive skills, gid=%s, oldBaseId=%s, newBaseId=%s", tostring(self.owner.gid), tostring(self.owner.config and self.owner.config.id), tostring(newBaseId)))
+function RidePetPassiveSkillComponent:RebuildPassiveSkills()
   local wasInRide = self._in_ride
   for _, v in ipairs(self._passive_skills) do
     v:Stop()
   end
   self._passive_skills = {}
   self._typed_passive_skill = {}
-  local newConfig = _G.DataConfigManager:GetPetbaseConf(newBaseId)
-  if newConfig then
-    self.owner.config = newConfig
-  end
-  self.owner.rideConfig = _G.DataConfigManager:GetAllRidePet(newBaseId, true)
-  if not self.owner.rideConfig then
-    Log.Warning("RidePetPassiveSkillComponent:OnPetEvolution new rideConfig is nil, baseId=" .. tostring(newBaseId))
-    return
-  end
   self:BuildPassiveSkills()
   if wasInRide then
     for _, v in ipairs(self._passive_skills) do

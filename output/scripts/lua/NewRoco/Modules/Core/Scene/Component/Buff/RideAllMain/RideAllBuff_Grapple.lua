@@ -109,7 +109,6 @@ function RideAllBuff_Grapple:OnBuffUpdate(deltaTime)
     if self.waitTime >= self.delayMoveTime then
       self.curGrappleStatus = GrappleStatus.InMoveing
       self.RidePet.Mesh:GetAnimInstance().IsGrapple = true
-      self.fallingComp.bGrappleMoving = true
       self.moveingTime = 0
       if self.RideComp.RideMoveType ~= ProtoEnum.SceneRideAllType.SRAT_SWIM then
         self.RidePet.CharacterMovement:SetMovementMode(3)
@@ -515,7 +514,6 @@ function RideAllBuff_Grapple:OnBuffFinish(param)
     _G.NRCModuleManager:GetModule("MainUIModule"):DispatchEvent(MainUIModuleEvent.ChangePCCancelChargeBtnVisibility, false)
   end
   self.RidePet.Mesh:GetAnimInstance().IsGrapple = false
-  self.fallingComp.bGrappleMoving = false
   self.moveComp:ApplyVelocity(UE.EApplyMovementStatType.ImpulseOverride, FVectorZero)
   self.owner.inputComponent:SetMoveEnable(self, true)
   self.CameraABP.RideGrapple = false

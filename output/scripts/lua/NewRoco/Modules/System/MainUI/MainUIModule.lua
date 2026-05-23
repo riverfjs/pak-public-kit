@@ -250,20 +250,9 @@ end
 
 function MainUIModule:OnBeginTrowRsp(ThrowSession, rsp)
   local change_Team = rsp.change_team
-  if change_Team then
-    if change_Team.main_team_idx and change_Team.team_type == Enum.PlayerTeamType.PTT_BIG_WORLD then
-      _G.DataModelMgr.PlayerDataModel:SetPlayerBigWorldPetTeamMainIndex(change_Team.main_team_idx)
-      _G.DataModelMgr.PlayerDataModel:OnPetMainTeamChanged(change_Team.main_team_idx)
-      local gid = ThrowSession:GetGID()
-      local index, petData = _G.DataModelMgr.PlayerDataModel:GetPetDataAndTeamIndexByGid(gid)
-      _G.NRCModuleManager:GetModule("PetUIModule"):DispatchEvent(PetUIModuleEvent.PET_TEAM_CHANGE)
-      local battlePetList = _G.DataModelMgr.PlayerDataModel:GetPlayerBattlePetInfo()
-      _G.NRCModeManager:DoCmd(MainUIModuleCmd.SetSelectPetIndex, index, petData)
-      _G.NRCModuleManager:DoCmd(PetUIModuleCmd.SetPetSelectIndex, index)
-      _G.NRCModuleManager:GetModule("MainUIModule"):DispatchEvent(MainUIModuleEvent.UI_Refresh_MainPet, 1, battlePetList, true)
-      _G.NRCModuleManager:DoCmd(MainUIModuleCmd.UI_RefreshMainPetSelectedState, petData.gid)
-    end
-  elseif rsp and rsp.ret_info and 0 == rsp.ret_info.ret_code and ThrowSession:GetThrowType() == _G.ProtoEnum.ThrowType.THROW_PET then
+  if change_Team and change_Team.main_team_idx and change_Team.team_type == Enum.PlayerTeamType.PTT_BIG_WORLD then
+    _G.DataModelMgr.PlayerDataModel:SetPlayerBigWorldPetTeamMainIndex(change_Team.main_team_idx)
+    _G.DataModelMgr.PlayerDataModel:OnPetMainTeamChanged(change_Team.main_team_idx)
     local gid = ThrowSession:GetGID()
     local index, petData = _G.DataModelMgr.PlayerDataModel:GetPetDataAndTeamIndexByGid(gid)
     _G.NRCModuleManager:GetModule("PetUIModule"):DispatchEvent(PetUIModuleEvent.PET_TEAM_CHANGE)

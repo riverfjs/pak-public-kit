@@ -869,9 +869,49 @@ function BigMapModule:RefreshData()
       self.data:CancelTraceOnNpcRemoved(TraceNpcData.entry_id, TraceNpcData.logic_id)
     end
   end
+  self:OnCmdClearTraceInfoByType(BigMapModuleEnum.TraceType.ForceTrace)
   _G.NRCEventCenter:DispatchEvent(BigMapModuleEvent.OnMapDataRefreshed)
   self.data:SetAutoTrackNpcList(worldMapInfo.auto_track_npc_infos)
   self.data:SortDefaultTrackNpcList()
+end
+
+function BigMapModule:DeleteForceTraceInfo()
+  local needDeleteList = {}
+  local forceTraceInfo = self.data:GetTraceInfoByType(BigMapModuleEnum.TraceType.ForceTrace)
+  if forceTraceInfo then
+    for trackType, traceInfoList in pairs(forceTraceInfo) do
+      if traceInfoList and #traceInfoList > 0 then
+        for _, traceInfo in ipairs(traceInfoList) do
+          local bExit = false
+          if self.data.defaultTrackNpcMap then
+            do
+              local defaultTrackNpcMap = self.data.defaultTrackNpcMap[trackType]
+              if defaultTrackNpcMap and #defaultTrackNpcMap > 0 then
+                for _, defaultTrackNpc in ipairs(defaultTrackNpcMap) do
+                  if traceInfo.npcInfo and defaultTrackNpc.logic_id == traceInfo.npcInfo.logic_id then
+                    bExit = true
+                    goto lbl_67
+                  end
+                end
+              end
+            end
+          end
+          if not bExit then
+            table.insert(needDeleteList, {
+              entryId = traceInfo.npcInfo.entry_id,
+              logicId = traceInfo.npcInfo.logic_id
+            })
+          end
+          ::lbl_67::
+        end
+      end
+    end
+  end
+  if #needDeleteList > 0 then
+    for _, deleteInfo in ipairs(needDeleteList) do
+      self.data:CancelTraceOnNpcRemoved(0, deleteInfo.entryId, deleteInfo.logicId)
+    end
+  end
 end
 
 function BigMapModule:SetDropMethodInfo()

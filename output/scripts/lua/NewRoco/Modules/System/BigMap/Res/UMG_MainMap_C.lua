@@ -1973,6 +1973,7 @@ function UMG_MainMap_C:OnWorldMapInfoUpdateEvent_DelayFunc()
     _G.NRCProfilerLog:NRCPanelOpenAnimation(true, self.panelName)
     self.playOpenAnimation = false
   end
+  self.module:DeleteForceTraceInfo()
   self:CreateTraceIcon()
   self.data.lastShowSceneResId = self.data.curShowSceneResId
 end

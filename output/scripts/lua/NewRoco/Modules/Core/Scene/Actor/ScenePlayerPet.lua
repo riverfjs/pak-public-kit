@@ -70,7 +70,11 @@ function ScenePlayerPet:RefreshData(module, id, gid, owner, isInMainTeam)
     if not self.config then
       return
     end
+    local bRidePetPassiveSkillComponentCreated = nil ~= self.RidePetPassiveSkillComponent
     self:InitComponent()
+    if bRidePetPassiveSkillComponentCreated and self.RidePetPassiveSkillComponent then
+      self.RidePetPassiveSkillComponent:RebuildPassiveSkills()
+    end
     if self.config.scene_ability > 0 then
       local sceneAbilityConf = DataConfigManager:GetSceneAbilityConf(self.config.scene_ability)
       self.abilityType = sceneAbilityConf.scene_ability_type

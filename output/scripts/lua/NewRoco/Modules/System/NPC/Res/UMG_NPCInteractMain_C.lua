@@ -11,6 +11,7 @@ local FocusType = {
   Pet = "Pet",
   HomePetOption = "HomePetOption",
   FurnitureOption = "FurnitureOption",
+  HomeEggOption = "HomeEggOption",
   Default = "Default"
 }
 local SpecialOptionHandlers = {
@@ -45,6 +46,7 @@ function UMG_NPCInteractMain_C:OnInitialized()
   self.RealShownNum = 0
   self.bFunctionBan = false
   self.focusNpc = nil
+  self.focusNpcs = {}
   self.MaxSequence = -1
   self.bSequenceChanged = false
   self.ObjList:SetMsgHandler({
@@ -775,7 +777,7 @@ local AddFlags = DirtyFlag.Add | DirtyFlag.Init | DirtyFlag.Recover
 local RemoveFlags = DirtyFlag.Remove | DirtyFlag.Hidden
 
 function UMG_NPCInteractMain_C:OnTick(deltaTime)
-  if self.focusNpc and self:TryFocusNpc(self._options, false, deltaTime) then
+  if next(self.focusNpcs) and self:TryFocusNpc(self._options, false, deltaTime) then
     self.CurDirtyFlag = self.CurDirtyFlag | DirtyFlag.FocusNpc
   end
   if self.CurDirtyFlag ~= DirtyFlag.None then
@@ -971,22 +973,22 @@ function UMG_NPCInteractMain_C:FilterOptions()
       end
     end
   end
-  if self.focusNpc then
+  if next(self.focusNpcs) then
     for i = #self.ShownOptions, 1, -1 do
       local option = self.ShownOptions[i]
       if self:IsFocusTypeOption(option) then
         local type = self:GetOptionType(option)
         local optionHandler = SpecialOptionHandlers[type]
-        if optionHandler then
-          optionHandler(option, false)
-        end
-        if option.owner ~= self.focusNpc then
-          table.remove(self.ShownOptions, i)
-          if optionHandler then
-            optionHandler(option, false)
+        local focusNpcForType = self.focusNpcs[type]
+        if focusNpcForType then
+          if option.owner ~= focusNpcForType then
+            table.remove(self.ShownOptions, i)
+            if optionHandler then
+              optionHandler(option, false)
+            end
+          elseif optionHandler then
+            optionHandler(option, true)
           end
-        elseif optionHandler then
-          optionHandler(option, true)
         end
       end
     end
@@ -1058,25 +1060,72 @@ function UMG_NPCInteractMain_C:TryFocusNpc(options, bForceFocus, deltaTime)
   if not options or not next(options) then
     return false
   end
-  local npcDic = {}
-  local npcCount = 0
+  local bChanged = false
+  local focusTypes = {}
   for _, option in ipairs(options) do
     if self:IsFocusTypeOption(option) then
+      local type = self:GetOptionType(option)
+      if not focusTypes[type] then
+        focusTypes[type] = {}
+      end
       local owner = option.owner
-      if nil ~= owner and not npcDic[owner] then
-        npcDic[owner] = true
-        npcCount = npcCount + 1
+      if nil ~= owner and not focusTypes[type][owner] then
+        focusTypes[type][owner] = true
       end
     end
   end
-  local bChanged = false
-  if npcCount > 1 then
-    bChanged = self:FocusNpc(npcDic)
-  else
-    self.focusNpc = nil
-    self.FocusTimer = 0.3
+  for focusType, npcDic in pairs(focusTypes) do
+    local npcCount = 0
+    for _ in pairs(npcDic) do
+      npcCount = npcCount + 1
+    end
+    if npcCount > 1 then
+      local newFocusNpc = self:FocusNpcForType(npcDic)
+      local oldFocusNpc = self.focusNpcs[focusType]
+      if newFocusNpc ~= oldFocusNpc then
+        self.focusNpcs[focusType] = newFocusNpc
+        bChanged = true
+        Log.Debug("[NPCInteractMainUI] focusNpc for type", focusType, "changed:", newFocusNpc and newFocusNpc:DebugNPCNameAndID())
+      end
+    elseif nil ~= self.focusNpcs[focusType] then
+      self.focusNpcs[focusType] = nil
+      bChanged = true
+    end
+  end
+  for focusType in pairs(self.focusNpcs) do
+    if not focusTypes[focusType] then
+      self.focusNpcs[focusType] = nil
+      bChanged = true
+    end
   end
   return bChanged
+end
+
+function UMG_NPCInteractMain_C:FocusNpcForType(npcDic)
+  local focusNpc
+  local maxDotProduct = math.mininteger
+  local localPlayer = _G.NRCModuleManager:DoCmd(_G.PlayerModuleCmd.GET_LOCAL_PLAYER)
+  if not localPlayer then
+    return nil
+  end
+  local playerPos = localPlayer:GetActorLocation()
+  local playerForward = localPlayer:GetForwardVector()
+  playerForward.Z = 0
+  for npc, _ in pairs(npcDic) do
+    local npc2PlayerForwardDot = npc.PlayerForwardDotCache
+    if not npc2PlayerForwardDot then
+      local npcPos = npc:GetActorLocation()
+      local directionToNpc = npcPos - playerPos
+      directionToNpc.Z = 0
+      directionToNpc:Normalize()
+      npc2PlayerForwardDot = playerForward:Dot(directionToNpc)
+    end
+    if maxDotProduct < npc2PlayerForwardDot then
+      maxDotProduct = npc2PlayerForwardDot
+      focusNpc = npc
+    end
+  end
+  return focusNpc
 end
 
 function UMG_NPCInteractMain_C:FocusNpc(npcDic)
@@ -1113,13 +1162,16 @@ end
 
 function UMG_NPCInteractMain_C:IsFocusTypeOption(option)
   local type = self:GetOptionType(option)
-  if type == FocusType.Pet or type == FocusType.HomePetOption or type == FocusType.FurnitureOption then
+  if type == FocusType.Pet or type == FocusType.HomePetOption or type == FocusType.FurnitureOption or type == FocusType.HomeEggOption then
     return true
   end
   return false
 end
 
 function UMG_NPCInteractMain_C:GetOptionType(option)
+  if option.IsPetEggOption and option:IsPetEggOption() then
+    return FocusType.HomeEggOption
+  end
   if option.GetEnableCondition and option:GetEnableCondition() == _G.Enum.OptionVisibleCondition.ENABLE_CONDITION_OPTION_TYPE then
     return FocusType.HomePetOption
   end

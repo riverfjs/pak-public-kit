@@ -47,6 +47,7 @@ function UMG_TryOnImage3D_C:CreateAvatarPlayer(firstFashions, firstSalons, first
   local zeroTransform = UE4.FTransform(quat, UE4.FVector(-986231.6875, 937638.8125, 688))
   self.AvatarPlayer = self.TryOnWorldView:SpawnActor(res, zeroTransform, UE4.ESpawnActorCollisionHandlingMethod.AlwaysSpawn)
   self.AvatarPlayer:SetActorHiddenInGame(true)
+  self.AvatarPlayer.Hands.BoundsScale = 10
   local count = 0
   local bAvatarShown = false
   local bNeedFallback = true
