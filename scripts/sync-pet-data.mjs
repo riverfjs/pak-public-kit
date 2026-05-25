@@ -169,6 +169,7 @@ async function main() {
     );
     const handbookByPetBaseId = buildHandbookByPetBaseId(handbookRows);
     const handbookById = indexBy(handbookRows);
+    normalizeSkillTextTable(skillTable);
 
     const contexts = petBaseRows.map((petBase) => {
         const handbookRow = pickHandbookRow(
@@ -394,6 +395,7 @@ async function main() {
     );
 
     await syncMirroredTables();
+    await writeNormalizedSkillTable(skillTable);
     await fs.mkdir(petsDetailDir, { recursive: true });
     await cleanGeneratedPetDetails();
     await writeJson(petsIndexPath, indexEntries);
@@ -530,6 +532,19 @@ function cleanText(value) {
 
     const cleaned = value
         .replace(/<[^>]*>/g, "")
+        .replace(/\r\n/g, "\n")
+        .replace(/\s+/g, " ")
+        .trim();
+
+    return cleaned || null;
+}
+
+function normalizeRawText(value) {
+    if (typeof value !== "string") {
+        return null;
+    }
+
+    const cleaned = value
         .replace(/\r\n/g, "\n")
         .replace(/\s+/g, " ")
         .trim();
@@ -1158,10 +1173,79 @@ function buildHandbookRewards(handbookRows, rewardTable, visualItemTable, bagIte
 }
 
 const MOVE_EFFECT_TEXT_PATTERN =
-    /(造成|对敌方|敌方|自己|回复|恢复|获得|减伤|连击|本技能|魔法伤害|物理伤害|物伤|魔伤|消耗|能量|速度|物攻|魔攻|物防|魔防|威力|命中|应对|印记|萌化|睡眠|中毒|烧伤|暴击|先手|后手|生命|回合|下次|本次|永久|打断|蓄力|吸血|脱离|交换|失去|赋予|翻倍|冷却|眩晕|冻结|变成|无法更换)/;
+    /(造成|对敌方|敌方|自己|回复|恢复|获得|提升|降低|增强|削弱|免疫|抵抗|减伤|伤害|连击|本技能|魔法伤害|物理伤害|物伤|魔伤|消耗|能量|速度|物攻|魔攻|物防|魔防|威力|命中|应对|印记|萌化|睡眠|中毒|烧伤|暴击|先手|后手|生命|回合|下次|本次|永久|打断|蓄力|吸血|脱离|交换|失去|赋予|翻倍|冷却|眩晕|冻结|变成|无法更换|<desc_id=)/;
+
+const MOVE_NAME_TEXT_MAX_LENGTH = 12;
+const MOVE_NAME_TEXT_BLOCK_PATTERN = /[，。！？；：,.!?;:]|<desc_id=|<\/>|%/;
 
 function looksLikeMoveEffectText(text) {
     return typeof text === "string" && MOVE_EFFECT_TEXT_PATTERN.test(text);
+}
+
+function looksLikeMoveNameText(text) {
+    if (typeof text !== "string" || text.length === 0) {
+        return false;
+    }
+
+    if (looksLikeMoveEffectText(text) || MOVE_NAME_TEXT_BLOCK_PATTERN.test(text)) {
+        return false;
+    }
+
+    return Array.from(text).length <= MOVE_NAME_TEXT_MAX_LENGTH;
+}
+
+function looksLikeShortMoveTitle(text) {
+    if (typeof text !== "string" || text.length === 0) {
+        return false;
+    }
+
+    if (MOVE_NAME_TEXT_BLOCK_PATTERN.test(text)) {
+        return false;
+    }
+
+    return Array.from(text).length <= MOVE_NAME_TEXT_MAX_LENGTH;
+}
+
+function normalizeSkillTextTable(skillTable) {
+    const rows = skillTable?.RocoDataRows ?? {};
+
+    for (const row of Object.values(rows)) {
+        if (!row || typeof row !== "object") {
+            continue;
+        }
+
+        const rawName = normalizeRawText(row.name);
+        const rawDescription = normalizeRawText(row.desc);
+        const rawFlavorText = normalizeRawText(row.flavor_text);
+
+        if (!shouldUseDescriptionAsMoveName(rawName, rawDescription)) {
+            continue;
+        }
+
+        const cleanName = cleanText(rawName);
+        const description = looksLikeMoveEffectText(cleanName)
+            ? rawName
+            : rawFlavorText ?? rawName ?? "";
+
+        row.name = rawDescription ?? rawFlavorText ?? `技能 ${row.id}`;
+        row.desc = description;
+
+        if (
+            rawName &&
+            rawName !== description &&
+            !looksLikeMoveEffectText(cleanName) &&
+            rawFlavorText === description
+        ) {
+            row.flavor_text = rawName;
+        }
+    }
+}
+
+async function writeNormalizedSkillTable(skillTable) {
+    await Promise.all([
+        writeJsonWithIndent(path.join(binDataDir, "SKILL_CONF.json"), skillTable, 2),
+        writeJsonWithIndent(path.join(tablesDir, "SKILL_CONF.json"), skillTable, 2),
+    ]);
 }
 
 function resolveMoveText(skill, fallbackSkillId, options = {}) {
@@ -1171,14 +1255,12 @@ function resolveMoveText(skill, fallbackSkillId, options = {}) {
     const flavorText = cleanText(skill?.flavor_text);
     const fallbackName = cleanText(options.fallbackName);
 
-    if (
-        rawName &&
-        looksLikeMoveEffectText(rawName) &&
-        !looksLikeMoveEffectText(rawDescription)
-    ) {
+    if (shouldUseDescriptionAsMoveName(rawName, rawDescription)) {
         return {
             name: rawDescription ?? flavorText ?? fallbackName ?? `技能 ${skillId}`,
-            description: rawName,
+            description: looksLikeMoveEffectText(rawName)
+                ? rawName
+                : flavorText ?? rawName ?? "",
         };
     }
 
@@ -1186,6 +1268,21 @@ function resolveMoveText(skill, fallbackSkillId, options = {}) {
         name: rawName ?? fallbackName ?? `技能 ${skillId}`,
         description: rawDescription ?? "",
     };
+}
+
+function shouldUseDescriptionAsMoveName(rawName, rawDescription) {
+    const normalizedName = cleanText(rawName);
+    const normalizedDescription = cleanText(rawDescription);
+    const rawNameLooksLikeName = looksLikeMoveNameText(normalizedName);
+    const rawDescriptionLooksLikeName = looksLikeMoveNameText(normalizedDescription);
+    const rawDescriptionLooksLikeShortTitle = looksLikeShortMoveTitle(normalizedDescription);
+    const rawNameLooksLikeEffect = looksLikeMoveEffectText(normalizedName);
+
+    return (
+        (rawDescriptionLooksLikeName &&
+            (!rawNameLooksLikeName || rawNameLooksLikeEffect)) ||
+        (rawNameLooksLikeEffect && rawDescriptionLooksLikeShortTitle)
+    );
 }
 
 function buildMove(skill, typesById, fallbackSkillId, options = {}) {
@@ -2108,9 +2205,13 @@ async function cleanGeneratedPetDetails() {
 }
 
 async function writeJson(filePath, value) {
+    await writeJsonWithIndent(filePath, value, 4);
+}
+
+async function writeJsonWithIndent(filePath, value, indent) {
     await fs.writeFile(
         filePath,
-        `${JSON.stringify(value, null, 4)}\n`,
+        `${JSON.stringify(value, null, indent)}\n`,
         "utf8",
     );
 }
