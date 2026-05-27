@@ -115,6 +115,7 @@ path/to/output/
     PetAssetIndex.json
     items.json
     moves.json
+    SkillIconIndex.json
     magic_items.json
     PetSkillIndex.json
     bloodline_index.json
@@ -144,6 +145,8 @@ path/to/output/
 导出会优先读取 `BinLocalize` 下实际存在的本地化目录；当前 NRC 包通常是 `dev_CN`。如果手动传入的语言目录不存在，导出会回退到可用目录，否则物品和技能描述会是空值。
 
 精灵图片不要按 ID 暴力拼路径，优先从 `data/PetAssetIndex.json` 或单个 `data/pets/<id>.json` 的 `assets.preview`、`assets.head.normal`、`assets.portrait` 读取。`assets` 只写入已实际导出的 WebP 路径，特殊形态会尽量使用配置图标、图鉴插图或 BigHeadIcon 中可用的一张作为 `preview`。
+
+技能图片同理，优先从 `data/SkillIconIndex.json` 或 `moves.json` 的 `assets.preferred` 读取；若 `BattleUI/Raw/Atlas/SkillIcon/<icon>.webp` 不存在，会自动回退到 `Common/Icon/SkillBase/<icon>_png.webp`。
 
 `./lua.sh` 额外支持：
 

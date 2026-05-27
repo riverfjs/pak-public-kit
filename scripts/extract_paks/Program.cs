@@ -6,6 +6,7 @@ using CUE4Parse.Encryption.Aes;
 using CUE4Parse.FileProvider;
 using CUE4Parse.FileProvider.Objects;
 using CUE4Parse.UE4.Lua.unluac;
+using CUE4Parse.UE4.Assets;
 using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.UE4.Objects.Core.Misc;
 using CUE4Parse.UE4.Versions;
@@ -82,6 +83,77 @@ if (args.Length > 0 && args[0] == "--probe-icons")
     foreach (var path in iconFiles.Take(120).Select(f => f.Path))
         Console.WriteLine(path);
     Environment.Exit(iconFiles.Count > 0 ? 0 : 3);
+}
+
+if (args.Length > 0 && args[0] == "--probe-texture")
+{
+    string probePakDir = Path.Combine(repoRoot, "paks");
+    string? probeAesKeyHex = null;
+    List<string> probeContains = [];
+    for (var i = 1; i < args.Length; i++)
+    {
+        switch (args[i])
+        {
+            case "--aes-file":
+            case "--key-file":
+                probeAesKeyHex = ReadAesFile(RequireValue(args, ref i, args[i]));
+                break;
+            case "--aes-key":
+                probeAesKeyHex = RequireValue(args, ref i, args[i]);
+                break;
+            case "--contains":
+                probeContains.Add(RequireValue(args, ref i, args[i]));
+                break;
+            default:
+                if (args[i].StartsWith("--", StringComparison.Ordinal))
+                {
+                    Console.Error.WriteLine($"ERROR: Unknown probe argument: {args[i]}");
+                    Environment.Exit(1);
+                }
+                probePakDir = ResolvePath(args[i], Environment.CurrentDirectory);
+                break;
+        }
+    }
+
+    var probeProvider = OpenProvider(probePakDir, probeAesKeyHex ?? string.Empty, assemblyDir);
+    var probeFiles = probeProvider.Files.Values
+        .Where(f => Path.GetExtension(f.Path).Equals(".uasset", StringComparison.OrdinalIgnoreCase))
+        .Where(f => probeContains.Count == 0 || probeContains.Any(term => f.Path.Contains(term, StringComparison.OrdinalIgnoreCase)))
+        .OrderBy(f => f.Path, StringComparer.OrdinalIgnoreCase)
+        .ToList();
+
+    Console.WriteLine($"Texture probe candidates: {probeFiles.Count}");
+    foreach (var file in probeFiles.Take(80))
+    {
+        probeProvider.Files.FindPayloads(file, out var uexp, out var ubulks, out var uptnls);
+        Console.WriteLine($"FILE {file.Path}");
+        Console.WriteLine($"  file: type={file.GetType().Name} size={file.Size} encrypted={file.IsEncrypted} compression={file.CompressionMethod}");
+        Console.WriteLine($"  payloads: uexp={(uexp is null ? "null" : $"{uexp.Size}")} ubulk={ubulks.Count} uptnl={uptnls.Count}");
+        IPackage package;
+        try
+        {
+            package = probeProvider.LoadPackage(file);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"  load: failed {ex.GetType().Name}: {ex.Message}");
+            continue;
+        }
+
+        var exports = package.GetExports().ToList();
+        Console.WriteLine($"  exports: {exports.Count}");
+        foreach (var export in exports)
+        {
+            Console.WriteLine($"  export {export.GetType().Name} {export.Name}");
+            if (export is UTexture2D texture)
+            {
+                var mip = texture.GetFirstMip();
+                var source = mip?.BulkData?.Data;
+                Console.WriteLine($"    format={texture.Format} mip={(mip is null ? "null" : $"{mip.SizeX}x{mip.SizeY}")} data={source?.Length ?? 0}");
+            }
+        }
+    }
+    Environment.Exit(probeFiles.Count > 0 ? 0 : 3);
 }
 
 if (args.Length > 0 && args[0] == "--extract-lua")

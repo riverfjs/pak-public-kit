@@ -185,9 +185,9 @@ def main() -> int:
     print(f"Bin root: {bin_root}")
     decoded, failed = decode_tables(bin_root, output_dir, args.language)
     copy_static_data(output_dir)
+    assets = 0 if args.skip_assets else copy_assets(temp_dir, output_dir)
     if not args.skip_pets:
         sync_pet_data(output_dir)
-    assets = 0 if args.skip_assets else copy_assets(temp_dir, output_dir)
     print(f"Decoded tables: {decoded}")
     print(f"Skipped tables: {failed}")
     print(f"Assets copied: {assets}")

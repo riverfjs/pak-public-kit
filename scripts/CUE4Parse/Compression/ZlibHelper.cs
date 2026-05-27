@@ -64,7 +64,8 @@ public static class ZlibHelper
         var instance = Instance;
         if (instance is null)
         {
-            ThrowDecompressionException(reader, "Zlib decompression failed: not initialized");
+            DecompressWithSystemZlib(compressed, compressedOffset, compressedSize, uncompressed, uncompressedOffset, uncompressedSize, reader);
+            return;
         }
 
         var result = instance.Uncompress(uncompressed.AsSpan(uncompressedOffset, uncompressedSize),
@@ -79,6 +80,33 @@ public static class ZlibHelper
         {
             // Not sure whether this should be an exception or not
             Log.Warning("Zlib decompression only decompressed {0} bytes of the expected {1} bytes", decodedSize, uncompressedSize);
+        }
+    }
+
+    private static void DecompressWithSystemZlib(byte[] compressed, int compressedOffset, int compressedSize,
+        byte[] uncompressed, int uncompressedOffset, int uncompressedSize, FArchive? reader)
+    {
+        try
+        {
+            using var source = new MemoryStream(compressed, compressedOffset, compressedSize, writable: false);
+            using var zlib = new ZLibStream(source, CompressionMode.Decompress, leaveOpen: false);
+            var output = uncompressed.AsSpan(uncompressedOffset, uncompressedSize);
+            var total = 0;
+            while (total < output.Length)
+            {
+                var read = zlib.Read(output[total..]);
+                if (read == 0)
+                    break;
+                total += read;
+            }
+
+            if (total < uncompressedSize)
+                Log.Warning("System zlib only decompressed {0} bytes of the expected {1} bytes", total, uncompressedSize);
+        }
+        catch (Exception ex)
+        {
+            ThrowDecompressionException(reader,
+                $"Zlib decompression failed: native zlib-ng is not initialized and System.IO.Compression fallback failed: {ex.Message}");
         }
     }
 

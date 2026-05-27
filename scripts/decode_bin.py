@@ -151,6 +151,7 @@ class RocoBinDecoder:
         self.constants_table: list[BinTable] = []
         self.rows: dict[str, Any] = {}
         self.loc_strings: dict[int, str] = {}
+        self.struct_end: int | None = None
 
         # 校验 magic
         magic = self.reader.read_uint32()
@@ -198,13 +199,18 @@ class RocoBinDecoder:
                 continue
             if entry.offset != self.reader.pos:
                 self.reader.seek(entry.offset)
+            previous_struct_end = self.struct_end
+            self.struct_end = entry.offset + entry.length
             row = self._parse_struct(schema, loc_decoder)
+            self.struct_end = previous_struct_end
             key = str(row.get(unique_key, f"Unknown_{i}"))
             self.rows[key] = row
 
     def _read_string(self) -> str:
         idx = self.reader.read_uint32()
         if idx == 0:
+            return ""
+        if idx < 1 or idx > len(self.constants_table):
             return ""
         entry = self.constants_table[idx - 1]
         saved = self.reader.pos
@@ -216,12 +222,17 @@ class RocoBinDecoder:
     def _read_array(self, prop: dict, loc: 'RocoBinDecoder | None',
                     is_dynamic: bool = False) -> list:
         const_idx = self.reader.read_int32()
+        if const_idx < 1 or const_idx > len(self.constants_table):
+            return []
         entry = self.constants_table[const_idx - 1]
         saved = self.reader.pos
+        previous_struct_end = self.struct_end
+        self.struct_end = entry.offset + entry.length
         self.reader.seek(entry.offset)
         elem_size = prop["Size"] if is_dynamic else 4
         count = entry.length // elem_size
         result = [self._read_property(prop, loc) for _ in range(count)]
+        self.struct_end = previous_struct_end
         self.reader.pos = saved
         return result
 
@@ -262,6 +273,9 @@ class RocoBinDecoder:
                 continue
             is_dynamic = prop.get("DynamicArray", False)
             array_dim = prop.get("ArrayDim")
+            encoded_size = 4 if is_dynamic or array_dim is not None else prop.get("Size", 4)
+            if self.struct_end is not None and self.reader.pos + encoded_size > self.struct_end:
+                continue
             if is_dynamic or array_dim is not None:
                 row[prop["Name"]] = self._read_array(prop, loc, is_dynamic)
             else:
@@ -271,10 +285,15 @@ class RocoBinDecoder:
     def _parse_nested_struct(self, schema: dict,
                              loc: 'RocoBinDecoder | None') -> dict:
         const_idx = self.reader.read_int32()
+        if const_idx < 1 or const_idx > len(self.constants_table):
+            return {}
         entry = self.constants_table[const_idx - 1]
         saved = self.reader.pos
+        previous_struct_end = self.struct_end
+        self.struct_end = entry.offset + entry.length
         self.reader.seek(entry.offset)
         row = self._parse_struct(schema, loc)
+        self.struct_end = previous_struct_end
         self.reader.pos = saved
         return row
 

@@ -14,6 +14,7 @@ const typesPath = path.join(publicDataDir, "types.json");
 const bloodlineIndexPath = path.join(publicDataDir, "bloodline_index.json");
 const petSkillIndexPath = path.join(publicDataDir, "PetSkillIndex.json");
 const petAssetIndexPath = path.join(publicDataDir, "PetAssetIndex.json");
+const skillIconIndexPath = path.join(publicDataDir, "SkillIconIndex.json");
 const itemsIndexPath = path.join(publicDataDir, "items.json");
 const movesPath = path.join(publicDataDir, "moves.json");
 const magicItemsPath = path.join(publicDataDir, "magic_items.json");
@@ -380,6 +381,7 @@ async function main() {
     const itemEntries = buildItemEntries(getRows(bagItemTable), itemCategories, evolutionItemUsage, skillById, alchemyRecipes);
     const handbookRewards = buildHandbookRewards(handbookRows, rewardTable, visualItemTable, itemById);
     const moveEntries = buildMoveEntries(details);
+    const skillIconEntries = buildSkillIconEntries(getRows(skillTable));
     const magicItemEntries = buildMagicItemEntries(itemEntries);
     const petAssetEntries = Object.fromEntries(
         details.map((detail) => [
@@ -413,6 +415,7 @@ async function main() {
         }),
         writeJson(itemsIndexPath, itemEntries),
         writeJson(movesPath, moveEntries),
+        writeJson(skillIconIndexPath, skillIconEntries),
         writeJson(magicItemsPath, magicItemEntries),
         writeJson(petAssetIndexPath, petAssetEntries),
         writeJson(handbookRewardsPath, handbookRewards),
@@ -465,6 +468,28 @@ function buildMagicItemEntries(itemEntries) {
                 },
             },
         }))
+        .sort((left, right) => left.id - right.id);
+}
+
+function buildSkillIconEntries(skillRows) {
+    return skillRows
+        .filter((skill) => Number.isFinite(skill?.id))
+        .map((skill) => {
+            const iconAssets = buildSkillIconAssets(skill);
+            return {
+                id: skill.id,
+                name: cleanText(skill.name) ?? String(skill.id),
+                description: cleanText(skill.desc) ?? "",
+                icon_id: iconAssets.icon_id,
+                assets: iconAssets,
+                localized: {
+                    zh: {
+                        name: cleanText(skill.name) ?? String(skill.id),
+                        description: cleanText(skill.desc) ?? "",
+                    },
+                },
+            };
+        })
         .sort((left, right) => left.id - right.id);
 }
 
@@ -1298,11 +1323,13 @@ function buildMove(skill, typesById, fallbackSkillId, options = {}) {
         options,
     );
     const moveType = buildMoveType(skill?.skill_dam_type, typesById);
+    const iconAssets = buildSkillIconAssets(skill);
 
     return {
         id: skillId,
         name,
-        icon_id: extractIconId(skill?.icon) ?? null,
+        icon_id: iconAssets.icon_id,
+        assets: iconAssets,
         move_type: moveType,
         localized: {
             zh: {
@@ -1314,6 +1341,23 @@ function buildMove(skill, typesById, fallbackSkillId, options = {}) {
         energy_cost: firstNumericValue(skill?.energy_cost) ?? 0,
         power: resolveMovePower(skill),
         description,
+    };
+}
+
+function buildSkillIconAssets(skill) {
+    const iconId = extractIconId(skill?.icon);
+    const skillIcon = firstExistingAsset(
+        iconId ? `assets/webp/Game/NewRoco/Modules/System/BattleUI/Raw/Atlas/SkillIcon/${iconId}.webp` : null,
+    );
+    const skillBase = firstExistingAsset(
+        iconId ? `assets/webp/Game/NewRoco/Modules/System/Common/Icon/SkillBase/${iconId}_png.webp` : null,
+    );
+
+    return {
+        icon_id: iconId,
+        preferred: firstExistingAsset(skillIcon, skillBase),
+        skill_icon: skillIcon,
+        skill_base: skillBase,
     };
 }
 
